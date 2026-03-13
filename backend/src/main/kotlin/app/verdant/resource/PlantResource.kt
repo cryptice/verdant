@@ -1,0 +1,48 @@
+package app.verdant.resource
+
+import app.verdant.dto.CreatePlantRequest
+import app.verdant.dto.UpdatePlantRequest
+import app.verdant.service.PlantService
+import io.quarkus.security.Authenticated
+import jakarta.ws.rs.*
+import jakarta.ws.rs.core.MediaType
+import jakarta.ws.rs.core.Response
+import org.eclipse.microprofile.jwt.JsonWebToken
+
+@Path("/api")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+@Authenticated
+class PlantResource(
+    private val plantService: PlantService,
+    private val jwt: JsonWebToken
+) {
+    private fun userId() = jwt.subject.toLong()
+
+    @GET
+    @Path("/beds/{bedId}/plants")
+    fun list(@PathParam("bedId") bedId: Long) = plantService.getPlantsForBed(bedId, userId())
+
+    @GET
+    @Path("/plants/{id}")
+    fun get(@PathParam("id") id: Long) = plantService.getPlant(id, userId())
+
+    @POST
+    @Path("/beds/{bedId}/plants")
+    fun create(@PathParam("bedId") bedId: Long, request: CreatePlantRequest): Response {
+        val plant = plantService.createPlant(bedId, request, userId())
+        return Response.status(Response.Status.CREATED).entity(plant).build()
+    }
+
+    @PUT
+    @Path("/plants/{id}")
+    fun update(@PathParam("id") id: Long, request: UpdatePlantRequest) =
+        plantService.updatePlant(id, request, userId())
+
+    @DELETE
+    @Path("/plants/{id}")
+    fun delete(@PathParam("id") id: Long): Response {
+        plantService.deletePlant(id, userId())
+        return Response.noContent().build()
+    }
+}
