@@ -1,5 +1,6 @@
 package app.verdant.android.ui.garden
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,6 +29,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val TAG = "GardenDetail"
+
 data class GardenDetailState(
     val isLoading: Boolean = true,
     val garden: GardenResponse? = null,
@@ -51,10 +54,14 @@ class GardenDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = GardenDetailState(isLoading = true)
             try {
+                Log.d(TAG, "Loading garden $gardenId")
                 val garden = gardenRepository.getGarden(gardenId)
+                Log.d(TAG, "Garden loaded: ${garden.name}")
                 val beds = gardenRepository.getBeds(gardenId)
+                Log.d(TAG, "Beds loaded: ${beds.size}")
                 _uiState.value = GardenDetailState(isLoading = false, garden = garden, beds = beds)
             } catch (e: Exception) {
+                Log.e(TAG, "Failed to load garden: ${e.javaClass.simpleName}: ${e.message}", e)
                 _uiState.value = GardenDetailState(isLoading = false, error = e.message)
             }
         }
@@ -133,6 +140,15 @@ fun GardenDetailScreen(
         when {
             uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
+            }
+            uiState.error != null -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Failed to load garden", color = MaterialTheme.colorScheme.error)
+                    Spacer(Modifier.height(4.dp))
+                    Text(uiState.error ?: "", style = MaterialTheme.typography.bodySmall)
+                    Spacer(Modifier.height(8.dp))
+                    TextButton(onClick = { viewModel.refresh() }) { Text("Retry") }
+                }
             }
             else -> {
                 LazyColumn(
