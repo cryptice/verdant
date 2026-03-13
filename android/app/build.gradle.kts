@@ -6,6 +6,30 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+buildscript {
+    dependencies {
+        classpath("org.yaml:snakeyaml:2.3")
+    }
+}
+
+@Suppress("UNCHECKED_CAST")
+val envYaml: Map<String, Any> = run {
+    val envFile = rootProject.file("../.env.yaml")
+    if (envFile.exists()) {
+        val yaml = org.yaml.snakeyaml.Yaml()
+        yaml.load<Map<String, Any>>(envFile.readText()) ?: emptyMap()
+    } else emptyMap()
+}
+
+@Suppress("UNCHECKED_CAST")
+fun envGet(vararg keys: String): String {
+    var current: Any? = envYaml
+    for (key in keys) {
+        current = (current as? Map<String, Any>)?.get(key)
+    }
+    return current?.toString() ?: ""
+}
+
 android {
     namespace = "app.verdant.android"
     compileSdk = 35
@@ -17,8 +41,14 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/\"")
-        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"YOUR_GOOGLE_WEB_CLIENT_ID\"")
+        val apiBaseUrl = envGet("android", "api-base-url").ifBlank { "http://10.0.2.2:8080/" }
+        val webClientId = envGet("android", "google-web-client-id")
+        val mapsApiKey = envGet("android", "maps-api-key")
+
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$webClientId\"")
+        buildConfigField("String", "MAPS_API_KEY", "\"$mapsApiKey\"")
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
     buildFeatures {
@@ -70,6 +100,10 @@ dependencies {
 
     // Coil for image loading
     implementation("io.coil-kt:coil-compose:2.7.0")
+
+    // Google Maps
+    implementation("com.google.maps.android:maps-compose:6.2.1")
+    implementation("com.google.android.gms:play-services-maps:19.0.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 }

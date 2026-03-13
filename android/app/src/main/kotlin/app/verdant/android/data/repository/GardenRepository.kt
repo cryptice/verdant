@@ -26,4 +26,6 @@ class GardenRepository @Inject constructor(private val api: VerdantApi) {
     suspend fun getMe() = api.getMe()
     suspend fun updateMe(request: UpdateUserRequest) = api.updateMe(request)
     suspend fun deleteMe() = api.deleteMe()
+    suspend fun suggestLayout(request: SuggestLayoutRequest) = api.suggestLayout(request)
+    suspend fun createGardenWithLayout(request: CreateGardenWithLayoutRequest) = api.createGardenWithLayout(request)
 }

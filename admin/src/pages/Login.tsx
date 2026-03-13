@@ -4,7 +4,8 @@ import { useAuth } from '../hooks/useAuth'
 import { api } from '../api/client'
 
 export default function Login() {
-  const [idToken, setIdToken] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
@@ -15,11 +16,7 @@ export default function Login() {
     setLoading(true)
     setError('')
     try {
-      const response = await api.auth.google(idToken)
-      if (response.user.role !== 'ADMIN') {
-        setError('Access denied. Admin role required.')
-        return
-      }
+      const response = await api.auth.login(email, password)
       login(response.token)
       navigate('/')
     } catch (err: unknown) {
@@ -40,14 +37,27 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Google ID Token
+              Email
             </label>
             <input
-              type="text"
-              value={idToken}
-              onChange={e => setIdToken(e.target.value)}
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-              placeholder="Paste your Google ID token..."
+              placeholder="admin@verdant.app"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+              placeholder="Enter your password"
             />
           </div>
 
@@ -57,7 +67,7 @@ export default function Login() {
 
           <button
             type="submit"
-            disabled={loading || !idToken}
+            disabled={loading || !email || !password}
             className="w-full bg-green-600 text-white py-3 rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? 'Signing in...' : 'Sign In'}

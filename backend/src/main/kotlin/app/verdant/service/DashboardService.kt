@@ -18,9 +18,9 @@ class DashboardService(
 
         val gardenSummaries = gardens.map { garden ->
             val beds = bedRepository.findByGardenId(garden.id!!)
-            val plantCount = plantRepository.countByBedGardenId(garden.id!!).toInt()
+            val plantCount = plantRepository.countByGardenId(garden.id).toInt()
             GardenSummary(
-                id = garden.id!!,
+                id = garden.id,
                 name = garden.name,
                 emoji = garden.emoji,
                 bedCount = beds.size,
@@ -28,16 +28,13 @@ class DashboardService(
             )
         }
 
-        val totalBeds = gardenSummaries.sumOf { it.bedCount }
-        val totalPlants = gardenSummaries.sumOf { it.plantCount }
-
         return DashboardResponse(
             user = user.toResponse(),
             gardens = gardenSummaries,
             stats = DashboardStats(
                 totalGardens = gardens.size,
-                totalBeds = totalBeds,
-                totalPlants = totalPlants
+                totalBeds = gardenSummaries.sumOf { it.bedCount },
+                totalPlants = gardenSummaries.sumOf { it.plantCount }
             )
         )
     }

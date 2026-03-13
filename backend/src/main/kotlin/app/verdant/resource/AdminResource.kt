@@ -4,7 +4,6 @@ import app.verdant.repository.GardenRepository
 import app.verdant.repository.UserRepository
 import app.verdant.service.toResponse
 import jakarta.annotation.security.RolesAllowed
-import jakarta.transaction.Transactional
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -22,10 +21,9 @@ class AdminResource(
 
     @DELETE
     @Path("/users/{id}")
-    @Transactional
     fun deleteUser(@PathParam("id") id: Long): Response {
-        val user = userRepository.findById(id) ?: throw NotFoundException("User not found")
-        userRepository.delete(user)
+        userRepository.findById(id) ?: throw NotFoundException("User not found")
+        userRepository.delete(id)
         return Response.noContent().build()
     }
 

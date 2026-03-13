@@ -22,6 +22,10 @@ data class GardenResponse(
     val name: String,
     val description: String?,
     val emoji: String?,
+    val latitude: Double?,
+    val longitude: Double?,
+    val address: String?,
+    val boundaryJson: String?,
     val createdAt: String,
     val updatedAt: String
 )
@@ -29,13 +33,21 @@ data class GardenResponse(
 data class CreateGardenRequest(
     val name: String,
     val description: String? = null,
-    val emoji: String? = "\uD83C\uDF31"
+    val emoji: String? = "\uD83C\uDF31",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val address: String? = null,
+    val boundaryJson: String? = null
 )
 
 data class UpdateGardenRequest(
     val name: String? = null,
     val description: String? = null,
-    val emoji: String? = null
+    val emoji: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val address: String? = null,
+    val boundaryJson: String? = null
 )
 
 data class BedResponse(
@@ -43,18 +55,21 @@ data class BedResponse(
     val name: String,
     val description: String?,
     val gardenId: Long,
+    val boundaryJson: String?,
     val createdAt: String,
     val updatedAt: String
 )
 
 data class CreateBedRequest(
     val name: String,
-    val description: String? = null
+    val description: String? = null,
+    val boundaryJson: String? = null
 )
 
 data class UpdateBedRequest(
     val name: String? = null,
-    val description: String? = null
+    val description: String? = null,
+    val boundaryJson: String? = null
 )
 
 data class PlantResponse(
@@ -100,4 +115,46 @@ data class DashboardStats(
     val totalGardens: Int,
     val totalBeds: Int,
     val totalPlants: Int
+)
+
+data class LatLng(val lat: Double, val lng: Double)
+
+data class SuggestLayoutRequest(
+    val latitude: Double,
+    val longitude: Double,
+    val address: String? = null
+)
+
+data class SuggestedBed(
+    val name: String,
+    val description: String?,
+    val boundary: List<LatLng>
+)
+
+data class SuggestLayoutResponse(
+    val gardenName: String,
+    val boundary: List<LatLng>,
+    val beds: List<SuggestedBed>
+)
+
+data class CreateGardenWithLayoutRequest(
+    val name: String,
+    val description: String? = null,
+    val emoji: String? = "\uD83C\uDF31",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val address: String? = null,
+    val boundaryJson: String? = null,
+    val beds: List<BedLayoutItem> = emptyList()
+)
+
+data class BedLayoutItem(
+    val name: String,
+    val description: String? = null,
+    val boundaryJson: String? = null
+)
+
+data class GardenWithBedsResponse(
+    val garden: GardenResponse,
+    val beds: List<BedResponse>
 )

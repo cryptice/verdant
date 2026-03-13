@@ -54,10 +54,10 @@ export interface Garden {
 
 export const api = {
   auth: {
-    google: (idToken: string) =>
-      apiRequest<AuthResponse>('/api/auth/google', {
+    login: (email: string, password: string) =>
+      apiRequest<AuthResponse>('/api/auth/admin', {
         method: 'POST',
-        body: JSON.stringify({ idToken })
+        body: JSON.stringify({ email, password })
       })
   },
   admin: {

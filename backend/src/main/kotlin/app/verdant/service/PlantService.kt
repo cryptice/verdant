@@ -3,65 +3,71 @@ package app.verdant.service
 import app.verdant.dto.*
 import app.verdant.entity.Plant
 import app.verdant.repository.BedRepository
+import app.verdant.repository.GardenRepository
 import app.verdant.repository.PlantRepository
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.transaction.Transactional
 import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 
 @ApplicationScoped
 class PlantService(
     private val plantRepository: PlantRepository,
-    private val bedRepository: BedRepository
+    private val bedRepository: BedRepository,
+    private val gardenRepository: GardenRepository
 ) {
-    fun getPlantsForBed(bedId: Long, userId: Long): List<PlantResponse> {
+    private fun checkBedOwnership(bedId: Long, userId: Long) {
         val bed = bedRepository.findById(bedId) ?: throw NotFoundException("Bed not found")
-        if (bed.garden.owner.id != userId) throw ForbiddenException()
+        val garden = gardenRepository.findById(bed.gardenId) ?: throw NotFoundException("Garden not found")
+        if (garden.ownerId != userId) throw ForbiddenException()
+    }
+
+    fun getPlantsForBed(bedId: Long, userId: Long): List<PlantResponse> {
+        checkBedOwnership(bedId, userId)
         return plantRepository.findByBedId(bedId).map { it.toResponse() }
     }
 
     fun getPlant(plantId: Long, userId: Long): PlantResponse {
         val plant = plantRepository.findById(plantId) ?: throw NotFoundException("Plant not found")
-        if (plant.bed.garden.owner.id != userId) throw ForbiddenException()
+        checkBedOwnership(plant.bedId, userId)
         return plant.toResponse()
     }
 
-    @Transactional
     fun createPlant(bedId: Long, request: CreatePlantRequest, userId: Long): PlantResponse {
-        val bed = bedRepository.findById(bedId) ?: throw NotFoundException("Bed not found")
-        if (bed.garden.owner.id != userId) throw ForbiddenException()
-        val plant = Plant().apply {
-            name = request.name
-            species = request.species
-            plantedDate = request.plantedDate
-            status = request.status
-            this.bed = bed
-        }
-        plantRepository.persist(plant)
+        checkBedOwnership(bedId, userId)
+        val plant = plantRepository.persist(
+            Plant(
+                name = request.name,
+                species = request.species,
+                plantedDate = request.plantedDate,
+                status = request.status,
+                bedId = bedId,
+            )
+        )
         return plant.toResponse()
     }
 
-    @Transactional
     fun updatePlant(plantId: Long, request: UpdatePlantRequest, userId: Long): PlantResponse {
         val plant = plantRepository.findById(plantId) ?: throw NotFoundException("Plant not found")
-        if (plant.bed.garden.owner.id != userId) throw ForbiddenException()
-        request.name?.let { plant.name = it }
-        request.species?.let { plant.species = it }
-        request.plantedDate?.let { plant.plantedDate = it }
-        request.status?.let { plant.status = it }
-        return plant.toResponse()
+        checkBedOwnership(plant.bedId, userId)
+        val updated = plant.copy(
+            name = request.name ?: plant.name,
+            species = request.species ?: plant.species,
+            plantedDate = request.plantedDate ?: plant.plantedDate,
+            status = request.status ?: plant.status,
+        )
+        plantRepository.update(updated)
+        return updated.toResponse()
     }
 
-    @Transactional
     fun deletePlant(plantId: Long, userId: Long) {
         val plant = plantRepository.findById(plantId) ?: throw NotFoundException("Plant not found")
-        if (plant.bed.garden.owner.id != userId) throw ForbiddenException()
-        plantRepository.delete(plant)
+        checkBedOwnership(plant.bedId, userId)
+        plantRepository.delete(plantId)
     }
 }
 
 fun Plant.toResponse() = PlantResponse(
     id = id!!, name = name, species = species,
-    plantedDate = plantedDate, status = status, bedId = bed.id!!,
+    plantedDate = plantedDate, status = status, bedId = bedId,
     createdAt = createdAt, updatedAt = updatedAt
 )

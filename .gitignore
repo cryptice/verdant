@@ -15,6 +15,7 @@ postgres-data/
 
 # Environment
 .env
+.env.yaml
 *.pem
 
 # OS

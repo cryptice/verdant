@@ -1,6 +1,8 @@
 package app.verdant.resource
 
 import app.verdant.dto.CreateGardenRequest
+import app.verdant.dto.CreateGardenWithLayoutRequest
+import app.verdant.dto.SuggestLayoutRequest
 import app.verdant.dto.UpdateGardenRequest
 import app.verdant.service.GardenService
 import io.quarkus.security.Authenticated
@@ -42,5 +44,17 @@ class GardenResource(
     fun delete(@PathParam("id") id: Long): Response {
         gardenService.deleteGarden(id, userId())
         return Response.noContent().build()
+    }
+
+    @POST
+    @Path("/suggest-layout")
+    fun suggestLayout(request: SuggestLayoutRequest) =
+        gardenService.suggestLayout(request)
+
+    @POST
+    @Path("/with-layout")
+    fun createWithLayout(request: CreateGardenWithLayoutRequest): Response {
+        val result = gardenService.createGardenWithLayout(request, userId())
+        return Response.status(Response.Status.CREATED).entity(result).build()
     }
 }

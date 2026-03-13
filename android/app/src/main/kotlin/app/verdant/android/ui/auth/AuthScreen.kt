@@ -1,6 +1,7 @@
 package app.verdant.android.ui.auth
 
 import android.app.Activity
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,6 +29,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val TAG = "AuthScreen"
+
 data class AuthUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
@@ -45,9 +48,12 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = AuthUiState(isLoading = true)
             try {
+                Log.d(TAG, "Sending ID token to backend...")
                 authRepository.signIn(idToken)
+                Log.d(TAG, "Backend auth successful")
                 _uiState.value = AuthUiState(success = true)
             } catch (e: Exception) {
+                Log.e(TAG, "Backend auth failed: ${e.javaClass.simpleName}: ${e.message}", e)
                 _uiState.value = AuthUiState(error = e.message ?: "Sign in failed")
             }
         }
@@ -95,6 +101,7 @@ fun AuthScreen(
 
             Button(
                 onClick = {
+                    Log.d(TAG, "Sign in button clicked")
                     val credentialManager = CredentialManager.create(context)
                     val googleIdOption = GetGoogleIdOption.Builder()
                         .setFilterByAuthorizedAccounts(false)
@@ -103,15 +110,18 @@ fun AuthScreen(
                     val request = GetCredentialRequest.Builder()
                         .addCredentialOption(googleIdOption)
                         .build()
+                    Log.d(TAG, "Launching credential request...")
 
                     (context as? Activity)?.let { activity ->
                         viewModel.viewModelScope.launch {
                             try {
                                 val result = credentialManager.getCredential(activity, request)
+                                Log.d(TAG, "Got credential, type=${result.credential.type}")
                                 val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
+                                Log.d(TAG, "Google ID token obtained, sending to backend...")
                                 viewModel.signInWithGoogle(googleIdTokenCredential.idToken)
                             } catch (e: Exception) {
-                                // Handle error - for dev, allow a test sign-in
+                                Log.e(TAG, "Credential request failed: ${e.javaClass.simpleName}: ${e.message}", e)
                             }
                         }
                     }

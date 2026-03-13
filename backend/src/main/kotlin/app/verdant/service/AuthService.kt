@@ -4,10 +4,13 @@ import app.verdant.auth.GoogleTokenVerifier
 import app.verdant.auth.TokenService
 import app.verdant.dto.AuthResponse
 import app.verdant.dto.UserResponse
+import app.verdant.entity.Role
 import app.verdant.entity.User
 import app.verdant.repository.UserRepository
+import io.quarkus.elytron.security.common.BcryptUtil
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.transaction.Transactional
+import jakarta.ws.rs.BadRequestException
+import jakarta.ws.rs.ForbiddenException
 
 @ApplicationScoped
 class AuthService(
@@ -15,21 +18,37 @@ class AuthService(
     private val tokenService: TokenService,
     private val userRepository: UserRepository
 ) {
-    @Transactional
     fun authenticateWithGoogle(idToken: String): AuthResponse {
         val claims = googleTokenVerifier.verify(idToken)
 
-        val user = userRepository.findByGoogleSubject(claims.sub) ?: User().apply {
-            googleSubject = claims.sub
-            email = claims.email
-            displayName = claims.name
-            avatarUrl = claims.picture
-        }.also { userRepository.persist(it) }
+        var user = userRepository.findByGoogleSubject(claims.sub)
+        if (user == null) {
+            user = userRepository.persist(
+                User(
+                    googleSubject = claims.sub,
+                    email = claims.email,
+                    displayName = claims.name,
+                    avatarUrl = claims.picture,
+                )
+            )
+        } else {
+            user = user.copy(email = claims.email, displayName = claims.name, avatarUrl = claims.picture)
+            userRepository.update(user)
+        }
 
-        // Update user info on each login
-        user.email = claims.email
-        user.displayName = claims.name
-        user.avatarUrl = claims.picture
+        val token = tokenService.generateToken(user)
+        return AuthResponse(token, user.toResponse())
+    }
+
+    fun authenticateAdmin(email: String, password: String): AuthResponse {
+        val user = userRepository.findByEmail(email)
+            ?: throw BadRequestException("Invalid email or password")
+
+        if (user.role != Role.ADMIN)
+            throw ForbiddenException("Admin access required")
+
+        if (user.passwordHash == null || !BcryptUtil.matches(password, user.passwordHash))
+            throw BadRequestException("Invalid email or password")
 
         val token = tokenService.generateToken(user)
         return AuthResponse(token, user.toResponse())

@@ -63,4 +63,10 @@ interface VerdantApi {
 
     @DELETE("api/plants/{id}")
     suspend fun deletePlant(@Path("id") id: Long)
+
+    @POST("api/gardens/suggest-layout")
+    suspend fun suggestLayout(@Body request: SuggestLayoutRequest): SuggestLayoutResponse
+
+    @POST("api/gardens/with-layout")
+    suspend fun createGardenWithLayout(@Body request: CreateGardenWithLayoutRequest): GardenWithBedsResponse
 }
