@@ -1,7 +1,10 @@
 package app.verdant.resource
 
+import app.verdant.dto.CreatePlantEventRequest
 import app.verdant.dto.CreatePlantRequest
+import app.verdant.dto.IdentifyPlantRequest
 import app.verdant.dto.UpdatePlantRequest
+import app.verdant.service.AiService
 import app.verdant.service.PlantService
 import io.quarkus.security.Authenticated
 import jakarta.ws.rs.*
@@ -15,6 +18,7 @@ import org.eclipse.microprofile.jwt.JsonWebToken
 @Authenticated
 class PlantResource(
     private val plantService: PlantService,
+    private val aiService: AiService,
     private val jwt: JsonWebToken
 ) {
     private fun userId() = jwt.subject.toLong()
@@ -45,4 +49,30 @@ class PlantResource(
         plantService.deletePlant(id, userId())
         return Response.noContent().build()
     }
+
+    // ── Plant Events ──
+
+    @GET
+    @Path("/plants/{id}/events")
+    fun listEvents(@PathParam("id") id: Long) = plantService.getEventsForPlant(id, userId())
+
+    @POST
+    @Path("/plants/{id}/events")
+    fun addEvent(@PathParam("id") id: Long, request: CreatePlantEventRequest): Response {
+        val event = plantService.addEvent(id, request, userId())
+        return Response.status(Response.Status.CREATED).entity(event).build()
+    }
+
+    @DELETE
+    @Path("/plants/{id}/events/{eventId}")
+    fun deleteEvent(@PathParam("id") id: Long, @PathParam("eventId") eventId: Long): Response {
+        plantService.deleteEvent(id, eventId, userId())
+        return Response.noContent().build()
+    }
+
+    // ── Plant Identification ──
+
+    @POST
+    @Path("/plants/identify")
+    fun identify(request: IdentifyPlantRequest) = aiService.identifyPlant(request.imageBase64)
 }

@@ -28,4 +28,15 @@ class GardenRepository @Inject constructor(private val api: VerdantApi) {
     suspend fun deleteMe() = api.deleteMe()
     suspend fun suggestLayout(request: SuggestLayoutRequest) = api.suggestLayout(request)
     suspend fun createGardenWithLayout(request: CreateGardenWithLayoutRequest) = api.createGardenWithLayout(request)
+
+    // Plant Events
+    suspend fun getPlantEvents(plantId: Long) = api.getPlantEvents(plantId)
+    suspend fun addPlantEvent(plantId: Long, request: CreatePlantEventRequest) = api.addPlantEvent(plantId, request)
+    suspend fun deletePlantEvent(plantId: Long, eventId: Long) = api.deletePlantEvent(plantId, eventId)
+
+    // Identification
+    suspend fun identifyPlant(request: IdentifyPlantRequest) = api.identifyPlant(request)
+
+    // Stats
+    suspend fun getHarvestStats() = api.getHarvestStats()
 }

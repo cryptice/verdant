@@ -69,4 +69,25 @@ interface VerdantApi {
 
     @POST("api/gardens/with-layout")
     suspend fun createGardenWithLayout(@Body request: CreateGardenWithLayoutRequest): GardenWithBedsResponse
+
+    // ── Plant Events ──
+
+    @GET("api/plants/{id}/events")
+    suspend fun getPlantEvents(@Path("id") plantId: Long): List<PlantEventResponse>
+
+    @POST("api/plants/{id}/events")
+    suspend fun addPlantEvent(@Path("id") plantId: Long, @Body request: CreatePlantEventRequest): PlantEventResponse
+
+    @DELETE("api/plants/{id}/events/{eventId}")
+    suspend fun deletePlantEvent(@Path("id") plantId: Long, @Path("eventId") eventId: Long)
+
+    // ── Identification ──
+
+    @POST("api/plants/identify")
+    suspend fun identifyPlant(@Body request: IdentifyPlantRequest): List<PlantSuggestion>
+
+    // ── Stats ──
+
+    @GET("api/stats/harvests")
+    suspend fun getHarvestStats(): List<HarvestStatRow>
 }

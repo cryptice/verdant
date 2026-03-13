@@ -106,6 +106,17 @@ fun AccountScreen(
             uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
+            uiState.error != null -> {
+                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("Something went wrong", color = MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.height(16.dp))
+                        OutlinedButton(onClick = { viewModel.signOut() }) {
+                            Text("Sign Out")
+                        }
+                    }
+                }
+            }
             uiState.user != null -> {
                 val user = uiState.user!!
                 Column(

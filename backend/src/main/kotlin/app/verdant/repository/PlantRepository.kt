@@ -42,15 +42,17 @@ class PlantRepository(private val ds: AgroalDataSource) {
     fun persist(plant: Plant): Plant {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO plant (name, species, planted_date, status, bed_id, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, now(), now())""",
+                """INSERT INTO plant (name, species, planted_date, status, seed_count, surviving_count, bed_id, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setString(1, plant.name)
                 ps.setString(2, plant.species)
                 ps.setDate(3, plant.plantedDate?.let { Date.valueOf(it) })
                 ps.setString(4, plant.status.name)
-                ps.setLong(5, plant.bedId)
+                ps.setObject(5, plant.seedCount)
+                ps.setObject(6, plant.survivingCount)
+                ps.setLong(7, plant.bedId)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -63,14 +65,17 @@ class PlantRepository(private val ds: AgroalDataSource) {
     fun update(plant: Plant) {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """UPDATE plant SET name = ?, species = ?, planted_date = ?, status = ?, updated_at = now()
+                """UPDATE plant SET name = ?, species = ?, planted_date = ?, status = ?,
+                   seed_count = ?, surviving_count = ?, updated_at = now()
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setString(1, plant.name)
                 ps.setString(2, plant.species)
                 ps.setDate(3, plant.plantedDate?.let { Date.valueOf(it) })
                 ps.setString(4, plant.status.name)
-                ps.setLong(5, plant.id!!)
+                ps.setObject(5, plant.seedCount)
+                ps.setObject(6, plant.survivingCount)
+                ps.setLong(7, plant.id!!)
                 ps.executeUpdate()
             }
         }
@@ -91,6 +96,8 @@ class PlantRepository(private val ds: AgroalDataSource) {
         species = getString("species"),
         plantedDate = getDate("planted_date")?.toLocalDate(),
         status = PlantStatus.valueOf(getString("status")),
+        seedCount = getObject("seed_count") as? Int,
+        survivingCount = getObject("surviving_count") as? Int,
         bedId = getLong("bed_id"),
         createdAt = getTimestamp("created_at").toInstant(),
         updatedAt = getTimestamp("updated_at").toInstant(),

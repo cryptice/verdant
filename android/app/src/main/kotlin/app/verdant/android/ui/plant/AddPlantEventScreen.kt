@@ -2,6 +2,7 @@ package app.verdant.android.ui.plant
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -12,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,7 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.verdant.android.data.model.CreatePlantRequest
+import app.verdant.android.data.model.CreatePlantEventRequest
 import app.verdant.android.data.model.IdentifyPlantRequest
 import app.verdant.android.data.model.PlantSuggestion
 import app.verdant.android.data.repository.GardenRepository
@@ -34,9 +36,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
+import java.time.LocalDate
 import javax.inject.Inject
 
-data class CreatePlantState(
+data class AddPlantEventState(
     val isLoading: Boolean = false,
     val created: Boolean = false,
     val error: String? = null,
@@ -45,27 +49,19 @@ data class CreatePlantState(
 )
 
 @HiltViewModel
-class CreatePlantViewModel @Inject constructor(
+class AddPlantEventViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val gardenRepository: GardenRepository
 ) : ViewModel() {
-    private val bedId: Long = savedStateHandle.get<Long>("bedId")!!
-    private val _uiState = MutableStateFlow(CreatePlantState())
+    val plantId: Long = savedStateHandle.get<Long>("plantId")!!
+    private val _uiState = MutableStateFlow(AddPlantEventState())
     val uiState = _uiState.asStateFlow()
 
-    fun create(name: String, species: String, seedCount: Int?) {
+    fun addEvent(request: CreatePlantEventRequest) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                gardenRepository.createPlant(
-                    bedId,
-                    CreatePlantRequest(
-                        name = name,
-                        species = species.ifBlank { null },
-                        seedCount = seedCount,
-                        survivingCount = seedCount,
-                    )
-                )
+                gardenRepository.addPlantEvent(plantId, request)
                 _uiState.value = _uiState.value.copy(isLoading = false, created = true)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
@@ -86,25 +82,42 @@ class CreatePlantViewModel @Inject constructor(
     }
 }
 
+fun Bitmap.toCompressedBase64(maxSize: Int = 800): String {
+    val scale = minOf(maxSize.toFloat() / width, maxSize.toFloat() / height, 1f)
+    val scaled = if (scale < 1f) {
+        Bitmap.createScaledBitmap(this, (width * scale).toInt(), (height * scale).toInt(), true)
+    } else this
+    val stream = ByteArrayOutputStream()
+    scaled.compress(Bitmap.CompressFormat.JPEG, 80, stream)
+    return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreatePlantScreen(
+fun AddPlantEventScreen(
     onBack: () -> Unit,
-    onCreated: () -> Unit,
-    viewModel: CreatePlantViewModel = hiltViewModel()
+    viewModel: AddPlantEventViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    var name by remember { mutableStateOf("") }
-    var species by remember { mutableStateOf("") }
-    var seedCount by remember { mutableStateOf("") }
-    var scanBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+    val eventTypes = listOf("SEEDED", "POTTED_UP", "PLANTED_OUT", "HARVESTED", "NOTE")
+    var selectedType by remember { mutableStateOf("NOTE") }
+    var plantCount by remember { mutableStateOf("") }
+    var weightGrams by remember { mutableStateOf("") }
+    var quantity by remember { mutableStateOf("") }
+    var notes by remember { mutableStateOf("") }
+    var imageBase64 by remember { mutableStateOf<String?>(null) }
+    var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
         if (bitmap != null) {
-            scanBitmap = bitmap
+            imageBitmap = bitmap
             val b64 = bitmap.toCompressedBase64()
-            viewModel.identifyPlant(b64)
+            imageBase64 = b64
+            if (selectedType == "SEEDED" || selectedType == "HARVESTED") {
+                viewModel.identifyPlant(b64)
+            }
         }
     }
 
@@ -115,31 +128,25 @@ fun CreatePlantScreen(
                 val bitmap = BitmapFactory.decodeStream(inputStream)
                 inputStream?.close()
                 if (bitmap != null) {
-                    scanBitmap = bitmap
+                    imageBitmap = bitmap
                     val b64 = bitmap.toCompressedBase64()
-                    viewModel.identifyPlant(b64)
+                    imageBase64 = b64
+                    if (selectedType == "SEEDED" || selectedType == "HARVESTED") {
+                        viewModel.identifyPlant(b64)
+                    }
                 }
             } catch (_: Exception) {}
         }
     }
 
     LaunchedEffect(uiState.created) {
-        if (uiState.created) onCreated()
-    }
-
-    // Auto-populate species from top suggestion
-    LaunchedEffect(uiState.suggestions) {
-        if (uiState.suggestions.isNotEmpty() && species.isBlank()) {
-            val top = uiState.suggestions.first()
-            species = top.species
-            if (name.isBlank()) name = top.commonName
-        }
+        if (uiState.created) onBack()
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("New Plant") },
+                title = { Text("Add Event") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
@@ -156,8 +163,51 @@ fun CreatePlantScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Scan seed package
-            Text("Scan Seed Package", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            // Event type chips
+            Text("Event Type", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                eventTypes.forEach { type ->
+                    FilterChip(
+                        selected = selectedType == type,
+                        onClick = { selectedType = type },
+                        label = { Text(type.replace("_", " "), fontSize = 11.sp) }
+                    )
+                }
+            }
+
+            // Conditional fields
+            if (selectedType in listOf("SEEDED", "POTTED_UP", "PLANTED_OUT")) {
+                OutlinedTextField(
+                    value = plantCount,
+                    onValueChange = { plantCount = it.filter { c -> c.isDigit() } },
+                    label = { Text("Plant Count") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
+
+            if (selectedType == "HARVESTED") {
+                OutlinedTextField(
+                    value = weightGrams,
+                    onValueChange = { weightGrams = it.filter { c -> c.isDigit() || c == '.' } },
+                    label = { Text("Weight (grams)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                OutlinedTextField(
+                    value = quantity,
+                    onValueChange = { quantity = it.filter { c -> c.isDigit() } },
+                    label = { Text("Quantity (fruits/stems)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
+
+            // Photo
+            Text("Photo", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = { cameraLauncher.launch(null) }) {
                     Icon(Icons.Default.CameraAlt, null, Modifier.size(18.dp))
@@ -165,83 +215,91 @@ fun CreatePlantScreen(
                     Text("Camera")
                 }
                 OutlinedButton(onClick = { galleryLauncher.launch("image/*") }) {
+                    Icon(Icons.Default.PhotoLibrary, null, Modifier.size(18.dp))
+                    Spacer(Modifier.width(4.dp))
                     Text("Gallery")
                 }
             }
 
-            scanBitmap?.let { bmp ->
+            imageBitmap?.let { bmp ->
                 Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
                     Image(
                         bitmap = bmp.asImageBitmap(),
-                        contentDescription = "Seed package",
-                        modifier = Modifier.fillMaxWidth().heightIn(max = 150.dp),
+                        contentDescription = "Photo",
+                        modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp),
                         contentScale = ContentScale.Crop
                     )
                 }
             }
 
+            // AI suggestions
             if (uiState.identifying) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     CircularProgressIndicator(Modifier.size(16.dp))
-                    Text("Identifying...", fontSize = 14.sp)
+                    Text("Identifying plant...", fontSize = 14.sp)
                 }
             }
-
             if (uiState.suggestions.isNotEmpty()) {
-                Text("Suggestions", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text("AI Suggestions", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 uiState.suggestions.forEach { s ->
                     Card(
                         shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            species = s.species
-                            if (name.isBlank()) name = s.commonName
-                        }
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(Modifier.padding(12.dp)) {
                             Text("${s.commonName} (${s.species})", fontWeight = FontWeight.Medium)
-                            Text("${(s.confidence * 100).toInt()}%", fontSize = 12.sp,
+                            Text("Confidence: ${(s.confidence * 100).toInt()}%", fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                         }
                     }
                 }
             }
 
+            // Notes
             OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Plant Name") },
+                value = notes,
+                onValueChange = { notes = it },
+                label = { Text("Notes (optional)") },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            )
-            OutlinedTextField(
-                value = species,
-                onValueChange = { species = it },
-                label = { Text("Species (optional)") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            )
-            OutlinedTextField(
-                value = seedCount,
-                onValueChange = { seedCount = it.filter { c -> c.isDigit() } },
-                label = { Text("Seed Count (optional)") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                minLines = 2
             )
 
             Spacer(Modifier.height(8.dp))
+
+            // Submit
             Button(
-                onClick = { viewModel.create(name, species, seedCount.toIntOrNull()) },
+                onClick = {
+                    val suggestionsJson = if (uiState.suggestions.isNotEmpty()) {
+                        "[${uiState.suggestions.joinToString(",") {
+                            """{"species":"${it.species}","commonName":"${it.commonName}","confidence":${it.confidence}}"""
+                        }}]"
+                    } else null
+
+                    viewModel.addEvent(
+                        CreatePlantEventRequest(
+                            eventType = selectedType,
+                            eventDate = LocalDate.now().toString(),
+                            plantCount = plantCount.toIntOrNull(),
+                            weightGrams = weightGrams.toDoubleOrNull(),
+                            quantity = quantity.toIntOrNull(),
+                            notes = notes.ifBlank { null },
+                            imageBase64 = imageBase64,
+                            aiSuggestions = suggestionsJson,
+                        )
+                    )
+                },
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(12.dp),
-                enabled = name.isNotBlank() && !uiState.isLoading
+                enabled = !uiState.isLoading
             ) {
                 if (uiState.isLoading) {
                     CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text("Add Plant")
+                    Text("Add Event")
                 }
             }
+
             uiState.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         }
     }

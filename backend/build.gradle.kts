@@ -74,9 +74,9 @@ tasks.withType<JavaExec> {
 }
 
 // Pass config to quarkusDev via JVM args
-tasks.named("quarkusDev") {
+tasks.named<io.quarkus.gradle.tasks.QuarkusDev>("quarkusDev") {
     val geminiKey = envGet("backend", "gemini-api-key")
     if (geminiKey.isNotBlank()) {
-        (this as io.quarkus.gradle.tasks.QuarkusDev).jvmArgs.add("-Dverdant.gemini.api-key=$geminiKey")
+        jvmArgs = jvmArgs + listOf("-Dverdant.gemini.api-key=$geminiKey")
     }
 }

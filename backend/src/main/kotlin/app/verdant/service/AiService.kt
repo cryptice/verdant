@@ -1,9 +1,6 @@
 package app.verdant.service
 
-import app.verdant.dto.LatLng
-import app.verdant.dto.SuggestLayoutRequest
-import app.verdant.dto.SuggestLayoutResponse
-import app.verdant.dto.SuggestedBed
+import app.verdant.dto.*
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.enterprise.context.ApplicationScoped
 import org.eclipse.microprofile.config.inject.ConfigProperty
@@ -23,6 +20,67 @@ class AiService(
 ) {
     private val log = Logger.getLogger(AiService::class.java.name)
     private val httpClient = HttpClient.newHttpClient()
+
+    fun identifyPlant(imageBase64: String): List<PlantSuggestion> {
+        val apiKey = apiKeyOpt.orElse("")
+        if (apiKey.isBlank()) {
+            log.warning("No Gemini API key configured, cannot identify plant")
+            return emptyList()
+        }
+
+        val prompt = """Identify the plant in this image. If it's a seed package, identify the plant species from the package.
+
+Return ONLY valid JSON (no markdown, no explanation) as an array of up to 3 suggestions:
+[{"species": "Solanum lycopersicum", "commonName": "Tomato", "confidence": 0.95}]
+
+Each suggestion should have:
+- species: scientific/Latin name
+- commonName: common English name
+- confidence: 0.0 to 1.0
+
+If you cannot identify any plant, return an empty array: []"""
+
+        val requestBody = objectMapper.writeValueAsString(mapOf(
+            "contents" to listOf(mapOf(
+                "parts" to listOf(
+                    mapOf("text" to prompt),
+                    mapOf("inlineData" to mapOf("mimeType" to "image/jpeg", "data" to imageBase64))
+                )
+            )),
+            "generationConfig" to mapOf(
+                "responseMimeType" to "application/json",
+                "maxOutputTokens" to 1024
+            )
+        ))
+
+        val httpRequest = HttpRequest.newBuilder()
+            .uri(URI.create("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$apiKey"))
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+            .build()
+
+        val response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())
+
+        if (response.statusCode() != 200) {
+            log.warning("Gemini API returned ${response.statusCode()}: ${response.body().take(200)}")
+            return emptyList()
+        }
+
+        return try {
+            val responseJson = objectMapper.readTree(response.body())
+            val text = responseJson["candidates"][0]["content"]["parts"][0]["text"].asText()
+            val cleanJson = text.replace(Regex("^```json\\s*", RegexOption.MULTILINE), "")
+                .replace(Regex("^```\\s*$", RegexOption.MULTILINE), "")
+                .trim()
+            objectMapper.readValue(
+                cleanJson,
+                objectMapper.typeFactory.constructCollectionType(List::class.java, PlantSuggestion::class.java)
+            )
+        } catch (e: Exception) {
+            log.warning("Failed to parse Gemini identify response: ${e.message}")
+            emptyList()
+        }
+    }
 
     fun suggestLayout(request: SuggestLayoutRequest): SuggestLayoutResponse {
         val apiKey = apiKeyOpt.orElse("")
@@ -137,14 +195,12 @@ Guidelines for bed names - use creative, descriptive names like:
     /** Check if two polygons overlap using separating axis theorem on their edges. */
     private fun polygonsOverlap(a: List<LatLng>, b: List<LatLng>): Boolean {
         if (a.size < 3 || b.size < 3) return false
-        // Use separating axis theorem: project both polygons onto each edge normal
-        // If any axis separates them, they don't overlap
         fun getEdgeNormals(poly: List<LatLng>): List<Pair<Double, Double>> {
             return poly.indices.map { i ->
                 val next = (i + 1) % poly.size
                 val dx = poly[next].lat - poly[i].lat
                 val dy = poly[next].lng - poly[i].lng
-                -dy to dx  // perpendicular
+                -dy to dx
             }
         }
 
@@ -163,9 +219,9 @@ Guidelines for bed names - use creative, descriptive names like:
         for (axis in axes) {
             val (aMin, aMax) = project(a, axis)
             val (bMin, bMax) = project(b, axis)
-            if (aMax <= bMin || bMax <= aMin) return false  // separated
+            if (aMax <= bMin || bMax <= aMin) return false
         }
-        return true  // no separating axis found → overlapping
+        return true
     }
 
     /** Returns a garden boundary with no beds — user adds beds manually. */

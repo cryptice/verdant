@@ -16,9 +16,11 @@ import app.verdant.android.ui.bed.CreateBedScreen
 import app.verdant.android.ui.dashboard.DashboardScreen
 import app.verdant.android.ui.garden.CreateGardenScreen
 import app.verdant.android.ui.garden.GardenDetailScreen
+import app.verdant.android.ui.plant.AddPlantEventScreen
 import app.verdant.android.ui.plant.CreatePlantScreen
 import app.verdant.android.ui.plant.PlantDetailScreen
 import app.verdant.android.ui.splash.SplashScreen
+import app.verdant.android.ui.stats.HarvestStatsScreen
 
 sealed class Screen(val route: String) {
     data object Splash : Screen("splash")
@@ -40,6 +42,10 @@ sealed class Screen(val route: String) {
     data object PlantDetail : Screen("plant/{plantId}") {
         fun create(plantId: Long) = "plant/$plantId"
     }
+    data object AddPlantEvent : Screen("plant/{plantId}/event/add") {
+        fun create(plantId: Long) = "plant/$plantId/event/add"
+    }
+    data object HarvestStats : Screen("stats/harvests")
     data object Account : Screen("account")
 }
 
@@ -50,13 +56,11 @@ fun VerdantNavHost() {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
-    val showBottomBar = currentRoute in listOf(
-        Screen.Dashboard.route, Screen.Account.route
-    )
+    val hideBottomBar = currentRoute in listOf(Screen.Splash.route, Screen.Auth.route)
 
     Scaffold(
         bottomBar = {
-            if (showBottomBar) {
+            if (!hideBottomBar) {
                 NavigationBar(
                     containerColor = MaterialTheme.colorScheme.surface
                 ) {
@@ -67,26 +71,14 @@ fun VerdantNavHost() {
                         label = { Text("Home") }
                     )
                     NavigationBarItem(
-                        selected = false,
-                        onClick = { },
+                        selected = currentRoute == Screen.HarvestStats.route,
+                        onClick = { navController.navigate(Screen.HarvestStats.route) { popUpTo(Screen.Dashboard.route) } },
                         icon = { Icon(Icons.Default.Grass, contentDescription = "Plants") },
                         label = { Text("Plants") }
                     )
                     NavigationBarItem(
-                        selected = false,
-                        onClick = { },
-                        icon = { Icon(Icons.Default.CheckCircle, contentDescription = "Tasks") },
-                        label = { Text("Tasks") }
-                    )
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = { },
-                        icon = { Icon(Icons.Default.Book, contentDescription = "Journal") },
-                        label = { Text("Journal") }
-                    )
-                    NavigationBarItem(
                         selected = currentRoute == Screen.Account.route,
-                        onClick = { navController.navigate(Screen.Account.route) },
+                        onClick = { navController.navigate(Screen.Account.route) { popUpTo(Screen.Dashboard.route) } },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Account") },
                         label = { Text("Account") }
                     )
@@ -163,10 +155,28 @@ fun VerdantNavHost() {
             composable(
                 Screen.PlantDetail.route,
                 arguments = listOf(navArgument("plantId") { type = NavType.LongType })
-            ) {
+            ) { backStackEntry ->
+                // Refresh when returning from add event screen
+                val refreshKey = backStackEntry.savedStateHandle.get<Boolean>("refresh")
                 PlantDetailScreen(
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onAddEvent = { plantId -> navController.navigate(Screen.AddPlantEvent.create(plantId)) },
+                    refreshKey = refreshKey
                 )
+            }
+            composable(
+                Screen.AddPlantEvent.route,
+                arguments = listOf(navArgument("plantId") { type = NavType.LongType })
+            ) {
+                AddPlantEventScreen(
+                    onBack = {
+                        navController.previousBackStackEntry?.savedStateHandle?.set("refresh", true)
+                        navController.popBackStack()
+                    }
+                )
+            }
+            composable(Screen.HarvestStats.route) {
+                HarvestStatsScreen()
             }
             composable(Screen.Account.route) {
                 AccountScreen(

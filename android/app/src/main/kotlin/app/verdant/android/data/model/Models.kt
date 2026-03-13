@@ -78,6 +78,8 @@ data class PlantResponse(
     val species: String?,
     val plantedDate: String?,
     val status: String,
+    val seedCount: Int?,
+    val survivingCount: Int?,
     val bedId: Long,
     val createdAt: String,
     val updatedAt: String
@@ -87,14 +89,18 @@ data class CreatePlantRequest(
     val name: String,
     val species: String? = null,
     val plantedDate: String? = null,
-    val status: String = "SEEDLING"
+    val status: String = "SEEDED",
+    val seedCount: Int? = null,
+    val survivingCount: Int? = null,
 )
 
 data class UpdatePlantRequest(
     val name: String? = null,
     val species: String? = null,
     val plantedDate: String? = null,
-    val status: String? = null
+    val status: String? = null,
+    val seedCount: Int? = null,
+    val survivingCount: Int? = null,
 )
 
 data class DashboardResponse(
@@ -157,4 +163,48 @@ data class BedLayoutItem(
 data class GardenWithBedsResponse(
     val garden: GardenResponse,
     val beds: List<BedResponse>
+)
+
+// ── Plant Events ──
+
+data class PlantEventResponse(
+    val id: Long,
+    val plantId: Long,
+    val eventType: String,
+    val eventDate: String,
+    val plantCount: Int?,
+    val weightGrams: Double?,
+    val quantity: Int?,
+    val notes: String?,
+    val imageBase64: String?,
+    val aiSuggestions: String?,
+    val createdAt: String,
+)
+
+data class CreatePlantEventRequest(
+    val eventType: String,
+    val eventDate: String? = null,
+    val plantCount: Int? = null,
+    val weightGrams: Double? = null,
+    val quantity: Int? = null,
+    val notes: String? = null,
+    val imageBase64: String? = null,
+    val aiSuggestions: String? = null,
+)
+
+data class IdentifyPlantRequest(
+    val imageBase64: String,
+)
+
+data class PlantSuggestion(
+    val species: String,
+    val commonName: String,
+    val confidence: Double,
+)
+
+data class HarvestStatRow(
+    val species: String,
+    val totalWeightGrams: Double,
+    val totalQuantity: Int,
+    val harvestCount: Int,
 )
