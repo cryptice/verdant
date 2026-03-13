@@ -6,6 +6,7 @@ import app.verdant.entity.Garden
 import app.verdant.repository.BedRepository
 import app.verdant.repository.GardenRepository
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.transaction.Transactional
 import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 
@@ -66,6 +67,7 @@ class GardenService(
     fun suggestLayout(request: SuggestLayoutRequest): SuggestLayoutResponse =
         aiService.suggestLayout(request)
 
+    @Transactional
     fun createGardenWithLayout(request: CreateGardenWithLayoutRequest, userId: Long): GardenWithBedsResponse {
         val garden = gardenRepository.persist(
             Garden(

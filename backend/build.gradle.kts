@@ -72,3 +72,11 @@ tasks.withType<JavaExec> {
     val dbUrl = envGet("backend", "prod", "db-url")
     if (dbUrl.isNotBlank()) systemProperty("quarkus.datasource.jdbc.url", dbUrl)
 }
+
+// Pass config to quarkusDev via JVM args
+tasks.named("quarkusDev") {
+    val geminiKey = envGet("backend", "gemini-api-key")
+    if (geminiKey.isNotBlank()) {
+        (this as io.quarkus.gradle.tasks.QuarkusDev).jvmArgs.add("-Dverdant.gemini.api-key=$geminiKey")
+    }
+}

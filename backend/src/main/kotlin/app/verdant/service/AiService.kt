@@ -12,6 +12,7 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.util.Optional
+import java.util.logging.Logger
 import kotlin.math.cos
 
 @ApplicationScoped
@@ -20,13 +21,16 @@ class AiService(
     @ConfigProperty(name = "verdant.gemini.api-key")
     private val apiKeyOpt: Optional<String>
 ) {
+    private val log = Logger.getLogger(AiService::class.java.name)
     private val httpClient = HttpClient.newHttpClient()
 
     fun suggestLayout(request: SuggestLayoutRequest): SuggestLayoutResponse {
         val apiKey = apiKeyOpt.orElse("")
         if (apiKey.isBlank()) {
-            return fallbackLayout(request)
+            log.warning("No Gemini API key configured, returning empty layout")
+            return emptyLayout(request)
         }
+        log.info("Calling Gemini API for layout suggestion at (${request.latitude}, ${request.longitude})")
 
         val metersPerDegreeLat = 111_000.0
         val metersPerDegreeLng = 111_000.0 * cos(Math.toRadians(request.latitude))
@@ -59,8 +63,15 @@ Return ONLY valid JSON (no markdown, no explanation) in this exact format:
 }
 
 The boundary should be a polygon (4+ points) forming the garden outline, centered near the given coordinates.
-Create 4-6 beds of varying sizes arranged realistically within the garden boundary.
-Leave pathways between beds (don't fill the entire garden with beds).
+Create 4-6 beds arranged in a grid or strip layout within the garden boundary.
+Each bed should be a simple rectangle (4 corner points).
+Leave 1-2 meter pathways between beds (don't fill the entire garden).
+
+CRITICAL RULE — NO OVERLAPPING BEDS:
+- Divide the garden into distinct non-overlapping zones (e.g. top-left, top-right, bottom strip).
+- No bed polygon may share ANY interior area with another bed.
+- The latitude/longitude ranges of adjacent beds must not intersect.
+- Double-check: for any two beds, their rectangles must not overlap.
 
 Guidelines for bed names - use creative, descriptive names like:
 - "Behind the greenhouse"
@@ -90,8 +101,10 @@ Guidelines for bed names - use creative, descriptive names like:
         val response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())
 
         if (response.statusCode() != 200) {
-            return fallbackLayout(request)
+            log.warning("Gemini API returned ${response.statusCode()}: ${response.body().take(200)}")
+            return emptyLayout(request)
         }
+        log.info("Gemini API responded successfully")
 
         return try {
             val responseJson = objectMapper.readTree(response.body())
@@ -99,19 +112,69 @@ Guidelines for bed names - use creative, descriptive names like:
             val cleanJson = text.replace(Regex("^```json\\s*", RegexOption.MULTILINE), "")
                 .replace(Regex("^```\\s*$", RegexOption.MULTILINE), "")
                 .trim()
-            objectMapper.readValue(cleanJson, SuggestLayoutResponse::class.java)
+            val result = objectMapper.readValue(cleanJson, SuggestLayoutResponse::class.java)
+            result.copy(beds = removeOverlappingBeds(result.beds))
         } catch (e: Exception) {
-            fallbackLayout(request)
+            log.warning("Failed to parse Gemini response: ${e.message}")
+            emptyLayout(request)
         }
     }
 
-    private fun fallbackLayout(request: SuggestLayoutRequest): SuggestLayoutResponse {
+    /** Remove beds that overlap with any earlier bed in the list. Uses axis-aligned bounding box check. */
+    private fun removeOverlappingBeds(beds: List<SuggestedBed>): List<SuggestedBed> {
+        val kept = mutableListOf<SuggestedBed>()
+        for (bed in beds) {
+            val overlaps = kept.any { polygonsOverlap(it.boundary, bed.boundary) }
+            if (!overlaps) {
+                kept.add(bed)
+            } else {
+                log.info("Removed overlapping bed: ${bed.name}")
+            }
+        }
+        return kept
+    }
+
+    /** Check if two polygons overlap using separating axis theorem on their edges. */
+    private fun polygonsOverlap(a: List<LatLng>, b: List<LatLng>): Boolean {
+        if (a.size < 3 || b.size < 3) return false
+        // Use separating axis theorem: project both polygons onto each edge normal
+        // If any axis separates them, they don't overlap
+        fun getEdgeNormals(poly: List<LatLng>): List<Pair<Double, Double>> {
+            return poly.indices.map { i ->
+                val next = (i + 1) % poly.size
+                val dx = poly[next].lat - poly[i].lat
+                val dy = poly[next].lng - poly[i].lng
+                -dy to dx  // perpendicular
+            }
+        }
+
+        fun project(poly: List<LatLng>, axis: Pair<Double, Double>): Pair<Double, Double> {
+            var min = Double.MAX_VALUE
+            var max = -Double.MAX_VALUE
+            for (p in poly) {
+                val dot = p.lat * axis.first + p.lng * axis.second
+                if (dot < min) min = dot
+                if (dot > max) max = dot
+            }
+            return min to max
+        }
+
+        val axes = getEdgeNormals(a) + getEdgeNormals(b)
+        for (axis in axes) {
+            val (aMin, aMax) = project(a, axis)
+            val (bMin, bMax) = project(b, axis)
+            if (aMax <= bMin || bMax <= aMin) return false  // separated
+        }
+        return true  // no separating axis found → overlapping
+    }
+
+    /** Returns a garden boundary with no beds — user adds beds manually. */
+    private fun emptyLayout(request: SuggestLayoutRequest): SuggestLayoutResponse {
         val lat = request.latitude
         val lng = request.longitude
         val metersPerDegreeLat = 111_000.0
         val metersPerDegreeLng = 111_000.0 * cos(Math.toRadians(lat))
 
-        // 20m x 15m garden
         val dLat = 20.0 / metersPerDegreeLat / 2.0
         val dLng = 15.0 / metersPerDegreeLng / 2.0
 
@@ -122,27 +185,6 @@ Guidelines for bed names - use creative, descriptive names like:
             LatLng(lat + dLat, lng - dLng)
         )
 
-        // Create 4 beds with pathways between them
-        val bedMargin = 0.15 // 15% margin for paths
-        val halfW = dLng * (1 - bedMargin)
-        val halfH = dLat * (1 - bedMargin)
-        val gap = dLat * 0.08
-
-        val beds = listOf(
-            SuggestedBed("Sunrise patch", "The eastern bed, first to catch morning light",
-                listOf(LatLng(lat + gap, lng - halfW), LatLng(lat + gap, lng - gap / 2),
-                    LatLng(lat + halfH, lng - gap / 2), LatLng(lat + halfH, lng - halfW))),
-            SuggestedBed("The herb spiral", "A cozy corner perfect for herbs and aromatics",
-                listOf(LatLng(lat + gap, lng + gap / 2), LatLng(lat + gap, lng + halfW),
-                    LatLng(lat + halfH, lng + halfW), LatLng(lat + halfH, lng + gap / 2))),
-            SuggestedBed("Sunflower canyon", "The longest bed, ideal for tall plants and climbers",
-                listOf(LatLng(lat - halfH, lng - halfW), LatLng(lat - halfH, lng + halfW),
-                    LatLng(lat - gap, lng + halfW), LatLng(lat - gap, lng - halfW))),
-            SuggestedBed("Wild corner", "A free-form area for experimentation",
-                listOf(LatLng(lat - halfH * 0.3, lng - halfW * 0.3), LatLng(lat - halfH * 0.3, lng + halfW * 0.3),
-                    LatLng(lat + halfH * 0.3, lng + halfW * 0.3), LatLng(lat + halfH * 0.3, lng - halfW * 0.3)))
-        )
-
-        return SuggestLayoutResponse("My garden", boundary, beds.take(3) + beds.drop(3))
+        return SuggestLayoutResponse("My garden", boundary, emptyList())
     }
 }
