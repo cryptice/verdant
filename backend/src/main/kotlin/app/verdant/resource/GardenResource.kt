@@ -1,15 +1,14 @@
 package app.verdant.resource
 
-import app.verdant.dto.CreateGardenRequest
-import app.verdant.dto.CreateGardenWithLayoutRequest
-import app.verdant.dto.SuggestLayoutRequest
-import app.verdant.dto.UpdateGardenRequest
+import app.verdant.dto.*
+import app.verdant.service.BedService
 import app.verdant.service.GardenService
 import io.quarkus.security.Authenticated
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
 import org.eclipse.microprofile.jwt.JsonWebToken
+import java.util.logging.Logger
 
 @Path("/api/gardens")
 @Produces(MediaType.APPLICATION_JSON)
@@ -17,8 +16,10 @@ import org.eclipse.microprofile.jwt.JsonWebToken
 @Authenticated
 class GardenResource(
     private val gardenService: GardenService,
+    private val bedService: BedService,
     private val jwt: JsonWebToken
 ) {
+    private val log = Logger.getLogger(GardenResource::class.java.name)
     private fun userId() = jwt.subject.toLong()
 
     @GET
@@ -26,7 +27,10 @@ class GardenResource(
 
     @GET
     @Path("/{id}")
-    fun get(@PathParam("id") id: Long) = gardenService.getGarden(id, userId())
+    fun get(@PathParam("id") id: Long): GardenResponse {
+        log.info("GET /api/gardens/$id for user ${userId()}")
+        return gardenService.getGarden(id, userId())
+    }
 
     @POST
     fun create(request: CreateGardenRequest): Response {
@@ -46,6 +50,18 @@ class GardenResource(
         return Response.noContent().build()
     }
 
+    @GET
+    @Path("/{gardenId}/beds")
+    fun listBeds(@PathParam("gardenId") gardenId: Long) =
+        bedService.getBedsForGarden(gardenId, userId())
+
+    @POST
+    @Path("/{gardenId}/beds")
+    fun createBed(@PathParam("gardenId") gardenId: Long, request: CreateBedRequest): Response {
+        val bed = bedService.createBed(gardenId, request, userId())
+        return Response.status(Response.Status.CREATED).entity(bed).build()
+    }
+
     @POST
     @Path("/suggest-layout")
     fun suggestLayout(request: SuggestLayoutRequest) =
@@ -54,7 +70,9 @@ class GardenResource(
     @POST
     @Path("/with-layout")
     fun createWithLayout(request: CreateGardenWithLayoutRequest): Response {
+        log.info("POST /api/gardens/with-layout: name=${request.name}, beds=${request.beds.size}")
         val result = gardenService.createGardenWithLayout(request, userId())
+        log.info("Created garden id=${result.garden.id}")
         return Response.status(Response.Status.CREATED).entity(result).build()
     }
 }

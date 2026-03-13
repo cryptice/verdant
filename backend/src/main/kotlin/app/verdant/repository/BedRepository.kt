@@ -32,7 +32,7 @@ class BedRepository(private val ds: AgroalDataSource) {
             conn.prepareStatement(
                 """INSERT INTO bed (name, description, garden_id, boundary_json, created_at, updated_at)
                    VALUES (?, ?, ?, ?, now(), now())""",
-                Statement.RETURN_GENERATED_KEYS
+                arrayOf("id")
             ).use { ps ->
                 ps.setString(1, bed.name)
                 ps.setString(2, bed.description)

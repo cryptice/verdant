@@ -53,17 +53,24 @@ class GardenDetailViewModel @Inject constructor(
     fun refresh() {
         viewModelScope.launch {
             _uiState.value = GardenDetailState(isLoading = true)
-            try {
-                Log.d(TAG, "Loading garden $gardenId")
-                val garden = gardenRepository.getGarden(gardenId)
-                Log.d(TAG, "Garden loaded: ${garden.name}")
-                val beds = gardenRepository.getBeds(gardenId)
-                Log.d(TAG, "Beds loaded: ${beds.size}")
-                _uiState.value = GardenDetailState(isLoading = false, garden = garden, beds = beds)
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to load garden: ${e.javaClass.simpleName}: ${e.message}", e)
-                _uiState.value = GardenDetailState(isLoading = false, error = e.message)
+            // Retry up to 3 times with delay — garden may not be visible immediately after creation
+            var lastError: Exception? = null
+            for (attempt in 1..3) {
+                try {
+                    Log.d(TAG, "Loading garden $gardenId (attempt $attempt)")
+                    val garden = gardenRepository.getGarden(gardenId)
+                    Log.d(TAG, "Garden loaded: ${garden.name}")
+                    val beds = gardenRepository.getBeds(gardenId)
+                    Log.d(TAG, "Beds loaded: ${beds.size}")
+                    _uiState.value = GardenDetailState(isLoading = false, garden = garden, beds = beds)
+                    return@launch
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to load garden (attempt $attempt): ${e.message}")
+                    lastError = e
+                    if (attempt < 3) kotlinx.coroutines.delay(500L * attempt)
+                }
             }
+            _uiState.value = GardenDetailState(isLoading = false, error = lastError?.message)
         }
     }
 

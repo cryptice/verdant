@@ -6,9 +6,9 @@ import app.verdant.entity.Garden
 import app.verdant.repository.BedRepository
 import app.verdant.repository.GardenRepository
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.transaction.Transactional
 import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
+import java.util.logging.Logger
 
 @ApplicationScoped
 class GardenService(
@@ -20,8 +20,16 @@ class GardenService(
     fun getGardensForUser(userId: Long): List<GardenResponse> =
         gardenRepository.findByOwnerId(userId).map { it.toResponse() }
 
+    private val log = Logger.getLogger(GardenService::class.java.name)
+
     fun getGarden(gardenId: Long, userId: Long): GardenResponse {
-        val garden = gardenRepository.findById(gardenId) ?: throw NotFoundException("Garden not found")
+        log.info("getGarden: gardenId=$gardenId, userId=$userId")
+        val garden = gardenRepository.findById(gardenId)
+        if (garden == null) {
+            log.warning("Garden $gardenId not found in DB")
+            throw NotFoundException("Garden not found")
+        }
+        log.info("Found garden: id=${garden.id}, ownerId=${garden.ownerId}")
         if (garden.ownerId != userId) throw ForbiddenException()
         return garden.toResponse()
     }
@@ -67,7 +75,6 @@ class GardenService(
     fun suggestLayout(request: SuggestLayoutRequest): SuggestLayoutResponse =
         aiService.suggestLayout(request)
 
-    @Transactional
     fun createGardenWithLayout(request: CreateGardenWithLayoutRequest, userId: Long): GardenWithBedsResponse {
         val garden = gardenRepository.persist(
             Garden(

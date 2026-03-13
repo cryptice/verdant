@@ -231,7 +231,9 @@ class CreateGardenViewModel @Inject constructor(
                         )
                     }
                 )
+                android.util.Log.d("CreateGarden", "Sending request: name=${request.name}, beds=${request.beds.size}")
                 val result = gardenRepository.createGardenWithLayout(request)
+                android.util.Log.d("CreateGarden", "Created garden id=${result.garden.id}, name=${result.garden.name}")
                 createdGardenId = result.garden.id
             } catch (e: Exception) {
                 android.util.Log.e("CreateGarden", "Failed to create garden", e)

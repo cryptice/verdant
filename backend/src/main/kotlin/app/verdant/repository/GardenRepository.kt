@@ -41,14 +41,14 @@ class GardenRepository(private val ds: AgroalDataSource) {
             conn.prepareStatement(
                 """INSERT INTO garden (name, description, emoji, owner_id, latitude, longitude, address, boundary_json, created_at, updated_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
-                Statement.RETURN_GENERATED_KEYS
+                arrayOf("id")
             ).use { ps ->
                 ps.setString(1, garden.name)
                 ps.setString(2, garden.description)
                 ps.setString(3, garden.emoji)
                 ps.setLong(4, garden.ownerId)
-                if (garden.latitude != null) ps.setDouble(5, garden.latitude) else ps.setNull(5, java.sql.Types.DOUBLE)
-                if (garden.longitude != null) ps.setDouble(6, garden.longitude) else ps.setNull(6, java.sql.Types.DOUBLE)
+                garden.latitude?.let { ps.setDouble(5, it) } ?: ps.setNull(5, java.sql.Types.DOUBLE)
+                garden.longitude?.let { ps.setDouble(6, it) } ?: ps.setNull(6, java.sql.Types.DOUBLE)
                 ps.setString(7, garden.address)
                 ps.setString(8, garden.boundaryJson)
                 ps.executeUpdate()
@@ -68,8 +68,8 @@ class GardenRepository(private val ds: AgroalDataSource) {
                 ps.setString(1, garden.name)
                 ps.setString(2, garden.description)
                 ps.setString(3, garden.emoji)
-                if (garden.latitude != null) ps.setDouble(4, garden.latitude) else ps.setNull(4, java.sql.Types.DOUBLE)
-                if (garden.longitude != null) ps.setDouble(5, garden.longitude) else ps.setNull(5, java.sql.Types.DOUBLE)
+                garden.latitude?.let { ps.setDouble(4, it) } ?: ps.setNull(4, java.sql.Types.DOUBLE)
+                garden.longitude?.let { ps.setDouble(5, it) } ?: ps.setNull(5, java.sql.Types.DOUBLE)
                 ps.setString(6, garden.address)
                 ps.setString(7, garden.boundaryJson)
                 ps.setLong(8, garden.id!!)

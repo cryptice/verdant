@@ -20,19 +20,8 @@ class BedResource(
     private fun userId() = jwt.subject.toLong()
 
     @GET
-    @Path("/gardens/{gardenId}/beds")
-    fun list(@PathParam("gardenId") gardenId: Long) = bedService.getBedsForGarden(gardenId, userId())
-
-    @GET
     @Path("/beds/{id}")
     fun get(@PathParam("id") id: Long) = bedService.getBed(id, userId())
-
-    @POST
-    @Path("/gardens/{gardenId}/beds")
-    fun create(@PathParam("gardenId") gardenId: Long, request: CreateBedRequest): Response {
-        val bed = bedService.createBed(gardenId, request, userId())
-        return Response.status(Response.Status.CREATED).entity(bed).build()
-    }
 
     @PUT
     @Path("/beds/{id}")

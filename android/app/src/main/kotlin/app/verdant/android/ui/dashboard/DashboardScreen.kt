@@ -170,7 +170,7 @@ fun DashboardScreen(
                                         fontSize = 18.sp
                                     )
                                     Text(
-                                        text = "${garden.plantCount} plants \u00B7 ${garden.bedCount} beds",
+                                        text = "${garden.plantCount} ${if (garden.plantCount == 1) "plant" else "plants"} \u00B7 ${garden.bedCount} ${if (garden.bedCount == 1) "bed" else "beds"}",
                                         fontSize = 14.sp,
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                     )
