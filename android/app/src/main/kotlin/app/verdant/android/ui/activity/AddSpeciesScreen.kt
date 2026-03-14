@@ -221,6 +221,25 @@ fun AddSpeciesScreen(
         isSowingDepthMmValid && isHeightCmValid && isBloomTimeValid &&
         isGerminationRateValid && isPositionsValid && isSoilsValid && isFrontPhotoValid
 
+    // In edit mode, check whether anything actually changed from the original
+    val existing = uiState.existingSpecies
+    val hasChanges = existing == null || // create mode = always "changed"
+        commonName != existing.commonName ||
+        (scientificName) != (existing.scientificName ?: "") ||
+        imageFrontBase64 != existing.imageFrontBase64 ||
+        imageBackBase64 != existing.imageBackBase64 ||
+        daysToSprout != (existing.daysToSprout?.toString() ?: "") ||
+        daysToHarvest != (existing.daysToHarvest?.toString() ?: "") ||
+        germinationTimeDays != (existing.germinationTimeDays?.toString() ?: "") ||
+        sowingDepthMm != (existing.sowingDepthMm?.toString() ?: "") ||
+        heightCm != (existing.heightCm?.toString() ?: "") ||
+        bloomTime != (existing.bloomTime ?: "") ||
+        germinationRate != (existing.germinationRate?.toString() ?: "") ||
+        selectedPositions != existing.growingPositions.toSet() ||
+        selectedSoils != existing.soils.toSet() ||
+        selectedGroupId != existing.groupId ||
+        selectedTagIds != existing.tags.map { it.id }.toSet()
+
     fun tryBack() {
         if (hasData) showDiscardDialog = true else onBack()
     }
@@ -645,6 +664,7 @@ fun AddSpeciesScreen(
             item {
                 Button(
                     onClick = {
+                        if (isEdit && !hasChanges) { onBack(); return@Button }
                         showValidationErrors = true
                         if (!isFormValid) return@Button
                         if (isEdit) {
