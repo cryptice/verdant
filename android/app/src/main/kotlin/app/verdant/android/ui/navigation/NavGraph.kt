@@ -120,8 +120,6 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
             onDismiss = { showActivitySheet = false },
             onActivitySelected = { activity ->
                 when (activity) {
-                    Activity.ADD_SPECIES -> navController.navigate(Screen.AddSpecies.route)
-                    Activity.ADD_SEEDS -> navController.navigate(Screen.AddSeeds.route)
                     Activity.SOW -> navController.navigate(Screen.Sow.route)
                     Activity.POT_UP -> navController.navigate(Screen.PlantPicker.create("SEEDED", "pot-up"))
                     Activity.PLANT -> navController.navigate(Screen.PlantPicker.create("SEEDED,POTTED_UP", "plant-out"))
@@ -148,6 +146,18 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 Spacer(Modifier.height(8.dp))
 
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.add_species)) },
+                    icon = { Icon(Icons.Default.Spa, contentDescription = null) },
+                    selected = currentRoute == Screen.AddSpecies.route,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(Screen.AddSpecies.route) {
+                            popUpTo(Screen.MyWorld.route)
+                        }
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
                 NavigationDrawerItem(
                     label = { Text(stringResource(R.string.seed_inventory)) },
                     icon = { Icon(Icons.Default.Inventory, contentDescription = null) },

@@ -178,7 +178,7 @@
     <string name="growth_information">Odlingsinformation</string>
     <string name="days_to_sprout">Dagar till grodd</string>
     <string name="days_to_harvest">Dagar till sk\u00F6rd</string>
-    <string name="germination_time_days">Grodningstid (dagar)</string>
+    <string name="germination_time_days">Groningstid</string>
     <string name="sowing_depth_mm">S\u00E5djup (mm)</string>
     <string name="height_cm">H\u00F6jd (cm)</string>
     <string name="bloom_time">Blomningstid</string>
@@ -227,6 +227,10 @@
     <string name="language">Spr\u00E5k</string>
     <string name="language_english">English</string>
     <string name="language_swedish">Svenska</string>
+
+    <!-- Unsaved Changes -->
+    <string name="discard_changes">Kasta \u00E4ndringar?</string>
+    <string name="discard_changes_confirm">Du har osparade \u00E4ndringar som kommer att g\u00E5 f\u00F6rlorade.</string>
 
     <!-- Connection Error -->
     <string name="couldnt_reach_garden">Kunde inte n\u00E5 tr\u00E4dg\u00E5rden</string>

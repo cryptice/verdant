@@ -230,6 +230,10 @@
     <string name="language_english">English</string>
     <string name="language_swedish">Svenska</string>
 
+    <!-- Unsaved Changes -->
+    <string name="discard_changes">Discard changes?</string>
+    <string name="discard_changes_confirm">You have unsaved changes that will be lost.</string>
+
     <!-- Connection Error -->
     <string name="couldnt_reach_garden">Couldn\'t reach the garden</string>
     <string name="check_internet">Check your internet connection and try again.</string>

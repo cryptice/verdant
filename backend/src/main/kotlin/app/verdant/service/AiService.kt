@@ -59,7 +59,7 @@ If you cannot identify any plant, return an empty array: []"""
             )),
             "generationConfig" to mapOf(
                 "responseMimeType" to "application/json",
-                "maxOutputTokens" to 1024
+                "maxOutputTokens" to 2048
             )
         ))
 
@@ -88,7 +88,7 @@ If you cannot identify any plant, return an empty array: []"""
                 objectMapper.typeFactory.constructCollectionType(List::class.java, PlantSuggestion::class.java)
             )
         } catch (e: Exception) {
-            log.warning("Failed to parse Gemini identify response: ${e.message}")
+            log.warning("Failed to parse Gemini identify response: ${e.message}. Raw: ${response.body().take(500)}")
             emptyList()
         }
     }
@@ -260,8 +260,8 @@ Return ONLY valid JSON (no markdown, no explanation) with the following fields. 
   "heightCm": 60,
   "bloomTime": "June-August",
   "germinationRate": 85,
-  "growingPosition": "SUNNY",
-  "soil": "LOAMY",
+  "growingPositions": ["SUNNY"],
+  "soils": ["LOAMY", "SANDY"],
   "daysToSprout": 10,
   "daysToHarvest": 90,
   "cropBox": {"x": 0.1, "y": 0.05, "width": 0.8, "height": 0.9}
@@ -275,13 +275,13 @@ Field details:
 - heightCm: expected plant height in centimeters
 - bloomTime: flowering period as a string (e.g. "June-August")
 - germinationRate: germination rate as a percentage integer (e.g. 85 for 85%)
-- growingPosition: one of SUNNY, PARTIALLY_SUNNY, or SHADOWY
-- soil: one of CLAY, SANDY, LOAMY, CHALKY, PEATY, or SILTY
+- growingPositions: array of one or more of SUNNY, PARTIALLY_SUNNY, SHADOWY
+- soils: array of one or more of CLAY, SANDY, LOAMY, CHALKY, PEATY, SILTY
 - daysToSprout: number of days until sprouting
 - daysToHarvest: number of days from sowing to harvest
 - cropBox: if a seed package is visible, the bounding box as normalized coordinates (0.0-1.0 fractions of image width/height) — x, y are top-left corner. Omit if the entire image is the subject.
 
-Only use the exact enum values listed above for growingPosition and soil. If unsure, use null."""
+Only use the exact enum values listed above for growingPositions and soils. If unsure, use empty arrays."""
 
         val requestBody = objectMapper.writeValueAsString(mapOf(
             "contents" to listOf(mapOf(
@@ -292,7 +292,7 @@ Only use the exact enum values listed above for growingPosition and soil. If uns
             )),
             "generationConfig" to mapOf(
                 "responseMimeType" to "application/json",
-                "maxOutputTokens" to 1024
+                "maxOutputTokens" to 2048
             )
         ))
 
@@ -318,7 +318,7 @@ Only use the exact enum values listed above for growingPosition and soil. If uns
                 .trim()
             objectMapper.readValue(cleanJson, ExtractedSpeciesInfo::class.java)
         } catch (e: Exception) {
-            log.warning("Failed to parse Gemini extract species info response: ${e.message}")
+            log.warning("Failed to parse Gemini extract species info response: ${e.message}. Raw: ${response.body().take(500)}")
             null
         }
     }

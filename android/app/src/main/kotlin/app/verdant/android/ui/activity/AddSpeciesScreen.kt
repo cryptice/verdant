@@ -3,9 +3,11 @@ package app.verdant.android.ui.activity
 import android.graphics.Bitmap
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -141,14 +143,27 @@ fun AddSpeciesScreen(
     var showNewGroupDialog by remember { mutableStateOf(false) }
     var showNewTagDialog by remember { mutableStateOf(false) }
     var groupExpanded by remember { mutableStateOf(false) }
+    var showDiscardDialog by remember { mutableStateOf(false) }
+
+    val hasData = commonName.isNotBlank() || scientificName.isNotBlank() ||
+        imageFrontBase64 != null || imageBackBase64 != null ||
+        daysToSprout.isNotBlank() || daysToHarvest.isNotBlank() ||
+        germinationTimeDays.isNotBlank() || sowingDepthMm.isNotBlank() ||
+        heightCm.isNotBlank() || bloomTime.isNotBlank() || germinationRate.isNotBlank()
+
+    fun tryBack() {
+        if (hasData) showDiscardDialog = true else onBack()
+    }
+
+    androidx.activity.compose.BackHandler(enabled = true) { tryBack() }
 
     val growingPositions = listOf("SUNNY", "PARTIALLY_SUNNY", "SHADOWY")
     val growingPositionLabelRes = listOf(R.string.sunny, R.string.partial_sun, R.string.shadowy)
-    var selectedPosition by remember { mutableStateOf<String?>(null) }
+    var selectedPositions by remember { mutableStateOf<Set<String>>(emptySet()) }
 
     val soilTypes = listOf("CLAY", "SANDY", "LOAMY", "CHALKY", "PEATY", "SILTY")
     val soilTypeLabelRes = listOf(R.string.clay, R.string.sandy, R.string.loamy, R.string.chalky, R.string.peaty, R.string.silty)
-    var selectedSoil by remember { mutableStateOf<String?>(null) }
+    var selectedSoils by remember { mutableStateOf<Set<String>>(emptySet()) }
 
     // Auto-populate from AI suggestions (front photo) + crop
     LaunchedEffect(uiState.suggestions) {
@@ -181,8 +196,8 @@ fun AddSpeciesScreen(
         info.heightCm?.let { heightCm = it.toString() }
         info.bloomTime?.let { bloomTime = it }
         info.germinationRate?.let { germinationRate = it.toString() }
-        info.growingPosition?.let { selectedPosition = it }
-        info.soil?.let { selectedSoil = it }
+        info.growingPositions?.let { selectedPositions = it.toSet() }
+        info.soils?.let { selectedSoils = it.toSet() }
         // Crop back photo to seed package bounds
         info.cropBox?.let { box ->
             backBitmap?.let { bmp ->
@@ -195,6 +210,22 @@ fun AddSpeciesScreen(
 
     LaunchedEffect(uiState.created) {
         if (uiState.created) onBack()
+    }
+
+    if (showDiscardDialog) {
+        AlertDialog(
+            onDismissRequest = { showDiscardDialog = false },
+            title = { Text(stringResource(R.string.discard_changes)) },
+            text = { Text(stringResource(R.string.discard_changes_confirm)) },
+            confirmButton = {
+                TextButton(onClick = { showDiscardDialog = false; onBack() }) {
+                    Text(stringResource(R.string.discard), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardDialog = false }) { Text(stringResource(R.string.cancel)) }
+            }
+        )
     }
 
     if (showNewGroupDialog) {
@@ -256,282 +287,316 @@ fun AddSpeciesScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.add_species)) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = { tryBack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 }
             )
         }
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
+                .padding(padding),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Photos side by side
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(stringResource(R.string.front_photo), fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Spacer(Modifier.height(4.dp))
-                    PhotoPicker(
-                        imageBase64 = imageFrontBase64,
-                        onImageCaptured = { b64, bmp ->
-                            imageFrontBase64 = b64
-                            frontBitmap = bmp
-                            viewModel.identifyPlant(b64)
-                        }
-                    )
-                }
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(stringResource(R.string.back_photo), fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Spacer(Modifier.height(4.dp))
-                    PhotoPicker(
-                        imageBase64 = imageBackBase64,
-                        onImageCaptured = { b64, bmp ->
-                            imageBackBase64 = b64
-                            backBitmap = bmp
-                            viewModel.extractSpeciesInfo(b64)
-                        }
-                    )
+            item {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.front_photo), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Spacer(Modifier.height(4.dp))
+                        PhotoPicker(
+                            imageBase64 = imageFrontBase64,
+                            maxImageHeight = 180,
+                            onImageCaptured = { b64, bmp ->
+                                imageFrontBase64 = b64
+                                frontBitmap = bmp
+                                viewModel.identifyPlant(b64)
+                            }
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.back_photo), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Spacer(Modifier.height(4.dp))
+                        PhotoPicker(
+                            imageBase64 = imageBackBase64,
+                            maxImageHeight = 180,
+                            onImageCaptured = { b64, bmp ->
+                                imageBackBase64 = b64
+                                backBitmap = bmp
+                                viewModel.extractSpeciesInfo(b64)
+                            }
+                        )
+                    }
                 }
             }
 
             if (uiState.identifying || uiState.extracting) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    CircularProgressIndicator(Modifier.size(16.dp))
-                    Text(stringResource(R.string.identifying), fontSize = 14.sp)
+                item {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        CircularProgressIndicator(Modifier.size(16.dp))
+                        Text(stringResource(R.string.identifying), fontSize = 14.sp)
+                    }
                 }
             }
 
             if (uiState.suggestions.isNotEmpty()) {
-                Text(stringResource(R.string.ai_suggestions), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                item {
+                    Text(stringResource(R.string.ai_suggestions), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                }
                 uiState.suggestions.forEach { s ->
-                    Card(
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            commonName = s.commonName
-                            scientificName = s.species
-                        }
-                    ) {
-                        Column(Modifier.padding(12.dp)) {
-                            Text("${s.commonName} (${s.species})", fontWeight = FontWeight.Medium)
-                            Text("${(s.confidence * 100).toInt()}%", fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                    item {
+                        Card(
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = {
+                                commonName = s.commonName
+                                scientificName = s.species
+                            }
+                        ) {
+                            Column(Modifier.padding(12.dp)) {
+                                Text("${s.commonName} (${s.species})", fontWeight = FontWeight.Medium)
+                                Text("${(s.confidence * 100).toInt()}%", fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                            }
                         }
                     }
                 }
             }
 
             // Names
-            OutlinedTextField(
-                value = commonName,
-                onValueChange = { commonName = it },
-                label = { Text(stringResource(R.string.common_name_required)) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            )
-            OutlinedTextField(
-                value = scientificName,
-                onValueChange = { scientificName = it },
-                label = { Text(stringResource(R.string.scientific_name)) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            )
+            item {
+                OutlinedTextField(
+                    value = commonName,
+                    onValueChange = { commonName = it },
+                    label = { Text(stringResource(R.string.common_name_required)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
+            item {
+                OutlinedTextField(
+                    value = scientificName,
+                    onValueChange = { scientificName = it },
+                    label = { Text(stringResource(R.string.scientific_name)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
 
             // Growth timings
-            Text(stringResource(R.string.growth_information), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            item { Text(stringResource(R.string.growth_information), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = daysToSprout,
+                        onValueChange = { daysToSprout = it.filter { c -> c.isDigit() } },
+                        label = { Text(stringResource(R.string.days_to_sprout)) },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = daysToHarvest,
+                        onValueChange = { daysToHarvest = it.filter { c -> c.isDigit() } },
+                        label = { Text(stringResource(R.string.days_to_harvest)) },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+                }
+            }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = germinationTimeDays,
+                        onValueChange = { germinationTimeDays = it.filter { c -> c.isDigit() } },
+                        label = { Text(stringResource(R.string.germination_time_days)) },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = sowingDepthMm,
+                        onValueChange = { sowingDepthMm = it.filter { c -> c.isDigit() } },
+                        label = { Text(stringResource(R.string.sowing_depth_mm)) },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+                }
+            }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = heightCm,
+                        onValueChange = { heightCm = it.filter { c -> c.isDigit() } },
+                        label = { Text(stringResource(R.string.height_cm)) },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = bloomTime,
+                        onValueChange = { bloomTime = it },
+                        label = { Text(stringResource(R.string.bloom_time)) },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+                }
+            }
+            item {
                 OutlinedTextField(
-                    value = daysToSprout,
-                    onValueChange = { daysToSprout = it.filter { c -> c.isDigit() } },
-                    label = { Text(stringResource(R.string.days_to_sprout)) },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = daysToHarvest,
-                    onValueChange = { daysToHarvest = it.filter { c -> c.isDigit() } },
-                    label = { Text(stringResource(R.string.days_to_harvest)) },
-                    modifier = Modifier.weight(1f),
+                    value = germinationRate,
+                    onValueChange = { germinationRate = it.filter { c -> c.isDigit() } },
+                    label = { Text(stringResource(R.string.germination_rate_percent)) },
+                    modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true
                 )
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = germinationTimeDays,
-                    onValueChange = { germinationTimeDays = it.filter { c -> c.isDigit() } },
-                    label = { Text(stringResource(R.string.germination_time_days)) },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = sowingDepthMm,
-                    onValueChange = { sowingDepthMm = it.filter { c -> c.isDigit() } },
-                    label = { Text(stringResource(R.string.sowing_depth_mm)) },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = heightCm,
-                    onValueChange = { heightCm = it.filter { c -> c.isDigit() } },
-                    label = { Text(stringResource(R.string.height_cm)) },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = bloomTime,
-                    onValueChange = { bloomTime = it },
-                    label = { Text(stringResource(R.string.bloom_time)) },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-            }
-            OutlinedTextField(
-                value = germinationRate,
-                onValueChange = { germinationRate = it.filter { c -> c.isDigit() } },
-                label = { Text(stringResource(R.string.germination_rate_percent)) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true
-            )
 
             // Growing position
-            Text(stringResource(R.string.growing_position), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                growingPositions.forEachIndexed { i, pos ->
-                    FilterChip(
-                        selected = selectedPosition == pos,
-                        onClick = { selectedPosition = if (selectedPosition == pos) null else pos },
-                        label = { Text(stringResource(growingPositionLabelRes[i])) }
-                    )
+            item { Text(stringResource(R.string.growing_position), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    growingPositions.forEachIndexed { i, pos ->
+                        FilterChip(
+                            selected = pos in selectedPositions,
+                            onClick = { selectedPositions = if (pos in selectedPositions) selectedPositions - pos else selectedPositions + pos },
+                            label = { Text(stringResource(growingPositionLabelRes[i])) }
+                        )
+                    }
                 }
             }
 
             // Soil type
-            Text(stringResource(R.string.soil_type), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.horizontalScroll(rememberScrollState())
-            ) {
-                soilTypes.forEachIndexed { i, soil ->
-                    FilterChip(
-                        selected = selectedSoil == soil,
-                        onClick = { selectedSoil = if (selectedSoil == soil) null else soil },
-                        label = { Text(stringResource(soilTypeLabelRes[i])) }
-                    )
+            item { Text(stringResource(R.string.soil_type), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+            item {
+                @OptIn(ExperimentalLayoutApi::class)
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    soilTypes.forEachIndexed { i, soil ->
+                        FilterChip(
+                            selected = soil in selectedSoils,
+                            onClick = { selectedSoils = if (soil in selectedSoils) selectedSoils - soil else selectedSoils + soil },
+                            label = { Text(stringResource(soilTypeLabelRes[i])) }
+                        )
+                    }
                 }
             }
 
             // Group picker
-            Text(stringResource(R.string.group), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            ExposedDropdownMenuBox(
-                expanded = groupExpanded,
-                onExpandedChange = { groupExpanded = it }
-            ) {
-                OutlinedTextField(
-                    value = uiState.groups.find { it.id == selectedGroupId }?.name ?: stringResource(R.string.none),
-                    onValueChange = {},
-                    readOnly = true,
-                    modifier = Modifier.fillMaxWidth().menuAnchor(),
-                    shape = RoundedCornerShape(12.dp),
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(groupExpanded) }
-                )
-                ExposedDropdownMenu(
+            item { Text(stringResource(R.string.group), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+            item {
+                ExposedDropdownMenuBox(
                     expanded = groupExpanded,
-                    onDismissRequest = { groupExpanded = false }
+                    onExpandedChange = { groupExpanded = it }
                 ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.none)) },
-                        onClick = { selectedGroupId = null; groupExpanded = false }
+                    OutlinedTextField(
+                        value = uiState.groups.find { it.id == selectedGroupId }?.name ?: stringResource(R.string.none),
+                        onValueChange = {},
+                        readOnly = true,
+                        modifier = Modifier.fillMaxWidth().menuAnchor(),
+                        shape = RoundedCornerShape(12.dp),
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(groupExpanded) }
                     )
-                    uiState.groups.forEach { group ->
+                    ExposedDropdownMenu(
+                        expanded = groupExpanded,
+                        onDismissRequest = { groupExpanded = false }
+                    ) {
                         DropdownMenuItem(
-                            text = { Text(group.name) },
-                            onClick = { selectedGroupId = group.id; groupExpanded = false }
+                            text = { Text(stringResource(R.string.none)) },
+                            onClick = { selectedGroupId = null; groupExpanded = false }
+                        )
+                        uiState.groups.forEach { group ->
+                            DropdownMenuItem(
+                                text = { Text(group.name) },
+                                onClick = { selectedGroupId = group.id; groupExpanded = false }
+                            )
+                        }
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.create_new_group), color = MaterialTheme.colorScheme.primary) },
+                            onClick = { showNewGroupDialog = true; groupExpanded = false }
                         )
                     }
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.create_new_group), color = MaterialTheme.colorScheme.primary) },
-                        onClick = { showNewGroupDialog = true; groupExpanded = false }
-                    )
                 }
             }
 
             // Tag picker
-            Text(stringResource(R.string.tags), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.horizontalScroll(rememberScrollState())
-            ) {
-                uiState.tags.forEach { tag ->
-                    FilterChip(
-                        selected = tag.id in selectedTagIds,
-                        onClick = {
-                            selectedTagIds = if (tag.id in selectedTagIds)
-                                selectedTagIds - tag.id else selectedTagIds + tag.id
-                        },
-                        label = { Text(tag.name) }
-                    )
-                }
-                SuggestionChip(
-                    onClick = { showNewTagDialog = true },
-                    label = { Text(stringResource(R.string.new_tag)) }
-                )
-            }
-
-            Spacer(Modifier.height(8.dp))
-
-            Button(
-                onClick = {
-                    viewModel.createSpecies(
-                        CreateSpeciesRequest(
-                            commonName = commonName,
-                            commonNameSv = if (currentLocale == "sv") commonName else null,
-                            scientificName = scientificName.ifBlank { null },
-                            imageFrontBase64 = imageFrontBase64,
-                            imageBackBase64 = imageBackBase64,
-                            daysToSprout = daysToSprout.toIntOrNull(),
-                            daysToHarvest = daysToHarvest.toIntOrNull(),
-                            germinationTimeDays = germinationTimeDays.toIntOrNull(),
-                            sowingDepthMm = sowingDepthMm.toIntOrNull(),
-                            growingPosition = selectedPosition,
-                            soil = selectedSoil,
-                            heightCm = heightCm.toIntOrNull(),
-                            bloomTime = bloomTime.ifBlank { null },
-                            germinationRate = germinationRate.toIntOrNull(),
-                            groupId = selectedGroupId,
-                            tagIds = selectedTagIds.toList(),
+            item { Text(stringResource(R.string.tags), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+            item {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.horizontalScroll(rememberScrollState())
+                ) {
+                    uiState.tags.forEach { tag ->
+                        FilterChip(
+                            selected = tag.id in selectedTagIds,
+                            onClick = {
+                                selectedTagIds = if (tag.id in selectedTagIds)
+                                    selectedTagIds - tag.id else selectedTagIds + tag.id
+                            },
+                            label = { Text(tag.name) }
                         )
+                    }
+                    SuggestionChip(
+                        onClick = { showNewTagDialog = true },
+                        label = { Text(stringResource(R.string.new_tag)) }
                     )
-                },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(12.dp),
-                enabled = commonName.isNotBlank() && !uiState.isLoading
-            ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                } else {
-                    Text(stringResource(R.string.save_species))
                 }
             }
 
-            uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }
-            Spacer(Modifier.height(32.dp))
+            item { Spacer(Modifier.height(8.dp)) }
+
+            item {
+                Button(
+                    onClick = {
+                        viewModel.createSpecies(
+                            CreateSpeciesRequest(
+                                commonName = commonName,
+                                commonNameSv = if (currentLocale == "sv") commonName else null,
+                                scientificName = scientificName.ifBlank { null },
+                                imageFrontBase64 = imageFrontBase64,
+                                imageBackBase64 = imageBackBase64,
+                                daysToSprout = daysToSprout.toIntOrNull(),
+                                daysToHarvest = daysToHarvest.toIntOrNull(),
+                                germinationTimeDays = germinationTimeDays.toIntOrNull(),
+                                sowingDepthMm = sowingDepthMm.toIntOrNull(),
+                                growingPositions = selectedPositions.toList(),
+                                soils = selectedSoils.toList(),
+                                heightCm = heightCm.toIntOrNull(),
+                                bloomTime = bloomTime.ifBlank { null },
+                                germinationRate = germinationRate.toIntOrNull(),
+                                groupId = selectedGroupId,
+                                tagIds = selectedTagIds.toList(),
+                            )
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = commonName.isNotBlank() && !uiState.isLoading
+                ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    } else {
+                        Text(stringResource(R.string.save_species))
+                    }
+                }
+            }
+
+            item {
+                uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }
+                Spacer(Modifier.height(32.dp))
+            }
         }
     }
 }

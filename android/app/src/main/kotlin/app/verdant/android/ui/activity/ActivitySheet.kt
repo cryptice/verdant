@@ -21,8 +21,6 @@ import androidx.compose.ui.unit.sp
 import app.verdant.android.R
 
 enum class Activity(val labelRes: Int, val icon: ImageVector) {
-    ADD_SPECIES(R.string.activity_add_species, Icons.Default.Spa),
-    ADD_SEEDS(R.string.activity_add_seeds, Icons.Default.Inventory),
     SOW(R.string.activity_sow, Icons.Default.Grain),
     POT_UP(R.string.activity_pot_up, Icons.Default.Inventory2),
     PLANT(R.string.activity_plant, Icons.Default.Park),
@@ -40,9 +38,23 @@ fun ActivitySheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        dragHandle = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onDismiss() }
+                    .padding(vertical = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                BottomSheetDefaults.DragHandle()
+            }
+        },
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 32.dp).navigationBarsPadding(),
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 32.dp)
+                .navigationBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(

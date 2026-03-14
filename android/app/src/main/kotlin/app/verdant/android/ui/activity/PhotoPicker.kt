@@ -9,19 +9,25 @@ import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import app.verdant.android.R
 import app.verdant.android.data.model.CropBox
@@ -59,9 +65,11 @@ fun PhotoPicker(
     imageBase64: String?,
     onImageCaptured: (base64: String, bitmap: Bitmap) -> Unit,
     modifier: Modifier = Modifier,
+    maxImageHeight: Int = 300,
 ) {
     val context = LocalContext.current
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var showFullScreen by remember { mutableStateOf(false) }
 
     // Decode existing base64 on first load
     LaunchedEffect(imageBase64) {
@@ -108,29 +116,71 @@ fun PhotoPicker(
         }
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = modifier) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { launchCamera() }) {
-                Icon(Icons.Default.CameraAlt, null, Modifier.size(18.dp))
-                Spacer(Modifier.width(4.dp))
-                Text(stringResource(R.string.camera))
-            }
-            OutlinedButton(onClick = { galleryLauncher.launch("image/*") }) {
-                Icon(Icons.Default.PhotoLibrary, null, Modifier.size(18.dp))
-                Spacer(Modifier.width(4.dp))
-                Text(stringResource(R.string.gallery))
+    // Full screen photo dialog
+    if (showFullScreen) {
+        bitmap?.let { bmp ->
+            Dialog(
+                onDismissRequest = { showFullScreen = false },
+                properties = DialogProperties(usePlatformDefaultWidth = false)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable { showFullScreen = false }
+                ) {
+                    Image(
+                        bitmap = bmp.asImageBitmap(),
+                        contentDescription = stringResource(R.string.photo),
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                    IconButton(
+                        onClick = { showFullScreen = false },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp),
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = Color.Black.copy(alpha = 0.5f),
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Icon(Icons.Default.Close, stringResource(R.string.back))
+                    }
+                }
             }
         }
+    }
 
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = modifier) {
         bitmap?.let { bmp ->
-            Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth().clickable { showFullScreen = true }
+            ) {
                 Image(
                     bitmap = bmp.asImageBitmap(),
                     contentDescription = stringResource(R.string.photo),
-                    modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(max = maxImageHeight.dp),
                     contentScale = ContentScale.Fit
                 )
             }
+        }
+
+        OutlinedButton(
+            onClick = { launchCamera() },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Default.CameraAlt, null, Modifier.size(18.dp))
+            Spacer(Modifier.width(4.dp))
+            Text(stringResource(R.string.camera))
+        }
+        OutlinedButton(
+            onClick = { galleryLauncher.launch("image/*") },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Default.PhotoLibrary, null, Modifier.size(18.dp))
+            Spacer(Modifier.width(4.dp))
+            Text(stringResource(R.string.gallery))
         }
     }
 }

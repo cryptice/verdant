@@ -34,7 +34,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
             conn.prepareStatement(
                 """INSERT INTO species (user_id, common_name, common_name_sv, scientific_name, image_front_base64, image_back_base64,
                    days_to_sprout, days_to_harvest, germination_time_days, sowing_depth_mm,
-                   growing_position, soil, height_cm, bloom_time, germination_rate, group_id, created_at)
+                   growing_positions, soils, height_cm, bloom_time, germination_rate, group_id, created_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
@@ -48,8 +48,8 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 ps.setObject(8, species.daysToHarvest)
                 ps.setObject(9, species.germinationTimeDays)
                 ps.setObject(10, species.sowingDepthMm)
-                ps.setString(11, species.growingPosition?.name)
-                ps.setString(12, species.soil?.name)
+                ps.setString(11, species.growingPositions.takeIf { it.isNotEmpty() }?.joinToString(",") { it.name })
+                ps.setString(12, species.soils.takeIf { it.isNotEmpty() }?.joinToString(",") { it.name })
                 ps.setObject(13, species.heightCm)
                 ps.setString(14, species.bloomTime)
                 ps.setObject(15, species.germinationRate)
@@ -69,7 +69,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 """UPDATE species SET common_name = ?, common_name_sv = ?, scientific_name = ?,
                    image_front_base64 = ?, image_back_base64 = ?,
                    days_to_sprout = ?, days_to_harvest = ?, germination_time_days = ?,
-                   sowing_depth_mm = ?, growing_position = ?, soil = ?, height_cm = ?,
+                   sowing_depth_mm = ?, growing_positions = ?, soils = ?, height_cm = ?,
                    bloom_time = ?, germination_rate = ?, group_id = ?
                    WHERE id = ?"""
             ).use { ps ->
@@ -82,8 +82,8 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 ps.setObject(7, species.daysToHarvest)
                 ps.setObject(8, species.germinationTimeDays)
                 ps.setObject(9, species.sowingDepthMm)
-                ps.setString(10, species.growingPosition?.name)
-                ps.setString(11, species.soil?.name)
+                ps.setString(10, species.growingPositions.takeIf { it.isNotEmpty() }?.joinToString(",") { it.name })
+                ps.setString(11, species.soils.takeIf { it.isNotEmpty() }?.joinToString(",") { it.name })
                 ps.setObject(12, species.heightCm)
                 ps.setString(13, species.bloomTime)
                 ps.setObject(14, species.germinationRate)
@@ -144,8 +144,8 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
         daysToHarvest = getObject("days_to_harvest") as? Int,
         germinationTimeDays = getObject("germination_time_days") as? Int,
         sowingDepthMm = getObject("sowing_depth_mm") as? Int,
-        growingPosition = getString("growing_position")?.let { GrowingPosition.valueOf(it) },
-        soil = getString("soil")?.let { SoilType.valueOf(it) },
+        growingPositions = getString("growing_positions")?.split(",")?.map { GrowingPosition.valueOf(it) } ?: emptyList(),
+        soils = getString("soils")?.split(",")?.map { SoilType.valueOf(it) } ?: emptyList(),
         heightCm = getObject("height_cm") as? Int,
         bloomTime = getString("bloom_time"),
         germinationRate = getObject("germination_rate") as? Int,
