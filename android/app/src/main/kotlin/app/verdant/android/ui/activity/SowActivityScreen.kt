@@ -31,6 +31,7 @@ data class SowActivityState(
     val species: List<SpeciesResponse> = emptyList(),
     val beds: List<BedWithGardenResponse> = emptyList(),
     val comments: List<String> = emptyList(),
+    val seedBatches: List<SeedInventoryResponse> = emptyList(),
 )
 
 @HiltViewModel
@@ -53,7 +54,18 @@ class SowActivityViewModel @Inject constructor(
         }
     }
 
-    fun sow(bedId: Long, speciesId: Long, name: String, seedCount: Int?, notes: String?, imageBase64: String?) {
+    fun loadSeedBatches(speciesId: Long) {
+        viewModelScope.launch {
+            try {
+                val lots = repo.getSeedInventory(speciesId).filter { it.quantity > 0 }
+                _uiState.value = _uiState.value.copy(seedBatches = lots)
+            } catch (_: Exception) {
+                _uiState.value = _uiState.value.copy(seedBatches = emptyList())
+            }
+        }
+    }
+
+    fun sow(bedId: Long, speciesId: Long, name: String, seedCount: Int?, notes: String?, imageBase64: String?, seedBatchId: Long?) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
@@ -79,6 +91,10 @@ class SowActivityViewModel @Inject constructor(
                         imageBase64 = imageBase64,
                     )
                 )
+                // Decrement seed inventory
+                if (seedBatchId != null && seedCount != null && seedCount > 0) {
+                    repo.decrementSeedInventory(seedBatchId, DecrementSeedInventoryRequest(seedCount))
+                }
                 if (!notes.isNullOrBlank()) {
                     repo.recordComment(RecordCommentRequest(notes))
                 }
@@ -100,19 +116,25 @@ fun SowActivityScreen(
 
     var selectedSpeciesId by remember { mutableStateOf<Long?>(null) }
     var selectedBedId by remember { mutableStateOf<Long?>(null) }
+    var selectedSeedBatchId by remember { mutableStateOf<Long?>(null) }
     var plantName by remember { mutableStateOf("") }
     var seedCount by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
     var imageBase64 by remember { mutableStateOf<String?>(null) }
     var speciesExpanded by remember { mutableStateOf(false) }
     var bedExpanded by remember { mutableStateOf(false) }
+    var seedBatchExpanded by remember { mutableStateOf(false) }
     var speciesSearch by remember { mutableStateOf("") }
 
-    // Auto-fill plant name from species
+    // Auto-fill plant name from species + load seed lots
     LaunchedEffect(selectedSpeciesId) {
-        if (selectedSpeciesId != null && plantName.isBlank()) {
-            val species = uiState.species.find { it.id == selectedSpeciesId }
-            if (species != null) plantName = species.commonName
+        if (selectedSpeciesId != null) {
+            if (plantName.isBlank()) {
+                val species = uiState.species.find { it.id == selectedSpeciesId }
+                if (species != null) plantName = species.commonName
+            }
+            viewModel.loadSeedBatches(selectedSpeciesId!!)
+            selectedSeedBatchId = null
         }
     }
 
@@ -179,6 +201,57 @@ fun SowActivityScreen(
                         )
                     }
                 }
+            }
+
+            // Seed lot picker (shown when species selected and lots available)
+            if (selectedSpeciesId != null && uiState.seedBatches.isNotEmpty()) {
+                Text("Seed Batch *", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                ExposedDropdownMenuBox(
+                    expanded = seedBatchExpanded,
+                    onExpandedChange = { seedBatchExpanded = it }
+                ) {
+                    val selectedLot = uiState.seedBatches.find { it.id == selectedSeedBatchId }
+                    OutlinedTextField(
+                        value = selectedLot?.let {
+                            buildString {
+                                append("${it.quantity} seeds")
+                                it.collectionDate?.let { d -> append(" (collected $d)") }
+                            }
+                        } ?: "",
+                        onValueChange = {},
+                        readOnly = true,
+                        placeholder = { Text("Select seed batch...") },
+                        modifier = Modifier.fillMaxWidth().menuAnchor(),
+                        shape = RoundedCornerShape(12.dp),
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(seedBatchExpanded) }
+                    )
+                    ExposedDropdownMenu(
+                        expanded = seedBatchExpanded,
+                        onDismissRequest = { seedBatchExpanded = false }
+                    ) {
+                        uiState.seedBatches.forEach { lot ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(buildString {
+                                        append("${lot.quantity} seeds")
+                                        lot.collectionDate?.let { d -> append(" (collected $d)") }
+                                        lot.expirationDate?.let { d -> append(" · expires $d") }
+                                    })
+                                },
+                                onClick = {
+                                    selectedSeedBatchId = lot.id
+                                    seedBatchExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            } else if (selectedSpeciesId != null && uiState.seedBatches.isEmpty()) {
+                Text(
+                    "No seed batches available for this species. You can still sow without inventory.",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    fontSize = 14.sp
+                )
             }
 
             // Bed picker
@@ -250,6 +323,7 @@ fun SowActivityScreen(
                         seedCount = seedCount.toIntOrNull(),
                         notes = notes.ifBlank { null },
                         imageBase64 = imageBase64,
+                        seedBatchId = selectedSeedBatchId,
                     )
                 },
                 modifier = Modifier.fillMaxWidth().height(52.dp),

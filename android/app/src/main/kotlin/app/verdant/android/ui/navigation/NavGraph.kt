@@ -1,9 +1,6 @@
 package app.verdant.android.ui.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -11,7 +8,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
@@ -20,6 +19,7 @@ import androidx.lifecycle.ViewModel
 import app.verdant.android.data.SessionManager
 import app.verdant.android.ui.account.AccountScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import app.verdant.android.ui.activity.*
 import app.verdant.android.ui.auth.AuthScreen
@@ -27,6 +27,7 @@ import app.verdant.android.ui.bed.BedDetailScreen
 import app.verdant.android.ui.bed.CreateBedScreen
 import app.verdant.android.ui.garden.CreateGardenScreen
 import app.verdant.android.ui.garden.GardenDetailScreen
+import app.verdant.android.ui.inventory.SeedInventoryScreen
 import app.verdant.android.ui.plant.AddPlantEventScreen
 import app.verdant.android.ui.plant.CreatePlantScreen
 import app.verdant.android.ui.plant.PlantDetailScreen
@@ -57,9 +58,11 @@ sealed class Screen(val route: String) {
         fun create(plantId: Long) = "plant/$plantId/event/add"
     }
     data object Account : Screen("account")
+    data object SeedInventory : Screen("seed-inventory")
 
     // Activity screens
     data object AddSpecies : Screen("activity/add-species")
+    data object AddSeeds : Screen("activity/add-seeds")
     data object Sow : Screen("activity/sow")
     data object PlantPicker : Screen("activity/plant-picker/{statuses}/{nextRoute}") {
         fun create(statuses: String, nextRoute: String) = "activity/plant-picker/$statuses/$nextRoute"
@@ -93,7 +96,11 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
-    val hideBottomBar = currentRoute in listOf(Screen.Splash.route, Screen.Auth.route)
+    val hideChrome = currentRoute in listOf(Screen.Splash.route, Screen.Auth.route)
+    val showTopBar = currentRoute == Screen.MyWorld.route
+
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
     // Redirect to login when session expires (JWT valid but user deleted)
     LaunchedEffect(Unit) {
@@ -112,6 +119,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
             onActivitySelected = { activity ->
                 when (activity) {
                     Activity.ADD_SPECIES -> navController.navigate(Screen.AddSpecies.route)
+                    Activity.ADD_SEEDS -> navController.navigate(Screen.AddSeeds.route)
                     Activity.SOW -> navController.navigate(Screen.Sow.route)
                     Activity.POT_UP -> navController.navigate(Screen.PlantPicker.create("SEEDED", "pot-up"))
                     Activity.PLANT -> navController.navigate(Screen.PlantPicker.create("SEEDED,POTTED_UP", "plant-out"))
@@ -123,62 +131,105 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
         )
     }
 
-    Scaffold(
-        bottomBar = {
-            if (!hideBottomBar) {
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ) {
-                    NavigationBarItem(
-                        selected = currentRoute == Screen.MyWorld.route,
-                        onClick = {
-                            navController.navigate(Screen.MyWorld.route) {
-                                popUpTo(Screen.MyWorld.route) { inclusive = true }
-                            }
-                        },
-                        icon = { Icon(Icons.Default.Eco, contentDescription = "My World") },
-                        label = { Text("My World") }
-                    )
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        gesturesEnabled = !hideChrome,
+        drawerContent = {
+            ModalDrawerSheet(modifier = Modifier.width(280.dp)) {
+                Spacer(Modifier.height(24.dp))
+                Text(
+                    "Verdant",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+                )
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                Spacer(Modifier.height(8.dp))
 
-                    // Center FAB-style Activities button
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = { showActivitySheet = true },
-                        icon = {
-                            Box(contentAlignment = Alignment.Center) {
-                                Surface(
-                                    shape = CircleShape,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(48.dp).offset(y = (-4).dp)
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Icon(
-                                            Icons.Default.Add,
-                                            contentDescription = "Activities",
-                                            tint = MaterialTheme.colorScheme.onPrimary,
-                                            modifier = Modifier.size(28.dp)
-                                        )
-                                    }
-                                }
-                            }
-                        },
-                        label = { Text("Activities") }
-                    )
-
-                    NavigationBarItem(
-                        selected = currentRoute == Screen.Account.route,
-                        onClick = {
-                            navController.navigate(Screen.Account.route) {
-                                popUpTo(Screen.MyWorld.route)
-                            }
-                        },
-                        icon = { Icon(Icons.Default.Person, contentDescription = "Account") },
-                        label = { Text("Account") }
-                    )
-                }
+                NavigationDrawerItem(
+                    label = { Text("Seed Inventory") },
+                    icon = { Icon(Icons.Default.Inventory, contentDescription = null) },
+                    selected = currentRoute == Screen.SeedInventory.route,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(Screen.SeedInventory.route) {
+                            popUpTo(Screen.MyWorld.route)
+                        }
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+                NavigationDrawerItem(
+                    label = { Text("Account") },
+                    icon = { Icon(Icons.Default.Person, contentDescription = null) },
+                    selected = currentRoute == Screen.Account.route,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(Screen.Account.route) {
+                            popUpTo(Screen.MyWorld.route)
+                        }
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
             }
         }
-    ) { paddingValues ->
+    ) {
+        Scaffold(
+            topBar = {
+                if (showTopBar) {
+                    TopAppBar(
+                        title = { Text("Verdant") },
+                        navigationIcon = {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                Icon(Icons.Default.Menu, contentDescription = "Menu")
+                            }
+                        }
+                    )
+                }
+            },
+            bottomBar = {
+                if (!hideChrome) {
+                    NavigationBar(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ) {
+                        NavigationBarItem(
+                            selected = currentRoute == Screen.MyWorld.route,
+                            onClick = {
+                                navController.navigate(Screen.MyWorld.route) {
+                                    popUpTo(Screen.MyWorld.route) { inclusive = true }
+                                }
+                            },
+                            icon = { Icon(Icons.Default.Eco, contentDescription = "My World") },
+                            label = { Text("My World") }
+                        )
+
+                        // Center FAB-style Activities button
+                        NavigationBarItem(
+                            selected = false,
+                            onClick = { showActivitySheet = true },
+                            icon = {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(48.dp).offset(y = (-4).dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                Icons.Default.Add,
+                                                contentDescription = "Activities",
+                                                tint = MaterialTheme.colorScheme.onPrimary,
+                                                modifier = Modifier.size(28.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            },
+                            label = { Text("Activities") }
+                        )
+                    }
+                }
+            }
+        ) { paddingValues ->
         NavHost(
             navController = navController,
             startDestination = Screen.Splash.route,
@@ -272,11 +323,17 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                     onSignedOut = { navController.navigate(Screen.Auth.route) { popUpTo(0) { inclusive = true } } }
                 )
             }
+            composable(Screen.SeedInventory.route) {
+                SeedInventoryScreen(onBack = { navController.popBackStack() })
+            }
 
             // ── Activity screens ──
 
             composable(Screen.AddSpecies.route) {
                 AddSpeciesScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Screen.AddSeeds.route) {
+                AddSeedsScreen(onBack = { navController.popBackStack() })
             }
             composable(Screen.Sow.route) {
                 SowActivityScreen(onBack = { navController.popBackStack() })
@@ -329,6 +386,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
             ) {
                 DiscardActivityScreen(onBack = { navController.popBackStack() })
             }
+        }
         }
     }
 }

@@ -302,3 +302,32 @@ data class FrequentCommentResponse(
 data class RecordCommentRequest(
     val text: String,
 )
+
+// ── Seed Inventory ──
+
+data class SeedInventoryResponse(
+    val id: Long,
+    val speciesId: Long,
+    val speciesName: String,
+    val quantity: Int,
+    val collectionDate: String?,
+    val expirationDate: String?,
+    val createdAt: String,
+)
+
+data class CreateSeedInventoryRequest(
+    val speciesId: Long,
+    val quantity: Int,
+    val collectionDate: String? = null,
+    val expirationDate: String? = null,
+)
+
+data class UpdateSeedInventoryRequest(
+    val quantity: Int? = null,
+    val collectionDate: String? = null,
+    val expirationDate: String? = null,
+)
+
+data class DecrementSeedInventoryRequest(
+    val quantity: Int,
+)

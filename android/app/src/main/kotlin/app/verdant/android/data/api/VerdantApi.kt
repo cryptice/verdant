@@ -139,4 +139,21 @@ interface VerdantApi {
 
     @DELETE("api/comments/{id}")
     suspend fun deleteComment(@Path("id") id: Long)
+
+    // ── Seed Inventory ──
+
+    @GET("api/seed-inventory")
+    suspend fun getSeedInventory(@Query("speciesId") speciesId: Long? = null): List<SeedInventoryResponse>
+
+    @POST("api/seed-inventory")
+    suspend fun createSeedInventory(@Body request: CreateSeedInventoryRequest): SeedInventoryResponse
+
+    @PUT("api/seed-inventory/{id}")
+    suspend fun updateSeedInventory(@Path("id") id: Long, @Body request: UpdateSeedInventoryRequest): SeedInventoryResponse
+
+    @POST("api/seed-inventory/{id}/decrement")
+    suspend fun decrementSeedInventory(@Path("id") id: Long, @Body request: DecrementSeedInventoryRequest): SeedInventoryResponse
+
+    @DELETE("api/seed-inventory/{id}")
+    suspend fun deleteSeedInventory(@Path("id") id: Long)
 }

@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 
 enum class Activity(val label: String, val icon: ImageVector) {
     ADD_SPECIES("Add Species", Icons.Default.Spa),
+    ADD_SEEDS("Add Seeds", Icons.Default.Inventory),
     SOW("Sow", Icons.Default.Grain),
     POT_UP("Pot up", Icons.Default.Inventory2),
     PLANT("Plant", Icons.Default.Park),

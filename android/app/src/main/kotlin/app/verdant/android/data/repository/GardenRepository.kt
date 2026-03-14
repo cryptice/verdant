@@ -58,4 +58,11 @@ class GardenRepository @Inject constructor(private val api: VerdantApi) {
     suspend fun getFrequentComments() = api.getFrequentComments()
     suspend fun recordComment(request: RecordCommentRequest) = api.recordComment(request)
     suspend fun deleteComment(id: Long) = api.deleteComment(id)
+
+    // Seed Inventory
+    suspend fun getSeedInventory(speciesId: Long? = null) = api.getSeedInventory(speciesId)
+    suspend fun createSeedInventory(request: CreateSeedInventoryRequest) = api.createSeedInventory(request)
+    suspend fun updateSeedInventory(id: Long, request: UpdateSeedInventoryRequest) = api.updateSeedInventory(id, request)
+    suspend fun decrementSeedInventory(id: Long, request: DecrementSeedInventoryRequest) = api.decrementSeedInventory(id, request)
+    suspend fun deleteSeedInventory(id: Long) = api.deleteSeedInventory(id)
 }

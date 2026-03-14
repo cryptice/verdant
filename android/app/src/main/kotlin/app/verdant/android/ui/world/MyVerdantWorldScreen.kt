@@ -98,21 +98,6 @@ fun MyVerdantWorldScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(vertical = 16.dp)
             ) {
-                // Welcome header
-                item {
-                    Text(
-                        "Welcome, ${dashboard.user.displayName}!",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        "${dashboard.stats.totalGardens} gardens \u00B7 ${dashboard.stats.totalPlants} plants",
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                    )
-                }
-
                 // Gardens section
                 item {
                     Row(
