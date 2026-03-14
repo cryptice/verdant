@@ -1,5 +1,7 @@
 package app.verdant.repository
 
+import app.verdant.dto.PlantLocationGroup
+import app.verdant.dto.SpeciesPlantSummary
 import app.verdant.entity.Plant
 import app.verdant.entity.PlantStatus
 import io.agroal.api.AgroalDataSource
@@ -96,6 +98,69 @@ class PlantRepository(private val ds: AgroalDataSource) {
             }
         }
     }
+
+    fun speciesSummary(userId: Long): List<SpeciesPlantSummary> =
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                """SELECT p.species_id, s.common_name, s.scientific_name,
+                          COUNT(*) as total_count,
+                          COUNT(*) FILTER (WHERE p.status != 'REMOVED') as active_count
+                   FROM plant p
+                   JOIN bed b ON p.bed_id = b.id
+                   JOIN garden g ON b.garden_id = g.id
+                   JOIN species s ON p.species_id = s.id
+                   WHERE g.owner_id = ? AND p.species_id IS NOT NULL
+                   GROUP BY p.species_id, s.common_name, s.scientific_name
+                   ORDER BY s.common_name"""
+            ).use { ps ->
+                ps.setLong(1, userId)
+                ps.executeQuery().use { rs ->
+                    buildList {
+                        while (rs.next()) add(
+                            SpeciesPlantSummary(
+                                speciesId = rs.getLong("species_id"),
+                                speciesName = rs.getString("common_name"),
+                                scientificName = rs.getString("scientific_name"),
+                                activePlantCount = rs.getInt("active_count"),
+                                totalPlantCount = rs.getInt("total_count"),
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
+    fun speciesLocations(userId: Long, speciesId: Long): List<PlantLocationGroup> =
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                """SELECT g.name as garden_name, b.name as bed_name, b.id as bed_id,
+                          p.status, COUNT(*) as count,
+                          EXTRACT(YEAR FROM p.created_at)::int as year
+                   FROM plant p
+                   JOIN bed b ON p.bed_id = b.id
+                   JOIN garden g ON b.garden_id = g.id
+                   WHERE g.owner_id = ? AND p.species_id = ?
+                   GROUP BY g.name, b.name, b.id, p.status, EXTRACT(YEAR FROM p.created_at)
+                   ORDER BY year DESC, g.name, b.name, p.status"""
+            ).use { ps ->
+                ps.setLong(1, userId)
+                ps.setLong(2, speciesId)
+                ps.executeQuery().use { rs ->
+                    buildList {
+                        while (rs.next()) add(
+                            PlantLocationGroup(
+                                gardenName = rs.getString("garden_name"),
+                                bedName = rs.getString("bed_name"),
+                                bedId = rs.getLong("bed_id"),
+                                status = rs.getString("status"),
+                                count = rs.getInt("count"),
+                                year = rs.getInt("year"),
+                            )
+                        )
+                    }
+                }
+            }
+        }
 
     fun delete(id: Long) {
         ds.connection.use { conn ->

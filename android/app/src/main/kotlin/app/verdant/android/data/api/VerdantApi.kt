@@ -76,6 +76,14 @@ interface VerdantApi {
     @POST("api/gardens/with-layout")
     suspend fun createGardenWithLayout(@Body request: CreateGardenWithLayoutRequest): GardenWithBedsResponse
 
+    // ── Species Plant Summary ──
+
+    @GET("api/plants/species-summary")
+    suspend fun getSpeciesPlantSummary(): List<SpeciesPlantSummary>
+
+    @GET("api/plants/species/{speciesId}/locations")
+    suspend fun getSpeciesLocations(@Path("speciesId") speciesId: Long): List<PlantLocationGroup>
+
     // ── Plant Events ──
 
     @GET("api/plants/{id}/events")

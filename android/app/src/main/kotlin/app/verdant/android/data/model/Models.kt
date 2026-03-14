@@ -374,6 +374,25 @@ data class DecrementSeedInventoryRequest(
     val quantity: Int,
 )
 
+// ── Species Plant Summary ──
+
+data class SpeciesPlantSummary(
+    val speciesId: Long,
+    val speciesName: String,
+    val scientificName: String?,
+    val activePlantCount: Int,
+    val totalPlantCount: Int,
+)
+
+data class PlantLocationGroup(
+    val gardenName: String,
+    val bedName: String,
+    val bedId: Long,
+    val status: String,
+    val count: Int,
+    val year: Int,
+)
+
 // ── Scheduled Tasks ──
 
 data class ScheduledTaskResponse(

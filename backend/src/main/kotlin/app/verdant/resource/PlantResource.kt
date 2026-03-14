@@ -58,6 +58,17 @@ class PlantResource(
         return Response.noContent().build()
     }
 
+    // ── Species Plant Summary ──
+
+    @GET
+    @Path("/plants/species-summary")
+    fun speciesSummary() = plantService.getSpeciesPlantSummary(userId())
+
+    @GET
+    @Path("/plants/species/{speciesId}/locations")
+    fun speciesLocations(@PathParam("speciesId") speciesId: Long) =
+        plantService.getSpeciesLocations(userId(), speciesId)
+
     // ── Plant Events ──
 
     @GET

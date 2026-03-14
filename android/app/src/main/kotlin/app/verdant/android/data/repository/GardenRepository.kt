@@ -31,6 +31,10 @@ class GardenRepository @Inject constructor(private val api: VerdantApi) {
     suspend fun suggestLayout(request: SuggestLayoutRequest) = api.suggestLayout(request)
     suspend fun createGardenWithLayout(request: CreateGardenWithLayoutRequest) = api.createGardenWithLayout(request)
 
+    // Species Plant Summary
+    suspend fun getSpeciesPlantSummary() = api.getSpeciesPlantSummary()
+    suspend fun getSpeciesLocations(speciesId: Long) = api.getSpeciesLocations(speciesId)
+
     // Plant Events
     suspend fun getPlantEvents(plantId: Long) = api.getPlantEvents(plantId)
     suspend fun addPlantEvent(plantId: Long, request: CreatePlantEventRequest) = api.addPlantEvent(plantId, request)

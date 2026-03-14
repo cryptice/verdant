@@ -258,6 +258,11 @@
     <string name="select_activity_type">V\u00E4lj aktivitetstyp</string>
     <string name="select_deadline">V\u00E4lj deadline</string>
 
+    <!-- Planted Species -->
+    <string name="next_activities">N\u00E4sta aktiviteter</string>
+    <string name="current_locations">Nuvarande platser</string>
+    <string name="no_current_plants">Inga aktiva plantor i \u00E5r</string>
+
     <!-- Connection Error -->
     <string name="couldnt_reach_garden">Kunde inte n\u00E5 tr\u00E4dg\u00E5rden</string>
     <string name="check_internet">Kontrollera din internetanslutning och f\u00F6rs\u00F6k igen.</string>

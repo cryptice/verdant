@@ -149,6 +149,12 @@ class PlantService(
         plantEventRepository.delete(eventId)
     }
 
+    // ── Species Plant Summary ──
+
+    fun getSpeciesPlantSummary(userId: Long) = plantRepository.speciesSummary(userId)
+
+    fun getSpeciesLocations(userId: Long, speciesId: Long) = plantRepository.speciesLocations(userId, speciesId)
+
     // ── Stats ──
 
     fun getHarvestStats(userId: Long): List<HarvestStatRow> {

@@ -25,6 +25,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import app.verdant.android.ui.activity.*
 import app.verdant.android.ui.auth.AuthScreen
+import app.verdant.android.ui.plants.PlantedSpeciesListScreen
+import app.verdant.android.ui.plants.PlantedSpeciesDetailScreen
 import app.verdant.android.ui.task.TaskListScreen
 import app.verdant.android.ui.task.TaskFormScreen
 import app.verdant.android.ui.bed.BedDetailScreen
@@ -64,6 +66,10 @@ sealed class Screen(val route: String) {
     data object Account : Screen("account")
     data object SeedInventory : Screen("seed-inventory")
     data object SpeciesList : Screen("species")
+    data object PlantedSpeciesList : Screen("planted-species")
+    data object PlantedSpeciesDetail : Screen("planted-species/{speciesId}") {
+        fun create(speciesId: Long) = "planted-species/$speciesId"
+    }
 
     // Scheduled Tasks
     data object TaskList : Screen("tasks")
@@ -229,6 +235,17 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                             label = { Text(stringResource(R.string.my_world)) }
                         )
 
+                        NavigationBarItem(
+                            selected = currentRoute == Screen.PlantedSpeciesList.route,
+                            onClick = {
+                                navController.navigate(Screen.PlantedSpeciesList.route) {
+                                    popUpTo(Screen.MyWorld.route)
+                                }
+                            },
+                            icon = { Icon(Icons.Default.Yard, contentDescription = stringResource(R.string.plants)) },
+                            label = { Text(stringResource(R.string.plants)) }
+                        )
+
                         // Tasks button
                         NavigationBarItem(
                             selected = currentRoute == Screen.TaskList.route,
@@ -339,6 +356,21 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
             }
             composable(Screen.SeedInventory.route) {
                 SeedInventoryScreen(onBack = { navController.popBackStack() })
+            }
+
+            // ── Planted Species ──
+
+            composable(Screen.PlantedSpeciesList.route) {
+                PlantedSpeciesListScreen(
+                    onBack = { navController.popBackStack() },
+                    onSpeciesClick = { speciesId -> navController.navigate(Screen.PlantedSpeciesDetail.create(speciesId)) }
+                )
+            }
+            composable(
+                Screen.PlantedSpeciesDetail.route,
+                arguments = listOf(navArgument("speciesId") { type = NavType.LongType })
+            ) {
+                PlantedSpeciesDetailScreen(onBack = { navController.popBackStack() })
             }
 
             // ── Scheduled Tasks ──
