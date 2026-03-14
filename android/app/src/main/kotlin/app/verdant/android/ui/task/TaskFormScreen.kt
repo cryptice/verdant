@@ -165,7 +165,12 @@ fun TaskFormScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp)
+        ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 16.dp)
+                .padding(top = 16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -283,33 +288,35 @@ fun TaskFormScreen(
                 minLines = 2
             )
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(32.dp))
+        }
 
-            Button(
-                onClick = {
-                    viewModel.save(
-                        speciesId = selectedSpeciesId!!,
-                        activityType = selectedActivityType!!,
-                        deadline = deadline,
-                        targetCount = targetCount.toInt(),
-                        notes = notes.ifBlank { null },
-                    )
-                },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(12.dp),
-                enabled = selectedSpeciesId != null && selectedActivityType != null &&
-                        deadline.isNotBlank() && targetCount.toIntOrNull() != null &&
-                        targetCount.toInt() > 0 && !uiState.isLoading
-            ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                } else {
-                    Text(stringResource(R.string.save_task))
+            // Fixed bottom button
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }
+                Button(
+                    onClick = {
+                        viewModel.save(
+                            speciesId = selectedSpeciesId!!,
+                            activityType = selectedActivityType!!,
+                            deadline = deadline,
+                            targetCount = targetCount.toInt(),
+                            notes = notes.ifBlank { null },
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = selectedSpeciesId != null && selectedActivityType != null &&
+                            deadline.isNotBlank() && targetCount.toIntOrNull() != null &&
+                            targetCount.toInt() > 0 && !uiState.isLoading
+                ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    } else {
+                        Text(stringResource(R.string.save_task))
+                    }
                 }
             }
-
-            uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }
-            Spacer(Modifier.height(32.dp))
         }
     }
 }
