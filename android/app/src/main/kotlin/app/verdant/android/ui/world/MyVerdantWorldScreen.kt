@@ -3,13 +3,13 @@ package app.verdant.android.ui.world
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
+
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Agriculture
-import androidx.compose.material.icons.filled.Spa
+
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,7 +34,6 @@ import javax.inject.Inject
 data class MyWorldState(
     val isLoading: Boolean = true,
     val dashboard: DashboardResponse? = null,
-    val species: List<SpeciesResponse> = emptyList(),
     val harvestStats: List<HarvestStatRow> = emptyList(),
     val error: String? = null,
 )
@@ -53,12 +52,10 @@ class MyWorldViewModel @Inject constructor(
             _uiState.value = MyWorldState(isLoading = true)
             try {
                 val dashboard = repo.getDashboard()
-                val species = repo.getSpecies()
                 val stats = repo.getHarvestStats()
                 _uiState.value = MyWorldState(
                     isLoading = false,
                     dashboard = dashboard,
-                    species = species,
                     harvestStats = stats,
                 )
             } catch (e: Exception) {
@@ -161,47 +158,6 @@ fun MyVerdantWorldScreen(
                                     fontSize = 14.sp,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                 )
-                            }
-                        }
-                    }
-                }
-
-                // Species library section
-                if (uiState.species.isNotEmpty()) {
-                    item {
-                        Text(stringResource(R.string.species_library), fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    }
-                    item {
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            items(uiState.species) { species ->
-                                Card(
-                                    shape = RoundedCornerShape(12.dp),
-                                    modifier = Modifier.width(140.dp)
-                                ) {
-                                    Column(
-                                        modifier = Modifier.padding(12.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Icon(
-                                            Icons.Default.Spa,
-                                            null,
-                                            Modifier.size(32.dp),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                        Spacer(Modifier.height(8.dp))
-                                        Text(
-                                            species.commonName,
-                                            fontWeight = FontWeight.Medium,
-                                            fontSize = 14.sp,
-                                            maxLines = 2
-                                        )
-                                        species.groupName?.let {
-                                            Text(it, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                                        }
-                                    }
-                                }
                             }
                         }
                     }
