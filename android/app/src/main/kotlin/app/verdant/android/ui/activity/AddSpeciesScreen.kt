@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
@@ -40,23 +41,27 @@ data class AddSpeciesState(
     val extracting: Boolean = false,
     val suggestions: List<PlantSuggestion> = emptyList(),
     val extractedInfo: ExtractedSpeciesInfo? = null,
+    val existingSpecies: SpeciesResponse? = null,
 )
 
 @HiltViewModel
 class AddSpeciesViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val repo: GardenRepository
 ) : ViewModel() {
+    val speciesId: Long? = savedStateHandle.get<Long>("speciesId")?.takeIf { it > 0 }
     private val _uiState = MutableStateFlow(AddSpeciesState())
     val uiState = _uiState.asStateFlow()
 
-    init { loadGroupsAndTags() }
+    init { loadData() }
 
-    private fun loadGroupsAndTags() {
+    private fun loadData() {
         viewModelScope.launch {
             try {
                 val groups = repo.getSpeciesGroups()
                 val tags = repo.getSpeciesTags()
-                _uiState.value = _uiState.value.copy(groups = groups, tags = tags)
+                val existing = speciesId?.let { repo.getSpecies().find { s -> s.id == it } }
+                _uiState.value = _uiState.value.copy(groups = groups, tags = tags, existingSpecies = existing)
             } catch (_: Exception) {}
         }
     }
@@ -73,11 +78,23 @@ class AddSpeciesViewModel @Inject constructor(
         }
     }
 
+    fun updateSpecies(request: UpdateSpeciesRequest) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            try {
+                repo.updateSpecies(speciesId!!, request)
+                _uiState.value = _uiState.value.copy(isLoading = false, created = true)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
+            }
+        }
+    }
+
     fun createGroup(name: String) {
         viewModelScope.launch {
             try {
                 repo.createSpeciesGroup(CreateSpeciesGroupRequest(name))
-                loadGroupsAndTags()
+                loadData()
             } catch (_: Exception) {}
         }
     }
@@ -86,7 +103,7 @@ class AddSpeciesViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 repo.createSpeciesTag(CreateSpeciesTagRequest(name))
-                loadGroupsAndTags()
+                loadData()
             } catch (_: Exception) {}
         }
     }
@@ -123,6 +140,7 @@ fun AddSpeciesScreen(
     viewModel: AddSpeciesViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val isEdit = viewModel.speciesId != null
 
     var commonName by remember { mutableStateOf("") }
     var scientificName by remember { mutableStateOf("") }
@@ -144,18 +162,7 @@ fun AddSpeciesScreen(
     var showNewTagDialog by remember { mutableStateOf(false) }
     var groupExpanded by remember { mutableStateOf(false) }
     var showDiscardDialog by remember { mutableStateOf(false) }
-
-    val hasData = commonName.isNotBlank() || scientificName.isNotBlank() ||
-        imageFrontBase64 != null || imageBackBase64 != null ||
-        daysToSprout.isNotBlank() || daysToHarvest.isNotBlank() ||
-        germinationTimeDays.isNotBlank() || sowingDepthMm.isNotBlank() ||
-        heightCm.isNotBlank() || bloomTime.isNotBlank() || germinationRate.isNotBlank()
-
-    fun tryBack() {
-        if (hasData) showDiscardDialog = true else onBack()
-    }
-
-    androidx.activity.compose.BackHandler(enabled = true) { tryBack() }
+    var showValidationErrors by remember { mutableStateOf(false) }
 
     val growingPositions = listOf("SUNNY", "PARTIALLY_SUNNY", "SHADOWY")
     val growingPositionLabelRes = listOf(R.string.sunny, R.string.partial_sun, R.string.shadowy)
@@ -164,6 +171,61 @@ fun AddSpeciesScreen(
     val soilTypes = listOf("CLAY", "SANDY", "LOAMY", "CHALKY", "PEATY", "SILTY")
     val soilTypeLabelRes = listOf(R.string.clay, R.string.sandy, R.string.loamy, R.string.chalky, R.string.peaty, R.string.silty)
     var selectedSoils by remember { mutableStateOf<Set<String>>(emptySet()) }
+
+    // Pre-fill from existing species for edit mode
+    var prefilled by remember { mutableStateOf(false) }
+    LaunchedEffect(uiState.existingSpecies) {
+        val s = uiState.existingSpecies
+        if (s != null && !prefilled) {
+            commonName = s.commonName
+            scientificName = s.scientificName ?: ""
+            imageFrontBase64 = s.imageFrontBase64
+            imageBackBase64 = s.imageBackBase64
+            daysToSprout = s.daysToSprout?.toString() ?: ""
+            daysToHarvest = s.daysToHarvest?.toString() ?: ""
+            germinationTimeDays = s.germinationTimeDays?.toString() ?: ""
+            sowingDepthMm = s.sowingDepthMm?.toString() ?: ""
+            heightCm = s.heightCm?.toString() ?: ""
+            bloomTime = s.bloomTime ?: ""
+            germinationRate = s.germinationRate?.toString() ?: ""
+            selectedGroupId = s.groupId
+            selectedTagIds = s.tags.map { it.id }.toSet()
+            selectedPositions = s.growingPositions.toSet()
+            selectedSoils = s.soils.toSet()
+            prefilled = true
+        }
+    }
+
+    val hasData = commonName.isNotBlank() || scientificName.isNotBlank() ||
+        imageFrontBase64 != null || imageBackBase64 != null ||
+        daysToSprout.isNotBlank() || daysToHarvest.isNotBlank() ||
+        germinationTimeDays.isNotBlank() || sowingDepthMm.isNotBlank() ||
+        heightCm.isNotBlank() || bloomTime.isNotBlank() || germinationRate.isNotBlank()
+
+    // Validation: all fields mandatory except group and tags
+    val isCommonNameValid = commonName.isNotBlank()
+    val isScientificNameValid = scientificName.isNotBlank()
+    val isDaysToSproutValid = daysToSprout.toIntOrNull() != null
+    val isDaysToHarvestValid = daysToHarvest.toIntOrNull() != null
+    val isGerminationTimeDaysValid = germinationTimeDays.toIntOrNull() != null
+    val isSowingDepthMmValid = sowingDepthMm.toIntOrNull() != null
+    val isHeightCmValid = heightCm.toIntOrNull() != null
+    val isBloomTimeValid = bloomTime.isNotBlank()
+    val isGerminationRateValid = germinationRate.toIntOrNull() != null
+    val isPositionsValid = selectedPositions.isNotEmpty()
+    val isSoilsValid = selectedSoils.isNotEmpty()
+    val isFrontPhotoValid = imageFrontBase64 != null
+
+    val isFormValid = isCommonNameValid && isScientificNameValid &&
+        isDaysToSproutValid && isDaysToHarvestValid && isGerminationTimeDaysValid &&
+        isSowingDepthMmValid && isHeightCmValid && isBloomTimeValid &&
+        isGerminationRateValid && isPositionsValid && isSoilsValid && isFrontPhotoValid
+
+    fun tryBack() {
+        if (hasData) showDiscardDialog = true else onBack()
+    }
+
+    androidx.activity.compose.BackHandler(enabled = true) { tryBack() }
 
     // Auto-populate from AI suggestions (front photo) + crop
     LaunchedEffect(uiState.suggestions) {
@@ -285,7 +347,7 @@ fun AddSpeciesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.add_species)) },
+                title = { Text(stringResource(if (isEdit) R.string.edit_species else R.string.add_species)) },
                 navigationIcon = {
                     IconButton(onClick = { tryBack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
@@ -376,16 +438,18 @@ fun AddSpeciesScreen(
                     onValueChange = { commonName = it },
                     label = { Text(stringResource(R.string.common_name_required)) },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    isError = showValidationErrors && !isCommonNameValid
                 )
             }
             item {
                 OutlinedTextField(
                     value = scientificName,
                     onValueChange = { scientificName = it },
-                    label = { Text(stringResource(R.string.scientific_name)) },
+                    label = { Text(stringResource(R.string.scientific_name) + " *") },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    isError = showValidationErrors && !isScientificNameValid
                 )
             }
 
@@ -396,18 +460,20 @@ fun AddSpeciesScreen(
                     OutlinedTextField(
                         value = daysToSprout,
                         onValueChange = { daysToSprout = it.filter { c -> c.isDigit() } },
-                        label = { Text(stringResource(R.string.days_to_sprout)) },
+                        label = { Text(stringResource(R.string.days_to_sprout) + " *") },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
-                        singleLine = true
+                        singleLine = true,
+                        isError = showValidationErrors && !isDaysToSproutValid
                     )
                     OutlinedTextField(
                         value = daysToHarvest,
                         onValueChange = { daysToHarvest = it.filter { c -> c.isDigit() } },
-                        label = { Text(stringResource(R.string.days_to_harvest)) },
+                        label = { Text(stringResource(R.string.days_to_harvest) + " *") },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
-                        singleLine = true
+                        singleLine = true,
+                        isError = showValidationErrors && !isDaysToHarvestValid
                     )
                 }
             }
@@ -416,18 +482,20 @@ fun AddSpeciesScreen(
                     OutlinedTextField(
                         value = germinationTimeDays,
                         onValueChange = { germinationTimeDays = it.filter { c -> c.isDigit() } },
-                        label = { Text(stringResource(R.string.germination_time_days)) },
+                        label = { Text(stringResource(R.string.germination_time_days) + " *") },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
-                        singleLine = true
+                        singleLine = true,
+                        isError = showValidationErrors && !isGerminationTimeDaysValid
                     )
                     OutlinedTextField(
                         value = sowingDepthMm,
                         onValueChange = { sowingDepthMm = it.filter { c -> c.isDigit() } },
-                        label = { Text(stringResource(R.string.sowing_depth_mm)) },
+                        label = { Text(stringResource(R.string.sowing_depth_mm) + " *") },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
-                        singleLine = true
+                        singleLine = true,
+                        isError = showValidationErrors && !isSowingDepthMmValid
                     )
                 }
             }
@@ -436,18 +504,20 @@ fun AddSpeciesScreen(
                     OutlinedTextField(
                         value = heightCm,
                         onValueChange = { heightCm = it.filter { c -> c.isDigit() } },
-                        label = { Text(stringResource(R.string.height_cm)) },
+                        label = { Text(stringResource(R.string.height_cm) + " *") },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
-                        singleLine = true
+                        singleLine = true,
+                        isError = showValidationErrors && !isHeightCmValid
                     )
                     OutlinedTextField(
                         value = bloomTime,
                         onValueChange = { bloomTime = it },
-                        label = { Text(stringResource(R.string.bloom_time)) },
+                        label = { Text(stringResource(R.string.bloom_time) + " *") },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
-                        singleLine = true
+                        singleLine = true,
+                        isError = showValidationErrors && !isBloomTimeValid
                     )
                 }
             }
@@ -455,15 +525,23 @@ fun AddSpeciesScreen(
                 OutlinedTextField(
                     value = germinationRate,
                     onValueChange = { germinationRate = it.filter { c -> c.isDigit() } },
-                    label = { Text(stringResource(R.string.germination_rate_percent)) },
+                    label = { Text(stringResource(R.string.germination_rate_percent) + " *") },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    singleLine = true
+                    singleLine = true,
+                    isError = showValidationErrors && !isGerminationRateValid
                 )
             }
 
             // Growing position
-            item { Text(stringResource(R.string.growing_position), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+            item {
+                Text(
+                    stringResource(R.string.growing_position) + " *",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = if (showValidationErrors && !isPositionsValid) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                )
+            }
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     growingPositions.forEachIndexed { i, pos ->
@@ -477,7 +555,14 @@ fun AddSpeciesScreen(
             }
 
             // Soil type
-            item { Text(stringResource(R.string.soil_type), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+            item {
+                Text(
+                    stringResource(R.string.soil_type) + " *",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = if (showValidationErrors && !isSoilsValid) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                )
+            }
             item {
                 @OptIn(ExperimentalLayoutApi::class)
                 FlowRow(
@@ -560,30 +645,55 @@ fun AddSpeciesScreen(
             item {
                 Button(
                     onClick = {
-                        viewModel.createSpecies(
-                            CreateSpeciesRequest(
-                                commonName = commonName,
-                                commonNameSv = if (currentLocale == "sv") commonName else null,
-                                scientificName = scientificName.ifBlank { null },
-                                imageFrontBase64 = imageFrontBase64,
-                                imageBackBase64 = imageBackBase64,
-                                daysToSprout = daysToSprout.toIntOrNull(),
-                                daysToHarvest = daysToHarvest.toIntOrNull(),
-                                germinationTimeDays = germinationTimeDays.toIntOrNull(),
-                                sowingDepthMm = sowingDepthMm.toIntOrNull(),
-                                growingPositions = selectedPositions.toList(),
-                                soils = selectedSoils.toList(),
-                                heightCm = heightCm.toIntOrNull(),
-                                bloomTime = bloomTime.ifBlank { null },
-                                germinationRate = germinationRate.toIntOrNull(),
-                                groupId = selectedGroupId,
-                                tagIds = selectedTagIds.toList(),
+                        showValidationErrors = true
+                        if (!isFormValid) return@Button
+                        if (isEdit) {
+                            viewModel.updateSpecies(
+                                UpdateSpeciesRequest(
+                                    commonName = commonName,
+                                    commonNameSv = if (currentLocale == "sv") commonName else null,
+                                    scientificName = scientificName,
+                                    imageFrontBase64 = imageFrontBase64,
+                                    imageBackBase64 = imageBackBase64,
+                                    daysToSprout = daysToSprout.toIntOrNull(),
+                                    daysToHarvest = daysToHarvest.toIntOrNull(),
+                                    germinationTimeDays = germinationTimeDays.toIntOrNull(),
+                                    sowingDepthMm = sowingDepthMm.toIntOrNull(),
+                                    growingPositions = selectedPositions.toList(),
+                                    soils = selectedSoils.toList(),
+                                    heightCm = heightCm.toIntOrNull(),
+                                    bloomTime = bloomTime.ifBlank { null },
+                                    germinationRate = germinationRate.toIntOrNull(),
+                                    groupId = selectedGroupId,
+                                    tagIds = selectedTagIds.toList(),
+                                )
                             )
-                        )
+                        } else {
+                            viewModel.createSpecies(
+                                CreateSpeciesRequest(
+                                    commonName = commonName,
+                                    commonNameSv = if (currentLocale == "sv") commonName else null,
+                                    scientificName = scientificName,
+                                    imageFrontBase64 = imageFrontBase64,
+                                    imageBackBase64 = imageBackBase64,
+                                    daysToSprout = daysToSprout.toIntOrNull(),
+                                    daysToHarvest = daysToHarvest.toIntOrNull(),
+                                    germinationTimeDays = germinationTimeDays.toIntOrNull(),
+                                    sowingDepthMm = sowingDepthMm.toIntOrNull(),
+                                    growingPositions = selectedPositions.toList(),
+                                    soils = selectedSoils.toList(),
+                                    heightCm = heightCm.toIntOrNull(),
+                                    bloomTime = bloomTime.ifBlank { null },
+                                    germinationRate = germinationRate.toIntOrNull(),
+                                    groupId = selectedGroupId,
+                                    tagIds = selectedTagIds.toList(),
+                                )
+                            )
+                        }
                     },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(12.dp),
-                    enabled = commonName.isNotBlank() && !uiState.isLoading
+                    enabled = !uiState.isLoading
                 ) {
                     if (uiState.isLoading) {
                         CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)

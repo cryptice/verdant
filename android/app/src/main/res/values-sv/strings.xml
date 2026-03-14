@@ -170,6 +170,11 @@
     <string name="select_date_optional">V\u00E4lj datum (valfritt)</string>
     <string name="expiration_date">Utg\u00E5ngsdatum</string>
 
+    <!-- Species -->
+    <string name="species">Arter</string>
+    <string name="edit_species">Redigera art</string>
+    <string name="delete_species_confirm">\u00C4r du s\u00E4ker p\u00E5 att du vill ta bort denna art?</string>
+
     <!-- Add Species -->
     <string name="add_species">L\u00E4gg till art</string>
     <string name="common_name_required">Trivialnamn *</string>
@@ -182,7 +187,7 @@
     <string name="sowing_depth_mm">S\u00E5djup (mm)</string>
     <string name="height_cm">H\u00F6jd (cm)</string>
     <string name="bloom_time">Blomningstid</string>
-    <string name="germination_rate_percent">Groningsgrad (%%)</string>
+    <string name="germination_rate_percent">Groningsgrad i %</string>
     <string name="growing_position">V\u00E4xtplats</string>
     <string name="sunny">Sol</string>
     <string name="partial_sun">Halvskugga</string>
@@ -231,6 +236,27 @@
     <!-- Unsaved Changes -->
     <string name="discard_changes">Kasta \u00E4ndringar?</string>
     <string name="discard_changes_confirm">Du har osparade \u00E4ndringar som kommer att g\u00E5 f\u00F6rlorade.</string>
+
+    <!-- Scheduled Tasks -->
+    <string name="scheduled_tasks">Uppgifter</string>
+    <string name="create_task">Skapa uppgift</string>
+    <string name="edit_task">Redigera uppgift</string>
+    <string name="task_deadline">Deadline</string>
+    <string name="task_target_count">M\u00E5lantal</string>
+    <string name="task_remaining">%1$d / %2$d kvar</string>
+    <string name="task_activity_type">Aktivitetstyp</string>
+    <string name="task_overdue">F\u00F6rsenad</string>
+    <string name="task_due_today">Idag</string>
+    <string name="task_completed">Slutf\u00F6rd</string>
+    <string name="task_pending">P\u00E5g\u00E5ende</string>
+    <string name="perform">Utf\u00F6r</string>
+    <string name="save_task">Spara uppgift</string>
+    <string name="delete_task">Ta bort uppgift</string>
+    <string name="delete_task_confirm">\u00C4r du s\u00E4ker p\u00E5 att du vill ta bort denna uppgift?</string>
+    <string name="no_tasks_yet">Inga schemalagda uppgifter \u00E4nnu</string>
+    <string name="tap_plus_to_create_task">Tryck + f\u00F6r att schemal\u00E4gga din f\u00F6rsta uppgift</string>
+    <string name="select_activity_type">V\u00E4lj aktivitetstyp</string>
+    <string name="select_deadline">V\u00E4lj deadline</string>
 
     <!-- Connection Error -->
     <string name="couldnt_reach_garden">Kunde inte n\u00E5 tr\u00E4dg\u00E5rden</string>

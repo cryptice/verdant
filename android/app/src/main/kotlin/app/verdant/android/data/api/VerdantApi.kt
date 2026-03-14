@@ -159,4 +159,24 @@ interface VerdantApi {
 
     @DELETE("api/seed-inventory/{id}")
     suspend fun deleteSeedInventory(@Path("id") id: Long)
+
+    // ── Scheduled Tasks ──
+
+    @GET("api/tasks")
+    suspend fun getTasks(): List<ScheduledTaskResponse>
+
+    @GET("api/tasks/{id}")
+    suspend fun getTask(@Path("id") id: Long): ScheduledTaskResponse
+
+    @POST("api/tasks")
+    suspend fun createTask(@Body request: CreateScheduledTaskRequest): ScheduledTaskResponse
+
+    @PUT("api/tasks/{id}")
+    suspend fun updateTask(@Path("id") id: Long, @Body request: UpdateScheduledTaskRequest): ScheduledTaskResponse
+
+    @POST("api/tasks/{id}/complete")
+    suspend fun completeTaskPartially(@Path("id") id: Long, @Body request: CompleteTaskPartiallyRequest): ScheduledTaskResponse
+
+    @DELETE("api/tasks/{id}")
+    suspend fun deleteTask(@Path("id") id: Long)
 }

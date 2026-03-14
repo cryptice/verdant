@@ -25,6 +25,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import app.verdant.android.ui.activity.*
 import app.verdant.android.ui.auth.AuthScreen
+import app.verdant.android.ui.task.TaskListScreen
+import app.verdant.android.ui.task.TaskFormScreen
 import app.verdant.android.ui.bed.BedDetailScreen
 import app.verdant.android.ui.bed.CreateBedScreen
 import app.verdant.android.ui.garden.CreateGardenScreen
@@ -61,27 +63,46 @@ sealed class Screen(val route: String) {
     }
     data object Account : Screen("account")
     data object SeedInventory : Screen("seed-inventory")
+    data object SpeciesList : Screen("species")
+
+    // Scheduled Tasks
+    data object TaskList : Screen("tasks")
+    data object CreateTask : Screen("tasks/create")
+    data object EditTask : Screen("tasks/{taskId}/edit") {
+        fun create(taskId: Long) = "tasks/$taskId/edit"
+    }
 
     // Activity screens
     data object AddSpecies : Screen("activity/add-species")
+    data object EditSpecies : Screen("activity/edit-species/{speciesId}") {
+        fun create(speciesId: Long) = "activity/edit-species/$speciesId"
+    }
     data object AddSeeds : Screen("activity/add-seeds")
-    data object Sow : Screen("activity/sow")
-    data object PlantPicker : Screen("activity/plant-picker/{statuses}/{nextRoute}") {
+    data object Sow : Screen("activity/sow?taskId={taskId}&speciesId={speciesId}") {
+        fun create(taskId: Long? = null, speciesId: Long? = null): String {
+            val base = "activity/sow"
+            val params = mutableListOf<String>()
+            if (taskId != null) params.add("taskId=$taskId")
+            if (speciesId != null) params.add("speciesId=$speciesId")
+            return if (params.isEmpty()) base else "$base?${params.joinToString("&")}"
+        }
+    }
+    data object PlantPicker : Screen("activity/plant-picker/{statuses}/{nextRoute}?taskId={taskId}&speciesId={speciesId}") {
         fun create(statuses: String, nextRoute: String) = "activity/plant-picker/$statuses/$nextRoute"
     }
-    data object PotUp : Screen("activity/pot-up/{plantId}") {
+    data object PotUp : Screen("activity/pot-up/{plantId}?taskId={taskId}") {
         fun create(plantId: Long) = "activity/pot-up/$plantId"
     }
-    data object PlantOut : Screen("activity/plant-out/{plantId}") {
+    data object PlantOut : Screen("activity/plant-out/{plantId}?taskId={taskId}") {
         fun create(plantId: Long) = "activity/plant-out/$plantId"
     }
-    data object Harvest : Screen("activity/harvest/{plantId}") {
+    data object Harvest : Screen("activity/harvest/{plantId}?taskId={taskId}") {
         fun create(plantId: Long) = "activity/harvest/$plantId"
     }
-    data object Recover : Screen("activity/recover/{plantId}") {
+    data object Recover : Screen("activity/recover/{plantId}?taskId={taskId}") {
         fun create(plantId: Long) = "activity/recover/$plantId"
     }
-    data object Discard : Screen("activity/discard/{plantId}") {
+    data object Discard : Screen("activity/discard/{plantId}?taskId={taskId}") {
         fun create(plantId: Long) = "activity/discard/$plantId"
     }
 }
@@ -113,24 +134,6 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
         }
     }
 
-    var showActivitySheet by remember { mutableStateOf(false) }
-
-    if (showActivitySheet) {
-        ActivitySheet(
-            onDismiss = { showActivitySheet = false },
-            onActivitySelected = { activity ->
-                when (activity) {
-                    Activity.SOW -> navController.navigate(Screen.Sow.route)
-                    Activity.POT_UP -> navController.navigate(Screen.PlantPicker.create("SEEDED", "pot-up"))
-                    Activity.PLANT -> navController.navigate(Screen.PlantPicker.create("SEEDED,POTTED_UP", "plant-out"))
-                    Activity.HARVEST -> navController.navigate(Screen.PlantPicker.create("GROWING", "harvest"))
-                    Activity.RECOVER -> navController.navigate(Screen.PlantPicker.create("GROWING", "recover"))
-                    Activity.DISCARD -> navController.navigate(Screen.PlantPicker.create("SEEDED,POTTED_UP,PLANTED_OUT,GROWING,HARVESTED,RECOVERED", "discard"))
-                }
-            }
-        )
-    }
-
     ModalNavigationDrawer(
         drawerState = drawerState,
         gesturesEnabled = !hideChrome,
@@ -147,12 +150,24 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                 Spacer(Modifier.height(8.dp))
 
                 NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.add_species)) },
+                    label = { Text(stringResource(R.string.species)) },
                     icon = { Icon(Icons.Default.Spa, contentDescription = null) },
-                    selected = currentRoute == Screen.AddSpecies.route,
+                    selected = currentRoute == Screen.SpeciesList.route,
                     onClick = {
                         scope.launch { drawerState.close() }
-                        navController.navigate(Screen.AddSpecies.route) {
+                        navController.navigate(Screen.SpeciesList.route) {
+                            popUpTo(Screen.MyWorld.route)
+                        }
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.scheduled_tasks)) },
+                    icon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },
+                    selected = currentRoute == Screen.TaskList.route,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(Screen.TaskList.route) {
                             popUpTo(Screen.MyWorld.route)
                         }
                     },
@@ -214,29 +229,16 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                             label = { Text(stringResource(R.string.my_world)) }
                         )
 
-                        // Center FAB-style Activities button
+                        // Tasks button
                         NavigationBarItem(
-                            selected = false,
-                            onClick = { showActivitySheet = true },
-                            icon = {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Surface(
-                                        shape = CircleShape,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(48.dp).offset(y = (-4).dp)
-                                    ) {
-                                        Box(contentAlignment = Alignment.Center) {
-                                            Icon(
-                                                Icons.Default.Add,
-                                                contentDescription = stringResource(R.string.activities),
-                                                tint = MaterialTheme.colorScheme.onPrimary,
-                                                modifier = Modifier.size(28.dp)
-                                            )
-                                        }
-                                    }
+                            selected = currentRoute == Screen.TaskList.route,
+                            onClick = {
+                                navController.navigate(Screen.TaskList.route) {
+                                    popUpTo(Screen.MyWorld.route)
                                 }
                             },
-                            label = { Text(stringResource(R.string.activities)) }
+                            icon = { Icon(Icons.Default.CalendarMonth, contentDescription = stringResource(R.string.scheduled_tasks)) },
+                            label = { Text(stringResource(R.string.scheduled_tasks)) }
                         )
                     }
                 }
@@ -339,15 +341,63 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                 SeedInventoryScreen(onBack = { navController.popBackStack() })
             }
 
+            // ── Scheduled Tasks ──
+
+            composable(Screen.TaskList.route) {
+                TaskListScreen(
+                    onBack = { navController.popBackStack() },
+                    onCreateTask = { navController.navigate(Screen.CreateTask.route) },
+                    onEditTask = { taskId -> navController.navigate(Screen.EditTask.create(taskId)) },
+                    onPerformTask = { task ->
+                        when (task.activityType) {
+                            "SOW" -> navController.navigate("activity/sow?taskId=${task.id}&speciesId=${task.speciesId}")
+                            "POT_UP" -> navController.navigate("activity/plant-picker/SEEDED/pot-up?taskId=${task.id}&speciesId=${task.speciesId}")
+                            "PLANT" -> navController.navigate("activity/plant-picker/SEEDED,POTTED_UP/plant-out?taskId=${task.id}&speciesId=${task.speciesId}")
+                            "HARVEST" -> navController.navigate("activity/plant-picker/GROWING/harvest?taskId=${task.id}&speciesId=${task.speciesId}")
+                            "RECOVER" -> navController.navigate("activity/plant-picker/GROWING/recover?taskId=${task.id}&speciesId=${task.speciesId}")
+                            "DISCARD" -> navController.navigate("activity/plant-picker/SEEDED,POTTED_UP,PLANTED_OUT,GROWING,HARVESTED,RECOVERED/discard?taskId=${task.id}&speciesId=${task.speciesId}")
+                        }
+                    }
+                )
+            }
+            composable(Screen.CreateTask.route) {
+                TaskFormScreen(onBack = { navController.popBackStack() })
+            }
+            composable(
+                Screen.EditTask.route,
+                arguments = listOf(navArgument("taskId") { type = NavType.LongType })
+            ) {
+                TaskFormScreen(onBack = { navController.popBackStack() })
+            }
+
             // ── Activity screens ──
 
+            composable(Screen.SpeciesList.route) {
+                SpeciesListScreen(
+                    onBack = { navController.popBackStack() },
+                    onAddSpecies = { navController.navigate(Screen.AddSpecies.route) },
+                    onEditSpecies = { speciesId -> navController.navigate(Screen.EditSpecies.create(speciesId)) }
+                )
+            }
             composable(Screen.AddSpecies.route) {
+                AddSpeciesScreen(onBack = { navController.popBackStack() })
+            }
+            composable(
+                Screen.EditSpecies.route,
+                arguments = listOf(navArgument("speciesId") { type = NavType.LongType })
+            ) {
                 AddSpeciesScreen(onBack = { navController.popBackStack() })
             }
             composable(Screen.AddSeeds.route) {
                 AddSeedsScreen(onBack = { navController.popBackStack() })
             }
-            composable(Screen.Sow.route) {
+            composable(
+                Screen.Sow.route,
+                arguments = listOf(
+                    navArgument("taskId") { type = NavType.LongType; defaultValue = -1L },
+                    navArgument("speciesId") { type = NavType.LongType; defaultValue = -1L },
+                )
+            ) {
                 SowActivityScreen(onBack = { navController.popBackStack() })
             }
             composable(
@@ -355,13 +405,20 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                 arguments = listOf(
                     navArgument("statuses") { type = NavType.StringType },
                     navArgument("nextRoute") { type = NavType.StringType },
+                    navArgument("taskId") { type = NavType.LongType; defaultValue = -1L },
+                    navArgument("speciesId") { type = NavType.LongType; defaultValue = -1L },
                 )
             ) { backStackEntry ->
                 val nextRoute = backStackEntry.arguments?.getString("nextRoute") ?: ""
+                val taskId = backStackEntry.arguments?.getLong("taskId")?.takeIf { it > 0 }
                 PlantPickerScreen(
                     onBack = { navController.popBackStack() },
                     onPlantSelected = { plantId ->
-                        val target = "activity/$nextRoute/$plantId"
+                        val target = if (taskId != null) {
+                            "activity/$nextRoute/$plantId?taskId=$taskId"
+                        } else {
+                            "activity/$nextRoute/$plantId"
+                        }
                         navController.navigate(target) {
                             popUpTo(Screen.MyWorld.route)
                         }
@@ -370,31 +427,46 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
             }
             composable(
                 Screen.PotUp.route,
-                arguments = listOf(navArgument("plantId") { type = NavType.LongType })
+                arguments = listOf(
+                    navArgument("plantId") { type = NavType.LongType },
+                    navArgument("taskId") { type = NavType.LongType; defaultValue = -1L },
+                )
             ) {
                 PotUpActivityScreen(onBack = { navController.popBackStack() })
             }
             composable(
                 Screen.PlantOut.route,
-                arguments = listOf(navArgument("plantId") { type = NavType.LongType })
+                arguments = listOf(
+                    navArgument("plantId") { type = NavType.LongType },
+                    navArgument("taskId") { type = NavType.LongType; defaultValue = -1L },
+                )
             ) {
                 PlantActivityScreen(onBack = { navController.popBackStack() })
             }
             composable(
                 Screen.Harvest.route,
-                arguments = listOf(navArgument("plantId") { type = NavType.LongType })
+                arguments = listOf(
+                    navArgument("plantId") { type = NavType.LongType },
+                    navArgument("taskId") { type = NavType.LongType; defaultValue = -1L },
+                )
             ) {
                 HarvestActivityScreen(onBack = { navController.popBackStack() })
             }
             composable(
                 Screen.Recover.route,
-                arguments = listOf(navArgument("plantId") { type = NavType.LongType })
+                arguments = listOf(
+                    navArgument("plantId") { type = NavType.LongType },
+                    navArgument("taskId") { type = NavType.LongType; defaultValue = -1L },
+                )
             ) {
                 RecoverActivityScreen(onBack = { navController.popBackStack() })
             }
             composable(
                 Screen.Discard.route,
-                arguments = listOf(navArgument("plantId") { type = NavType.LongType })
+                arguments = listOf(
+                    navArgument("plantId") { type = NavType.LongType },
+                    navArgument("taskId") { type = NavType.LongType; defaultValue = -1L },
+                )
             ) {
                 DiscardActivityScreen(onBack = { navController.popBackStack() })
             }

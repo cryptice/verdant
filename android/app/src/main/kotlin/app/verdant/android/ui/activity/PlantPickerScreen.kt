@@ -41,6 +41,7 @@ class PlantPickerViewModel @Inject constructor(
     private val repo: GardenRepository,
 ) : ViewModel() {
     private val statuses: String? = savedStateHandle.get<String>("statuses")
+    private val speciesId: Long? = savedStateHandle.get<Long>("speciesId")?.takeIf { it > 0 }
     private val _uiState = MutableStateFlow(PlantPickerState())
     val uiState = _uiState.asStateFlow()
 
@@ -51,10 +52,14 @@ class PlantPickerViewModel @Inject constructor(
             _uiState.value = PlantPickerState(isLoading = true)
             try {
                 val allPlants = repo.getAllPlants()
-                val filtered = if (statuses != null) {
+                var filtered = if (statuses != null) {
                     val allowed = statuses.split(",").toSet()
                     allPlants.filter { it.status in allowed }
                 } else allPlants
+                // Filter by species when launched from a scheduled task
+                if (speciesId != null) {
+                    filtered = filtered.filter { it.speciesId == speciesId }
+                }
                 _uiState.value = PlantPickerState(isLoading = false, plants = filtered)
             } catch (e: Exception) {
                 _uiState.value = PlantPickerState(isLoading = false, error = e.message)

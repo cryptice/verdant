@@ -373,3 +373,39 @@ data class UpdateSeedInventoryRequest(
 data class DecrementSeedInventoryRequest(
     val quantity: Int,
 )
+
+// ── Scheduled Tasks ──
+
+data class ScheduledTaskResponse(
+    val id: Long,
+    val speciesId: Long,
+    val speciesName: String,
+    val activityType: String,
+    val deadline: String,
+    val targetCount: Int,
+    val remainingCount: Int,
+    val status: String,
+    val notes: String?,
+    val createdAt: String,
+    val updatedAt: String,
+)
+
+data class CreateScheduledTaskRequest(
+    val speciesId: Long,
+    val activityType: String,
+    val deadline: String,
+    val targetCount: Int,
+    val notes: String? = null,
+)
+
+data class UpdateScheduledTaskRequest(
+    val speciesId: Long? = null,
+    val activityType: String? = null,
+    val deadline: String? = null,
+    val targetCount: Int? = null,
+    val notes: String? = null,
+)
+
+data class CompleteTaskPartiallyRequest(
+    val processedCount: Int,
+)

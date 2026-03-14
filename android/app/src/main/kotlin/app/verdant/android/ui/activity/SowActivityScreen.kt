@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
+import androidx.lifecycle.SavedStateHandle
 
 data class SowActivityState(
     val isLoading: Boolean = false,
@@ -34,12 +35,16 @@ data class SowActivityState(
     val beds: List<BedWithGardenResponse> = emptyList(),
     val comments: List<String> = emptyList(),
     val seedBatches: List<SeedInventoryResponse> = emptyList(),
+    val task: ScheduledTaskResponse? = null,
 )
 
 @HiltViewModel
 class SowActivityViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val repo: GardenRepository
 ) : ViewModel() {
+    val taskId: Long? = savedStateHandle.get<Long>("taskId")?.takeIf { it > 0 }
+    val preselectedSpeciesId: Long? = savedStateHandle.get<Long>("speciesId")?.takeIf { it > 0 }
     private val _uiState = MutableStateFlow(SowActivityState())
     val uiState = _uiState.asStateFlow()
 
@@ -51,7 +56,8 @@ class SowActivityViewModel @Inject constructor(
                 val species = repo.getSpecies()
                 val beds = repo.getAllBeds()
                 val comments = repo.getFrequentComments().map { it.text }
-                _uiState.value = _uiState.value.copy(species = species, beds = beds, comments = comments)
+                val task = taskId?.let { repo.getTask(it) }
+                _uiState.value = _uiState.value.copy(species = species, beds = beds, comments = comments, task = task)
             } catch (_: Exception) {}
         }
     }
@@ -100,6 +106,10 @@ class SowActivityViewModel @Inject constructor(
                 if (!notes.isNullOrBlank()) {
                     repo.recordComment(RecordCommentRequest(notes))
                 }
+                // Complete task partially if performing from a scheduled task
+                if (taskId != null && seedCount != null && seedCount > 0) {
+                    repo.completeTaskPartially(taskId, CompleteTaskPartiallyRequest(seedCount))
+                }
                 _uiState.value = _uiState.value.copy(isLoading = false, created = true)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
@@ -116,7 +126,7 @@ fun SowActivityScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    var selectedSpeciesId by remember { mutableStateOf<Long?>(null) }
+    var selectedSpeciesId by remember { mutableStateOf<Long?>(viewModel.preselectedSpeciesId) }
     var selectedBedId by remember { mutableStateOf<Long?>(null) }
     var selectedSeedBatchId by remember { mutableStateOf<Long?>(null) }
     var plantName by remember { mutableStateOf("") }
@@ -127,6 +137,16 @@ fun SowActivityScreen(
     var bedExpanded by remember { mutableStateOf(false) }
     var seedBatchExpanded by remember { mutableStateOf(false) }
     var speciesSearch by remember { mutableStateOf("") }
+
+    // Pre-fill from task
+    var taskPrefilled by remember { mutableStateOf(false) }
+    LaunchedEffect(uiState.task) {
+        if (uiState.task != null && !taskPrefilled) {
+            selectedSpeciesId = uiState.task!!.speciesId
+            seedCount = uiState.task!!.remainingCount.toString()
+            taskPrefilled = true
+        }
+    }
 
     // Auto-fill plant name from species + load seed lots
     LaunchedEffect(selectedSpeciesId) {

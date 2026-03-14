@@ -34,6 +34,7 @@ data class GenericActivityState(
     val plant: PlantResponse? = null,
     val comments: List<String> = emptyList(),
     val beds: List<BedWithGardenResponse> = emptyList(),
+    val task: ScheduledTaskResponse? = null,
 )
 
 @HiltViewModel
@@ -42,6 +43,7 @@ class GenericActivityViewModel @Inject constructor(
     private val repo: GardenRepository
 ) : ViewModel() {
     val plantId: Long = savedStateHandle.get<Long>("plantId")!!
+    private val taskId: Long? = savedStateHandle.get<Long>("taskId")?.takeIf { it > 0 }
     private val _uiState = MutableStateFlow(GenericActivityState())
     val uiState = _uiState.asStateFlow()
 
@@ -53,7 +55,8 @@ class GenericActivityViewModel @Inject constructor(
                 val plant = repo.getPlant(plantId)
                 val comments = repo.getFrequentComments().map { it.text }
                 val beds = repo.getAllBeds()
-                _uiState.value = _uiState.value.copy(plant = plant, comments = comments, beds = beds)
+                val task = taskId?.let { repo.getTask(it) }
+                _uiState.value = _uiState.value.copy(plant = plant, comments = comments, beds = beds, task = task)
             } catch (_: Exception) {}
         }
     }
@@ -84,6 +87,10 @@ class GenericActivityViewModel @Inject constructor(
                 if (!notes.isNullOrBlank()) {
                     repo.recordComment(RecordCommentRequest(notes))
                 }
+                // Complete task partially if performing from a scheduled task
+                if (taskId != null && plantCount != null && plantCount > 0) {
+                    repo.completeTaskPartially(taskId, CompleteTaskPartiallyRequest(plantCount))
+                }
                 _uiState.value = _uiState.value.copy(isLoading = false, created = true)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
@@ -100,6 +107,10 @@ fun PotUpActivityScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var count by remember { mutableStateOf("") }
+    var prefilled by remember { mutableStateOf(false) }
+    LaunchedEffect(uiState.task) {
+        if (uiState.task != null && !prefilled) { count = uiState.task!!.remainingCount.toString(); prefilled = true }
+    }
     var notes by remember { mutableStateOf("") }
     var imageBase64 by remember { mutableStateOf<String?>(null) }
 
@@ -132,6 +143,10 @@ fun PlantActivityScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var count by remember { mutableStateOf("") }
+    var prefilled by remember { mutableStateOf(false) }
+    LaunchedEffect(uiState.task) {
+        if (uiState.task != null && !prefilled) { count = uiState.task!!.remainingCount.toString(); prefilled = true }
+    }
     var notes by remember { mutableStateOf("") }
     var imageBase64 by remember { mutableStateOf<String?>(null) }
 
@@ -164,6 +179,10 @@ fun HarvestActivityScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var count by remember { mutableStateOf("") }
+    var prefilled by remember { mutableStateOf(false) }
+    LaunchedEffect(uiState.task) {
+        if (uiState.task != null && !prefilled) { count = uiState.task!!.remainingCount.toString(); prefilled = true }
+    }
     var weightGrams by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
@@ -221,6 +240,10 @@ fun RecoverActivityScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var count by remember { mutableStateOf("") }
+    var prefilled by remember { mutableStateOf(false) }
+    LaunchedEffect(uiState.task) {
+        if (uiState.task != null && !prefilled) { count = uiState.task!!.remainingCount.toString(); prefilled = true }
+    }
     var notes by remember { mutableStateOf("") }
     var imageBase64 by remember { mutableStateOf<String?>(null) }
 
@@ -253,6 +276,10 @@ fun DiscardActivityScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var count by remember { mutableStateOf("") }
+    var prefilled by remember { mutableStateOf(false) }
+    LaunchedEffect(uiState.task) {
+        if (uiState.task != null && !prefilled) { count = uiState.task!!.remainingCount.toString(); prefilled = true }
+    }
     var notes by remember { mutableStateOf("") }
     var imageBase64 by remember { mutableStateOf<String?>(null) }
 
