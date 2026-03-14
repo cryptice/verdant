@@ -1,6 +1,7 @@
 package app.verdant.android.di
 
 import app.verdant.android.BuildConfig
+import app.verdant.android.data.SessionManager
 import app.verdant.android.data.TokenStore
 import app.verdant.android.data.api.VerdantApi
 import dagger.Module
@@ -9,6 +10,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -20,8 +22,11 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(tokenStore: TokenStore): OkHttpClient {
+    fun provideOkHttpClient(tokenStore: TokenStore, sessionManager: SessionManager): OkHttpClient {
         return OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(90, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
             .addInterceptor { chain ->
                 val token = runBlocking { tokenStore.getToken() }
                 val request = if (token != null) {
@@ -31,7 +36,11 @@ object AppModule {
                 } else {
                     chain.request()
                 }
-                chain.proceed(request)
+                val response = chain.proceed(request)
+                if (response.code == 401 && token != null) {
+                    runBlocking { sessionManager.onUnauthorized() }
+                }
+                response
             }
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY

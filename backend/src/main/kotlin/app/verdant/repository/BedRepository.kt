@@ -17,6 +17,27 @@ class BedRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    fun findByUserIdWithGardenName(userId: Long): List<BedWithGarden> =
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                """SELECT b.*, g.name as garden_name FROM bed b
+                   JOIN garden g ON b.garden_id = g.id
+                   WHERE g.owner_id = ? ORDER BY g.name, b.name"""
+            ).use { ps ->
+                ps.setLong(1, userId)
+                ps.executeQuery().use { rs ->
+                    buildList {
+                        while (rs.next()) add(
+                            BedWithGarden(
+                                bed = rs.toBed(),
+                                gardenName = rs.getString("garden_name"),
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
     fun findByGardenId(gardenId: Long): List<Bed> =
         ds.connection.use { conn ->
             conn.prepareStatement("SELECT * FROM bed WHERE garden_id = ? ORDER BY id").use { ps ->
@@ -70,7 +91,7 @@ class BedRepository(private val ds: AgroalDataSource) {
         }
     }
 
-    private fun ResultSet.toBed() = Bed(
+    private fun ResultSet.toBed(): Bed = Bed(
         id = getLong("id"),
         name = getString("name"),
         description = getString("description"),
@@ -80,3 +101,8 @@ class BedRepository(private val ds: AgroalDataSource) {
         updatedAt = getTimestamp("updated_at").toInstant(),
     )
 }
+
+data class BedWithGarden(
+    val bed: Bed,
+    val gardenName: String,
+)

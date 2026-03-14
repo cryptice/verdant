@@ -8,6 +8,7 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.Duration
 import java.util.Optional
 import java.util.logging.Logger
 import kotlin.math.cos
@@ -19,7 +20,9 @@ class AiService(
     private val apiKeyOpt: Optional<String>
 ) {
     private val log = Logger.getLogger(AiService::class.java.name)
-    private val httpClient = HttpClient.newHttpClient()
+    private val httpClient = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(10))
+        .build()
 
     fun identifyPlant(imageBase64: String): List<PlantSuggestion> {
         val apiKey = apiKeyOpt.orElse("")
@@ -56,6 +59,7 @@ If you cannot identify any plant, return an empty array: []"""
         val httpRequest = HttpRequest.newBuilder()
             .uri(URI.create("https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=$apiKey"))
             .header("Content-Type", "application/json")
+            .timeout(Duration.ofSeconds(30))
             .POST(HttpRequest.BodyPublishers.ofString(requestBody))
             .build()
 
@@ -153,6 +157,7 @@ Guidelines for bed names - use creative, descriptive names like:
         val httpRequest = HttpRequest.newBuilder()
             .uri(URI.create("https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=$apiKey"))
             .header("Content-Type", "application/json")
+            .timeout(Duration.ofSeconds(60))
             .POST(HttpRequest.BodyPublishers.ofString(requestBody))
             .build()
 

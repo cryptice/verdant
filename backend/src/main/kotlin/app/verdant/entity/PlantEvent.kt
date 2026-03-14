@@ -17,4 +17,4 @@ data class PlantEvent(
     val createdAt: Instant = Instant.now(),
 )
 
-enum class PlantEventType { SEEDED, POTTED_UP, PLANTED_OUT, HARVESTED, REMOVED, NOTE }
+enum class PlantEventType { SEEDED, POTTED_UP, PLANTED_OUT, HARVESTED, RECOVERED, REMOVED, NOTE }

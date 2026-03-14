@@ -37,6 +37,9 @@ interface VerdantApi {
     @GET("api/gardens/{gardenId}/beds")
     suspend fun getBeds(@Path("gardenId") gardenId: Long): List<BedResponse>
 
+    @GET("api/beds")
+    suspend fun getAllBeds(): List<BedWithGardenResponse>
+
     @GET("api/beds/{id}")
     suspend fun getBed(@Path("id") id: Long): BedResponse
 
@@ -48,6 +51,9 @@ interface VerdantApi {
 
     @DELETE("api/beds/{id}")
     suspend fun deleteBed(@Path("id") id: Long)
+
+    @GET("api/plants")
+    suspend fun getAllPlants(@Query("status") status: String? = null): List<PlantResponse>
 
     @GET("api/beds/{bedId}/plants")
     suspend fun getPlants(@Path("bedId") bedId: Long): List<PlantResponse>
@@ -90,4 +96,47 @@ interface VerdantApi {
 
     @GET("api/stats/harvests")
     suspend fun getHarvestStats(): List<HarvestStatRow>
+
+    // ── Species ──
+
+    @GET("api/species")
+    suspend fun getSpecies(): List<SpeciesResponse>
+
+    @POST("api/species")
+    suspend fun createSpecies(@Body request: CreateSpeciesRequest): SpeciesResponse
+
+    @PUT("api/species/{id}")
+    suspend fun updateSpecies(@Path("id") id: Long, @Body request: UpdateSpeciesRequest): SpeciesResponse
+
+    @DELETE("api/species/{id}")
+    suspend fun deleteSpecies(@Path("id") id: Long)
+
+    @GET("api/species/groups")
+    suspend fun getSpeciesGroups(): List<SpeciesGroupResponse>
+
+    @POST("api/species/groups")
+    suspend fun createSpeciesGroup(@Body request: CreateSpeciesGroupRequest): SpeciesGroupResponse
+
+    @DELETE("api/species/groups/{id}")
+    suspend fun deleteSpeciesGroup(@Path("id") id: Long)
+
+    @GET("api/species/tags")
+    suspend fun getSpeciesTags(): List<SpeciesTagResponse>
+
+    @POST("api/species/tags")
+    suspend fun createSpeciesTag(@Body request: CreateSpeciesTagRequest): SpeciesTagResponse
+
+    @DELETE("api/species/tags/{id}")
+    suspend fun deleteSpeciesTag(@Path("id") id: Long)
+
+    // ── Frequent Comments ──
+
+    @GET("api/comments")
+    suspend fun getFrequentComments(): List<FrequentCommentResponse>
+
+    @POST("api/comments")
+    suspend fun recordComment(@Body request: RecordCommentRequest): FrequentCommentResponse
+
+    @DELETE("api/comments/{id}")
+    suspend fun deleteComment(@Path("id") id: Long)
 }

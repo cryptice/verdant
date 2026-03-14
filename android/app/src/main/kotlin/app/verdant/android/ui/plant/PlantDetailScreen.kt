@@ -150,6 +150,12 @@ fun PlantDetailScreen(
             uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
+            uiState.error != null && uiState.plant == null -> {
+                app.verdant.android.ui.common.ConnectionErrorState(
+                    onRetry = { viewModel.refresh() },
+                    modifier = Modifier.padding(padding)
+                )
+            }
             uiState.plant != null -> {
                 val plant = uiState.plant!!
                 LazyColumn(
@@ -162,7 +168,7 @@ fun PlantDetailScreen(
                         Card(shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
                             Column(Modifier.padding(20.dp)) {
                                 Text(plant.name, fontWeight = FontWeight.Bold, fontSize = 24.sp)
-                                plant.species?.let {
+                                plant.speciesName?.let {
                                     Spacer(Modifier.height(4.dp))
                                     Text(it, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
                                 }
@@ -297,6 +303,7 @@ fun eventTypeIcon(type: String) = when (type) {
     "PLANTED_OUT" -> Icons.Default.Park
     "GROWING" -> Icons.Default.Grass
     "HARVESTED" -> Icons.Default.Agriculture
+    "RECOVERED" -> Icons.Default.Shield
     "REMOVED" -> Icons.Default.Delete
     "NOTE" -> Icons.Default.StickyNote2
     else -> Icons.Default.Circle

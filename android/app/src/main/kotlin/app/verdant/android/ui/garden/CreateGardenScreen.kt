@@ -52,6 +52,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import kotlin.math.cos
 import com.google.android.gms.maps.model.LatLng as GmsLatLng
 
 val bedColors = listOf(
@@ -144,7 +145,6 @@ class CreateGardenViewModel @Inject constructor(
     var lastCameraZoom by mutableFloatStateOf(20f)
 
     // Step 1+2: Layout
-    var isLoadingSuggestion by mutableStateOf(false)
     var gardenName by mutableStateOf("")
     var gardenEmoji by mutableStateOf("\uD83C\uDF31")
     var gardenBoundary = mutableStateListOf<GmsLatLng>()
@@ -174,41 +174,25 @@ class CreateGardenViewModel @Inject constructor(
         }
     }
 
-    fun suggestLayout() {
+    fun generateDefaultLayout() {
         val latLng = selectedLatLng ?: return
-        isLoadingSuggestion = true
-        error = null
-        viewModelScope.launch {
-            try {
-                val response = gardenRepository.suggestLayout(
-                    SuggestLayoutRequest(
-                        latitude = latLng.latitude,
-                        longitude = latLng.longitude,
-                        address = selectedAddress.ifBlank { null }
-                    )
-                )
-                gardenName = response.gardenName
-                gardenBoundary.clear()
-                gardenBoundary.addAll(response.boundary.map { GmsLatLng(it.lat, it.lng) })
-                beds.clear()
-                response.beds.forEachIndexed { index, bed ->
-                    beds.add(
-                        EditableBed(
-                            name = mutableStateOf(bed.name),
-                            description = mutableStateOf(bed.description ?: ""),
-                            boundary = mutableStateListOf<GmsLatLng>().apply {
-                                addAll(bed.boundary.map { GmsLatLng(it.lat, it.lng) })
-                            },
-                            color = bedColors[index % bedColors.size]
-                        )
-                    )
-                }
-            } catch (e: Exception) {
-                error = e.message ?: "Failed to get layout suggestion"
-            } finally {
-                isLoadingSuggestion = false
-            }
-        }
+        val lat = latLng.latitude
+        val lng = latLng.longitude
+        val metersPerDegreeLat = 111_000.0
+        val metersPerDegreeLng = 111_000.0 * cos(Math.toRadians(lat))
+
+        val dLat = 20.0 / metersPerDegreeLat / 2.0
+        val dLng = 15.0 / metersPerDegreeLng / 2.0
+
+        gardenName = "My Garden"
+        gardenBoundary.clear()
+        gardenBoundary.addAll(listOf(
+            GmsLatLng(lat - dLat, lng - dLng),
+            GmsLatLng(lat - dLat, lng + dLng),
+            GmsLatLng(lat + dLat, lng + dLng),
+            GmsLatLng(lat + dLat, lng - dLng),
+        ))
+        beds.clear()
     }
 
     fun createGarden() {
@@ -276,13 +260,13 @@ class CreateGardenViewModel @Inject constructor(
 @Composable
 fun CreateGardenScreen(
     onBack: () -> Unit,
-    onCreated: (Long) -> Unit,
+    onCreated: () -> Unit,
     viewModel: CreateGardenViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
 
     LaunchedEffect(viewModel.createdGardenId) {
-        viewModel.createdGardenId?.let { onCreated(it) }
+        viewModel.createdGardenId?.let { onCreated() }
     }
 
     Scaffold(
@@ -441,8 +425,8 @@ private fun LocationPickerStep(
                 SmallFloatingActionButton(
                     onClick = {
                         viewModel.lastCameraZoom = cameraPositionState.position.zoom
+                        viewModel.generateDefaultLayout()
                         viewModel.currentStep = 1
-                        viewModel.suggestLayout()
                     },
                     containerColor = MaterialTheme.colorScheme.primary
                 ) { Icon(Icons.Default.ArrowForward, "Next", tint = MaterialTheme.colorScheme.onPrimary) }
@@ -460,17 +444,6 @@ private fun BoundaryEditorStep(
     modifier: Modifier,
     viewModel: CreateGardenViewModel
 ) {
-    if (viewModel.isLoadingSuggestion) {
-        Box(modifier = modifier, contentAlignment = Alignment.Center) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                CircularProgressIndicator()
-                Spacer(Modifier.height(16.dp))
-                Text("AI is designing your garden...", style = MaterialTheme.typography.titleMedium)
-            }
-        }
-        return
-    }
-
     val initialPosition = viewModel.selectedLatLng ?: getCountryLatLng()
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(initialPosition, viewModel.lastCameraZoom)
@@ -542,10 +515,9 @@ private fun BoundaryEditorStep(
         ) { Icon(Icons.Default.ArrowForward, "Next", tint = MaterialTheme.colorScheme.onPrimary) }
 
         viewModel.error?.let { msg ->
-            Text(
-                msg, color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.align(Alignment.TopCenter).padding(16.dp)
-            )
+            Box(Modifier.align(Alignment.TopCenter).padding(16.dp)) {
+                app.verdant.android.ui.common.InlineErrorBanner(msg)
+            }
         }
     }
 }
@@ -753,7 +725,7 @@ private fun BedEditorStep(
         // Error
         viewModel.error?.let { errorMsg ->
             item {
-                Text(errorMsg, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
+                app.verdant.android.ui.common.InlineErrorBanner(errorMsg, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
             }
         }
 

@@ -7,7 +7,8 @@ import java.time.LocalDate
 data class PlantResponse(
     val id: Long,
     val name: String,
-    val species: String?,
+    val speciesId: Long?,
+    val speciesName: String?,
     val plantedDate: LocalDate?,
     val status: PlantStatus,
     val seedCount: Int?,
@@ -19,7 +20,7 @@ data class PlantResponse(
 
 data class CreatePlantRequest(
     val name: String,
-    val species: String? = null,
+    val speciesId: Long? = null,
     val plantedDate: LocalDate? = null,
     val status: PlantStatus = PlantStatus.SEEDED,
     val seedCount: Int? = null,
@@ -28,7 +29,7 @@ data class CreatePlantRequest(
 
 data class UpdatePlantRequest(
     val name: String? = null,
-    val species: String? = null,
+    val speciesId: Long? = null,
     val plantedDate: LocalDate? = null,
     val status: PlantStatus? = null,
     val seedCount: Int? = null,

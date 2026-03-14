@@ -86,15 +86,10 @@ fun DashboardScreen(
                 }
             }
             uiState.error != null -> {
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Something went wrong", color = MaterialTheme.colorScheme.error)
-                        Spacer(Modifier.height(8.dp))
-                        TextButton(onClick = { viewModel.refresh() }) {
-                            Text("Retry")
-                        }
-                    }
-                }
+                app.verdant.android.ui.common.ConnectionErrorState(
+                    onRetry = { viewModel.refresh() },
+                    modifier = Modifier.padding(padding)
+                )
             }
             else -> {
                 val dashboard = uiState.dashboard!!

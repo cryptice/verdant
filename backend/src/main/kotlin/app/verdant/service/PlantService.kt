@@ -5,10 +5,7 @@ import app.verdant.entity.Plant
 import app.verdant.entity.PlantEvent
 import app.verdant.entity.PlantEventType
 import app.verdant.entity.PlantStatus
-import app.verdant.repository.BedRepository
-import app.verdant.repository.GardenRepository
-import app.verdant.repository.PlantEventRepository
-import app.verdant.repository.PlantRepository
+import app.verdant.repository.*
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
@@ -18,7 +15,8 @@ class PlantService(
     private val plantRepository: PlantRepository,
     private val plantEventRepository: PlantEventRepository,
     private val bedRepository: BedRepository,
-    private val gardenRepository: GardenRepository
+    private val gardenRepository: GardenRepository,
+    private val speciesRepository: SpeciesRepository,
 ) {
     private fun checkBedOwnership(bedId: Long, userId: Long) {
         val bed = bedRepository.findById(bedId) ?: throw NotFoundException("Bed not found")
@@ -32,7 +30,14 @@ class PlantService(
         return plant
     }
 
+    private fun resolveSpeciesName(speciesId: Long?): String? =
+        speciesId?.let { speciesRepository.findById(it)?.commonName }
+
     // ── Plant CRUD ──
+
+    fun getAllPlantsForUser(userId: Long, status: PlantStatus? = null): List<PlantResponse> {
+        return plantRepository.findByUserId(userId, status).map { it.toResponse() }
+    }
 
     fun getPlantsForBed(bedId: Long, userId: Long): List<PlantResponse> {
         checkBedOwnership(bedId, userId)
@@ -48,7 +53,7 @@ class PlantService(
         val plant = plantRepository.persist(
             Plant(
                 name = request.name,
-                species = request.species,
+                speciesId = request.speciesId,
                 plantedDate = request.plantedDate,
                 status = request.status,
                 seedCount = request.seedCount,
@@ -63,7 +68,7 @@ class PlantService(
         val plant = checkPlantOwnership(plantId, userId)
         val updated = plant.copy(
             name = request.name ?: plant.name,
-            species = request.species ?: plant.species,
+            speciesId = request.speciesId ?: plant.speciesId,
             plantedDate = request.plantedDate ?: plant.plantedDate,
             status = request.status ?: plant.status,
             seedCount = request.seedCount ?: plant.seedCount,
@@ -120,6 +125,10 @@ class PlantService(
             PlantEventType.HARVESTED -> plant.copy(
                 status = PlantStatus.HARVESTED,
             )
+            PlantEventType.RECOVERED -> plant.copy(
+                status = PlantStatus.RECOVERED,
+                survivingCount = request.plantCount ?: plant.survivingCount,
+            )
             PlantEventType.REMOVED -> plant.copy(
                 status = PlantStatus.REMOVED,
             )
@@ -152,14 +161,17 @@ class PlantService(
             )
         }
     }
-}
 
-fun Plant.toResponse() = PlantResponse(
-    id = id!!, name = name, species = species,
-    plantedDate = plantedDate, status = status,
-    seedCount = seedCount, survivingCount = survivingCount,
-    bedId = bedId, createdAt = createdAt, updatedAt = updatedAt
-)
+    // ── Mapping ──
+
+    private fun Plant.toResponse() = PlantResponse(
+        id = id!!, name = name, speciesId = speciesId,
+        speciesName = resolveSpeciesName(speciesId),
+        plantedDate = plantedDate, status = status,
+        seedCount = seedCount, survivingCount = survivingCount,
+        bedId = bedId, createdAt = createdAt, updatedAt = updatedAt
+    )
+}
 
 fun PlantEvent.toResponse() = PlantEventResponse(
     id = id!!, plantId = plantId, eventType = eventType,

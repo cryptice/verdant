@@ -107,7 +107,7 @@ fun CreateBedScreen(
                     Text("Create Bed")
                 }
             }
-            uiState.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }
         }
     }
 }

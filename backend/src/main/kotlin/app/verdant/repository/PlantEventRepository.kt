@@ -63,22 +63,22 @@ class PlantEventRepository(private val ds: AgroalDataSource) {
         }
     }
 
-    /** Harvest stats grouped by species. Only includes plants with a non-null species. */
+    /** Harvest stats grouped by species. Only includes plants with a linked species. */
     fun harvestStatsBySpecies(userId: Long): List<HarvestStatResult> =
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """SELECT p.species,
+                """SELECT s.common_name as species,
                           COALESCE(SUM(pe.weight_grams), 0) as total_weight,
                           COALESCE(SUM(pe.quantity), 0) as total_quantity,
                           COUNT(pe.id) as harvest_count
                    FROM plant_event pe
                    JOIN plant p ON pe.plant_id = p.id
+                   JOIN species s ON p.species_id = s.id
                    JOIN bed b ON p.bed_id = b.id
                    JOIN garden g ON b.garden_id = g.id
                    WHERE pe.event_type = 'HARVESTED'
                      AND g.owner_id = ?
-                     AND p.species IS NOT NULL
-                   GROUP BY p.species
+                   GROUP BY s.common_name
                    ORDER BY total_weight DESC"""
             ).use { ps ->
                 ps.setLong(1, userId)

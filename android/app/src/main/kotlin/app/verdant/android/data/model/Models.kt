@@ -72,10 +72,20 @@ data class UpdateBedRequest(
     val boundaryJson: String? = null
 )
 
+data class BedWithGardenResponse(
+    val id: Long,
+    val name: String,
+    val description: String?,
+    val gardenId: Long,
+    val gardenName: String,
+    val boundaryJson: String?,
+)
+
 data class PlantResponse(
     val id: Long,
     val name: String,
-    val species: String?,
+    val speciesId: Long?,
+    val speciesName: String?,
     val plantedDate: String?,
     val status: String,
     val seedCount: Int?,
@@ -87,7 +97,7 @@ data class PlantResponse(
 
 data class CreatePlantRequest(
     val name: String,
-    val species: String? = null,
+    val speciesId: Long? = null,
     val plantedDate: String? = null,
     val status: String = "SEEDED",
     val seedCount: Int? = null,
@@ -96,7 +106,7 @@ data class CreatePlantRequest(
 
 data class UpdatePlantRequest(
     val name: String? = null,
-    val species: String? = null,
+    val speciesId: Long? = null,
     val plantedDate: String? = null,
     val status: String? = null,
     val seedCount: Int? = null,
@@ -207,4 +217,88 @@ data class HarvestStatRow(
     val totalWeightGrams: Double,
     val totalQuantity: Int,
     val harvestCount: Int,
+)
+
+// ── Species ──
+
+data class SpeciesResponse(
+    val id: Long,
+    val commonName: String,
+    val scientificName: String?,
+    val imageBase64: String?,
+    val daysToSprout: Int?,
+    val daysToHarvest: Int?,
+    val germinationTimeDays: Int?,
+    val sowingDepthMm: Int?,
+    val growingPosition: String?,
+    val soil: String?,
+    val heightCm: Int?,
+    val bloomTime: String?,
+    val germinationRate: Int?,
+    val groupId: Long?,
+    val groupName: String?,
+    val tags: List<SpeciesTagResponse>,
+    val createdAt: String,
+)
+
+data class CreateSpeciesRequest(
+    val commonName: String,
+    val scientificName: String? = null,
+    val imageBase64: String? = null,
+    val daysToSprout: Int? = null,
+    val daysToHarvest: Int? = null,
+    val germinationTimeDays: Int? = null,
+    val sowingDepthMm: Int? = null,
+    val growingPosition: String? = null,
+    val soil: String? = null,
+    val heightCm: Int? = null,
+    val bloomTime: String? = null,
+    val germinationRate: Int? = null,
+    val groupId: Long? = null,
+    val tagIds: List<Long> = emptyList(),
+)
+
+data class UpdateSpeciesRequest(
+    val commonName: String? = null,
+    val scientificName: String? = null,
+    val imageBase64: String? = null,
+    val daysToSprout: Int? = null,
+    val daysToHarvest: Int? = null,
+    val germinationTimeDays: Int? = null,
+    val sowingDepthMm: Int? = null,
+    val growingPosition: String? = null,
+    val soil: String? = null,
+    val heightCm: Int? = null,
+    val bloomTime: String? = null,
+    val germinationRate: Int? = null,
+    val groupId: Long? = null,
+    val tagIds: List<Long>? = null,
+)
+
+data class SpeciesGroupResponse(
+    val id: Long,
+    val name: String,
+)
+
+data class CreateSpeciesGroupRequest(
+    val name: String,
+)
+
+data class SpeciesTagResponse(
+    val id: Long,
+    val name: String,
+)
+
+data class CreateSpeciesTagRequest(
+    val name: String,
+)
+
+data class FrequentCommentResponse(
+    val id: Long,
+    val text: String,
+    val useCount: Int,
+)
+
+data class RecordCommentRequest(
+    val text: String,
 )

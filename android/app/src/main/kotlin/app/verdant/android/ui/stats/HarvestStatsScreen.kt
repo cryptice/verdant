@@ -104,8 +104,11 @@ fun HarvestStatsScreen(
                 }
             }
         }
-        uiState.error?.let {
-            Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(16.dp))
+        if (uiState.error != null && !uiState.isLoading && uiState.stats.isEmpty()) {
+            app.verdant.android.ui.common.ConnectionErrorState(
+                onRetry = { viewModel.refresh() },
+                modifier = Modifier.padding(padding)
+            )
         }
     }
 }

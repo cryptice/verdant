@@ -148,14 +148,11 @@ fun GardenDetailScreen(
             uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
-            uiState.error != null -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Failed to load garden", color = MaterialTheme.colorScheme.error)
-                    Spacer(Modifier.height(4.dp))
-                    Text(uiState.error ?: "", style = MaterialTheme.typography.bodySmall)
-                    Spacer(Modifier.height(8.dp))
-                    TextButton(onClick = { viewModel.refresh() }) { Text("Retry") }
-                }
+            uiState.error != null -> {
+                app.verdant.android.ui.common.ConnectionErrorState(
+                    onRetry = { viewModel.refresh() },
+                    modifier = Modifier.padding(padding)
+                )
             }
             else -> {
                 LazyColumn(

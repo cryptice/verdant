@@ -6,7 +6,7 @@ import java.time.LocalDate
 data class Plant(
     val id: Long? = null,
     val name: String,
-    val species: String? = null,
+    val speciesId: Long? = null,
     val plantedDate: LocalDate? = null,
     val status: PlantStatus = PlantStatus.SEEDED,
     val seedCount: Int? = null,
@@ -16,4 +16,4 @@ data class Plant(
     val updatedAt: Instant = Instant.now(),
 )
 
-enum class PlantStatus { SEEDED, POTTED_UP, PLANTED_OUT, GROWING, HARVESTED, REMOVED }
+enum class PlantStatus { SEEDED, POTTED_UP, PLANTED_OUT, GROWING, HARVESTED, RECOVERED, REMOVED }

@@ -13,6 +13,19 @@ class BedService(
     private val bedRepository: BedRepository,
     private val gardenRepository: GardenRepository
 ) {
+    fun getAllBedsForUser(userId: Long): List<BedWithGardenResponse> {
+        return bedRepository.findByUserIdWithGardenName(userId).map {
+            BedWithGardenResponse(
+                id = it.bed.id!!,
+                name = it.bed.name,
+                description = it.bed.description,
+                gardenId = it.bed.gardenId,
+                gardenName = it.gardenName,
+                boundaryJson = it.bed.boundaryJson,
+            )
+        }
+    }
+
     fun getBedsForGarden(gardenId: Long, userId: Long): List<BedResponse> {
         val garden = gardenRepository.findById(gardenId) ?: throw NotFoundException("Garden not found")
         if (garden.ownerId != userId) throw ForbiddenException()

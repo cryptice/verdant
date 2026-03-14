@@ -107,15 +107,11 @@ fun AccountScreen(
                 CircularProgressIndicator()
             }
             uiState.error != null -> {
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Something went wrong", color = MaterialTheme.colorScheme.error)
-                        Spacer(Modifier.height(16.dp))
-                        OutlinedButton(onClick = { viewModel.signOut() }) {
-                            Text("Sign Out")
-                        }
-                    }
-                }
+                app.verdant.android.ui.common.ConnectionErrorState(
+                    message = "Couldn't load your account",
+                    onRetry = { viewModel.signOut() },
+                    modifier = Modifier.padding(padding)
+                )
             }
             uiState.user != null -> {
                 val user = uiState.user!!

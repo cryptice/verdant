@@ -20,6 +20,10 @@ class BedResource(
     private fun userId() = jwt.subject.toLong()
 
     @GET
+    @Path("/beds")
+    fun listAll() = bedService.getAllBedsForUser(userId())
+
+    @GET
     @Path("/beds/{id}")
     fun get(@PathParam("id") id: Long) = bedService.getBed(id, userId())
 

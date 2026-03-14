@@ -24,6 +24,11 @@ class PlantResource(
     private fun userId() = jwt.subject.toLong()
 
     @GET
+    @Path("/plants")
+    fun listAll(@QueryParam("status") status: String?) =
+        plantService.getAllPlantsForUser(userId(), status?.let { app.verdant.entity.PlantStatus.valueOf(it) })
+
+    @GET
     @Path("/beds/{bedId}/plants")
     fun list(@PathParam("bedId") bedId: Long) = plantService.getPlantsForBed(bedId, userId())
 

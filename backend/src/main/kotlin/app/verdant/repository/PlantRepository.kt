@@ -29,6 +29,22 @@ class PlantRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    fun findByUserId(userId: Long, status: PlantStatus? = null): List<Plant> =
+        ds.connection.use { conn ->
+            val sql = buildString {
+                append("SELECT p.* FROM plant p JOIN bed b ON p.bed_id = b.id JOIN garden g ON b.garden_id = g.id WHERE g.owner_id = ?")
+                if (status != null) append(" AND p.status = ?")
+                append(" ORDER BY p.id")
+            }
+            conn.prepareStatement(sql).use { ps ->
+                ps.setLong(1, userId)
+                if (status != null) ps.setString(2, status.name)
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.toPlant()) }
+                }
+            }
+        }
+
     fun countByGardenId(gardenId: Long): Long =
         ds.connection.use { conn ->
             conn.prepareStatement(
@@ -42,12 +58,12 @@ class PlantRepository(private val ds: AgroalDataSource) {
     fun persist(plant: Plant): Plant {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO plant (name, species, planted_date, status, seed_count, surviving_count, bed_id, created_at, updated_at)
+                """INSERT INTO plant (name, species_id, planted_date, status, seed_count, surviving_count, bed_id, created_at, updated_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setString(1, plant.name)
-                ps.setString(2, plant.species)
+                ps.setObject(2, plant.speciesId)
                 ps.setDate(3, plant.plantedDate?.let { Date.valueOf(it) })
                 ps.setString(4, plant.status.name)
                 ps.setObject(5, plant.seedCount)
@@ -65,12 +81,12 @@ class PlantRepository(private val ds: AgroalDataSource) {
     fun update(plant: Plant) {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """UPDATE plant SET name = ?, species = ?, planted_date = ?, status = ?,
+                """UPDATE plant SET name = ?, species_id = ?, planted_date = ?, status = ?,
                    seed_count = ?, surviving_count = ?, updated_at = now()
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setString(1, plant.name)
-                ps.setString(2, plant.species)
+                ps.setObject(2, plant.speciesId)
                 ps.setDate(3, plant.plantedDate?.let { Date.valueOf(it) })
                 ps.setString(4, plant.status.name)
                 ps.setObject(5, plant.seedCount)
@@ -93,7 +109,7 @@ class PlantRepository(private val ds: AgroalDataSource) {
     private fun ResultSet.toPlant() = Plant(
         id = getLong("id"),
         name = getString("name"),
-        species = getString("species"),
+        speciesId = getObject("species_id") as? Long,
         plantedDate = getDate("planted_date")?.toLocalDate(),
         status = PlantStatus.valueOf(getString("status")),
         seedCount = getObject("seed_count") as? Int,

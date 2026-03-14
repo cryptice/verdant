@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -31,6 +30,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.ui.activity.toCompressedBase64
 import app.verdant.android.data.model.CreatePlantEventRequest
 import app.verdant.android.data.model.IdentifyPlantRequest
 import app.verdant.android.data.model.PlantSuggestion
@@ -39,7 +39,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -85,15 +84,7 @@ class AddPlantEventViewModel @Inject constructor(
     }
 }
 
-fun Bitmap.toCompressedBase64(maxSize: Int = 800): String {
-    val scale = minOf(maxSize.toFloat() / width, maxSize.toFloat() / height, 1f)
-    val scaled = if (scale < 1f) {
-        Bitmap.createScaledBitmap(this, (width * scale).toInt(), (height * scale).toInt(), true)
-    } else this
-    val stream = ByteArrayOutputStream()
-    scaled.compress(Bitmap.CompressFormat.JPEG, 80, stream)
-    return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
-}
+// toCompressedBase64 is defined in app.verdant.android.ui.activity.PhotoPicker
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,7 +95,7 @@ fun AddPlantEventScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    val eventTypes = listOf("SEEDED", "POTTED_UP", "PLANTED_OUT", "HARVESTED", "NOTE")
+    val eventTypes = listOf("SEEDED", "POTTED_UP", "PLANTED_OUT", "HARVESTED", "RECOVERED", "REMOVED", "NOTE")
     var selectedType by remember { mutableStateOf("NOTE") }
     var plantCount by remember { mutableStateOf("") }
     var weightGrams by remember { mutableStateOf("") }
@@ -315,7 +306,7 @@ fun AddPlantEventScreen(
                 }
             }
 
-            uiState.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }
         }
     }
 }

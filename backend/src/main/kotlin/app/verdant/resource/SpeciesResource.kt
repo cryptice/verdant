@@ -1,0 +1,81 @@
+package app.verdant.resource
+
+import app.verdant.dto.*
+import app.verdant.service.SpeciesService
+import io.quarkus.security.Authenticated
+import jakarta.ws.rs.*
+import jakarta.ws.rs.core.MediaType
+import jakarta.ws.rs.core.Response
+import org.eclipse.microprofile.jwt.JsonWebToken
+
+@Path("/api/species")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+@Authenticated
+class SpeciesResource(
+    private val speciesService: SpeciesService,
+    private val jwt: JsonWebToken
+) {
+    private fun userId() = jwt.subject.toLong()
+
+    @GET
+    fun list() = speciesService.getSpeciesForUser(userId())
+
+    @POST
+    fun create(request: CreateSpeciesRequest): Response {
+        val species = speciesService.createSpecies(request, userId())
+        return Response.status(Response.Status.CREATED).entity(species).build()
+    }
+
+    @PUT
+    @Path("/{id}")
+    fun update(@PathParam("id") id: Long, request: UpdateSpeciesRequest) =
+        speciesService.updateSpecies(id, request, userId())
+
+    @DELETE
+    @Path("/{id}")
+    fun delete(@PathParam("id") id: Long): Response {
+        speciesService.deleteSpecies(id, userId())
+        return Response.noContent().build()
+    }
+
+    // ── Groups ──
+
+    @GET
+    @Path("/groups")
+    fun listGroups() = speciesService.getGroupsForUser(userId())
+
+    @POST
+    @Path("/groups")
+    fun createGroup(request: CreateSpeciesGroupRequest): Response {
+        val group = speciesService.createGroup(request, userId())
+        return Response.status(Response.Status.CREATED).entity(group).build()
+    }
+
+    @DELETE
+    @Path("/groups/{id}")
+    fun deleteGroup(@PathParam("id") id: Long): Response {
+        speciesService.deleteGroup(id, userId())
+        return Response.noContent().build()
+    }
+
+    // ── Tags ──
+
+    @GET
+    @Path("/tags")
+    fun listTags() = speciesService.getTagsForUser(userId())
+
+    @POST
+    @Path("/tags")
+    fun createTag(request: CreateSpeciesTagRequest): Response {
+        val tag = speciesService.createTag(request, userId())
+        return Response.status(Response.Status.CREATED).entity(tag).build()
+    }
+
+    @DELETE
+    @Path("/tags/{id}")
+    fun deleteTag(@PathParam("id") id: Long): Response {
+        speciesService.deleteTag(id, userId())
+        return Response.noContent().build()
+    }
+}

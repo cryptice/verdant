@@ -14,10 +14,12 @@ class GardenRepository @Inject constructor(private val api: VerdantApi) {
     suspend fun updateGarden(id: Long, request: UpdateGardenRequest) = api.updateGarden(id, request)
     suspend fun deleteGarden(id: Long) = api.deleteGarden(id)
     suspend fun getBeds(gardenId: Long) = api.getBeds(gardenId)
+    suspend fun getAllBeds() = api.getAllBeds()
     suspend fun getBed(id: Long) = api.getBed(id)
     suspend fun createBed(gardenId: Long, request: CreateBedRequest) = api.createBed(gardenId, request)
     suspend fun updateBed(id: Long, request: UpdateBedRequest) = api.updateBed(id, request)
     suspend fun deleteBed(id: Long) = api.deleteBed(id)
+    suspend fun getAllPlants(status: String? = null) = api.getAllPlants(status)
     suspend fun getPlants(bedId: Long) = api.getPlants(bedId)
     suspend fun getPlant(id: Long) = api.getPlant(id)
     suspend fun createPlant(bedId: Long, request: CreatePlantRequest) = api.createPlant(bedId, request)
@@ -39,4 +41,21 @@ class GardenRepository @Inject constructor(private val api: VerdantApi) {
 
     // Stats
     suspend fun getHarvestStats() = api.getHarvestStats()
+
+    // Species
+    suspend fun getSpecies() = api.getSpecies()
+    suspend fun createSpecies(request: CreateSpeciesRequest) = api.createSpecies(request)
+    suspend fun updateSpecies(id: Long, request: UpdateSpeciesRequest) = api.updateSpecies(id, request)
+    suspend fun deleteSpecies(id: Long) = api.deleteSpecies(id)
+    suspend fun getSpeciesGroups() = api.getSpeciesGroups()
+    suspend fun createSpeciesGroup(request: CreateSpeciesGroupRequest) = api.createSpeciesGroup(request)
+    suspend fun deleteSpeciesGroup(id: Long) = api.deleteSpeciesGroup(id)
+    suspend fun getSpeciesTags() = api.getSpeciesTags()
+    suspend fun createSpeciesTag(request: CreateSpeciesTagRequest) = api.createSpeciesTag(request)
+    suspend fun deleteSpeciesTag(id: Long) = api.deleteSpeciesTag(id)
+
+    // Frequent Comments
+    suspend fun getFrequentComments() = api.getFrequentComments()
+    suspend fun recordComment(request: RecordCommentRequest) = api.recordComment(request)
+    suspend fun deleteComment(id: Long) = api.deleteComment(id)
 }

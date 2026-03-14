@@ -29,6 +29,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.ui.activity.toCompressedBase64
 import app.verdant.android.data.model.CreatePlantRequest
 import app.verdant.android.data.model.IdentifyPlantRequest
 import app.verdant.android.data.model.PlantSuggestion
@@ -64,7 +65,6 @@ class CreatePlantViewModel @Inject constructor(
                     bedId,
                     CreatePlantRequest(
                         name = name,
-                        species = species.ifBlank { null },
                         seedCount = seedCount,
                         survivingCount = seedCount,
                     )
@@ -257,7 +257,7 @@ fun CreatePlantScreen(
                     Text("Add Plant")
                 }
             }
-            uiState.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }
         }
     }
 }

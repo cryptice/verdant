@@ -134,6 +134,12 @@ fun BedDetailScreen(
             uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
+            uiState.error != null -> {
+                app.verdant.android.ui.common.ConnectionErrorState(
+                    onRetry = { viewModel.refresh() },
+                    modifier = Modifier.padding(padding)
+                )
+            }
             else -> {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
@@ -167,7 +173,7 @@ fun BedDetailScreen(
                             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Column(Modifier.weight(1f)) {
                                     Text(plant.name, fontWeight = FontWeight.SemiBold)
-                                    plant.species?.let {
+                                    plant.speciesName?.let {
                                         Text(it, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                                     }
                                 }
