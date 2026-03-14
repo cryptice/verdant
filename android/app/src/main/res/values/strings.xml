@@ -1,3 +1,236 @@
 <resources>
     <string name="app_name">Verdant</string>
+
+    <!-- Common -->
+    <string name="back">Back</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="ok">OK</string>
+    <string name="save">Save</string>
+    <string name="create">Create</string>
+    <string name="search">Search</string>
+    <string name="none">None</string>
+    <string name="try_again">Try Again</string>
+    <string name="menu">Menu</string>
+    <string name="photo">Photo</string>
+
+    <!-- Auth -->
+    <string name="your_garden_companion">Your garden companion</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+
+    <!-- Navigation -->
+    <string name="my_world">My World</string>
+    <string name="activities">Activities</string>
+    <string name="account">Account</string>
+    <string name="seed_inventory">Seed Inventory</string>
+
+    <!-- Activity Sheet -->
+    <string name="what_would_you_like_to_do">What would you like to do?</string>
+    <string name="activity_add_species">Add Species</string>
+    <string name="activity_add_seeds">Add Seeds</string>
+    <string name="activity_sow">Sow</string>
+    <string name="activity_pot_up">Pot up</string>
+    <string name="activity_plant">Plant</string>
+    <string name="activity_harvest">Harvest</string>
+    <string name="activity_recover">Recover</string>
+    <string name="activity_discard">Discard</string>
+
+    <!-- My World -->
+    <string name="gardens">Gardens</string>
+    <string name="add_garden">Add Garden</string>
+    <string name="no_gardens_yet">No gardens yet</string>
+    <string name="tap_plus_to_create_garden">Tap + to create your first garden</string>
+    <string name="plants_count">%1$d %2$s \u00B7 %3$d %4$s</string>
+    <string name="plant_singular">plant</string>
+    <string name="plant_plural">plants</string>
+    <string name="bed_singular">bed</string>
+    <string name="bed_plural">beds</string>
+    <string name="species_library">Species Library</string>
+    <string name="harvest_stats">Harvest Stats</string>
+    <string name="no_harvests_yet">No harvests yet</string>
+    <string name="weight">Weight</string>
+    <string name="quantity">Quantity</string>
+    <string name="harvests">Harvests</string>
+
+    <!-- Garden Creation -->
+    <string name="pick_location">Pick Location</string>
+    <string name="search_address">Search address</string>
+    <string name="my_location">My location</string>
+    <string name="garden_boundary">Garden Boundary</string>
+    <string name="drag_to_move">Drag to move</string>
+    <string name="name_your_garden">Name Your Garden</string>
+    <string name="what_should_we_call_garden">What should we call your garden?</string>
+    <string name="emoji">Emoji</string>
+    <string name="garden_name">Garden Name</string>
+    <string name="next_edit_beds">Next: Edit Beds</string>
+    <string name="garden_beds">Garden Beds</string>
+    <string name="beds">Beds</string>
+    <string name="bed_name">Bed Name</string>
+    <string name="description">Description</string>
+    <string name="add_bed">Add bed</string>
+    <string name="create_garden">Create Garden</string>
+    <string name="default_garden_name">My Garden</string>
+    <string name="default_bed_name">New Bed</string>
+
+    <!-- Garden Detail -->
+    <string name="garden">Garden</string>
+    <string name="delete_garden">Delete Garden</string>
+    <string name="delete_garden_confirm">This will delete the garden and all its beds and plants. Are you sure?</string>
+    <string name="no_beds_yet">No beds yet. Tap + to add one.</string>
+
+    <!-- Bed Creation -->
+    <string name="new_bed">New Bed</string>
+    <string name="description_optional">Description (optional)</string>
+    <string name="create_bed">Create Bed</string>
+
+    <!-- Bed Detail -->
+    <string name="bed">Bed</string>
+    <string name="delete_bed">Delete Bed</string>
+    <string name="delete_bed_confirm">This will delete the bed and all its plants. Are you sure?</string>
+    <string name="plants">Plants</string>
+    <string name="no_plants_yet">No plants yet. Tap + to add one.</string>
+    <string name="add_plant">Add Plant</string>
+
+    <!-- Plant Creation -->
+    <string name="new_plant">New Plant</string>
+    <string name="scan_seed_package">Scan Seed Package</string>
+    <string name="camera">Camera</string>
+    <string name="gallery">Gallery</string>
+    <string name="seed_package">Seed package</string>
+    <string name="identifying">Identifying\u2026</string>
+    <string name="suggestions">Suggestions</string>
+    <string name="confidence_percent">%d%%</string>
+    <string name="plant_name">Plant Name</string>
+    <string name="species_optional">Species (optional)</string>
+    <string name="seed_count_optional">Seed Count (optional)</string>
+
+    <!-- Plant Detail -->
+    <string name="plant">Plant</string>
+    <string name="delete_plant">Delete Plant</string>
+    <string name="delete_plant_confirm">Are you sure you want to delete this plant and all its events?</string>
+    <string name="timeline">Timeline</string>
+    <string name="no_events_yet">No events yet. Tap + to add one.</string>
+    <string name="seeds_count">Seeds: %d</string>
+    <string name="alive_count">Alive: %d</string>
+    <string name="delete_event">Delete Event</string>
+    <string name="remove_event_confirm">Remove this event?</string>
+    <string name="add_event">Add Event</string>
+
+    <!-- Add Plant Event -->
+    <string name="event_type">Event Type</string>
+    <string name="plant_count">Plant Count</string>
+    <string name="weight_grams">Weight (grams)</string>
+    <string name="quantity_fruits">Quantity (fruits/stems)</string>
+    <string name="ai_suggestions">AI Suggestions</string>
+    <string name="confidence_label">Confidence: %d%%</string>
+    <string name="notes_optional">Notes (optional)</string>
+
+    <!-- Event Types -->
+    <string name="event_seeded">Seeded</string>
+    <string name="event_potted_up">Potted Up</string>
+    <string name="event_planted_out">Planted Out</string>
+    <string name="event_growing">Growing</string>
+    <string name="event_harvested">Harvested</string>
+    <string name="event_recovered">Recovered</string>
+    <string name="event_removed">Removed</string>
+    <string name="event_note">Note</string>
+
+    <!-- Activity Screens -->
+    <string name="pot_up">Pot Up</string>
+    <string name="plant_out">Plant Out</string>
+    <string name="harvest">Harvest</string>
+    <string name="recover">Recover</string>
+    <string name="discard">Discard</string>
+    <string name="record_pot_up">Record Pot Up</string>
+    <string name="record_planting">Record Planting</string>
+    <string name="harvest_count">Harvest Count</string>
+    <string name="record_harvest">Record Harvest</string>
+    <string name="surviving_count">Surviving Count</string>
+    <string name="record_recovery">Record Recovery</string>
+    <string name="count_removed">Count Removed</string>
+    <string name="record_discard">Record Discard</string>
+
+    <!-- Sow -->
+    <string name="sow">Sow</string>
+    <string name="species_required">Species *</string>
+    <string name="search_species">Search species\u2026</string>
+    <string name="no_species_found">No species found</string>
+    <string name="seed_batch_required">Seed Batch *</string>
+    <string name="select_seed_batch">Select seed batch\u2026</string>
+    <string name="seeds_count_format">%d seeds</string>
+    <string name="collected_date">collected %s</string>
+    <string name="expires_date">expires %s</string>
+    <string name="no_seed_batches">No seed batches available for this species. You can still sow without inventory.</string>
+    <string name="bed_required">Bed *</string>
+    <string name="select_bed">Select bed\u2026</string>
+    <string name="seed_count">Seed Count</string>
+
+    <!-- Add Seeds -->
+    <string name="add_seeds">Add Seeds</string>
+    <string name="number_of_seeds_required">Number of Seeds *</string>
+    <string name="collection_date">Collection Date</string>
+    <string name="select_date_optional">Select date (optional)</string>
+    <string name="expiration_date">Expiration Date</string>
+
+    <!-- Add Species -->
+    <string name="add_species">Add Species</string>
+    <string name="common_name_required">Common Name *</string>
+    <string name="common_name_sv">Swedish Name</string>
+    <string name="scientific_name">Scientific Name</string>
+    <string name="growth_information">Growth Information</string>
+    <string name="days_to_sprout">Days to sprout</string>
+    <string name="days_to_harvest">Days to harvest</string>
+    <string name="germination_time_days">Germ. time (days)</string>
+    <string name="sowing_depth_mm">Sowing depth (mm)</string>
+    <string name="height_cm">Height (cm)</string>
+    <string name="bloom_time">Bloom time</string>
+    <string name="germination_rate_percent">Germination rate (%%)</string>
+    <string name="growing_position">Growing Position</string>
+    <string name="sunny">Sunny</string>
+    <string name="partial_sun">Partial sun</string>
+    <string name="shadowy">Shadowy</string>
+    <string name="soil_type">Soil Type</string>
+    <string name="clay">Clay</string>
+    <string name="sandy">Sandy</string>
+    <string name="loamy">Loamy</string>
+    <string name="chalky">Chalky</string>
+    <string name="peaty">Peaty</string>
+    <string name="silty">Silty</string>
+    <string name="group">Group</string>
+    <string name="create_new_group">+ Create new group</string>
+    <string name="new_group">New Group</string>
+    <string name="group_name">Group name</string>
+    <string name="tags">Tags</string>
+    <string name="new_tag">+ New tag</string>
+    <string name="new_tag_title">New Tag</string>
+    <string name="tag_name">Tag name</string>
+    <string name="save_species">Save Species</string>
+    <string name="front_photo">Front</string>
+    <string name="back_photo">Back</string>
+
+    <!-- Plant Picker -->
+    <string name="select_plant">Select Plant</string>
+    <string name="search_plants">Search plants\u2026</string>
+    <string name="no_plants_found">No plants found</string>
+
+    <!-- Seed Inventory -->
+    <string name="no_seeds_in_inventory">No seeds in inventory</string>
+    <string name="use_activities_to_add_seeds">Use Activities to add seeds</string>
+    <string name="delete_seed_batch">Delete seed batch?</string>
+    <string name="delete_seed_batch_confirm">This will remove %1$d %2$s seeds from your inventory.</string>
+    <string name="collected_label">Collected: %s</string>
+    <string name="expires_label">Expires: %s</string>
+
+    <!-- Account -->
+    <string name="delete_account">Delete Account</string>
+    <string name="delete_account_confirm">This will permanently delete your account and all your data. This cannot be undone.</string>
+    <string name="couldnt_load_account">Couldn\'t load your account</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="language">Language</string>
+    <string name="language_english">English</string>
+    <string name="language_swedish">Svenska</string>
+
+    <!-- Connection Error -->
+    <string name="couldnt_reach_garden">Couldn\'t reach the garden</string>
+    <string name="check_internet">Check your internet connection and try again.</string>
 </resources>

@@ -9,10 +9,12 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import app.verdant.android.R
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -104,15 +106,15 @@ fun PotUpActivityScreen(
     LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
 
     ActivityScaffold(
-        title = "Pot Up",
+        title = stringResource(R.string.pot_up),
         plantName = uiState.plant?.name,
         onBack = onBack,
     ) {
-        CountField(value = count, onValueChange = { count = it }, label = "Plant Count")
+        CountField(value = count, onValueChange = { count = it }, label = stringResource(R.string.plant_count))
         PhotoSection(imageBase64) { imageBase64 = it }
         FrequentCommentsField(value = notes, onValueChange = { notes = it }, suggestions = uiState.comments)
         SubmitButton(
-            label = "Record Pot Up",
+            label = stringResource(R.string.record_pot_up),
             isLoading = uiState.isLoading,
             onClick = {
                 viewModel.submitEvent("POTTED_UP", plantCount = count.toIntOrNull(), notes = notes.ifBlank { null }, imageBase64 = imageBase64)
@@ -136,15 +138,15 @@ fun PlantActivityScreen(
     LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
 
     ActivityScaffold(
-        title = "Plant Out",
+        title = stringResource(R.string.plant_out),
         plantName = uiState.plant?.name,
         onBack = onBack,
     ) {
-        CountField(value = count, onValueChange = { count = it }, label = "Plant Count")
+        CountField(value = count, onValueChange = { count = it }, label = stringResource(R.string.plant_count))
         PhotoSection(imageBase64) { imageBase64 = it }
         FrequentCommentsField(value = notes, onValueChange = { notes = it }, suggestions = uiState.comments)
         SubmitButton(
-            label = "Record Planting",
+            label = stringResource(R.string.record_planting),
             isLoading = uiState.isLoading,
             onClick = {
                 viewModel.submitEvent("PLANTED_OUT", plantCount = count.toIntOrNull(), notes = notes.ifBlank { null }, imageBase64 = imageBase64)
@@ -170,11 +172,11 @@ fun HarvestActivityScreen(
     LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
 
     ActivityScaffold(
-        title = "Harvest",
+        title = stringResource(R.string.harvest),
         plantName = uiState.plant?.name,
         onBack = onBack,
     ) {
-        CountField(value = count, onValueChange = { count = it }, label = "Harvest Count")
+        CountField(value = count, onValueChange = { count = it }, label = stringResource(R.string.harvest_count))
         OutlinedTextField(
             value = weightGrams,
             onValueChange = { weightGrams = it.filter { c -> c.isDigit() || c == '.' } },
@@ -194,7 +196,7 @@ fun HarvestActivityScreen(
         PhotoSection(imageBase64) { imageBase64 = it }
         FrequentCommentsField(value = notes, onValueChange = { notes = it }, suggestions = uiState.comments)
         SubmitButton(
-            label = "Record Harvest",
+            label = stringResource(R.string.record_harvest),
             isLoading = uiState.isLoading,
             onClick = {
                 viewModel.submitEvent(
@@ -225,15 +227,15 @@ fun RecoverActivityScreen(
     LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
 
     ActivityScaffold(
-        title = "Recover",
+        title = stringResource(R.string.recover),
         plantName = uiState.plant?.name,
         onBack = onBack,
     ) {
-        CountField(value = count, onValueChange = { count = it }, label = "Surviving Count")
+        CountField(value = count, onValueChange = { count = it }, label = stringResource(R.string.surviving_count))
         PhotoSection(imageBase64) { imageBase64 = it }
         FrequentCommentsField(value = notes, onValueChange = { notes = it }, suggestions = uiState.comments)
         SubmitButton(
-            label = "Record Recovery",
+            label = stringResource(R.string.record_recovery),
             isLoading = uiState.isLoading,
             onClick = {
                 viewModel.submitEvent("RECOVERED", plantCount = count.toIntOrNull(), notes = notes.ifBlank { null }, imageBase64 = imageBase64)
@@ -257,15 +259,15 @@ fun DiscardActivityScreen(
     LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
 
     ActivityScaffold(
-        title = "Discard",
+        title = stringResource(R.string.discard),
         plantName = uiState.plant?.name,
         onBack = onBack,
     ) {
-        CountField(value = count, onValueChange = { count = it }, label = "Count Removed")
+        CountField(value = count, onValueChange = { count = it }, label = stringResource(R.string.count_removed))
         PhotoSection(imageBase64) { imageBase64 = it }
         FrequentCommentsField(value = notes, onValueChange = { notes = it }, suggestions = uiState.comments)
         SubmitButton(
-            label = "Record Discard",
+            label = stringResource(R.string.record_discard),
             isLoading = uiState.isLoading,
             onClick = {
                 viewModel.submitEvent("REMOVED", plantCount = count.toIntOrNull(), notes = notes.ifBlank { null }, imageBase64 = imageBase64)
@@ -291,7 +293,7 @@ private fun ActivityScaffold(
                 title = { Text(title) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 }
             )
@@ -316,7 +318,7 @@ private fun ActivityScaffold(
 
 @Composable
 private fun PhotoSection(imageBase64: String?, onCapture: (String) -> Unit) {
-    Text("Photo", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+    Text(stringResource(R.string.photo), fontWeight = FontWeight.Bold, fontSize = 16.sp)
     PhotoPicker(
         imageBase64 = imageBase64,
         onImageCaptured = { b64, _ -> onCapture(b64) }

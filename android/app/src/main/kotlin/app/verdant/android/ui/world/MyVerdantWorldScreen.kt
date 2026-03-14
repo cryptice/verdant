@@ -14,10 +14,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import app.verdant.android.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.viewModelScope
@@ -105,11 +107,11 @@ fun MyVerdantWorldScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Gardens", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text(stringResource(R.string.gardens), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         TextButton(onClick = onCreateGarden) {
                             Icon(Icons.Default.Add, null, Modifier.size(18.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("Add Garden")
+                            Text(stringResource(R.string.add_garden))
                         }
                     }
                 }
@@ -127,8 +129,8 @@ fun MyVerdantWorldScreen(
                             ) {
                                 Text("\uD83C\uDF31", fontSize = 48.sp)
                                 Spacer(Modifier.height(8.dp))
-                                Text("No gardens yet", fontWeight = FontWeight.Medium)
-                                Text("Tap + to create your first garden",
+                                Text(stringResource(R.string.no_gardens_yet), fontWeight = FontWeight.Medium)
+                                Text(stringResource(R.string.tap_plus_to_create_garden),
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                     fontSize = 14.sp)
                             }
@@ -152,8 +154,10 @@ fun MyVerdantWorldScreen(
                             Spacer(Modifier.width(16.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(garden.name, fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                                val plantLabel = if (garden.plantCount == 1) stringResource(R.string.plant_singular) else stringResource(R.string.plant_plural)
+                                val bedLabel = if (garden.bedCount == 1) stringResource(R.string.bed_singular) else stringResource(R.string.bed_plural)
                                 Text(
-                                    "${garden.plantCount} ${if (garden.plantCount == 1) "plant" else "plants"} \u00B7 ${garden.bedCount} ${if (garden.bedCount == 1) "bed" else "beds"}",
+                                    "${garden.plantCount} $plantLabel \u00B7 ${garden.bedCount} $bedLabel",
                                     fontSize = 14.sp,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                 )
@@ -165,7 +169,7 @@ fun MyVerdantWorldScreen(
                 // Species library section
                 if (uiState.species.isNotEmpty()) {
                     item {
-                        Text("Species Library", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text(stringResource(R.string.species_library), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     }
                     item {
                         LazyRow(
@@ -206,7 +210,7 @@ fun MyVerdantWorldScreen(
                 // Harvest stats section
                 if (uiState.harvestStats.isNotEmpty()) {
                     item {
-                        Text("Harvest Stats", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text(stringResource(R.string.harvest_stats), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     }
                     items(uiState.harvestStats) { stat ->
                         Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
@@ -220,17 +224,17 @@ fun MyVerdantWorldScreen(
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text(formatWeight(stat.totalWeightGrams), fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.primary)
-                                        Text("Weight", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                                        Text(stringResource(R.string.weight), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                                     }
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text(stat.totalQuantity.toString(), fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.primary)
-                                        Text("Quantity", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                                        Text(stringResource(R.string.quantity), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                                     }
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Text(stat.harvestCount.toString(), fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.primary)
-                                        Text("Harvests", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                                        Text(stringResource(R.string.harvests), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                                     }
                                 }
                             }
@@ -249,7 +253,7 @@ fun MyVerdantWorldScreen(
                                 Icon(Icons.Default.Agriculture, null, Modifier.size(32.dp),
                                     tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f))
                                 Spacer(Modifier.height(4.dp))
-                                Text("No harvests yet", fontSize = 14.sp,
+                                Text(stringResource(R.string.no_harvests_yet), fontSize = 14.sp,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                             }
                         }

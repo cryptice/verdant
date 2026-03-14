@@ -6,8 +6,10 @@ data class Species(
     val id: Long? = null,
     val userId: Long,
     val commonName: String,
+    val commonNameSv: String? = null,
     val scientificName: String? = null,
-    val imageBase64: String? = null,
+    val imageFrontBase64: String? = null,
+    val imageBackBase64: String? = null,
     val daysToSprout: Int? = null,
     val daysToHarvest: Int? = null,
     val germinationTimeDays: Int? = null,
@@ -35,6 +37,14 @@ data class SpeciesTag(
     val id: Long? = null,
     val userId: Long,
     val name: String,
+)
+
+data class SpeciesPhoto(
+    val id: Long? = null,
+    val speciesId: Long,
+    val imageBase64: String,
+    val sortOrder: Int = 0,
+    val createdAt: Instant = Instant.now(),
 )
 
 data class FrequentComment(

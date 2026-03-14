@@ -7,11 +7,13 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.R
 import app.verdant.android.data.model.CreateBedRequest
 import app.verdant.android.data.repository.GardenRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -66,10 +68,10 @@ fun CreateBedScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("New Bed") },
+                title = { Text(stringResource(R.string.new_bed)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 }
             )
@@ -82,14 +84,14 @@ fun CreateBedScreen(
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Bed Name") },
+                label = { Text(stringResource(R.string.bed_name)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text("Description (optional)") },
+                label = { Text(stringResource(R.string.description_optional)) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
                 shape = RoundedCornerShape(12.dp)
@@ -104,7 +106,7 @@ fun CreateBedScreen(
                 if (uiState.isLoading) {
                     CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text("Create Bed")
+                    Text(stringResource(R.string.create_bed))
                 }
             }
             uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }

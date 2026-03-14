@@ -12,10 +12,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import app.verdant.android.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.SeedInventoryResponse
@@ -74,10 +76,10 @@ fun SeedInventoryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Seed Inventory") },
+                title = { Text(stringResource(R.string.seed_inventory)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 }
             )
@@ -104,10 +106,10 @@ fun SeedInventoryScreen(
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                         )
                         Spacer(Modifier.height(8.dp))
-                        Text("No seeds in inventory", fontSize = 16.sp,
+                        Text(stringResource(R.string.no_seeds_in_inventory), fontSize = 16.sp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                         Spacer(Modifier.height(4.dp))
-                        Text("Use Activities to add seeds", fontSize = 14.sp,
+                        Text(stringResource(R.string.use_activities_to_add_seeds), fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
                     }
                 }
@@ -137,15 +139,15 @@ private fun SeedInventoryCard(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Delete seed batch?") },
-            text = { Text("This will remove ${item.quantity} ${item.speciesName} seeds from your inventory.") },
+            title = { Text(stringResource(R.string.delete_seed_batch)) },
+            text = { Text(stringResource(R.string.delete_seed_batch_confirm, item.quantity, item.speciesName)) },
             confirmButton = {
                 TextButton(onClick = { showDeleteConfirm = false; onDelete() }) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteConfirm = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -168,17 +170,17 @@ private fun SeedInventoryCard(
                     color = MaterialTheme.colorScheme.primary
                 )
                 item.collectionDate?.let {
-                    Text("Collected: $it", fontSize = 13.sp,
+                    Text(stringResource(R.string.collected_label, it), fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                 }
                 item.expirationDate?.let {
-                    Text("Expires: $it", fontSize = 13.sp,
+                    Text(stringResource(R.string.expires_label, it), fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                 }
             }
             IconButton(onClick = { showDeleteConfirm = true }) {
                 Icon(
-                    Icons.Default.Delete, "Delete",
+                    Icons.Default.Delete, stringResource(R.string.delete),
                     tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                 )
             }

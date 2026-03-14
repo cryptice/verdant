@@ -1,6 +1,8 @@
 package app.verdant.resource
 
 import app.verdant.dto.*
+import app.verdant.repository.UserRepository
+import app.verdant.service.AiService
 import app.verdant.service.SpeciesService
 import io.quarkus.security.Authenticated
 import jakarta.ws.rs.*
@@ -14,6 +16,8 @@ import org.eclipse.microprofile.jwt.JsonWebToken
 @Authenticated
 class SpeciesResource(
     private val speciesService: SpeciesService,
+    private val aiService: AiService,
+    private val userRepository: UserRepository,
     private val jwt: JsonWebToken
 ) {
     private fun userId() = jwt.subject.toLong()
@@ -37,6 +41,19 @@ class SpeciesResource(
     fun delete(@PathParam("id") id: Long): Response {
         speciesService.deleteSpecies(id, userId())
         return Response.noContent().build()
+    }
+
+    // ── Extract Info ──
+
+    @POST
+    @Path("/extract-info")
+    fun extractInfo(request: ExtractSpeciesInfoRequest): Response {
+        val language = userRepository.findById(userId())?.language ?: "sv"
+        val info = aiService.extractSpeciesInfo(request.imageBase64, language)
+            ?: return Response.status(Response.Status.BAD_REQUEST)
+                .entity(mapOf("error" to "Could not extract species info from image"))
+                .build()
+        return Response.ok(info).build()
     }
 
     // ── Groups ──

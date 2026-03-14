@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,6 +30,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.R
 import app.verdant.android.ui.activity.toCompressedBase64
 import app.verdant.android.data.model.CreatePlantRequest
 import app.verdant.android.data.model.IdentifyPlantRequest
@@ -154,10 +156,10 @@ fun CreatePlantScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("New Plant") },
+                title = { Text(stringResource(R.string.new_plant)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 }
             )
@@ -172,15 +174,15 @@ fun CreatePlantScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Scan seed package
-            Text("Scan Seed Package", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(stringResource(R.string.scan_seed_package), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = { launchCamera() }) {
                     Icon(Icons.Default.CameraAlt, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("Camera")
+                    Text(stringResource(R.string.camera))
                 }
                 OutlinedButton(onClick = { galleryLauncher.launch("image/*") }) {
-                    Text("Gallery")
+                    Text(stringResource(R.string.gallery))
                 }
             }
 
@@ -188,7 +190,7 @@ fun CreatePlantScreen(
                 Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
                     Image(
                         bitmap = bmp.asImageBitmap(),
-                        contentDescription = "Seed package",
+                        contentDescription = stringResource(R.string.seed_package),
                         modifier = Modifier.fillMaxWidth().heightIn(max = 150.dp),
                         contentScale = ContentScale.Crop
                     )
@@ -198,12 +200,12 @@ fun CreatePlantScreen(
             if (uiState.identifying) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     CircularProgressIndicator(Modifier.size(16.dp))
-                    Text("Identifying...", fontSize = 14.sp)
+                    Text(stringResource(R.string.identifying), fontSize = 14.sp)
                 }
             }
 
             if (uiState.suggestions.isNotEmpty()) {
-                Text("Suggestions", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text(stringResource(R.string.suggestions), fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 uiState.suggestions.forEach { s ->
                     Card(
                         shape = RoundedCornerShape(8.dp),
@@ -225,21 +227,21 @@ fun CreatePlantScreen(
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Plant Name") },
+                label = { Text(stringResource(R.string.plant_name)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
             OutlinedTextField(
                 value = species,
                 onValueChange = { species = it },
-                label = { Text("Species (optional)") },
+                label = { Text(stringResource(R.string.species_optional)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
             OutlinedTextField(
                 value = seedCount,
                 onValueChange = { seedCount = it.filter { c -> c.isDigit() } },
-                label = { Text("Seed Count (optional)") },
+                label = { Text(stringResource(R.string.seed_count_optional)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
@@ -254,7 +256,7 @@ fun CreatePlantScreen(
                 if (uiState.isLoading) {
                     CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text("Add Plant")
+                    Text(stringResource(R.string.add_plant))
                 }
             }
             uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }

@@ -47,8 +47,8 @@ class UserRepository(private val ds: AgroalDataSource) {
     fun persist(user: User): User {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO app_user (google_subject, email, display_name, avatar_url, password_hash, role, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, now(), now())""",
+                """INSERT INTO app_user (google_subject, email, display_name, avatar_url, password_hash, role, language, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setString(1, user.googleSubject)
@@ -57,6 +57,7 @@ class UserRepository(private val ds: AgroalDataSource) {
                 ps.setString(4, user.avatarUrl)
                 ps.setString(5, user.passwordHash)
                 ps.setString(6, user.role.name)
+                ps.setString(7, user.language)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -70,7 +71,7 @@ class UserRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """UPDATE app_user SET google_subject = ?, email = ?, display_name = ?, avatar_url = ?,
-                   password_hash = ?, role = ?, updated_at = now() WHERE id = ?"""
+                   password_hash = ?, role = ?, language = ?, updated_at = now() WHERE id = ?"""
             ).use { ps ->
                 ps.setString(1, user.googleSubject)
                 ps.setString(2, user.email)
@@ -78,7 +79,8 @@ class UserRepository(private val ds: AgroalDataSource) {
                 ps.setString(4, user.avatarUrl)
                 ps.setString(5, user.passwordHash)
                 ps.setString(6, user.role.name)
-                ps.setLong(7, user.id!!)
+                ps.setString(7, user.language)
+                ps.setLong(8, user.id!!)
                 ps.executeUpdate()
             }
         }
@@ -101,6 +103,7 @@ class UserRepository(private val ds: AgroalDataSource) {
         avatarUrl = getString("avatar_url"),
         passwordHash = getString("password_hash"),
         role = Role.valueOf(getString("role")),
+        language = getString("language") ?: "sv",
         createdAt = getTimestamp("created_at").toInstant(),
         updatedAt = getTimestamp("updated_at").toInstant(),
     )

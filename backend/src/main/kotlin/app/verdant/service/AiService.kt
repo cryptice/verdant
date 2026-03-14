@@ -24,22 +24,29 @@ class AiService(
         .connectTimeout(Duration.ofSeconds(10))
         .build()
 
-    fun identifyPlant(imageBase64: String): List<PlantSuggestion> {
+    fun identifyPlant(imageBase64: String, language: String = "sv"): List<PlantSuggestion> {
         val apiKey = apiKeyOpt.orElse("")
         if (apiKey.isBlank()) {
             log.warning("No Gemini API key configured, cannot identify plant")
             return emptyList()
         }
 
+        val langName = when (language) {
+            "sv" -> "Swedish"
+            else -> "English"
+        }
+
         val prompt = """Identify the plant in this image. If it's a seed package, identify the plant species from the package.
+Focus on the seed package if one is visible in the image — ignore any background or surrounding objects.
 
 Return ONLY valid JSON (no markdown, no explanation) as an array of up to 3 suggestions:
-[{"species": "Solanum lycopersicum", "commonName": "Tomato", "confidence": 0.95}]
+[{"species": "Solanum lycopersicum", "commonName": "Tomat", "confidence": 0.95, "cropBox": {"x": 0.1, "y": 0.05, "width": 0.8, "height": 0.9}}]
 
 Each suggestion should have:
 - species: scientific/Latin name
-- commonName: common English name
+- commonName: common name in $langName
 - confidence: 0.0 to 1.0
+- cropBox: if a seed package is visible, the bounding box as normalized coordinates (0.0-1.0 fractions of image width/height) — x, y are top-left corner. Omit if the entire image is the subject.
 
 If you cannot identify any plant, return an empty array: []"""
 
@@ -227,6 +234,93 @@ Guidelines for bed names - use creative, descriptive names like:
             if (aMax <= bMin || bMax <= aMin) return false
         }
         return true
+    }
+
+    fun extractSpeciesInfo(imageBase64: String, language: String = "sv"): ExtractedSpeciesInfo? {
+        val apiKey = apiKeyOpt.orElse("")
+        if (apiKey.isBlank()) {
+            log.warning("No Gemini API key configured, cannot extract species info")
+            return null
+        }
+
+        val langName = when (language) {
+            "sv" -> "Swedish"
+            else -> "English"
+        }
+
+        val prompt = """Analyze this seed package back photo and extract all growing information you can find.
+Focus on the seed package if one is visible in the image — ignore any background or surrounding objects.
+
+Return ONLY valid JSON (no markdown, no explanation) with the following fields. Use null for any field you cannot determine from the image:
+{
+  "commonName": "Common name of the plant in $langName",
+  "scientificName": "Scientific/Latin name if visible",
+  "germinationTimeDays": 14,
+  "sowingDepthMm": 10,
+  "heightCm": 60,
+  "bloomTime": "June-August",
+  "germinationRate": 85,
+  "growingPosition": "SUNNY",
+  "soil": "LOAMY",
+  "daysToSprout": 10,
+  "daysToHarvest": 90,
+  "cropBox": {"x": 0.1, "y": 0.05, "width": 0.8, "height": 0.9}
+}
+
+Field details:
+- commonName: the plant's common name in $langName
+- scientificName: Latin/botanical name if shown
+- germinationTimeDays: how many days for seeds to germinate
+- sowingDepthMm: sowing depth in millimeters
+- heightCm: expected plant height in centimeters
+- bloomTime: flowering period as a string (e.g. "June-August")
+- germinationRate: germination rate as a percentage integer (e.g. 85 for 85%)
+- growingPosition: one of SUNNY, PARTIALLY_SUNNY, or SHADOWY
+- soil: one of CLAY, SANDY, LOAMY, CHALKY, PEATY, or SILTY
+- daysToSprout: number of days until sprouting
+- daysToHarvest: number of days from sowing to harvest
+- cropBox: if a seed package is visible, the bounding box as normalized coordinates (0.0-1.0 fractions of image width/height) — x, y are top-left corner. Omit if the entire image is the subject.
+
+Only use the exact enum values listed above for growingPosition and soil. If unsure, use null."""
+
+        val requestBody = objectMapper.writeValueAsString(mapOf(
+            "contents" to listOf(mapOf(
+                "parts" to listOf(
+                    mapOf("text" to prompt),
+                    mapOf("inlineData" to mapOf("mimeType" to "image/jpeg", "data" to imageBase64))
+                )
+            )),
+            "generationConfig" to mapOf(
+                "responseMimeType" to "application/json",
+                "maxOutputTokens" to 1024
+            )
+        ))
+
+        val httpRequest = HttpRequest.newBuilder()
+            .uri(URI.create("https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=$apiKey"))
+            .header("Content-Type", "application/json")
+            .timeout(Duration.ofSeconds(30))
+            .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+            .build()
+
+        val response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())
+
+        if (response.statusCode() != 200) {
+            log.warning("Gemini API returned ${response.statusCode()}: ${response.body().take(200)}")
+            return null
+        }
+
+        return try {
+            val responseJson = objectMapper.readTree(response.body())
+            val text = responseJson["candidates"][0]["content"]["parts"][0]["text"].asText()
+            val cleanJson = text.replace(Regex("^```json\\s*", RegexOption.MULTILINE), "")
+                .replace(Regex("^```\\s*$", RegexOption.MULTILINE), "")
+                .trim()
+            objectMapper.readValue(cleanJson, ExtractedSpeciesInfo::class.java)
+        } catch (e: Exception) {
+            log.warning("Failed to parse Gemini extract species info response: ${e.message}")
+            null
+        }
     }
 
     /** Returns a garden boundary with no beds — user adds beds manually. */

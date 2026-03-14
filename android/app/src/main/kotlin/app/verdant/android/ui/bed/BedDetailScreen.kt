@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -19,6 +20,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.R
 import app.verdant.android.data.model.BedResponse
 import app.verdant.android.data.model.PlantResponse
 import app.verdant.android.data.repository.GardenRepository
@@ -90,15 +92,15 @@ fun BedDetailScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete Bed") },
-            text = { Text("This will delete the bed and all its plants. Are you sure?") },
+            title = { Text(stringResource(R.string.delete_bed)) },
+            text = { Text(stringResource(R.string.delete_bed_confirm)) },
             confirmButton = {
                 TextButton(onClick = { showDeleteDialog = false; viewModel.delete() }) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -106,15 +108,15 @@ fun BedDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(uiState.bed?.name ?: "Bed") },
+                title = { Text(uiState.bed?.name ?: stringResource(R.string.bed)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 },
                 actions = {
                     IconButton(onClick = { showDeleteDialog = true }) {
-                        Icon(Icons.Default.Delete, "Delete", tint = MaterialTheme.colorScheme.error)
+                        Icon(Icons.Default.Delete, stringResource(R.string.delete), tint = MaterialTheme.colorScheme.error)
                     }
                 }
             )
@@ -125,7 +127,7 @@ fun BedDetailScreen(
                     onClick = { onCreatePlant(bed.id) },
                     containerColor = MaterialTheme.colorScheme.primary
                 ) {
-                    Icon(Icons.Default.Add, "Add Plant")
+                    Icon(Icons.Default.Add, stringResource(R.string.add_plant))
                 }
             }
         }
@@ -152,14 +154,14 @@ fun BedDetailScreen(
                                 Text(it, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
                                 Spacer(Modifier.height(16.dp))
                             }
-                            Text("Plants", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                            Text(stringResource(R.string.plants), fontWeight = FontWeight.Bold, fontSize = 20.sp)
                         }
                     }
 
                     if (uiState.plants.isEmpty()) {
                         item {
                             Text(
-                                "No plants yet. Tap + to add one.",
+                                stringResource(R.string.no_plants_yet),
                                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                             )
                         }

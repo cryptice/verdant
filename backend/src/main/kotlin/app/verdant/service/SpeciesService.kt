@@ -5,6 +5,7 @@ import app.verdant.entity.Species
 import app.verdant.entity.SpeciesGroup
 import app.verdant.entity.SpeciesTag
 import app.verdant.repository.SpeciesGroupRepository
+import app.verdant.repository.SpeciesPhotoRepository
 import app.verdant.repository.SpeciesRepository
 import app.verdant.repository.SpeciesTagRepository
 import jakarta.enterprise.context.ApplicationScoped
@@ -16,6 +17,7 @@ class SpeciesService(
     private val speciesRepository: SpeciesRepository,
     private val groupRepository: SpeciesGroupRepository,
     private val tagRepository: SpeciesTagRepository,
+    private val photoRepository: SpeciesPhotoRepository,
 ) {
     // ── Species CRUD ──
 
@@ -38,8 +40,10 @@ class SpeciesService(
             Species(
                 userId = userId,
                 commonName = request.commonName,
+                commonNameSv = request.commonNameSv,
                 scientificName = request.scientificName,
-                imageBase64 = request.imageBase64,
+                imageFrontBase64 = request.imageFrontBase64,
+                imageBackBase64 = request.imageBackBase64,
                 daysToSprout = request.daysToSprout,
                 daysToHarvest = request.daysToHarvest,
                 germinationTimeDays = request.germinationTimeDays,
@@ -63,8 +67,10 @@ class SpeciesService(
         if (species.userId != userId) throw ForbiddenException()
         val updated = species.copy(
             commonName = request.commonName ?: species.commonName,
+            commonNameSv = request.commonNameSv ?: species.commonNameSv,
             scientificName = request.scientificName ?: species.scientificName,
-            imageBase64 = request.imageBase64 ?: species.imageBase64,
+            imageFrontBase64 = request.imageFrontBase64 ?: species.imageFrontBase64,
+            imageBackBase64 = request.imageBackBase64 ?: species.imageBackBase64,
             daysToSprout = request.daysToSprout ?: species.daysToSprout,
             daysToHarvest = request.daysToHarvest ?: species.daysToHarvest,
             germinationTimeDays = request.germinationTimeDays ?: species.germinationTimeDays,
@@ -128,11 +134,15 @@ class SpeciesService(
         tags: Map<Long?, SpeciesTag>,
     ): SpeciesResponse {
         val tagIds = speciesRepository.findTagIdsForSpecies(id!!)
+        val photos = photoRepository.findBySpeciesId(id)
         return SpeciesResponse(
             id = id,
             commonName = commonName,
+            commonNameSv = commonNameSv,
             scientificName = scientificName,
-            imageBase64 = imageBase64,
+            imageFrontBase64 = imageFrontBase64,
+            imageBackBase64 = imageBackBase64,
+            photos = photos.map { SpeciesPhotoResponse(it.id!!, it.imageBase64, it.sortOrder) },
             daysToSprout = daysToSprout,
             daysToHarvest = daysToHarvest,
             germinationTimeDays = germinationTimeDays,

@@ -9,12 +9,14 @@ data class UserResponse(
     val displayName: String,
     val avatarUrl: String?,
     val role: String,
+    val language: String = "sv",
     val createdAt: String
 )
 
 data class UpdateUserRequest(
     val displayName: String? = null,
-    val avatarUrl: String? = null
+    val avatarUrl: String? = null,
+    val language: String? = null,
 )
 
 data class GardenResponse(
@@ -206,10 +208,37 @@ data class IdentifyPlantRequest(
     val imageBase64: String,
 )
 
+data class ExtractSpeciesInfoRequest(
+    val imageBase64: String,
+)
+
+data class ExtractedSpeciesInfo(
+    val commonName: String? = null,
+    val scientificName: String? = null,
+    val germinationTimeDays: Int? = null,
+    val sowingDepthMm: Int? = null,
+    val heightCm: Int? = null,
+    val bloomTime: String? = null,
+    val germinationRate: Int? = null,
+    val growingPosition: String? = null,
+    val soil: String? = null,
+    val daysToSprout: Int? = null,
+    val daysToHarvest: Int? = null,
+    val cropBox: CropBox? = null,
+)
+
 data class PlantSuggestion(
     val species: String,
     val commonName: String,
     val confidence: Double,
+    val cropBox: CropBox? = null,
+)
+
+data class CropBox(
+    val x: Double,
+    val y: Double,
+    val width: Double,
+    val height: Double,
 )
 
 data class HarvestStatRow(
@@ -221,11 +250,20 @@ data class HarvestStatRow(
 
 // ── Species ──
 
+data class SpeciesPhotoResponse(
+    val id: Long,
+    val imageBase64: String,
+    val sortOrder: Int,
+)
+
 data class SpeciesResponse(
     val id: Long,
     val commonName: String,
+    val commonNameSv: String?,
     val scientificName: String?,
-    val imageBase64: String?,
+    val imageFrontBase64: String?,
+    val imageBackBase64: String?,
+    val photos: List<SpeciesPhotoResponse> = emptyList(),
     val daysToSprout: Int?,
     val daysToHarvest: Int?,
     val germinationTimeDays: Int?,
@@ -243,8 +281,10 @@ data class SpeciesResponse(
 
 data class CreateSpeciesRequest(
     val commonName: String,
+    val commonNameSv: String? = null,
     val scientificName: String? = null,
-    val imageBase64: String? = null,
+    val imageFrontBase64: String? = null,
+    val imageBackBase64: String? = null,
     val daysToSprout: Int? = null,
     val daysToHarvest: Int? = null,
     val germinationTimeDays: Int? = null,
@@ -260,8 +300,10 @@ data class CreateSpeciesRequest(
 
 data class UpdateSpeciesRequest(
     val commonName: String? = null,
+    val commonNameSv: String? = null,
     val scientificName: String? = null,
-    val imageBase64: String? = null,
+    val imageFrontBase64: String? = null,
+    val imageBackBase64: String? = null,
     val daysToSprout: Int? = null,
     val daysToHarvest: Int? = null,
     val germinationTimeDays: Int? = null,

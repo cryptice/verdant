@@ -9,10 +9,12 @@ data class UserResponse(
     val displayName: String,
     val avatarUrl: String?,
     val role: Role,
+    val language: String,
     val createdAt: Instant
 )
 
 data class UpdateUserRequest(
     val displayName: String? = null,
-    val avatarUrl: String? = null
+    val avatarUrl: String? = null,
+    val language: String? = null,
 )

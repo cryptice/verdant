@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,6 +31,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.R
 import app.verdant.android.ui.activity.toCompressedBase64
 import app.verdant.android.data.model.CreatePlantEventRequest
 import app.verdant.android.data.model.IdentifyPlantRequest
@@ -152,10 +154,10 @@ fun AddPlantEventScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add Event") },
+                title = { Text(stringResource(R.string.add_event)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 }
             )
@@ -170,7 +172,7 @@ fun AddPlantEventScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Event type chips
-            Text("Event Type", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(stringResource(R.string.event_type), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -189,7 +191,7 @@ fun AddPlantEventScreen(
                 OutlinedTextField(
                     value = plantCount,
                     onValueChange = { plantCount = it.filter { c -> c.isDigit() } },
-                    label = { Text("Plant Count") },
+                    label = { Text(stringResource(R.string.plant_count)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
@@ -199,31 +201,31 @@ fun AddPlantEventScreen(
                 OutlinedTextField(
                     value = weightGrams,
                     onValueChange = { weightGrams = it.filter { c -> c.isDigit() || c == '.' } },
-                    label = { Text("Weight (grams)") },
+                    label = { Text(stringResource(R.string.weight_grams)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
                 OutlinedTextField(
                     value = quantity,
                     onValueChange = { quantity = it.filter { c -> c.isDigit() } },
-                    label = { Text("Quantity (fruits/stems)") },
+                    label = { Text(stringResource(R.string.quantity_fruits)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
             }
 
             // Photo
-            Text("Photo", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(stringResource(R.string.photo), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = { launchCamera() }) {
                     Icon(Icons.Default.CameraAlt, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("Camera")
+                    Text(stringResource(R.string.camera))
                 }
                 OutlinedButton(onClick = { galleryLauncher.launch("image/*") }) {
                     Icon(Icons.Default.PhotoLibrary, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("Gallery")
+                    Text(stringResource(R.string.gallery))
                 }
             }
 
@@ -231,7 +233,7 @@ fun AddPlantEventScreen(
                 Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
                     Image(
                         bitmap = bmp.asImageBitmap(),
-                        contentDescription = "Photo",
+                        contentDescription = stringResource(R.string.photo),
                         modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp),
                         contentScale = ContentScale.Crop
                     )
@@ -242,11 +244,11 @@ fun AddPlantEventScreen(
             if (uiState.identifying) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     CircularProgressIndicator(Modifier.size(16.dp))
-                    Text("Identifying plant...", fontSize = 14.sp)
+                    Text(stringResource(R.string.identifying), fontSize = 14.sp)
                 }
             }
             if (uiState.suggestions.isNotEmpty()) {
-                Text("AI Suggestions", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(stringResource(R.string.ai_suggestions), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 uiState.suggestions.forEach { s ->
                     Card(
                         shape = RoundedCornerShape(8.dp),
@@ -265,7 +267,7 @@ fun AddPlantEventScreen(
             OutlinedTextField(
                 value = notes,
                 onValueChange = { notes = it },
-                label = { Text("Notes (optional)") },
+                label = { Text(stringResource(R.string.notes_optional)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 minLines = 2
@@ -302,7 +304,7 @@ fun AddPlantEventScreen(
                 if (uiState.isLoading) {
                     CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text("Add Event")
+                    Text(stringResource(R.string.add_event))
                 }
             }
 

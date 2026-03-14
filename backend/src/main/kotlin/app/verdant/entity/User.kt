@@ -10,6 +10,7 @@ data class User(
     val avatarUrl: String? = null,
     val passwordHash: String? = null,
     val role: Role = Role.USER,
+    val language: String = "sv",
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),
 )

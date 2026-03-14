@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,15 +20,35 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import app.verdant.android.R
+import app.verdant.android.data.model.CropBox
 import java.io.ByteArrayOutputStream
 
+/** Crop a bitmap using normalized coordinates (0.0-1.0). */
+fun Bitmap.cropToBox(box: CropBox): Bitmap {
+    val x = (box.x * width).toInt().coerceIn(0, width - 1)
+    val y = (box.y * height).toInt().coerceIn(0, height - 1)
+    val w = (box.width * width).toInt().coerceIn(1, width - x)
+    val h = (box.height * height).toInt().coerceIn(1, height - y)
+    return Bitmap.createBitmap(this, x, y, w, h)
+}
+
+/** Rotate landscape bitmaps to portrait orientation. */
+fun Bitmap.ensurePortrait(): Bitmap {
+    if (width <= height) return this
+    val matrix = Matrix().apply { postRotate(90f) }
+    return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
+}
+
 fun Bitmap.toCompressedBase64(maxSize: Int = 800): String {
-    val scale = minOf(maxSize.toFloat() / width, maxSize.toFloat() / height, 1f)
+    val portrait = ensurePortrait()
+    val scale = minOf(maxSize.toFloat() / portrait.width, maxSize.toFloat() / portrait.height, 1f)
     val scaled = if (scale < 1f) {
-        Bitmap.createScaledBitmap(this, (width * scale).toInt(), (height * scale).toInt(), true)
-    } else this
+        Bitmap.createScaledBitmap(portrait, (portrait.width * scale).toInt(), (portrait.height * scale).toInt(), true)
+    } else portrait
     val stream = ByteArrayOutputStream()
     scaled.compress(Bitmap.CompressFormat.JPEG, 80, stream)
     return Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
@@ -37,6 +58,7 @@ fun Bitmap.toCompressedBase64(maxSize: Int = 800): String {
 fun PhotoPicker(
     imageBase64: String?,
     onImageCaptured: (base64: String, bitmap: Bitmap) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -53,8 +75,9 @@ fun PhotoPicker(
 
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bmp ->
         if (bmp != null) {
-            bitmap = bmp
-            onImageCaptured(bmp.toCompressedBase64(), bmp)
+            val portrait = bmp.ensurePortrait()
+            bitmap = portrait
+            onImageCaptured(portrait.toCompressedBase64(), portrait)
         }
     }
 
@@ -77,24 +100,25 @@ fun PhotoPicker(
                 val bmp = BitmapFactory.decodeStream(inputStream)
                 inputStream?.close()
                 if (bmp != null) {
-                    bitmap = bmp
-                    onImageCaptured(bmp.toCompressedBase64(), bmp)
+                    val portrait = bmp.ensurePortrait()
+                    bitmap = portrait
+                    onImageCaptured(portrait.toCompressedBase64(), portrait)
                 }
             } catch (_: Exception) {}
         }
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = modifier) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(onClick = { launchCamera() }) {
                 Icon(Icons.Default.CameraAlt, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(4.dp))
-                Text("Camera")
+                Text(stringResource(R.string.camera))
             }
             OutlinedButton(onClick = { galleryLauncher.launch("image/*") }) {
                 Icon(Icons.Default.PhotoLibrary, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(4.dp))
-                Text("Gallery")
+                Text(stringResource(R.string.gallery))
             }
         }
 
@@ -102,9 +126,9 @@ fun PhotoPicker(
             Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
                 Image(
                     bitmap = bmp.asImageBitmap(),
-                    contentDescription = "Photo",
-                    modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp),
-                    contentScale = ContentScale.Crop
+                    contentDescription = stringResource(R.string.photo),
+                    modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp),
+                    contentScale = ContentScale.Fit
                 )
             }
         }

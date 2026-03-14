@@ -4,11 +4,20 @@ import app.verdant.entity.GrowingPosition
 import app.verdant.entity.SoilType
 import java.time.Instant
 
+data class SpeciesPhotoResponse(
+    val id: Long,
+    val imageBase64: String,
+    val sortOrder: Int,
+)
+
 data class SpeciesResponse(
     val id: Long,
     val commonName: String,
+    val commonNameSv: String?,
     val scientificName: String?,
-    val imageBase64: String?,
+    val imageFrontBase64: String?,
+    val imageBackBase64: String?,
+    val photos: List<SpeciesPhotoResponse>,
     val daysToSprout: Int?,
     val daysToHarvest: Int?,
     val germinationTimeDays: Int?,
@@ -26,8 +35,10 @@ data class SpeciesResponse(
 
 data class CreateSpeciesRequest(
     val commonName: String,
+    val commonNameSv: String? = null,
     val scientificName: String? = null,
-    val imageBase64: String? = null,
+    val imageFrontBase64: String? = null,
+    val imageBackBase64: String? = null,
     val daysToSprout: Int? = null,
     val daysToHarvest: Int? = null,
     val germinationTimeDays: Int? = null,
@@ -43,8 +54,10 @@ data class CreateSpeciesRequest(
 
 data class UpdateSpeciesRequest(
     val commonName: String? = null,
+    val commonNameSv: String? = null,
     val scientificName: String? = null,
-    val imageBase64: String? = null,
+    val imageFrontBase64: String? = null,
+    val imageBackBase64: String? = null,
     val daysToSprout: Int? = null,
     val daysToHarvest: Int? = null,
     val germinationTimeDays: Int? = null,
@@ -93,4 +106,21 @@ data class BedWithGardenResponse(
     val gardenId: Long,
     val gardenName: String,
     val boundaryJson: String?,
+)
+
+data class ExtractSpeciesInfoRequest(val imageBase64: String)
+
+data class ExtractedSpeciesInfo(
+    val commonName: String? = null,
+    val scientificName: String? = null,
+    val germinationTimeDays: Int? = null,
+    val sowingDepthMm: Int? = null,
+    val heightCm: Int? = null,
+    val bloomTime: String? = null,
+    val germinationRate: Int? = null,
+    val growingPosition: String? = null,
+    val soil: String? = null,
+    val daysToSprout: Int? = null,
+    val daysToHarvest: Int? = null,
+    val cropBox: CropBox? = null,
 )

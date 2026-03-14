@@ -32,12 +32,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.R
 import app.verdant.android.data.model.*
 import app.verdant.android.data.repository.GardenRepository
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -174,7 +176,7 @@ class CreateGardenViewModel @Inject constructor(
         }
     }
 
-    fun generateDefaultLayout() {
+    fun generateDefaultLayout(defaultGardenName: String = "My Garden") {
         val latLng = selectedLatLng ?: return
         val lat = latLng.latitude
         val lng = latLng.longitude
@@ -184,7 +186,7 @@ class CreateGardenViewModel @Inject constructor(
         val dLat = 20.0 / metersPerDegreeLat / 2.0
         val dLng = 15.0 / metersPerDegreeLng / 2.0
 
-        gardenName = "My Garden"
+        gardenName = defaultGardenName
         gardenBoundary.clear()
         gardenBoundary.addAll(listOf(
             GmsLatLng(lat - dLat, lng - dLng),
@@ -228,10 +230,10 @@ class CreateGardenViewModel @Inject constructor(
         }
     }
 
-    fun addBed() {
+    fun addBed(defaultBedName: String = "New Bed") {
         beds.add(
             EditableBed(
-                name = mutableStateOf("New Bed"),
+                name = mutableStateOf(defaultBedName),
                 description = mutableStateOf(""),
                 boundary = mutableStateListOf(),
                 color = bedColors[beds.size % bedColors.size]
@@ -275,10 +277,10 @@ fun CreateGardenScreen(
                 title = {
                     Text(
                         when (viewModel.currentStep) {
-                            0 -> "Pick Location"
-                            1 -> "Garden Boundary"
-                            2 -> "Name Your Garden"
-                            3 -> "Garden Beds"
+                            0 -> stringResource(R.string.pick_location)
+                            1 -> stringResource(R.string.garden_boundary)
+                            2 -> stringResource(R.string.name_your_garden)
+                            3 -> stringResource(R.string.garden_beds)
                             else -> "New Garden"
                         }
                     )
@@ -289,7 +291,7 @@ fun CreateGardenScreen(
                         if (viewModel.currentStep > 0) viewModel.currentStep--
                         else onBack()
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 }
             )
@@ -381,7 +383,7 @@ private fun LocationPickerStep(
                 OutlinedTextField(
                     value = viewModel.searchQuery,
                     onValueChange = { viewModel.searchQuery = it },
-                    label = { Text("Search address") },
+                    label = { Text(stringResource(R.string.search_address)) },
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -397,7 +399,7 @@ private fun LocationPickerStep(
                                     viewModel.searchQuery = addr
                                 }
                             }
-                        }) { Icon(Icons.Default.Search, "Search") }
+                        }) { Icon(Icons.Default.Search, stringResource(R.string.search)) }
                     },
                     singleLine = true
                 )
@@ -418,14 +420,15 @@ private fun LocationPickerStep(
                     } else permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                 },
                 containerColor = MaterialTheme.colorScheme.surface
-            ) { Icon(Icons.Default.MyLocation, "My location", tint = MaterialTheme.colorScheme.primary) }
+            ) { Icon(Icons.Default.MyLocation, stringResource(R.string.my_location), tint = MaterialTheme.colorScheme.primary) }
 
             if (viewModel.selectedLatLng != null) {
+                val defaultGardenName = stringResource(R.string.default_garden_name)
                 Spacer(Modifier.height(12.dp))
                 SmallFloatingActionButton(
                     onClick = {
                         viewModel.lastCameraZoom = cameraPositionState.position.zoom
-                        viewModel.generateDefaultLayout()
+                        viewModel.generateDefaultLayout(defaultGardenName)
                         viewModel.currentStep = 1
                     },
                     containerColor = MaterialTheme.colorScheme.primary
@@ -481,7 +484,7 @@ private fun BoundaryEditorStep(
                             }
                         }
                     }
-                    Marker(state = state, draggable = true, title = "Drag to move", alpha = 0.9f)
+                    Marker(state = state, draggable = true, title = stringResource(R.string.drag_to_move), alpha = 0.9f)
                 }
             }
 
@@ -537,7 +540,7 @@ private fun NameGardenStep(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            "What should we call your garden?",
+            stringResource(R.string.what_should_we_call_garden),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
@@ -545,7 +548,7 @@ private fun NameGardenStep(
         OutlinedTextField(
             value = viewModel.gardenEmoji,
             onValueChange = { viewModel.gardenEmoji = it },
-            label = { Text("Emoji") },
+            label = { Text(stringResource(R.string.emoji)) },
             modifier = Modifier.width(96.dp),
             shape = RoundedCornerShape(12.dp),
             singleLine = true
@@ -554,7 +557,7 @@ private fun NameGardenStep(
         OutlinedTextField(
             value = viewModel.gardenName,
             onValueChange = { viewModel.gardenName = it },
-            label = { Text("Garden Name") },
+            label = { Text(stringResource(R.string.garden_name)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             singleLine = true
@@ -566,7 +569,7 @@ private fun NameGardenStep(
             shape = RoundedCornerShape(12.dp),
             enabled = viewModel.gardenName.isNotBlank()
         ) {
-            Text("Next: Edit Beds")
+            Text(stringResource(R.string.next_edit_beds))
         }
     }
 }
@@ -668,7 +671,7 @@ private fun BedEditorStep(
         // Section header
         item {
             Text(
-                "Beds", style = MaterialTheme.typography.titleMedium,
+                stringResource(R.string.beds), style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
@@ -688,7 +691,7 @@ private fun BedEditorStep(
                         OutlinedTextField(
                             value = bed.name.value,
                             onValueChange = { bed.name.value = it },
-                            label = { Text("Bed Name") },
+                            label = { Text(stringResource(R.string.bed_name)) },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(8.dp),
                             singleLine = true
@@ -701,7 +704,7 @@ private fun BedEditorStep(
                     OutlinedTextField(
                         value = bed.description.value,
                         onValueChange = { bed.description.value = it },
-                        label = { Text("Description") },
+                        label = { Text(stringResource(R.string.description)) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp),
                         minLines = 2
@@ -712,13 +715,14 @@ private fun BedEditorStep(
 
         // Add bed button
         item {
+            val defaultBedName = stringResource(R.string.default_bed_name)
             TextButton(
-                onClick = { viewModel.addBed() },
+                onClick = { viewModel.addBed(defaultBedName) },
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = null)
                 Spacer(Modifier.width(4.dp))
-                Text("Add bed")
+                Text(stringResource(R.string.add_bed))
             }
         }
 
@@ -740,7 +744,7 @@ private fun BedEditorStep(
                 if (viewModel.isCreating) {
                     CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text("Create Garden")
+                    Text(stringResource(R.string.create_garden))
                 }
             }
         }

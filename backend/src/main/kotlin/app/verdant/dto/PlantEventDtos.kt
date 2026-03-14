@@ -33,10 +33,18 @@ data class IdentifyPlantRequest(
     val imageBase64: String,
 )
 
+data class CropBox(
+    val x: Double = 0.0,
+    val y: Double = 0.0,
+    val width: Double = 1.0,
+    val height: Double = 1.0,
+)
+
 data class PlantSuggestion(
     val species: String,
     val commonName: String,
     val confidence: Double,
+    val cropBox: CropBox? = null,
 )
 
 data class HarvestStatRow(

@@ -1,0 +1,234 @@
+<resources>
+    <string name="app_name">Verdant</string>
+
+    <!-- Common -->
+    <string name="back">Tillbaka</string>
+    <string name="cancel">Avbryt</string>
+    <string name="delete">Radera</string>
+    <string name="ok">OK</string>
+    <string name="save">Spara</string>
+    <string name="create">Skapa</string>
+    <string name="search">S\u00F6k</string>
+    <string name="none">Ingen</string>
+    <string name="try_again">F\u00F6rs\u00F6k igen</string>
+    <string name="menu">Meny</string>
+    <string name="photo">Foto</string>
+
+    <!-- Auth -->
+    <string name="your_garden_companion">Din tr\u00E4dg\u00E5rdskompanjon</string>
+    <string name="sign_in_with_google">Logga in med Google</string>
+
+    <!-- Navigation -->
+    <string name="my_world">Min v\u00E4rld</string>
+    <string name="activities">Aktiviteter</string>
+    <string name="account">Konto</string>
+    <string name="seed_inventory">Fr\u00F6f\u00F6rr\u00E5d</string>
+
+    <!-- Activity Sheet -->
+    <string name="what_would_you_like_to_do">Vad vill du g\u00F6ra?</string>
+    <string name="activity_add_species">L\u00E4gg till art</string>
+    <string name="activity_add_seeds">L\u00E4gg till fr\u00F6n</string>
+    <string name="activity_sow">S\u00E5</string>
+    <string name="activity_pot_up">Kruka om</string>
+    <string name="activity_plant">Plantera</string>
+    <string name="activity_harvest">Sk\u00F6rda</string>
+    <string name="activity_recover">\u00C5terh\u00E4mta</string>
+    <string name="activity_discard">Kassera</string>
+
+    <!-- My World -->
+    <string name="gardens">Tr\u00E4dg\u00E5rdar</string>
+    <string name="add_garden">L\u00E4gg till tr\u00E4dg\u00E5rd</string>
+    <string name="no_gardens_yet">Inga tr\u00E4dg\u00E5rdar \u00E4nnu</string>
+    <string name="tap_plus_to_create_garden">Tryck + f\u00F6r att skapa din f\u00F6rsta tr\u00E4dg\u00E5rd</string>
+    <string name="plant_singular">planta</string>
+    <string name="plant_plural">plantor</string>
+    <string name="bed_singular">b\u00E4dd</string>
+    <string name="bed_plural">b\u00E4ddar</string>
+    <string name="species_library">Artbibliotek</string>
+    <string name="harvest_stats">Sk\u00F6rdestatistik</string>
+    <string name="no_harvests_yet">Inga sk\u00F6rdar \u00E4nnu</string>
+    <string name="weight">Vikt</string>
+    <string name="quantity">Antal</string>
+    <string name="harvests">Sk\u00F6rdar</string>
+
+    <!-- Garden Creation -->
+    <string name="pick_location">V\u00E4lj plats</string>
+    <string name="search_address">S\u00F6k adress</string>
+    <string name="my_location">Min position</string>
+    <string name="garden_boundary">Tr\u00E4dg\u00E5rdsgr\u00E4ns</string>
+    <string name="drag_to_move">Dra f\u00F6r att flytta</string>
+    <string name="name_your_garden">Namnge din tr\u00E4dg\u00E5rd</string>
+    <string name="what_should_we_call_garden">Vad ska vi kalla din tr\u00E4dg\u00E5rd?</string>
+    <string name="emoji">Emoji</string>
+    <string name="garden_name">Tr\u00E4dg\u00E5rdsnamn</string>
+    <string name="next_edit_beds">N\u00E4sta: Redigera b\u00E4ddar</string>
+    <string name="garden_beds">Tr\u00E4dg\u00E5rdsb\u00E4ddar</string>
+    <string name="beds">B\u00E4ddar</string>
+    <string name="bed_name">B\u00E4ddnamn</string>
+    <string name="description">Beskrivning</string>
+    <string name="add_bed">L\u00E4gg till b\u00E4dd</string>
+    <string name="create_garden">Skapa tr\u00E4dg\u00E5rd</string>
+    <string name="default_garden_name">Min tr\u00E4dg\u00E5rd</string>
+    <string name="default_bed_name">Ny b\u00E4dd</string>
+
+    <!-- Garden Detail -->
+    <string name="garden">Tr\u00E4dg\u00E5rd</string>
+    <string name="delete_garden">Radera tr\u00E4dg\u00E5rd</string>
+    <string name="delete_garden_confirm">Detta raderar tr\u00E4dg\u00E5rden och alla dess b\u00E4ddar och plantor. \u00C4r du s\u00E4ker?</string>
+    <string name="no_beds_yet">Inga b\u00E4ddar \u00E4nnu. Tryck + f\u00F6r att l\u00E4gga till en.</string>
+
+    <!-- Bed Creation -->
+    <string name="new_bed">Ny b\u00E4dd</string>
+    <string name="description_optional">Beskrivning (valfritt)</string>
+    <string name="create_bed">Skapa b\u00E4dd</string>
+
+    <!-- Bed Detail -->
+    <string name="bed">B\u00E4dd</string>
+    <string name="delete_bed">Radera b\u00E4dd</string>
+    <string name="delete_bed_confirm">Detta raderar b\u00E4dden och alla dess plantor. \u00C4r du s\u00E4ker?</string>
+    <string name="plants">Plantor</string>
+    <string name="no_plants_yet">Inga plantor \u00E4nnu. Tryck + f\u00F6r att l\u00E4gga till en.</string>
+    <string name="add_plant">L\u00E4gg till planta</string>
+
+    <!-- Plant Creation -->
+    <string name="new_plant">Ny planta</string>
+    <string name="scan_seed_package">Skanna fr\u00F6p\u00E5se</string>
+    <string name="camera">Kamera</string>
+    <string name="gallery">Galleri</string>
+    <string name="seed_package">Fr\u00F6p\u00E5se</string>
+    <string name="identifying">Identifierar\u2026</string>
+    <string name="suggestions">F\u00F6rslag</string>
+    <string name="plant_name">Plantnamn</string>
+    <string name="species_optional">Art (valfritt)</string>
+    <string name="seed_count_optional">Antal fr\u00F6n (valfritt)</string>
+
+    <!-- Plant Detail -->
+    <string name="plant">Planta</string>
+    <string name="delete_plant">Radera planta</string>
+    <string name="delete_plant_confirm">\u00C4r du s\u00E4ker p\u00E5 att du vill radera denna planta och alla dess h\u00E4ndelser?</string>
+    <string name="timeline">Tidslinje</string>
+    <string name="no_events_yet">Inga h\u00E4ndelser \u00E4nnu. Tryck + f\u00F6r att l\u00E4gga till en.</string>
+    <string name="seeds_count">Fr\u00F6n: %d</string>
+    <string name="alive_count">Levande: %d</string>
+    <string name="delete_event">Radera h\u00E4ndelse</string>
+    <string name="remove_event_confirm">Ta bort denna h\u00E4ndelse?</string>
+    <string name="add_event">L\u00E4gg till h\u00E4ndelse</string>
+
+    <!-- Add Plant Event -->
+    <string name="event_type">H\u00E4ndelsetyp</string>
+    <string name="plant_count">Antal plantor</string>
+    <string name="weight_grams">Vikt (gram)</string>
+    <string name="quantity_fruits">Antal (frukter/stj\u00E4lkar)</string>
+    <string name="ai_suggestions">AI-f\u00F6rslag</string>
+    <string name="confidence_label">S\u00E4kerhet: %d%%</string>
+    <string name="notes_optional">Anteckningar (valfritt)</string>
+
+    <!-- Event Types -->
+    <string name="event_seeded">S\u00E5dd</string>
+    <string name="event_potted_up">Omkrukad</string>
+    <string name="event_planted_out">Utplanterad</string>
+    <string name="event_growing">V\u00E4xer</string>
+    <string name="event_harvested">Sk\u00F6rdad</string>
+    <string name="event_recovered">\u00C5terh\u00E4mtad</string>
+    <string name="event_removed">Borttagen</string>
+    <string name="event_note">Anteckning</string>
+
+    <!-- Activity Screens -->
+    <string name="pot_up">Kruka om</string>
+    <string name="plant_out">Plantera ut</string>
+    <string name="harvest">Sk\u00F6rda</string>
+    <string name="recover">\u00C5terh\u00E4mta</string>
+    <string name="discard">Kassera</string>
+    <string name="record_pot_up">Registrera omkrukning</string>
+    <string name="record_planting">Registrera plantering</string>
+    <string name="harvest_count">Sk\u00F6rdeantal</string>
+    <string name="record_harvest">Registrera sk\u00F6rd</string>
+    <string name="surviving_count">Antal \u00F6verlevande</string>
+    <string name="record_recovery">Registrera \u00E5terh\u00E4mtning</string>
+    <string name="count_removed">Antal borttagna</string>
+    <string name="record_discard">Registrera kassering</string>
+
+    <!-- Sow -->
+    <string name="sow">S\u00E5</string>
+    <string name="species_required">Art *</string>
+    <string name="search_species">S\u00F6k art\u2026</string>
+    <string name="no_species_found">Inga arter hittades</string>
+    <string name="seed_batch_required">Fr\u00F6parti *</string>
+    <string name="select_seed_batch">V\u00E4lj fr\u00F6parti\u2026</string>
+    <string name="seeds_count_format">%d fr\u00F6n</string>
+    <string name="collected_date">insamlad %s</string>
+    <string name="expires_date">utg\u00E5r %s</string>
+    <string name="no_seed_batches">Inga fr\u00F6partier tillg\u00E4ngliga f\u00F6r denna art. Du kan fortfarande s\u00E5 utan lager.</string>
+    <string name="bed_required">B\u00E4dd *</string>
+    <string name="select_bed">V\u00E4lj b\u00E4dd\u2026</string>
+    <string name="seed_count">Antal fr\u00F6n</string>
+
+    <!-- Add Seeds -->
+    <string name="add_seeds">L\u00E4gg till fr\u00F6n</string>
+    <string name="number_of_seeds_required">Antal fr\u00F6n *</string>
+    <string name="collection_date">Insamlingsdatum</string>
+    <string name="select_date_optional">V\u00E4lj datum (valfritt)</string>
+    <string name="expiration_date">Utg\u00E5ngsdatum</string>
+
+    <!-- Add Species -->
+    <string name="add_species">L\u00E4gg till art</string>
+    <string name="common_name_required">Trivialnamn *</string>
+    <string name="common_name_sv">Svenskt namn</string>
+    <string name="scientific_name">Vetenskapligt namn</string>
+    <string name="growth_information">Odlingsinformation</string>
+    <string name="days_to_sprout">Dagar till grodd</string>
+    <string name="days_to_harvest">Dagar till sk\u00F6rd</string>
+    <string name="germination_time_days">Grodningstid (dagar)</string>
+    <string name="sowing_depth_mm">S\u00E5djup (mm)</string>
+    <string name="height_cm">H\u00F6jd (cm)</string>
+    <string name="bloom_time">Blomningstid</string>
+    <string name="germination_rate_percent">Groningsgrad (%%)</string>
+    <string name="growing_position">V\u00E4xtplats</string>
+    <string name="sunny">Sol</string>
+    <string name="partial_sun">Halvskugga</string>
+    <string name="shadowy">Skugga</string>
+    <string name="soil_type">Jordtyp</string>
+    <string name="clay">Lera</string>
+    <string name="sandy">Sand</string>
+    <string name="loamy">Mojord</string>
+    <string name="chalky">Kalk</string>
+    <string name="peaty">Torv</string>
+    <string name="silty">Silt</string>
+    <string name="group">Grupp</string>
+    <string name="create_new_group">+ Skapa ny grupp</string>
+    <string name="new_group">Ny grupp</string>
+    <string name="group_name">Gruppnamn</string>
+    <string name="tags">Taggar</string>
+    <string name="new_tag">+ Ny tagg</string>
+    <string name="new_tag_title">Ny tagg</string>
+    <string name="tag_name">Taggnamn</string>
+    <string name="save_species">Spara art</string>
+    <string name="front_photo">Framsida</string>
+    <string name="back_photo">Baksida</string>
+
+    <!-- Plant Picker -->
+    <string name="select_plant">V\u00E4lj planta</string>
+    <string name="search_plants">S\u00F6k plantor\u2026</string>
+    <string name="no_plants_found">Inga plantor hittades</string>
+
+    <!-- Seed Inventory -->
+    <string name="no_seeds_in_inventory">Inga fr\u00F6n i f\u00F6rr\u00E5det</string>
+    <string name="use_activities_to_add_seeds">Anv\u00E4nd Aktiviteter f\u00F6r att l\u00E4gga till fr\u00F6n</string>
+    <string name="delete_seed_batch">Radera fr\u00F6parti?</string>
+    <string name="delete_seed_batch_confirm">Detta tar bort %1$d %2$s fr\u00F6n fr\u00E5n ditt f\u00F6rr\u00E5d.</string>
+    <string name="collected_label">Insamlad: %s</string>
+    <string name="expires_label">Utg\u00E5r: %s</string>
+
+    <!-- Account -->
+    <string name="delete_account">Radera konto</string>
+    <string name="delete_account_confirm">Detta raderar permanent ditt konto och all din data. Detta kan inte \u00E5ngras.</string>
+    <string name="couldnt_load_account">Kunde inte ladda ditt konto</string>
+    <string name="sign_out">Logga ut</string>
+    <string name="language">Spr\u00E5k</string>
+    <string name="language_english">English</string>
+    <string name="language_swedish">Svenska</string>
+
+    <!-- Connection Error -->
+    <string name="couldnt_reach_garden">Kunde inte n\u00E5 tr\u00E4dg\u00E5rden</string>
+    <string name="check_internet">Kontrollera din internetanslutning och f\u00F6rs\u00F6k igen.</string>
+</resources>

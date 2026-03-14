@@ -61,5 +61,6 @@ fun User.toResponse() = UserResponse(
     displayName = displayName,
     avatarUrl = avatarUrl,
     role = role,
+    language = language,
     createdAt = createdAt
 )

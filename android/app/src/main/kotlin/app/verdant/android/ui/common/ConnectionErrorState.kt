@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -20,8 +21,8 @@ import app.verdant.android.R
 
 @Composable
 fun ConnectionErrorState(
-    message: String = "Couldn't reach the garden",
-    detail: String = "Check your internet connection and try again.",
+    message: String = stringResource(R.string.couldnt_reach_garden),
+    detail: String = stringResource(R.string.check_internet),
     onRetry: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
@@ -80,7 +81,7 @@ fun ConnectionErrorState(
                             .fillMaxWidth()
                             .height(48.dp)
                     ) {
-                        Text("Try Again")
+                        Text(stringResource(R.string.try_again))
                     }
                 }
             }

@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
@@ -20,6 +21,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.BuildConfig
+import app.verdant.android.R
 import app.verdant.android.data.repository.AuthRepository
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -85,14 +87,14 @@ fun AuthScreen(
             Text(text = "\uD83C\uDF3F", fontSize = 72.sp)
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Verdant",
+                text = stringResource(R.string.app_name),
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Your garden companion",
+                text = stringResource(R.string.your_garden_companion),
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center
@@ -141,7 +143,7 @@ fun AuthScreen(
                         modifier = Modifier.size(24.dp)
                     )
                 } else {
-                    Text("Sign in with Google", fontSize = 16.sp)
+                    Text(stringResource(R.string.sign_in_with_google), fontSize = 16.sp)
                 }
             }
 

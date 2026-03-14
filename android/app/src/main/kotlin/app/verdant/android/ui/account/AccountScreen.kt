@@ -5,15 +5,20 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.os.LocaleListCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.R
+import app.verdant.android.data.model.UpdateUserRequest
 import app.verdant.android.data.model.UserResponse
 import app.verdant.android.data.repository.AuthRepository
 import app.verdant.android.data.repository.GardenRepository
@@ -57,6 +62,19 @@ class AccountViewModel @Inject constructor(
         }
     }
 
+    fun updateLanguage(language: String) {
+        viewModelScope.launch {
+            try {
+                gardenRepository.updateMe(UpdateUserRequest(language = language))
+                val user = gardenRepository.getMe()
+                _uiState.value = AccountState(isLoading = false, user = user)
+                AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(language))
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(error = e.message)
+            }
+        }
+    }
+
     fun deleteAccount() {
         viewModelScope.launch {
             try {
@@ -86,21 +104,21 @@ fun AccountScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete Account") },
-            text = { Text("This will permanently delete your account and all your data. This cannot be undone.") },
+            title = { Text(stringResource(R.string.delete_account)) },
+            text = { Text(stringResource(R.string.delete_account_confirm)) },
             confirmButton = {
                 TextButton(onClick = { showDeleteDialog = false; viewModel.deleteAccount() }) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Account") }) }
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.account)) }) }
     ) { padding ->
         when {
             uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -108,7 +126,7 @@ fun AccountScreen(
             }
             uiState.error != null -> {
                 app.verdant.android.ui.common.ConnectionErrorState(
-                    message = "Couldn't load your account",
+                    message = stringResource(R.string.couldnt_load_account),
                     onRetry = { viewModel.signOut() },
                     modifier = Modifier.padding(padding)
                 )
@@ -131,14 +149,32 @@ fun AccountScreen(
                     Text(user.displayName, fontWeight = FontWeight.Bold, fontSize = 22.sp)
                     Text(user.email, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
 
-                    Spacer(Modifier.height(48.dp))
+                    Spacer(Modifier.height(32.dp))
+
+                    // Language picker
+                    Text(stringResource(R.string.language), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Spacer(Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(
+                            selected = uiState.user?.language == "en",
+                            onClick = { viewModel.updateLanguage("en") },
+                            label = { Text(stringResource(R.string.language_english)) }
+                        )
+                        FilterChip(
+                            selected = uiState.user?.language != "en",
+                            onClick = { viewModel.updateLanguage("sv") },
+                            label = { Text(stringResource(R.string.language_swedish)) }
+                        )
+                    }
+
+                    Spacer(Modifier.height(32.dp))
 
                     OutlinedButton(
                         onClick = { viewModel.signOut() },
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Sign Out")
+                        Text(stringResource(R.string.sign_out))
                     }
 
                     Spacer(Modifier.height(16.dp))
@@ -147,7 +183,7 @@ fun AccountScreen(
                         onClick = { showDeleteDialog = true },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Delete Account", color = MaterialTheme.colorScheme.error)
+                        Text(stringResource(R.string.delete_account), color = MaterialTheme.colorScheme.error)
                     }
                 }
             }

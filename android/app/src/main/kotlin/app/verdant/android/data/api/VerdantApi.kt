@@ -92,6 +92,9 @@ interface VerdantApi {
     @POST("api/plants/identify")
     suspend fun identifyPlant(@Body request: IdentifyPlantRequest): List<PlantSuggestion>
 
+    @POST("api/species/extract-info")
+    suspend fun extractSpeciesInfo(@Body request: ExtractSpeciesInfoRequest): ExtractedSpeciesInfo
+
     // ── Stats ──
 
     @GET("api/stats/harvests")

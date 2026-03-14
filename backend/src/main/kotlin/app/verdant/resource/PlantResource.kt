@@ -3,7 +3,9 @@ package app.verdant.resource
 import app.verdant.dto.CreatePlantEventRequest
 import app.verdant.dto.CreatePlantRequest
 import app.verdant.dto.IdentifyPlantRequest
+import app.verdant.dto.PlantSuggestion
 import app.verdant.dto.UpdatePlantRequest
+import app.verdant.repository.UserRepository
 import app.verdant.service.AiService
 import app.verdant.service.PlantService
 import io.quarkus.security.Authenticated
@@ -19,6 +21,7 @@ import org.eclipse.microprofile.jwt.JsonWebToken
 class PlantResource(
     private val plantService: PlantService,
     private val aiService: AiService,
+    private val userRepository: UserRepository,
     private val jwt: JsonWebToken
 ) {
     private fun userId() = jwt.subject.toLong()
@@ -79,5 +82,8 @@ class PlantResource(
 
     @POST
     @Path("/plants/identify")
-    fun identify(request: IdentifyPlantRequest) = aiService.identifyPlant(request.imageBase64)
+    fun identify(request: IdentifyPlantRequest): List<PlantSuggestion> {
+        val language = userRepository.findById(userId())?.language ?: "sv"
+        return aiService.identifyPlant(request.imageBase64, language)
+    }
 }

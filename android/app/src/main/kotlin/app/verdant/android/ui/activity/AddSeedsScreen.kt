@@ -9,12 +9,14 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.R
 import app.verdant.android.data.model.*
 import app.verdant.android.data.repository.GardenRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -101,10 +103,10 @@ fun AddSeedsScreen(
                         collectionDate = LocalDate.ofEpochDay(it / 86400000)
                     }
                     showCollectionDatePicker = false
-                }) { Text("OK") }
+                }) { Text(stringResource(R.string.ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { showCollectionDatePicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showCollectionDatePicker = false }) { Text(stringResource(R.string.cancel)) }
             }
         ) { DatePicker(state = datePickerState) }
     }
@@ -121,10 +123,10 @@ fun AddSeedsScreen(
                         expirationDate = LocalDate.ofEpochDay(it / 86400000)
                     }
                     showExpirationDatePicker = false
-                }) { Text("OK") }
+                }) { Text(stringResource(R.string.ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { showExpirationDatePicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showExpirationDatePicker = false }) { Text(stringResource(R.string.cancel)) }
             }
         ) { DatePicker(state = datePickerState) }
     }
@@ -132,10 +134,10 @@ fun AddSeedsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add Seeds") },
+                title = { Text(stringResource(R.string.add_seeds)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 }
             )
@@ -150,7 +152,7 @@ fun AddSeedsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Species picker
-            Text("Species *", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(stringResource(R.string.species_required), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             ExposedDropdownMenuBox(
                 expanded = speciesExpanded,
                 onExpandedChange = { speciesExpanded = it }
@@ -160,7 +162,7 @@ fun AddSeedsScreen(
                         uiState.species.find { it.id == selectedSpeciesId }?.commonName ?: ""
                     },
                     onValueChange = { speciesSearch = it; speciesExpanded = true },
-                    placeholder = { Text("Search species...") },
+                    placeholder = { Text(stringResource(R.string.search_species)) },
                     modifier = Modifier.fillMaxWidth().menuAnchor(),
                     shape = RoundedCornerShape(12.dp),
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(speciesExpanded) },
@@ -185,7 +187,7 @@ fun AddSeedsScreen(
                     }
                     if (filtered.isEmpty()) {
                         DropdownMenuItem(
-                            text = { Text("No species found", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)) },
+                            text = { Text(stringResource(R.string.no_species_found), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)) },
                             onClick = {}
                         )
                     }
@@ -196,27 +198,27 @@ fun AddSeedsScreen(
             CountField(
                 value = quantity,
                 onValueChange = { quantity = it },
-                label = "Number of Seeds *"
+                label = stringResource(R.string.number_of_seeds_required)
             )
 
             // Collection date
-            Text("Collection Date", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(stringResource(R.string.collection_date), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             OutlinedButton(
                 onClick = { showCollectionDatePicker = true },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text(collectionDate?.format(DateTimeFormatter.ISO_LOCAL_DATE) ?: "Select date (optional)")
+                Text(collectionDate?.format(DateTimeFormatter.ISO_LOCAL_DATE) ?: stringResource(R.string.select_date_optional))
             }
 
             // Expiration date
-            Text("Expiration Date", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(stringResource(R.string.expiration_date), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             OutlinedButton(
                 onClick = { showExpirationDatePicker = true },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text(expirationDate?.format(DateTimeFormatter.ISO_LOCAL_DATE) ?: "Select date (optional)")
+                Text(expirationDate?.format(DateTimeFormatter.ISO_LOCAL_DATE) ?: stringResource(R.string.select_date_optional))
             }
 
             Spacer(Modifier.height(8.dp))
@@ -237,7 +239,7 @@ fun AddSeedsScreen(
                 if (uiState.isLoading) {
                     CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text("Add Seeds")
+                    Text(stringResource(R.string.add_seeds))
                 }
             }
 

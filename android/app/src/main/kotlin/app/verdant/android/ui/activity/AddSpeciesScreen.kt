@@ -12,12 +12,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.R
 import app.verdant.android.data.model.*
 import app.verdant.android.data.repository.GardenRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,7 +35,9 @@ data class AddSpeciesState(
     val groups: List<SpeciesGroupResponse> = emptyList(),
     val tags: List<SpeciesTagResponse> = emptyList(),
     val identifying: Boolean = false,
+    val extracting: Boolean = false,
     val suggestions: List<PlantSuggestion> = emptyList(),
+    val extractedInfo: ExtractedSpeciesInfo? = null,
 )
 
 @HiltViewModel
@@ -96,6 +100,18 @@ class AddSpeciesViewModel @Inject constructor(
             }
         }
     }
+
+    fun extractSpeciesInfo(imageBase64: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(extracting = true, extractedInfo = null)
+            try {
+                val info = repo.extractSpeciesInfo(ExtractSpeciesInfoRequest(imageBase64))
+                _uiState.value = _uiState.value.copy(extracting = false, extractedInfo = info)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(extracting = false)
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -108,7 +124,11 @@ fun AddSpeciesScreen(
 
     var commonName by remember { mutableStateOf("") }
     var scientificName by remember { mutableStateOf("") }
-    var imageBase64 by remember { mutableStateOf<String?>(null) }
+    val currentLocale = java.util.Locale.getDefault().language // "sv" or "en"
+    var imageFrontBase64 by remember { mutableStateOf<String?>(null) }
+    var imageBackBase64 by remember { mutableStateOf<String?>(null) }
+    var frontBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+    var backBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
     var daysToSprout by remember { mutableStateOf("") }
     var daysToHarvest by remember { mutableStateOf("") }
     var germinationTimeDays by remember { mutableStateOf("") }
@@ -123,18 +143,53 @@ fun AddSpeciesScreen(
     var groupExpanded by remember { mutableStateOf(false) }
 
     val growingPositions = listOf("SUNNY", "PARTIALLY_SUNNY", "SHADOWY")
-    val growingPositionLabels = listOf("Sunny", "Partial sun", "Shadowy")
+    val growingPositionLabelRes = listOf(R.string.sunny, R.string.partial_sun, R.string.shadowy)
     var selectedPosition by remember { mutableStateOf<String?>(null) }
 
     val soilTypes = listOf("CLAY", "SANDY", "LOAMY", "CHALKY", "PEATY", "SILTY")
+    val soilTypeLabelRes = listOf(R.string.clay, R.string.sandy, R.string.loamy, R.string.chalky, R.string.peaty, R.string.silty)
     var selectedSoil by remember { mutableStateOf<String?>(null) }
 
-    // Auto-populate from AI suggestions
+    // Auto-populate from AI suggestions (front photo) + crop
     LaunchedEffect(uiState.suggestions) {
-        if (uiState.suggestions.isNotEmpty() && commonName.isBlank()) {
+        if (uiState.suggestions.isNotEmpty()) {
             val top = uiState.suggestions.first()
-            commonName = top.commonName
-            scientificName = top.species
+            if (commonName.isBlank()) {
+                commonName = top.commonName
+                scientificName = top.species
+            }
+            // Crop front photo to seed package bounds
+            top.cropBox?.let { box ->
+                frontBitmap?.let { bmp ->
+                    val cropped = bmp.cropToBox(box)
+                    frontBitmap = cropped
+                    imageFrontBase64 = cropped.toCompressedBase64()
+                }
+            }
+        }
+    }
+
+    // Auto-populate from extracted info (back photo) + crop
+    LaunchedEffect(uiState.extractedInfo) {
+        val info = uiState.extractedInfo ?: return@LaunchedEffect
+        if (commonName.isBlank()) info.commonName?.let { commonName = it }
+        if (scientificName.isBlank()) info.scientificName?.let { scientificName = it }
+        info.daysToSprout?.let { daysToSprout = it.toString() }
+        info.daysToHarvest?.let { daysToHarvest = it.toString() }
+        info.germinationTimeDays?.let { germinationTimeDays = it.toString() }
+        info.sowingDepthMm?.let { sowingDepthMm = it.toString() }
+        info.heightCm?.let { heightCm = it.toString() }
+        info.bloomTime?.let { bloomTime = it }
+        info.germinationRate?.let { germinationRate = it.toString() }
+        info.growingPosition?.let { selectedPosition = it }
+        info.soil?.let { selectedSoil = it }
+        // Crop back photo to seed package bounds
+        info.cropBox?.let { box ->
+            backBitmap?.let { bmp ->
+                val cropped = bmp.cropToBox(box)
+                backBitmap = cropped
+                imageBackBase64 = cropped.toCompressedBase64()
+            }
         }
     }
 
@@ -146,12 +201,12 @@ fun AddSpeciesScreen(
         var newName by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { showNewGroupDialog = false },
-            title = { Text("New Group") },
+            title = { Text(stringResource(R.string.new_group)) },
             text = {
                 OutlinedTextField(
                     value = newName,
                     onValueChange = { newName = it },
-                    label = { Text("Group name") },
+                    label = { Text(stringResource(R.string.group_name)) },
                     shape = RoundedCornerShape(12.dp)
                 )
             },
@@ -161,10 +216,10 @@ fun AddSpeciesScreen(
                         viewModel.createGroup(newName)
                         showNewGroupDialog = false
                     }
-                }) { Text("Create") }
+                }) { Text(stringResource(R.string.create)) }
             },
             dismissButton = {
-                TextButton(onClick = { showNewGroupDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showNewGroupDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -173,12 +228,12 @@ fun AddSpeciesScreen(
         var newName by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { showNewTagDialog = false },
-            title = { Text("New Tag") },
+            title = { Text(stringResource(R.string.new_tag_title)) },
             text = {
                 OutlinedTextField(
                     value = newName,
                     onValueChange = { newName = it },
-                    label = { Text("Tag name") },
+                    label = { Text(stringResource(R.string.tag_name)) },
                     shape = RoundedCornerShape(12.dp)
                 )
             },
@@ -188,10 +243,10 @@ fun AddSpeciesScreen(
                         viewModel.createTag(newName)
                         showNewTagDialog = false
                     }
-                }) { Text("Create") }
+                }) { Text(stringResource(R.string.create)) }
             },
             dismissButton = {
-                TextButton(onClick = { showNewTagDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showNewTagDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -199,10 +254,10 @@ fun AddSpeciesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add Species") },
+                title = { Text(stringResource(R.string.add_species)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 }
             )
@@ -216,25 +271,46 @@ fun AddSpeciesScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Photo + AI identification
-            Text("Photo", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            PhotoPicker(
-                imageBase64 = imageBase64,
-                onImageCaptured = { b64, _ ->
-                    imageBase64 = b64
-                    viewModel.identifyPlant(b64)
+            // Photos side by side
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(stringResource(R.string.front_photo), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Spacer(Modifier.height(4.dp))
+                    PhotoPicker(
+                        imageBase64 = imageFrontBase64,
+                        onImageCaptured = { b64, bmp ->
+                            imageFrontBase64 = b64
+                            frontBitmap = bmp
+                            viewModel.identifyPlant(b64)
+                        }
+                    )
                 }
-            )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(stringResource(R.string.back_photo), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Spacer(Modifier.height(4.dp))
+                    PhotoPicker(
+                        imageBase64 = imageBackBase64,
+                        onImageCaptured = { b64, bmp ->
+                            imageBackBase64 = b64
+                            backBitmap = bmp
+                            viewModel.extractSpeciesInfo(b64)
+                        }
+                    )
+                }
+            }
 
-            if (uiState.identifying) {
+            if (uiState.identifying || uiState.extracting) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     CircularProgressIndicator(Modifier.size(16.dp))
-                    Text("Identifying...", fontSize = 14.sp)
+                    Text(stringResource(R.string.identifying), fontSize = 14.sp)
                 }
             }
 
             if (uiState.suggestions.isNotEmpty()) {
-                Text("AI Suggestions", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text(stringResource(R.string.ai_suggestions), fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 uiState.suggestions.forEach { s ->
                     Card(
                         shape = RoundedCornerShape(8.dp),
@@ -257,25 +333,25 @@ fun AddSpeciesScreen(
             OutlinedTextField(
                 value = commonName,
                 onValueChange = { commonName = it },
-                label = { Text("Common Name *") },
+                label = { Text(stringResource(R.string.common_name_required)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
             OutlinedTextField(
                 value = scientificName,
                 onValueChange = { scientificName = it },
-                label = { Text("Scientific Name") },
+                label = { Text(stringResource(R.string.scientific_name)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
 
             // Growth timings
-            Text("Growth Information", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(stringResource(R.string.growth_information), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = daysToSprout,
                     onValueChange = { daysToSprout = it.filter { c -> c.isDigit() } },
-                    label = { Text("Days to sprout") },
+                    label = { Text(stringResource(R.string.days_to_sprout)) },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true
@@ -283,7 +359,7 @@ fun AddSpeciesScreen(
                 OutlinedTextField(
                     value = daysToHarvest,
                     onValueChange = { daysToHarvest = it.filter { c -> c.isDigit() } },
-                    label = { Text("Days to harvest") },
+                    label = { Text(stringResource(R.string.days_to_harvest)) },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true
@@ -293,7 +369,7 @@ fun AddSpeciesScreen(
                 OutlinedTextField(
                     value = germinationTimeDays,
                     onValueChange = { germinationTimeDays = it.filter { c -> c.isDigit() } },
-                    label = { Text("Germ. time (days)") },
+                    label = { Text(stringResource(R.string.germination_time_days)) },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true
@@ -301,7 +377,7 @@ fun AddSpeciesScreen(
                 OutlinedTextField(
                     value = sowingDepthMm,
                     onValueChange = { sowingDepthMm = it.filter { c -> c.isDigit() } },
-                    label = { Text("Sowing depth (mm)") },
+                    label = { Text(stringResource(R.string.sowing_depth_mm)) },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true
@@ -311,7 +387,7 @@ fun AddSpeciesScreen(
                 OutlinedTextField(
                     value = heightCm,
                     onValueChange = { heightCm = it.filter { c -> c.isDigit() } },
-                    label = { Text("Height (cm)") },
+                    label = { Text(stringResource(R.string.height_cm)) },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true
@@ -319,7 +395,7 @@ fun AddSpeciesScreen(
                 OutlinedTextField(
                     value = bloomTime,
                     onValueChange = { bloomTime = it },
-                    label = { Text("Bloom time") },
+                    label = { Text(stringResource(R.string.bloom_time)) },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true
@@ -328,47 +404,47 @@ fun AddSpeciesScreen(
             OutlinedTextField(
                 value = germinationRate,
                 onValueChange = { germinationRate = it.filter { c -> c.isDigit() } },
-                label = { Text("Germination rate (%)") },
+                label = { Text(stringResource(R.string.germination_rate_percent)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
             )
 
             // Growing position
-            Text("Growing Position", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(stringResource(R.string.growing_position), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 growingPositions.forEachIndexed { i, pos ->
                     FilterChip(
                         selected = selectedPosition == pos,
                         onClick = { selectedPosition = if (selectedPosition == pos) null else pos },
-                        label = { Text(growingPositionLabels[i]) }
+                        label = { Text(stringResource(growingPositionLabelRes[i])) }
                     )
                 }
             }
 
             // Soil type
-            Text("Soil Type", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(stringResource(R.string.soil_type), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.horizontalScroll(rememberScrollState())
             ) {
-                soilTypes.forEach { soil ->
+                soilTypes.forEachIndexed { i, soil ->
                     FilterChip(
                         selected = selectedSoil == soil,
                         onClick = { selectedSoil = if (selectedSoil == soil) null else soil },
-                        label = { Text(soil.lowercase().replaceFirstChar { it.uppercase() }) }
+                        label = { Text(stringResource(soilTypeLabelRes[i])) }
                     )
                 }
             }
 
             // Group picker
-            Text("Group", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(stringResource(R.string.group), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             ExposedDropdownMenuBox(
                 expanded = groupExpanded,
                 onExpandedChange = { groupExpanded = it }
             ) {
                 OutlinedTextField(
-                    value = uiState.groups.find { it.id == selectedGroupId }?.name ?: "None",
+                    value = uiState.groups.find { it.id == selectedGroupId }?.name ?: stringResource(R.string.none),
                     onValueChange = {},
                     readOnly = true,
                     modifier = Modifier.fillMaxWidth().menuAnchor(),
@@ -380,7 +456,7 @@ fun AddSpeciesScreen(
                     onDismissRequest = { groupExpanded = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("None") },
+                        text = { Text(stringResource(R.string.none)) },
                         onClick = { selectedGroupId = null; groupExpanded = false }
                     )
                     uiState.groups.forEach { group ->
@@ -390,14 +466,14 @@ fun AddSpeciesScreen(
                         )
                     }
                     DropdownMenuItem(
-                        text = { Text("+ Create new group", color = MaterialTheme.colorScheme.primary) },
+                        text = { Text(stringResource(R.string.create_new_group), color = MaterialTheme.colorScheme.primary) },
                         onClick = { showNewGroupDialog = true; groupExpanded = false }
                     )
                 }
             }
 
             // Tag picker
-            Text("Tags", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(stringResource(R.string.tags), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.horizontalScroll(rememberScrollState())
@@ -414,7 +490,7 @@ fun AddSpeciesScreen(
                 }
                 SuggestionChip(
                     onClick = { showNewTagDialog = true },
-                    label = { Text("+ New tag") }
+                    label = { Text(stringResource(R.string.new_tag)) }
                 )
             }
 
@@ -425,8 +501,10 @@ fun AddSpeciesScreen(
                     viewModel.createSpecies(
                         CreateSpeciesRequest(
                             commonName = commonName,
+                            commonNameSv = if (currentLocale == "sv") commonName else null,
                             scientificName = scientificName.ifBlank { null },
-                            imageBase64 = imageBase64,
+                            imageFrontBase64 = imageFrontBase64,
+                            imageBackBase64 = imageBackBase64,
                             daysToSprout = daysToSprout.toIntOrNull(),
                             daysToHarvest = daysToHarvest.toIntOrNull(),
                             germinationTimeDays = germinationTimeDays.toIntOrNull(),
@@ -448,7 +526,7 @@ fun AddSpeciesScreen(
                 if (uiState.isLoading) {
                     CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text("Save Species")
+                    Text(stringResource(R.string.save_species))
                 }
             }
 

@@ -10,12 +10,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
+import app.verdant.android.R
 import app.verdant.android.data.SessionManager
 import app.verdant.android.ui.account.AccountScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -138,7 +140,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
             ModalDrawerSheet(modifier = Modifier.width(280.dp)) {
                 Spacer(Modifier.height(24.dp))
                 Text(
-                    "Verdant",
+                    stringResource(R.string.app_name),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
@@ -147,7 +149,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                 Spacer(Modifier.height(8.dp))
 
                 NavigationDrawerItem(
-                    label = { Text("Seed Inventory") },
+                    label = { Text(stringResource(R.string.seed_inventory)) },
                     icon = { Icon(Icons.Default.Inventory, contentDescription = null) },
                     selected = currentRoute == Screen.SeedInventory.route,
                     onClick = {
@@ -159,7 +161,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                     modifier = Modifier.padding(horizontal = 12.dp)
                 )
                 NavigationDrawerItem(
-                    label = { Text("Account") },
+                    label = { Text(stringResource(R.string.account)) },
                     icon = { Icon(Icons.Default.Person, contentDescription = null) },
                     selected = currentRoute == Screen.Account.route,
                     onClick = {
@@ -177,10 +179,10 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
             topBar = {
                 if (showTopBar) {
                     TopAppBar(
-                        title = { Text("Verdant") },
+                        title = { Text(stringResource(R.string.app_name)) },
                         navigationIcon = {
                             IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                                Icon(Icons.Default.Menu, contentDescription = "Menu")
+                                Icon(Icons.Default.Menu, contentDescription = stringResource(R.string.menu))
                             }
                         }
                     )
@@ -198,8 +200,8 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                                     popUpTo(Screen.MyWorld.route) { inclusive = true }
                                 }
                             },
-                            icon = { Icon(Icons.Default.Eco, contentDescription = "My World") },
-                            label = { Text("My World") }
+                            icon = { Icon(Icons.Default.Eco, contentDescription = stringResource(R.string.my_world)) },
+                            label = { Text(stringResource(R.string.my_world)) }
                         )
 
                         // Center FAB-style Activities button
@@ -216,7 +218,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                                         Box(contentAlignment = Alignment.Center) {
                                             Icon(
                                                 Icons.Default.Add,
-                                                contentDescription = "Activities",
+                                                contentDescription = stringResource(R.string.activities),
                                                 tint = MaterialTheme.colorScheme.onPrimary,
                                                 modifier = Modifier.size(28.dp)
                                             )
@@ -224,7 +226,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                                     }
                                 }
                             },
-                            label = { Text("Activities") }
+                            label = { Text(stringResource(R.string.activities)) }
                         )
                     }
                 }

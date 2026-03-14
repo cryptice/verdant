@@ -9,12 +9,14 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.R
 import app.verdant.android.data.model.*
 import app.verdant.android.data.repository.GardenRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -143,10 +145,10 @@ fun SowActivityScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Sow") },
+                title = { Text(stringResource(R.string.sow)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 }
             )
@@ -161,7 +163,7 @@ fun SowActivityScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Species picker
-            Text("Species *", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(stringResource(R.string.species_required), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             ExposedDropdownMenuBox(
                 expanded = speciesExpanded,
                 onExpandedChange = { speciesExpanded = it }
@@ -171,7 +173,7 @@ fun SowActivityScreen(
                         uiState.species.find { it.id == selectedSpeciesId }?.commonName ?: ""
                     },
                     onValueChange = { speciesSearch = it; speciesExpanded = true },
-                    placeholder = { Text("Search species...") },
+                    placeholder = { Text(stringResource(R.string.search_species)) },
                     modifier = Modifier.fillMaxWidth().menuAnchor(),
                     shape = RoundedCornerShape(12.dp),
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(speciesExpanded) },
@@ -196,7 +198,7 @@ fun SowActivityScreen(
                     }
                     if (filtered.isEmpty()) {
                         DropdownMenuItem(
-                            text = { Text("No species found", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)) },
+                            text = { Text(stringResource(R.string.no_species_found), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)) },
                             onClick = {}
                         )
                     }
@@ -205,7 +207,7 @@ fun SowActivityScreen(
 
             // Seed lot picker (shown when species selected and lots available)
             if (selectedSpeciesId != null && uiState.seedBatches.isNotEmpty()) {
-                Text("Seed Batch *", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(stringResource(R.string.seed_batch_required), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 ExposedDropdownMenuBox(
                     expanded = seedBatchExpanded,
                     onExpandedChange = { seedBatchExpanded = it }
@@ -214,13 +216,13 @@ fun SowActivityScreen(
                     OutlinedTextField(
                         value = selectedLot?.let {
                             buildString {
-                                append("${it.quantity} seeds")
-                                it.collectionDate?.let { d -> append(" (collected $d)") }
+                                append(stringResource(R.string.seeds_count_format, it.quantity))
+                                it.collectionDate?.let { d -> append(" (${stringResource(R.string.collected_date, d)})") }
                             }
                         } ?: "",
                         onValueChange = {},
                         readOnly = true,
-                        placeholder = { Text("Select seed batch...") },
+                        placeholder = { Text(stringResource(R.string.select_seed_batch)) },
                         modifier = Modifier.fillMaxWidth().menuAnchor(),
                         shape = RoundedCornerShape(12.dp),
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(seedBatchExpanded) }
@@ -233,9 +235,9 @@ fun SowActivityScreen(
                             DropdownMenuItem(
                                 text = {
                                     Text(buildString {
-                                        append("${lot.quantity} seeds")
-                                        lot.collectionDate?.let { d -> append(" (collected $d)") }
-                                        lot.expirationDate?.let { d -> append(" · expires $d") }
+                                        append(stringResource(R.string.seeds_count_format, lot.quantity))
+                                        lot.collectionDate?.let { d -> append(" (${stringResource(R.string.collected_date, d)})") }
+                                        lot.expirationDate?.let { d -> append(" \u00B7 ${stringResource(R.string.expires_date, d)}") }
                                     })
                                 },
                                 onClick = {
@@ -248,14 +250,14 @@ fun SowActivityScreen(
                 }
             } else if (selectedSpeciesId != null && uiState.seedBatches.isEmpty()) {
                 Text(
-                    "No seed batches available for this species. You can still sow without inventory.",
+                    stringResource(R.string.no_seed_batches),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     fontSize = 14.sp
                 )
             }
 
             // Bed picker
-            Text("Bed *", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(stringResource(R.string.bed_required), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             ExposedDropdownMenuBox(
                 expanded = bedExpanded,
                 onExpandedChange = { bedExpanded = it }
@@ -264,7 +266,7 @@ fun SowActivityScreen(
                     value = uiState.beds.find { it.id == selectedBedId }?.let { "${it.gardenName} - ${it.name}" } ?: "",
                     onValueChange = {},
                     readOnly = true,
-                    placeholder = { Text("Select bed...") },
+                    placeholder = { Text(stringResource(R.string.select_bed)) },
                     modifier = Modifier.fillMaxWidth().menuAnchor(),
                     shape = RoundedCornerShape(12.dp),
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(bedExpanded) }
@@ -286,7 +288,7 @@ fun SowActivityScreen(
             OutlinedTextField(
                 value = plantName,
                 onValueChange = { plantName = it },
-                label = { Text("Plant Name") },
+                label = { Text(stringResource(R.string.plant_name)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
@@ -295,11 +297,11 @@ fun SowActivityScreen(
             CountField(
                 value = seedCount,
                 onValueChange = { seedCount = it },
-                label = "Seed Count"
+                label = stringResource(R.string.seed_count)
             )
 
             // Photo
-            Text("Photo", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text(stringResource(R.string.photo), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             PhotoPicker(
                 imageBase64 = imageBase64,
                 onImageCaptured = { b64, _ -> imageBase64 = b64 }
@@ -333,7 +335,7 @@ fun SowActivityScreen(
                 if (uiState.isLoading) {
                     CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text("Sow")
+                    Text(stringResource(R.string.sow))
                 }
             }
 

@@ -32,26 +32,28 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
     fun persist(species: Species): Species {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO species (user_id, common_name, scientific_name, image_base64,
+                """INSERT INTO species (user_id, common_name, common_name_sv, scientific_name, image_front_base64, image_back_base64,
                    days_to_sprout, days_to_harvest, germination_time_days, sowing_depth_mm,
                    growing_position, soil, height_cm, bloom_time, germination_rate, group_id, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setLong(1, species.userId)
                 ps.setString(2, species.commonName)
-                ps.setString(3, species.scientificName)
-                ps.setString(4, species.imageBase64)
-                ps.setObject(5, species.daysToSprout)
-                ps.setObject(6, species.daysToHarvest)
-                ps.setObject(7, species.germinationTimeDays)
-                ps.setObject(8, species.sowingDepthMm)
-                ps.setString(9, species.growingPosition?.name)
-                ps.setString(10, species.soil?.name)
-                ps.setObject(11, species.heightCm)
-                ps.setString(12, species.bloomTime)
-                ps.setObject(13, species.germinationRate)
-                ps.setObject(14, species.groupId)
+                ps.setString(3, species.commonNameSv)
+                ps.setString(4, species.scientificName)
+                ps.setString(5, species.imageFrontBase64)
+                ps.setString(6, species.imageBackBase64)
+                ps.setObject(7, species.daysToSprout)
+                ps.setObject(8, species.daysToHarvest)
+                ps.setObject(9, species.germinationTimeDays)
+                ps.setObject(10, species.sowingDepthMm)
+                ps.setString(11, species.growingPosition?.name)
+                ps.setString(12, species.soil?.name)
+                ps.setObject(13, species.heightCm)
+                ps.setString(14, species.bloomTime)
+                ps.setObject(15, species.germinationRate)
+                ps.setObject(16, species.groupId)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -64,26 +66,29 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
     fun update(species: Species) {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """UPDATE species SET common_name = ?, scientific_name = ?, image_base64 = ?,
+                """UPDATE species SET common_name = ?, common_name_sv = ?, scientific_name = ?,
+                   image_front_base64 = ?, image_back_base64 = ?,
                    days_to_sprout = ?, days_to_harvest = ?, germination_time_days = ?,
                    sowing_depth_mm = ?, growing_position = ?, soil = ?, height_cm = ?,
                    bloom_time = ?, germination_rate = ?, group_id = ?
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setString(1, species.commonName)
-                ps.setString(2, species.scientificName)
-                ps.setString(3, species.imageBase64)
-                ps.setObject(4, species.daysToSprout)
-                ps.setObject(5, species.daysToHarvest)
-                ps.setObject(6, species.germinationTimeDays)
-                ps.setObject(7, species.sowingDepthMm)
-                ps.setString(8, species.growingPosition?.name)
-                ps.setString(9, species.soil?.name)
-                ps.setObject(10, species.heightCm)
-                ps.setString(11, species.bloomTime)
-                ps.setObject(12, species.germinationRate)
-                ps.setObject(13, species.groupId)
-                ps.setLong(14, species.id!!)
+                ps.setString(2, species.commonNameSv)
+                ps.setString(3, species.scientificName)
+                ps.setString(4, species.imageFrontBase64)
+                ps.setString(5, species.imageBackBase64)
+                ps.setObject(6, species.daysToSprout)
+                ps.setObject(7, species.daysToHarvest)
+                ps.setObject(8, species.germinationTimeDays)
+                ps.setObject(9, species.sowingDepthMm)
+                ps.setString(10, species.growingPosition?.name)
+                ps.setString(11, species.soil?.name)
+                ps.setObject(12, species.heightCm)
+                ps.setString(13, species.bloomTime)
+                ps.setObject(14, species.germinationRate)
+                ps.setObject(15, species.groupId)
+                ps.setLong(16, species.id!!)
                 ps.executeUpdate()
             }
         }
@@ -131,8 +136,10 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
         id = getLong("id"),
         userId = getLong("user_id"),
         commonName = getString("common_name"),
+        commonNameSv = getString("common_name_sv"),
         scientificName = getString("scientific_name"),
-        imageBase64 = getString("image_base64"),
+        imageFrontBase64 = getString("image_front_base64"),
+        imageBackBase64 = getString("image_back_base64"),
         daysToSprout = getObject("days_to_sprout") as? Int,
         daysToHarvest = getObject("days_to_harvest") as? Int,
         germinationTimeDays = getObject("germination_time_days") as? Int,

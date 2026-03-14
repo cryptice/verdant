@@ -38,6 +38,7 @@ class GardenRepository @Inject constructor(private val api: VerdantApi) {
 
     // Identification
     suspend fun identifyPlant(request: IdentifyPlantRequest) = api.identifyPlant(request)
+    suspend fun extractSpeciesInfo(request: ExtractSpeciesInfoRequest) = api.extractSpeciesInfo(request)
 
     // Stats
     suspend fun getHarvestStats() = api.getHarvestStats()

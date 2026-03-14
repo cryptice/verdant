@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,6 +24,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.R
 import app.verdant.android.data.model.PlantEventResponse
 import app.verdant.android.data.model.PlantResponse
 import app.verdant.android.data.repository.GardenRepository
@@ -109,15 +111,15 @@ fun PlantDetailScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete Plant") },
-            text = { Text("Are you sure you want to delete this plant and all its events?") },
+            title = { Text(stringResource(R.string.delete_plant)) },
+            text = { Text(stringResource(R.string.delete_plant_confirm)) },
             confirmButton = {
                 TextButton(onClick = { showDeleteDialog = false; viewModel.delete() }) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -125,15 +127,15 @@ fun PlantDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(uiState.plant?.name ?: "Plant") },
+                title = { Text(uiState.plant?.name ?: stringResource(R.string.plant)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 },
                 actions = {
                     IconButton(onClick = { showDeleteDialog = true }) {
-                        Icon(Icons.Default.Delete, "Delete", tint = MaterialTheme.colorScheme.error)
+                        Icon(Icons.Default.Delete, stringResource(R.string.delete), tint = MaterialTheme.colorScheme.error)
                     }
                 }
             )
@@ -141,7 +143,7 @@ fun PlantDetailScreen(
         floatingActionButton = {
             if (uiState.plant != null) {
                 FloatingActionButton(onClick = { onAddEvent(uiState.plant!!.id) }) {
-                    Icon(Icons.Default.Add, "Add Event")
+                    Icon(Icons.Default.Add, stringResource(R.string.add_event))
                 }
             }
         }
@@ -192,7 +194,7 @@ fun PlantDetailScreen(
 
                     // Timeline header
                     item {
-                        Text("Timeline", fontWeight = FontWeight.Bold, fontSize = 18.sp,
+                        Text(stringResource(R.string.timeline), fontWeight = FontWeight.Bold, fontSize = 18.sp,
                             modifier = Modifier.padding(top = 8.dp))
                     }
 
@@ -200,7 +202,7 @@ fun PlantDetailScreen(
                         item {
                             Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
                                 Text(
-                                    "No events yet. Tap + to add one.",
+                                    stringResource(R.string.no_events_yet),
                                     modifier = Modifier.padding(16.dp),
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                                 )
@@ -224,15 +226,15 @@ private fun EventCard(event: PlantEventResponse, onDelete: () -> Unit) {
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete Event") },
-            text = { Text("Remove this event?") },
+            title = { Text(stringResource(R.string.delete_event)) },
+            text = { Text(stringResource(R.string.remove_event_confirm)) },
             confirmButton = {
                 TextButton(onClick = { showDeleteDialog = false; onDelete() }) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -252,7 +254,7 @@ private fun EventCard(event: PlantEventResponse, onDelete: () -> Unit) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(event.eventDate, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                     IconButton(onClick = { showDeleteDialog = true }, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.Close, "Delete", Modifier.size(16.dp),
+                        Icon(Icons.Default.Close, stringResource(R.string.delete), Modifier.size(16.dp),
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
                     }
                 }
