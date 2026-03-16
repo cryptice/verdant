@@ -181,6 +181,7 @@
     <string name="add_species">Add Species</string>
     <string name="common_name_required">Common Name *</string>
     <string name="common_name_sv">Swedish Name</string>
+    <string name="variant_name">Variant</string>
     <string name="scientific_name">Scientific Name</string>
     <string name="growth_information">Growth Information</string>
     <string name="days_to_sprout">Days to sprout</string>

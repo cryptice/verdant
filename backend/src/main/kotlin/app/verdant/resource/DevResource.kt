@@ -67,6 +67,7 @@ class DevResource(
             val daysToSprout: Int, val daysToHarvest: Int, val heightCm: Int,
             val germinationRate: Int, val sowingDepthMm: Int, val bloomTime: String,
             val tagIndices: List<Int> = emptyList(),
+            val variantName: String? = null,
         )
 
         // Species data sourced from impecta.se and standard Scandinavian growing guides
@@ -116,6 +117,7 @@ class DevResource(
         val speciesIds = speciesDefs.map { def ->
             val species = speciesRepository.persist(Species(
                 commonName = def.commonName,
+                variantName = def.variantName,
                 commonNameSv = def.sv,
                 scientificName = def.scientific,
                 imageFrontUrl = "https://storage.googleapis.com/verdant-species/system/${def.commonName.lowercase().replace(" ", "-")}/front.jpg",

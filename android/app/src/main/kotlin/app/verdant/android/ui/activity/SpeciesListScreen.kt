@@ -76,11 +76,17 @@ class SpeciesListViewModel @Inject constructor(
     }
 }
 
+private fun SpeciesResponse.displayName(): String {
+    return if (variantName.isNullOrBlank()) commonName else "$commonName \u2013 $variantName"
+}
+
 private fun SpeciesResponse.matchesQuery(query: String): Boolean {
     if (query.isBlank()) return true
     val q = query.lowercase()
     return commonName.lowercase().contains(q) ||
         (commonNameSv?.lowercase()?.contains(q) == true) ||
+        (variantName?.lowercase()?.contains(q) == true) ||
+        (variantNameSv?.lowercase()?.contains(q) == true) ||
         (scientificName?.lowercase()?.contains(q) == true) ||
         (groupName?.lowercase()?.contains(q) == true)
 }
@@ -117,7 +123,7 @@ fun SpeciesListScreen(
         else {
             val q = searchQuery.lowercase()
             uiState.species.flatMap { s ->
-                listOfNotNull(s.commonName, s.commonNameSv, s.scientificName)
+                listOfNotNull(s.commonName, s.commonNameSv, s.variantName, s.variantNameSv, s.scientificName)
             }.distinct().filter { it.lowercase().contains(q) }.take(5)
         }
     }
@@ -260,13 +266,17 @@ fun SpeciesListScreen(
                             ) {
                                 Column(Modifier.width(150.dp)) {
                                     Text(
-                                        species.commonName,
+                                        species.displayName(),
                                         fontSize = 14.sp,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
                                     species.commonNameSv?.let {
-                                        Text(it, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        val svDisplay = buildString {
+                                            append(it)
+                                            species.variantNameSv?.let { v -> append(" \u2013 $v") }
+                                        }
+                                        Text(svDisplay, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), maxLines = 1, overflow = TextOverflow.Ellipsis)
                                     }
                                 }
                                 Text(

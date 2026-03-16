@@ -179,6 +179,7 @@
     <string name="add_species">L\u00E4gg till art</string>
     <string name="common_name_required">Trivialnamn *</string>
     <string name="common_name_sv">Svenskt namn</string>
+    <string name="variant_name">Variant</string>
     <string name="scientific_name">Vetenskapligt namn</string>
     <string name="growth_information">Odlingsinformation</string>
     <string name="days_to_sprout">Dagar till grodd</string>

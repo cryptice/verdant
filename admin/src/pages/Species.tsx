@@ -118,9 +118,15 @@ export default function SpeciesPage() {
                   )}
                 </td>
                 <td className="px-6 py-3">
-                  <div className="font-medium text-gray-800">{s.commonName}</div>
+                  <div className="font-medium text-gray-800">
+                    {s.commonName}
+                    {s.variantName && <span className="text-gray-500 font-normal"> — {s.variantName}</span>}
+                  </div>
                   {s.commonNameSv && s.commonNameSv !== s.commonName && (
-                    <div className="text-xs text-gray-400">{s.commonNameSv}</div>
+                    <div className="text-xs text-gray-400">
+                      {s.commonNameSv}
+                      {s.variantNameSv && <span> — {s.variantNameSv}</span>}
+                    </div>
                   )}
                 </td>
                 <td className="px-6 py-3 text-sm text-gray-600 italic">{s.scientificName || '—'}</td>
@@ -189,7 +195,7 @@ function ImageUpload({ label, currentUrl, onUpload, onClear }: {
       <div className="border-2 border-dashed border-gray-300 rounded-xl p-3 text-center hover:border-green-400 transition-colors">
         {displayUrl ? (
           <div className="relative">
-            <img src={displayUrl} alt={label} className="max-h-48 mx-auto rounded-lg object-contain" />
+            <img src={displayUrl} alt={label} className="max-h-[600px] mx-auto rounded-lg object-contain" />
             <div className="mt-2 flex gap-2 justify-center">
               <button
                 type="button"
@@ -354,6 +360,8 @@ function SpeciesForm({
 
   const [commonName, setCommonName] = useState(species?.commonName ?? '')
   const [commonNameSv, setCommonNameSv] = useState(species?.commonNameSv ?? '')
+  const [variantName, setVariantName] = useState(species?.variantName ?? '')
+  const [variantNameSv, setVariantNameSv] = useState(species?.variantNameSv ?? '')
   const [scientificName, setScientificName] = useState(species?.scientificName ?? '')
   const [daysToSprout, setDaysToSprout] = useState(species?.daysToSprout?.toString() ?? '')
   const [daysToHarvest, setDaysToHarvest] = useState(species?.daysToHarvest?.toString() ?? '')
@@ -395,6 +403,8 @@ function SpeciesForm({
     const req: CreateSpeciesRequest & UpdateSpeciesRequest = {
       commonName: commonName || undefined,
       commonNameSv: commonNameSv || undefined,
+      variantName: variantName || undefined,
+      variantNameSv: variantNameSv || undefined,
       scientificName: scientificName || undefined,
       imageFrontBase64: imageFrontBase64 ?? undefined,
       imageBackBase64: imageBackBase64 ?? undefined,
@@ -504,6 +514,8 @@ function SpeciesForm({
           <div className="grid grid-cols-2 gap-4">
             <Field label="Common Name *" value={commonName} onChange={setCommonName} />
             <Field label="Common Name (Swedish)" value={commonNameSv} onChange={setCommonNameSv} />
+            <Field label="Variant Name" value={variantName} onChange={setVariantName} />
+            <Field label="Variant Name (Swedish)" value={variantNameSv} onChange={setVariantNameSv} />
             <Field label="Scientific Name" value={scientificName} onChange={setScientificName} className="col-span-2" />
           </div>
         </section>

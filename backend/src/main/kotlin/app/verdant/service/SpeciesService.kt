@@ -38,7 +38,9 @@ class SpeciesService(
             Species(
                 userId = userId,
                 commonName = request.commonName,
+                variantName = request.variantName,
                 commonNameSv = request.commonNameSv,
+                variantNameSv = request.variantNameSv,
                 scientificName = request.scientificName,
                 daysToSprout = request.daysToSprout,
                 daysToHarvest = request.daysToHarvest,
@@ -74,7 +76,9 @@ class SpeciesService(
         val backUrl = request.imageBackBase64?.let { storageService.uploadSpeciesBack(speciesId, it) } ?: species.imageBackUrl
         val updated = species.copy(
             commonName = request.commonName ?: species.commonName,
+            variantName = request.variantName ?: species.variantName,
             commonNameSv = request.commonNameSv ?: species.commonNameSv,
+            variantNameSv = request.variantNameSv ?: species.variantNameSv,
             scientificName = request.scientificName ?: species.scientificName,
             imageFrontUrl = frontUrl,
             imageBackUrl = backUrl,
@@ -123,7 +127,9 @@ class SpeciesService(
             Species(
                 userId = null,
                 commonName = request.commonName,
+                variantName = request.variantName,
                 commonNameSv = request.commonNameSv,
+                variantNameSv = request.variantNameSv,
                 scientificName = request.scientificName,
                 daysToSprout = request.daysToSprout,
                 daysToHarvest = request.daysToHarvest,
@@ -155,7 +161,9 @@ class SpeciesService(
         val backUrl = request.imageBackBase64?.let { storageService.uploadSpeciesBack(speciesId, it) } ?: species.imageBackUrl
         val updated = species.copy(
             commonName = request.commonName ?: species.commonName,
+            variantName = request.variantName ?: species.variantName,
             commonNameSv = request.commonNameSv ?: species.commonNameSv,
+            variantNameSv = request.variantNameSv ?: species.variantNameSv,
             scientificName = request.scientificName ?: species.scientificName,
             imageFrontUrl = frontUrl,
             imageBackUrl = backUrl,
@@ -311,7 +319,9 @@ class SpeciesService(
         return SpeciesResponse(
             id = id,
             commonName = commonName,
+            variantName = variantName,
             commonNameSv = commonNameSv,
+            variantNameSv = variantNameSv,
             scientificName = scientificName,
             imageFrontUrl = imageFrontUrl,
             imageBackUrl = imageBackUrl,

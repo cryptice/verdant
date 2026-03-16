@@ -77,6 +77,8 @@ export interface Species {
   id: number
   commonName: string
   commonNameSv: string | null
+  variantName: string | null
+  variantNameSv: string | null
   scientificName: string | null
   imageFrontUrl: string | null
   imageBackUrl: string | null
@@ -106,6 +108,8 @@ export interface SpeciesGroup {
 export interface CreateSpeciesRequest {
   commonName: string
   commonNameSv?: string | null
+  variantName?: string | null
+  variantNameSv?: string | null
   scientificName?: string | null
   imageFrontBase64?: string | null
   imageBackBase64?: string | null
@@ -125,6 +129,8 @@ export interface CreateSpeciesRequest {
 export interface UpdateSpeciesRequest {
   commonName?: string | null
   commonNameSv?: string | null
+  variantName?: string | null
+  variantNameSv?: string | null
   scientificName?: string | null
   imageFrontBase64?: string | null
   imageBackBase64?: string | null

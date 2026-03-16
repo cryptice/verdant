@@ -13,7 +13,9 @@ data class SpeciesPhotoResponse(
 data class SpeciesResponse(
     val id: Long,
     val commonName: String,
+    val variantName: String?,
     val commonNameSv: String?,
+    val variantNameSv: String?,
     val scientificName: String?,
     val imageFrontUrl: String?,
     val imageBackUrl: String?,
@@ -37,7 +39,9 @@ data class SpeciesResponse(
 
 data class CreateSpeciesRequest(
     val commonName: String,
+    val variantName: String? = null,
     val commonNameSv: String? = null,
+    val variantNameSv: String? = null,
     val scientificName: String? = null,
     val imageFrontBase64: String? = null,
     val imageBackBase64: String? = null,
@@ -56,7 +60,9 @@ data class CreateSpeciesRequest(
 
 data class UpdateSpeciesRequest(
     val commonName: String? = null,
+    val variantName: String? = null,
     val commonNameSv: String? = null,
+    val variantNameSv: String? = null,
     val scientificName: String? = null,
     val imageFrontBase64: String? = null,
     val imageBackBase64: String? = null,

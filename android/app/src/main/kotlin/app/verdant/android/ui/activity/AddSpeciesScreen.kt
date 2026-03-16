@@ -144,6 +144,8 @@ fun AddSpeciesScreen(
     val isEdit = viewModel.speciesId != null
 
     var commonName by remember { mutableStateOf("") }
+    var variantName by remember { mutableStateOf("") }
+    var variantNameSv by remember { mutableStateOf("") }
     var scientificName by remember { mutableStateOf("") }
     val currentLocale = java.util.Locale.getDefault().language // "sv" or "en"
     var imageFrontBase64 by remember { mutableStateOf<String?>(null) }
@@ -181,6 +183,8 @@ fun AddSpeciesScreen(
         val s = uiState.existingSpecies
         if (s != null && !prefilled) {
             commonName = s.commonName
+            variantName = s.variantName ?: ""
+            variantNameSv = s.variantNameSv ?: ""
             scientificName = s.scientificName ?: ""
             imageFrontUrl = s.imageFrontUrl
             imageBackUrl = s.imageBackUrl
@@ -199,7 +203,7 @@ fun AddSpeciesScreen(
         }
     }
 
-    val hasData = commonName.isNotBlank() || scientificName.isNotBlank() ||
+    val hasData = commonName.isNotBlank() || variantName.isNotBlank() || variantNameSv.isNotBlank() || scientificName.isNotBlank() ||
         imageFrontBase64 != null || imageBackBase64 != null || imageFrontUrl != null || imageBackUrl != null ||
         daysToSprout.isNotBlank() || daysToHarvest.isNotBlank() ||
         germinationTimeDays.isNotBlank() || sowingDepthMm.isNotBlank() ||
@@ -228,6 +232,8 @@ fun AddSpeciesScreen(
     val existing = uiState.existingSpecies
     val hasChanges = existing == null || // create mode = always "changed"
         commonName != existing.commonName ||
+        variantName != (existing.variantName ?: "") ||
+        variantNameSv != (existing.variantNameSv ?: "") ||
         (scientificName) != (existing.scientificName ?: "") ||
         imageFrontBase64 != null ||
         imageBackBase64 != null ||
@@ -272,6 +278,8 @@ fun AddSpeciesScreen(
     LaunchedEffect(uiState.extractedInfo) {
         val info = uiState.extractedInfo ?: return@LaunchedEffect
         if (commonName.isBlank()) info.commonName?.let { commonName = it }
+        if (variantName.isBlank()) info.variantName?.let { variantName = it }
+        if (variantNameSv.isBlank()) info.variantNameSv?.let { variantNameSv = it }
         if (scientificName.isBlank()) info.scientificName?.let { scientificName = it }
         info.daysToSprout?.let { daysToSprout = it.toString() }
         info.daysToHarvest?.let { daysToHarvest = it.toString() }
@@ -475,6 +483,26 @@ fun AddSpeciesScreen(
                     shape = RoundedCornerShape(12.dp),
                     isError = showValidationErrors && !isScientificNameValid
                 )
+            }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = variantName,
+                        onValueChange = { variantName = it },
+                        label = { Text(stringResource(R.string.variant_name)) },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = variantNameSv,
+                        onValueChange = { variantNameSv = it },
+                        label = { Text(stringResource(R.string.variant_name) + " (SV)") },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+                }
             }
 
             // Growth timings
@@ -760,6 +788,8 @@ fun AddSpeciesScreen(
                                 UpdateSpeciesRequest(
                                     commonName = commonName,
                                     commonNameSv = if (currentLocale == "sv") commonName else null,
+                                    variantName = variantName.ifBlank { null },
+                                    variantNameSv = variantNameSv.ifBlank { null },
                                     scientificName = scientificName,
                                     imageFrontBase64 = imageFrontBase64,
                                     imageBackBase64 = imageBackBase64,
@@ -781,6 +811,8 @@ fun AddSpeciesScreen(
                                 CreateSpeciesRequest(
                                     commonName = commonName,
                                     commonNameSv = if (currentLocale == "sv") commonName else null,
+                                    variantName = variantName.ifBlank { null },
+                                    variantNameSv = variantNameSv.ifBlank { null },
                                     scientificName = scientificName,
                                     imageFrontBase64 = imageFrontBase64,
                                     imageBackBase64 = imageBackBase64,

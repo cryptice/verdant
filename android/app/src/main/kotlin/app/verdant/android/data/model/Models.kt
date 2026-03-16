@@ -214,6 +214,8 @@ data class ExtractSpeciesInfoRequest(
 
 data class ExtractedSpeciesInfo(
     val commonName: String? = null,
+    val variantName: String? = null,
+    val variantNameSv: String? = null,
     val scientificName: String? = null,
     val germinationTimeDays: Int? = null,
     val sowingDepthMm: Int? = null,
@@ -260,6 +262,8 @@ data class SpeciesResponse(
     val id: Long,
     val commonName: String,
     val commonNameSv: String?,
+    val variantName: String? = null,
+    val variantNameSv: String? = null,
     val scientificName: String?,
     val imageFrontUrl: String?,
     val imageBackUrl: String?,
@@ -284,6 +288,8 @@ data class SpeciesResponse(
 data class CreateSpeciesRequest(
     val commonName: String,
     val commonNameSv: String? = null,
+    val variantName: String? = null,
+    val variantNameSv: String? = null,
     val scientificName: String? = null,
     val imageFrontBase64: String? = null,
     val imageBackBase64: String? = null,
@@ -303,6 +309,8 @@ data class CreateSpeciesRequest(
 data class UpdateSpeciesRequest(
     val commonName: String? = null,
     val commonNameSv: String? = null,
+    val variantName: String? = null,
+    val variantNameSv: String? = null,
     val scientificName: String? = null,
     val imageFrontBase64: String? = null,
     val imageBackBase64: String? = null,

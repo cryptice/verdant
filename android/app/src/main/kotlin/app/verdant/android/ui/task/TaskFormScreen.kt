@@ -216,7 +216,9 @@ fun TaskFormScreen(
             ) {
                 OutlinedTextField(
                     value = speciesSearch.ifBlank {
-                        uiState.species.find { it.id == selectedSpeciesId }?.commonName ?: ""
+                        uiState.species.find { it.id == selectedSpeciesId }?.let { s ->
+                            if (s.variantName.isNullOrBlank()) s.commonName else "${s.commonName} \u2013 ${s.variantName}"
+                        } ?: ""
                     },
                     onValueChange = { speciesSearch = it; speciesExpanded = true },
                     placeholder = { Text(stringResource(R.string.search_species)) },
@@ -226,7 +228,7 @@ fun TaskFormScreen(
                     singleLine = true
                 )
                 val filtered = uiState.species.filter {
-                    speciesSearch.isBlank() || it.commonName.contains(speciesSearch, ignoreCase = true)
+                    speciesSearch.isBlank() || it.commonName.contains(speciesSearch, ignoreCase = true) || (it.variantName?.contains(speciesSearch, ignoreCase = true) == true)
                 }
                 ExposedDropdownMenu(
                     expanded = speciesExpanded,
@@ -234,7 +236,7 @@ fun TaskFormScreen(
                 ) {
                     filtered.forEach { species ->
                         DropdownMenuItem(
-                            text = { Text(species.commonName) },
+                            text = { Text(if (species.variantName.isNullOrBlank()) species.commonName else "${species.commonName} \u2013 ${species.variantName}") },
                             onClick = {
                                 selectedSpeciesId = species.id
                                 speciesSearch = ""
