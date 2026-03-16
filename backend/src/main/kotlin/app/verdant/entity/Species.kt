@@ -8,8 +8,8 @@ data class Species(
     val commonName: String,
     val commonNameSv: String? = null,
     val scientificName: String? = null,
-    val imageFrontBase64: String? = null,
-    val imageBackBase64: String? = null,
+    val imageFrontUrl: String? = null,
+    val imageBackUrl: String? = null,
     val daysToSprout: Int? = null,
     val daysToHarvest: Int? = null,
     val germinationTimeDays: Int? = null,
@@ -42,7 +42,7 @@ data class SpeciesTag(
 data class SpeciesPhoto(
     val id: Long? = null,
     val speciesId: Long,
-    val imageBase64: String,
+    val imageUrl: String,
     val sortOrder: Int = 0,
     val createdAt: Instant = Instant.now(),
 )

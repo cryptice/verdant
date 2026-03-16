@@ -347,7 +347,7 @@ private fun ActivityScaffold(
 private fun PhotoSection(imageBase64: String?, onCapture: (String) -> Unit) {
     Text(stringResource(R.string.photo), fontWeight = FontWeight.Bold, fontSize = 16.sp)
     PhotoPicker(
-        imageBase64 = imageBase64,
+        imageUrl = null,
         onImageCaptured = { b64, _ -> onCapture(b64) }
     )
 }

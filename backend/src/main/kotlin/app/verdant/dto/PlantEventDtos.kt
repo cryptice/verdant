@@ -13,7 +13,7 @@ data class PlantEventResponse(
     val weightGrams: Double?,
     val quantity: Int?,
     val notes: String?,
-    val imageBase64: String?,
+    val imageUrl: String?,
     val aiSuggestions: String?,
     val createdAt: Instant,
 )

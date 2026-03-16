@@ -17,6 +17,7 @@ class PlantService(
     private val bedRepository: BedRepository,
     private val gardenRepository: GardenRepository,
     private val speciesRepository: SpeciesRepository,
+    private val storageService: StorageService,
 ) {
     private fun checkBedOwnership(bedId: Long, userId: Long) {
         val bed = bedRepository.findById(bedId) ?: throw NotFoundException("Bed not found")
@@ -93,7 +94,7 @@ class PlantService(
     fun addEvent(plantId: Long, request: CreatePlantEventRequest, userId: Long): PlantEventResponse {
         val plant = checkPlantOwnership(plantId, userId)
 
-        val event = plantEventRepository.persist(
+        var event = plantEventRepository.persist(
             PlantEvent(
                 plantId = plantId,
                 eventType = request.eventType,
@@ -102,10 +103,16 @@ class PlantService(
                 weightGrams = request.weightGrams,
                 quantity = request.quantity,
                 notes = request.notes,
-                imageBase64 = request.imageBase64,
                 aiSuggestions = request.aiSuggestions,
             )
         )
+        // Upload event image to GCS if provided
+        if (request.imageBase64 != null) {
+            val eid = event.id!!
+            val imageUrl = storageService.uploadEventPhoto(eid, request.imageBase64)
+            event = event.copy(imageUrl = imageUrl)
+            plantEventRepository.updateImageUrl(eid, imageUrl)
+        }
 
         // Derive plant status from event
         val updatedPlant = when (request.eventType) {
@@ -183,6 +190,6 @@ fun PlantEvent.toResponse() = PlantEventResponse(
     id = id!!, plantId = plantId, eventType = eventType,
     eventDate = eventDate, plantCount = plantCount,
     weightGrams = weightGrams, quantity = quantity,
-    notes = notes, imageBase64 = imageBase64,
+    notes = notes, imageUrl = imageUrl,
     aiSuggestions = aiSuggestions, createdAt = createdAt,
 )

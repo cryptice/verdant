@@ -32,7 +32,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
     fun persist(species: Species): Species {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO species (user_id, common_name, common_name_sv, scientific_name, image_front_base64, image_back_base64,
+                """INSERT INTO species (user_id, common_name, common_name_sv, scientific_name, image_front_url, image_back_url,
                    days_to_sprout, days_to_harvest, germination_time_days, sowing_depth_mm,
                    growing_positions, soils, height_cm, bloom_time, germination_rate, group_id, created_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
@@ -42,8 +42,8 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 ps.setString(2, species.commonName)
                 ps.setString(3, species.commonNameSv)
                 ps.setString(4, species.scientificName)
-                ps.setString(5, species.imageFrontBase64)
-                ps.setString(6, species.imageBackBase64)
+                ps.setString(5, species.imageFrontUrl)
+                ps.setString(6, species.imageBackUrl)
                 ps.setObject(7, species.daysToSprout)
                 ps.setObject(8, species.daysToHarvest)
                 ps.setObject(9, species.germinationTimeDays)
@@ -67,7 +67,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """UPDATE species SET common_name = ?, common_name_sv = ?, scientific_name = ?,
-                   image_front_base64 = ?, image_back_base64 = ?,
+                   image_front_url = ?, image_back_url = ?,
                    days_to_sprout = ?, days_to_harvest = ?, germination_time_days = ?,
                    sowing_depth_mm = ?, growing_positions = ?, soils = ?, height_cm = ?,
                    bloom_time = ?, germination_rate = ?, group_id = ?
@@ -76,8 +76,8 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 ps.setString(1, species.commonName)
                 ps.setString(2, species.commonNameSv)
                 ps.setString(3, species.scientificName)
-                ps.setString(4, species.imageFrontBase64)
-                ps.setString(5, species.imageBackBase64)
+                ps.setString(4, species.imageFrontUrl)
+                ps.setString(5, species.imageBackUrl)
                 ps.setObject(6, species.daysToSprout)
                 ps.setObject(7, species.daysToHarvest)
                 ps.setObject(8, species.germinationTimeDays)
@@ -138,8 +138,8 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
         commonName = getString("common_name"),
         commonNameSv = getString("common_name_sv"),
         scientificName = getString("scientific_name"),
-        imageFrontBase64 = getString("image_front_base64"),
-        imageBackBase64 = getString("image_back_base64"),
+        imageFrontUrl = getString("image_front_url"),
+        imageBackUrl = getString("image_back_url"),
         daysToSprout = getObject("days_to_sprout") as? Int,
         daysToHarvest = getObject("days_to_harvest") as? Int,
         germinationTimeDays = getObject("germination_time_days") as? Int,

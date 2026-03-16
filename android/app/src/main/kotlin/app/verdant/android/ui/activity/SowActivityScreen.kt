@@ -323,7 +323,7 @@ fun SowActivityScreen(
             // Photo
             Text(stringResource(R.string.photo), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             PhotoPicker(
-                imageBase64 = imageBase64,
+                imageUrl = null,
                 onImageCaptured = { b64, _ -> imageBase64 = b64 }
             )
 

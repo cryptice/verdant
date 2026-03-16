@@ -1,8 +1,6 @@
 package app.verdant.android.ui.plant
 
-import android.graphics.BitmapFactory
-import android.util.Base64
-import androidx.compose.foundation.Image
+import coil.compose.AsyncImage
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,7 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
+
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -278,22 +276,14 @@ private fun EventCard(event: PlantEventResponse, onDelete: () -> Unit) {
             }
 
             // Photo thumbnail
-            event.imageBase64?.let { b64 ->
-                val bmp = remember(b64) {
-                    runCatching {
-                        val bytes = Base64.decode(b64, Base64.DEFAULT)
-                        BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                    }.getOrNull()
-                }
-                if (bmp != null) {
-                    Spacer(Modifier.height(8.dp))
-                    Image(
-                        bitmap = bmp.asImageBitmap(),
-                        contentDescription = "Event photo",
-                        modifier = Modifier.fillMaxWidth().heightIn(max = 150.dp),
-                        contentScale = ContentScale.Crop
-                    )
-                }
+            event.imageUrl?.let { url ->
+                Spacer(Modifier.height(8.dp))
+                AsyncImage(
+                    model = url,
+                    contentDescription = "Event photo",
+                    modifier = Modifier.fillMaxWidth().heightIn(max = 150.dp),
+                    contentScale = ContentScale.Crop
+                )
             }
         }
     }

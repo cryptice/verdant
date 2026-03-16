@@ -12,7 +12,8 @@ CREATE TABLE species (
     user_id               BIGINT REFERENCES app_user(id) ON DELETE CASCADE,
     common_name           VARCHAR(255) NOT NULL,
     scientific_name       VARCHAR(255),
-    image_base64          TEXT,
+    image_front_url       TEXT,
+    image_back_url        TEXT,
     days_to_sprout        INT,
     days_to_harvest       INT,
     germination_time_days INT,
@@ -82,7 +83,7 @@ CREATE TABLE plant_event (
     weight_grams    DOUBLE PRECISION,
     quantity         INT,
     notes           TEXT,
-    image_base64    TEXT,
+    image_url       TEXT,
     ai_suggestions  TEXT,
     created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );

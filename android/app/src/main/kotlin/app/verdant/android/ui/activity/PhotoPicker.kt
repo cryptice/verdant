@@ -31,6 +31,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import app.verdant.android.R
 import app.verdant.android.data.model.CropBox
+import coil.compose.AsyncImage
 import java.io.ByteArrayOutputStream
 
 /** Crop a bitmap using normalized coordinates (0.0-1.0). */
@@ -62,7 +63,7 @@ fun Bitmap.toCompressedBase64(maxSize: Int = 800): String {
 
 @Composable
 fun PhotoPicker(
-    imageBase64: String?,
+    imageUrl: String?,
     onImageCaptured: (base64: String, bitmap: Bitmap) -> Unit,
     modifier: Modifier = Modifier,
     maxImageHeight: Int = 300,
@@ -70,16 +71,6 @@ fun PhotoPicker(
     val context = LocalContext.current
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
     var showFullScreen by remember { mutableStateOf(false) }
-
-    // Decode existing base64 on first load
-    LaunchedEffect(imageBase64) {
-        if (imageBase64 != null && bitmap == null) {
-            try {
-                val bytes = Base64.decode(imageBase64, Base64.NO_WRAP)
-                bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-            } catch (_: Exception) {}
-        }
-    }
 
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bmp ->
         if (bmp != null) {
@@ -116,53 +107,71 @@ fun PhotoPicker(
         }
     }
 
+    val hasImage = bitmap != null || imageUrl != null
+
     // Full screen photo dialog
-    if (showFullScreen) {
-        bitmap?.let { bmp ->
-            Dialog(
-                onDismissRequest = { showFullScreen = false },
-                properties = DialogProperties(usePlatformDefaultWidth = false)
+    if (showFullScreen && hasImage) {
+        Dialog(
+            onDismissRequest = { showFullScreen = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable { showFullScreen = false }
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable { showFullScreen = false }
-                ) {
+                if (bitmap != null) {
                     Image(
-                        bitmap = bmp.asImageBitmap(),
+                        bitmap = bitmap!!.asImageBitmap(),
                         contentDescription = stringResource(R.string.photo),
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Fit
                     )
-                    IconButton(
-                        onClick = { showFullScreen = false },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(16.dp),
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = Color.Black.copy(alpha = 0.5f),
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Icon(Icons.Default.Close, stringResource(R.string.back))
-                    }
+                } else {
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = stringResource(R.string.photo),
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+                IconButton(
+                    onClick = { showFullScreen = false },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp),
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = Color.Black.copy(alpha = 0.5f),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Icon(Icons.Default.Close, stringResource(R.string.back))
                 }
             }
         }
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = modifier) {
-        bitmap?.let { bmp ->
+        if (hasImage) {
             Card(
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth().clickable { showFullScreen = true }
             ) {
-                Image(
-                    bitmap = bmp.asImageBitmap(),
-                    contentDescription = stringResource(R.string.photo),
-                    modifier = Modifier.fillMaxWidth().heightIn(max = maxImageHeight.dp),
-                    contentScale = ContentScale.Fit
-                )
+                if (bitmap != null) {
+                    Image(
+                        bitmap = bitmap!!.asImageBitmap(),
+                        contentDescription = stringResource(R.string.photo),
+                        modifier = Modifier.fillMaxWidth().heightIn(max = maxImageHeight.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                } else {
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = stringResource(R.string.photo),
+                        modifier = Modifier.fillMaxWidth().heightIn(max = maxImageHeight.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                }
             }
         }
 

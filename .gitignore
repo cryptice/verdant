@@ -18,6 +18,9 @@ postgres-data/
 .env.yaml
 *.pem
 
+# Secrets
+secrets/
+
 # OS
 .DS_Store
 

@@ -32,7 +32,7 @@ class PlantEventRepository(private val ds: AgroalDataSource) {
     fun persist(event: PlantEvent): PlantEvent {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO plant_event (plant_id, event_type, event_date, plant_count, weight_grams, quantity, notes, image_base64, ai_suggestions, created_at)
+                """INSERT INTO plant_event (plant_id, event_type, event_date, plant_count, weight_grams, quantity, notes, image_url, ai_suggestions, created_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
@@ -43,13 +43,23 @@ class PlantEventRepository(private val ds: AgroalDataSource) {
                 ps.setObject(5, event.weightGrams)
                 ps.setObject(6, event.quantity)
                 ps.setString(7, event.notes)
-                ps.setString(8, event.imageBase64)
+                ps.setString(8, event.imageUrl)
                 ps.setString(9, event.aiSuggestions)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
                     return event.copy(id = rs.getLong(1))
                 }
+            }
+        }
+    }
+
+    fun updateImageUrl(id: Long, imageUrl: String) {
+        ds.connection.use { conn ->
+            conn.prepareStatement("UPDATE plant_event SET image_url = ? WHERE id = ?").use { ps ->
+                ps.setString(1, imageUrl)
+                ps.setLong(2, id)
+                ps.executeUpdate()
             }
         }
     }
@@ -106,7 +116,7 @@ class PlantEventRepository(private val ds: AgroalDataSource) {
         weightGrams = getObject("weight_grams") as? Double,
         quantity = getObject("quantity") as? Int,
         notes = getString("notes"),
-        imageBase64 = getString("image_base64"),
+        imageUrl = getString("image_url"),
         aiSuggestions = getString("ai_suggestions"),
         createdAt = getTimestamp("created_at").toInstant(),
     )

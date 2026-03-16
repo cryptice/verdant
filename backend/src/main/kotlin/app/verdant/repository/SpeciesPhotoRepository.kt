@@ -22,11 +22,11 @@ class SpeciesPhotoRepository(private val ds: AgroalDataSource) {
     fun persist(photo: SpeciesPhoto): SpeciesPhoto {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                "INSERT INTO species_photo (species_id, image_base64, sort_order, created_at) VALUES (?, ?, ?, now())",
+                "INSERT INTO species_photo (species_id, image_url, sort_order, created_at) VALUES (?, ?, ?, now())",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setLong(1, photo.speciesId)
-                ps.setString(2, photo.imageBase64)
+                ps.setString(2, photo.imageUrl)
                 ps.setInt(3, photo.sortOrder)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
@@ -58,7 +58,7 @@ class SpeciesPhotoRepository(private val ds: AgroalDataSource) {
     private fun ResultSet.toPhoto() = SpeciesPhoto(
         id = getLong("id"),
         speciesId = getLong("species_id"),
-        imageBase64 = getString("image_base64"),
+        imageUrl = getString("image_url"),
         sortOrder = getInt("sort_order"),
         createdAt = getTimestamp("created_at").toInstant(),
     )

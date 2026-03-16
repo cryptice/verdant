@@ -6,7 +6,7 @@ import java.time.Instant
 
 data class SpeciesPhotoResponse(
     val id: Long,
-    val imageBase64: String,
+    val imageUrl: String,
     val sortOrder: Int,
 )
 
@@ -15,8 +15,8 @@ data class SpeciesResponse(
     val commonName: String,
     val commonNameSv: String?,
     val scientificName: String?,
-    val imageFrontBase64: String?,
-    val imageBackBase64: String?,
+    val imageFrontUrl: String?,
+    val imageBackUrl: String?,
     val photos: List<SpeciesPhotoResponse>,
     val daysToSprout: Int?,
     val daysToHarvest: Int?,

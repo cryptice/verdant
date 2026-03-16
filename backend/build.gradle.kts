@@ -50,6 +50,7 @@ dependencies {
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-elytron-security-common")
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
+    implementation("com.google.cloud:google-cloud-storage:2.43.1")
 }
 
 java {
@@ -67,6 +68,8 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 tasks.withType<JavaExec> {
     val geminiKey = envGet("backend", "gemini-api-key")
     if (geminiKey.isNotBlank()) systemProperty("verdant.gemini.api-key", geminiKey)
+    val gcsKey = envGet("backend", "gcs-service-account-key")
+    if (gcsKey.isNotBlank()) systemProperty("verdant.gcs.service-account-key", gcsKey)
 
     val dbUser = envGet("backend", "prod", "db-username")
     if (dbUser.isNotBlank()) systemProperty("quarkus.datasource.username", dbUser)
@@ -81,6 +84,10 @@ tasks.named<io.quarkus.gradle.tasks.QuarkusDev>("quarkusDev") {
     val geminiKey = envGet("backend", "gemini-api-key")
     if (geminiKey.isNotBlank()) {
         jvmArgs = jvmArgs + listOf("-Dverdant.gemini.api-key=$geminiKey")
+    }
+    val gcsKey = envGet("backend", "gcs-service-account-key")
+    if (gcsKey.isNotBlank()) {
+        jvmArgs = jvmArgs + listOf("-Dverdant.gcs.service-account-key=$gcsKey")
     }
 }
 

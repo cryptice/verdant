@@ -188,7 +188,7 @@ data class PlantEventResponse(
     val weightGrams: Double?,
     val quantity: Int?,
     val notes: String?,
-    val imageBase64: String?,
+    val imageUrl: String?,
     val aiSuggestions: String?,
     val createdAt: String,
 )
@@ -252,7 +252,7 @@ data class HarvestStatRow(
 
 data class SpeciesPhotoResponse(
     val id: Long,
-    val imageBase64: String,
+    val imageUrl: String,
     val sortOrder: Int,
 )
 
@@ -261,8 +261,8 @@ data class SpeciesResponse(
     val commonName: String,
     val commonNameSv: String?,
     val scientificName: String?,
-    val imageFrontBase64: String?,
-    val imageBackBase64: String?,
+    val imageFrontUrl: String?,
+    val imageBackUrl: String?,
     val photos: List<SpeciesPhotoResponse> = emptyList(),
     val daysToSprout: Int?,
     val daysToHarvest: Int?,

@@ -12,7 +12,7 @@ data class PlantEvent(
     val weightGrams: Double? = null,
     val quantity: Int? = null,
     val notes: String? = null,
-    val imageBase64: String? = null,
+    val imageUrl: String? = null,
     val aiSuggestions: String? = null,
     val createdAt: Instant = Instant.now(),
 )

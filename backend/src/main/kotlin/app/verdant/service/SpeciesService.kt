@@ -18,6 +18,7 @@ class SpeciesService(
     private val groupRepository: SpeciesGroupRepository,
     private val tagRepository: SpeciesTagRepository,
     private val photoRepository: SpeciesPhotoRepository,
+    private val storageService: StorageService,
 ) {
     // ── Species CRUD ──
 
@@ -42,8 +43,6 @@ class SpeciesService(
                 commonName = request.commonName,
                 commonNameSv = request.commonNameSv,
                 scientificName = request.scientificName,
-                imageFrontBase64 = request.imageFrontBase64,
-                imageBackBase64 = request.imageBackBase64,
                 daysToSprout = request.daysToSprout,
                 daysToHarvest = request.daysToHarvest,
                 germinationTimeDays = request.germinationTimeDays,
@@ -56,22 +55,32 @@ class SpeciesService(
                 groupId = request.groupId,
             )
         )
-        if (request.tagIds.isNotEmpty()) {
-            speciesRepository.setTagsForSpecies(species.id!!, request.tagIds)
+        val sid = species.id!!
+        // Upload images to GCS
+        val frontUrl = request.imageFrontBase64?.let { storageService.uploadSpeciesFront(sid, it) }
+        val backUrl = request.imageBackBase64?.let { storageService.uploadSpeciesBack(sid, it) }
+        if (frontUrl != null || backUrl != null) {
+            speciesRepository.update(species.copy(imageFrontUrl = frontUrl, imageBackUrl = backUrl))
         }
-        return getSpecies(species.id!!, userId)
+        if (request.tagIds.isNotEmpty()) {
+            speciesRepository.setTagsForSpecies(sid, request.tagIds)
+        }
+        return getSpecies(sid, userId)
     }
 
     fun updateSpecies(speciesId: Long, request: UpdateSpeciesRequest, userId: Long): SpeciesResponse {
         val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
         if (species.userId == null) throw ForbiddenException("Cannot modify system species")
         if (species.userId != userId) throw ForbiddenException()
+        // Upload new images if provided
+        val frontUrl = request.imageFrontBase64?.let { storageService.uploadSpeciesFront(speciesId, it) } ?: species.imageFrontUrl
+        val backUrl = request.imageBackBase64?.let { storageService.uploadSpeciesBack(speciesId, it) } ?: species.imageBackUrl
         val updated = species.copy(
             commonName = request.commonName ?: species.commonName,
             commonNameSv = request.commonNameSv ?: species.commonNameSv,
             scientificName = request.scientificName ?: species.scientificName,
-            imageFrontBase64 = request.imageFrontBase64 ?: species.imageFrontBase64,
-            imageBackBase64 = request.imageBackBase64 ?: species.imageBackBase64,
+            imageFrontUrl = frontUrl,
+            imageBackUrl = backUrl,
             daysToSprout = request.daysToSprout ?: species.daysToSprout,
             daysToHarvest = request.daysToHarvest ?: species.daysToHarvest,
             germinationTimeDays = request.germinationTimeDays ?: species.germinationTimeDays,
@@ -144,9 +153,9 @@ class SpeciesService(
             commonName = commonName,
             commonNameSv = commonNameSv,
             scientificName = scientificName,
-            imageFrontBase64 = imageFrontBase64,
-            imageBackBase64 = imageBackBase64,
-            photos = photos.map { SpeciesPhotoResponse(it.id!!, it.imageBase64, it.sortOrder) },
+            imageFrontUrl = imageFrontUrl,
+            imageBackUrl = imageBackUrl,
+            photos = photos.map { SpeciesPhotoResponse(it.id!!, it.imageUrl, it.sortOrder) },
             daysToSprout = daysToSprout,
             daysToHarvest = daysToHarvest,
             germinationTimeDays = germinationTimeDays,

@@ -147,6 +147,8 @@ fun AddSpeciesScreen(
     val currentLocale = java.util.Locale.getDefault().language // "sv" or "en"
     var imageFrontBase64 by remember { mutableStateOf<String?>(null) }
     var imageBackBase64 by remember { mutableStateOf<String?>(null) }
+    var imageFrontUrl by remember { mutableStateOf<String?>(null) }
+    var imageBackUrl by remember { mutableStateOf<String?>(null) }
     var frontBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
     var backBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
     var daysToSprout by remember { mutableStateOf("") }
@@ -179,8 +181,8 @@ fun AddSpeciesScreen(
         if (s != null && !prefilled) {
             commonName = s.commonName
             scientificName = s.scientificName ?: ""
-            imageFrontBase64 = s.imageFrontBase64
-            imageBackBase64 = s.imageBackBase64
+            imageFrontUrl = s.imageFrontUrl
+            imageBackUrl = s.imageBackUrl
             daysToSprout = s.daysToSprout?.toString() ?: ""
             daysToHarvest = s.daysToHarvest?.toString() ?: ""
             germinationTimeDays = s.germinationTimeDays?.toString() ?: ""
@@ -197,7 +199,7 @@ fun AddSpeciesScreen(
     }
 
     val hasData = commonName.isNotBlank() || scientificName.isNotBlank() ||
-        imageFrontBase64 != null || imageBackBase64 != null ||
+        imageFrontBase64 != null || imageBackBase64 != null || imageFrontUrl != null || imageBackUrl != null ||
         daysToSprout.isNotBlank() || daysToHarvest.isNotBlank() ||
         germinationTimeDays.isNotBlank() || sowingDepthMm.isNotBlank() ||
         heightCm.isNotBlank() || bloomTime.isNotBlank() || germinationRate.isNotBlank()
@@ -214,7 +216,7 @@ fun AddSpeciesScreen(
     val isGerminationRateValid = germinationRate.toIntOrNull() != null
     val isPositionsValid = selectedPositions.isNotEmpty()
     val isSoilsValid = selectedSoils.isNotEmpty()
-    val isFrontPhotoValid = imageFrontBase64 != null
+    val isFrontPhotoValid = imageFrontBase64 != null || imageFrontUrl != null
 
     val isFormValid = isCommonNameValid && isScientificNameValid &&
         isDaysToSproutValid && isDaysToHarvestValid && isGerminationTimeDaysValid &&
@@ -226,8 +228,8 @@ fun AddSpeciesScreen(
     val hasChanges = existing == null || // create mode = always "changed"
         commonName != existing.commonName ||
         (scientificName) != (existing.scientificName ?: "") ||
-        imageFrontBase64 != existing.imageFrontBase64 ||
-        imageBackBase64 != existing.imageBackBase64 ||
+        imageFrontBase64 != null ||
+        imageBackBase64 != null ||
         daysToSprout != (existing.daysToSprout?.toString() ?: "") ||
         daysToHarvest != (existing.daysToHarvest?.toString() ?: "") ||
         germinationTimeDays != (existing.germinationTimeDays?.toString() ?: "") ||
@@ -392,10 +394,11 @@ fun AddSpeciesScreen(
                         Text(stringResource(R.string.front_photo), fontWeight = FontWeight.Bold, fontSize = 14.sp)
                         Spacer(Modifier.height(4.dp))
                         PhotoPicker(
-                            imageBase64 = imageFrontBase64,
+                            imageUrl = imageFrontUrl,
                             maxImageHeight = 180,
                             onImageCaptured = { b64, bmp ->
                                 imageFrontBase64 = b64
+                                imageFrontUrl = null
                                 frontBitmap = bmp
                                 viewModel.identifyPlant(b64)
                             }
@@ -405,10 +408,11 @@ fun AddSpeciesScreen(
                         Text(stringResource(R.string.back_photo), fontWeight = FontWeight.Bold, fontSize = 14.sp)
                         Spacer(Modifier.height(4.dp))
                         PhotoPicker(
-                            imageBase64 = imageBackBase64,
+                            imageUrl = imageBackUrl,
                             maxImageHeight = 180,
                             onImageCaptured = { b64, bmp ->
                                 imageBackBase64 = b64
+                                imageBackUrl = null
                                 backBitmap = bmp
                                 viewModel.extractSpeciesInfo(b64)
                             }
