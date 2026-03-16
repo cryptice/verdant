@@ -25,6 +25,7 @@ export default function Layout() {
           <p className="text-sm text-gray-500 mt-1">Admin Panel</p>
         </div>
         <nav className="flex-1 px-4 space-y-1">
+          <NavLink to="/species" className={linkClass}>Species</NavLink>
           <NavLink to="/users" className={linkClass}>Users</NavLink>
           <NavLink to="/gardens" className={linkClass}>Gardens</NavLink>
           <NavLink to="/dev" className={linkClass}>Dev Tools</NavLink>

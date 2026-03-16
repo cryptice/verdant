@@ -9,6 +9,14 @@ import java.sql.Statement
 @ApplicationScoped
 class SpeciesPhotoRepository(private val ds: AgroalDataSource) {
 
+    fun findById(id: Long): SpeciesPhoto? =
+        ds.connection.use { conn ->
+            conn.prepareStatement("SELECT * FROM species_photo WHERE id = ?").use { ps ->
+                ps.setLong(1, id)
+                ps.executeQuery().use { rs -> if (rs.next()) rs.toPhoto() else null }
+            }
+        }
+
     fun findBySpeciesId(speciesId: Long): List<SpeciesPhoto> =
         ds.connection.use { conn ->
             conn.prepareStatement("SELECT * FROM species_photo WHERE species_id = ? ORDER BY sort_order, id").use { ps ->

@@ -17,6 +17,15 @@ class SpeciesTagRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    fun findAll(): List<SpeciesTag> =
+        ds.connection.use { conn ->
+            conn.prepareStatement("SELECT * FROM species_tag ORDER BY name").use { ps ->
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.toTag()) }
+                }
+            }
+        }
+
     fun findByUserId(userId: Long): List<SpeciesTag> =
         ds.connection.use { conn ->
             conn.prepareStatement("SELECT * FROM species_tag WHERE user_id = ? OR user_id IS NULL ORDER BY name").use { ps ->

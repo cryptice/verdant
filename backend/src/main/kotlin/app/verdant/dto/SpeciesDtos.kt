@@ -151,6 +151,8 @@ data class UpdateSpeciesProviderRequest(
     val productUrl: String? = null,
 )
 
+data class UploadPhotoRequest(val imageBase64: String)
+
 data class ExtractSpeciesInfoRequest(val imageBase64: String)
 
 data class ExtractedSpeciesInfo(

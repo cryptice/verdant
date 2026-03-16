@@ -103,6 +103,101 @@ class SpeciesService(
         speciesRepository.delete(speciesId)
     }
 
+    // ── Admin Species CRUD ──
+
+    fun getAllSpecies(): List<SpeciesResponse> {
+        val groups = groupRepository.findAll().associateBy { it.id }
+        val tags = tagRepository.findAll().associateBy { it.id }
+        return speciesRepository.findAll().map { it.toResponse(groups, tags) }
+    }
+
+    fun getSpeciesAdmin(speciesId: Long): SpeciesResponse {
+        val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
+        val groups: Map<Long?, SpeciesGroup> = species.groupId?.let { groupRepository.findById(it) }?.let { mapOf(it.id to it) } ?: emptyMap()
+        val tags = tagRepository.findAll().associateBy { it.id }
+        return species.toResponse(groups, tags)
+    }
+
+    fun createSpeciesAdmin(request: CreateSpeciesRequest): SpeciesResponse {
+        val species = speciesRepository.persist(
+            Species(
+                userId = null,
+                commonName = request.commonName,
+                commonNameSv = request.commonNameSv,
+                scientificName = request.scientificName,
+                daysToSprout = request.daysToSprout,
+                daysToHarvest = request.daysToHarvest,
+                germinationTimeDays = request.germinationTimeDays,
+                sowingDepthMm = request.sowingDepthMm,
+                growingPositions = request.growingPositions,
+                soils = request.soils,
+                heightCm = request.heightCm,
+                bloomTime = request.bloomTime,
+                germinationRate = request.germinationRate,
+                groupId = request.groupId,
+            )
+        )
+        val sid = species.id!!
+        val frontUrl = request.imageFrontBase64?.let { storageService.uploadSpeciesFront(sid, it) }
+        val backUrl = request.imageBackBase64?.let { storageService.uploadSpeciesBack(sid, it) }
+        if (frontUrl != null || backUrl != null) {
+            speciesRepository.update(species.copy(imageFrontUrl = frontUrl, imageBackUrl = backUrl))
+        }
+        if (request.tagIds.isNotEmpty()) {
+            speciesRepository.setTagsForSpecies(sid, request.tagIds)
+        }
+        return getSpeciesAdmin(sid)
+    }
+
+    fun updateSpeciesAdmin(speciesId: Long, request: UpdateSpeciesRequest): SpeciesResponse {
+        val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
+        val frontUrl = request.imageFrontBase64?.let { storageService.uploadSpeciesFront(speciesId, it) } ?: species.imageFrontUrl
+        val backUrl = request.imageBackBase64?.let { storageService.uploadSpeciesBack(speciesId, it) } ?: species.imageBackUrl
+        val updated = species.copy(
+            commonName = request.commonName ?: species.commonName,
+            commonNameSv = request.commonNameSv ?: species.commonNameSv,
+            scientificName = request.scientificName ?: species.scientificName,
+            imageFrontUrl = frontUrl,
+            imageBackUrl = backUrl,
+            daysToSprout = request.daysToSprout ?: species.daysToSprout,
+            daysToHarvest = request.daysToHarvest ?: species.daysToHarvest,
+            germinationTimeDays = request.germinationTimeDays ?: species.germinationTimeDays,
+            sowingDepthMm = request.sowingDepthMm ?: species.sowingDepthMm,
+            growingPositions = request.growingPositions ?: species.growingPositions,
+            soils = request.soils ?: species.soils,
+            heightCm = request.heightCm ?: species.heightCm,
+            bloomTime = request.bloomTime ?: species.bloomTime,
+            germinationRate = request.germinationRate ?: species.germinationRate,
+            groupId = request.groupId ?: species.groupId,
+        )
+        speciesRepository.update(updated)
+        if (request.tagIds != null) {
+            speciesRepository.setTagsForSpecies(speciesId, request.tagIds)
+        }
+        return getSpeciesAdmin(speciesId)
+    }
+
+    fun deleteSpeciesAdmin(speciesId: Long) {
+        speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
+        speciesRepository.delete(speciesId)
+    }
+
+    fun uploadSpeciesPhoto(speciesId: Long, base64: String): SpeciesPhotoResponse {
+        speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
+        val url = storageService.uploadSpeciesPhoto(speciesId, base64)
+        val existingPhotos = photoRepository.findBySpeciesId(speciesId)
+        val nextSortOrder = (existingPhotos.maxOfOrNull { it.sortOrder } ?: -1) + 1
+        val photo = photoRepository.persist(SpeciesPhoto(speciesId = speciesId, imageUrl = url, sortOrder = nextSortOrder))
+        return SpeciesPhotoResponse(photo.id!!, photo.imageUrl, photo.sortOrder)
+    }
+
+    fun deleteSpeciesPhoto(speciesId: Long, photoId: Long) {
+        val photo = photoRepository.findById(photoId) ?: throw NotFoundException("Photo not found")
+        if (photo.speciesId != speciesId) throw NotFoundException("Photo not found for this species")
+        storageService.deleteByPath(photo.imageUrl)
+        photoRepository.delete(photoId)
+    }
+
     // ── Groups ──
 
     fun getGroupsForUser(userId: Long): List<SpeciesGroupResponse> =

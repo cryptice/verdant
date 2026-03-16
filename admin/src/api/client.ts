@@ -52,6 +52,95 @@ export interface Garden {
   updatedAt: string
 }
 
+export interface SpeciesPhoto {
+  id: number
+  imageUrl: string
+  sortOrder: number
+}
+
+export interface SpeciesTag {
+  id: number
+  name: string
+}
+
+export interface SpeciesProvider {
+  id: number
+  providerId: number
+  providerName: string
+  providerIdentifier: string
+  imageFrontUrl: string | null
+  imageBackUrl: string | null
+  productUrl: string | null
+}
+
+export interface Species {
+  id: number
+  commonName: string
+  commonNameSv: string | null
+  scientificName: string | null
+  imageFrontUrl: string | null
+  imageBackUrl: string | null
+  photos: SpeciesPhoto[]
+  daysToSprout: number | null
+  daysToHarvest: number | null
+  germinationTimeDays: number | null
+  sowingDepthMm: number | null
+  growingPositions: string[]
+  soils: string[]
+  heightCm: number | null
+  bloomTime: string | null
+  germinationRate: number | null
+  groupId: number | null
+  groupName: string | null
+  tags: SpeciesTag[]
+  providers: SpeciesProvider[]
+  isSystem: boolean
+  createdAt: string
+}
+
+export interface SpeciesGroup {
+  id: number
+  name: string
+}
+
+export interface CreateSpeciesRequest {
+  commonName: string
+  commonNameSv?: string | null
+  scientificName?: string | null
+  imageFrontBase64?: string | null
+  imageBackBase64?: string | null
+  daysToSprout?: number | null
+  daysToHarvest?: number | null
+  germinationTimeDays?: number | null
+  sowingDepthMm?: number | null
+  growingPositions?: string[]
+  soils?: string[]
+  heightCm?: number | null
+  bloomTime?: string | null
+  germinationRate?: number | null
+  groupId?: number | null
+  tagIds?: number[]
+}
+
+export interface UpdateSpeciesRequest {
+  commonName?: string | null
+  commonNameSv?: string | null
+  scientificName?: string | null
+  imageFrontBase64?: string | null
+  imageBackBase64?: string | null
+  daysToSprout?: number | null
+  daysToHarvest?: number | null
+  germinationTimeDays?: number | null
+  sowingDepthMm?: number | null
+  growingPositions?: string[] | null
+  soils?: string[] | null
+  heightCm?: number | null
+  bloomTime?: string | null
+  germinationRate?: number | null
+  groupId?: number | null
+  tagIds?: number[] | null
+}
+
 export const api = {
   auth: {
     login: (email: string, password: string) =>
@@ -64,5 +153,25 @@ export const api = {
     getUsers: () => apiRequest<User[]>('/api/admin/users'),
     deleteUser: (id: number) => apiRequest<void>(`/api/admin/users/${id}`, { method: 'DELETE' }),
     getGardens: () => apiRequest<Garden[]>('/api/admin/gardens'),
+
+    getSpecies: () => apiRequest<Species[]>('/api/admin/species'),
+    getSpeciesById: (id: number) => apiRequest<Species>(`/api/admin/species/${id}`),
+    createSpecies: (req: CreateSpeciesRequest) =>
+      apiRequest<Species>('/api/admin/species', { method: 'POST', body: JSON.stringify(req) }),
+    updateSpecies: (id: number, req: UpdateSpeciesRequest) =>
+      apiRequest<Species>(`/api/admin/species/${id}`, { method: 'PUT', body: JSON.stringify(req) }),
+    deleteSpecies: (id: number) =>
+      apiRequest<void>(`/api/admin/species/${id}`, { method: 'DELETE' }),
+
+    uploadSpeciesPhoto: (speciesId: number, imageBase64: string) =>
+      apiRequest<SpeciesPhoto>(`/api/admin/species/${speciesId}/photos`, {
+        method: 'POST',
+        body: JSON.stringify({ imageBase64 })
+      }),
+    deleteSpeciesPhoto: (speciesId: number, photoId: number) =>
+      apiRequest<void>(`/api/admin/species/${speciesId}/photos/${photoId}`, { method: 'DELETE' }),
+
+    getSpeciesGroups: () => apiRequest<SpeciesGroup[]>('/api/species/groups'),
+    getSpeciesTags: () => apiRequest<SpeciesTag[]>('/api/species/tags'),
   }
 }
