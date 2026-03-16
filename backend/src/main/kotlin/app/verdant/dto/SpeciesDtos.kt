@@ -30,6 +30,7 @@ data class SpeciesResponse(
     val groupId: Long?,
     val groupName: String?,
     val tags: List<SpeciesTagResponse>,
+    val providers: List<SpeciesProviderResponse>,
     val isSystem: Boolean,
     val createdAt: Instant,
 )
@@ -107,6 +108,47 @@ data class BedWithGardenResponse(
     val gardenId: Long,
     val gardenName: String,
     val boundaryJson: String?,
+)
+
+// ── Providers ──
+
+data class ProviderResponse(
+    val id: Long,
+    val name: String,
+    val identifier: String,
+)
+
+data class CreateProviderRequest(
+    val name: String,
+    val identifier: String,
+)
+
+data class UpdateProviderRequest(
+    val name: String? = null,
+    val identifier: String? = null,
+)
+
+data class SpeciesProviderResponse(
+    val id: Long,
+    val providerId: Long,
+    val providerName: String,
+    val providerIdentifier: String,
+    val imageFrontUrl: String?,
+    val imageBackUrl: String?,
+    val productUrl: String?,
+)
+
+data class AddSpeciesProviderRequest(
+    val providerId: Long,
+    val imageFrontBase64: String? = null,
+    val imageBackBase64: String? = null,
+    val productUrl: String? = null,
+)
+
+data class UpdateSpeciesProviderRequest(
+    val imageFrontBase64: String? = null,
+    val imageBackBase64: String? = null,
+    val productUrl: String? = null,
 )
 
 data class ExtractSpeciesInfoRequest(val imageBase64: String)

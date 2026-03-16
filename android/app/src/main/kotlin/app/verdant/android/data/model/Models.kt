@@ -276,6 +276,7 @@ data class SpeciesResponse(
     val groupId: Long?,
     val groupName: String?,
     val tags: List<SpeciesTagResponse>,
+    val providers: List<SpeciesProviderResponse> = emptyList(),
     val isSystem: Boolean = false,
     val createdAt: String,
 )
@@ -334,6 +335,24 @@ data class SpeciesTagResponse(
 
 data class CreateSpeciesTagRequest(
     val name: String,
+)
+
+// ── Providers ──
+
+data class ProviderResponse(
+    val id: Long,
+    val name: String,
+    val identifier: String,
+)
+
+data class SpeciesProviderResponse(
+    val id: Long,
+    val providerId: Long,
+    val providerName: String,
+    val providerIdentifier: String,
+    val imageFrontUrl: String?,
+    val imageBackUrl: String?,
+    val productUrl: String?,
 )
 
 data class FrequentCommentResponse(

@@ -47,6 +47,22 @@ data class SpeciesPhoto(
     val createdAt: Instant = Instant.now(),
 )
 
+data class Provider(
+    val id: Long? = null,
+    val name: String,
+    val identifier: String,
+)
+
+data class SpeciesProvider(
+    val id: Long? = null,
+    val speciesId: Long,
+    val providerId: Long,
+    val imageFrontUrl: String? = null,
+    val imageBackUrl: String? = null,
+    val productUrl: String? = null,
+    val createdAt: Instant = Instant.now(),
+)
+
 data class FrequentComment(
     val id: Long? = null,
     val userId: Long,

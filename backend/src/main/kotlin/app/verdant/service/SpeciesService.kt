@@ -1,13 +1,8 @@
 package app.verdant.service
 
 import app.verdant.dto.*
-import app.verdant.entity.Species
-import app.verdant.entity.SpeciesGroup
-import app.verdant.entity.SpeciesTag
-import app.verdant.repository.SpeciesGroupRepository
-import app.verdant.repository.SpeciesPhotoRepository
-import app.verdant.repository.SpeciesRepository
-import app.verdant.repository.SpeciesTagRepository
+import app.verdant.entity.*
+import app.verdant.repository.*
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
@@ -18,6 +13,8 @@ class SpeciesService(
     private val groupRepository: SpeciesGroupRepository,
     private val tagRepository: SpeciesTagRepository,
     private val photoRepository: SpeciesPhotoRepository,
+    private val providerRepository: ProviderRepository,
+    private val speciesProviderRepository: SpeciesProviderRepository,
     private val storageService: StorageService,
 ) {
     // ── Species CRUD ──
@@ -142,12 +139,80 @@ class SpeciesService(
 
     // ── Mapping ──
 
+    // ── Species Providers ──
+
+    fun getProvidersForSpecies(speciesId: Long, userId: Long): List<SpeciesProviderResponse> {
+        val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
+        if (species.userId != null && species.userId != userId) throw ForbiddenException()
+        return speciesProviderRepository.findBySpeciesId(speciesId).map { it.toResponse() }
+    }
+
+    fun addProviderToSpecies(speciesId: Long, request: AddSpeciesProviderRequest, userId: Long): SpeciesProviderResponse {
+        val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
+        if (species.userId != null && species.userId != userId) throw ForbiddenException()
+        providerRepository.findById(request.providerId) ?: throw NotFoundException("Provider not found")
+        var sp = speciesProviderRepository.persist(
+            SpeciesProvider(
+                speciesId = speciesId,
+                providerId = request.providerId,
+                productUrl = request.productUrl,
+            )
+        )
+        val frontUrl = request.imageFrontBase64?.let { storageService.uploadImage(it, "species/$speciesId/providers/${sp.id}/front.jpg") }
+        val backUrl = request.imageBackBase64?.let { storageService.uploadImage(it, "species/$speciesId/providers/${sp.id}/back.jpg") }
+        if (frontUrl != null || backUrl != null) {
+            sp = sp.copy(imageFrontUrl = frontUrl, imageBackUrl = backUrl)
+            speciesProviderRepository.update(sp)
+        }
+        return sp.toResponse()
+    }
+
+    fun updateSpeciesProvider(speciesId: Long, speciesProviderId: Long, request: UpdateSpeciesProviderRequest, userId: Long): SpeciesProviderResponse {
+        val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
+        if (species.userId != null && species.userId != userId) throw ForbiddenException()
+        val sp = speciesProviderRepository.findById(speciesProviderId) ?: throw NotFoundException("Species provider not found")
+        if (sp.speciesId != speciesId) throw NotFoundException("Species provider not found")
+        val frontUrl = request.imageFrontBase64?.let { storageService.uploadImage(it, "species/$speciesId/providers/${sp.id}/front.jpg") } ?: sp.imageFrontUrl
+        val backUrl = request.imageBackBase64?.let { storageService.uploadImage(it, "species/$speciesId/providers/${sp.id}/back.jpg") } ?: sp.imageBackUrl
+        val updated = sp.copy(
+            imageFrontUrl = frontUrl,
+            imageBackUrl = backUrl,
+            productUrl = request.productUrl ?: sp.productUrl,
+        )
+        speciesProviderRepository.update(updated)
+        return updated.toResponse()
+    }
+
+    fun removeProviderFromSpecies(speciesId: Long, speciesProviderId: Long, userId: Long) {
+        val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
+        if (species.userId != null && species.userId != userId) throw ForbiddenException()
+        val sp = speciesProviderRepository.findById(speciesProviderId) ?: throw NotFoundException("Species provider not found")
+        if (sp.speciesId != speciesId) throw NotFoundException("Species provider not found")
+        speciesProviderRepository.delete(speciesProviderId)
+    }
+
+    private fun SpeciesProvider.toResponse(): SpeciesProviderResponse {
+        val provider = providerRepository.findById(providerId)!!
+        return SpeciesProviderResponse(
+            id = id!!,
+            providerId = provider.id!!,
+            providerName = provider.name,
+            providerIdentifier = provider.identifier,
+            imageFrontUrl = imageFrontUrl,
+            imageBackUrl = imageBackUrl,
+            productUrl = productUrl,
+        )
+    }
+
+    // ── Mapping ──
+
     private fun Species.toResponse(
         groups: Map<Long?, SpeciesGroup>,
         tags: Map<Long?, SpeciesTag>,
     ): SpeciesResponse {
         val tagIds = speciesRepository.findTagIdsForSpecies(id!!)
         val photos = photoRepository.findBySpeciesId(id)
+        val providers = speciesProviderRepository.findBySpeciesId(id).map { it.toResponse() }
         return SpeciesResponse(
             id = id,
             commonName = commonName,
@@ -168,6 +233,7 @@ class SpeciesService(
             groupId = groupId,
             groupName = groupId?.let { groups[it]?.name },
             tags = tagIds.mapNotNull { tags[it]?.let { t -> SpeciesTagResponse(t.id!!, t.name) } },
+            providers = providers,
             isSystem = userId == null,
             createdAt = createdAt,
         )

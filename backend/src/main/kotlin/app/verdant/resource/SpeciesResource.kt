@@ -95,4 +95,33 @@ class SpeciesResource(
         speciesService.deleteTag(id, userId())
         return Response.noContent().build()
     }
+
+    // ── Species Providers ──
+
+    @GET
+    @Path("/{speciesId}/providers")
+    fun listProviders(@PathParam("speciesId") speciesId: Long) =
+        speciesService.getProvidersForSpecies(speciesId, userId())
+
+    @POST
+    @Path("/{speciesId}/providers")
+    fun addProvider(@PathParam("speciesId") speciesId: Long, request: AddSpeciesProviderRequest): Response {
+        val sp = speciesService.addProviderToSpecies(speciesId, request, userId())
+        return Response.status(Response.Status.CREATED).entity(sp).build()
+    }
+
+    @PUT
+    @Path("/{speciesId}/providers/{spId}")
+    fun updateProvider(
+        @PathParam("speciesId") speciesId: Long,
+        @PathParam("spId") spId: Long,
+        request: UpdateSpeciesProviderRequest,
+    ) = speciesService.updateSpeciesProvider(speciesId, spId, request, userId())
+
+    @DELETE
+    @Path("/{speciesId}/providers/{spId}")
+    fun removeProvider(@PathParam("speciesId") speciesId: Long, @PathParam("spId") spId: Long): Response {
+        speciesService.removeProviderFromSpecies(speciesId, spId, userId())
+        return Response.noContent().build()
+    }
 }

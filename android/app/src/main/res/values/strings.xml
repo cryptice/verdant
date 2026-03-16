@@ -268,4 +268,9 @@
     <!-- Connection Error -->
     <string name="couldnt_reach_garden">Couldn\'t reach the garden</string>
     <string name="check_internet">Check your internet connection and try again.</string>
+
+    <!-- Providers -->
+    <string name="providers">Providers</string>
+    <string name="no_providers">No providers</string>
+    <string name="product_page">Product page</string>
 </resources>

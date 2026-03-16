@@ -266,4 +266,9 @@
     <!-- Connection Error -->
     <string name="couldnt_reach_garden">Kunde inte n\u00E5 tr\u00E4dg\u00E5rden</string>
     <string name="check_internet">Kontrollera din internetanslutning och f\u00F6rs\u00F6k igen.</string>
+
+    <!-- Providers -->
+    <string name="providers">Leverant\u00F6rer</string>
+    <string name="no_providers">Inga leverant\u00F6rer</string>
+    <string name="product_page">Produktsida</string>
 </resources>

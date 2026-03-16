@@ -1,6 +1,7 @@
 package app.verdant.android.ui.activity
 
 import android.graphics.Bitmap
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -660,6 +661,89 @@ fun AddSpeciesScreen(
                         onClick = { showNewTagDialog = true },
                         label = { Text(stringResource(R.string.new_tag)) }
                     )
+                }
+            }
+
+            // Providers (read-only, shown in edit mode)
+            if (isEdit && uiState.existingSpecies != null) {
+                val providers = uiState.existingSpecies!!.providers
+                item {
+                    Text(
+                        stringResource(R.string.providers),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                }
+                if (providers.isEmpty()) {
+                    item {
+                        Text(
+                            stringResource(R.string.no_providers),
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    }
+                } else {
+                    providers.forEach { provider ->
+                        item {
+                            Card(
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(Modifier.padding(12.dp)) {
+                                    Text(
+                                        provider.providerName,
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 15.sp
+                                    )
+                                    Text(
+                                        provider.providerIdentifier,
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                    )
+                                    // Front/back images
+                                    if (provider.imageFrontUrl != null || provider.imageBackUrl != null) {
+                                        Spacer(Modifier.height(8.dp))
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            provider.imageFrontUrl?.let { url ->
+                                                coil.compose.AsyncImage(
+                                                    model = url,
+                                                    contentDescription = stringResource(R.string.front_photo),
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .heightIn(max = 120.dp),
+                                                    contentScale = androidx.compose.ui.layout.ContentScale.Fit,
+                                                )
+                                            }
+                                            provider.imageBackUrl?.let { url ->
+                                                coil.compose.AsyncImage(
+                                                    model = url,
+                                                    contentDescription = stringResource(R.string.back_photo),
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .heightIn(max = 120.dp),
+                                                    contentScale = androidx.compose.ui.layout.ContentScale.Fit,
+                                                )
+                                            }
+                                        }
+                                    }
+                                    // Product URL
+                                    provider.productUrl?.let { url ->
+                                        val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+                                        Spacer(Modifier.height(4.dp))
+                                        Text(
+                                            stringResource(R.string.product_page),
+                                            fontSize = 13.sp,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.clickable { uriHandler.openUri(url) }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
