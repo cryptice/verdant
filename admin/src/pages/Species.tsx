@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api, type Species, type UpdateSpeciesRequest, type CreateSpeciesRequest, type SpeciesPhoto } from '../api/client'
+import { api, type Species, type UpdateSpeciesRequest, type CreateSpeciesRequest, type SpeciesPhoto, type SpeciesExportEntry } from '../api/client'
 import { useState, useRef, useCallback } from 'react'
 
 const GROWING_POSITIONS = ['SUNNY', 'PARTIALLY_SUNNY', 'SHADOWY'] as const
@@ -32,6 +32,10 @@ export default function SpeciesPage() {
   const [creating, setCreating] = useState(false)
   const [search, setSearch] = useState('')
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [importStatus, setImportStatus] = useState<string | null>(null)
+  const [exporting, setExporting] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const importInputRef = useRef<HTMLInputElement>(null)
 
   const { data: species, isLoading, error } = useQuery({
     queryKey: ['admin', 'species'],
@@ -45,6 +49,45 @@ export default function SpeciesPage() {
       setDeletingId(null)
     }
   })
+
+  const handleExport = async () => {
+    setExporting(true)
+    try {
+      const data = await api.admin.exportSpecies()
+      const json = JSON.stringify(data, null, 2)
+      const blob = new Blob([json], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `verdant-species-${new Date().toISOString().slice(0, 10)}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      setImportStatus(`Export failed: ${e instanceof Error ? e.message : 'Unknown error'}`)
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImporting(true)
+    setImportStatus(null)
+    try {
+      const text = await file.text()
+      const entries: SpeciesExportEntry[] = JSON.parse(text)
+      if (!Array.isArray(entries)) throw new Error('JSON must be an array')
+      const result = await api.admin.importSpecies(entries)
+      setImportStatus(`Imported ${result.created} species, skipped ${result.skipped} duplicates`)
+      queryClient.invalidateQueries({ queryKey: ['admin', 'species'] })
+    } catch (err) {
+      setImportStatus(`Import failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
+      setImporting(false)
+      e.target.value = ''
+    }
+  }
 
   const filtered = species?.filter(s => {
     const q = search.toLowerCase()
@@ -72,13 +115,41 @@ export default function SpeciesPage() {
           <h2 className="text-2xl font-bold text-gray-800">Species</h2>
           <p className="text-gray-500">{species?.length || 0} species</p>
         </div>
-        <button
-          onClick={() => setCreating(true)}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-        >
-          + Add Species
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium disabled:opacity-50"
+          >
+            {exporting ? 'Exporting...' : 'Export JSON'}
+          </button>
+          <button
+            onClick={() => importInputRef.current?.click()}
+            disabled={importing}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium disabled:opacity-50"
+          >
+            {importing ? 'Importing...' : 'Import JSON'}
+          </button>
+          <input ref={importInputRef} type="file" accept=".json" className="hidden" onChange={handleImportFile} />
+          <button
+            onClick={() => setCreating(true)}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+          >
+            + Add Species
+          </button>
+        </div>
       </div>
+
+      {importStatus && (
+        <div className={`mb-4 px-4 py-3 rounded-xl text-sm ${
+          importStatus.startsWith('Import failed') || importStatus.startsWith('Export failed')
+            ? 'bg-red-50 border border-red-200 text-red-700'
+            : 'bg-green-50 border border-green-200 text-green-700'
+        }`}>
+          {importStatus}
+          <button onClick={() => setImportStatus(null)} className="ml-3 text-gray-400 hover:text-gray-600">&times;</button>
+        </div>
+      )}
 
       <div className="mb-4">
         <input
@@ -232,6 +303,38 @@ function ImageUpload({ label, currentUrl, onUpload, onClear }: {
 
 // ── Chip Toggle ──
 
+function ExtractButton({ label, extracting, base64, imageUrl, onExtract, onError }: {
+  label: string
+  extracting: boolean
+  base64: string | null
+  imageUrl: string | null
+  onExtract: (b64: string) => void
+  onError: (msg: string) => void
+}) {
+  return (
+    <button
+      type="button"
+      disabled={extracting}
+      onClick={() => {
+        if (base64) { onExtract(base64); return }
+        if (imageUrl) {
+          fetch(imageUrl).then(r => r.blob()).then(blob => {
+            const reader = new FileReader()
+            reader.onload = () => {
+              const result = reader.result as string
+              onExtract(result.split(',')[1])
+            }
+            reader.readAsDataURL(blob)
+          }).catch(() => onError('Failed to fetch image'))
+        }
+      }}
+      className="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors font-medium"
+    >
+      {extracting ? 'Extracting...' : label}
+    </button>
+  )
+}
+
 function ChipToggle({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
   return (
     <button
@@ -368,15 +471,60 @@ function SpeciesForm({
   const [germinationTimeDays, setGerminationTimeDays] = useState(species?.germinationTimeDays?.toString() ?? '')
   const [sowingDepthMm, setSowingDepthMm] = useState(species?.sowingDepthMm?.toString() ?? '')
   const [heightCm, setHeightCm] = useState(species?.heightCm?.toString() ?? '')
-  const [bloomTime, setBloomTime] = useState(species?.bloomTime ?? '')
+  const [bloomMonths, setBloomMonths] = useState<Set<number>>(new Set(species?.bloomMonths ?? []))
+  const [sowingMonths, setSowingMonths] = useState<Set<number>>(new Set(species?.sowingMonths ?? []))
   const [germinationRate, setGerminationRate] = useState(species?.germinationRate?.toString() ?? '')
   const [positions, setPositions] = useState<Set<string>>(new Set(species?.growingPositions ?? []))
   const [soils, setSoils] = useState<Set<string>>(new Set(species?.soils ?? []))
   const [imageFrontBase64, setImageFrontBase64] = useState<string | null>(null)
   const [imageBackBase64, setImageBackBase64] = useState<string | null>(null)
   const [deletingPhotoId, setDeletingPhotoId] = useState<number | null>(null)
+  const [extractingFront, setExtractingFront] = useState(false)
+  const [extractingBack, setExtractingBack] = useState(false)
+  const [extractError, setExtractError] = useState<string | null>(null)
 
   const photoInputRef = useRef<HTMLInputElement>(null)
+
+  const handleExtractFront = useCallback(async (base64: string) => {
+    setExtractingFront(true)
+    setExtractError(null)
+    try {
+      const info = await api.admin.extractFront(base64)
+      if (info.commonName && !commonName) setCommonName(info.commonName)
+      if (info.commonNameSv && !commonNameSv) setCommonNameSv(info.commonNameSv)
+      if (info.variantName && !variantName) setVariantName(info.variantName)
+      if (info.variantNameSv && !variantNameSv) setVariantNameSv(info.variantNameSv)
+      if (info.scientificName && !scientificName) setScientificName(info.scientificName)
+    } catch (e) {
+      setExtractError(e instanceof Error ? e.message : 'Front extraction failed')
+    } finally {
+      setExtractingFront(false)
+    }
+  }, [commonName, commonNameSv, variantName, variantNameSv, scientificName])
+
+  const handleExtractBack = useCallback(async (base64: string) => {
+    setExtractingBack(true)
+    setExtractError(null)
+    try {
+      const info = await api.admin.extractBack(base64)
+      if (info.commonName && !commonName) setCommonName(info.commonName)
+      if (info.scientificName && !scientificName) setScientificName(info.scientificName)
+      if (info.daysToSprout != null) setDaysToSprout(info.daysToSprout.toString())
+      if (info.daysToHarvest != null) setDaysToHarvest(info.daysToHarvest.toString())
+      if (info.germinationTimeDays != null) setGerminationTimeDays(info.germinationTimeDays.toString())
+      if (info.sowingDepthMm != null) setSowingDepthMm(info.sowingDepthMm.toString())
+      if (info.heightCm != null) setHeightCm(info.heightCm.toString())
+      if (info.bloomMonths) setBloomMonths(new Set(info.bloomMonths))
+      if (info.sowingMonths) setSowingMonths(new Set(info.sowingMonths))
+      if (info.germinationRate != null) setGerminationRate(info.germinationRate.toString())
+      if (info.growingPositions) setPositions(new Set(info.growingPositions))
+      if (info.soils) setSoils(new Set(info.soils))
+    } catch (e) {
+      setExtractError(e instanceof Error ? e.message : 'Back extraction failed')
+    } finally {
+      setExtractingBack(false)
+    }
+  }, [commonName, scientificName])
 
   const handlePhotoUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -398,6 +546,20 @@ function SpeciesForm({
     setSoils(next)
   }
 
+  const toggleBloomMonth = (m: number) => {
+    const next = new Set(bloomMonths)
+    if (next.has(m)) next.delete(m); else next.add(m)
+    setBloomMonths(next)
+  }
+
+  const toggleSowingMonth = (m: number) => {
+    const next = new Set(sowingMonths)
+    if (next.has(m)) next.delete(m); else next.add(m)
+    setSowingMonths(next)
+  }
+
+  const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const req: CreateSpeciesRequest & UpdateSpeciesRequest = {
@@ -413,7 +575,8 @@ function SpeciesForm({
       germinationTimeDays: germinationTimeDays ? parseInt(germinationTimeDays) : undefined,
       sowingDepthMm: sowingDepthMm ? parseInt(sowingDepthMm) : undefined,
       heightCm: heightCm ? parseInt(heightCm) : undefined,
-      bloomTime: bloomTime || undefined,
+      bloomMonths: [...bloomMonths].sort((a, b) => a - b),
+      sowingMonths: [...sowingMonths].sort((a, b) => a - b),
       germinationRate: germinationRate ? parseInt(germinationRate) : undefined,
       growingPositions: [...positions],
       soils: [...soils],
@@ -438,14 +601,40 @@ function SpeciesForm({
             <ImageUpload
               label="Front"
               currentUrl={imageFrontBase64 ? `data:image/jpeg;base64,${imageFrontBase64}` : species?.imageFrontUrl ?? null}
-              onUpload={setImageFrontBase64}
+              onUpload={(b64) => { setImageFrontBase64(b64); handleExtractFront(b64) }}
             />
             <ImageUpload
               label="Back"
               currentUrl={imageBackBase64 ? `data:image/jpeg;base64,${imageBackBase64}` : species?.imageBackUrl ?? null}
-              onUpload={setImageBackBase64}
+              onUpload={(b64) => { setImageBackBase64(b64); handleExtractBack(b64) }}
             />
           </div>
+          {(imageFrontBase64 || species?.imageFrontUrl || imageBackBase64 || species?.imageBackUrl) && (
+            <div className="mt-4 flex items-center gap-3 flex-wrap">
+              {(imageFrontBase64 || species?.imageFrontUrl) && (
+                <ExtractButton
+                  label="Extract names (front)"
+                  extracting={extractingFront}
+                  base64={imageFrontBase64}
+                  imageUrl={species?.imageFrontUrl ?? null}
+                  onExtract={handleExtractFront}
+                  onError={setExtractError}
+                />
+              )}
+              {(imageBackBase64 || species?.imageBackUrl) && (
+                <ExtractButton
+                  label="Extract info (back)"
+                  extracting={extractingBack}
+                  base64={imageBackBase64}
+                  imageUrl={species?.imageBackUrl ?? null}
+                  onExtract={handleExtractBack}
+                  onError={setExtractError}
+                />
+              )}
+              {(extractingFront || extractingBack) && <span className="text-sm text-gray-500">Analyzing with Gemini...</span>}
+              {extractError && <span className="text-sm text-red-600">{extractError}</span>}
+            </div>
+          )}
         </section>
 
         {/* Additional Photos — only in edit mode */}
@@ -510,7 +699,19 @@ function SpeciesForm({
 
         {/* Basic Info */}
         <section className="bg-white rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Basic Information</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">Basic Information</h3>
+            <button
+              type="button"
+              onClick={() => {
+                if (!commonNameSv) setCommonNameSv(commonName)
+                if (!variantNameSv && variantName) setVariantNameSv(variantName)
+              }}
+              className="text-sm text-green-600 hover:text-green-700 font-medium"
+            >
+              Copy to Swedish
+            </button>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Common Name *" value={commonName} onChange={setCommonName} />
             <Field label="Common Name (Swedish)" value={commonNameSv} onChange={setCommonNameSv} />
@@ -530,7 +731,29 @@ function SpeciesForm({
             <Field label="Sowing Depth (mm)" value={sowingDepthMm} onChange={v => setSowingDepthMm(v.replace(/\D/g, ''))} type="text" />
             <Field label="Height (cm)" value={heightCm} onChange={v => setHeightCm(v.replace(/\D/g, ''))} type="text" />
             <Field label="Germination Rate (%)" value={germinationRate} onChange={v => setGerminationRate(v.replace(/\D/g, ''))} type="text" />
-            <Field label="Bloom Time" value={bloomTime} onChange={setBloomTime} className="col-span-3" />
+          </div>
+        </section>
+
+        {/* Sowing & Bloom Months */}
+        <section className="bg-white rounded-xl shadow-sm p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Sowing & Bloom Months</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Sowing Months</label>
+              <div className="flex gap-2 flex-wrap">
+                {MONTH_LABELS.map((label, i) => (
+                  <ChipToggle key={i} label={label} selected={sowingMonths.has(i + 1)} onClick={() => toggleSowingMonth(i + 1)} />
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Bloom Months</label>
+              <div className="flex gap-2 flex-wrap">
+                {MONTH_LABELS.map((label, i) => (
+                  <ChipToggle key={i} label={label} selected={bloomMonths.has(i + 1)} onClick={() => toggleBloomMonth(i + 1)} />
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 

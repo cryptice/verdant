@@ -22,7 +22,8 @@ CREATE TABLE species (
     growing_positions     VARCHAR(255),
     soils                 VARCHAR(255),
     height_cm             INT,
-    bloom_time            VARCHAR(100),
+    bloom_months          VARCHAR(50),
+    sowing_months         VARCHAR(50),
     germination_rate      INT,
     group_id              BIGINT REFERENCES species_group(id) ON DELETE SET NULL,
     created_at            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()

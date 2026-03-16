@@ -65,7 +65,8 @@ class DevResource(
             val commonName: String, val sv: String, val scientific: String,
             val groupId: Long, val positions: List<GrowingPosition>, val soils: List<SoilType>,
             val daysToSprout: Int, val daysToHarvest: Int, val heightCm: Int,
-            val germinationRate: Int, val sowingDepthMm: Int, val bloomTime: String,
+            val germinationRate: Int, val sowingDepthMm: Int,
+            val bloomMonths: List<Int>, val sowingMonths: List<Int>,
             val tagIndices: List<Int> = emptyList(),
             val variantName: String? = null,
         )
@@ -73,45 +74,45 @@ class DevResource(
         // Species data sourced from impecta.se and standard Scandinavian growing guides
         val speciesDefs = listOf(
             // Tomato: impecta.se BID=105 — germination 4-6 days at 25°C, spacing 35-55cm, full sun, 7-8 weeks sowing to transplant
-            SpeciesDef("Tomato", "Tomat", "Solanum lycopersicum", veggies, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY), 5, 80, 150, 85, 10, "Jun-Sep", listOf(0, 3)),
+            SpeciesDef("Tomato", "Tomat", "Solanum lycopersicum", veggies, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY), 5, 80, 150, 85, 10, listOf(6, 7, 8, 9), listOf(2, 3, 4), listOf(0, 3)),
             // Basil: impecta.se BID=219 — min 12°C, don't cover seeds (light-dependent), moist seed soil
-            SpeciesDef("Basil", "Basilika", "Ocimum basilicum", herbs, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY, SoilType.SANDY), 7, 60, 45, 75, 0, "Jul-Sep", listOf(0, 3)),
+            SpeciesDef("Basil", "Basilika", "Ocimum basilicum", herbs, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY, SoilType.SANDY), 7, 60, 45, 75, 0, listOf(7, 8, 9), listOf(3, 4, 5), listOf(0, 3)),
             // Carrot: standard — deep sandy/loamy soil, direct sow, 14-21 day germination
-            SpeciesDef("Carrot", "Morot", "Daucus carota", roots, listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.SANDY, SoilType.LOAMY), 17, 75, 30, 70, 10, "N/A", listOf(0, 4)),
+            SpeciesDef("Carrot", "Morot", "Daucus carota", roots, listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.SANDY, SoilType.LOAMY), 17, 75, 30, 70, 10, emptyList(), listOf(4, 5, 6), listOf(0, 4)),
             // Strawberry: standard Scandinavian — full sun, humus-rich soil, runners for propagation
-            SpeciesDef("Strawberry", "Jordgubbe", "Fragaria × ananassa", fruits, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY), 14, 90, 25, 75, 3, "May-Jun", listOf(1, 3)),
+            SpeciesDef("Strawberry", "Jordgubbe", "Fragaria × ananassa", fruits, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY), 14, 90, 25, 75, 3, listOf(5, 6), listOf(2, 3), listOf(1, 3)),
             // Sunflower: standard — direct sow after frost, 20-25mm deep, full sun, 7-10 day germination
-            SpeciesDef("Sunflower", "Solros", "Helianthus annuus", flowers, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY, SoilType.SANDY), 8, 80, 200, 90, 25, "Jul-Sep", listOf(0)),
+            SpeciesDef("Sunflower", "Solros", "Helianthus annuus", flowers, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY, SoilType.SANDY), 8, 80, 200, 90, 25, listOf(7, 8, 9), listOf(4, 5), listOf(0)),
             // Cucumber: impecta.se BID=111 — germination "a few days" at 25°C, spacing 60-80cm, full sun, nutrient-rich soil
-            SpeciesDef("Cucumber", "Gurka", "Cucumis sativus", veggies, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY), 5, 60, 40, 85, 15, "Jun-Aug", listOf(0, 3)),
+            SpeciesDef("Cucumber", "Gurka", "Cucumis sativus", veggies, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY), 5, 60, 40, 85, 15, listOf(6, 7, 8), listOf(4, 5), listOf(0, 3)),
             // Mint: impecta.se BID=252 — spreads vigorously, 40-50cm height, Jul-Sep bloom, use root barriers
-            SpeciesDef("Mint", "Mynta", "Mentha spicata", herbs, listOf(GrowingPosition.PARTIALLY_SUNNY, GrowingPosition.SHADOWY), listOf(SoilType.LOAMY, SoilType.CLAY), 12, 90, 50, 70, 3, "Jul-Sep", listOf(1, 3)),
+            SpeciesDef("Mint", "Mynta", "Mentha spicata", herbs, listOf(GrowingPosition.PARTIALLY_SUNNY, GrowingPosition.SHADOWY), listOf(SoilType.LOAMY, SoilType.CLAY), 12, 90, 50, 70, 3, listOf(7, 8, 9), listOf(3, 4, 5), listOf(1, 3)),
             // Pepper: impecta.se BID=62 — germination at 25°C, light-dependent seeds (don't cover), sow Feb-March
-            SpeciesDef("Pepper", "Paprika", "Capsicum annuum", veggies, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY), 12, 75, 60, 75, 0, "Jun-Sep", listOf(0)),
+            SpeciesDef("Pepper", "Paprika", "Capsicum annuum", veggies, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY), 12, 75, 60, 75, 0, listOf(6, 7, 8, 9), listOf(2, 3), listOf(0)),
             // Lavender: impecta.se BID=204 — full sun, well-drained soil, slow germination (may need cold stratification)
-            SpeciesDef("Lavender", "Lavendel", "Lavandula angustifolia", flowers, listOf(GrowingPosition.SUNNY), listOf(SoilType.SANDY, SoilType.CHALKY), 21, 120, 60, 50, 3, "Jun-Aug", listOf(1, 4)),
+            SpeciesDef("Lavender", "Lavendel", "Lavandula angustifolia", flowers, listOf(GrowingPosition.SUNNY), listOf(SoilType.SANDY, SoilType.CHALKY), 21, 120, 60, 50, 3, listOf(6, 7, 8), listOf(2, 3), listOf(1, 4)),
             // Zucchini: standard — direct sow or transplant, warm soil needed, spacing 80-100cm
-            SpeciesDef("Zucchini", "Zucchini", "Cucurbita pepo", veggies, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY), 6, 55, 50, 90, 20, "Jun-Sep", listOf(0, 3)),
+            SpeciesDef("Zucchini", "Zucchini", "Cucurbita pepo", veggies, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY), 6, 55, 50, 90, 20, listOf(6, 7, 8, 9), listOf(4, 5), listOf(0, 3)),
             // Parsley: standard — notoriously slow germination (up to 28 days), soak seeds to speed up
-            SpeciesDef("Parsley", "Persilja", "Petroselinum crispum", herbs, listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.LOAMY), 21, 75, 30, 60, 5, "N/A", listOf(0)),
+            SpeciesDef("Parsley", "Persilja", "Petroselinum crispum", herbs, listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.LOAMY), 21, 75, 30, 60, 5, emptyList(), listOf(3, 4, 5), listOf(0)),
             // Beetroot: standard Scandinavian — direct sow, multi-germ seeds, thin seedlings
-            SpeciesDef("Beetroot", "Rödbeta", "Beta vulgaris", roots, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY, SoilType.SANDY), 10, 60, 35, 75, 15, "N/A", listOf(0, 4)),
+            SpeciesDef("Beetroot", "Rödbeta", "Beta vulgaris", roots, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY, SoilType.SANDY), 10, 60, 35, 75, 15, emptyList(), listOf(4, 5, 6), listOf(0, 4)),
             // Raspberry: standard — perennial canes, full sun to part shade, humus-rich moist soil
-            SpeciesDef("Raspberry", "Hallon", "Rubus idaeus", fruits, listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.LOAMY), 28, 365, 150, 70, 5, "May-Jun", listOf(1)),
+            SpeciesDef("Raspberry", "Hallon", "Rubus idaeus", fruits, listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.LOAMY), 28, 365, 150, 70, 5, listOf(5, 6), listOf(3, 4), listOf(1)),
             // Dill: standard — direct sow, dislikes transplanting, self-seeds freely
-            SpeciesDef("Dill", "Dill", "Anethum graveolens", herbs, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY, SoilType.SANDY), 10, 60, 90, 70, 5, "Jun-Aug", listOf(0)),
+            SpeciesDef("Dill", "Dill", "Anethum graveolens", herbs, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY, SoilType.SANDY), 10, 60, 90, 70, 5, listOf(6, 7, 8), listOf(4, 5, 6), listOf(0)),
             // Pea: standard — direct sow early spring, cool weather crop, nitrogen fixer
-            SpeciesDef("Pea", "Ärt", "Pisum sativum", veggies, listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.LOAMY), 8, 65, 100, 85, 30, "Jun-Jul", listOf(0, 4)),
+            SpeciesDef("Pea", "Ärt", "Pisum sativum", veggies, listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.LOAMY), 8, 65, 100, 85, 30, listOf(6, 7), listOf(3, 4, 5), listOf(0, 4)),
             // Lettuce: impecta.se BID=132 — spacing 25-30cm, semi-shade preferred, bolts in heat
-            SpeciesDef("Lettuce", "Sallat", "Lactuca sativa", veggies, listOf(GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.LOAMY), 7, 45, 25, 85, 3, "N/A", listOf(0, 3)),
+            SpeciesDef("Lettuce", "Sallat", "Lactuca sativa", veggies, listOf(GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.LOAMY), 7, 45, 25, 85, 3, emptyList(), listOf(3, 4, 5, 6, 7), listOf(0, 3)),
             // Radish: standard — fastest vegetable, direct sow, 3-5 day germination, harvest in 25 days
-            SpeciesDef("Radish", "Rädisa", "Raphanus sativus", roots, listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.SANDY, SoilType.LOAMY), 4, 25, 15, 90, 10, "N/A", listOf(0, 3)),
+            SpeciesDef("Radish", "Rädisa", "Raphanus sativus", roots, listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.SANDY, SoilType.LOAMY), 4, 25, 15, 90, 10, emptyList(), listOf(4, 5, 6, 7, 8), listOf(0, 3)),
             // Thyme: impecta.se BID=296 — full sun, well-drained sandy soil, sow late winter/early spring indoors
-            SpeciesDef("Thyme", "Timjan", "Thymus vulgaris", herbs, listOf(GrowingPosition.SUNNY), listOf(SoilType.SANDY, SoilType.CHALKY), 14, 90, 25, 60, 3, "Jun-Jul", listOf(1, 4)),
+            SpeciesDef("Thyme", "Timjan", "Thymus vulgaris", herbs, listOf(GrowingPosition.SUNNY), listOf(SoilType.SANDY, SoilType.CHALKY), 14, 90, 25, 60, 3, listOf(6, 7), listOf(2, 3), listOf(1, 4)),
             // Blueberry: standard — acidic peaty soil required (pH 4.5-5.5), full sun, slow to establish
-            SpeciesDef("Blueberry", "Blåbär", "Vaccinium corymbosum", fruits, listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.PEATY), 28, 365, 150, 55, 5, "May-Jun", listOf(1)),
+            SpeciesDef("Blueberry", "Blåbär", "Vaccinium corymbosum", fruits, listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.PEATY), 28, 365, 150, 55, 5, listOf(5, 6), listOf(3, 4), listOf(1)),
             // Marigold: standard — easy annual, direct sow after frost, fast germination
-            SpeciesDef("Marigold", "Tagetes", "Tagetes erecta", flowers, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY, SoilType.SANDY), 5, 55, 40, 90, 5, "Jun-Oct", listOf(0, 3)),
+            SpeciesDef("Marigold", "Tagetes", "Tagetes erecta", flowers, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY, SoilType.SANDY), 5, 55, 40, 90, 5, listOf(6, 7, 8, 9, 10), listOf(4, 5), listOf(0, 3)),
         )
 
         val speciesIds = speciesDefs.map { def ->
@@ -129,7 +130,8 @@ class DevResource(
                 growingPositions = def.positions,
                 soils = def.soils,
                 heightCm = def.heightCm,
-                bloomTime = def.bloomTime,
+                bloomMonths = def.bloomMonths,
+                sowingMonths = def.sowingMonths,
                 germinationRate = def.germinationRate,
                 groupId = def.groupId,
             ))

@@ -59,7 +59,7 @@ If you cannot identify any plant, return an empty array: []"""
             )),
             "generationConfig" to mapOf(
                 "responseMimeType" to "application/json",
-                "maxOutputTokens" to 2048
+                "maxOutputTokens" to 8192
             )
         ))
 
@@ -157,7 +157,7 @@ Guidelines for bed names - use creative, descriptive names like:
             )),
             "generationConfig" to mapOf(
                 "responseMimeType" to "application/json",
-                "maxOutputTokens" to 2048
+                "maxOutputTokens" to 8192
             )
         ))
 
@@ -258,7 +258,8 @@ Return ONLY valid JSON (no markdown, no explanation) with the following fields. 
   "germinationTimeDays": 14,
   "sowingDepthMm": 10,
   "heightCm": 60,
-  "bloomTime": "June-August",
+  "bloomMonths": [6, 7, 8],
+  "sowingMonths": [3, 4, 5],
   "germinationRate": 85,
   "growingPositions": ["SUNNY"],
   "soils": ["LOAMY", "SANDY"],
@@ -273,7 +274,8 @@ Field details:
 - germinationTimeDays: how many days for seeds to germinate
 - sowingDepthMm: sowing depth in millimeters
 - heightCm: expected plant height in centimeters
-- bloomTime: flowering period as a string (e.g. "June-August")
+- bloomMonths: array of month numbers (1=Jan, 2=Feb, ..., 12=Dec) when the plant blooms
+- sowingMonths: array of month numbers when the plant should be sown
 - germinationRate: germination rate as a percentage integer (e.g. 85 for 85%)
 - growingPositions: array of one or more of SUNNY, PARTIALLY_SUNNY, SHADOWY
 - soils: array of one or more of CLAY, SANDY, LOAMY, CHALKY, PEATY, SILTY
@@ -292,7 +294,7 @@ Only use the exact enum values listed above for growingPositions and soils. If u
             )),
             "generationConfig" to mapOf(
                 "responseMimeType" to "application/json",
-                "maxOutputTokens" to 2048
+                "maxOutputTokens" to 8192
             )
         ))
 
@@ -319,6 +321,71 @@ Only use the exact enum values listed above for growingPositions and soils. If u
             objectMapper.readValue(cleanJson, ExtractedSpeciesInfo::class.java)
         } catch (e: Exception) {
             log.warning("Failed to parse Gemini extract species info response: ${e.message}. Raw: ${response.body().take(500)}")
+            null
+        }
+    }
+
+    fun extractFrontInfo(imageBase64: String): ExtractedFrontInfo? {
+        val apiKey = apiKeyOpt.orElse("")
+        if (apiKey.isBlank()) {
+            log.warning("No Gemini API key configured, cannot extract front info")
+            return null
+        }
+
+        val prompt = """Analyze this seed package FRONT photo. Extract the names shown on the package.
+
+Return ONLY valid JSON (no markdown, no explanation) with the following fields. Use null for any field you cannot determine:
+{
+  "commonName": "English common name of the plant",
+  "commonNameSv": "Swedish common name as shown on the package",
+  "variantName": "The variety/cultivar name in English (e.g. 'King Size Apricot', 'Cherry Belle')",
+  "variantNameSv": "The variety/cultivar name in Swedish — usually the same as variantName unless a specific Swedish translation is shown",
+  "scientificName": "Scientific/Latin name if visible",
+  "cropBox": {"x": 0.1, "y": 0.05, "width": 0.8, "height": 0.9}
+}
+
+Important:
+- The Swedish name (commonNameSv) is the PRIMARY name usually displayed prominently on Swedish seed packages (e.g. "Sommaraster", "Luktärt", "Ringblomma")
+- The variant/cultivar name is usually a secondary name below or next to the common name (e.g. "King Size Apricot", "Royal Mix")
+- variantNameSv should be set to the same value as variantName unless a distinct Swedish translation is visible on the package
+- cropBox: if a seed package is visible, the bounding box as normalized coordinates (0.0-1.0). Omit if the entire image is the subject."""
+
+        val requestBody = objectMapper.writeValueAsString(mapOf(
+            "contents" to listOf(mapOf(
+                "parts" to listOf(
+                    mapOf("text" to prompt),
+                    mapOf("inlineData" to mapOf("mimeType" to "image/jpeg", "data" to imageBase64))
+                )
+            )),
+            "generationConfig" to mapOf(
+                "responseMimeType" to "application/json",
+                "maxOutputTokens" to 8192
+            )
+        ))
+
+        val httpRequest = HttpRequest.newBuilder()
+            .uri(URI.create("https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=$apiKey"))
+            .header("Content-Type", "application/json")
+            .timeout(Duration.ofSeconds(30))
+            .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+            .build()
+
+        val response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString())
+
+        if (response.statusCode() != 200) {
+            log.warning("Gemini API returned ${response.statusCode()}: ${response.body().take(200)}")
+            return null
+        }
+
+        return try {
+            val responseJson = objectMapper.readTree(response.body())
+            val text = responseJson["candidates"][0]["content"]["parts"][0]["text"].asText()
+            val cleanJson = text.replace(Regex("^```json\\s*", RegexOption.MULTILINE), "")
+                .replace(Regex("^```\\s*$", RegexOption.MULTILINE), "")
+                .trim()
+            objectMapper.readValue(cleanJson, ExtractedFrontInfo::class.java)
+        } catch (e: Exception) {
+            log.warning("Failed to parse Gemini extract front info response: ${e.message}. Raw: ${response.body().take(500)}")
             null
         }
     }

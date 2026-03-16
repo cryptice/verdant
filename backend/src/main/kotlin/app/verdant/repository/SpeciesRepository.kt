@@ -43,8 +43,8 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
             conn.prepareStatement(
                 """INSERT INTO species (user_id, common_name, variant_name, common_name_sv, variant_name_sv, scientific_name, image_front_url, image_back_url,
                    days_to_sprout, days_to_harvest, germination_time_days, sowing_depth_mm,
-                   growing_positions, soils, height_cm, bloom_time, germination_rate, group_id, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
+                   growing_positions, soils, height_cm, bloom_months, sowing_months, germination_rate, group_id, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 if (species.userId != null) ps.setLong(1, species.userId) else ps.setNull(1, java.sql.Types.BIGINT)
@@ -62,9 +62,10 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 ps.setString(13, species.growingPositions.takeIf { it.isNotEmpty() }?.joinToString(",") { it.name })
                 ps.setString(14, species.soils.takeIf { it.isNotEmpty() }?.joinToString(",") { it.name })
                 ps.setObject(15, species.heightCm)
-                ps.setString(16, species.bloomTime)
-                ps.setObject(17, species.germinationRate)
-                ps.setObject(18, species.groupId)
+                ps.setString(16, species.bloomMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
+                ps.setString(17, species.sowingMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
+                ps.setObject(18, species.germinationRate)
+                ps.setObject(19, species.groupId)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -81,7 +82,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                    image_front_url = ?, image_back_url = ?,
                    days_to_sprout = ?, days_to_harvest = ?, germination_time_days = ?,
                    sowing_depth_mm = ?, growing_positions = ?, soils = ?, height_cm = ?,
-                   bloom_time = ?, germination_rate = ?, group_id = ?
+                   bloom_months = ?, sowing_months = ?, germination_rate = ?, group_id = ?
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setString(1, species.commonName)
@@ -98,10 +99,11 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 ps.setString(12, species.growingPositions.takeIf { it.isNotEmpty() }?.joinToString(",") { it.name })
                 ps.setString(13, species.soils.takeIf { it.isNotEmpty() }?.joinToString(",") { it.name })
                 ps.setObject(14, species.heightCm)
-                ps.setString(15, species.bloomTime)
-                ps.setObject(16, species.germinationRate)
-                ps.setObject(17, species.groupId)
-                ps.setLong(18, species.id!!)
+                ps.setString(15, species.bloomMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
+                ps.setString(16, species.sowingMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
+                ps.setObject(17, species.germinationRate)
+                ps.setObject(18, species.groupId)
+                ps.setLong(19, species.id!!)
                 ps.executeUpdate()
             }
         }
@@ -162,7 +164,8 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
         growingPositions = getString("growing_positions")?.split(",")?.map { GrowingPosition.valueOf(it) } ?: emptyList(),
         soils = getString("soils")?.split(",")?.map { SoilType.valueOf(it) } ?: emptyList(),
         heightCm = getObject("height_cm") as? Int,
-        bloomTime = getString("bloom_time"),
+        bloomMonths = getString("bloom_months")?.split(",")?.map { it.toInt() } ?: emptyList(),
+        sowingMonths = getString("sowing_months")?.split(",")?.map { it.toInt() } ?: emptyList(),
         germinationRate = getObject("germination_rate") as? Int,
         groupId = getObject("group_id") as? Long,
         createdAt = getTimestamp("created_at").toInstant(),

@@ -1,10 +1,9 @@
 package app.verdant.resource
 
-import app.verdant.dto.CreateSpeciesRequest
-import app.verdant.dto.UpdateSpeciesRequest
-import app.verdant.dto.UploadPhotoRequest
+import app.verdant.dto.*
 import app.verdant.repository.GardenRepository
 import app.verdant.repository.UserRepository
+import app.verdant.service.AiService
 import app.verdant.service.SpeciesService
 import app.verdant.service.toResponse
 import jakarta.annotation.security.RolesAllowed
@@ -19,6 +18,7 @@ class AdminResource(
     private val userRepository: UserRepository,
     private val gardenRepository: GardenRepository,
     private val speciesService: SpeciesService,
+    private val aiService: AiService,
 ) {
     @GET
     @Path("/users")
@@ -41,6 +41,37 @@ class AdminResource(
     @GET
     @Path("/species")
     fun listSpecies() = speciesService.getAllSpecies()
+
+    @GET
+    @Path("/species/export")
+    fun exportSpecies() = speciesService.exportSpecies()
+
+    @POST
+    @Path("/species/import")
+    @Consumes(MediaType.APPLICATION_JSON)
+    fun importSpecies(entries: List<SpeciesExportEntry>) = speciesService.importSpecies(entries)
+
+    @POST
+    @Path("/species/extract-front")
+    @Consumes(MediaType.APPLICATION_JSON)
+    fun extractFrontInfo(request: ExtractSpeciesInfoRequest): Response {
+        val info = aiService.extractFrontInfo(request.imageBase64)
+            ?: return Response.status(Response.Status.BAD_REQUEST)
+                .entity(mapOf("error" to "Could not extract names from front image"))
+                .build()
+        return Response.ok(info).build()
+    }
+
+    @POST
+    @Path("/species/extract-back")
+    @Consumes(MediaType.APPLICATION_JSON)
+    fun extractBackInfo(request: ExtractSpeciesInfoRequest): Response {
+        val info = aiService.extractSpeciesInfo(request.imageBase64, "sv")
+            ?: return Response.status(Response.Status.BAD_REQUEST)
+                .entity(mapOf("error" to "Could not extract species info from image"))
+                .build()
+        return Response.ok(info).build()
+    }
 
     @GET
     @Path("/species/{id}")

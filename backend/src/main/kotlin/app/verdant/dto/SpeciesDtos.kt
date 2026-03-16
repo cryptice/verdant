@@ -27,7 +27,8 @@ data class SpeciesResponse(
     val growingPositions: List<GrowingPosition>,
     val soils: List<SoilType>,
     val heightCm: Int?,
-    val bloomTime: String?,
+    val bloomMonths: List<Int>,
+    val sowingMonths: List<Int>,
     val germinationRate: Int?,
     val groupId: Long?,
     val groupName: String?,
@@ -52,7 +53,8 @@ data class CreateSpeciesRequest(
     val growingPositions: List<GrowingPosition> = emptyList(),
     val soils: List<SoilType> = emptyList(),
     val heightCm: Int? = null,
-    val bloomTime: String? = null,
+    val bloomMonths: List<Int> = emptyList(),
+    val sowingMonths: List<Int> = emptyList(),
     val germinationRate: Int? = null,
     val groupId: Long? = null,
     val tagIds: List<Long> = emptyList(),
@@ -73,7 +75,8 @@ data class UpdateSpeciesRequest(
     val growingPositions: List<GrowingPosition>? = null,
     val soils: List<SoilType>? = null,
     val heightCm: Int? = null,
-    val bloomTime: String? = null,
+    val bloomMonths: List<Int>? = null,
+    val sowingMonths: List<Int>? = null,
     val germinationRate: Int? = null,
     val groupId: Long? = null,
     val tagIds: List<Long>? = null,
@@ -159,7 +162,40 @@ data class UpdateSpeciesProviderRequest(
 
 data class UploadPhotoRequest(val imageBase64: String)
 
+data class SpeciesExportEntry(
+    val commonName: String,
+    val variantName: String? = null,
+    val commonNameSv: String? = null,
+    val variantNameSv: String? = null,
+    val scientificName: String? = null,
+    val imageFrontUrl: String? = null,
+    val imageBackUrl: String? = null,
+    val daysToSprout: Int? = null,
+    val daysToHarvest: Int? = null,
+    val germinationTimeDays: Int? = null,
+    val sowingDepthMm: Int? = null,
+    val growingPositions: List<String> = emptyList(),
+    val soils: List<String> = emptyList(),
+    val heightCm: Int? = null,
+    val bloomMonths: List<Int> = emptyList(),
+    val sowingMonths: List<Int> = emptyList(),
+    val germinationRate: Int? = null,
+    val groupName: String? = null,
+    val tagNames: List<String> = emptyList(),
+)
+
+data class ImportResult(val created: Int, val skipped: Int)
+
 data class ExtractSpeciesInfoRequest(val imageBase64: String)
+
+data class ExtractedFrontInfo(
+    val commonName: String? = null,
+    val commonNameSv: String? = null,
+    val variantName: String? = null,
+    val variantNameSv: String? = null,
+    val scientificName: String? = null,
+    val cropBox: CropBox? = null,
+)
 
 data class ExtractedSpeciesInfo(
     val commonName: String? = null,
@@ -167,7 +203,8 @@ data class ExtractedSpeciesInfo(
     val germinationTimeDays: Int? = null,
     val sowingDepthMm: Int? = null,
     val heightCm: Int? = null,
-    val bloomTime: String? = null,
+    val bloomMonths: List<Int>? = null,
+    val sowingMonths: List<Int>? = null,
     val germinationRate: Int? = null,
     val growingPositions: List<String>? = null,
     val soils: List<String>? = null,

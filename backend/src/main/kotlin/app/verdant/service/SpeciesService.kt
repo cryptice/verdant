@@ -49,7 +49,8 @@ class SpeciesService(
                 growingPositions = request.growingPositions,
                 soils = request.soils,
                 heightCm = request.heightCm,
-                bloomTime = request.bloomTime,
+                bloomMonths = request.bloomMonths,
+                sowingMonths = request.sowingMonths,
                 germinationRate = request.germinationRate,
                 groupId = request.groupId,
             )
@@ -89,7 +90,8 @@ class SpeciesService(
             growingPositions = request.growingPositions ?: species.growingPositions,
             soils = request.soils ?: species.soils,
             heightCm = request.heightCm ?: species.heightCm,
-            bloomTime = request.bloomTime ?: species.bloomTime,
+            bloomMonths = request.bloomMonths ?: species.bloomMonths,
+            sowingMonths = request.sowingMonths ?: species.sowingMonths,
             germinationRate = request.germinationRate ?: species.germinationRate,
             groupId = request.groupId ?: species.groupId,
         )
@@ -138,7 +140,8 @@ class SpeciesService(
                 growingPositions = request.growingPositions,
                 soils = request.soils,
                 heightCm = request.heightCm,
-                bloomTime = request.bloomTime,
+                bloomMonths = request.bloomMonths,
+                sowingMonths = request.sowingMonths,
                 germinationRate = request.germinationRate,
                 groupId = request.groupId,
             )
@@ -174,7 +177,8 @@ class SpeciesService(
             growingPositions = request.growingPositions ?: species.growingPositions,
             soils = request.soils ?: species.soils,
             heightCm = request.heightCm ?: species.heightCm,
-            bloomTime = request.bloomTime ?: species.bloomTime,
+            bloomMonths = request.bloomMonths ?: species.bloomMonths,
+            sowingMonths = request.sowingMonths ?: species.sowingMonths,
             germinationRate = request.germinationRate ?: species.germinationRate,
             groupId = request.groupId ?: species.groupId,
         )
@@ -240,7 +244,110 @@ class SpeciesService(
         tagRepository.delete(tagId)
     }
 
-    // ── Mapping ──
+    // ── Export / Import ──
+
+    fun exportSpecies(): List<SpeciesExportEntry> {
+        val groups = groupRepository.findAll().associateBy { it.id }
+        val tags = tagRepository.findAll().associateBy { it.id }
+        return speciesRepository.findAll().map { species ->
+            val tagIds = speciesRepository.findTagIdsForSpecies(species.id!!)
+            SpeciesExportEntry(
+                commonName = species.commonName,
+                variantName = species.variantName,
+                commonNameSv = species.commonNameSv,
+                variantNameSv = species.variantNameSv,
+                scientificName = species.scientificName,
+                imageFrontUrl = species.imageFrontUrl,
+                imageBackUrl = species.imageBackUrl,
+                daysToSprout = species.daysToSprout,
+                daysToHarvest = species.daysToHarvest,
+                germinationTimeDays = species.germinationTimeDays,
+                sowingDepthMm = species.sowingDepthMm,
+                growingPositions = species.growingPositions.map { it.name },
+                soils = species.soils.map { it.name },
+                heightCm = species.heightCm,
+                bloomMonths = species.bloomMonths,
+                sowingMonths = species.sowingMonths,
+                germinationRate = species.germinationRate,
+                groupName = species.groupId?.let { groups[it]?.name },
+                tagNames = tagIds.mapNotNull { tags[it]?.name },
+            )
+        }
+    }
+
+    fun importSpecies(entries: List<SpeciesExportEntry>): ImportResult {
+        val existingSpecies = speciesRepository.findAll()
+        val existingKeys = existingSpecies.map { (it.commonName to it.variantName) }.toSet()
+
+        // Build mutable lookup maps for groups and tags (system-level, userId = null)
+        val groupsByName = groupRepository.findAll()
+            .filter { it.userId == null }
+            .associateBy { it.name }
+            .toMutableMap()
+        val tagsByName = tagRepository.findAll()
+            .filter { it.userId == null }
+            .associateBy { it.name }
+            .toMutableMap()
+
+        var created = 0
+        var skipped = 0
+
+        for (entry in entries) {
+            val key = entry.commonName to entry.variantName
+            if (key in existingKeys) {
+                skipped++
+                continue
+            }
+
+            // Resolve group
+            val groupId = entry.groupName?.let { name ->
+                val group = groupsByName.getOrPut(name) {
+                    groupRepository.persist(SpeciesGroup(userId = null, name = name))
+                }
+                group.id
+            }
+
+            // Resolve tags
+            val tagIds = entry.tagNames.map { name ->
+                val tag = tagsByName.getOrPut(name) {
+                    tagRepository.persist(SpeciesTag(userId = null, name = name))
+                }
+                tag.id!!
+            }
+
+            val species = speciesRepository.persist(
+                Species(
+                    userId = null,
+                    commonName = entry.commonName,
+                    variantName = entry.variantName,
+                    commonNameSv = entry.commonNameSv,
+                    variantNameSv = entry.variantNameSv,
+                    scientificName = entry.scientificName,
+                    imageFrontUrl = entry.imageFrontUrl,
+                    imageBackUrl = entry.imageBackUrl,
+                    daysToSprout = entry.daysToSprout,
+                    daysToHarvest = entry.daysToHarvest,
+                    germinationTimeDays = entry.germinationTimeDays,
+                    sowingDepthMm = entry.sowingDepthMm,
+                    growingPositions = entry.growingPositions.map { GrowingPosition.valueOf(it) },
+                    soils = entry.soils.map { SoilType.valueOf(it) },
+                    heightCm = entry.heightCm,
+                    bloomMonths = entry.bloomMonths,
+                    sowingMonths = entry.sowingMonths,
+                    germinationRate = entry.germinationRate,
+                    groupId = groupId,
+                )
+            )
+
+            if (tagIds.isNotEmpty()) {
+                speciesRepository.setTagsForSpecies(species.id!!, tagIds)
+            }
+
+            created++
+        }
+
+        return ImportResult(created = created, skipped = skipped)
+    }
 
     // ── Species Providers ──
 
@@ -333,7 +440,8 @@ class SpeciesService(
             growingPositions = growingPositions,
             soils = soils,
             heightCm = heightCm,
-            bloomTime = bloomTime,
+            bloomMonths = bloomMonths,
+            sowingMonths = sowingMonths,
             germinationRate = germinationRate,
             groupId = groupId,
             groupName = groupId?.let { groups[it]?.name },

@@ -159,7 +159,8 @@ fun AddSpeciesScreen(
     var germinationTimeDays by remember { mutableStateOf("") }
     var sowingDepthMm by remember { mutableStateOf("") }
     var heightCm by remember { mutableStateOf("") }
-    var bloomTime by remember { mutableStateOf("") }
+    var selectedBloomMonths by remember { mutableStateOf<Set<Int>>(emptySet()) }
+    var selectedSowingMonths by remember { mutableStateOf<Set<Int>>(emptySet()) }
     var germinationRate by remember { mutableStateOf("") }
     var selectedGroupId by remember { mutableStateOf<Long?>(null) }
     var selectedTagIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
@@ -177,6 +178,12 @@ fun AddSpeciesScreen(
     val soilTypeLabelRes = listOf(R.string.clay, R.string.sandy, R.string.loamy, R.string.chalky, R.string.peaty, R.string.silty)
     var selectedSoils by remember { mutableStateOf<Set<String>>(emptySet()) }
 
+    val monthLabelRes = listOf(
+        R.string.month_jan, R.string.month_feb, R.string.month_mar, R.string.month_apr,
+        R.string.month_may, R.string.month_jun, R.string.month_jul, R.string.month_aug,
+        R.string.month_sep, R.string.month_oct, R.string.month_nov, R.string.month_dec
+    )
+
     // Pre-fill from existing species for edit mode
     var prefilled by remember { mutableStateOf(false) }
     LaunchedEffect(uiState.existingSpecies) {
@@ -193,7 +200,8 @@ fun AddSpeciesScreen(
             germinationTimeDays = s.germinationTimeDays?.toString() ?: ""
             sowingDepthMm = s.sowingDepthMm?.toString() ?: ""
             heightCm = s.heightCm?.toString() ?: ""
-            bloomTime = s.bloomTime ?: ""
+            selectedBloomMonths = s.bloomMonths.toSet()
+            selectedSowingMonths = s.sowingMonths.toSet()
             germinationRate = s.germinationRate?.toString() ?: ""
             selectedGroupId = s.groupId
             selectedTagIds = s.tags.map { it.id }.toSet()
@@ -207,7 +215,7 @@ fun AddSpeciesScreen(
         imageFrontBase64 != null || imageBackBase64 != null || imageFrontUrl != null || imageBackUrl != null ||
         daysToSprout.isNotBlank() || daysToHarvest.isNotBlank() ||
         germinationTimeDays.isNotBlank() || sowingDepthMm.isNotBlank() ||
-        heightCm.isNotBlank() || bloomTime.isNotBlank() || germinationRate.isNotBlank()
+        heightCm.isNotBlank() || selectedBloomMonths.isNotEmpty() || selectedSowingMonths.isNotEmpty() || germinationRate.isNotBlank()
 
     // Validation: all fields mandatory except group and tags
     val isCommonNameValid = commonName.isNotBlank()
@@ -217,7 +225,6 @@ fun AddSpeciesScreen(
     val isGerminationTimeDaysValid = germinationTimeDays.toIntOrNull() != null
     val isSowingDepthMmValid = sowingDepthMm.toIntOrNull() != null
     val isHeightCmValid = heightCm.toIntOrNull() != null
-    val isBloomTimeValid = bloomTime.isNotBlank()
     val isGerminationRateValid = germinationRate.toIntOrNull() != null
     val isPositionsValid = selectedPositions.isNotEmpty()
     val isSoilsValid = selectedSoils.isNotEmpty()
@@ -225,7 +232,7 @@ fun AddSpeciesScreen(
 
     val isFormValid = isCommonNameValid && isScientificNameValid &&
         isDaysToSproutValid && isDaysToHarvestValid && isGerminationTimeDaysValid &&
-        isSowingDepthMmValid && isHeightCmValid && isBloomTimeValid &&
+        isSowingDepthMmValid && isHeightCmValid &&
         isGerminationRateValid && isPositionsValid && isSoilsValid && isFrontPhotoValid
 
     // In edit mode, check whether anything actually changed from the original
@@ -242,7 +249,8 @@ fun AddSpeciesScreen(
         germinationTimeDays != (existing.germinationTimeDays?.toString() ?: "") ||
         sowingDepthMm != (existing.sowingDepthMm?.toString() ?: "") ||
         heightCm != (existing.heightCm?.toString() ?: "") ||
-        bloomTime != (existing.bloomTime ?: "") ||
+        selectedBloomMonths != existing.bloomMonths.toSet() ||
+        selectedSowingMonths != existing.sowingMonths.toSet() ||
         germinationRate != (existing.germinationRate?.toString() ?: "") ||
         selectedPositions != existing.growingPositions.toSet() ||
         selectedSoils != existing.soils.toSet() ||
@@ -286,7 +294,8 @@ fun AddSpeciesScreen(
         info.germinationTimeDays?.let { germinationTimeDays = it.toString() }
         info.sowingDepthMm?.let { sowingDepthMm = it.toString() }
         info.heightCm?.let { heightCm = it.toString() }
-        info.bloomTime?.let { bloomTime = it }
+        info.bloomMonths?.let { selectedBloomMonths = it.toSet() }
+        info.sowingMonths?.let { selectedSowingMonths = it.toSet() }
         info.germinationRate?.let { germinationRate = it.toString() }
         info.growingPositions?.let { selectedPositions = it.toSet() }
         info.soils?.let { selectedSoils = it.toSet() }
@@ -552,25 +561,50 @@ fun AddSpeciesScreen(
                 }
             }
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = heightCm,
-                        onValueChange = { heightCm = it.filter { c -> c.isDigit() } },
-                        label = { Text(stringResource(R.string.height_cm) + " *") },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                        isError = showValidationErrors && !isHeightCmValid
-                    )
-                    OutlinedTextField(
-                        value = bloomTime,
-                        onValueChange = { bloomTime = it },
-                        label = { Text(stringResource(R.string.bloom_time) + " *") },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                        isError = showValidationErrors && !isBloomTimeValid
-                    )
+                OutlinedTextField(
+                    value = heightCm,
+                    onValueChange = { heightCm = it.filter { c -> c.isDigit() } },
+                    label = { Text(stringResource(R.string.height_cm) + " *") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    isError = showValidationErrors && !isHeightCmValid
+                )
+            }
+
+            // Sowing months
+            item { Text(stringResource(R.string.sowing_months), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+            item {
+                @OptIn(ExperimentalLayoutApi::class)
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    (1..12).forEach { month ->
+                        FilterChip(
+                            selected = month in selectedSowingMonths,
+                            onClick = { selectedSowingMonths = if (month in selectedSowingMonths) selectedSowingMonths - month else selectedSowingMonths + month },
+                            label = { Text(stringResource(monthLabelRes[month - 1])) }
+                        )
+                    }
+                }
+            }
+
+            // Bloom months
+            item { Text(stringResource(R.string.bloom_months), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
+            item {
+                @OptIn(ExperimentalLayoutApi::class)
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    (1..12).forEach { month ->
+                        FilterChip(
+                            selected = month in selectedBloomMonths,
+                            onClick = { selectedBloomMonths = if (month in selectedBloomMonths) selectedBloomMonths - month else selectedBloomMonths + month },
+                            label = { Text(stringResource(monthLabelRes[month - 1])) }
+                        )
+                    }
                 }
             }
             item {
@@ -800,7 +834,8 @@ fun AddSpeciesScreen(
                                     growingPositions = selectedPositions.toList(),
                                     soils = selectedSoils.toList(),
                                     heightCm = heightCm.toIntOrNull(),
-                                    bloomTime = bloomTime.ifBlank { null },
+                                    bloomMonths = selectedBloomMonths.sorted(),
+                                    sowingMonths = selectedSowingMonths.sorted(),
                                     germinationRate = germinationRate.toIntOrNull(),
                                     groupId = selectedGroupId,
                                     tagIds = selectedTagIds.toList(),
@@ -823,7 +858,8 @@ fun AddSpeciesScreen(
                                     growingPositions = selectedPositions.toList(),
                                     soils = selectedSoils.toList(),
                                     heightCm = heightCm.toIntOrNull(),
-                                    bloomTime = bloomTime.ifBlank { null },
+                                    bloomMonths = selectedBloomMonths.sorted(),
+                                    sowingMonths = selectedSowingMonths.sorted(),
                                     germinationRate = germinationRate.toIntOrNull(),
                                     groupId = selectedGroupId,
                                     tagIds = selectedTagIds.toList(),

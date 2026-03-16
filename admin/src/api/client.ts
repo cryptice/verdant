@@ -90,7 +90,8 @@ export interface Species {
   growingPositions: string[]
   soils: string[]
   heightCm: number | null
-  bloomTime: string | null
+  bloomMonths: number[]
+  sowingMonths: number[]
   germinationRate: number | null
   groupId: number | null
   groupName: string | null
@@ -120,7 +121,8 @@ export interface CreateSpeciesRequest {
   growingPositions?: string[]
   soils?: string[]
   heightCm?: number | null
-  bloomTime?: string | null
+  bloomMonths?: number[]
+  sowingMonths?: number[]
   germinationRate?: number | null
   groupId?: number | null
   tagIds?: number[]
@@ -141,10 +143,61 @@ export interface UpdateSpeciesRequest {
   growingPositions?: string[] | null
   soils?: string[] | null
   heightCm?: number | null
-  bloomTime?: string | null
+  bloomMonths?: number[]
+  sowingMonths?: number[]
   germinationRate?: number | null
   groupId?: number | null
   tagIds?: number[] | null
+}
+
+export interface ExtractedFrontInfo {
+  commonName: string | null
+  commonNameSv: string | null
+  variantName: string | null
+  variantNameSv: string | null
+  scientificName: string | null
+}
+
+export interface ExtractedSpeciesInfo {
+  commonName: string | null
+  scientificName: string | null
+  germinationTimeDays: number | null
+  sowingDepthMm: number | null
+  heightCm: number | null
+  bloomMonths: number[] | null
+  sowingMonths: number[] | null
+  germinationRate: number | null
+  growingPositions: string[] | null
+  soils: string[] | null
+  daysToSprout: number | null
+  daysToHarvest: number | null
+}
+
+export interface SpeciesExportEntry {
+  commonName: string
+  variantName: string | null
+  commonNameSv: string | null
+  variantNameSv: string | null
+  scientificName: string | null
+  imageFrontUrl: string | null
+  imageBackUrl: string | null
+  daysToSprout: number | null
+  daysToHarvest: number | null
+  germinationTimeDays: number | null
+  sowingDepthMm: number | null
+  growingPositions: string[]
+  soils: string[]
+  heightCm: number | null
+  bloomMonths: number[]
+  sowingMonths: number[]
+  germinationRate: number | null
+  groupName: string | null
+  tagNames: string[]
+}
+
+export interface ImportResult {
+  created: number
+  skipped: number
 }
 
 export const api = {
@@ -176,6 +229,23 @@ export const api = {
       }),
     deleteSpeciesPhoto: (speciesId: number, photoId: number) =>
       apiRequest<void>(`/api/admin/species/${speciesId}/photos/${photoId}`, { method: 'DELETE' }),
+
+    extractFront: (imageBase64: string) =>
+      apiRequest<ExtractedFrontInfo>('/api/admin/species/extract-front', {
+        method: 'POST',
+        body: JSON.stringify({ imageBase64 })
+      }),
+    extractBack: (imageBase64: string) =>
+      apiRequest<ExtractedSpeciesInfo>('/api/admin/species/extract-back', {
+        method: 'POST',
+        body: JSON.stringify({ imageBase64 })
+      }),
+    exportSpecies: () => apiRequest<SpeciesExportEntry[]>('/api/admin/species/export'),
+    importSpecies: (entries: SpeciesExportEntry[]) =>
+      apiRequest<ImportResult>('/api/admin/species/import', {
+        method: 'POST',
+        body: JSON.stringify(entries)
+      }),
 
     getSpeciesGroups: () => apiRequest<SpeciesGroup[]>('/api/species/groups'),
     getSpeciesTags: () => apiRequest<SpeciesTag[]>('/api/species/tags'),
