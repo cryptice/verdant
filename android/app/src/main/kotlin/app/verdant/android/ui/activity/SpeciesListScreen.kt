@@ -53,12 +53,13 @@ class SpeciesListViewModel @Inject constructor(
 
     fun loadSpecies() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            val showLoading = _uiState.value.species.isEmpty()
+            if (showLoading) _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
                 val species = repo.getSpecies()
                 _uiState.value = SpeciesListState(isLoading = false, species = species)
             } catch (e: Exception) {
-                _uiState.value = SpeciesListState(isLoading = false, error = e.message)
+                if (showLoading) _uiState.value = SpeciesListState(isLoading = false, error = e.message)
             }
         }
     }

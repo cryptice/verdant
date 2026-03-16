@@ -49,7 +49,8 @@ class MyWorldViewModel @Inject constructor(
 
     fun refresh() {
         viewModelScope.launch {
-            _uiState.value = MyWorldState(isLoading = true)
+            val showLoading = _uiState.value.dashboard == null
+            if (showLoading) _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
                 val dashboard = repo.getDashboard()
                 val stats = repo.getHarvestStats()
@@ -59,7 +60,7 @@ class MyWorldViewModel @Inject constructor(
                     harvestStats = stats,
                 )
             } catch (e: Exception) {
-                _uiState.value = MyWorldState(isLoading = false, error = e.message)
+                if (showLoading) _uiState.value = MyWorldState(isLoading = false, error = e.message)
             }
         }
     }

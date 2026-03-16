@@ -3,7 +3,7 @@ services:
     image: postgres:17
     container_name: verdant-postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_DB: verdant
       POSTGRES_USER: verdant

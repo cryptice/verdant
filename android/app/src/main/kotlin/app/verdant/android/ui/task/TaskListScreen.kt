@@ -58,12 +58,13 @@ class TaskListViewModel @Inject constructor(
 
     fun loadTasks() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            val showLoading = _uiState.value.tasks.isEmpty()
+            if (showLoading) _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
                 val tasks = repo.getTasks()
                 _uiState.value = TaskListState(isLoading = false, tasks = tasks)
             } catch (e: Exception) {
-                _uiState.value = TaskListState(isLoading = false, error = e.message)
+                if (showLoading) _uiState.value = TaskListState(isLoading = false, error = e.message)
             }
         }
     }

@@ -47,12 +47,13 @@ class PlantedSpeciesListViewModel @Inject constructor(
 
     fun load() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            val showLoading = _uiState.value.species.isEmpty()
+            if (showLoading) _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
                 val species = repo.getSpeciesPlantSummary()
                 _uiState.value = PlantedSpeciesListState(isLoading = false, species = species)
             } catch (e: Exception) {
-                _uiState.value = PlantedSpeciesListState(isLoading = false, error = e.message)
+                if (showLoading) _uiState.value = PlantedSpeciesListState(isLoading = false, error = e.message)
             }
         }
     }
