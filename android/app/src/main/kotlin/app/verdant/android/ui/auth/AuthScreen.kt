@@ -46,6 +46,10 @@ class AuthViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState = _uiState.asStateFlow()
 
+    fun setError(message: String) {
+        _uiState.value = AuthUiState(error = message)
+    }
+
     fun signInWithGoogle(idToken: String) {
         viewModelScope.launch {
             _uiState.value = AuthUiState(isLoading = true)
@@ -122,8 +126,12 @@ fun AuthScreen(
                                 val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
                                 Log.d(TAG, "Google ID token obtained, sending to backend...")
                                 viewModel.signInWithGoogle(googleIdTokenCredential.idToken)
+                            } catch (e: androidx.credentials.exceptions.NoCredentialException) {
+                                Log.e(TAG, "No credentials available", e)
+                                viewModel.setError("No Google account found. Check that you're signed into a Google account in Settings.")
                             } catch (e: Exception) {
                                 Log.e(TAG, "Credential request failed: ${e.javaClass.simpleName}: ${e.message}", e)
+                                viewModel.setError(e.message ?: "Sign in failed")
                             }
                         }
                     }
