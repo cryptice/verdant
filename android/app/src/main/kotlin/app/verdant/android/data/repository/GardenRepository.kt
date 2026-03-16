@@ -25,6 +25,7 @@ class GardenRepository @Inject constructor(private val api: VerdantApi) {
     suspend fun createPlant(bedId: Long, request: CreatePlantRequest) = api.createPlant(bedId, request)
     suspend fun createPlantWithoutBed(request: CreatePlantRequest) = api.createPlantWithoutBed(request)
     suspend fun batchSow(request: BatchSowRequest) = api.batchSow(request)
+    suspend fun getTraySummary() = api.getTraySummary()
     suspend fun getPlantGroups(status: String, trayOnly: Boolean? = null) = api.getPlantGroups(status, trayOnly)
     suspend fun batchEvent(request: BatchEventRequest) = api.batchEvent(request)
     suspend fun updatePlant(id: Long, request: UpdatePlantRequest) = api.updatePlant(id, request)

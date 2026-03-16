@@ -85,7 +85,7 @@ class PlantRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """UPDATE plant SET name = ?, species_id = ?, planted_date = ?, status = ?,
-                   seed_count = ?, surviving_count = ?, updated_at = now()
+                   seed_count = ?, surviving_count = ?, bed_id = ?, updated_at = now()
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setString(1, plant.name)
@@ -94,7 +94,8 @@ class PlantRepository(private val ds: AgroalDataSource) {
                 ps.setString(4, plant.status.name)
                 ps.setObject(5, plant.seedCount)
                 ps.setObject(6, plant.survivingCount)
-                ps.setLong(7, plant.id!!)
+                ps.setObject(7, plant.bedId)
+                ps.setLong(8, plant.id!!)
                 ps.executeUpdate()
             }
         }
@@ -103,14 +104,14 @@ class PlantRepository(private val ds: AgroalDataSource) {
     fun speciesSummary(userId: Long): List<SpeciesPlantSummary> =
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """SELECT p.species_id, s.common_name, s.scientific_name,
+                """SELECT p.species_id, COALESCE(s.common_name_sv, s.common_name) as species_name, s.scientific_name,
                           COUNT(*) as total_count,
                           COUNT(*) FILTER (WHERE p.status != 'REMOVED') as active_count
                    FROM plant p
                    JOIN species s ON p.species_id = s.id
                    WHERE p.user_id = ? AND p.species_id IS NOT NULL
-                   GROUP BY p.species_id, s.common_name, s.scientific_name
-                   ORDER BY s.common_name"""
+                   GROUP BY p.species_id, s.common_name_sv, s.common_name, s.scientific_name
+                   ORDER BY species_name"""
             ).use { ps ->
                 ps.setLong(1, userId)
                 ps.executeQuery().use { rs ->
@@ -118,7 +119,7 @@ class PlantRepository(private val ds: AgroalDataSource) {
                         while (rs.next()) add(
                             SpeciesPlantSummary(
                                 speciesId = rs.getLong("species_id"),
-                                speciesName = rs.getString("common_name"),
+                                speciesName = rs.getString("species_name"),
                                 scientificName = rs.getString("scientific_name"),
                                 activePlantCount = rs.getInt("active_count"),
                                 totalPlantCount = rs.getInt("total_count"),
@@ -132,7 +133,7 @@ class PlantRepository(private val ds: AgroalDataSource) {
     fun speciesLocations(userId: Long, speciesId: Long): List<PlantLocationGroup> =
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """SELECT COALESCE(g.name, 'Tray') as garden_name, COALESCE(b.name, 'Tray') as bed_name, p.bed_id as bed_id,
+                """SELECT g.name as garden_name, b.name as bed_name, p.bed_id as bed_id,
                           p.status, COUNT(*) as count,
                           EXTRACT(YEAR FROM p.created_at)::int as year
                    FROM plant p
@@ -150,7 +151,7 @@ class PlantRepository(private val ds: AgroalDataSource) {
                             PlantLocationGroup(
                                 gardenName = rs.getString("garden_name"),
                                 bedName = rs.getString("bed_name"),
-                                bedId = rs.getObject("bed_id") as? Long ?: 0L,
+                                bedId = rs.getObject("bed_id") as? Long,
                                 status = rs.getString("status"),
                                 count = rs.getInt("count"),
                                 year = rs.getInt("year"),
@@ -169,6 +170,31 @@ class PlantRepository(private val ds: AgroalDataSource) {
             }
         }
     }
+
+    fun traySummary(userId: Long): List<app.verdant.dto.TraySummaryEntry> =
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                """SELECT COALESCE(s.common_name_sv, s.common_name) as species_name, p.status, COUNT(*) as count
+                   FROM plant p
+                   LEFT JOIN species s ON p.species_id = s.id
+                   WHERE p.user_id = ? AND p.bed_id IS NULL AND p.status != 'REMOVED'
+                   GROUP BY s.common_name_sv, s.common_name, p.status
+                   ORDER BY species_name, p.status"""
+            ).use { ps ->
+                ps.setLong(1, userId)
+                ps.executeQuery().use { rs ->
+                    buildList {
+                        while (rs.next()) add(
+                            app.verdant.dto.TraySummaryEntry(
+                                speciesName = rs.getString("species_name") ?: "Unknown",
+                                status = rs.getString("status"),
+                                count = rs.getInt("count"),
+                            )
+                        )
+                    }
+                }
+            }
+        }
 
     fun findGroupedBySpecies(userId: Long, status: PlantStatus, trayOnly: Boolean = false): List<Map<String, Any?>> =
         ds.connection.use { conn ->
@@ -210,7 +236,7 @@ class PlantRepository(private val ds: AgroalDataSource) {
             val sql = buildString {
                 append("SELECT * FROM plant WHERE user_id = ? AND species_id = ? AND status = ?")
                 if (bedId != null) append(" AND bed_id = ?") else append(" AND bed_id IS NULL")
-                if (plantedDate != null) append(" AND planted_date = ?") else append(" AND planted_date IS NULL")
+                if (plantedDate != null) append(" AND planted_date = ?")
                 append(" ORDER BY id LIMIT ?")
             }
             conn.prepareStatement(sql).use { ps ->

@@ -24,6 +24,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
 import app.verdant.android.data.model.PlantEventResponse
+import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.model.PlantResponse
 import app.verdant.android.data.repository.GardenRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -135,7 +136,8 @@ fun PlantDetailScreen(
                     IconButton(onClick = { showDeleteDialog = true }) {
                         Icon(Icons.Default.Delete, stringResource(R.string.delete), tint = MaterialTheme.colorScheme.error)
                     }
-                }
+                },
+                colors = verdantTopAppBarColors()
             )
         },
         floatingActionButton = {
@@ -180,10 +182,10 @@ fun PlantDetailScreen(
                                         leadingIcon = { Icon(eventTypeIcon(plant.status), null, Modifier.size(16.dp)) }
                                     )
                                     plant.seedCount?.let {
-                                        AssistChip(onClick = {}, label = { Text("Seeds: $it") })
+                                        AssistChip(onClick = {}, label = { Text(stringResource(R.string.seeds_count, it)) })
                                     }
                                     plant.survivingCount?.let {
-                                        AssistChip(onClick = {}, label = { Text("Alive: $it") })
+                                        AssistChip(onClick = {}, label = { Text(stringResource(R.string.alive_count, it)) })
                                     }
                                 }
                             }

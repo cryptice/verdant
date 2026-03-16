@@ -27,6 +27,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
 import app.verdant.android.data.model.SpeciesResponse
+import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.repository.GardenRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -99,6 +100,7 @@ fun SpeciesListScreen(
     onBack: () -> Unit,
     onAddSpecies: () -> Unit,
     onEditSpecies: (Long) -> Unit = {},
+    onSowSpecies: (Long) -> Unit = {},
     viewModel: SpeciesListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -156,7 +158,8 @@ fun SpeciesListScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
-                }
+                },
+                colors = verdantTopAppBarColors()
             )
         },
         floatingActionButton = {
@@ -261,8 +264,8 @@ fun SpeciesListScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .clickable { onSowSpecies(species.id) }
                                     .horizontalScroll(scrollState)
-                                    .then(if (!species.isSystem) Modifier.clickable { onEditSpecies(species.id) } else Modifier)
                                     .padding(horizontal = 16.dp, vertical = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {

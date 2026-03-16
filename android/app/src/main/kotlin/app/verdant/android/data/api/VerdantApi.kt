@@ -70,6 +70,9 @@ interface VerdantApi {
     @POST("api/plants/batch-sow")
     suspend fun batchSow(@Body request: BatchSowRequest): BatchSowResponse
 
+    @GET("api/plants/tray-summary")
+    suspend fun getTraySummary(): List<TraySummaryEntry>
+
     @GET("api/plants/groups")
     suspend fun getPlantGroups(@Query("status") status: String, @Query("trayOnly") trayOnly: Boolean? = null): List<PlantGroupResponse>
 

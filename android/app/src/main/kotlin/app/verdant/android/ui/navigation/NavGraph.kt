@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import app.verdant.android.ui.activity.*
 import app.verdant.android.ui.auth.AuthScreen
+import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.ui.plants.PlantedSpeciesListScreen
 import app.verdant.android.ui.plants.PlantedSpeciesDetailScreen
 import app.verdant.android.ui.task.TaskListScreen
@@ -135,6 +136,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
 
     val hideChrome = currentRoute in listOf(Screen.Splash.route, Screen.Auth.route)
     val showTopBar = currentRoute == Screen.MyWorld.route
+    val showBottomBar = currentRoute in listOf(Screen.MyWorld.route, Screen.PlantedSpeciesList.route, Screen.TaskList.route)
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -211,7 +213,8 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                             IconButton(onClick = { scope.launch { drawerState.open() } }) {
                                 Icon(Icons.Default.Menu, contentDescription = stringResource(R.string.menu))
                             }
-                        }
+                        },
+                        colors = verdantTopAppBarColors()
                     )
                 }
             },
@@ -410,7 +413,8 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                 SpeciesListScreen(
                     onBack = { navController.popBackStack() },
                     onAddSpecies = { navController.navigate(Screen.AddSpecies.route) },
-                    onEditSpecies = { speciesId -> navController.navigate(Screen.EditSpecies.create(speciesId)) }
+                    onEditSpecies = { speciesId -> navController.navigate(Screen.EditSpecies.create(speciesId)) },
+                    onSowSpecies = { speciesId -> navController.navigate(Screen.Sow.create(speciesId = speciesId)) }
                 )
             }
             composable(Screen.AddSpecies.route) {
@@ -432,7 +436,10 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                     navArgument("speciesId") { type = NavType.LongType; defaultValue = -1L },
                 )
             ) {
-                SowActivityScreen(onBack = { navController.popBackStack() })
+                SowActivityScreen(
+                    onBack = { navController.popBackStack() },
+                    onSowComplete = { navController.navigate(Screen.MyWorld.route) { popUpTo(Screen.MyWorld.route) { inclusive = true } } }
+                )
             }
             composable(
                 Screen.PlantPicker.route,

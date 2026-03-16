@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import app.verdant.android.R
+import app.verdant.android.ui.theme.verdantTopAppBarColors
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -199,7 +200,7 @@ fun HarvestActivityScreen(
         OutlinedTextField(
             value = weightGrams,
             onValueChange = { weightGrams = it.filter { c -> c.isDigit() || c == '.' } },
-            label = { Text("Weight (grams)") },
+            label = { Text(stringResource(R.string.weight_grams)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             singleLine = true
@@ -207,7 +208,7 @@ fun HarvestActivityScreen(
         OutlinedTextField(
             value = quantity,
             onValueChange = { quantity = it.filter { c -> c.isDigit() } },
-            label = { Text("Quantity (fruits/stems)") },
+            label = { Text(stringResource(R.string.quantity_fruits)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             singleLine = true
@@ -322,7 +323,8 @@ private fun ActivityScaffold(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
-                }
+                },
+                colors = verdantTopAppBarColors()
             )
         }
     ) { padding ->

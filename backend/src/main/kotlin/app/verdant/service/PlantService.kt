@@ -103,6 +103,10 @@ class PlantService(
         return BatchSowResponse(plantIds = plantIds, count = plantIds.size)
     }
 
+    fun getTraySummary(userId: Long): List<TraySummaryEntry> {
+        return plantRepository.traySummary(userId)
+    }
+
     fun getPlantGroups(userId: Long, status: String, trayOnly: Boolean): List<PlantGroupResponse> {
         val plantStatus = PlantStatus.valueOf(status)
         return plantRepository.findGroupedBySpecies(userId, plantStatus, trayOnly).map { row ->
@@ -145,7 +149,11 @@ class PlantService(
                     imageUrl = imageUrl,
                 )
             )
-            plantRepository.update(plant.copy(status = newStatus))
+            val updated = plant.copy(
+                status = newStatus,
+                bedId = request.targetBedId ?: plant.bedId,
+            )
+            plantRepository.update(updated)
         }
         return BatchEventResponse(updatedCount = plants.size)
     }

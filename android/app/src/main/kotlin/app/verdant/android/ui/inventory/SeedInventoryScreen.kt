@@ -21,6 +21,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import app.verdant.android.R
+import app.verdant.android.ui.theme.verdantTopAppBarColors
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.SeedInventoryResponse
@@ -91,7 +92,8 @@ fun SeedInventoryScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
-                }
+                },
+                colors = verdantTopAppBarColors()
             )
         },
         floatingActionButton = {
@@ -176,7 +178,7 @@ private fun SeedInventoryRow(
             Text(item.speciesName, fontSize = 15.sp)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    "${item.quantity} seeds",
+                    stringResource(R.string.seeds_count_format, item.quantity),
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.primary
                 )

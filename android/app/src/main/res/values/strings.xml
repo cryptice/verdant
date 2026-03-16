@@ -7,6 +7,7 @@
     <string name="delete">Delete</string>
     <string name="ok">OK</string>
     <string name="save">Save</string>
+    <string name="edit">Edit</string>
     <string name="create">Create</string>
     <string name="search">Search</string>
     <string name="none">None</string>
@@ -48,6 +49,9 @@
     <string name="species_library">Species Library</string>
     <string name="harvest_stats">Harvest Stats</string>
     <string name="no_harvests_yet">No harvests yet</string>
+    <string name="harvest_events_hint">Harvest events will show stats here</string>
+    <string name="unknown_species">Unknown</string>
+    <string name="n_available">%d available</string>
     <string name="weight">Weight</string>
     <string name="quantity">Quantity</string>
     <string name="harvests">Harvests</string>
@@ -164,6 +168,9 @@
     <string name="bed_required">Bed *</string>
     <string name="select_bed">Select bed\u2026</string>
     <string name="sow_in_tray">Sow in portable tray</string>
+    <string name="tray">Tray</string>
+    <string name="plants_in_trays">Plants in trays</string>
+    <string name="no_plants_in_trays">No plants in trays</string>
     <string name="seed_count">Seed Count</string>
 
     <!-- Add Seeds -->

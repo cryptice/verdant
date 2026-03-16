@@ -20,6 +20,10 @@ private val LightColorScheme = lightColorScheme(
     onError = White,
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun verdantTopAppBarColors() = TopAppBarDefaults.topAppBarColors(containerColor = CreamDark)
+
 @Composable
 fun VerdantTheme(content: @Composable () -> Unit) {
     MaterialTheme(

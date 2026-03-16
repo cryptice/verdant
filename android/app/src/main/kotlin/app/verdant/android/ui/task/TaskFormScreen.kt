@@ -20,6 +20,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
 import app.verdant.android.data.model.*
+import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.activity.Activity
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -157,7 +158,8 @@ fun TaskFormScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
-                }
+                },
+                colors = verdantTopAppBarColors()
             )
         }
     ) { padding ->

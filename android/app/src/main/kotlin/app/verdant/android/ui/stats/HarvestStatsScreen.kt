@@ -10,14 +10,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.R
 import app.verdant.android.data.model.HarvestStatRow
 import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.ui.theme.verdantTopAppBarColors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -61,7 +64,7 @@ fun HarvestStatsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Harvest Stats") })
+            TopAppBar(title = { Text(stringResource(R.string.harvest_stats)) }, colors = verdantTopAppBarColors())
         }
     ) { padding ->
         when {
@@ -76,8 +79,8 @@ fun HarvestStatsScreen(
                     Icon(Icons.Default.Agriculture, null, Modifier.size(48.dp),
                         tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f))
                     Spacer(Modifier.height(8.dp))
-                    Text("No harvests yet", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                    Text("Harvest events will show stats here",
+                    Text(stringResource(R.string.no_harvests_yet), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                    Text(stringResource(R.string.harvest_events_hint),
                         fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
                 }
             }

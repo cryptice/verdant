@@ -67,6 +67,7 @@ data class BatchEventRequest(
     val count: Int,
     val notes: String? = null,
     val imageBase64: String? = null,
+    val targetBedId: Long? = null,
 )
 
 data class BatchEventResponse(
@@ -84,10 +85,16 @@ data class PlantGroupResponse(
     val count: Int,
 )
 
+data class TraySummaryEntry(
+    val speciesName: String,
+    val status: String,
+    val count: Int,
+)
+
 data class PlantLocationGroup(
-    val gardenName: String,
-    val bedName: String,
-    val bedId: Long,
+    val gardenName: String?,
+    val bedName: String?,
+    val bedId: Long?,
     val status: String,
     val count: Int,
     val year: Int,

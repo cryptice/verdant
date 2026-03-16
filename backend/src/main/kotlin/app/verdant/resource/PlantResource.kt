@@ -61,6 +61,10 @@ class PlantResource(
     fun plantGroups(@QueryParam("status") status: String, @QueryParam("trayOnly") trayOnly: Boolean?) =
         plantService.getPlantGroups(userId(), status, trayOnly == true)
 
+    @GET
+    @Path("/plants/tray-summary")
+    fun traySummary() = plantService.getTraySummary(userId())
+
     @POST
     @Path("/plants/batch-event")
     fun batchEvent(request: BatchEventRequest): Response {

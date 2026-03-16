@@ -18,6 +18,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
 import app.verdant.android.data.model.*
+import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.repository.GardenRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -111,6 +112,7 @@ class SowActivityViewModel @Inject constructor(
 @Composable
 fun SowActivityScreen(
     onBack: () -> Unit,
+    onSowComplete: () -> Unit = onBack,
     viewModel: SowActivityViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -119,7 +121,6 @@ fun SowActivityScreen(
     var selectedBedId by remember { mutableStateOf<Long?>(null) }
     var sowInTray by remember { mutableStateOf(false) }
     var selectedSeedBatchId by remember { mutableStateOf<Long?>(null) }
-    var plantName by remember { mutableStateOf("") }
     var seedCount by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
     var imageBase64 by remember { mutableStateOf<String?>(null) }
@@ -138,19 +139,15 @@ fun SowActivityScreen(
         }
     }
 
-    // Auto-fill plant name from species + load seed lots
+    // Load seed lots when species changes
     LaunchedEffect(selectedSpeciesId) {
         if (selectedSpeciesId != null) {
-            if (plantName.isBlank()) {
-                val species = uiState.species.find { it.id == selectedSpeciesId }
-                if (species != null) plantName = if (species.variantName.isNullOrBlank()) species.commonName else "${species.commonName} \u2013 ${species.variantName}"
-            }
             viewModel.loadSeedBatches(selectedSpeciesId!!)
             selectedSeedBatchId = null
         }
     }
 
-    LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
+    LaunchedEffect(uiState.created) { if (uiState.created) onSowComplete() }
 
     Scaffold(
         topBar = {
@@ -160,18 +157,24 @@ fun SowActivityScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
-                }
+                },
+                colors = verdantTopAppBarColors()
             )
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
+                .padding(top = padding.calculateTopPadding())
+        ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Spacer(Modifier.height(0.dp))
             // Species picker
             Text(stringResource(R.string.species_required), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             ExposedDropdownMenuBox(
@@ -181,7 +184,9 @@ fun SowActivityScreen(
                 OutlinedTextField(
                     value = speciesSearch.ifBlank {
                         uiState.species.find { it.id == selectedSpeciesId }?.let { s ->
-                            if (s.variantName.isNullOrBlank()) s.commonName else "${s.commonName} \u2013 ${s.variantName}"
+                            val name = s.commonNameSv ?: s.commonName
+                            val variant = s.variantNameSv ?: s.variantName
+                            if (variant.isNullOrBlank()) name else "$name \u2013 $variant"
                         } ?: ""
                     },
                     onValueChange = { speciesSearch = it; speciesExpanded = true },
@@ -192,7 +197,7 @@ fun SowActivityScreen(
                     singleLine = true
                 )
                 val filtered = uiState.species.filter {
-                    speciesSearch.isBlank() || it.commonName.contains(speciesSearch, ignoreCase = true) || (it.variantName?.contains(speciesSearch, ignoreCase = true) == true)
+                    speciesSearch.isBlank() || it.commonName.contains(speciesSearch, ignoreCase = true) || (it.commonNameSv?.contains(speciesSearch, ignoreCase = true) == true) || (it.variantName?.contains(speciesSearch, ignoreCase = true) == true) || (it.variantNameSv?.contains(speciesSearch, ignoreCase = true) == true)
                 }
                 ExposedDropdownMenu(
                     expanded = speciesExpanded,
@@ -200,7 +205,11 @@ fun SowActivityScreen(
                 ) {
                     filtered.forEach { species ->
                         DropdownMenuItem(
-                            text = { Text(if (species.variantName.isNullOrBlank()) species.commonName else "${species.commonName} \u2013 ${species.variantName}") },
+                            text = {
+                                val name = species.commonNameSv ?: species.commonName
+                                val variant = species.variantNameSv ?: species.variantName
+                                Text(if (variant.isNullOrBlank()) name else "$name \u2013 $variant")
+                            },
                             onClick = {
                                 selectedSpeciesId = species.id
                                 speciesSearch = ""
@@ -311,15 +320,6 @@ fun SowActivityScreen(
                 }
             }
 
-            // Plant name
-            OutlinedTextField(
-                value = plantName,
-                onValueChange = { plantName = it },
-                label = { Text(stringResource(R.string.plant_name)) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            )
-
             // Count
             CountField(
                 value = seedCount,
@@ -341,33 +341,37 @@ fun SowActivityScreen(
                 suggestions = uiState.comments
             )
 
-            Spacer(Modifier.height(8.dp))
-
-            Button(
-                onClick = {
-                    viewModel.sow(
-                        bedId = selectedBedId,
-                        speciesId = selectedSpeciesId!!,
-                        name = plantName,
-                        seedCount = seedCount.toIntOrNull(),
-                        notes = notes.ifBlank { null },
-                        imageBase64 = imageBase64,
-                        seedBatchId = selectedSeedBatchId,
-                    )
-                },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(12.dp),
-                enabled = selectedSpeciesId != null && (sowInTray || selectedBedId != null) && plantName.isNotBlank() && !uiState.isLoading
-            ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                } else {
-                    Text(stringResource(R.string.sow))
-                }
+            Spacer(Modifier.height(16.dp))
+        }
+        uiState.error?.let {
+            app.verdant.android.ui.common.InlineErrorBanner(it)
+        }
+        Button(
+            onClick = {
+                viewModel.sow(
+                    bedId = selectedBedId,
+                    speciesId = selectedSpeciesId!!,
+                    name = uiState.species.find { it.id == selectedSpeciesId }?.let { s ->
+                        val name = s.commonNameSv ?: s.commonName
+                        val variant = s.variantNameSv ?: s.variantName
+                        if (variant.isNullOrBlank()) name else "$name \u2013 $variant"
+                    } ?: "",
+                    seedCount = seedCount.toIntOrNull(),
+                    notes = notes.ifBlank { null },
+                    imageBase64 = imageBase64,
+                    seedBatchId = selectedSeedBatchId,
+                )
+            },
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp).height(48.dp),
+            shape = RoundedCornerShape(12.dp),
+            enabled = selectedSpeciesId != null && (sowInTray || selectedBedId != null) && (seedCount.toIntOrNull() ?: 0) > 0 && !uiState.isLoading
+        ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+            } else {
+                Text(stringResource(R.string.sow))
             }
-
-            uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }
-            Spacer(Modifier.height(32.dp))
+        }
         }
     }
 }

@@ -7,6 +7,7 @@
     <string name="delete">Radera</string>
     <string name="ok">OK</string>
     <string name="save">Spara</string>
+    <string name="edit">Redigera</string>
     <string name="create">Skapa</string>
     <string name="search">S\u00F6k</string>
     <string name="none">Ingen</string>
@@ -47,6 +48,9 @@
     <string name="species_library">Artbibliotek</string>
     <string name="harvest_stats">Sk\u00F6rdestatistik</string>
     <string name="no_harvests_yet">Inga sk\u00F6rdar \u00E4nnu</string>
+    <string name="harvest_events_hint">Sk\u00F6rdeh\u00E4ndelser visas h\u00E4r</string>
+    <string name="unknown_species">Ok\u00E4nd</string>
+    <string name="n_available">%d tillg\u00E4ngliga</string>
     <string name="weight">Vikt</string>
     <string name="quantity">Antal</string>
     <string name="harvests">Sk\u00F6rdar</string>
@@ -161,7 +165,10 @@
     <string name="no_seed_batches">Inga fr\u00F6partier tillg\u00E4ngliga f\u00F6r denna art. Du kan fortfarande s\u00E5 utan lager.</string>
     <string name="bed_required">B\u00E4dd *</string>
     <string name="select_bed">V\u00E4lj b\u00E4dd\u2026</string>
-    <string name="sow_in_tray">S\u00E5 i bricka</string>
+    <string name="sow_in_tray">S\u00E5 i tr\u00E5g</string>
+    <string name="tray">Tr\u00E5g</string>
+    <string name="plants_in_trays">Plantor i tr\u00E5g</string>
+    <string name="no_plants_in_trays">Inga plantor i tr\u00E5g</string>
     <string name="seed_count">Antal fr\u00F6n</string>
 
     <!-- Add Seeds -->

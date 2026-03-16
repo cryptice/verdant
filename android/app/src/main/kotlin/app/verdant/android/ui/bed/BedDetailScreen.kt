@@ -22,6 +22,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
 import app.verdant.android.data.model.BedResponse
+import app.verdant.android.data.model.UpdateBedRequest
+import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.model.PlantResponse
 import app.verdant.android.data.repository.GardenRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -62,6 +64,17 @@ class BedDetailViewModel @Inject constructor(
         }
     }
 
+    fun update(name: String, description: String?) {
+        viewModelScope.launch {
+            try {
+                gardenRepository.updateBed(bedId, UpdateBedRequest(name = name, description = description))
+                refresh()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(error = e.message)
+            }
+        }
+    }
+
     fun delete() {
         viewModelScope.launch {
             try {
@@ -84,9 +97,53 @@ fun BedDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var editing by remember { mutableStateOf(false) }
+    var editName by remember { mutableStateOf("") }
+    var editDescription by remember { mutableStateOf("") }
 
     LaunchedEffect(uiState.deleted) {
         if (uiState.deleted) onBack()
+    }
+
+    if (editing) {
+        AlertDialog(
+            onDismissRequest = { editing = false },
+            title = { Text(stringResource(R.string.edit)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = editName,
+                        onValueChange = { editName = it },
+                        label = { Text(stringResource(R.string.bed_name)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = editDescription,
+                        onValueChange = { editDescription = it },
+                        label = { Text(stringResource(R.string.description_optional)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        minLines = 2
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.update(editName, editDescription.ifBlank { null })
+                        editing = false
+                    },
+                    enabled = editName.isNotBlank()
+                ) {
+                    Text(stringResource(R.string.save))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { editing = false }) { Text(stringResource(R.string.cancel)) }
+            }
+        )
     }
 
     if (showDeleteDialog) {
@@ -115,10 +172,20 @@ fun BedDetailScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = {
+                        uiState.bed?.let { bed ->
+                            editName = bed.name
+                            editDescription = bed.description ?: ""
+                            editing = true
+                        }
+                    }) {
+                        Icon(Icons.Default.Edit, stringResource(R.string.edit))
+                    }
                     IconButton(onClick = { showDeleteDialog = true }) {
                         Icon(Icons.Default.Delete, stringResource(R.string.delete), tint = MaterialTheme.colorScheme.error)
                     }
-                }
+                },
+                colors = verdantTopAppBarColors()
             )
         },
         floatingActionButton = {

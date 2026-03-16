@@ -35,6 +35,7 @@ data class MyWorldState(
     val isLoading: Boolean = true,
     val dashboard: DashboardResponse? = null,
     val harvestStats: List<HarvestStatRow> = emptyList(),
+    val trayPlants: List<TraySummaryEntry> = emptyList(),
     val error: String? = null,
 )
 
@@ -54,10 +55,12 @@ class MyWorldViewModel @Inject constructor(
             try {
                 val dashboard = repo.getDashboard()
                 val stats = repo.getHarvestStats()
+                val tray = try { repo.getTraySummary() } catch (_: Exception) { emptyList() }
                 _uiState.value = MyWorldState(
                     isLoading = false,
                     dashboard = dashboard,
                     harvestStats = stats,
+                    trayPlants = tray,
                 )
             } catch (e: Exception) {
                 if (showLoading) _uiState.value = MyWorldState(isLoading = false, error = e.message)
@@ -159,6 +162,55 @@ fun MyVerdantWorldScreen(
                                     fontSize = 14.sp,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                 )
+                            }
+                        }
+                    }
+                }
+
+                // Tray plants section
+                if (uiState.trayPlants.isNotEmpty()) {
+                    item {
+                        Text(stringResource(R.string.plants_in_trays), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    }
+                    item {
+                        Card(
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(Modifier.padding(12.dp)) {
+                                uiState.trayPlants.forEach { entry ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(Modifier.weight(1f)) {
+                                            Text(entry.speciesName, fontSize = 14.sp)
+                                        }
+                                        Text(
+                                            "${entry.count}",
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                        Spacer(Modifier.width(12.dp))
+                                        val statusRes = when (entry.status) {
+                                            "SEEDED" -> R.string.event_seeded
+                                            "POTTED_UP" -> R.string.event_potted_up
+                                            "PLANTED_OUT", "GROWING" -> R.string.event_growing
+                                            "HARVESTED" -> R.string.event_harvested
+                                            "RECOVERED" -> R.string.event_recovered
+                                            "REMOVED" -> R.string.event_removed
+                                            else -> R.string.plant
+                                        }
+                                        Text(
+                                            stringResource(statusRes),
+                                            fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                            modifier = Modifier.width(80.dp)
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

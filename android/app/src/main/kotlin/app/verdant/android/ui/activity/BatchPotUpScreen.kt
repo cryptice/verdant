@@ -23,6 +23,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
 import app.verdant.android.data.model.*
+import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.repository.GardenRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -126,7 +127,8 @@ fun BatchPotUpScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
-                }
+                },
+                colors = verdantTopAppBarColors()
             )
         }
     ) { padding ->
@@ -166,11 +168,11 @@ fun BatchPotUpScreen(
                             ) {
                                 Column(Modifier.weight(1f)) {
                                     Text(
-                                        group.speciesName ?: "Unknown",
+                                        group.speciesName ?: stringResource(R.string.unknown_species),
                                         fontSize = 15.sp,
                                         fontWeight = FontWeight.Medium
                                     )
-                                    val location = if (group.bedId == null) stringResource(R.string.sow_in_tray).replace("Sow in ", "").replace("Så i ", "")
+                                    val location = if (group.bedId == null) stringResource(R.string.tray)
                                         else "${group.gardenName} - ${group.bedName}"
                                     Text(
                                         buildString {
@@ -204,17 +206,17 @@ fun BatchPotUpScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
-                        selectedGroup!!.speciesName ?: "Unknown",
+                        selectedGroup!!.speciesName ?: stringResource(R.string.unknown_species),
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
                     )
-                    val location = if (selectedGroup!!.bedId == null) stringResource(R.string.sow_in_tray).replace("Sow in ", "").replace("Så i ", "")
+                    val location = if (selectedGroup!!.bedId == null) stringResource(R.string.tray)
                         else "${selectedGroup!!.gardenName} - ${selectedGroup!!.bedName}"
                     Text(
                         buildString {
                             append(location)
                             selectedGroup!!.plantedDate?.let { append(" · $it") }
-                            append(" · ${selectedGroup!!.count} available")
+                            append(" · ${stringResource(R.string.n_available, selectedGroup!!.count)}")
                         },
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)

@@ -19,6 +19,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
 import app.verdant.android.data.model.UpdateUserRequest
+import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.model.UserResponse
 import app.verdant.android.data.repository.AuthRepository
 import app.verdant.android.data.repository.GardenRepository
@@ -118,7 +119,7 @@ fun AccountScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.account)) }) }
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.account)) }, colors = verdantTopAppBarColors()) }
     ) { padding ->
         when {
             uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
