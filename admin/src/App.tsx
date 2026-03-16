@@ -3,6 +3,7 @@ import Layout from './components/Layout'
 import Login from './pages/Login'
 import Users from './pages/Users'
 import Gardens from './pages/Gardens'
+import DevSeed from './pages/DevSeed'
 import ProtectedRoute from './components/ProtectedRoute'
 
 export default function App() {
@@ -14,6 +15,7 @@ export default function App() {
           <Route path="/" element={<Navigate to="/users" replace />} />
           <Route path="/users" element={<Users />} />
           <Route path="/gardens" element={<Gardens />} />
+          <Route path="/dev" element={<DevSeed />} />
         </Route>
       </Route>
     </Routes>

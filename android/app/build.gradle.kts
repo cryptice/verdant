@@ -41,7 +41,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        val apiBaseUrl = envGet("android", "api-base-url").ifBlank { "http://10.0.2.2:8080/" }
+        val apiBaseUrl = envGet("android", "api-base-url").ifBlank { "http://10.0.2.2:8081/" }
         val webClientId = envGet("android", "google-web-client-id")
         val mapsApiKey = envGet("android", "maps-api-key")
 

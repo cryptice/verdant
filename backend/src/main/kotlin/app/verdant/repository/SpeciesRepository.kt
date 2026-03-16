@@ -21,7 +21,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
 
     fun findByUserId(userId: Long): List<Species> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM species WHERE user_id = ? ORDER BY common_name").use { ps ->
+            conn.prepareStatement("SELECT * FROM species WHERE user_id = ? OR user_id IS NULL ORDER BY common_name").use { ps ->
                 ps.setLong(1, userId)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toSpecies()) }
@@ -38,7 +38,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
-                ps.setLong(1, species.userId)
+                if (species.userId != null) ps.setLong(1, species.userId) else ps.setNull(1, java.sql.Types.BIGINT)
                 ps.setString(2, species.commonName)
                 ps.setString(3, species.commonNameSv)
                 ps.setString(4, species.scientificName)
@@ -134,7 +134,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
 
     private fun ResultSet.toSpecies() = Species(
         id = getLong("id"),
-        userId = getLong("user_id"),
+        userId = getObject("user_id") as? Long,
         commonName = getString("common_name"),
         commonNameSv = getString("common_name_sv"),
         scientificName = getString("scientific_name"),

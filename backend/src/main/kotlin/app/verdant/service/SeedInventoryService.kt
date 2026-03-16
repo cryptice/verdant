@@ -28,7 +28,7 @@ class SeedInventoryService(
 
     fun createInventory(request: CreateSeedInventoryRequest, userId: Long): SeedInventoryResponse {
         val species = speciesRepo.findById(request.speciesId) ?: throw NotFoundException("Species not found")
-        if (species.userId != userId) throw ForbiddenException()
+        if (species.userId != null && species.userId != userId) throw ForbiddenException()
         val inventory = repo.persist(
             SeedInventory(
                 userId = userId,

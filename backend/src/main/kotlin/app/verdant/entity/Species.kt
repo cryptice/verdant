@@ -4,7 +4,7 @@ import java.time.Instant
 
 data class Species(
     val id: Long? = null,
-    val userId: Long,
+    val userId: Long? = null,
     val commonName: String,
     val commonNameSv: String? = null,
     val scientificName: String? = null,
@@ -29,13 +29,13 @@ enum class SoilType { CLAY, SANDY, LOAMY, CHALKY, PEATY, SILTY }
 
 data class SpeciesGroup(
     val id: Long? = null,
-    val userId: Long,
+    val userId: Long? = null,
     val name: String,
 )
 
 data class SpeciesTag(
     val id: Long? = null,
-    val userId: Long,
+    val userId: Long? = null,
     val name: String,
 )
 

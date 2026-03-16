@@ -277,11 +277,15 @@ fun SpeciesListScreen(
                                     overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.width(150.dp)
                                 )
-                                IconButton(
-                                    onClick = { speciesToDelete = species },
-                                    modifier = Modifier.size(32.dp)
-                                ) {
-                                    Icon(Icons.Default.Close, stringResource(R.string.delete), modifier = Modifier.size(16.dp))
+                                if (!species.isSystem) {
+                                    IconButton(
+                                        onClick = { speciesToDelete = species },
+                                        modifier = Modifier.size(32.dp)
+                                    ) {
+                                        Icon(Icons.Default.Close, stringResource(R.string.delete), modifier = Modifier.size(16.dp))
+                                    }
+                                } else {
+                                    Spacer(Modifier.size(32.dp))
                                 }
                             }
                             HorizontalDivider(

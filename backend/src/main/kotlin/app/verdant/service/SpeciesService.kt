@@ -29,7 +29,7 @@ class SpeciesService(
 
     fun getSpecies(speciesId: Long, userId: Long): SpeciesResponse {
         val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
-        if (species.userId != userId) throw ForbiddenException()
+        if (species.userId != null && species.userId != userId) throw ForbiddenException()
         val groups: Map<Long?, SpeciesGroup> = species.groupId?.let { groupRepository.findById(it) }?.let { mapOf(it.id to it) } ?: emptyMap()
         val tags = tagRepository.findByUserId(userId).associateBy { it.id }
         return species.toResponse(groups, tags)
@@ -64,6 +64,7 @@ class SpeciesService(
 
     fun updateSpecies(speciesId: Long, request: UpdateSpeciesRequest, userId: Long): SpeciesResponse {
         val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
+        if (species.userId == null) throw ForbiddenException("Cannot modify system species")
         if (species.userId != userId) throw ForbiddenException()
         val updated = species.copy(
             commonName = request.commonName ?: species.commonName,
@@ -91,6 +92,7 @@ class SpeciesService(
 
     fun deleteSpecies(speciesId: Long, userId: Long) {
         val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
+        if (species.userId == null) throw ForbiddenException("Cannot delete system species")
         if (species.userId != userId) throw ForbiddenException()
         speciesRepository.delete(speciesId)
     }
@@ -107,6 +109,7 @@ class SpeciesService(
 
     fun deleteGroup(groupId: Long, userId: Long) {
         val group = groupRepository.findById(groupId) ?: throw NotFoundException("Group not found")
+        if (group.userId == null) throw ForbiddenException("Cannot delete system group")
         if (group.userId != userId) throw ForbiddenException()
         groupRepository.delete(groupId)
     }
@@ -123,6 +126,7 @@ class SpeciesService(
 
     fun deleteTag(tagId: Long, userId: Long) {
         val tag = tagRepository.findById(tagId) ?: throw NotFoundException("Tag not found")
+        if (tag.userId == null) throw ForbiddenException("Cannot delete system tag")
         if (tag.userId != userId) throw ForbiddenException()
         tagRepository.delete(tagId)
     }
@@ -155,6 +159,7 @@ class SpeciesService(
             groupId = groupId,
             groupName = groupId?.let { groups[it]?.name },
             tags = tagIds.mapNotNull { tags[it]?.let { t -> SpeciesTagResponse(t.id!!, t.name) } },
+            isSystem = userId == null,
             createdAt = createdAt,
         )
     }

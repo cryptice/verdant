@@ -19,7 +19,7 @@ class SpeciesGroupRepository(private val ds: AgroalDataSource) {
 
     fun findByUserId(userId: Long): List<SpeciesGroup> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM species_group WHERE user_id = ? ORDER BY name").use { ps ->
+            conn.prepareStatement("SELECT * FROM species_group WHERE user_id = ? OR user_id IS NULL ORDER BY name").use { ps ->
                 ps.setLong(1, userId)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toGroup()) }
@@ -33,7 +33,7 @@ class SpeciesGroupRepository(private val ds: AgroalDataSource) {
                 "INSERT INTO species_group (user_id, name) VALUES (?, ?)",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
-                ps.setLong(1, group.userId)
+                if (group.userId != null) ps.setLong(1, group.userId) else ps.setNull(1, java.sql.Types.BIGINT)
                 ps.setString(2, group.name)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
@@ -55,7 +55,7 @@ class SpeciesGroupRepository(private val ds: AgroalDataSource) {
 
     private fun ResultSet.toGroup() = SpeciesGroup(
         id = getLong("id"),
-        userId = getLong("user_id"),
+        userId = getObject("user_id") as? Long,
         name = getString("name"),
     )
 }

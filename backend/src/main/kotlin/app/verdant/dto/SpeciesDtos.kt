@@ -30,6 +30,7 @@ data class SpeciesResponse(
     val groupId: Long?,
     val groupName: String?,
     val tags: List<SpeciesTagResponse>,
+    val isSystem: Boolean,
     val createdAt: Instant,
 )
 

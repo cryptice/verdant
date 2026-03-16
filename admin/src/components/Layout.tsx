@@ -27,6 +27,7 @@ export default function Layout() {
         <nav className="flex-1 px-4 space-y-1">
           <NavLink to="/users" className={linkClass}>Users</NavLink>
           <NavLink to="/gardens" className={linkClass}>Gardens</NavLink>
+          <NavLink to="/dev" className={linkClass}>Dev Tools</NavLink>
         </nav>
         <div className="p-4 border-t">
           <button
