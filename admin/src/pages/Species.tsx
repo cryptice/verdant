@@ -355,10 +355,21 @@ export function SpeciesDetailPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [deleteStep, setDeleteStep] = useState<0 | 1 | 2>(0)
+  const [addingProvider, setAddingProvider] = useState(false)
+  const [newProviderId, setNewProviderId] = useState<number | null>(null)
+  const [newFrontBase64, setNewFrontBase64] = useState<string | null>(null)
+  const [newBackBase64, setNewBackBase64] = useState<string | null>(null)
+  const [newProductUrl, setNewProductUrl] = useState('')
 
   const { data: species, isLoading, error } = useQuery({
     queryKey: ['admin', 'species', speciesId],
     queryFn: () => api.admin.getSpeciesById(speciesId)
+  })
+
+  const { data: availableProviders } = useQuery({
+    queryKey: ['admin', 'providers'],
+    queryFn: api.admin.getProviders,
+    enabled: addingProvider,
   })
 
   const deleteMutation = useMutation({
@@ -368,6 +379,22 @@ export function SpeciesDetailPage() {
       navigate('/species')
     }
   })
+
+  const addProviderMutation = useMutation({
+    mutationFn: (req: AddSpeciesProviderRequest) => api.admin.addSpeciesProvider(speciesId, req),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'species', speciesId] })
+      resetAddProvider()
+    }
+  })
+
+  const resetAddProvider = () => {
+    setAddingProvider(false)
+    setNewProviderId(null)
+    setNewFrontBase64(null)
+    setNewBackBase64(null)
+    setNewProductUrl('')
+  }
 
   if (isLoading) return <div className="flex justify-center py-12"><div className="text-[#787774] text-sm">Loading...</div></div>
   if (error || !species) return <ErrorDisplay error={error ?? new Error('Species not found')} onRetry={() => navigate(0)} />
@@ -408,9 +435,23 @@ export function SpeciesDetailPage() {
 
       <div className="space-y-6">
         {/* Providers & Images */}
-        {species.providers.length > 0 && (
-          <section className="border border-[#E9E9E7] rounded-lg p-5">
-            <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Seed Providers ({species.providers.length})</h3>
+        <section className="border border-[#E9E9E7] rounded-lg p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider">
+              Seed Providers
+              {species.providers.length > 0 && <span className="ml-1 text-xs font-normal text-[#787774] normal-case">({species.providers.length})</span>}
+            </h3>
+            {!addingProvider && (
+              <button
+                onClick={() => setAddingProvider(true)}
+                className="text-sm text-[#2EAADC] hover:underline cursor-pointer"
+              >
+                Add provider
+              </button>
+            )}
+          </div>
+
+          {species.providers.length > 0 ? (
             <div className="space-y-6">
               {species.providers.map(sp => (
                 <div key={sp.id}>
@@ -438,8 +479,82 @@ export function SpeciesDetailPage() {
                 </div>
               ))}
             </div>
-          </section>
-        )}
+          ) : !addingProvider ? (
+            <p className="text-sm text-[#A5A29C]">No providers linked yet</p>
+          ) : null}
+
+          {addingProvider && (
+            <div className={`${species.providers.length > 0 ? 'mt-6 pt-6 border-t border-[#E9E9E7]' : ''}`}>
+              <h4 className="text-xs font-semibold text-[#37352F] uppercase tracking-wider mb-3">Add Provider</h4>
+              <div className="mb-3">
+                <label className="block text-xs font-medium text-[#787774] mb-1.5">Provider</label>
+                <select
+                  value={newProviderId ?? ''}
+                  onChange={e => setNewProviderId(e.target.value ? Number(e.target.value) : null)}
+                  className="w-full max-w-xs px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA]"
+                >
+                  <option value="">Select a provider...</option>
+                  {availableProviders
+                    ?.filter(ap => !species.providers.some(sp => sp.providerId === ap.id))
+                    .map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                </select>
+              </div>
+              {newProviderId && (
+                <>
+                  <div className="grid grid-cols-2 gap-4 mb-3">
+                    <ImageUpload
+                      label="Front"
+                      currentUrl={newFrontBase64 ? `data:image/jpeg;base64,${newFrontBase64}` : null}
+                      onUpload={setNewFrontBase64}
+                    />
+                    <ImageUpload
+                      label="Back"
+                      currentUrl={newBackBase64 ? `data:image/jpeg;base64,${newBackBase64}` : null}
+                      onUpload={setNewBackBase64}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="block text-xs font-medium text-[#787774] mb-1.5">Product URL</label>
+                    <input
+                      type="text"
+                      value={newProductUrl}
+                      onChange={e => setNewProductUrl(e.target.value)}
+                      className="w-full px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA]"
+                    />
+                  </div>
+                </>
+              )}
+              <div className="flex gap-2">
+                <button
+                  disabled={!newProviderId || addProviderMutation.isPending}
+                  onClick={() => {
+                    if (!newProviderId) return
+                    addProviderMutation.mutate({
+                      providerId: newProviderId,
+                      imageFrontBase64: newFrontBase64,
+                      imageBackBase64: newBackBase64,
+                      productUrl: newProductUrl || undefined,
+                    })
+                  }}
+                  className="px-3 py-1.5 bg-[#2EAADC] text-white rounded-md hover:bg-[#2898C4] disabled:opacity-50 transition-colors text-sm font-medium"
+                >
+                  {addProviderMutation.isPending ? 'Adding...' : 'Add'}
+                </button>
+                <button
+                  onClick={resetAddProvider}
+                  className="px-3 py-1.5 text-[#787774] hover:bg-[#F0F0EE] rounded-md transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+              {addProviderMutation.error && (
+                <p className="text-sm text-[#E03E3E] mt-2">{addProviderMutation.error.message}</p>
+              )}
+            </div>
+          )}
+        </section>
 
         {/* Growth Info, Months & Growing Conditions */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
