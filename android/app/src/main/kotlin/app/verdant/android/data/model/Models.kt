@@ -92,7 +92,7 @@ data class PlantResponse(
     val status: String,
     val seedCount: Int?,
     val survivingCount: Int?,
-    val bedId: Long,
+    val bedId: Long?,
     val createdAt: String,
     val updatedAt: String
 )
@@ -104,6 +104,46 @@ data class CreatePlantRequest(
     val status: String = "SEEDED",
     val seedCount: Int? = null,
     val survivingCount: Int? = null,
+)
+
+data class BatchSowRequest(
+    val bedId: Long? = null,
+    val speciesId: Long,
+    val name: String,
+    val seedCount: Int,
+    val notes: String? = null,
+    val imageBase64: String? = null,
+)
+
+data class BatchSowResponse(
+    val plantIds: List<Long>,
+    val count: Int,
+)
+
+data class PlantGroupResponse(
+    val speciesId: Long,
+    val speciesName: String?,
+    val bedId: Long?,
+    val bedName: String?,
+    val gardenName: String?,
+    val plantedDate: String?,
+    val status: String,
+    val count: Int,
+)
+
+data class BatchEventRequest(
+    val speciesId: Long,
+    val bedId: Long? = null,
+    val plantedDate: String? = null,
+    val status: String,
+    val eventType: String,
+    val count: Int,
+    val notes: String? = null,
+    val imageBase64: String? = null,
+)
+
+data class BatchEventResponse(
+    val updatedCount: Int,
 )
 
 data class UpdatePlantRequest(

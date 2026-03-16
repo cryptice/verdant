@@ -66,6 +66,90 @@ class PlantService(
         return plant.toResponse()
     }
 
+    fun batchSow(request: BatchSowRequest, userId: Long): BatchSowResponse {
+        if (request.bedId != null) checkBedOwnership(request.bedId, userId)
+        val today = java.time.LocalDate.now()
+        val plantIds = mutableListOf<Long>()
+        // Upload image once if provided
+        var imageUrl: String? = null
+        for (i in 1..request.seedCount) {
+            val plant = plantRepository.persist(
+                Plant(
+                    name = "${request.name} #$i",
+                    speciesId = request.speciesId,
+                    plantedDate = today,
+                    status = PlantStatus.SEEDED,
+                    seedCount = 1,
+                    survivingCount = 1,
+                    bedId = request.bedId,
+                    userId = userId,
+                )
+            )
+            if (i == 1 && request.imageBase64 != null) {
+                imageUrl = storageService.uploadImage(request.imageBase64, "plants/${plant.id!!}/events/seeded.jpg")
+            }
+            plantEventRepository.persist(
+                PlantEvent(
+                    plantId = plant.id!!,
+                    eventType = PlantEventType.SEEDED,
+                    eventDate = today,
+                    plantCount = 1,
+                    notes = request.notes,
+                    imageUrl = imageUrl,
+                )
+            )
+            plantIds.add(plant.id!!)
+        }
+        return BatchSowResponse(plantIds = plantIds, count = plantIds.size)
+    }
+
+    fun getPlantGroups(userId: Long, status: String, trayOnly: Boolean): List<PlantGroupResponse> {
+        val plantStatus = PlantStatus.valueOf(status)
+        return plantRepository.findGroupedBySpecies(userId, plantStatus, trayOnly).map { row ->
+            PlantGroupResponse(
+                speciesId = row["speciesId"] as? Long ?: 0,
+                speciesName = row["speciesName"] as? String,
+                bedId = row["bedId"] as? Long,
+                bedName = row["bedName"] as? String,
+                gardenName = row["gardenName"] as? String,
+                plantedDate = row["plantedDate"] as? String,
+                status = row["status"] as? String ?: status,
+                count = row["count"] as? Int ?: 0,
+            )
+        }
+    }
+
+    fun batchEvent(request: BatchEventRequest, userId: Long): BatchEventResponse {
+        val plantStatus = PlantStatus.valueOf(request.status)
+        val newStatus = PlantStatus.valueOf(request.eventType.let {
+            when (it) {
+                "POTTED_UP" -> "POTTED_UP"
+                "PLANTED_OUT" -> "PLANTED_OUT"
+                else -> it
+            }
+        })
+        val plantedDate = request.plantedDate?.let { java.time.LocalDate.parse(it) }
+        val plants = plantRepository.findByGroup(userId, request.speciesId, request.bedId, plantedDate, plantStatus, request.count)
+        var imageUrl: String? = null
+        for ((i, plant) in plants.withIndex()) {
+            if (i == 0 && request.imageBase64 != null) {
+                imageUrl = storageService.uploadImage(request.imageBase64, "plants/${plant.id!!}/events/${request.eventType.lowercase()}.jpg")
+            }
+            plantEventRepository.persist(
+                PlantEvent(
+                    plantId = plant.id!!,
+                    eventType = PlantEventType.valueOf(request.eventType),
+                    eventDate = java.time.LocalDate.now(),
+                    plantCount = 1,
+                    notes = request.notes,
+                    imageUrl = imageUrl,
+                )
+            )
+            plantRepository.update(plant.copy(status = newStatus))
+        }
+        return BatchEventResponse(updatedCount = plants.size)
+    }
+
     fun updatePlant(plantId: Long, request: UpdatePlantRequest, userId: Long): PlantResponse {
         val plant = checkPlantOwnership(plantId, userId)
         val updated = plant.copy(

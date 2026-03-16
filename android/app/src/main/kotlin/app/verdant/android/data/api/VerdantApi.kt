@@ -67,6 +67,15 @@ interface VerdantApi {
     @POST("api/plants")
     suspend fun createPlantWithoutBed(@Body request: CreatePlantRequest): PlantResponse
 
+    @POST("api/plants/batch-sow")
+    suspend fun batchSow(@Body request: BatchSowRequest): BatchSowResponse
+
+    @GET("api/plants/groups")
+    suspend fun getPlantGroups(@Query("status") status: String, @Query("trayOnly") trayOnly: Boolean? = null): List<PlantGroupResponse>
+
+    @POST("api/plants/batch-event")
+    suspend fun batchEvent(@Body request: BatchEventRequest): BatchEventResponse
+
     @PUT("api/plants/{id}")
     suspend fun updatePlant(@Path("id") id: Long, @Body request: UpdatePlantRequest): PlantResponse
 

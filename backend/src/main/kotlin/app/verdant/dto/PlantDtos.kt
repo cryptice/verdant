@@ -44,6 +44,46 @@ data class SpeciesPlantSummary(
     val totalPlantCount: Int,
 )
 
+data class BatchSowRequest(
+    val bedId: Long? = null,
+    val speciesId: Long,
+    val name: String,
+    val seedCount: Int,
+    val notes: String? = null,
+    val imageBase64: String? = null,
+)
+
+data class BatchSowResponse(
+    val plantIds: List<Long>,
+    val count: Int,
+)
+
+data class BatchEventRequest(
+    val speciesId: Long,
+    val bedId: Long? = null,
+    val plantedDate: String? = null,
+    val status: String,
+    val eventType: String,
+    val count: Int,
+    val notes: String? = null,
+    val imageBase64: String? = null,
+)
+
+data class BatchEventResponse(
+    val updatedCount: Int,
+)
+
+data class PlantGroupResponse(
+    val speciesId: Long,
+    val speciesName: String?,
+    val bedId: Long?,
+    val bedName: String?,
+    val gardenName: String?,
+    val plantedDate: String?,
+    val status: String,
+    val count: Int,
+)
+
 data class PlantLocationGroup(
     val gardenName: String,
     val bedName: String,

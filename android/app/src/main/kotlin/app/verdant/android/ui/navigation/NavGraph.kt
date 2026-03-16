@@ -99,6 +99,14 @@ sealed class Screen(val route: String) {
     data object PotUp : Screen("activity/pot-up/{plantId}?taskId={taskId}") {
         fun create(plantId: Long) = "activity/pot-up/$plantId"
     }
+    data object BatchPotUp : Screen("activity/batch-pot-up?taskId={taskId}&speciesId={speciesId}") {
+        fun create(taskId: Long? = null, speciesId: Long? = null): String {
+            val params = mutableListOf<String>()
+            if (taskId != null) params.add("taskId=$taskId")
+            if (speciesId != null) params.add("speciesId=$speciesId")
+            return "activity/batch-pot-up" + if (params.isNotEmpty()) "?${params.joinToString("&")}" else ""
+        }
+    }
     data object PlantOut : Screen("activity/plant-out/{plantId}?taskId={taskId}") {
         fun create(plantId: Long) = "activity/plant-out/$plantId"
     }
@@ -252,7 +260,10 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
         NavHost(
             navController = navController,
             startDestination = Screen.Splash.route,
-            modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding())
+            modifier = Modifier.padding(
+                top = if (showTopBar) paddingValues.calculateTopPadding() else 0.dp,
+                bottom = paddingValues.calculateBottomPadding()
+            )
         ) {
             composable(Screen.Splash.route) {
                 SplashScreen(
@@ -374,7 +385,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                     onPerformTask = { task ->
                         when (task.activityType) {
                             "SOW" -> navController.navigate("activity/sow?taskId=${task.id}&speciesId=${task.speciesId}")
-                            "POT_UP" -> navController.navigate("activity/plant-picker/SEEDED/pot-up?taskId=${task.id}&speciesId=${task.speciesId}")
+                            "POT_UP" -> navController.navigate(Screen.BatchPotUp.create(taskId = task.id, speciesId = task.speciesId))
                             "PLANT" -> navController.navigate("activity/plant-picker/SEEDED,POTTED_UP/plant-out?taskId=${task.id}&speciesId=${task.speciesId}")
                             "HARVEST" -> navController.navigate("activity/plant-picker/GROWING/harvest?taskId=${task.id}&speciesId=${task.speciesId}")
                             "RECOVER" -> navController.navigate("activity/plant-picker/GROWING/recover?taskId=${task.id}&speciesId=${task.speciesId}")
@@ -456,6 +467,15 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                 )
             ) {
                 PotUpActivityScreen(onBack = { navController.popBackStack() })
+            }
+            composable(
+                Screen.BatchPotUp.route,
+                arguments = listOf(
+                    navArgument("taskId") { type = NavType.LongType; defaultValue = -1L },
+                    navArgument("speciesId") { type = NavType.LongType; defaultValue = -1L },
+                )
+            ) {
+                BatchPotUpScreen(onBack = { navController.popBackStack() })
             }
             composable(
                 Screen.PlantOut.route,

@@ -170,6 +170,63 @@ class PlantRepository(private val ds: AgroalDataSource) {
         }
     }
 
+    fun findGroupedBySpecies(userId: Long, status: PlantStatus, trayOnly: Boolean = false): List<Map<String, Any?>> =
+        ds.connection.use { conn ->
+            val sql = buildString {
+                append("""SELECT p.species_id, COALESCE(s.common_name_sv, s.common_name) as species_name,
+                          p.bed_id, b.name as bed_name, g.name as garden_name,
+                          p.planted_date, p.status, COUNT(*) as count
+                   FROM plant p
+                   LEFT JOIN species s ON p.species_id = s.id
+                   LEFT JOIN bed b ON p.bed_id = b.id
+                   LEFT JOIN garden g ON b.garden_id = g.id
+                   WHERE p.user_id = ? AND p.status = ?""")
+                if (trayOnly) append(" AND p.bed_id IS NULL")
+                append(" GROUP BY p.species_id, s.common_name_sv, s.common_name, p.bed_id, b.name, g.name, p.planted_date, p.status")
+                append(" ORDER BY p.planted_date DESC")
+            }
+            conn.prepareStatement(sql).use { ps ->
+                ps.setLong(1, userId)
+                ps.setString(2, status.name)
+                ps.executeQuery().use { rs ->
+                    buildList {
+                        while (rs.next()) add(mapOf(
+                            "speciesId" to (rs.getObject("species_id") as? Long),
+                            "speciesName" to rs.getString("species_name"),
+                            "bedId" to (rs.getObject("bed_id") as? Long),
+                            "bedName" to rs.getString("bed_name"),
+                            "gardenName" to rs.getString("garden_name"),
+                            "plantedDate" to rs.getDate("planted_date")?.toString(),
+                            "status" to rs.getString("status"),
+                            "count" to rs.getInt("count"),
+                        ))
+                    }
+                }
+            }
+        }
+
+    fun findByGroup(userId: Long, speciesId: Long, bedId: Long?, plantedDate: java.time.LocalDate?, status: PlantStatus, limit: Int): List<Plant> =
+        ds.connection.use { conn ->
+            val sql = buildString {
+                append("SELECT * FROM plant WHERE user_id = ? AND species_id = ? AND status = ?")
+                if (bedId != null) append(" AND bed_id = ?") else append(" AND bed_id IS NULL")
+                if (plantedDate != null) append(" AND planted_date = ?") else append(" AND planted_date IS NULL")
+                append(" ORDER BY id LIMIT ?")
+            }
+            conn.prepareStatement(sql).use { ps ->
+                var idx = 1
+                ps.setLong(idx++, userId)
+                ps.setLong(idx++, speciesId)
+                ps.setString(idx++, status.name)
+                if (bedId != null) ps.setLong(idx++, bedId)
+                if (plantedDate != null) ps.setDate(idx++, java.sql.Date.valueOf(plantedDate))
+                ps.setInt(idx, limit)
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.toPlant()) }
+                }
+            }
+        }
+
     private fun ResultSet.toPlant() = Plant(
         id = getLong("id"),
         name = getString("name"),

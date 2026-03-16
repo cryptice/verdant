@@ -77,40 +77,27 @@ class SowActivityViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val request = CreatePlantRequest(
-                    name = name,
-                    speciesId = speciesId,
-                    plantedDate = LocalDate.now().toString(),
-                    status = "SEEDED",
-                    seedCount = seedCount,
-                    survivingCount = seedCount,
-                )
-                val plant = if (bedId != null) {
-                    repo.createPlant(bedId, request)
-                } else {
-                    repo.createPlantWithoutBed(request)
-                }
-                // Record seeded event
-                repo.addPlantEvent(
-                    plant.id,
-                    CreatePlantEventRequest(
-                        eventType = "SEEDED",
-                        eventDate = LocalDate.now().toString(),
-                        plantCount = seedCount,
+                val count = seedCount ?: 1
+                repo.batchSow(
+                    BatchSowRequest(
+                        bedId = bedId,
+                        speciesId = speciesId,
+                        name = name,
+                        seedCount = count,
                         notes = notes,
                         imageBase64 = imageBase64,
                     )
                 )
                 // Decrement seed inventory
-                if (seedBatchId != null && seedCount != null && seedCount > 0) {
-                    repo.decrementSeedInventory(seedBatchId, DecrementSeedInventoryRequest(seedCount))
+                if (seedBatchId != null && count > 0) {
+                    repo.decrementSeedInventory(seedBatchId, DecrementSeedInventoryRequest(count))
                 }
                 if (!notes.isNullOrBlank()) {
                     repo.recordComment(RecordCommentRequest(notes))
                 }
                 // Complete task partially if performing from a scheduled task
-                if (taskId != null && seedCount != null && seedCount > 0) {
-                    repo.completeTaskPartially(taskId, CompleteTaskPartiallyRequest(seedCount))
+                if (taskId != null && count > 0) {
+                    repo.completeTaskPartially(taskId, CompleteTaskPartiallyRequest(count))
                 }
                 _uiState.value = _uiState.value.copy(isLoading = false, created = true)
             } catch (e: Exception) {

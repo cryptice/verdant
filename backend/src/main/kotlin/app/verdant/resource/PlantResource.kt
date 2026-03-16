@@ -1,10 +1,6 @@
 package app.verdant.resource
 
-import app.verdant.dto.CreatePlantEventRequest
-import app.verdant.dto.CreatePlantRequest
-import app.verdant.dto.IdentifyPlantRequest
-import app.verdant.dto.PlantSuggestion
-import app.verdant.dto.UpdatePlantRequest
+import app.verdant.dto.*
 import app.verdant.repository.UserRepository
 import app.verdant.service.AiService
 import app.verdant.service.PlantService
@@ -51,6 +47,25 @@ class PlantResource(
     fun createWithoutBed(request: CreatePlantRequest): Response {
         val plant = plantService.createPlant(null, request, userId())
         return Response.status(Response.Status.CREATED).entity(plant).build()
+    }
+
+    @POST
+    @Path("/plants/batch-sow")
+    fun batchSow(request: BatchSowRequest): Response {
+        val result = plantService.batchSow(request, userId())
+        return Response.status(Response.Status.CREATED).entity(result).build()
+    }
+
+    @GET
+    @Path("/plants/groups")
+    fun plantGroups(@QueryParam("status") status: String, @QueryParam("trayOnly") trayOnly: Boolean?) =
+        plantService.getPlantGroups(userId(), status, trayOnly == true)
+
+    @POST
+    @Path("/plants/batch-event")
+    fun batchEvent(request: BatchEventRequest): Response {
+        val result = plantService.batchEvent(request, userId())
+        return Response.ok(result).build()
     }
 
     @PUT
