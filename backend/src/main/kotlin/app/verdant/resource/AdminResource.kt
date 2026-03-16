@@ -1,7 +1,9 @@
 package app.verdant.resource
 
 import app.verdant.dto.*
+import app.verdant.entity.Provider
 import app.verdant.repository.GardenRepository
+import app.verdant.repository.ProviderRepository
 import app.verdant.repository.UserRepository
 import app.verdant.service.AiService
 import app.verdant.service.SpeciesService
@@ -19,6 +21,7 @@ class AdminResource(
     private val gardenRepository: GardenRepository,
     private val speciesService: SpeciesService,
     private val aiService: AiService,
+    private val providerRepository: ProviderRepository,
 ) {
     @GET
     @Path("/users")
@@ -107,6 +110,62 @@ class AdminResource(
     @Path("/species/{id}/photos/{photoId}")
     fun deleteSpeciesPhoto(@PathParam("id") id: Long, @PathParam("photoId") photoId: Long): Response {
         speciesService.deleteSpeciesPhoto(id, photoId)
+        return Response.noContent().build()
+    }
+
+    // ── Providers ──
+
+    @GET
+    @Path("/providers")
+    fun listProviders() = providerRepository.findAll().map { ProviderResponse(it.id!!, it.name, it.identifier) }
+
+    @POST
+    @Path("/providers")
+    @Consumes(MediaType.APPLICATION_JSON)
+    fun createProvider(request: CreateProviderRequest): Response {
+        val provider = providerRepository.persist(Provider(name = request.name, identifier = request.identifier))
+        return Response.status(Response.Status.CREATED).entity(ProviderResponse(provider.id!!, provider.name, provider.identifier)).build()
+    }
+
+    @PUT
+    @Path("/providers/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    fun updateProvider(@PathParam("id") id: Long, request: UpdateProviderRequest): ProviderResponse {
+        val provider = providerRepository.findById(id) ?: throw NotFoundException("Provider not found")
+        val updated = provider.copy(name = request.name ?: provider.name, identifier = request.identifier ?: provider.identifier)
+        providerRepository.update(updated)
+        return ProviderResponse(updated.id!!, updated.name, updated.identifier)
+    }
+
+    @DELETE
+    @Path("/providers/{id}")
+    fun deleteProvider(@PathParam("id") id: Long): Response {
+        providerRepository.findById(id) ?: throw NotFoundException("Provider not found")
+        providerRepository.delete(id)
+        return Response.noContent().build()
+    }
+
+    // ── Species Providers ──
+
+    @POST
+    @Path("/species/{id}/providers")
+    @Consumes(MediaType.APPLICATION_JSON)
+    fun addSpeciesProvider(@PathParam("id") id: Long, request: AddSpeciesProviderRequest) =
+        speciesService.addSpeciesProviderAdmin(id, request)
+
+    @PUT
+    @Path("/species/{id}/providers/{spId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    fun updateSpeciesProvider(
+        @PathParam("id") id: Long,
+        @PathParam("spId") spId: Long,
+        request: UpdateSpeciesProviderRequest
+    ) = speciesService.updateSpeciesProviderAdmin(id, spId, request)
+
+    @DELETE
+    @Path("/species/{id}/providers/{spId}")
+    fun deleteSpeciesProvider(@PathParam("id") id: Long, @PathParam("spId") spId: Long): Response {
+        speciesService.removeSpeciesProviderAdmin(id, spId)
         return Response.noContent().build()
     }
 }

@@ -46,11 +46,11 @@ class SpeciesService(
                 daysToHarvest = request.daysToHarvest,
                 germinationTimeDays = request.germinationTimeDays,
                 sowingDepthMm = request.sowingDepthMm,
-                growingPositions = request.growingPositions,
-                soils = request.soils,
+                growingPositions = request.growingPositions ?: emptyList(),
+                soils = request.soils ?: emptyList(),
                 heightCm = request.heightCm,
-                bloomMonths = request.bloomMonths,
-                sowingMonths = request.sowingMonths,
+                bloomMonths = request.bloomMonths ?: emptyList(),
+                sowingMonths = request.sowingMonths ?: emptyList(),
                 germinationRate = request.germinationRate,
                 groupId = request.groupId,
             )
@@ -62,7 +62,7 @@ class SpeciesService(
         if (frontUrl != null || backUrl != null) {
             speciesRepository.update(species.copy(imageFrontUrl = frontUrl, imageBackUrl = backUrl))
         }
-        if (request.tagIds.isNotEmpty()) {
+        if (!request.tagIds.isNullOrEmpty()) {
             speciesRepository.setTagsForSpecies(sid, request.tagIds)
         }
         return getSpecies(sid, userId)
@@ -137,11 +137,11 @@ class SpeciesService(
                 daysToHarvest = request.daysToHarvest,
                 germinationTimeDays = request.germinationTimeDays,
                 sowingDepthMm = request.sowingDepthMm,
-                growingPositions = request.growingPositions,
-                soils = request.soils,
+                growingPositions = request.growingPositions ?: emptyList(),
+                soils = request.soils ?: emptyList(),
                 heightCm = request.heightCm,
-                bloomMonths = request.bloomMonths,
-                sowingMonths = request.sowingMonths,
+                bloomMonths = request.bloomMonths ?: emptyList(),
+                sowingMonths = request.sowingMonths ?: emptyList(),
                 germinationRate = request.germinationRate,
                 groupId = request.groupId,
             )
@@ -152,7 +152,7 @@ class SpeciesService(
         if (frontUrl != null || backUrl != null) {
             speciesRepository.update(species.copy(imageFrontUrl = frontUrl, imageBackUrl = backUrl))
         }
-        if (request.tagIds.isNotEmpty()) {
+        if (!request.tagIds.isNullOrEmpty()) {
             speciesRepository.setTagsForSpecies(sid, request.tagIds)
         }
         return getSpeciesAdmin(sid)
@@ -347,6 +347,40 @@ class SpeciesService(
         }
 
         return ImportResult(created = created, skipped = skipped)
+    }
+
+    // ── Admin Species Providers ──
+
+    fun addSpeciesProviderAdmin(speciesId: Long, request: AddSpeciesProviderRequest): SpeciesProviderResponse {
+        speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
+        providerRepository.findById(request.providerId) ?: throw NotFoundException("Provider not found")
+        var sp = speciesProviderRepository.persist(
+            SpeciesProvider(speciesId = speciesId, providerId = request.providerId, productUrl = request.productUrl)
+        )
+        val frontUrl = request.imageFrontBase64?.let { storageService.uploadImage(it, "species/$speciesId/providers/${sp.id}/front.jpg") }
+        val backUrl = request.imageBackBase64?.let { storageService.uploadImage(it, "species/$speciesId/providers/${sp.id}/back.jpg") }
+        if (frontUrl != null || backUrl != null) {
+            sp = sp.copy(imageFrontUrl = frontUrl, imageBackUrl = backUrl)
+            speciesProviderRepository.update(sp)
+        }
+        return sp.toResponse()
+    }
+
+    fun updateSpeciesProviderAdmin(speciesId: Long, spId: Long, request: UpdateSpeciesProviderRequest): SpeciesProviderResponse {
+        speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
+        val sp = speciesProviderRepository.findById(spId) ?: throw NotFoundException("Species provider not found")
+        if (sp.speciesId != speciesId) throw NotFoundException("Species provider not found")
+        val frontUrl = request.imageFrontBase64?.let { storageService.uploadImage(it, "species/$speciesId/providers/${sp.id}/front.jpg") } ?: sp.imageFrontUrl
+        val backUrl = request.imageBackBase64?.let { storageService.uploadImage(it, "species/$speciesId/providers/${sp.id}/back.jpg") } ?: sp.imageBackUrl
+        val updated = sp.copy(imageFrontUrl = frontUrl, imageBackUrl = backUrl, productUrl = request.productUrl ?: sp.productUrl)
+        speciesProviderRepository.update(updated)
+        return updated.toResponse()
+    }
+
+    fun removeSpeciesProviderAdmin(speciesId: Long, spId: Long) {
+        val sp = speciesProviderRepository.findById(spId) ?: throw NotFoundException("Species provider not found")
+        if (sp.speciesId != speciesId) throw NotFoundException("Species provider not found")
+        speciesProviderRepository.delete(spId)
     }
 
     // ── Species Providers ──

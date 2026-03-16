@@ -87,7 +87,8 @@ tasks.named<io.quarkus.gradle.tasks.QuarkusDev>("quarkusDev") {
     }
     val gcsKey = envGet("backend", "gcs-service-account-key")
     if (gcsKey.isNotBlank()) {
-        jvmArgs = jvmArgs + listOf("-Dverdant.gcs.service-account-key=$gcsKey")
+        val resolved = rootProject.file(gcsKey).absolutePath
+        jvmArgs = jvmArgs + listOf("-Dverdant.gcs.service-account-key=$resolved")
     }
 }
 

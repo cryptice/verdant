@@ -2,6 +2,7 @@ package app.verdant.dto
 
 import app.verdant.entity.GrowingPosition
 import app.verdant.entity.SoilType
+import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.Instant
 
 data class SpeciesPhotoResponse(
@@ -34,7 +35,7 @@ data class SpeciesResponse(
     val groupName: String?,
     val tags: List<SpeciesTagResponse>,
     val providers: List<SpeciesProviderResponse>,
-    val isSystem: Boolean,
+    @get:JsonProperty("isSystem") val isSystem: Boolean,
     val createdAt: Instant,
 )
 
@@ -50,14 +51,14 @@ data class CreateSpeciesRequest(
     val daysToHarvest: Int? = null,
     val germinationTimeDays: Int? = null,
     val sowingDepthMm: Int? = null,
-    val growingPositions: List<GrowingPosition> = emptyList(),
-    val soils: List<SoilType> = emptyList(),
+    val growingPositions: List<GrowingPosition>? = null,
+    val soils: List<SoilType>? = null,
     val heightCm: Int? = null,
-    val bloomMonths: List<Int> = emptyList(),
-    val sowingMonths: List<Int> = emptyList(),
+    val bloomMonths: List<Int>? = null,
+    val sowingMonths: List<Int>? = null,
     val germinationRate: Int? = null,
     val groupId: Long? = null,
-    val tagIds: List<Long> = emptyList(),
+    val tagIds: List<Long>? = null,
 )
 
 data class UpdateSpeciesRequest(
