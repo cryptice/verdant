@@ -34,41 +34,41 @@ export default function DevSeed() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">Dev Tools</h1>
-      <p className="text-gray-500 mb-8">Create test data for development. Only works on localhost.</p>
+      <h1 className="text-2xl font-semibold text-[#37352F] mb-1">Dev Tools</h1>
+      <p className="text-sm text-[#787774] mb-8">Create test data for development. Only works on localhost.</p>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-2">Seed Test Data</h2>
-        <p className="text-sm text-gray-500 mb-4">
+      <div className="border border-[#E9E9E7] rounded-lg p-6">
+        <h2 className="text-base font-semibold text-[#37352F] mb-2">Seed Test Data</h2>
+        <p className="text-sm text-[#787774] mb-4">
           Creates 20 species (5 groups, 5 tags), 2 gardens with 5 beds, 20 plants with lifecycle
           events, seed inventory for 8 species, and 6 scheduled tasks. Data is created for the
           currently logged-in user.
         </p>
 
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-          <p className="text-sm text-amber-800">
-            Warning: Running this multiple times will create duplicate data.
+        <div className="bg-[#FBF3DB] border border-[#F1E5BC] rounded-md p-3 mb-4">
+          <p className="text-sm text-[#73641C]">
+            Running this multiple times will create duplicate data.
           </p>
         </div>
 
         <button
           onClick={handleSeed}
           disabled={loading}
-          className="px-6 py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="px-4 py-2 bg-[#2EAADC] text-white rounded-md text-sm font-medium hover:bg-[#2898C4] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? 'Seeding...' : 'Seed All Test Data'}
         </button>
 
         {error && (
-          <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
-            <p className="text-sm text-red-800">{error}</p>
+          <div className="mt-4 bg-[#FBE4E4] border border-[#F5C6C6] rounded-md p-3">
+            <p className="text-sm text-[#E03E3E]">{error}</p>
           </div>
         )}
 
         {result && (
-          <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
-            <p className="text-sm font-medium text-green-800 mb-3">Test data created successfully!</p>
-            <div className="grid grid-cols-3 gap-3">
+          <div className="mt-4 bg-[#DBEDDB] border border-[#C4DFC4] rounded-md p-4">
+            <p className="text-sm font-medium text-[#0F7B0F] mb-3">Test data created successfully!</p>
+            <div className="grid grid-cols-3 gap-2">
               {[
                 ['Species', result.speciesCount],
                 ['Groups', result.groupCount],
@@ -80,9 +80,9 @@ export default function DevSeed() {
                 ['Seed Batches', result.seedInventoryCount],
                 ['Tasks', result.taskCount],
               ].map(([label, count]) => (
-                <div key={label as string} className="bg-white rounded-lg p-2 text-center">
-                  <div className="text-lg font-bold text-green-700">{count}</div>
-                  <div className="text-xs text-gray-500">{label}</div>
+                <div key={label as string} className="bg-white/70 rounded-md p-2 text-center">
+                  <div className="text-base font-semibold text-[#37352F]">{count}</div>
+                  <div className="text-xs text-[#787774]">{label}</div>
                 </div>
               ))}
             </div>

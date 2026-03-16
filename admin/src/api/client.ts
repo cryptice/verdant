@@ -4,6 +4,13 @@ function getToken(): string | null {
   return localStorage.getItem('admin_token')
 }
 
+export class ApiError extends Error {
+  constructor(message: string, public status?: number, public isNetworkError = false) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
+
 export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken()
   const headers: Record<string, string> = {
@@ -12,17 +19,25 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
     ...((options.headers as Record<string, string>) || {})
   }
 
-  const response = await fetch(`${API_BASE}${path}`, { ...options, headers })
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE}${path}`, { ...options, headers })
+  } catch {
+    throw new ApiError('Unable to connect to the server. Is the backend running?', undefined, true)
+  }
 
   if (response.status === 401 || response.status === 403) {
     localStorage.removeItem('admin_token')
     window.location.href = '/login'
-    throw new Error('Unauthorized')
+    throw new ApiError('Unauthorized', response.status)
   }
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Request failed' }))
-    throw new Error(error.message || `HTTP ${response.status}`)
+    const body = await response.json().catch(() => null)
+    if (!body) {
+      throw new ApiError('Unable to connect to the server. Is the backend running?', undefined, true)
+    }
+    throw new ApiError(body.message || `HTTP ${response.status}`, response.status)
   }
 
   if (response.status === 204) return undefined as T
@@ -200,6 +215,25 @@ export interface ImportResult {
   skipped: number
 }
 
+export interface Provider {
+  id: number
+  name: string
+  identifier: string
+}
+
+export interface AddSpeciesProviderRequest {
+  providerId: number
+  imageFrontBase64?: string | null
+  imageBackBase64?: string | null
+  productUrl?: string | null
+}
+
+export interface UpdateSpeciesProviderRequest {
+  imageFrontBase64?: string | null
+  imageBackBase64?: string | null
+  productUrl?: string | null
+}
+
 export const api = {
   auth: {
     login: (email: string, password: string) =>
@@ -249,5 +283,26 @@ export const api = {
 
     getSpeciesGroups: () => apiRequest<SpeciesGroup[]>('/api/species/groups'),
     getSpeciesTags: () => apiRequest<SpeciesTag[]>('/api/species/tags'),
+
+    // Providers
+    getProviders: () => apiRequest<Provider[]>('/api/admin/providers'),
+    createProvider: (req: { name: string; identifier: string }) =>
+      apiRequest<Provider>('/api/admin/providers', { method: 'POST', body: JSON.stringify(req) }),
+    updateProvider: (id: number, req: { name?: string; identifier?: string }) =>
+      apiRequest<Provider>(`/api/admin/providers/${id}`, { method: 'PUT', body: JSON.stringify(req) }),
+    deleteProvider: (id: number) =>
+      apiRequest<void>(`/api/admin/providers/${id}`, { method: 'DELETE' }),
+
+    // Species Providers
+    addSpeciesProvider: (speciesId: number, req: AddSpeciesProviderRequest) =>
+      apiRequest<SpeciesProvider>(`/api/admin/species/${speciesId}/providers`, {
+        method: 'POST', body: JSON.stringify(req)
+      }),
+    updateSpeciesProvider: (speciesId: number, spId: number, req: UpdateSpeciesProviderRequest) =>
+      apiRequest<SpeciesProvider>(`/api/admin/species/${speciesId}/providers/${spId}`, {
+        method: 'PUT', body: JSON.stringify(req)
+      }),
+    deleteSpeciesProvider: (speciesId: number, spId: number) =>
+      apiRequest<void>(`/api/admin/species/${speciesId}/providers/${spId}`, { method: 'DELETE' }),
   }
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { api } from '../api/client'
+import { api, ApiError } from '../api/client'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -27,48 +27,50 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F0E1] flex items-center justify-center">
-      <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-green-600">Verdant</h1>
-          <p className="text-gray-500 mt-2">Admin Panel</p>
+    <div className="min-h-screen bg-[#FBFBFA] flex items-center justify-center">
+      <div className="bg-white border border-[#E9E9E7] rounded-lg p-8 w-full max-w-sm">
+        <div className="mb-8">
+          <h1 className="text-xl font-semibold text-[#37352F] tracking-tight">Verdant</h1>
+          <p className="text-sm text-[#787774] mt-1">Sign in to admin</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-[#787774] mb-1.5">
               Email
             </label>
             <input
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+              className="w-full px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA]"
               placeholder="admin@verdant.app"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-[#787774] mb-1.5">
               Password
             </label>
             <input
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+              className="w-full px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA]"
               placeholder="Enter your password"
             />
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">{error}</div>
+            <div className={`text-sm px-3 py-2 rounded-md ${
+              error.includes('Unable to connect') ? 'text-[#D9730D] bg-[#FBF3DB]' : 'text-[#E03E3E] bg-[#FBE4E4]'
+            }`}>{error}</div>
           )}
 
           <button
             type="submit"
             disabled={loading || !email || !password}
-            className="w-full bg-green-600 text-white py-3 rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-[#2EAADC] text-white py-2 rounded-md text-sm font-medium hover:bg-[#2898C4] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
