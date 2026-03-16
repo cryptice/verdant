@@ -217,7 +217,9 @@ fun TaskFormScreen(
                 OutlinedTextField(
                     value = speciesSearch.ifBlank {
                         uiState.species.find { it.id == selectedSpeciesId }?.let { s ->
-                            if (s.variantName.isNullOrBlank()) s.commonName else "${s.commonName} \u2013 ${s.variantName}"
+                            val name = s.commonNameSv ?: s.commonName
+                            val variant = s.variantNameSv ?: s.variantName
+                            if (variant.isNullOrBlank()) name else "$name \u2013 $variant"
                         } ?: ""
                     },
                     onValueChange = { speciesSearch = it; speciesExpanded = true },
@@ -228,15 +230,19 @@ fun TaskFormScreen(
                     singleLine = true
                 )
                 val filtered = uiState.species.filter {
-                    speciesSearch.isBlank() || it.commonName.contains(speciesSearch, ignoreCase = true) || (it.variantName?.contains(speciesSearch, ignoreCase = true) == true)
+                    speciesSearch.isBlank() || it.commonName.contains(speciesSearch, ignoreCase = true) || (it.commonNameSv?.contains(speciesSearch, ignoreCase = true) == true) || (it.variantName?.contains(speciesSearch, ignoreCase = true) == true) || (it.variantNameSv?.contains(speciesSearch, ignoreCase = true) == true)
                 }
                 ExposedDropdownMenu(
                     expanded = speciesExpanded,
-                    onDismissRequest = { speciesExpanded = false }
+                    onDismissRequest = { speciesExpanded = false; speciesSearch = "" }
                 ) {
                     filtered.forEach { species ->
                         DropdownMenuItem(
-                            text = { Text(if (species.variantName.isNullOrBlank()) species.commonName else "${species.commonName} \u2013 ${species.variantName}") },
+                            text = {
+                                val name = species.commonNameSv ?: species.commonName
+                                val variant = species.variantNameSv ?: species.variantName
+                                Text(if (variant.isNullOrBlank()) name else "$name \u2013 $variant")
+                            },
                             onClick = {
                                 selectedSpeciesId = species.id
                                 speciesSearch = ""

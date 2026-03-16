@@ -46,6 +46,13 @@ class PlantResource(
         return Response.status(Response.Status.CREATED).entity(plant).build()
     }
 
+    @POST
+    @Path("/plants")
+    fun createWithoutBed(request: CreatePlantRequest): Response {
+        val plant = plantService.createPlant(null, request, userId())
+        return Response.status(Response.Status.CREATED).entity(plant).build()
+    }
+
     @PUT
     @Path("/plants/{id}")
     fun update(@PathParam("id") id: Long, request: UpdatePlantRequest) =

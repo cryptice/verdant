@@ -196,6 +196,7 @@ class DevResource(
                 seedCount = def.seedCount,
                 survivingCount = def.surviving,
                 bedId = beds[def.bedIdx].id!!,
+                userId = userId,
             ))
             val pid = plant.id!!
 

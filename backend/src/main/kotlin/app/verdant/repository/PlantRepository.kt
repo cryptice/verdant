@@ -34,7 +34,7 @@ class PlantRepository(private val ds: AgroalDataSource) {
     fun findByUserId(userId: Long, status: PlantStatus? = null): List<Plant> =
         ds.connection.use { conn ->
             val sql = buildString {
-                append("SELECT p.* FROM plant p JOIN bed b ON p.bed_id = b.id JOIN garden g ON b.garden_id = g.id WHERE g.owner_id = ?")
+                append("SELECT p.* FROM plant p WHERE p.user_id = ?")
                 if (status != null) append(" AND p.status = ?")
                 append(" ORDER BY p.id")
             }
@@ -60,8 +60,8 @@ class PlantRepository(private val ds: AgroalDataSource) {
     fun persist(plant: Plant): Plant {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO plant (name, species_id, planted_date, status, seed_count, surviving_count, bed_id, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, now(), now())""",
+                """INSERT INTO plant (name, species_id, planted_date, status, seed_count, surviving_count, bed_id, user_id, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setString(1, plant.name)
@@ -70,7 +70,8 @@ class PlantRepository(private val ds: AgroalDataSource) {
                 ps.setString(4, plant.status.name)
                 ps.setObject(5, plant.seedCount)
                 ps.setObject(6, plant.survivingCount)
-                ps.setLong(7, plant.bedId)
+                ps.setObject(7, plant.bedId)
+                ps.setLong(8, plant.userId)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -106,10 +107,8 @@ class PlantRepository(private val ds: AgroalDataSource) {
                           COUNT(*) as total_count,
                           COUNT(*) FILTER (WHERE p.status != 'REMOVED') as active_count
                    FROM plant p
-                   JOIN bed b ON p.bed_id = b.id
-                   JOIN garden g ON b.garden_id = g.id
                    JOIN species s ON p.species_id = s.id
-                   WHERE g.owner_id = ? AND p.species_id IS NOT NULL
+                   WHERE p.user_id = ? AND p.species_id IS NOT NULL
                    GROUP BY p.species_id, s.common_name, s.scientific_name
                    ORDER BY s.common_name"""
             ).use { ps ->
@@ -133,14 +132,14 @@ class PlantRepository(private val ds: AgroalDataSource) {
     fun speciesLocations(userId: Long, speciesId: Long): List<PlantLocationGroup> =
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """SELECT g.name as garden_name, b.name as bed_name, b.id as bed_id,
+                """SELECT COALESCE(g.name, 'Tray') as garden_name, COALESCE(b.name, 'Tray') as bed_name, p.bed_id as bed_id,
                           p.status, COUNT(*) as count,
                           EXTRACT(YEAR FROM p.created_at)::int as year
                    FROM plant p
-                   JOIN bed b ON p.bed_id = b.id
-                   JOIN garden g ON b.garden_id = g.id
-                   WHERE g.owner_id = ? AND p.species_id = ?
-                   GROUP BY g.name, b.name, b.id, p.status, EXTRACT(YEAR FROM p.created_at)
+                   LEFT JOIN bed b ON p.bed_id = b.id
+                   LEFT JOIN garden g ON b.garden_id = g.id
+                   WHERE p.user_id = ? AND p.species_id = ?
+                   GROUP BY g.name, b.name, p.bed_id, p.status, EXTRACT(YEAR FROM p.created_at)
                    ORDER BY year DESC, g.name, b.name, p.status"""
             ).use { ps ->
                 ps.setLong(1, userId)
@@ -151,7 +150,7 @@ class PlantRepository(private val ds: AgroalDataSource) {
                             PlantLocationGroup(
                                 gardenName = rs.getString("garden_name"),
                                 bedName = rs.getString("bed_name"),
-                                bedId = rs.getLong("bed_id"),
+                                bedId = rs.getObject("bed_id") as? Long ?: 0L,
                                 status = rs.getString("status"),
                                 count = rs.getInt("count"),
                                 year = rs.getInt("year"),
@@ -179,7 +178,8 @@ class PlantRepository(private val ds: AgroalDataSource) {
         status = PlantStatus.valueOf(getString("status")),
         seedCount = getObject("seed_count") as? Int,
         survivingCount = getObject("surviving_count") as? Int,
-        bedId = getLong("bed_id"),
+        bedId = getObject("bed_id") as? Long,
+        userId = getLong("user_id"),
         createdAt = getTimestamp("created_at").toInstant(),
         updatedAt = getTimestamp("updated_at").toInstant(),
     )

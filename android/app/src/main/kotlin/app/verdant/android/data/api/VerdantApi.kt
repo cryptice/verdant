@@ -64,6 +64,9 @@ interface VerdantApi {
     @POST("api/beds/{bedId}/plants")
     suspend fun createPlant(@Path("bedId") bedId: Long, @Body request: CreatePlantRequest): PlantResponse
 
+    @POST("api/plants")
+    suspend fun createPlantWithoutBed(@Body request: CreatePlantRequest): PlantResponse
+
     @PUT("api/plants/{id}")
     suspend fun updatePlant(@Path("id") id: Long, @Body request: UpdatePlantRequest): PlantResponse
 

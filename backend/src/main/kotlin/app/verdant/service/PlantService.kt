@@ -27,7 +27,7 @@ class PlantService(
 
     private fun checkPlantOwnership(plantId: Long, userId: Long): Plant {
         val plant = plantRepository.findById(plantId) ?: throw NotFoundException("Plant not found")
-        checkBedOwnership(plant.bedId, userId)
+        if (plant.userId != userId) throw ForbiddenException()
         return plant
     }
 
@@ -49,8 +49,8 @@ class PlantService(
         return checkPlantOwnership(plantId, userId).toResponse()
     }
 
-    fun createPlant(bedId: Long, request: CreatePlantRequest, userId: Long): PlantResponse {
-        checkBedOwnership(bedId, userId)
+    fun createPlant(bedId: Long?, request: CreatePlantRequest, userId: Long): PlantResponse {
+        if (bedId != null) checkBedOwnership(bedId, userId)
         val plant = plantRepository.persist(
             Plant(
                 name = request.name,
@@ -60,6 +60,7 @@ class PlantService(
                 seedCount = request.seedCount,
                 survivingCount = request.survivingCount,
                 bedId = bedId,
+                userId = userId,
             )
         )
         return plant.toResponse()

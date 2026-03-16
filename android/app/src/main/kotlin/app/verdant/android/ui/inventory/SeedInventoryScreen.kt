@@ -3,9 +3,9 @@ package app.verdant.android.ui.inventory
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material3.*
@@ -17,6 +17,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import app.verdant.android.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -69,9 +72,16 @@ class SeedInventoryViewModel @Inject constructor(
 @Composable
 fun SeedInventoryScreen(
     onBack: () -> Unit,
+    onAddSeeds: () -> Unit = {},
     viewModel: SeedInventoryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.refresh()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -83,6 +93,11 @@ fun SeedInventoryScreen(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = onAddSeeds) {
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_seeds))
+            }
         }
     ) { padding ->
         when {
@@ -116,12 +131,11 @@ fun SeedInventoryScreen(
             }
             else -> {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(vertical = 16.dp)
+                    modifier = Modifier.fillMaxSize().padding(padding)
                 ) {
                     items(uiState.items, key = { it.id }) { item ->
-                        SeedInventoryCard(item, onDelete = { viewModel.delete(item.id) })
+                        SeedInventoryRow(item, onDelete = { viewModel.delete(item.id) })
+                        HorizontalDivider()
                     }
                 }
             }
@@ -130,7 +144,7 @@ fun SeedInventoryScreen(
 }
 
 @Composable
-private fun SeedInventoryCard(
+private fun SeedInventoryRow(
     item: SeedInventoryResponse,
     onDelete: () -> Unit,
 ) {
@@ -152,38 +166,35 @@ private fun SeedInventoryCard(
         )
     }
 
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(item.speciesName, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-                Spacer(Modifier.height(4.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(item.speciesName, fontSize = 15.sp)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     "${item.quantity} seeds",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.primary
                 )
                 item.collectionDate?.let {
                     Text(stringResource(R.string.collected_label, it), fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                 }
                 item.expirationDate?.let {
                     Text(stringResource(R.string.expires_label, it), fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                 }
             }
-            IconButton(onClick = { showDeleteConfirm = true }) {
-                Icon(
-                    Icons.Default.Delete, stringResource(R.string.delete),
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                )
-            }
+        }
+        IconButton(onClick = { showDeleteConfirm = true }) {
+            Icon(
+                Icons.Default.Delete, stringResource(R.string.delete),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+            )
         }
     }
 }

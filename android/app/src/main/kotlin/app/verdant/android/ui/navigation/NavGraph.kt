@@ -168,18 +168,6 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                     modifier = Modifier.padding(horizontal = 12.dp)
                 )
                 NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.scheduled_tasks)) },
-                    icon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },
-                    selected = currentRoute == Screen.TaskList.route,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate(Screen.TaskList.route) {
-                            popUpTo(Screen.MyWorld.route)
-                        }
-                    },
-                    modifier = Modifier.padding(horizontal = 12.dp)
-                )
-                NavigationDrawerItem(
                     label = { Text(stringResource(R.string.seed_inventory)) },
                     icon = { Icon(Icons.Default.Inventory, contentDescription = null) },
                     selected = currentRoute == Screen.SeedInventory.route,
@@ -264,7 +252,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
         NavHost(
             navController = navController,
             startDestination = Screen.Splash.route,
-            modifier = Modifier.padding(paddingValues)
+            modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding())
         ) {
             composable(Screen.Splash.route) {
                 SplashScreen(
@@ -355,7 +343,10 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                 )
             }
             composable(Screen.SeedInventory.route) {
-                SeedInventoryScreen(onBack = { navController.popBackStack() })
+                SeedInventoryScreen(
+                    onBack = { navController.popBackStack() },
+                    onAddSeeds = { navController.navigate(Screen.AddSeeds.route) }
+                )
             }
 
             // ── Planted Species ──

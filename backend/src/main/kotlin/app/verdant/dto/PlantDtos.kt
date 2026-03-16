@@ -13,7 +13,7 @@ data class PlantResponse(
     val status: PlantStatus,
     val seedCount: Int?,
     val survivingCount: Int?,
-    val bedId: Long,
+    val bedId: Long?,
     val createdAt: Instant,
     val updatedAt: Instant
 )

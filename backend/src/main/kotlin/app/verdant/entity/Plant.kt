@@ -11,7 +11,8 @@ data class Plant(
     val status: PlantStatus = PlantStatus.SEEDED,
     val seedCount: Int? = null,
     val survivingCount: Int? = null,
-    val bedId: Long,
+    val bedId: Long? = null,
+    val userId: Long,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),
 )

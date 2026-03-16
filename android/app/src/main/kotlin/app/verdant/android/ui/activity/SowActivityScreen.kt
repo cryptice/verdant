@@ -73,21 +73,23 @@ class SowActivityViewModel @Inject constructor(
         }
     }
 
-    fun sow(bedId: Long, speciesId: Long, name: String, seedCount: Int?, notes: String?, imageBase64: String?, seedBatchId: Long?) {
+    fun sow(bedId: Long?, speciesId: Long, name: String, seedCount: Int?, notes: String?, imageBase64: String?, seedBatchId: Long?) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val plant = repo.createPlant(
-                    bedId,
-                    CreatePlantRequest(
-                        name = name,
-                        speciesId = speciesId,
-                        plantedDate = LocalDate.now().toString(),
-                        status = "SEEDED",
-                        seedCount = seedCount,
-                        survivingCount = seedCount,
-                    )
+                val request = CreatePlantRequest(
+                    name = name,
+                    speciesId = speciesId,
+                    plantedDate = LocalDate.now().toString(),
+                    status = "SEEDED",
+                    seedCount = seedCount,
+                    survivingCount = seedCount,
                 )
+                val plant = if (bedId != null) {
+                    repo.createPlant(bedId, request)
+                } else {
+                    repo.createPlantWithoutBed(request)
+                }
                 // Record seeded event
                 repo.addPlantEvent(
                     plant.id,
@@ -128,6 +130,7 @@ fun SowActivityScreen(
 
     var selectedSpeciesId by remember { mutableStateOf<Long?>(viewModel.preselectedSpeciesId) }
     var selectedBedId by remember { mutableStateOf<Long?>(null) }
+    var sowInTray by remember { mutableStateOf(false) }
     var selectedSeedBatchId by remember { mutableStateOf<Long?>(null) }
     var plantName by remember { mutableStateOf("") }
     var seedCount by remember { mutableStateOf("") }
@@ -278,30 +281,45 @@ fun SowActivityScreen(
                 )
             }
 
-            // Bed picker
-            Text(stringResource(R.string.bed_required), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            ExposedDropdownMenuBox(
-                expanded = bedExpanded,
-                onExpandedChange = { bedExpanded = it }
+            // Tray toggle
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                OutlinedTextField(
-                    value = uiState.beds.find { it.id == selectedBedId }?.let { "${it.gardenName} - ${it.name}" } ?: "",
-                    onValueChange = {},
-                    readOnly = true,
-                    placeholder = { Text(stringResource(R.string.select_bed)) },
-                    modifier = Modifier.fillMaxWidth().menuAnchor(),
-                    shape = RoundedCornerShape(12.dp),
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(bedExpanded) }
+                Text(stringResource(R.string.sow_in_tray), fontSize = 16.sp)
+                Switch(
+                    checked = sowInTray,
+                    onCheckedChange = { sowInTray = it; if (it) selectedBedId = null }
                 )
-                ExposedDropdownMenu(
+            }
+
+            // Bed picker (hidden when sowing in tray)
+            if (!sowInTray) {
+                Text(stringResource(R.string.bed_required), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                ExposedDropdownMenuBox(
                     expanded = bedExpanded,
-                    onDismissRequest = { bedExpanded = false }
+                    onExpandedChange = { bedExpanded = it }
                 ) {
-                    uiState.beds.forEach { bed ->
-                        DropdownMenuItem(
-                            text = { Text("${bed.gardenName} - ${bed.name}") },
-                            onClick = { selectedBedId = bed.id; bedExpanded = false }
-                        )
+                    OutlinedTextField(
+                        value = uiState.beds.find { it.id == selectedBedId }?.let { "${it.gardenName} - ${it.name}" } ?: "",
+                        onValueChange = {},
+                        readOnly = true,
+                        placeholder = { Text(stringResource(R.string.select_bed)) },
+                        modifier = Modifier.fillMaxWidth().menuAnchor(),
+                        shape = RoundedCornerShape(12.dp),
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(bedExpanded) }
+                    )
+                    ExposedDropdownMenu(
+                        expanded = bedExpanded,
+                        onDismissRequest = { bedExpanded = false }
+                    ) {
+                        uiState.beds.forEach { bed ->
+                            DropdownMenuItem(
+                                text = { Text("${bed.gardenName} - ${bed.name}") },
+                                onClick = { selectedBedId = bed.id; bedExpanded = false }
+                            )
+                        }
                     }
                 }
             }
@@ -341,7 +359,7 @@ fun SowActivityScreen(
             Button(
                 onClick = {
                     viewModel.sow(
-                        bedId = selectedBedId!!,
+                        bedId = selectedBedId,
                         speciesId = selectedSpeciesId!!,
                         name = plantName,
                         seedCount = seedCount.toIntOrNull(),
@@ -352,7 +370,7 @@ fun SowActivityScreen(
                 },
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(12.dp),
-                enabled = selectedSpeciesId != null && selectedBedId != null && plantName.isNotBlank() && !uiState.isLoading
+                enabled = selectedSpeciesId != null && (sowInTray || selectedBedId != null) && plantName.isNotBlank() && !uiState.isLoading
             ) {
                 if (uiState.isLoading) {
                     CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)

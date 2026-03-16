@@ -77,7 +77,9 @@ class SpeciesListViewModel @Inject constructor(
 }
 
 private fun SpeciesResponse.displayName(): String {
-    return if (variantName.isNullOrBlank()) commonName else "$commonName \u2013 $variantName"
+    val name = commonNameSv ?: commonName
+    val variant = variantNameSv ?: variantName
+    return if (variant.isNullOrBlank()) name else "$name \u2013 $variant"
 }
 
 private fun SpeciesResponse.matchesQuery(query: String): Boolean {
@@ -260,25 +262,17 @@ fun SpeciesListScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .horizontalScroll(scrollState)
-                                    .clickable { onEditSpecies(species.id) }
+                                    .then(if (!species.isSystem) Modifier.clickable { onEditSpecies(species.id) } else Modifier)
                                     .padding(horizontal = 16.dp, vertical = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Column(Modifier.width(150.dp)) {
-                                    Text(
-                                        species.displayName(),
-                                        fontSize = 14.sp,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    species.commonNameSv?.let {
-                                        val svDisplay = buildString {
-                                            append(it)
-                                            species.variantNameSv?.let { v -> append(" \u2013 $v") }
-                                        }
-                                        Text(svDisplay, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                    }
-                                }
+                                Text(
+                                    species.displayName(),
+                                    fontSize = 14.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.width(150.dp)
+                                )
                                 Text(
                                     species.scientificName ?: "",
                                     fontSize = 14.sp,

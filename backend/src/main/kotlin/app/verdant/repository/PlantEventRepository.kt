@@ -84,10 +84,8 @@ class PlantEventRepository(private val ds: AgroalDataSource) {
                    FROM plant_event pe
                    JOIN plant p ON pe.plant_id = p.id
                    JOIN species s ON p.species_id = s.id
-                   JOIN bed b ON p.bed_id = b.id
-                   JOIN garden g ON b.garden_id = g.id
                    WHERE pe.event_type = 'HARVESTED'
-                     AND g.owner_id = ?
+                     AND p.user_id = ?
                    GROUP BY s.common_name
                    ORDER BY total_weight DESC"""
             ).use { ps ->
