@@ -3,6 +3,7 @@ steps:
     args:
       - '--destination=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}'
       - '--cache=true'
+      - '--cache-repo=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}/cache'
       - '--cache-ttl=168h'
       - '--custom-platform=linux/amd64'
 
@@ -21,8 +22,7 @@ steps:
       - '--cpu=1'
       - '--min-instances=0'
       - '--max-instances=3'
-      - '--clear-cloudsql-instances'
-      - '--add-cloudsql-instances=${_SQL_CONNECTION}'
+      - '--set-cloudsql-instances=${_SQL_CONNECTION}'
       - '--set-env-vars=^##^DB_USERNAME=verdant##DB_URL=jdbc:postgresql:///verdant?cloudSqlInstance=${_SQL_CONNECTION}&socketFactory=com.google.cloud.sql.postgres.SocketFactory'
       - '--set-secrets=DB_PASSWORD=verdant-db-password:latest,GEMINI_API_KEY=verdant-gemini-key:latest,ADMIN_PASSWORD=verdant-admin-password:latest'
 
