@@ -14,7 +14,7 @@ buildscript {
 
 @Suppress("UNCHECKED_CAST")
 val envYaml: Map<String, Any> = run {
-    val envFile = rootProject.file("../.env.yaml")
+    val envFile = rootProject.file(".env.yaml")
     if (envFile.exists()) {
         val yaml = org.yaml.snakeyaml.Yaml()
         yaml.load<Map<String, Any>>(envFile.readText()) ?: emptyMap()

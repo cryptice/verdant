@@ -436,12 +436,12 @@ private fun LocationPickerStep(
                     },
                     containerColor = MaterialTheme.colorScheme.primary
                 ) { Icon(Icons.Default.ArrowForward, stringResource(R.string.next), tint = MaterialTheme.colorScheme.onPrimary) }
-                TextButton(onClick = {
-                    viewModel.gardenBoundary.clear()
-                    viewModel.currentStep = 2
-                }) {
-                    Text(stringResource(R.string.skip), fontSize = 12.sp)
-                }
+            }
+            TextButton(onClick = {
+                viewModel.gardenBoundary.clear()
+                viewModel.currentStep = 2
+            }) {
+                Text(stringResource(R.string.skip), fontSize = 12.sp)
             }
         }
     }

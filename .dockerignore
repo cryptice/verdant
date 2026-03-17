@@ -1,10 +1,11 @@
 backend/.gradle/
 backend/build/
 backend/.kotlin/
+backend/.env*
 admin/node_modules/
 admin/dist/
 android/
 db-backups/
 secrets/
-*.env*
+deploy/
 .git/
