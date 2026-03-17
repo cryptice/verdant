@@ -33,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [token, logout])
 
   const login = useCallback((t: string, u: UserResponse) => {
+    localStorage.removeItem('admin_token')
     localStorage.setItem('verdant_token', t)
     setToken(t)
     setUser(u)

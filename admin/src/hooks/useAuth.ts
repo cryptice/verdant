@@ -12,6 +12,7 @@ export function useAuth() {
   })
 
   const login = useCallback((token: string) => {
+    localStorage.removeItem('verdant_token')
     localStorage.setItem('admin_token', token)
     setAuth({ token, isAuthenticated: true })
   }, [])
