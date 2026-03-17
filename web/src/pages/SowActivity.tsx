@@ -114,7 +114,7 @@ export function SowActivity() {
 
   return (
     <div className="max-w-lg">
-      <PageHeader title={t('sow.title')} back breadcrumbs={breadcrumbs} />
+      <PageHeader title={t('sow.title')} breadcrumbs={breadcrumbs} />
       <div className="form-card">
 
         <div className="relative">

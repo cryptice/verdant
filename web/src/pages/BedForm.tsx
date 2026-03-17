@@ -31,7 +31,7 @@ export function BedForm() {
 
   return (
     <div className="max-w-lg">
-      <PageHeader title={t('bed.newBedTitle')} back breadcrumbs={breadcrumbs} />
+      <PageHeader title={t('bed.newBedTitle')} breadcrumbs={breadcrumbs} />
       <div className="form-card">
         <div>
           <label className="field-label">{t('common.nameLabel')}</label>

@@ -37,7 +37,6 @@ export function PlantedSpeciesDetail() {
     <div>
       <PageHeader
         title={summary?.speciesName ?? t('species.title')}
-        back
         breadcrumbs={[{ label: t('nav.plants'), to: '/plants' }] satisfies BreadcrumbItem[]}
       />
       <div className="px-4 py-4 space-y-4">

@@ -1,35 +1,34 @@
-import { useNavigate } from 'react-router-dom'
 import { Breadcrumb, type BreadcrumbItem } from './Breadcrumb'
 
 interface Props {
   title: string
-  back?: boolean
   breadcrumbs?: BreadcrumbItem[]
+  editAction?: () => void
   action?: { label: string; onClick: () => void }
 }
 
-export function PageHeader({ title, back, breadcrumbs, action }: Props) {
-  const navigate = useNavigate()
+export function PageHeader({ title, breadcrumbs, editAction, action }: Props) {
   return (
     <div className="mb-6">
       {breadcrumbs && breadcrumbs.length > 0 && (
         <Breadcrumb items={breadcrumbs} />
       )}
       <div className="flex items-center gap-2">
-        {back && (
+        <h1 className="text-xl font-semibold text-text-primary">{title}</h1>
+        {editAction && (
           <button
-            onClick={() => navigate(-1)}
-            className="text-text-secondary hover:text-text-primary transition-colors mr-1 flex items-center"
-            aria-label="Back"
+            onClick={editAction}
+            className="text-text-muted hover:text-text-secondary transition-colors p-0.5 cursor-pointer"
+            aria-label="Edit"
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="10 12 6 8 10 4" />
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9.5 2.5 L11.5 4.5 L4.5 11.5 L2 12 L2.5 9.5 Z" />
+              <line x1="8" y1="4" x2="10" y2="6" />
             </svg>
           </button>
         )}
-        <h1 className="text-xl font-semibold text-text-primary flex-1">{title}</h1>
         {action && (
-          <button onClick={action.onClick} className="btn-primary">
+          <button onClick={action.onClick} className="btn-primary ml-auto">
             {action.label}
           </button>
         )}

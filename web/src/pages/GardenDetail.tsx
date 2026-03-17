@@ -55,12 +55,11 @@ export function GardenDetail() {
   const breadcrumbs: BreadcrumbItem[] = [{ label: t('nav.myWorld'), to: '/' }]
 
   return (
-    <div>
+    <div className="flex flex-col flex-1">
       <PageHeader
         title={garden.name}
-        back
         breadcrumbs={breadcrumbs}
-        action={{ label: t('common.edit'), onClick: () => { setEditName(garden.name); setEditDesc(garden.description ?? ''); setEditEmoji(garden.emoji ?? ''); setEditing(true) } }}
+        editAction={() => { setEditName(garden.name); setEditDesc(garden.description ?? ''); setEditEmoji(garden.emoji ?? ''); setEditing(true) }}
       />
 
       <div className="px-4 py-4 space-y-4">
@@ -68,10 +67,7 @@ export function GardenDetail() {
 
         <div className="flex items-center justify-between">
           <h2 className="font-semibold">{t('garden.beds')}</h2>
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigate(`/garden/${gardenId}/bed/new`)} className="btn-primary text-sm">{t('garden.newBed')}</button>
-            <button onClick={() => setShowDelete(true)} className="text-error text-sm">{t('garden.deleteGarden')}</button>
-          </div>
+          <button onClick={() => navigate(`/garden/${gardenId}/bed/new`)} className="btn-primary text-sm">{t('garden.newBed')}</button>
         </div>
 
         {beds && beds.length === 0 && (
@@ -84,6 +80,20 @@ export function GardenDetail() {
             {bed.description && <p className="text-sm text-text-secondary mt-1">{bed.description}</p>}
           </Link>
         ))}
+      </div>
+
+      <div className="mt-auto px-4 pb-4 pt-6">
+        <div className="rounded-lg border border-error/25 overflow-hidden">
+          <div className="px-4 py-2 bg-error/5 border-b border-error/25">
+            <p className="text-xs font-semibold text-error uppercase tracking-wide">{t('common.dangerZone')}</p>
+          </div>
+          <div className="px-4 py-3 flex items-center justify-between">
+            <p className="text-sm text-text-secondary">{t('garden.deleteGardenConfirm')}</p>
+            <button onClick={() => setShowDelete(true)} className="ml-4 shrink-0 text-sm font-medium text-error hover:underline">
+              {t('garden.deleteGarden')}
+            </button>
+          </div>
+        </div>
       </div>
 
       <Dialog open={editing} onClose={() => setEditing(false)} title={t('garden.editGardenTitle')} actions={

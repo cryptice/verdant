@@ -30,7 +30,7 @@ export function GardenForm() {
 
   return (
     <div className="max-w-lg">
-      <PageHeader title={t('garden.newGardenTitle')} back breadcrumbs={breadcrumbs} />
+      <PageHeader title={t('garden.newGardenTitle')} breadcrumbs={breadcrumbs} />
       <div className="form-card">
         <div>
           <label className="field-label">{t('common.iconLabel')}</label>

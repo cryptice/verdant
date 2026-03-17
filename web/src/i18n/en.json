@@ -17,6 +17,7 @@
     "saving": "Saving...",
     "creating": "Creating...",
     "add": "Add",
+    "dangerZone": "Danger zone",
     "optional": "Optional",
     "nameLabel": "Name *",
     "descriptionLabel": "Description",

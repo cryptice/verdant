@@ -98,7 +98,7 @@ export function PlantDetail() {
 
   return (
     <div>
-      <PageHeader title={plant.name} back breadcrumbs={breadcrumbs} />
+      <PageHeader title={plant.name} breadcrumbs={breadcrumbs} />
 
       <div className="px-4 py-4 space-y-4">
         <div className="card">
