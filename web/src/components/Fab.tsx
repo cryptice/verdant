@@ -2,7 +2,7 @@ export function Fab({ onClick, label = '+' }: { onClick: () => void; label?: str
   return (
     <button
       onClick={onClick}
-      className="fixed bottom-24 right-4 max-w-2xl w-14 h-14 rounded-full bg-green-primary text-white text-2xl font-bold shadow-lg hover:bg-green-dark transition-colors flex items-center justify-center z-10"
+      className="fixed bottom-6 right-6 w-10 h-10 rounded-lg bg-accent text-white text-xl font-medium shadow-md hover:bg-accent-hover transition-colors flex items-center justify-center z-10"
       aria-label={label}
     >
       {label}

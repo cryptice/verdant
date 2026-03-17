@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
@@ -17,6 +18,7 @@ export function PlantDetail() {
   const plantId = Number(id)
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const { t } = useTranslation()
 
   const { data: plant, error, isLoading, refetch } = useQuery({
     queryKey: ['plant', plantId],
@@ -65,7 +67,7 @@ export function PlantDetail() {
     },
   })
 
-  if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-4 border-green-primary border-t-transparent rounded-full" /></div>
+  if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
   if (!plant) return null
 
@@ -84,92 +86,106 @@ export function PlantDetail() {
           <div className="flex gap-2 mt-3 flex-wrap">
             <StatusBadge status={plant.status} />
             {plant.seedCount != null && (
-              <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-cream text-text-secondary">
-                {plant.seedCount} seeds
+              <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface text-text-secondary">
+                {t('plant.seedCount', { count: plant.seedCount })}
               </span>
             )}
             {plant.survivingCount != null && (
-              <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-cream text-text-secondary">
-                {plant.survivingCount} alive
+              <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface text-text-secondary">
+                {t('plant.aliveCount', { count: plant.survivingCount })}
               </span>
             )}
           </div>
         </div>
 
         <div className="flex items-center justify-between">
-          <h2 className="font-bold text-lg">Timeline</h2>
-          <button onClick={() => setShowDelete(true)} className="text-error text-sm font-medium">Delete plant</button>
+          <h2 className="font-bold text-lg">{t('plant.timeline')}</h2>
+          <button onClick={() => setShowDelete(true)} className="text-error text-sm font-medium">{t('plant.deletePlant')}</button>
         </div>
 
         {events && events.length === 0 && (
           <div className="card text-center py-4">
-            <p className="text-text-secondary text-sm">No events yet</p>
+            <p className="text-text-secondary text-sm">{t('plant.noEventsYet')}</p>
           </div>
         )}
 
-        {events?.map(ev => (
+        {[...(events ?? [])].reverse().map(ev => (
           <div key={ev.id} className="card">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2">
                 <span>{eventIcons[ev.eventType] ?? '📌'}</span>
-                <span className="font-medium text-sm">{ev.eventType.replace('_', ' ')}</span>
+                <span className="font-medium text-sm">{t(`eventType.${ev.eventType}`, { defaultValue: ev.eventType.replace(/_/g, ' ') })}</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-xs text-text-secondary">{ev.eventDate}</span>
-                <button onClick={() => setDeleteEventId(ev.id)} className="text-error text-xs">Delete</button>
+                <button onClick={() => setDeleteEventId(ev.id)} className="text-error text-xs">{t('common.delete')}</button>
               </div>
             </div>
             <div className="mt-2 text-sm space-y-1">
-              {ev.plantCount != null && <p>Count: {ev.plantCount}</p>}
-              {ev.weightGrams != null && <p>Weight: {ev.weightGrams}g</p>}
-              {ev.quantity != null && <p>Quantity: {ev.quantity}</p>}
+              {ev.plantCount != null && <p>{t('plant.countField')} {ev.plantCount}</p>}
+              {ev.weightGrams != null && <p>{t('plant.weightField')} {ev.weightGrams}g</p>}
+              {ev.quantity != null && <p>{t('plant.quantityField')} {ev.quantity}</p>}
               {ev.notes && <p className="text-text-secondary">{ev.notes}</p>}
               {ev.imageUrl && <img src={ev.imageUrl} alt="" className="rounded-lg mt-2 max-h-40 object-cover" />}
             </div>
           </div>
         ))}
 
-        <button onClick={() => setShowAddEvent(true)} className="btn-primary w-full">Add Event</button>
+        <button onClick={() => setShowAddEvent(true)} className="btn-primary w-full">{t('plant.addEvent')}</button>
       </div>
 
-      <Dialog open={showAddEvent} onClose={() => setShowAddEvent(false)} title="Add Event" actions={
+      <Dialog open={showAddEvent} onClose={() => setShowAddEvent(false)} title={t('plant.addEventTitle')} actions={
         <>
-          <button onClick={() => setShowAddEvent(false)} className="px-4 py-2 text-sm text-text-secondary">Cancel</button>
+          <button onClick={() => setShowAddEvent(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
           <button onClick={() => addEventMut.mutate()} disabled={addEventMut.isPending} className="btn-primary text-sm">
-            {addEventMut.isPending ? 'Saving...' : 'Save'}
+            {addEventMut.isPending ? t('common.saving') : t('common.save')}
           </button>
         </>
       }>
-        <div className="space-y-3">
-          <select value={eventType} onChange={e => setEventType(e.target.value)} className="w-full border border-cream-dark rounded-xl px-3 py-2 bg-cream">
-            {eventTypes.map(t => <option key={t} value={t}>{t.replace('_', ' ')}</option>)}
-          </select>
+        <div className="space-y-4">
+          <div>
+            <label className="field-label">{t('plant.eventTypeLabel')}</label>
+            <select value={eventType} onChange={e => setEventType(e.target.value)} className="input">
+              {eventTypes.map(tp => (
+                <option key={tp} value={tp}>{t(`eventType.${tp}`, { defaultValue: tp.replace(/_/g, ' ') })}</option>
+              ))}
+            </select>
+          </div>
           {showCount && (
-            <input type="number" value={eventCount} onChange={e => setEventCount(e.target.value)} placeholder="Count" className="w-full border border-cream-dark rounded-xl px-3 py-2 bg-cream" />
+            <div>
+              <label className="field-label">{t('plant.countLabel')}</label>
+              <input type="number" value={eventCount} onChange={e => setEventCount(e.target.value)} placeholder="e.g. 3" className="input" />
+            </div>
           )}
           {showWeight && (
-            <input type="number" value={eventWeight} onChange={e => setEventWeight(e.target.value)} placeholder="Weight (grams)" className="w-full border border-cream-dark rounded-xl px-3 py-2 bg-cream" />
+            <div>
+              <label className="field-label">{t('plant.weightGrams')}</label>
+              <input type="number" value={eventWeight} onChange={e => setEventWeight(e.target.value)} placeholder="e.g. 250" className="input" />
+            </div>
           )}
-          <textarea value={eventNotes} onChange={e => setEventNotes(e.target.value)} placeholder="Notes (optional)" rows={2} className="w-full border border-cream-dark rounded-xl px-3 py-2 bg-cream" />
+          <div>
+            <label className="field-label">{t('common.notesLabel')}</label>
+            <textarea value={eventNotes} onChange={e => setEventNotes(e.target.value)} placeholder={t('common.optional')} rows={2} className="input" />
+          </div>
         </div>
       </Dialog>
 
-      <Dialog open={showDelete} onClose={() => setShowDelete(false)} title="Delete Plant" actions={
+      <Dialog open={showDelete} onClose={() => setShowDelete(false)} title={t('plant.deletePlantTitle')} actions={
         <>
-          <button onClick={() => setShowDelete(false)} className="px-4 py-2 text-sm text-text-secondary">Cancel</button>
-          <button onClick={() => deletePlantMut.mutate()} className="px-4 py-2 text-sm text-error font-semibold">Delete</button>
+          <button onClick={() => setShowDelete(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button onClick={() => deletePlantMut.mutate()} className="px-4 py-2 text-sm text-error font-semibold">{t('common.delete')}</button>
         </>
       }>
-        <p className="text-text-secondary">Are you sure you want to delete this plant and all its events?</p>
+        <p className="text-text-secondary">{t('plant.deletePlantConfirm')}</p>
       </Dialog>
 
-      <Dialog open={deleteEventId !== null} onClose={() => setDeleteEventId(null)} title="Delete Event" actions={
+      <Dialog open={deleteEventId !== null} onClose={() => setDeleteEventId(null)} title={t('plant.deleteEventTitle')} actions={
         <>
-          <button onClick={() => setDeleteEventId(null)} className="px-4 py-2 text-sm text-text-secondary">Cancel</button>
-          <button onClick={() => deleteEventId && deleteEventMut.mutate(deleteEventId)} className="px-4 py-2 text-sm text-error font-semibold">Delete</button>
+          <button onClick={() => setDeleteEventId(null)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button onClick={() => deleteEventId && deleteEventMut.mutate(deleteEventId)} className="px-4 py-2 text-sm text-error font-semibold">{t('common.delete')}</button>
         </>
       }>
-        <p className="text-text-secondary">Remove this event?</p>
+        <p className="text-text-secondary">{t('plant.deleteEventConfirm')}</p>
       </Dialog>
     </div>
   )

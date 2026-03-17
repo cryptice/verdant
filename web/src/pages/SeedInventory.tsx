@@ -1,13 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { api, type SeedInventoryResponse } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
-import { Fab } from '../components/Fab'
 import { Dialog } from '../components/Dialog'
 
 export function SeedInventory() {
   const qc = useQueryClient()
+  const { t } = useTranslation()
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['seed-inventory'],
     queryFn: () => api.inventory.list(),
@@ -40,15 +41,15 @@ export function SeedInventory() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['seed-inventory'] }); setDeleteItem(null) },
   })
 
-  if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-4 border-green-primary border-t-transparent rounded-full" /></div>
+  if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
 
   return (
     <div>
-      <PageHeader title="Seed Inventory" />
+      <PageHeader title={t('seeds.title')} action={{ label: t('seeds.addSeeds'), onClick: () => setShowAdd(true) }} />
       <div className="px-4 py-4 space-y-3">
         {data && data.length === 0 && (
-          <p className="text-text-secondary text-sm text-center py-4">No seed batches. Tap + to add one.</p>
+          <p className="text-text-secondary text-sm text-center py-4">{t('seeds.noBatches')}</p>
         )}
 
         {data?.map(item => (
@@ -56,51 +57,62 @@ export function SeedInventory() {
             <div>
               <p className="font-semibold text-sm">{item.speciesName}</p>
               <p className="text-xs text-text-secondary">
-                {item.quantity} seeds
-                {item.collectionDate && ` · Collected ${item.collectionDate}`}
-                {item.expirationDate && ` · Expires ${item.expirationDate}`}
+                {t('seeds.seedCount', { count: item.quantity })}
+                {item.collectionDate && ` · ${t('seeds.collected', { date: item.collectionDate })}`}
+                {item.expirationDate && ` · ${t('seeds.expires', { date: item.expirationDate })}`}
               </p>
             </div>
-            <button onClick={() => setDeleteItem(item)} className="text-error text-xs">Delete</button>
+            <button onClick={() => setDeleteItem(item)} className="text-error text-xs">{t('common.delete')}</button>
           </div>
         ))}
       </div>
 
-      <Dialog open={showAdd} onClose={() => setShowAdd(false)} title="Add Seeds" actions={
+      <Dialog open={showAdd} onClose={() => setShowAdd(false)} title={t('seeds.addSeedsTitle')} actions={
         <>
-          <button onClick={() => setShowAdd(false)} className="px-4 py-2 text-sm text-text-secondary">Cancel</button>
+          <button onClick={() => setShowAdd(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
           <button
             onClick={() => createMut.mutate()}
             disabled={!addSpeciesId || !addQuantity || createMut.isPending}
             className="btn-primary text-sm"
           >
-            {createMut.isPending ? 'Adding...' : 'Add'}
+            {createMut.isPending ? t('species.adding') : t('common.add')}
           </button>
         </>
       }>
-        <div className="space-y-3">
-          <select value={addSpeciesId} onChange={e => setAddSpeciesId(e.target.value)} className="w-full border border-cream-dark rounded-xl px-3 py-2 bg-cream">
-            <option value="">Select species...</option>
-            {species?.map(s => (
-              <option key={s.id} value={s.id}>{s.commonName}{s.variantName ? ` — ${s.variantName}` : ''}</option>
-            ))}
-          </select>
-          <input type="number" value={addQuantity} onChange={e => setAddQuantity(e.target.value)} placeholder="Quantity" className="w-full border border-cream-dark rounded-xl px-3 py-2 bg-cream" />
-          <input type="date" value={addCollection} onChange={e => setAddCollection(e.target.value)} placeholder="Collection date" className="w-full border border-cream-dark rounded-xl px-3 py-2 bg-cream" />
-          <input type="date" value={addExpiration} onChange={e => setAddExpiration(e.target.value)} placeholder="Expiration date" className="w-full border border-cream-dark rounded-xl px-3 py-2 bg-cream" />
+        <div className="space-y-4">
+          <div>
+            <label className="field-label">{t('common.speciesLabel')}</label>
+            <select value={addSpeciesId} onChange={e => setAddSpeciesId(e.target.value)} className="input">
+              <option value="">{t('common.selectSpecies')}</option>
+              {species?.map(s => (
+                <option key={s.id} value={s.id}>{s.commonName}{s.variantName ? ` — ${s.variantName}` : ''}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="field-label">{t('seeds.quantityLabel')}</label>
+            <input type="number" value={addQuantity} onChange={e => setAddQuantity(e.target.value)} placeholder="e.g. 50" className="input" />
+          </div>
+          <div>
+            <label className="field-label">{t('seeds.collectionDate')}</label>
+            <input type="date" value={addCollection} onChange={e => setAddCollection(e.target.value)} className="input" />
+          </div>
+          <div>
+            <label className="field-label">{t('seeds.expirationDate')}</label>
+            <input type="date" value={addExpiration} onChange={e => setAddExpiration(e.target.value)} className="input" />
+          </div>
         </div>
       </Dialog>
 
-      <Dialog open={deleteItem !== null} onClose={() => setDeleteItem(null)} title="Delete Batch" actions={
+      <Dialog open={deleteItem !== null} onClose={() => setDeleteItem(null)} title={t('seeds.deleteBatchTitle')} actions={
         <>
-          <button onClick={() => setDeleteItem(null)} className="px-4 py-2 text-sm text-text-secondary">Cancel</button>
-          <button onClick={() => deleteItem && deleteMut.mutate(deleteItem.id)} className="px-4 py-2 text-sm text-error font-semibold">Delete</button>
+          <button onClick={() => setDeleteItem(null)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button onClick={() => deleteItem && deleteMut.mutate(deleteItem.id)} className="px-4 py-2 text-sm text-error font-semibold">{t('common.delete')}</button>
         </>
       }>
-        <p className="text-text-secondary">Delete this seed batch?</p>
+        <p className="text-text-secondary">{t('seeds.deleteBatchConfirm')}</p>
       </Dialog>
 
-      <Fab onClick={() => setShowAdd(true)} />
     </div>
   )
 }

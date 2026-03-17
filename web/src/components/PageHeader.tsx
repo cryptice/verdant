@@ -9,18 +9,24 @@ interface Props {
 export function PageHeader({ title, back, action }: Props) {
   const navigate = useNavigate()
   return (
-    <header className="sticky top-0 z-10 bg-cream-dark px-4 py-3 flex items-center gap-3">
+    <div className="flex items-center gap-2 mb-6">
       {back && (
-        <button onClick={() => navigate(-1)} className="text-text-primary text-xl leading-none">
-          ←
+        <button
+          onClick={() => navigate(-1)}
+          className="text-text-secondary hover:text-text-primary transition-colors mr-1 flex items-center"
+          aria-label="Back"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="10 12 6 8 10 4" />
+          </svg>
         </button>
       )}
-      <h1 className="text-lg font-bold flex-1">{title}</h1>
+      <h1 className="text-xl font-semibold text-text-primary flex-1">{title}</h1>
       {action && (
-        <button onClick={action.onClick} className="text-green-primary font-semibold text-sm">
+        <button onClick={action.onClick} className="btn-primary">
           {action.label}
         </button>
       )}
-    </header>
+    </div>
   )
 }

@@ -42,7 +42,7 @@ export function LoginPage() {
     script.async = true
     script.onload = () => {
       window.google?.accounts.id.initialize({
-        client_id: (import.meta as { env?: Record<string, string> }).env?.['VITE_GOOGLE_CLIENT_ID'] ?? '',
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '',
         callback: handleCredentialResponse,
       })
       const el = document.getElementById('google-signin-btn')
@@ -60,10 +60,13 @@ export function LoginPage() {
   }, [handleCredentialResponse])
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-cream px-4">
-      <div className="card max-w-sm w-full flex flex-col items-center gap-6 p-8">
-        <h1 className="text-3xl font-bold text-green-dark">Verdant</h1>
-        <p className="text-text-secondary text-center">Sign in to manage your garden</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-surface px-4">
+      <div className="bg-bg border border-divider rounded-xl max-w-sm w-full flex flex-col items-center gap-6 p-10 shadow-sm">
+        <div className="text-center">
+          <div className="text-4xl mb-3">🌿</div>
+          <h1 className="text-2xl font-semibold text-text-primary">Verdant</h1>
+          <p className="text-text-secondary text-sm mt-1">Sign in to manage your garden</p>
+        </div>
         <div id="google-signin-btn" />
         {error && <p className="text-error text-sm">{error}</p>}
       </div>

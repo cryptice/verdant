@@ -14,6 +14,7 @@ import { TaskList } from './pages/TaskList'
 import { TaskForm } from './pages/TaskForm'
 import { SeedInventory } from './pages/SeedInventory'
 import { SowActivity } from './pages/SowActivity'
+import { SpeciesList } from './pages/SpeciesList'
 import { Account } from './pages/Account'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -41,6 +42,7 @@ export function App() {
         <Route path="task/:taskId/edit" element={<TaskForm />} />
         <Route path="seeds" element={<SeedInventory />} />
         <Route path="sow" element={<SowActivity />} />
+        <Route path="species" element={<SpeciesList />} />
         <Route path="account" element={<Account />} />
       </Route>
     </Routes>

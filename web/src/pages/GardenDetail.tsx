@@ -1,17 +1,25 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
-import { Fab } from '../components/Fab'
+
+const GARDEN_ICONS = [
+  '🌱', '🌿', '🌾', '🌻', '🌸', '🌺', '🌼', '🍀',
+  '🌲', '🌳', '🌴', '🎋', '🪴', '🍃', '🍂', '🍁',
+  '🥬', '🥦', '🧅', '🧄', '🍅', '🫑', '🥕', '🌽',
+  '🍓', '🫐', '🍇', '🍎', '🍋', '🍊', '🫒', '🌰',
+]
 
 export function GardenDetail() {
   const { id } = useParams<{ id: string }>()
   const gardenId = Number(id)
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const { t } = useTranslation()
 
   const { data: garden, error, isLoading, refetch } = useQuery({
     queryKey: ['garden', gardenId],
@@ -39,7 +47,7 @@ export function GardenDetail() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['dashboard'] }); navigate('/') },
   })
 
-  if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-4 border-green-primary border-t-transparent rounded-full" /></div>
+  if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
   if (!garden) return null
 
@@ -48,19 +56,22 @@ export function GardenDetail() {
       <PageHeader
         title={garden.name}
         back
-        action={{ label: 'Edit', onClick: () => { setEditName(garden.name); setEditDesc(garden.description ?? ''); setEditEmoji(garden.emoji ?? ''); setEditing(true) } }}
+        action={{ label: t('common.edit'), onClick: () => { setEditName(garden.name); setEditDesc(garden.description ?? ''); setEditEmoji(garden.emoji ?? ''); setEditing(true) } }}
       />
 
       <div className="px-4 py-4 space-y-4">
         {garden.description && <p className="text-text-secondary">{garden.description}</p>}
 
         <div className="flex items-center justify-between">
-          <h2 className="font-bold text-lg">Beds</h2>
-          <button onClick={() => setShowDelete(true)} className="text-error text-sm font-medium">Delete garden</button>
+          <h2 className="font-semibold">{t('garden.beds')}</h2>
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate(`/garden/${gardenId}/bed/new`)} className="btn-primary text-sm">{t('garden.newBed')}</button>
+            <button onClick={() => setShowDelete(true)} className="text-error text-sm">{t('garden.deleteGarden')}</button>
+          </div>
         </div>
 
         {beds && beds.length === 0 && (
-          <p className="text-text-secondary text-sm">No beds yet. Tap + to add one.</p>
+          <p className="text-text-secondary text-sm">{t('garden.noBedsYet')}</p>
         )}
 
         {beds?.map(bed => (
@@ -71,29 +82,52 @@ export function GardenDetail() {
         ))}
       </div>
 
-      <Dialog open={editing} onClose={() => setEditing(false)} title="Edit Garden" actions={
+      <Dialog open={editing} onClose={() => setEditing(false)} title={t('garden.editGardenTitle')} actions={
         <>
-          <button onClick={() => setEditing(false)} className="px-4 py-2 text-sm text-text-secondary">Cancel</button>
-          <button onClick={() => updateMut.mutate()} disabled={!editName.trim()} className="btn-primary text-sm">Save</button>
+          <button onClick={() => setEditing(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button onClick={() => updateMut.mutate()} disabled={!editName.trim()} className="btn-primary text-sm">{t('common.save')}</button>
         </>
       }>
-        <div className="space-y-3">
-          <input value={editEmoji} onChange={e => setEditEmoji(e.target.value)} placeholder="Emoji" className="w-full border border-cream-dark rounded-xl px-3 py-2 bg-cream" />
-          <input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Name" className="w-full border border-cream-dark rounded-xl px-3 py-2 bg-cream" />
-          <textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} placeholder="Description (optional)" rows={2} className="w-full border border-cream-dark rounded-xl px-3 py-2 bg-cream" />
+        <div className="space-y-4">
+          <div>
+            <label className="field-label">{t('common.iconLabel')}</label>
+            <div className="grid grid-cols-8 gap-1 p-2 bg-surface rounded-md border border-divider">
+              {GARDEN_ICONS.map(icon => (
+                <button
+                  key={icon}
+                  type="button"
+                  onClick={() => setEditEmoji(editEmoji === icon ? '' : icon)}
+                  className={`text-xl p-1.5 rounded-md transition-colors leading-none ${
+                    editEmoji === icon
+                      ? 'bg-accent-light ring-1 ring-accent'
+                      : 'hover:bg-divider'
+                  }`}
+                >
+                  {icon}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="field-label">{t('common.nameLabel')}</label>
+            <input value={editName} onChange={e => setEditName(e.target.value)} placeholder={t('garden.gardenNamePlaceholder')} className="input" />
+          </div>
+          <div>
+            <label className="field-label">{t('common.descriptionLabel')}</label>
+            <textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} placeholder={t('common.optional')} rows={2} className="input" />
+          </div>
         </div>
       </Dialog>
 
-      <Dialog open={showDelete} onClose={() => setShowDelete(false)} title="Delete Garden" actions={
+      <Dialog open={showDelete} onClose={() => setShowDelete(false)} title={t('garden.deleteGardenTitle')} actions={
         <>
-          <button onClick={() => setShowDelete(false)} className="px-4 py-2 text-sm text-text-secondary">Cancel</button>
-          <button onClick={() => deleteMut.mutate()} className="px-4 py-2 text-sm text-error font-semibold">Delete</button>
+          <button onClick={() => setShowDelete(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button onClick={() => deleteMut.mutate()} className="px-4 py-2 text-sm text-error font-semibold">{t('common.delete')}</button>
         </>
       }>
-        <p className="text-text-secondary">This will delete the garden and all its beds and plants. Are you sure?</p>
+        <p className="text-text-secondary">{t('garden.deleteGardenConfirm')}</p>
       </Dialog>
 
-      <Fab onClick={() => navigate(`/garden/${gardenId}/bed/new`)} />
     </div>
   )
 }

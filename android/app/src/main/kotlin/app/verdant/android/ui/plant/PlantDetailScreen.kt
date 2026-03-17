@@ -210,7 +210,7 @@ fun PlantDetailScreen(
                         }
                     }
 
-                    items(uiState.events) { event ->
+                    items(uiState.events.reversed()) { event ->
                         EventCard(event = event, onDelete = { viewModel.deleteEvent(event.id) })
                     }
                 }

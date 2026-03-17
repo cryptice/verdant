@@ -1,18 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { StatusBadge } from '../components/StatusBadge'
 import { Dialog } from '../components/Dialog'
-import { Fab } from '../components/Fab'
 
 export function BedDetail() {
   const { id } = useParams<{ id: string }>()
   const bedId = Number(id)
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const { t } = useTranslation()
 
   const { data: bed, error, isLoading, refetch } = useQuery({
     queryKey: ['bed', bedId],
@@ -41,7 +42,7 @@ export function BedDetail() {
     onSuccess: () => { navigate(-1); qc.invalidateQueries({ queryKey: ['garden-beds'] }) },
   })
 
-  if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-4 border-green-primary border-t-transparent rounded-full" /></div>
+  if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
   if (!bed) return null
 
@@ -65,19 +66,22 @@ export function BedDetail() {
       <PageHeader
         title={bed.name}
         back
-        action={{ label: 'Edit', onClick: () => { setEditName(bed.name); setEditDesc(bed.description ?? ''); setEditing(true) } }}
+        action={{ label: t('common.edit'), onClick: () => { setEditName(bed.name); setEditDesc(bed.description ?? ''); setEditing(true) } }}
       />
 
       <div className="px-4 py-4 space-y-3">
         {bed.description && <p className="text-text-secondary">{bed.description}</p>}
 
         <div className="flex items-center justify-between">
-          <h2 className="font-bold text-lg">Plants</h2>
-          <button onClick={() => setShowDelete(true)} className="text-error text-sm font-medium">Delete bed</button>
+          <h2 className="font-semibold">{t('bed.plants')}</h2>
+          <div className="flex items-center gap-3">
+            <button onClick={() => setShowAdd(true)} className="btn-primary text-sm">{t('bed.addPlant')}</button>
+            <button onClick={() => setShowDelete(true)} className="text-error text-sm">{t('bed.deleteBed')}</button>
+          </div>
         </div>
 
         {plants && plants.length === 0 && (
-          <p className="text-text-secondary text-sm">No plants yet. Tap + to add one.</p>
+          <p className="text-text-secondary text-sm">{t('bed.noPlantsYet')}</p>
         )}
 
         {Array.from(grouped.entries()).map(([species, group]) => {
@@ -87,19 +91,19 @@ export function BedDetail() {
               <button onClick={() => toggleGroup(species)} className="w-full flex items-center justify-between px-4 py-3 text-left">
                 <div>
                   <p className="font-semibold">{species}</p>
-                  <p className="text-xs text-text-secondary">{group!.length} {group!.length === 1 ? 'plant' : 'plants'}</p>
+                  <p className="text-xs text-text-secondary">{t('bed.plantCount', { count: group!.length })}</p>
                 </div>
                 <span className="text-text-secondary text-lg">{expanded ? '▲' : '▼'}</span>
               </button>
               {expanded && (
-                <div className="border-t border-cream">
+                <div className="border-t border-divider">
                   {group!.map((p, i) => (
                     <div key={p.id}>
-                      <Link to={`/plant/${p.id}`} className="flex items-center justify-between px-4 py-2.5 text-sm no-underline text-inherit hover:bg-cream/50">
+                      <Link to={`/plant/${p.id}`} className="flex items-center justify-between px-4 py-2.5 text-sm no-underline text-inherit hover:bg-surface">
                         <span>{p.name}</span>
                         <StatusBadge status={p.status} />
                       </Link>
-                      {i < group!.length - 1 && <hr className="mx-4 border-cream" />}
+                      {i < group!.length - 1 && <hr className="mx-4 border-divider" />}
                     </div>
                   ))}
                 </div>
@@ -109,36 +113,35 @@ export function BedDetail() {
         })}
       </div>
 
-      <Dialog open={editing} onClose={() => setEditing(false)} title="Edit Bed" actions={
+      <Dialog open={editing} onClose={() => setEditing(false)} title={t('bed.editBedTitle')} actions={
         <>
-          <button onClick={() => setEditing(false)} className="px-4 py-2 text-sm text-text-secondary">Cancel</button>
-          <button onClick={() => updateMut.mutate()} disabled={!editName.trim()} className="btn-primary text-sm">Save</button>
+          <button onClick={() => setEditing(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button onClick={() => updateMut.mutate()} disabled={!editName.trim()} className="btn-primary text-sm">{t('common.save')}</button>
         </>
       }>
         <div className="space-y-3">
-          <input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Bed name" className="w-full border border-cream-dark rounded-xl px-3 py-2 bg-cream" />
-          <textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} placeholder="Description (optional)" rows={2} className="w-full border border-cream-dark rounded-xl px-3 py-2 bg-cream" />
+          <input value={editName} onChange={e => setEditName(e.target.value)} placeholder={t('bed.bedNamePlaceholder')} className="input" />
+          <textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} placeholder={t('bed.descriptionOptionalPlaceholder')} rows={2} className="input" />
         </div>
       </Dialog>
 
-      <Dialog open={showDelete} onClose={() => setShowDelete(false)} title="Delete Bed" actions={
+      <Dialog open={showDelete} onClose={() => setShowDelete(false)} title={t('bed.deleteBedTitle')} actions={
         <>
-          <button onClick={() => setShowDelete(false)} className="px-4 py-2 text-sm text-text-secondary">Cancel</button>
-          <button onClick={() => deleteMut.mutate()} className="px-4 py-2 text-sm text-error font-semibold">Delete</button>
+          <button onClick={() => setShowDelete(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button onClick={() => deleteMut.mutate()} className="px-4 py-2 text-sm text-error font-semibold">{t('common.delete')}</button>
         </>
       }>
-        <p className="text-text-secondary">This will delete the bed and all its plants. Are you sure?</p>
+        <p className="text-text-secondary">{t('bed.deleteBedConfirm')}</p>
       </Dialog>
 
-      <Dialog open={showAdd} onClose={() => setShowAdd(false)} title="Add Plant" actions={
-        <button onClick={() => setShowAdd(false)} className="px-4 py-2 text-sm text-text-secondary">Cancel</button>
+      <Dialog open={showAdd} onClose={() => setShowAdd(false)} title={t('bed.addPlantTitle')} actions={
+        <button onClick={() => setShowAdd(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
       }>
         <div className="space-y-2">
-          <button onClick={() => { setShowAdd(false); navigate(`/sow?bedId=${bedId}`) }} className="btn-primary w-full text-sm">Sow seeds in bed</button>
+          <button onClick={() => { setShowAdd(false); navigate(`/sow?bedId=${bedId}`) }} className="btn-primary w-full text-sm">{t('bed.sowSeedsInBed')}</button>
         </div>
       </Dialog>
 
-      <Fab onClick={() => setShowAdd(true)} />
     </div>
   )
 }

@@ -22,10 +22,10 @@ export function Dialog({ open, onClose, title, children, actions }: Props) {
     <dialog
       ref={ref}
       onClose={onClose}
-      className="rounded-2xl p-0 w-[min(24rem,calc(100vw-2rem))] backdrop:bg-black/40 bg-cream"
+      className="rounded-lg p-0 w-[min(26rem,calc(100vw-2rem))] shadow-xl backdrop:bg-black/25 bg-bg border border-divider"
     >
       <div className="p-5">
-        <h2 className="text-lg font-bold mb-4">{title}</h2>
+        <h2 className="text-base font-semibold text-text-primary mb-4">{title}</h2>
         {children}
         {actions && <div className="flex justify-end gap-2 mt-5">{actions}</div>}
       </div>

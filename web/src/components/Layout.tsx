@@ -1,22 +1,82 @@
+import { useState } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthContext'
 
-const navItems = [
-  { to: '/', label: 'My World', icon: '🌍' },
-  { to: '/plants', label: 'Plants', icon: '🌱' },
-  { to: '/tasks', label: 'Tasks', icon: '📋' },
-  { to: '/seeds', label: 'Seeds', icon: '🫘' },
-  { to: '/account', label: 'Account', icon: '👤' },
-]
+function SidebarContent({ onClose }: { onClose?: () => void }) {
+  const { user } = useAuth()
+  const { t, i18n } = useTranslation()
+
+  const navItems = [
+    { to: '/', label: t('nav.myWorld'), icon: '🌍' },
+    { to: '/species', label: t('nav.species'), icon: '🌿' },
+    { to: '/plants', label: t('nav.plants'), icon: '🌱' },
+    { to: '/tasks', label: t('nav.tasks'), icon: '📋' },
+    { to: '/seeds', label: t('nav.seeds'), icon: '🫘' },
+    { to: '/account', label: t('nav.account'), icon: '👤' },
+  ]
+
+  const changeLang = (lang: string) => {
+    localStorage.setItem('verdant-lang', lang)
+    i18n.changeLanguage(lang)
+  }
+
+  return (
+    <div className="flex flex-col h-full bg-sidebar border-r border-divider">
+      <div className="px-4 py-4 border-b border-divider">
+        <span className="font-semibold text-text-primary text-base tracking-tight">🌿 Verdant</span>
+      </div>
+      <nav className="flex-1 py-2 overflow-y-auto">
+        {navItems.map(({ to, label, icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={to === '/'}
+            onClick={onClose}
+            className={({ isActive }) =>
+              `flex items-center gap-2.5 px-3 py-1.5 mx-1 my-0.5 rounded-md text-sm transition-colors ${
+                isActive
+                  ? 'bg-accent-light text-accent font-medium'
+                  : 'text-text-secondary hover:bg-divider hover:text-text-primary'
+              }`
+            }
+          >
+            <span className="text-base w-5 text-center leading-none">{icon}</span>
+            {label}
+          </NavLink>
+        ))}
+      </nav>
+      <div className="px-4 py-3 border-t border-divider space-y-2">
+        <p className="text-xs text-text-muted truncate">{user?.displayName}</p>
+        <div className="flex gap-1">
+          {(['sv', 'en'] as const).map(lang => (
+            <button
+              key={lang}
+              onClick={() => changeLang(lang)}
+              className={`text-xs px-2 py-0.5 rounded transition-colors ${
+                i18n.language === lang
+                  ? 'bg-accent-light text-accent font-medium'
+                  : 'text-text-muted hover:text-text-secondary'
+              }`}
+            >
+              {lang.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export function Layout() {
   const { user, loading } = useAuth()
   const navigate = useNavigate()
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cream">
-        <div className="animate-spin h-8 w-8 border-4 border-green-primary border-t-transparent rounded-full" />
+      <div className="min-h-screen flex items-center justify-center bg-surface">
+        <div className="animate-spin h-7 w-7 border-2 border-accent border-t-transparent rounded-full" />
       </div>
     )
   }
@@ -27,29 +87,44 @@ export function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-cream flex flex-col">
-      <main className="flex-1 pb-20 max-w-2xl mx-auto w-full">
-        <Outlet />
-      </main>
-      <nav className="fixed bottom-0 inset-x-0 bg-cream-dark border-t border-cream-dark shadow-[0_-1px_8px_rgba(0,0,0,0.06)]">
-        <div className="max-w-2xl mx-auto flex">
-          {navItems.map(({ to, label, icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to === '/'}
-              className={({ isActive }) =>
-                `flex-1 flex flex-col items-center py-2 text-xs transition-colors ${
-                  isActive ? 'text-green-primary font-semibold' : 'text-text-secondary'
-                }`
-              }
-            >
-              <span className="text-lg">{icon}</span>
-              {label}
-            </NavLink>
-          ))}
+    <div className="min-h-screen flex bg-surface">
+      {/* Desktop sidebar */}
+      <div className="hidden md:flex md:flex-col md:w-56 md:fixed md:inset-y-0 md:left-0 z-20">
+        <SidebarContent />
+      </div>
+
+      {/* Mobile drawer overlay */}
+      {drawerOpen && (
+        <div className="fixed inset-0 z-30 md:hidden">
+          <div className="absolute inset-0 bg-black/20" onClick={() => setDrawerOpen(false)} />
+          <div className="absolute left-0 top-0 bottom-0 w-56">
+            <SidebarContent onClose={() => setDrawerOpen(false)} />
+          </div>
         </div>
-      </nav>
+      )}
+
+      {/* Main content */}
+      <div className="flex-1 md:ml-56 flex flex-col min-h-screen">
+        {/* Mobile top bar */}
+        <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-sidebar border-b border-divider sticky top-0 z-10">
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="text-text-secondary hover:text-text-primary transition-colors p-0.5"
+            aria-label="Open menu"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+              <line x1="2" y1="4.5" x2="16" y2="4.5" />
+              <line x1="2" y1="9" x2="16" y2="9" />
+              <line x1="2" y1="13.5" x2="16" y2="13.5" />
+            </svg>
+          </button>
+          <span className="font-semibold text-text-primary text-sm">🌿 Verdant</span>
+        </header>
+
+        <main className="flex-1 max-w-3xl w-full mx-auto px-4 md:px-8 py-6">
+          <Outlet />
+        </main>
+      </div>
     </div>
   )
 }

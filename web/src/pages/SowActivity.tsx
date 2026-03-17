@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 
 export function SowActivity() {
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const { t, i18n } = useTranslation()
   const [params] = useSearchParams()
   const presetBedId = params.get('bedId') ? Number(params.get('bedId')) : null
   const presetSpeciesId = params.get('speciesId') ? Number(params.get('speciesId')) : null
@@ -45,8 +47,10 @@ export function SowActivity() {
   const sowMut = useMutation({
     mutationFn: async () => {
       const selectedSpecies = species?.find(s => s.id === Number(speciesId))
+      const lang = i18n.language
       const name = selectedSpecies
-        ? (selectedSpecies.commonName + (selectedSpecies.variantName ? ` — ${selectedSpecies.variantName}` : ''))
+        ? ((lang === 'sv' ? selectedSpecies.commonNameSv ?? selectedSpecies.commonName : selectedSpecies.commonName) +
+           (selectedSpecies.variantName ? ` — ${lang === 'sv' ? selectedSpecies.variantNameSv ?? selectedSpecies.variantName : selectedSpecies.variantName}` : ''))
         : ''
       const count = Number(seedCount)
       await api.plants.batchSow({
@@ -83,44 +87,54 @@ export function SowActivity() {
     s.variantNameSv?.toLowerCase().includes(speciesSearch.toLowerCase())
   ) ?? []
 
+  const selectedSpecies = species?.find(s => s.id === Number(speciesId))
+  const selectedSpeciesName = selectedSpecies
+    ? (i18n.language === 'sv' ? selectedSpecies.commonNameSv ?? selectedSpecies.commonName : selectedSpecies.commonName)
+    : ''
   const valid = speciesId && (sowInTray || bedId) && Number(seedCount) > 0
 
   return (
-    <div>
-      <PageHeader title="Sow" back />
-      <div className="px-4 py-4 space-y-4">
-        <div>
-          <label className="font-bold text-sm block mb-1">Species *</label>
+    <div className="max-w-lg">
+      <PageHeader title={t('sow.title')} back />
+      <div className="form-card">
+
+        <div className="relative">
+          <label className="field-label">{t('common.speciesLabel')}</label>
           <input
-            value={speciesSearch || species?.find(s => s.id === Number(speciesId))?.commonName || ''}
+            value={speciesSearch || selectedSpeciesName}
             onChange={e => { setSpeciesSearch(e.target.value); setSpeciesId('') }}
-            placeholder="Search species..."
-            className="w-full border border-cream-dark rounded-xl px-3 py-2 bg-cream"
+            placeholder={t('common.searchSpecies')}
+            className="input"
           />
           {speciesSearch && (
-            <div className="border border-cream-dark rounded-xl mt-1 max-h-48 overflow-y-auto bg-cream">
+            <div className="absolute z-10 left-0 right-0 mt-1 border border-divider rounded-md bg-bg shadow-md max-h-48 overflow-y-auto">
               {filteredSpecies.slice(0, 20).map(s => (
                 <button
                   key={s.id}
                   onClick={() => { setSpeciesId(String(s.id)); setSpeciesSearch(''); setSeedBatchId('') }}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-cream-dark"
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-surface transition-colors"
                 >
-                  {s.commonName}{s.variantName ? ` — ${s.variantName}` : ''}
+                  {i18n.language === 'sv' ? (s.commonNameSv ?? s.commonName) : s.commonName}
+                  {(i18n.language === 'sv' ? (s.variantNameSv ?? s.variantName) : s.variantName)
+                    ? ` — ${i18n.language === 'sv' ? (s.variantNameSv ?? s.variantName) : s.variantName}`
+                    : ''}
                 </button>
               ))}
-              {filteredSpecies.length === 0 && <p className="px-3 py-2 text-sm text-text-secondary">No species found</p>}
+              {filteredSpecies.length === 0 && (
+                <p className="px-3 py-2 text-sm text-text-secondary">{t('species.noSpeciesFoundDropdown')}</p>
+              )}
             </div>
           )}
         </div>
 
         {speciesId && seedBatches && seedBatches.length > 0 && (
           <div>
-            <label className="font-bold text-sm block mb-1">Seed Batch</label>
-            <select value={seedBatchId} onChange={e => setSeedBatchId(e.target.value)} className="w-full border border-cream-dark rounded-xl px-3 py-2 bg-cream">
-              <option value="">Select batch (optional)...</option>
+            <label className="field-label">{t('sow.seedBatch')}</label>
+            <select value={seedBatchId} onChange={e => setSeedBatchId(e.target.value)} className="input">
+              <option value="">{t('sow.seedBatchNone')}</option>
               {seedBatches.map(b => (
                 <option key={b.id} value={b.id}>
-                  {b.quantity} seeds{b.collectionDate ? ` (${b.collectionDate})` : ''}
+                  {t('seeds.seedCount', { count: b.quantity })}{b.collectionDate ? ` · ${b.collectionDate}` : ''}
                 </option>
               ))}
             </select>
@@ -128,41 +142,53 @@ export function SowActivity() {
         )}
 
         {!presetBedId && (
-          <div className="flex items-center justify-between">
-            <span className="text-sm">Sow in tray</span>
-            <button
-              onClick={() => { setSowInTray(!sowInTray); if (!sowInTray) setBedId('') }}
-              className={`w-12 h-6 rounded-full transition-colors ${sowInTray ? 'bg-green-primary' : 'bg-cream-dark'} relative`}
-            >
-              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${sowInTray ? 'translate-x-6' : 'translate-x-0.5'}`} />
-            </button>
+          <div>
+            <label className="field-label">{t('sow.destination')}</label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => { setSowInTray(false) }}
+                className={`flex-1 py-2 rounded-md border text-sm font-medium transition-colors ${!sowInTray ? 'border-accent bg-accent-light text-accent' : 'border-divider bg-surface text-text-secondary hover:bg-divider'}`}
+              >
+                {t('sow.bed')}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setSowInTray(true); setBedId('') }}
+                className={`flex-1 py-2 rounded-md border text-sm font-medium transition-colors ${sowInTray ? 'border-accent bg-accent-light text-accent' : 'border-divider bg-surface text-text-secondary hover:bg-divider'}`}
+              >
+                {t('sow.tray')}
+              </button>
+            </div>
           </div>
         )}
 
         {!sowInTray && (
           <div>
-            <label className="font-bold text-sm block mb-1">Bed *</label>
-            <select value={bedId} onChange={e => setBedId(e.target.value)} className="w-full border border-cream-dark rounded-xl px-3 py-2 bg-cream">
-              <option value="">Select bed...</option>
+            <label className="field-label">{t('sow.bedLabel')}</label>
+            <select value={bedId} onChange={e => setBedId(e.target.value)} className="input">
+              <option value="">{t('sow.selectBed')}</option>
               {beds?.map(b => <option key={b.id} value={b.id}>{b.gardenName} — {b.name}</option>)}
             </select>
           </div>
         )}
 
         <div>
-          <label className="font-bold text-sm block mb-1">Seed count *</label>
-          <input type="number" value={seedCount} onChange={e => setSeedCount(e.target.value)} placeholder="Number of seeds" className="w-full border border-cream-dark rounded-xl px-3 py-2 bg-cream" />
+          <label className="field-label">{t('sow.seedCount')}</label>
+          <input type="number" value={seedCount} onChange={e => setSeedCount(e.target.value)} placeholder="e.g. 12" className="input" />
         </div>
 
         <div>
-          <label className="font-bold text-sm block mb-1">Notes</label>
-          <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes (optional)" rows={2} className="w-full border border-cream-dark rounded-xl px-3 py-2 bg-cream" />
+          <label className="field-label">{t('common.notesLabel')}</label>
+          <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('common.optional')} rows={2} className="input" />
         </div>
 
-        {sowMut.error && <p className="text-error text-sm">{(sowMut.error as Error).message}</p>}
+      </div>
 
-        <button onClick={() => sowMut.mutate()} disabled={!valid || sowMut.isPending} className="btn-primary w-full">
-          {sowMut.isPending ? 'Sowing...' : 'Sow'}
+      {sowMut.error && <p className="text-error text-sm mt-3">{(sowMut.error as Error).message}</p>}
+      <div className="mt-4 flex justify-end">
+        <button onClick={() => sowMut.mutate()} disabled={!valid || sowMut.isPending} className="btn-primary">
+          {sowMut.isPending ? t('sow.sowing') : t('sow.sow')}
         </button>
       </div>
     </div>
