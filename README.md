@@ -106,3 +106,5 @@ Each module has its own `.env.yaml` (not checked in):
 
 - `backend/.env.yaml` — Gemini API key, GCS credentials, admin password, database connection
 - `android/.env.yaml` — Backend API URL, Google OAuth client ID, Maps API key
+
+Deployed at [verdantplanner.com](https://verdantplanner.com)
