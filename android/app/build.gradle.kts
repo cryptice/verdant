@@ -34,6 +34,16 @@ android {
     namespace = "app.verdant.android"
     compileSdk = 35
 
+    signingConfigs {
+        create("release") {
+            val keystorePath = envGet("android", "keystore-path").ifBlank { "../secrets/verdant-release.jks" }
+            storeFile = file(keystorePath)
+            storePassword = envGet("android", "keystore-password")
+            keyAlias = "verdant"
+            keyPassword = envGet("android", "key-password")
+        }
+    }
+
     defaultConfig {
         applicationId = "app.verdant.android"
         minSdk = 28
@@ -54,6 +64,17 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("release")
+            val prodUrl = envGet("android", "prod-api-base-url").ifBlank { "https://verdant-api-5ai66vptja-lz.a.run.app/" }
+            buildConfigField("String", "API_BASE_URL", "\"$prodUrl\"")
+        }
     }
 
     compileOptions {
