@@ -1,5 +1,7 @@
 # Stage 1: Build web UI
 FROM node:22-alpine AS web
+ARG VITE_GOOGLE_CLIENT_ID
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
 WORKDIR /web
 COPY web/package.json web/package-lock.json ./
 RUN npm ci --no-update-notifier

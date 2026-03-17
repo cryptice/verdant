@@ -6,6 +6,9 @@ steps:
       - '--cache-repo=europe-north1-docker.pkg.dev/$PROJECT_ID/verdant/verdant-api/cache'
       - '--cache-ttl=168h'
       - '--custom-platform=linux/amd64'
+      - '--build-arg=VITE_GOOGLE_CLIENT_ID=$$VITE_GOOGLE_CLIENT_ID'
+    secretEnv:
+      - 'VITE_GOOGLE_CLIENT_ID'
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
@@ -25,6 +28,11 @@ steps:
           --set-cloudsql-instances=verdant-planner-staging:europe-north2:verdant-staging \
           --set-env-vars="DB_USERNAME=verdant,DB_URL=jdbc:postgresql:///verdant?cloudSqlInstance=verdant-planner-staging:europe-north2:verdant-staging&socketFactory=com.google.cloud.sql.postgres.SocketFactory" \
           --set-secrets="DB_PASSWORD=verdant-db-password:latest,GEMINI_API_KEY=verdant-gemini-key:latest,ADMIN_PASSWORD=verdant-admin-password:latest,JWT_PRIVATE_KEY=verdant-jwt-private-key:latest,JWT_PUBLIC_KEY=verdant-jwt-public-key:latest"
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/$PROJECT_ID/secrets/verdant-google-client-id/versions/latest
+      env: 'VITE_GOOGLE_CLIENT_ID'
 
 options:
   logging: CLOUD_LOGGING_ONLY
