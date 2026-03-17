@@ -1,16 +1,10 @@
 steps:
-  - name: 'gcr.io/cloud-builders/docker'
+  - name: 'gcr.io/kaniko-project/executor:latest'
     args:
-      - 'build'
-      - '--platform=linux/amd64'
-      - '-t'
-      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}'
-      - '.'
-
-  - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - 'push'
-      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}'
+      - '--destination=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}'
+      - '--cache=true'
+      - '--cache-ttl=168h'
+      - '--custom-platform=linux/amd64'
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
@@ -30,9 +24,6 @@ steps:
       - '--add-cloudsql-instances=${_SQL_CONNECTION}'
       - '--set-env-vars=DB_USERNAME=verdant,DB_URL=jdbc:postgresql:///verdant?cloudSqlInstance=${_SQL_CONNECTION}&socketFactory=com.google.cloud.sql.postgres.SocketFactory'
       - '--set-secrets=DB_PASSWORD=verdant-db-password:latest,GEMINI_API_KEY=verdant-gemini-key:latest,ADMIN_PASSWORD=verdant-admin-password:latest'
-
-images:
-  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}'
 
 substitutions:
   _REGION: europe-north1
