@@ -2,18 +2,20 @@ import { Breadcrumb, type BreadcrumbItem } from './Breadcrumb'
 
 interface Props {
   title: string
+  icon?: string
   breadcrumbs?: BreadcrumbItem[]
   editAction?: () => void
   action?: { label: string; onClick: () => void }
 }
 
-export function PageHeader({ title, breadcrumbs, editAction, action }: Props) {
+export function PageHeader({ title, icon, breadcrumbs, editAction, action }: Props) {
   return (
     <div className="mb-6">
       {breadcrumbs && breadcrumbs.length > 0 && (
         <Breadcrumb items={breadcrumbs} />
       )}
       <div className="flex items-center gap-2">
+        {icon && <span className="text-2xl leading-none">{icon}</span>}
         <h1 className="text-xl font-semibold text-text-primary">{title}</h1>
         {editAction && (
           <button

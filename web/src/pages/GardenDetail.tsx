@@ -58,6 +58,7 @@ export function GardenDetail() {
     <div className="flex flex-col flex-1">
       <PageHeader
         title={garden.name}
+        icon={garden.emoji}
         breadcrumbs={breadcrumbs}
         editAction={() => { setEditName(garden.name); setEditDesc(garden.description ?? ''); setEditEmoji(garden.emoji ?? ''); setEditing(true) }}
       />
