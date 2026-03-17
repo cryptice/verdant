@@ -249,8 +249,19 @@ class SpeciesService(
     fun exportSpecies(): List<SpeciesExportEntry> {
         val groups = groupRepository.findAll().associateBy { it.id }
         val tags = tagRepository.findAll().associateBy { it.id }
+        val providers = providerRepository.findAll().associateBy { it.id }
         return speciesRepository.findAll().map { species ->
             val tagIds = speciesRepository.findTagIdsForSpecies(species.id!!)
+            val speciesProviders = speciesProviderRepository.findBySpeciesId(species.id!!).map { sp ->
+                val provider = providers[sp.providerId]
+                SpeciesExportProvider(
+                    providerName = provider?.name ?: "",
+                    providerIdentifier = provider?.identifier ?: "",
+                    imageFrontUrl = sp.imageFrontUrl,
+                    imageBackUrl = sp.imageBackUrl,
+                    productUrl = sp.productUrl,
+                )
+            }
             SpeciesExportEntry(
                 commonName = species.commonName,
                 variantName = species.variantName,
@@ -271,6 +282,7 @@ class SpeciesService(
                 germinationRate = species.germinationRate,
                 groupName = species.groupId?.let { groups[it]?.name },
                 tagNames = tagIds.mapNotNull { tags[it]?.name },
+                providers = speciesProviders,
             )
         }
     }
@@ -341,6 +353,23 @@ class SpeciesService(
 
             if (tagIds.isNotEmpty()) {
                 speciesRepository.setTagsForSpecies(species.id!!, tagIds)
+            }
+
+            // Restore providers
+            val providersByIdentifier = providerRepository.findAll().associateBy { it.identifier }.toMutableMap()
+            for (ep in entry.providers) {
+                val provider = providersByIdentifier.getOrPut(ep.providerIdentifier) {
+                    providerRepository.persist(Provider(name = ep.providerName, identifier = ep.providerIdentifier))
+                }
+                speciesProviderRepository.persist(
+                    SpeciesProvider(
+                        speciesId = species.id!!,
+                        providerId = provider.id!!,
+                        imageFrontUrl = ep.imageFrontUrl,
+                        imageBackUrl = ep.imageBackUrl,
+                        productUrl = ep.productUrl,
+                    )
+                )
             }
 
             created++

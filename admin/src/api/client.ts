@@ -193,6 +193,14 @@ export interface ExtractedSpeciesInfo {
   daysToHarvest: number | null
 }
 
+export interface SpeciesExportProvider {
+  providerName: string
+  providerIdentifier: string
+  imageFrontUrl: string | null
+  imageBackUrl: string | null
+  productUrl: string | null
+}
+
 export interface SpeciesExportEntry {
   commonName: string
   variantName: string | null
@@ -213,6 +221,7 @@ export interface SpeciesExportEntry {
   germinationRate: number | null
   groupName: string | null
   tagNames: string[]
+  providers: SpeciesExportProvider[]
 }
 
 export interface ImportResult {

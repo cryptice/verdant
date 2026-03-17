@@ -163,6 +163,14 @@ data class UpdateSpeciesProviderRequest(
 
 data class UploadPhotoRequest(val imageBase64: String)
 
+data class SpeciesExportProvider(
+    val providerName: String,
+    val providerIdentifier: String,
+    val imageFrontUrl: String? = null,
+    val imageBackUrl: String? = null,
+    val productUrl: String? = null,
+)
+
 data class SpeciesExportEntry(
     val commonName: String,
     val variantName: String? = null,
@@ -183,6 +191,7 @@ data class SpeciesExportEntry(
     val germinationRate: Int? = null,
     val groupName: String? = null,
     val tagNames: List<String> = emptyList(),
+    val providers: List<SpeciesExportProvider> = emptyList(),
 )
 
 data class ImportResult(val created: Int, val skipped: Int)

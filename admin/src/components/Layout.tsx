@@ -29,7 +29,9 @@ export default function Layout() {
           <NavLink to="/users" className={linkClass}>Users</NavLink>
           <NavLink to="/gardens" className={linkClass}>Gardens</NavLink>
           <NavLink to="/providers" className={linkClass}>Providers</NavLink>
-          <NavLink to="/dev" className={linkClass}>Dev Tools</NavLink>
+          {window.location.hostname === 'localhost' && (
+            <NavLink to="/dev" className={linkClass}>Dev Tools</NavLink>
+          )}
         </nav>
         <div className="px-3 py-3 border-t border-[#E9E9E7]">
           <button

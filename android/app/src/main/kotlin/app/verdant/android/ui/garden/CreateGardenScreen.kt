@@ -232,10 +232,10 @@ class CreateGardenViewModel @Inject constructor(
         }
     }
 
-    fun addBed(defaultBedName: String = "New Bed") {
+    fun addBed(defaultBedName: String = "") {
         beds.add(
             EditableBed(
-                name = mutableStateOf(defaultBedName),
+                name = mutableStateOf(""),
                 description = mutableStateOf(""),
                 boundary = mutableStateListOf(),
                 color = bedColors[beds.size % bedColors.size]
@@ -711,7 +711,7 @@ private fun BedEditorStep(
                         OutlinedTextField(
                             value = bed.name.value,
                             onValueChange = { bed.name.value = it },
-                            label = { Text(stringResource(R.string.bed_name)) },
+                            placeholder = { Text(stringResource(R.string.bed_name)) },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(8.dp),
                             singleLine = true
