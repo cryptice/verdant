@@ -459,6 +459,7 @@ fun AddSpeciesScreen(
                         Card(
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                             onClick = {
                                 commonName = s.commonName
                                 scientificName = s.species
@@ -751,7 +752,8 @@ fun AddSpeciesScreen(
                         item {
                             Card(
                                 shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                             ) {
                                 Column(Modifier.padding(12.dp)) {
                                     Text(

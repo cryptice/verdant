@@ -185,7 +185,8 @@ fun PlantedSpeciesDetailScreen(
                             modifier = Modifier.fillMaxWidth().clickable {
                                 selectedSubItem = item
                                 actionCount = item.count.toString()
-                            }
+                            },
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             Row(
                                 modifier = Modifier.padding(12.dp).fillMaxWidth(),
@@ -479,7 +480,8 @@ private fun TaskCard(task: ScheduledTaskResponse) {
 
     Card(
         shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Row(
             modifier = Modifier.padding(12.dp).fillMaxWidth(),
@@ -532,7 +534,8 @@ private fun TaskCard(task: ScheduledTaskResponse) {
 private fun LocationCard(location: String, items: List<PlantLocationGroup>, onClick: (() -> Unit)? = null) {
     Card(
         shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth().let { if (onClick != null) it.clickable(onClick = onClick) else it }
+        modifier = Modifier.fillMaxWidth().let { if (onClick != null) it.clickable(onClick = onClick) else it },
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(Modifier.padding(12.dp)) {
             Text(

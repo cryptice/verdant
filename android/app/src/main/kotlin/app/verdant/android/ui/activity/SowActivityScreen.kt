@@ -46,6 +46,7 @@ class SowActivityViewModel @Inject constructor(
 ) : ViewModel() {
     val taskId: Long? = savedStateHandle.get<Long>("taskId")?.takeIf { it > 0 }
     val preselectedSpeciesId: Long? = savedStateHandle.get<Long>("speciesId")?.takeIf { it > 0 }
+    val preselectedBedId: Long? = savedStateHandle.get<Long>("bedId")?.takeIf { it > 0 }
     private val _uiState = MutableStateFlow(SowActivityState())
     val uiState = _uiState.asStateFlow()
 
@@ -118,7 +119,7 @@ fun SowActivityScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     var selectedSpeciesId by remember { mutableStateOf<Long?>(viewModel.preselectedSpeciesId) }
-    var selectedBedId by remember { mutableStateOf<Long?>(null) }
+    var selectedBedId by remember { mutableStateOf<Long?>(viewModel.preselectedBedId) }
     var sowInTray by remember { mutableStateOf(false) }
     var selectedSeedBatchId by remember { mutableStateOf<Long?>(null) }
     var seedCount by remember { mutableStateOf("") }

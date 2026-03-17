@@ -1,5 +1,6 @@
 package app.verdant.android.ui.bed
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,8 +18,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
 import app.verdant.android.data.model.BedResponse
@@ -92,11 +95,19 @@ class BedDetailViewModel @Inject constructor(
 fun BedDetailScreen(
     onBack: () -> Unit,
     onPlantClick: (Long) -> Unit,
-    onCreatePlant: (Long) -> Unit,
+    onSowInBed: (Long) -> Unit = {},
+    onPlantFromTray: (Long) -> Unit = {},
     viewModel: BedDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.refresh()
+        }
+    }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showAddDialog by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf(false) }
     var editName by remember { mutableStateOf("") }
     var editDescription by remember { mutableStateOf("") }
@@ -146,6 +157,32 @@ fun BedDetailScreen(
         )
     }
 
+    if (showAddDialog) {
+        val bedId = uiState.bed?.id ?: 0L
+        AlertDialog(
+            onDismissRequest = { showAddDialog = false },
+            title = { Text(stringResource(R.string.add_plant)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = { showAddDialog = false; onSowInBed(bedId) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) { Text(stringResource(R.string.sow_seeds_in_bed)) }
+                    Button(
+                        onClick = { showAddDialog = false; onPlantFromTray(bedId) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) { Text(stringResource(R.string.plant_from_tray)) }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showAddDialog = false }) { Text(stringResource(R.string.cancel)) }
+            }
+        )
+    }
+
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -189,9 +226,9 @@ fun BedDetailScreen(
             )
         },
         floatingActionButton = {
-            uiState.bed?.let { bed ->
+            if (uiState.bed != null) {
                 FloatingActionButton(
-                    onClick = { onCreatePlant(bed.id) },
+                    onClick = { showAddDialog = true },
                     containerColor = MaterialTheme.colorScheme.primary
                 ) {
                     Icon(Icons.Default.Add, stringResource(R.string.add_plant))
@@ -210,6 +247,8 @@ fun BedDetailScreen(
                 )
             }
             else -> {
+                val groupedPlants = uiState.plants.groupBy { it.speciesName ?: it.name }
+                var expandedGroups by remember { mutableStateOf(setOf<String>()) }
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -234,22 +273,59 @@ fun BedDetailScreen(
                         }
                     }
 
-                    items(uiState.plants) { plant ->
+
+                    items(groupedPlants.entries.toList(), key = { it.key }) { (species, plantsInGroup) ->
+                        val isExpanded = species in expandedGroups
                         Card(
-                            modifier = Modifier.fillMaxWidth().clickable { onPlantClick(plant.id) },
-                            shape = RoundedCornerShape(12.dp)
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                         ) {
-                            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(plant.name, fontWeight = FontWeight.SemiBold)
-                                    plant.speciesName?.let {
-                                        Text(it, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                            Column {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            expandedGroups = if (isExpanded) expandedGroups - species else expandedGroups + species
+                                        }
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(species, fontWeight = FontWeight.SemiBold)
+                                        val count = plantsInGroup.size
+                                        val label = if (count == 1) stringResource(R.string.plant_singular) else stringResource(R.string.plant_plural)
+                                        Text("$count $label", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                                    }
+                                    Icon(
+                                        if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                    )
+                                }
+                                AnimatedVisibility(visible = isExpanded) {
+                                    Column {
+                                        HorizontalDivider()
+                                        plantsInGroup.forEachIndexed { index, plant ->
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable { onPlantClick(plant.id) }
+                                                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(plant.name, modifier = Modifier.weight(1f), fontSize = 14.sp)
+                                                AssistChip(
+                                                    onClick = {},
+                                                    label = { Text(plant.status, fontSize = 12.sp) }
+                                                )
+                                            }
+                                            if (index < plantsInGroup.lastIndex) {
+                                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                                            }
+                                        }
                                     }
                                 }
-                                AssistChip(
-                                    onClick = { },
-                                    label = { Text(plant.status, fontSize = 12.sp) }
-                                )
                             }
                         }
                     }

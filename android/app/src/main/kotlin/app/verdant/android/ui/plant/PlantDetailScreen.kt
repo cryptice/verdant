@@ -167,7 +167,7 @@ fun PlantDetailScreen(
                 ) {
                     // Header card
                     item {
-                        Card(shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
+                        Card(shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                             Column(Modifier.padding(20.dp)) {
                                 Text(plant.name, fontWeight = FontWeight.Bold, fontSize = 24.sp)
                                 plant.speciesName?.let {
@@ -200,7 +200,7 @@ fun PlantDetailScreen(
 
                     if (uiState.events.isEmpty()) {
                         item {
-                            Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                            Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                                 Text(
                                     stringResource(R.string.no_events_yet),
                                     modifier = Modifier.padding(16.dp),
@@ -239,7 +239,7 @@ private fun EventCard(event: PlantEventResponse, onDelete: () -> Unit) {
         )
     }
 
-    Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+    Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
         Column(Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

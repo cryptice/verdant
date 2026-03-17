@@ -90,7 +90,7 @@ fun HarvestStatsScreen(
                 contentPadding = PaddingValues(vertical = 16.dp)
             ) {
                 items(uiState.stats) { stat ->
-                    Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                         Column(Modifier.padding(16.dp)) {
                             Text(stat.species, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             Spacer(Modifier.height(8.dp))

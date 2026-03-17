@@ -155,7 +155,8 @@ fun PhotoPicker(
         if (hasImage) {
             Card(
                 shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth().clickable { showFullScreen = true }
+                modifier = Modifier.fillMaxWidth().clickable { showFullScreen = true },
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 if (bitmap != null) {
                     Image(

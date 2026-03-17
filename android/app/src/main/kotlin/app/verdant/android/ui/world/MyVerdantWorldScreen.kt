@@ -175,7 +175,8 @@ fun MyVerdantWorldScreen(
                     item {
                         Card(
                             shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             Column(Modifier.padding(12.dp)) {
                                 uiState.trayPlants.forEach { entry ->
@@ -222,7 +223,7 @@ fun MyVerdantWorldScreen(
                         Text(stringResource(R.string.harvest_stats), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     }
                     items(uiState.harvestStats) { stat ->
-                        Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                        Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                             Column(Modifier.padding(16.dp)) {
                                 Text(stat.species, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                                 Spacer(Modifier.height(4.dp))
@@ -253,7 +254,8 @@ fun MyVerdantWorldScreen(
                     item {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             Column(
                                 modifier = Modifier.padding(24.dp).fillMaxWidth(),

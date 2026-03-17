@@ -132,7 +132,8 @@ fun PlantedSpeciesListScreen(
                     items(filtered, key = { it.speciesId }) { species ->
                         Card(
                             modifier = Modifier.fillMaxWidth().clickable { onSpeciesClick(species.speciesId) },
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             Row(
                                 modifier = Modifier.padding(16.dp).fillMaxWidth(),

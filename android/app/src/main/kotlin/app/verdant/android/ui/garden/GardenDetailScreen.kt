@@ -263,7 +263,8 @@ fun GardenDetailScreen(
                     items(uiState.beds) { bed ->
                         Card(
                             modifier = Modifier.fillMaxWidth().clickable { onBedClick(bed.id) },
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             Column(Modifier.padding(16.dp)) {
                                 Text(bed.name, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)

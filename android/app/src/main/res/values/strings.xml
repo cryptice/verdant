@@ -10,6 +10,8 @@
     <string name="edit">Edit</string>
     <string name="next">Next</string>
     <string name="skip">Skip</string>
+    <string name="sow_seeds_in_bed">Sow seeds</string>
+    <string name="plant_from_tray">Plant from tray</string>
     <string name="create">Create</string>
     <string name="search">Search</string>
     <string name="none">None</string>

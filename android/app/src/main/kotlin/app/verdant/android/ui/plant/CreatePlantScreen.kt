@@ -189,7 +189,7 @@ fun CreatePlantScreen(
             }
 
             scanBitmap?.let { bmp ->
-                Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                     Image(
                         bitmap = bmp.asImageBitmap(),
                         contentDescription = stringResource(R.string.seed_package),
@@ -212,6 +212,7 @@ fun CreatePlantScreen(
                     Card(
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                         onClick = {
                             species = s.species
                             if (name.isBlank()) name = s.commonName

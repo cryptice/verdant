@@ -58,6 +58,9 @@ sealed class Screen(val route: String) {
     data object CreatePlant : Screen("bed/{bedId}/plant/create") {
         fun create(bedId: Long) = "bed/$bedId/plant/create"
     }
+    data object BatchPlantOut : Screen("bed/{bedId}/plant-from-tray") {
+        fun create(bedId: Long) = "bed/$bedId/plant-from-tray"
+    }
     data object PlantDetail : Screen("plant/{plantId}") {
         fun create(plantId: Long) = "plant/$plantId"
     }
@@ -85,12 +88,13 @@ sealed class Screen(val route: String) {
         fun create(speciesId: Long) = "activity/edit-species/$speciesId"
     }
     data object AddSeeds : Screen("activity/add-seeds")
-    data object Sow : Screen("activity/sow?taskId={taskId}&speciesId={speciesId}") {
-        fun create(taskId: Long? = null, speciesId: Long? = null): String {
+    data object Sow : Screen("activity/sow?taskId={taskId}&speciesId={speciesId}&bedId={bedId}") {
+        fun create(taskId: Long? = null, speciesId: Long? = null, bedId: Long? = null): String {
             val base = "activity/sow"
             val params = mutableListOf<String>()
             if (taskId != null) params.add("taskId=$taskId")
             if (speciesId != null) params.add("speciesId=$speciesId")
+            if (bedId != null) params.add("bedId=$bedId")
             return if (params.isEmpty()) base else "$base?${params.joinToString("&")}"
         }
     }
@@ -317,7 +321,8 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                 BedDetailScreen(
                     onBack = { navController.popBackStack() },
                     onPlantClick = { plantId -> navController.navigate(Screen.PlantDetail.create(plantId)) },
-                    onCreatePlant = { bedId -> navController.navigate(Screen.CreatePlant.create(bedId)) }
+                    onSowInBed = { bedId -> navController.navigate(Screen.Sow.create(bedId = bedId)) },
+                    onPlantFromTray = { bedId -> navController.navigate(Screen.BatchPlantOut.create(bedId)) }
                 )
             }
             composable(
@@ -328,6 +333,12 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                     onBack = { navController.popBackStack() },
                     onCreated = { navController.popBackStack() }
                 )
+            }
+            composable(
+                Screen.BatchPlantOut.route,
+                arguments = listOf(navArgument("bedId") { type = NavType.LongType })
+            ) {
+                BatchPlantOutScreen(onBack = { navController.popBackStack() })
             }
             composable(
                 Screen.PlantDetail.route,
@@ -434,6 +445,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                 arguments = listOf(
                     navArgument("taskId") { type = NavType.LongType; defaultValue = -1L },
                     navArgument("speciesId") { type = NavType.LongType; defaultValue = -1L },
+                    navArgument("bedId") { type = NavType.LongType; defaultValue = -1L },
                 )
             ) {
                 SowActivityScreen(

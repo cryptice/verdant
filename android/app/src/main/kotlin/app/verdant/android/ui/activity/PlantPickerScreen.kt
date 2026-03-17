@@ -130,7 +130,8 @@ fun PlantPickerScreen(
                     items(filteredPlants) { plant ->
                         Card(
                             modifier = Modifier.fillMaxWidth().clickable { onPlantSelected(plant.id) },
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             Column(Modifier.padding(16.dp)) {
                                 Text(plant.name, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)

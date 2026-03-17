@@ -232,7 +232,7 @@ fun AddPlantEventScreen(
             }
 
             imageBitmap?.let { bmp ->
-                Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
+                Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                     Image(
                         bitmap = bmp.asImageBitmap(),
                         contentDescription = stringResource(R.string.photo),
@@ -254,7 +254,8 @@ fun AddPlantEventScreen(
                 uiState.suggestions.forEach { s ->
                     Card(
                         shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                     ) {
                         Column(Modifier.padding(12.dp)) {
                             Text("${s.commonName} (${s.species})", fontWeight = FontWeight.Medium)
