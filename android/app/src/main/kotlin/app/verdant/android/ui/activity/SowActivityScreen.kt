@@ -278,17 +278,19 @@ fun SowActivityScreen(
                 )
             }
 
-            // Tray toggle
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(stringResource(R.string.sow_in_tray), fontSize = 16.sp)
-                Switch(
-                    checked = sowInTray,
-                    onCheckedChange = { sowInTray = it; if (it) selectedBedId = null }
-                )
+            // Tray toggle (hidden when launched from a specific bed)
+            if (viewModel.preselectedBedId == null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(stringResource(R.string.sow_in_tray), fontSize = 16.sp)
+                    Switch(
+                        checked = sowInTray,
+                        onCheckedChange = { sowInTray = it; if (it) selectedBedId = null }
+                    )
+                }
             }
 
             // Bed picker (hidden when sowing in tray)

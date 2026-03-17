@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -40,7 +41,10 @@ data class BedDetailState(
     val bed: BedResponse? = null,
     val plants: List<PlantResponse> = emptyList(),
     val error: String? = null,
-    val deleted: Boolean = false
+    val deleted: Boolean = false,
+    val expandedGroups: Set<String> = emptySet(),
+    val scrollIndex: Int = 0,
+    val scrollOffset: Int = 0,
 )
 
 @HiltViewModel
@@ -56,13 +60,13 @@ class BedDetailViewModel @Inject constructor(
 
     fun refresh() {
         viewModelScope.launch {
-            _uiState.value = BedDetailState(isLoading = true)
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
                 val bed = gardenRepository.getBed(bedId)
                 val plants = gardenRepository.getPlants(bedId)
-                _uiState.value = BedDetailState(isLoading = false, bed = bed, plants = plants)
+                _uiState.value = _uiState.value.copy(isLoading = false, bed = bed, plants = plants)
             } catch (e: Exception) {
-                _uiState.value = BedDetailState(isLoading = false, error = e.message)
+                _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
             }
         }
     }
@@ -76,6 +80,17 @@ class BedDetailViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(error = e.message)
             }
         }
+    }
+
+    fun toggleGroup(species: String) {
+        val current = _uiState.value.expandedGroups
+        _uiState.value = _uiState.value.copy(
+            expandedGroups = if (species in current) current - species else current + species
+        )
+    }
+
+    fun saveScrollPosition(index: Int, offset: Int) {
+        _uiState.value = _uiState.value.copy(scrollIndex = index, scrollOffset = offset)
     }
 
     fun delete() {
@@ -237,7 +252,7 @@ fun BedDetailScreen(
         }
     ) { padding ->
         when {
-            uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            uiState.isLoading && uiState.bed == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
             uiState.error != null -> {
@@ -248,8 +263,16 @@ fun BedDetailScreen(
             }
             else -> {
                 val groupedPlants = uiState.plants.groupBy { it.speciesName ?: it.name }
-                var expandedGroups by remember { mutableStateOf(setOf<String>()) }
+                val listState = rememberLazyListState(
+                    initialFirstVisibleItemIndex = uiState.scrollIndex,
+                    initialFirstVisibleItemScrollOffset = uiState.scrollOffset
+                )
+                LaunchedEffect(listState) {
+                    snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
+                        .collect { (index, offset) -> viewModel.saveScrollPosition(index, offset) }
+                }
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -275,7 +298,7 @@ fun BedDetailScreen(
 
 
                     items(groupedPlants.entries.toList(), key = { it.key }) { (species, plantsInGroup) ->
-                        val isExpanded = species in expandedGroups
+                        val isExpanded = species in uiState.expandedGroups
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
@@ -285,9 +308,7 @@ fun BedDetailScreen(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable {
-                                            expandedGroups = if (isExpanded) expandedGroups - species else expandedGroups + species
-                                        }
+                                        .clickable { viewModel.toggleGroup(species) }
                                         .padding(horizontal = 16.dp, vertical = 12.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -315,9 +336,18 @@ fun BedDetailScreen(
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
                                                 Text(plant.name, modifier = Modifier.weight(1f), fontSize = 14.sp)
+                                                val statusRes = when (plant.status) {
+                                                    "SEEDED" -> R.string.event_seeded
+                                                    "POTTED_UP" -> R.string.event_potted_up
+                                                    "PLANTED_OUT", "GROWING" -> R.string.event_growing
+                                                    "HARVESTED" -> R.string.event_harvested
+                                                    "RECOVERED" -> R.string.event_recovered
+                                                    "REMOVED" -> R.string.event_removed
+                                                    else -> R.string.plant
+                                                }
                                                 AssistChip(
                                                     onClick = {},
-                                                    label = { Text(plant.status, fontSize = 12.sp) }
+                                                    label = { Text(stringResource(statusRes), fontSize = 12.sp) }
                                                 )
                                             }
                                             if (index < plantsInGroup.lastIndex) {

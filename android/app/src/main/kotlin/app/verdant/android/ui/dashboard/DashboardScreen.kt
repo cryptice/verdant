@@ -44,12 +44,12 @@ class DashboardViewModel @Inject constructor(
 
     fun refresh() {
         viewModelScope.launch {
-            _uiState.value = DashboardUiState(isLoading = true)
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
                 val dashboard = gardenRepository.getDashboard()
-                _uiState.value = DashboardUiState(isLoading = false, dashboard = dashboard)
+                _uiState.value = _uiState.value.copy(isLoading = false, dashboard = dashboard)
             } catch (e: Exception) {
-                _uiState.value = DashboardUiState(isLoading = false, error = e.message)
+                _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
             }
         }
     }

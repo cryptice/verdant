@@ -56,14 +56,14 @@ class MyWorldViewModel @Inject constructor(
                 val dashboard = repo.getDashboard()
                 val stats = repo.getHarvestStats()
                 val tray = try { repo.getTraySummary() } catch (_: Exception) { emptyList() }
-                _uiState.value = MyWorldState(
+                _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     dashboard = dashboard,
                     harvestStats = stats,
                     trayPlants = tray,
                 )
             } catch (e: Exception) {
-                if (showLoading) _uiState.value = MyWorldState(isLoading = false, error = e.message)
+                if (showLoading) _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
             }
         }
     }

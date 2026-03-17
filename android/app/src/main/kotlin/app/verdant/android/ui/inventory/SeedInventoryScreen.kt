@@ -49,12 +49,12 @@ class SeedInventoryViewModel @Inject constructor(
 
     fun refresh() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
                 val items = repo.getSeedInventory()
-                _uiState.value = SeedInventoryState(isLoading = false, items = items)
+                _uiState.value = _uiState.value.copy(isLoading = false, items = items)
             } catch (e: Exception) {
-                _uiState.value = SeedInventoryState(isLoading = false, error = e.message)
+                _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
             }
         }
     }
