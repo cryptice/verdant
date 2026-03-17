@@ -7,18 +7,28 @@ import io.quarkus.elytron.security.common.BcryptUtil
 import io.quarkus.runtime.StartupEvent
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.enterprise.event.Observes
+import org.eclipse.microprofile.config.inject.ConfigProperty
+import java.util.Optional
 
 @ApplicationScoped
-class AdminSeeder(private val userRepository: UserRepository) {
+class AdminSeeder(
+    private val userRepository: UserRepository,
+    @ConfigProperty(name = "verdant.admin.email", defaultValue = "verdant@l2c.se") private val adminEmail: String,
+    @ConfigProperty(name = "verdant.admin.password") private val adminPassword: Optional<String>,
+) {
 
     fun onStart(@Observes event: StartupEvent) {
-        if (userRepository.findByEmail("admin@verdant.app") == null) {
+        val password = adminPassword.orElse(null)
+        if (password.isNullOrBlank()) return
+
+        val existing = userRepository.findByEmail(adminEmail)
+        if (existing == null) {
             userRepository.persist(
                 User(
-                    email = "admin@verdant.app",
+                    email = adminEmail,
                     displayName = "Admin",
                     role = Role.ADMIN,
-                    passwordHash = BcryptUtil.bcryptHash("admin"),
+                    passwordHash = BcryptUtil.bcryptHash(password),
                 )
             )
         }

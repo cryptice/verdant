@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api, type Species, type UpdateSpeciesRequest, type CreateSpeciesRequest, type SpeciesPhoto, type SpeciesExportEntry, type Provider, type SpeciesProvider, type AddSpeciesProviderRequest } from '../api/client'
+import { api, type Species, type UpdateSpeciesRequest, type CreateSpeciesRequest, type SpeciesPhoto, type SpeciesExportEntry, type AddSpeciesProviderRequest } from '../api/client'
 import { useState, useRef, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import ErrorDisplay from '../components/ErrorDisplay'
@@ -1015,7 +1015,7 @@ function SpeciesForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const req: CreateSpeciesRequest & UpdateSpeciesRequest = {
-      commonName: commonName || undefined,
+      commonName: commonName,
       commonNameSv: commonNameSv || undefined,
       variantName: variantName || undefined,
       variantNameSv: variantNameSv || undefined,

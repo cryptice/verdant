@@ -35,6 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -434,7 +435,13 @@ private fun LocationPickerStep(
                         viewModel.currentStep = 1
                     },
                     containerColor = MaterialTheme.colorScheme.primary
-                ) { Icon(Icons.Default.ArrowForward, "Next", tint = MaterialTheme.colorScheme.onPrimary) }
+                ) { Icon(Icons.Default.ArrowForward, stringResource(R.string.next), tint = MaterialTheme.colorScheme.onPrimary) }
+                TextButton(onClick = {
+                    viewModel.gardenBoundary.clear()
+                    viewModel.currentStep = 2
+                }) {
+                    Text(stringResource(R.string.skip), fontSize = 12.sp)
+                }
             }
         }
     }
@@ -462,7 +469,7 @@ private fun BoundaryEditorStep(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
             properties = MapProperties(mapType = MapType.HYBRID, maxZoomPreference = 21f),
-            uiSettings = MapUiSettings(scrollGesturesEnabled = false, zoomGesturesEnabled = false, rotationGesturesEnabled = false, tiltGesturesEnabled = false)
+            uiSettings = MapUiSettings(scrollGesturesEnabled = true, zoomGesturesEnabled = true, rotationGesturesEnabled = false, tiltGesturesEnabled = false)
         ) {
             // Garden boundary polygon
             if (boundarySize >= 3) {
@@ -512,12 +519,23 @@ private fun BoundaryEditorStep(
             }
         }
 
-        // Next FAB
-        SmallFloatingActionButton(
-            onClick = { viewModel.currentStep = 2 },
+        // Next & Skip
+        Column(
             modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
-            containerColor = MaterialTheme.colorScheme.primary
-        ) { Icon(Icons.Default.ArrowForward, "Next", tint = MaterialTheme.colorScheme.onPrimary) }
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            SmallFloatingActionButton(
+                onClick = { viewModel.currentStep = 2 },
+                containerColor = MaterialTheme.colorScheme.primary
+            ) { Icon(Icons.Default.ArrowForward, stringResource(R.string.next), tint = MaterialTheme.colorScheme.onPrimary) }
+            TextButton(onClick = {
+                viewModel.gardenBoundary.clear()
+                viewModel.currentStep = 2
+            }) {
+                Text(stringResource(R.string.skip), fontSize = 12.sp)
+            }
+        }
 
         viewModel.error?.let { msg ->
             Box(Modifier.align(Alignment.TopCenter).padding(16.dp)) {
@@ -606,7 +624,7 @@ private fun BedEditorStep(
                     modifier = Modifier.fillMaxSize(),
                     cameraPositionState = cameraPositionState,
                     properties = MapProperties(mapType = MapType.HYBRID, maxZoomPreference = 21f),
-                    uiSettings = MapUiSettings(scrollGesturesEnabled = false, zoomGesturesEnabled = false, rotationGesturesEnabled = false, tiltGesturesEnabled = false)
+                    uiSettings = MapUiSettings(scrollGesturesEnabled = true, zoomGesturesEnabled = true, rotationGesturesEnabled = false, tiltGesturesEnabled = false)
                 ) {
                     // Garden boundary as reference (non-editable)
                     if (viewModel.gardenBoundary.size >= 3) {

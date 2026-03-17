@@ -1,5 +1,7 @@
 import java.text.SimpleDateFormat
 import java.util.Date
+import javax.inject.Inject
+import org.gradle.process.ExecOperations
 
 plugins {
     kotlin("jvm") version "2.1.10"
@@ -51,6 +53,7 @@ dependencies {
     implementation("io.quarkus:quarkus-elytron-security-common")
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("com.google.cloud:google-cloud-storage:2.43.1")
+    implementation("com.google.cloud.sql:postgres-socket-factory:1.21.0")
 }
 
 java {
@@ -89,6 +92,10 @@ tasks.named<io.quarkus.gradle.tasks.QuarkusDev>("quarkusDev") {
     if (gcsKey.isNotBlank()) {
         val resolved = rootProject.file(gcsKey).absolutePath
         jvmArgs = jvmArgs + listOf("-Dverdant.gcs.service-account-key=$resolved")
+    }
+    val adminPassword = envGet("backend", "admin-password")
+    if (adminPassword.isNotBlank()) {
+        jvmArgs = jvmArgs + listOf("-Dverdant.admin.password=$adminPassword")
     }
 }
 
@@ -169,29 +176,44 @@ fun findExecutable(name: String): String {
     return name // fall back to bare name
 }
 
-fun Project.pgExec(db: DbConnection, tool: String, args: List<String>, output: java.io.OutputStream? = null) {
-    if (db.containerId != null) {
-        exec {
-            environment("PGPASSWORD", db.password)
-            commandLine(listOf(findExecutable("docker"), "exec", "-e", "PGPASSWORD=${db.password}", db.containerId,
-                tool, "-U", db.username) + args)
-            if (output != null) standardOutput = output
-        }
-    } else {
-        exec {
-            environment("PGPASSWORD", db.password)
-            commandLine(listOf(findExecutable(tool), "-h", db.host!!, "-p", db.port!!, "-U", db.username) + args)
-            if (output != null) standardOutput = output
+abstract class PgOps @Inject constructor(private val execOps: ExecOperations) {
+
+    fun pgExec(db: DbConnection, tool: String, args: List<String>, output: java.io.OutputStream? = null) {
+        if (db.containerId != null) {
+            execOps.exec {
+                environment("PGPASSWORD", db.password)
+                commandLine(listOf(findExecutable("docker"), "exec", "-e", "PGPASSWORD=${db.password}", db.containerId,
+                    tool, "-U", db.username) + args)
+                if (output != null) standardOutput = output
+            }
+        } else {
+            execOps.exec {
+                environment("PGPASSWORD", db.password)
+                commandLine(listOf(findExecutable(tool), "-h", db.host!!, "-p", db.port!!, "-U", db.username) + args)
+                if (output != null) standardOutput = output
+            }
         }
     }
-}
 
-fun Project.pgDump(db: DbConnection, output: java.io.OutputStream) {
-    pgExec(db, "pg_dump", listOf("--no-owner", "--no-acl", db.dbname), output)
-}
+    fun pgDump(db: DbConnection, output: java.io.OutputStream) {
+        pgExec(db, "pg_dump", listOf("--no-owner", "--no-acl", db.dbname), output)
+    }
 
-fun Project.psql(db: DbConnection, database: String, vararg args: String) {
-    pgExec(db, "psql", listOf("-d", database) + args.toList())
+    fun psql(db: DbConnection, database: String, vararg args: String) {
+        pgExec(db, "psql", listOf("-d", database) + args.toList())
+    }
+
+    fun restore(db: DbConnection, backupFile: File) {
+        if (db.containerId != null) {
+            execOps.exec {
+                commandLine(findExecutable("docker"), "exec", "-i", "-e", "PGPASSWORD=${db.password}", db.containerId,
+                    "psql", "-U", db.username, "-d", db.dbname)
+                standardInput = backupFile.inputStream()
+            }
+        } else {
+            psql(db, db.dbname, "-f", backupFile.absolutePath)
+        }
+    }
 }
 
 val backupDir = rootProject.file("db-backups")
@@ -200,13 +222,14 @@ tasks.register("dbBackup") {
     group = "database"
     description = "Back up the current database to a timestamped SQL file"
     doLast {
+        val pg = objects.newInstance(PgOps::class.java)
         val db = resolveDbConnection()
         backupDir.mkdirs()
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
         val backupFile = File(backupDir, "verdant_${timestamp}.sql")
 
         println("Backing up ${db.dbname} to ${backupFile.name}...")
-        pgDump(db, backupFile.outputStream())
+        pg.pgDump(db, backupFile.outputStream())
         println("Done: ${backupFile.absolutePath} (${backupFile.length() / 1024} KB)")
     }
 }
@@ -215,6 +238,7 @@ tasks.register("dbRestore") {
     group = "database"
     description = "Restore the database from the latest backup (or specify -PbackupFile=path)"
     doLast {
+        val pg = objects.newInstance(PgOps::class.java)
         val db = resolveDbConnection()
         val backupFile: File = if (project.hasProperty("backupFile")) {
             File(project.property("backupFile") as String)
@@ -229,22 +253,12 @@ tasks.register("dbRestore") {
         println("Restoring ${db.dbname} from ${backupFile.name}...")
 
         // Terminate connections, drop, recreate
-        psql(db, "postgres", "-c",
+        pg.psql(db, "postgres", "-c",
             "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${db.dbname}' AND pid <> pg_backend_pid()")
-        psql(db, "postgres", "-c", "DROP DATABASE IF EXISTS ${db.dbname}")
-        psql(db, "postgres", "-c", "CREATE DATABASE ${db.dbname}")
+        pg.psql(db, "postgres", "-c", "DROP DATABASE IF EXISTS ${db.dbname}")
+        pg.psql(db, "postgres", "-c", "CREATE DATABASE ${db.dbname}")
 
-        // Restore from backup
-        if (db.containerId != null) {
-            // Pipe file content into docker exec psql via stdin
-            exec {
-                commandLine(findExecutable("docker"), "exec", "-i", "-e", "PGPASSWORD=${db.password}", db.containerId,
-                    "psql", "-U", db.username, "-d", db.dbname)
-                standardInput = backupFile.inputStream()
-            }
-        } else {
-            psql(db, db.dbname, "-f", backupFile.absolutePath)
-        }
+        pg.restore(db, backupFile)
         println("Done: restored from ${backupFile.name}")
     }
 }

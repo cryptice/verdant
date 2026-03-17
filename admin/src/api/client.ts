@@ -5,9 +5,14 @@ function getToken(): string | null {
 }
 
 export class ApiError extends Error {
-  constructor(message: string, public status?: number, public isNetworkError = false) {
+  status?: number
+  isNetworkError: boolean
+
+  constructor(message: string, status?: number, isNetworkError = false) {
     super(message)
     this.name = 'ApiError'
+    this.status = status
+    this.isNetworkError = isNetworkError
   }
 }
 

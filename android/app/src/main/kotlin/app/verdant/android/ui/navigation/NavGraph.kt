@@ -152,7 +152,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        gesturesEnabled = !hideChrome,
+        gesturesEnabled = showTopBar,
         drawerContent = {
             ModalDrawerSheet(modifier = Modifier.width(280.dp)) {
                 Spacer(Modifier.height(24.dp))

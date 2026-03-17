@@ -8,17 +8,23 @@ import jakarta.enterprise.context.ApplicationScoped
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.io.FileInputStream
 import java.util.Base64
+import java.util.Optional
 import java.util.UUID
 
 @ApplicationScoped
 class StorageService(
-    @ConfigProperty(name = "verdant.gcs.service-account-key") private val serviceAccountKeyPath: String,
+    @ConfigProperty(name = "verdant.gcs.service-account-key") private val serviceAccountKeyPath: Optional<String>,
 ) {
     private val bucketName = "verdant-species"
     private val publicBase = "https://storage.googleapis.com/$bucketName"
 
     private val storage by lazy {
-        val credentials = GoogleCredentials.fromStream(FileInputStream(serviceAccountKeyPath))
+        val path = serviceAccountKeyPath.orElse(null)
+        val credentials = if (!path.isNullOrBlank() && java.io.File(path).exists()) {
+            GoogleCredentials.fromStream(FileInputStream(path))
+        } else {
+            GoogleCredentials.getApplicationDefault()
+        }
         StorageOptions.newBuilder().setCredentials(credentials).build().service
     }
 

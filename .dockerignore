@@ -1,0 +1,10 @@
+backend/.gradle/
+backend/build/
+backend/.kotlin/
+admin/node_modules/
+admin/dist/
+android/
+db-backups/
+secrets/
+*.env*
+.git/
