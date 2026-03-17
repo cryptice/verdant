@@ -29,7 +29,7 @@ substitutions:
   _REGION: europe-north1
   _REPO: verdant
   _SERVICE: verdant-api
-  _SQL_CONNECTION: verdant-planner-staging:europe-north1:verdant-staging
+  _SQL_CONNECTION: verdant-planner-staging:europe-north2:verdant-staging
 
 options:
   logging: CLOUD_LOGGING_ONLY
