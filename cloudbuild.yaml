@@ -22,7 +22,7 @@ steps:
       - '--min-instances=0'
       - '--max-instances=3'
       - '--add-cloudsql-instances=${_SQL_CONNECTION}'
-      - '--set-env-vars=DB_USERNAME=verdant,DB_URL=jdbc:postgresql:///verdant?cloudSqlInstance=${_SQL_CONNECTION}&socketFactory=com.google.cloud.sql.postgres.SocketFactory'
+      - '--set-env-vars=^##^DB_USERNAME=verdant##DB_URL=jdbc:postgresql:///verdant?cloudSqlInstance=${_SQL_CONNECTION}&socketFactory=com.google.cloud.sql.postgres.SocketFactory'
       - '--set-secrets=DB_PASSWORD=verdant-db-password:latest,GEMINI_API_KEY=verdant-gemini-key:latest,ADMIN_PASSWORD=verdant-admin-password:latest'
 
 substitutions:
