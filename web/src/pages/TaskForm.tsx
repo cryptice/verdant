@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
+import type { BreadcrumbItem } from '../components/Breadcrumb'
 
 const activityTypes = ['SOW', 'POT_UP', 'PLANT', 'HARVEST', 'RECOVER', 'DISCARD']
 
@@ -54,9 +55,11 @@ export function TaskForm() {
   const mutation = isEdit ? updateMut : createMut
   const valid = speciesId && deadline && Number(targetCount) > 0
 
+  const breadcrumbs: BreadcrumbItem[] = [{ label: t('nav.tasks'), to: '/tasks' }]
+
   return (
     <div className="max-w-lg">
-      <PageHeader title={isEdit ? t('tasks.editTaskTitle') : t('tasks.newTaskTitle')} back />
+      <PageHeader title={isEdit ? t('tasks.editTaskTitle') : t('tasks.newTaskTitle')} back breadcrumbs={breadcrumbs} />
       <div className="form-card">
         <div>
           <label className="field-label">{t('common.speciesLabel')}</label>

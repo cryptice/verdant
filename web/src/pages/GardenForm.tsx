@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
+import type { BreadcrumbItem } from '../components/Breadcrumb'
 
 const GARDEN_ICONS = [
   '🌱', '🌿', '🌾', '🌻', '🌸', '🌺', '🌼', '🍀',
@@ -25,9 +26,11 @@ export function GardenForm() {
     onSuccess: (g) => { qc.invalidateQueries({ queryKey: ['dashboard'] }); navigate(`/garden/${g.id}`, { replace: true }) },
   })
 
+  const breadcrumbs: BreadcrumbItem[] = [{ label: t('nav.myWorld'), to: '/' }]
+
   return (
     <div className="max-w-lg">
-      <PageHeader title={t('garden.newGardenTitle')} back />
+      <PageHeader title={t('garden.newGardenTitle')} back breadcrumbs={breadcrumbs} />
       <div className="form-card">
         <div>
           <label className="field-label">{t('common.iconLabel')}</label>

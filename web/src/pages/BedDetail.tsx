@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
+import type { BreadcrumbItem } from '../components/Breadcrumb'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { StatusBadge } from '../components/StatusBadge'
@@ -23,6 +24,12 @@ export function BedDetail() {
   const { data: plants } = useQuery({
     queryKey: ['bed-plants', bedId],
     queryFn: () => api.beds.plants(bedId),
+  })
+
+  const { data: garden } = useQuery({
+    queryKey: ['garden', bed?.gardenId],
+    queryFn: () => api.gardens.get(bed!.gardenId),
+    enabled: !!bed,
   })
 
   const [editing, setEditing] = useState(false)
@@ -61,11 +68,17 @@ export function BedDetail() {
     })
   }
 
+  const breadcrumbs: BreadcrumbItem[] = [
+    { label: t('nav.myWorld'), to: '/' },
+    { label: garden?.name ?? '…', to: `/garden/${bed.gardenId}` },
+  ]
+
   return (
     <div>
       <PageHeader
         title={bed.name}
         back
+        breadcrumbs={breadcrumbs}
         action={{ label: t('common.edit'), onClick: () => { setEditName(bed.name); setEditDesc(bed.description ?? ''); setEditing(true) } }}
       />
 

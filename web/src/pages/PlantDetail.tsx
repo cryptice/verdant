@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
+import type { BreadcrumbItem } from '../components/Breadcrumb'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { StatusBadge } from '../components/StatusBadge'
@@ -28,6 +29,18 @@ export function PlantDetail() {
   const { data: events } = useQuery({
     queryKey: ['plant-events', plantId],
     queryFn: () => api.plants.events(plantId),
+  })
+
+  const { data: bed } = useQuery({
+    queryKey: ['bed', plant?.bedId],
+    queryFn: () => api.beds.get(plant!.bedId!),
+    enabled: !!plant?.bedId,
+  })
+
+  const { data: garden } = useQuery({
+    queryKey: ['garden', bed?.gardenId],
+    queryFn: () => api.gardens.get(bed!.gardenId),
+    enabled: !!bed,
   })
 
   const [showDelete, setShowDelete] = useState(false)
@@ -71,13 +84,21 @@ export function PlantDetail() {
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
   if (!plant) return null
 
+  const breadcrumbs: BreadcrumbItem[] = [{ label: t('nav.myWorld'), to: '/' }]
+  if (garden && bed) {
+    breadcrumbs.push({ label: garden.name, to: `/garden/${garden.id}` })
+    breadcrumbs.push({ label: bed.name, to: `/bed/${bed.id}` })
+  } else if (garden) {
+    breadcrumbs.push({ label: garden.name, to: `/garden/${garden.id}` })
+  }
+
   const eventTypes = ['SEEDED', 'POTTED_UP', 'PLANTED_OUT', 'HARVESTED', 'RECOVERED', 'REMOVED', 'NOTE']
   const showCount = ['SEEDED', 'POTTED_UP', 'PLANTED_OUT'].includes(eventType)
   const showWeight = eventType === 'HARVESTED'
 
   return (
     <div>
-      <PageHeader title={plant.name} back />
+      <PageHeader title={plant.name} back breadcrumbs={breadcrumbs} />
 
       <div className="px-4 py-4 space-y-4">
         <div className="card">

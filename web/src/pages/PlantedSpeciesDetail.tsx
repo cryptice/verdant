@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import type { BreadcrumbItem } from '../components/Breadcrumb'
 import { api } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
@@ -34,7 +35,11 @@ export function PlantedSpeciesDetail() {
 
   return (
     <div>
-      <PageHeader title={summary?.speciesName ?? t('species.title')} back />
+      <PageHeader
+        title={summary?.speciesName ?? t('species.title')}
+        back
+        breadcrumbs={[{ label: t('nav.plants'), to: '/plants' }] satisfies BreadcrumbItem[]}
+      />
       <div className="px-4 py-4 space-y-4">
         {Array.from(byLocation.entries()).map(([location, items]) => (
           <div key={location} className="card">

@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
+import type { BreadcrumbItem } from '../components/Breadcrumb'
 
 export function BedForm() {
   const { gardenId } = useParams<{ gardenId: string }>()
@@ -13,14 +14,24 @@ export function BedForm() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
 
+  const { data: garden } = useQuery({
+    queryKey: ['garden', Number(gardenId)],
+    queryFn: () => api.gardens.get(Number(gardenId)),
+  })
+
   const mutation = useMutation({
     mutationFn: () => api.beds.create(Number(gardenId), { name, description: description || undefined }),
     onSuccess: (b) => { qc.invalidateQueries({ queryKey: ['garden-beds', Number(gardenId)] }); navigate(`/bed/${b.id}`, { replace: true }) },
   })
 
+  const breadcrumbs: BreadcrumbItem[] = [
+    { label: t('nav.myWorld'), to: '/' },
+    { label: garden?.name ?? '…', to: `/garden/${gardenId}` },
+  ]
+
   return (
     <div className="max-w-lg">
-      <PageHeader title={t('bed.newBedTitle')} back />
+      <PageHeader title={t('bed.newBedTitle')} back breadcrumbs={breadcrumbs} />
       <div className="form-card">
         <div>
           <label className="field-label">{t('common.nameLabel')}</label>

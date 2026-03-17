@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
+import type { BreadcrumbItem } from '../components/Breadcrumb'
 
 export function SowActivity() {
   const navigate = useNavigate()
@@ -20,6 +21,18 @@ export function SowActivity() {
     queryKey: ['task', taskId],
     queryFn: () => api.tasks.get(taskId!),
     enabled: !!taskId,
+  })
+
+  const { data: sowBed } = useQuery({
+    queryKey: ['bed', presetBedId],
+    queryFn: () => api.beds.get(presetBedId!),
+    enabled: !!presetBedId,
+  })
+
+  const { data: sowGarden } = useQuery({
+    queryKey: ['garden', sowBed?.gardenId],
+    queryFn: () => api.gardens.get(sowBed!.gardenId),
+    enabled: !!sowBed,
   })
 
   const [speciesId, setSpeciesId] = useState(presetSpeciesId ? String(presetSpeciesId) : '')
@@ -93,9 +106,15 @@ export function SowActivity() {
     : ''
   const valid = speciesId && (sowInTray || bedId) && Number(seedCount) > 0
 
+  const breadcrumbs: BreadcrumbItem[] = taskId
+    ? [{ label: t('nav.tasks'), to: '/tasks' }]
+    : sowGarden && sowBed
+      ? [{ label: t('nav.myWorld'), to: '/' }, { label: sowGarden.name, to: `/garden/${sowGarden.id}` }, { label: sowBed.name, to: `/bed/${sowBed.id}` }]
+      : [{ label: t('nav.myWorld'), to: '/' }]
+
   return (
     <div className="max-w-lg">
-      <PageHeader title={t('sow.title')} back />
+      <PageHeader title={t('sow.title')} back breadcrumbs={breadcrumbs} />
       <div className="form-card">
 
         <div className="relative">

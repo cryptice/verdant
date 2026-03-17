@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import type { BreadcrumbItem } from '../components/Breadcrumb'
 import { api } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
@@ -51,11 +52,14 @@ export function GardenDetail() {
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
   if (!garden) return null
 
+  const breadcrumbs: BreadcrumbItem[] = [{ label: t('nav.myWorld'), to: '/' }]
+
   return (
     <div>
       <PageHeader
         title={garden.name}
         back
+        breadcrumbs={breadcrumbs}
         action={{ label: t('common.edit'), onClick: () => { setEditName(garden.name); setEditDesc(garden.description ?? ''); setEditEmoji(garden.emoji ?? ''); setEditing(true) } }}
       />
 
