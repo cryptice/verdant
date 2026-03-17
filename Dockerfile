@@ -1,4 +1,12 @@
-# Stage 1: Build admin UI
+# Stage 1: Build web UI
+FROM node:22-alpine AS web
+WORKDIR /web
+COPY web/package.json web/package-lock.json ./
+RUN npm ci --no-update-notifier
+COPY web/ ./
+RUN npm run build
+
+# Stage 2: Build admin UI
 FROM node:22-alpine AS admin
 WORKDIR /admin
 COPY admin/package.json admin/package-lock.json ./
@@ -6,20 +14,21 @@ RUN npm ci --no-update-notifier
 COPY admin/ ./
 RUN npm run build
 
-# Stage 2: Download backend dependencies (cached unless build files change)
+# Stage 3: Download backend dependencies (cached unless build files change)
 FROM gradle:8.12-jdk21 AS deps
 WORKDIR /app
 COPY backend/build.gradle.kts backend/settings.gradle.kts backend/gradle.properties ./
 COPY backend/gradle/ gradle/
 RUN gradle dependencies --no-daemon -q
 
-# Stage 3: Build backend
+# Stage 4: Build backend
 FROM deps AS build
 COPY backend/src/ src/
-COPY --from=admin /admin/dist/ src/main/resources/META-INF/resources/
+COPY --from=web /web/dist/ src/main/resources/META-INF/resources/
+COPY --from=admin /admin/dist/ src/main/resources/META-INF/resources/admin/
 RUN gradle quarkusBuild --no-daemon -Dquarkus.profile=prod
 
-# Stage 4: Run
+# Stage 5: Run
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
