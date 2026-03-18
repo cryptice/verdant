@@ -175,12 +175,6 @@ export function SpeciesListPage() {
                     {s.commonNameSv || s.commonName}
                     {(s.variantNameSv || s.variantName) && <span className="text-[#787774] font-normal"> — {s.variantNameSv || s.variantName}</span>}
                   </div>
-                  {s.commonNameSv && s.commonName !== s.commonNameSv && (
-                    <div className="text-xs text-[#A5A29C]">
-                      {s.commonName}
-                      {s.variantName && <span> — {s.variantName}</span>}
-                    </div>
-                  )}
                 </td>
                 <td className="px-4 py-2.5 text-sm text-[#787774] italic">{s.scientificName || '—'}</td>
                 <td className="px-4 py-2.5 text-sm text-[#787774]">{s.groupName || '—'}</td>
