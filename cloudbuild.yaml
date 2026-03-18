@@ -6,6 +6,7 @@ steps:
       - '--cache-repo=europe-north1-docker.pkg.dev/$PROJECT_ID/verdant/verdant-api/cache'
       - '--cache-ttl=168h'
       - '--custom-platform=linux/amd64'
+      - '--snapshot-mode=redo'
       - '--build-arg=VITE_GOOGLE_CLIENT_ID'
     secretEnv:
       - 'VITE_GOOGLE_CLIENT_ID'
