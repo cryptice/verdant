@@ -151,6 +151,7 @@
     "variantName": "Variant name",
     "variantNameSv": "Variant name (Swedish)",
     "scientificName": "Scientific name",
+    "colName": "Name",
     "adding": "Adding...",
     "addSpeciesBtn": "Add species",
     "deleteSpeciesTitle": "Delete Species",

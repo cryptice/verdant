@@ -82,31 +82,38 @@ export function SpeciesList() {
         <p className="text-text-secondary text-sm text-center py-8">{t('species.noSpeciesFound')}</p>
       )}
 
-      <div className="px-4 space-y-2 pb-24">
-        {filtered.map(s => (
-          <div
-            key={s.id}
-            className="card flex items-center justify-between cursor-pointer"
-            onClick={() => navigate(`/sow?speciesId=${s.id}`)}
-          >
-            <div>
-              <p className="font-semibold text-sm">{displayName(s, i18n.language)}</p>
-              {s.scientificName && (
-                <p className="text-xs text-text-secondary italic">{s.scientificName}</p>
-              )}
-            </div>
-            {s.custom && (
-              <button
-                className="p-1 text-text-secondary hover:text-error"
-                onClick={e => { e.stopPropagation(); setDeleteItem(s) }}
-                aria-label={t('common.delete')}
-              >
-                ✕
-              </button>
-            )}
+      {filtered.length > 0 && (
+        <div className="px-4 pb-24">
+          <div className="border border-divider rounded-lg overflow-hidden bg-bg">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-divider bg-surface">
+                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('species.colName')}</th>
+                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('species.scientificName')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(s => {
+                  const name = s.commonNameSv ?? s.commonName
+                  const variant = s.variantNameSv ?? s.variantName
+                  return (
+                    <tr
+                      key={s.id}
+                      className="border-b border-divider last:border-0 hover:bg-surface cursor-pointer transition-colors"
+                      onClick={() => navigate(`/sow?speciesId=${s.id}`)}
+                    >
+                      <td className="px-4 py-2.5 text-sm">
+                        {name}{variant ? <span className="text-text-secondary"> — {variant}</span> : ''}
+                      </td>
+                      <td className="px-4 py-2.5 text-sm text-text-secondary italic">{s.scientificName ?? '—'}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
 
       {showAdd && (
         <Dialog open={showAdd} title={t('species.addSpeciesTitle')} onClose={() => setShowAdd(false)}>
