@@ -21,7 +21,7 @@ export function BedForm() {
 
   const mutation = useMutation({
     mutationFn: () => api.beds.create(Number(gardenId), { name, description: description || undefined }),
-    onSuccess: (b) => { qc.invalidateQueries({ queryKey: ['garden-beds', Number(gardenId)] }); navigate(`/bed/${b.id}`, { replace: true }) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['garden-beds', Number(gardenId)] }); navigate(`/garden/${gardenId}`, { replace: true }) },
   })
 
   const breadcrumbs: BreadcrumbItem[] = [

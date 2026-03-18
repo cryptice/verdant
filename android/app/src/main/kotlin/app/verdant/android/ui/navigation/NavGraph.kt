@@ -311,7 +311,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
             ) {
                 CreateBedScreen(
                     onBack = { navController.popBackStack() },
-                    onCreated = { bedId -> navController.navigate(Screen.BedDetail.create(bedId)) { popUpTo(Screen.MyWorld.route) } }
+                    onCreated = { _ -> navController.popBackStack() }
                 )
             }
             composable(

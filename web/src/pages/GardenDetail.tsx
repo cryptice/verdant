@@ -75,7 +75,7 @@ export function GardenDetail() {
           <p className="text-text-secondary text-sm">{t('garden.noBedsYet')}</p>
         )}
 
-        {beds?.map(bed => (
+        {beds?.slice().sort((a, b) => a.name.localeCompare(b.name)).map(bed => (
           <Link key={bed.id} to={`/bed/${bed.id}`} className="card block no-underline text-inherit">
             <p className="font-semibold">{bed.name}</p>
             {bed.description && <p className="text-sm text-text-secondary mt-1">{bed.description}</p>}

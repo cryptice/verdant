@@ -64,7 +64,7 @@ class GardenDetailViewModel @Inject constructor(
                     Log.d(TAG, "Loading garden $gardenId (attempt $attempt)")
                     val garden = gardenRepository.getGarden(gardenId)
                     Log.d(TAG, "Garden loaded: ${garden.name}")
-                    val beds = gardenRepository.getBeds(gardenId)
+                    val beds = gardenRepository.getBeds(gardenId).sortedBy { it.name.lowercase() }
                     Log.d(TAG, "Beds loaded: ${beds.size}")
                     _uiState.value = GardenDetailState(isLoading = false, garden = garden, beds = beds)
                     return@launch
