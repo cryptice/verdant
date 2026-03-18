@@ -42,7 +42,14 @@ export function SpeciesList() {
   const [deleteItem, setDeleteItem] = useState<SpeciesResponse | null>(null)
 
   const filtered = useMemo(
-    () => (data ?? []).filter(s => matchesQuery(s, search)),
+    () => (data ?? []).filter(s => matchesQuery(s, search)).sort((a, b) => {
+      const nameA = (a.commonNameSv ?? a.commonName).toLowerCase()
+      const nameB = (b.commonNameSv ?? b.commonName).toLowerCase()
+      if (nameA !== nameB) return nameA.localeCompare(nameB, 'sv')
+      const varA = (a.variantNameSv ?? a.variantName ?? '').toLowerCase()
+      const varB = (b.variantNameSv ?? b.variantName ?? '').toLowerCase()
+      return varA.localeCompare(varB, 'sv')
+    }),
     [data, search]
   )
 
