@@ -8,7 +8,7 @@ import { Dialog } from '../components/Dialog'
 
 export function SeedInventory() {
   const qc = useQueryClient()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['seed-inventory'],
     queryFn: () => api.inventory.list(),
@@ -18,6 +18,7 @@ export function SeedInventory() {
 
   const [showAdd, setShowAdd] = useState(false)
   const [addSpeciesId, setAddSpeciesId] = useState('')
+  const [speciesSearch, setSpeciesSearch] = useState('')
   const [addQuantity, setAddQuantity] = useState('')
   const [addCollection, setAddCollection] = useState('')
   const [addExpiration, setAddExpiration] = useState('')
@@ -32,7 +33,7 @@ export function SeedInventory() {
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['seed-inventory'] })
-      setShowAdd(false); setAddSpeciesId(''); setAddQuantity(''); setAddCollection(''); setAddExpiration('')
+      setShowAdd(false); setAddSpeciesId(''); setSpeciesSearch(''); setAddQuantity(''); setAddCollection(''); setAddExpiration('')
     },
   })
 
@@ -80,14 +81,52 @@ export function SeedInventory() {
         </>
       }>
         <div className="space-y-4">
-          <div>
+          <div className="relative">
             <label className="field-label">{t('common.speciesLabel')}</label>
-            <select value={addSpeciesId} onChange={e => setAddSpeciesId(e.target.value)} className="input">
-              <option value="">{t('common.selectSpecies')}</option>
-              {species?.map(s => (
-                <option key={s.id} value={s.id}>{s.commonName}{s.variantName ? ` — ${s.variantName}` : ''}</option>
-              ))}
-            </select>
+            <input
+              value={speciesSearch || (addSpeciesId ? (() => {
+                const s = species?.find(sp => sp.id === Number(addSpeciesId))
+                if (!s) return ''
+                const name = i18n.language === 'sv' ? (s.commonNameSv ?? s.commonName) : s.commonName
+                const variant = i18n.language === 'sv' ? (s.variantNameSv ?? s.variantName) : s.variantName
+                return variant ? `${name} — ${variant}` : name
+              })() : '')}
+              onChange={e => { setSpeciesSearch(e.target.value); setAddSpeciesId('') }}
+              placeholder={t('common.searchSpecies')}
+              className="input w-full"
+            />
+            {speciesSearch && (
+              <div className="absolute z-10 left-0 right-0 mt-1 border border-divider rounded-md bg-bg shadow-md max-h-48 overflow-y-auto">
+                {species?.filter(s => {
+                  const q = speciesSearch.toLowerCase()
+                  return s.commonName.toLowerCase().includes(q) ||
+                    s.commonNameSv?.toLowerCase().includes(q) ||
+                    s.variantName?.toLowerCase().includes(q) ||
+                    s.variantNameSv?.toLowerCase().includes(q)
+                }).slice(0, 20).map(s => {
+                  const name = i18n.language === 'sv' ? (s.commonNameSv ?? s.commonName) : s.commonName
+                  const variant = i18n.language === 'sv' ? (s.variantNameSv ?? s.variantName) : s.variantName
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => { setAddSpeciesId(String(s.id)); setSpeciesSearch('') }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-surface transition-colors"
+                    >
+                      {name}{variant ? ` — ${variant}` : ''}
+                    </button>
+                  )
+                })}
+                {species?.filter(s => {
+                  const q = speciesSearch.toLowerCase()
+                  return s.commonName.toLowerCase().includes(q) ||
+                    s.commonNameSv?.toLowerCase().includes(q) ||
+                    s.variantName?.toLowerCase().includes(q) ||
+                    s.variantNameSv?.toLowerCase().includes(q)
+                }).length === 0 && (
+                  <p className="px-3 py-2 text-sm text-text-secondary">{t('species.noSpeciesFoundDropdown')}</p>
+                )}
+              </div>
+            )}
           </div>
           <div>
             <label className="field-label">{t('seeds.quantityLabel')}</label>
