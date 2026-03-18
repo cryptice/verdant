@@ -221,6 +221,8 @@ export const api = {
       apiRequest<SeedInventoryResponse[]>(`/api/seed-inventory${speciesId ? `?speciesId=${speciesId}` : ''}`),
     create: (data: { speciesId: number; quantity: number; collectionDate?: string; expirationDate?: string }) =>
       apiRequest<SeedInventoryResponse>('/api/seed-inventory', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: { quantity?: number; collectionDate?: string; expirationDate?: string }) =>
+      apiRequest<SeedInventoryResponse>(`/api/seed-inventory/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     decrement: (id: number, quantity: number) =>
       apiRequest<void>(`/api/seed-inventory/${id}/decrement`, { method: 'POST', body: JSON.stringify({ quantity }) }),
     delete: (id: number) => apiRequest<void>(`/api/seed-inventory/${id}`, { method: 'DELETE' }),

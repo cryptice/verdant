@@ -169,6 +169,11 @@
     "quantityLabel": "Antal *",
     "collectionDate": "Insamlingsdatum",
     "expirationDate": "Utgångsdatum",
+    "colName": "Art",
+    "colSeeds": "Frön",
+    "colExpires": "Utgår",
+    "editSeedsTitle": "Redigera frön",
+    "deleteBatch": "Radera detta parti",
     "deleteBatchTitle": "Radera parti",
     "deleteBatchConfirm": "Radera detta fröparti?"
   },

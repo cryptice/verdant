@@ -23,6 +23,10 @@ export function SeedInventory() {
   const [addCollection, setAddCollection] = useState('')
   const [addExpiration, setAddExpiration] = useState('')
   const [deleteItem, setDeleteItem] = useState<SeedInventoryResponse | null>(null)
+  const [editItem, setEditItem] = useState<SeedInventoryResponse | null>(null)
+  const [editQuantity, setEditQuantity] = useState('')
+  const [editCollection, setEditCollection] = useState('')
+  const [editExpiration, setEditExpiration] = useState('')
 
   const createMut = useMutation({
     mutationFn: () => api.inventory.create({
@@ -37,6 +41,18 @@ export function SeedInventory() {
     },
   })
 
+  const updateMut = useMutation({
+    mutationFn: () => api.inventory.update(editItem!.id, {
+      quantity: Number(editQuantity),
+      collectionDate: editCollection || undefined,
+      expirationDate: editExpiration || undefined,
+    }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['seed-inventory'] })
+      setEditItem(null)
+    },
+  })
+
   const deleteMut = useMutation({
     mutationFn: (id: number) => api.inventory.delete(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['seed-inventory'] }); setDeleteItem(null) },
@@ -48,24 +64,49 @@ export function SeedInventory() {
   return (
     <div>
       <PageHeader title={t('seeds.title')} action={{ label: t('seeds.addSeeds'), onClick: () => setShowAdd(true) }} />
-      <div className="px-4 py-4 space-y-3">
+      <div className="px-4 py-4">
         {data && data.length === 0 && (
           <p className="text-text-secondary text-sm text-center py-4">{t('seeds.noBatches')}</p>
         )}
 
-        {data?.map(item => (
-          <div key={item.id} className="card flex items-center justify-between">
-            <div>
-              <p className="font-semibold text-sm">{item.speciesName}</p>
-              <p className="text-xs text-text-secondary">
-                {t('seeds.seedCount', { count: item.quantity })}
-                {item.collectionDate && ` · ${t('seeds.collected', { date: item.collectionDate })}`}
-                {item.expirationDate && ` · ${t('seeds.expires', { date: item.expirationDate })}`}
-              </p>
-            </div>
-            <button onClick={() => setDeleteItem(item)} className="text-error text-xs">{t('common.delete')}</button>
+        {data && data.length > 0 && (
+          <div className="border border-divider rounded-lg overflow-hidden bg-bg">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-divider bg-surface">
+                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('seeds.colName')}</th>
+                  <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('seeds.colSeeds')}</th>
+                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('seeds.colExpires')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.map(item => {
+                  const sp = species?.find(s => s.id === item.speciesId)
+                  const name = sp?.commonNameSv ?? sp?.commonName ?? item.speciesName
+                  const variant = sp?.variantNameSv ?? sp?.variantName
+                  return (
+                    <tr
+                      key={item.id}
+                      className="border-b border-divider last:border-0 hover:bg-surface cursor-pointer transition-colors"
+                      onClick={() => {
+                        setEditItem(item)
+                        setEditQuantity(String(item.quantity))
+                        setEditCollection(item.collectionDate ?? '')
+                        setEditExpiration(item.expirationDate ?? '')
+                      }}
+                    >
+                      <td className="px-4 py-2.5 text-sm">
+                        {name}{variant ? <span className="text-text-secondary"> — {variant}</span> : ''}
+                      </td>
+                      <td className="px-4 py-2.5 text-sm text-right tabular-nums">{item.quantity}</td>
+                      <td className="px-4 py-2.5 text-sm text-text-secondary">{item.expirationDate ?? '—'}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
-        ))}
+        )}
       </div>
 
       <Dialog open={showAdd} onClose={() => setShowAdd(false)} title={t('seeds.addSeedsTitle')} actions={
@@ -140,6 +181,40 @@ export function SeedInventory() {
             <label className="field-label">{t('seeds.expirationDate')}</label>
             <input type="date" value={addExpiration} onChange={e => setAddExpiration(e.target.value)} className="input" />
           </div>
+        </div>
+      </Dialog>
+
+      <Dialog open={editItem !== null} onClose={() => setEditItem(null)} title={t('seeds.editSeedsTitle')} actions={
+        <>
+          <button onClick={() => setEditItem(null)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button
+            onClick={() => updateMut.mutate()}
+            disabled={!editQuantity || updateMut.isPending}
+            className="btn-primary text-sm"
+          >
+            {updateMut.isPending ? t('common.saving') : t('common.save')}
+          </button>
+        </>
+      }>
+        <div className="space-y-4">
+          <div>
+            <label className="field-label">{t('seeds.quantityLabel')}</label>
+            <input type="number" value={editQuantity} onChange={e => setEditQuantity(e.target.value)} className="input w-full" />
+          </div>
+          <div>
+            <label className="field-label">{t('seeds.collectionDate')}</label>
+            <input type="date" value={editCollection} onChange={e => setEditCollection(e.target.value)} className="input w-full" />
+          </div>
+          <div>
+            <label className="field-label">{t('seeds.expirationDate')}</label>
+            <input type="date" value={editExpiration} onChange={e => setEditExpiration(e.target.value)} className="input w-full" />
+          </div>
+          <button
+            onClick={() => { setEditItem(null); setDeleteItem(editItem) }}
+            className="text-sm text-error hover:underline"
+          >
+            {t('seeds.deleteBatch')}
+          </button>
         </div>
       </Dialog>
 

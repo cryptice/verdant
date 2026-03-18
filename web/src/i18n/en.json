@@ -169,6 +169,11 @@
     "quantityLabel": "Quantity *",
     "collectionDate": "Collection date",
     "expirationDate": "Expiration date",
+    "colName": "Species",
+    "colSeeds": "Seeds",
+    "colExpires": "Expires",
+    "editSeedsTitle": "Edit Seeds",
+    "deleteBatch": "Delete this batch",
     "deleteBatchTitle": "Delete Batch",
     "deleteBatchConfirm": "Delete this seed batch?"
   },
