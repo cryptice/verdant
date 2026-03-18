@@ -82,14 +82,23 @@ export function SpeciesListPage() {
     }
   }
 
-  const filtered = species?.filter(s => {
-    const q = search.toLowerCase()
-    return !q ||
-      s.commonName.toLowerCase().includes(q) ||
-      s.commonNameSv?.toLowerCase().includes(q) ||
-      s.scientificName?.toLowerCase().includes(q) ||
-      s.groupName?.toLowerCase().includes(q)
-  })
+  const filtered = species
+    ?.filter(s => {
+      const q = search.toLowerCase()
+      return !q ||
+        s.commonName.toLowerCase().includes(q) ||
+        s.commonNameSv?.toLowerCase().includes(q) ||
+        s.scientificName?.toLowerCase().includes(q) ||
+        s.groupName?.toLowerCase().includes(q)
+    })
+    .sort((a, b) => {
+      const nameA = (a.commonNameSv || a.commonName).toLowerCase()
+      const nameB = (b.commonNameSv || b.commonName).toLowerCase()
+      if (nameA !== nameB) return nameA.localeCompare(nameB, 'sv')
+      const varA = (a.variantNameSv || a.variantName || '').toLowerCase()
+      const varB = (b.variantNameSv || b.variantName || '').toLowerCase()
+      return varA.localeCompare(varB, 'sv')
+    })
 
   if (isLoading) return <div className="flex justify-center py-12"><div className="text-[#787774] text-sm">Loading...</div></div>
   if (error) return <ErrorDisplay error={error} onRetry={() => queryClient.invalidateQueries({ queryKey: ['admin', 'species'] })} />
