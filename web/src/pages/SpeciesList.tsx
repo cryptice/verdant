@@ -6,6 +6,9 @@ import { api, type SpeciesResponse } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
+import { Pagination } from '../components/Pagination'
+
+const PAGE_SIZE = 50
 
 function displayName(s: SpeciesResponse, lang: string) {
   const name = lang === 'sv' ? (s.commonNameSv ?? s.commonName) : s.commonName
@@ -30,6 +33,7 @@ export function SpeciesList() {
   })
 
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(0)
   const [showAdd, setShowAdd] = useState(false)
   const [addCommonName, setAddCommonName] = useState('')
   const [addVariantName, setAddVariantName] = useState('')
@@ -72,7 +76,7 @@ export function SpeciesList() {
         <input
           type="search"
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={e => { setSearch(e.target.value); setPage(0) }}
           placeholder={t('common.searchSpecies')}
           className="w-full px-3 py-2 rounded-lg border border-divider bg-bg text-sm outline-none focus:ring-2 focus:ring-accent"
         />
@@ -93,7 +97,7 @@ export function SpeciesList() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(s => {
+                {filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map(s => {
                   const name = s.commonNameSv ?? s.commonName
                   const variant = s.variantNameSv ?? s.variantName
                   return (
@@ -112,6 +116,7 @@ export function SpeciesList() {
               </tbody>
             </table>
           </div>
+          <Pagination page={page} pageSize={PAGE_SIZE} total={filtered.length} onPageChange={setPage} />
         </div>
       )}
 

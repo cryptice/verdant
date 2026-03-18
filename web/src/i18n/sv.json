@@ -32,6 +32,9 @@
     "en": "English",
     "sv": "Svenska"
   },
+  "pagination": {
+    "showing": "{{from}}–{{to}} av {{total}}"
+  },
   "error": {
     "generic": "Något gick fel",
     "retry": "Försök igen"

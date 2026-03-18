@@ -6,6 +6,9 @@ import { api, type ScheduledTaskResponse } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
+import { Pagination } from '../components/Pagination'
+
+const PAGE_SIZE = 50
 
 const activityIcons: Record<string, string> = {
   SOW: '🌰', POT_UP: '🪴', PLANT: '🌳', HARVEST: '🌾', RECOVER: '💚', DISCARD: '🗑️',
@@ -21,6 +24,7 @@ export function TaskList() {
   })
 
   const [deleteTask, setDeleteTask] = useState<ScheduledTaskResponse | null>(null)
+  const [page, setPage] = useState(0)
 
   const deleteMut = useMutation({
     mutationFn: (id: number) => api.tasks.delete(id),
@@ -40,7 +44,7 @@ export function TaskList() {
           <p className="text-text-secondary text-sm text-center py-4">{t('tasks.noTasks')}</p>
         )}
 
-        {data?.map(task => {
+        {data?.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map(task => {
           const isOverdue = task.deadline < today
           const isDueToday = task.deadline === today
           const isCompleted = task.status === 'COMPLETED'
@@ -89,6 +93,7 @@ export function TaskList() {
             </div>
           )
         })}
+        {data && <Pagination page={page} pageSize={PAGE_SIZE} total={data.length} onPageChange={setPage} />}
       </div>
 
       <Dialog open={deleteTask !== null} onClose={() => setDeleteTask(null)} title={t('tasks.deleteTaskTitle')} actions={

@@ -5,6 +5,9 @@ import { api, type SeedInventoryResponse } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
+import { Pagination } from '../components/Pagination'
+
+const PAGE_SIZE = 50
 
 export function SeedInventory() {
   const qc = useQueryClient()
@@ -23,6 +26,7 @@ export function SeedInventory() {
   const [addCollection, setAddCollection] = useState('')
   const [addExpiration, setAddExpiration] = useState('')
   const [deleteItem, setDeleteItem] = useState<SeedInventoryResponse | null>(null)
+  const [page, setPage] = useState(0)
   const [editItem, setEditItem] = useState<SeedInventoryResponse | null>(null)
   const [editQuantity, setEditQuantity] = useState('')
   const [editCollection, setEditCollection] = useState('')
@@ -69,7 +73,7 @@ export function SeedInventory() {
           <p className="text-text-secondary text-sm text-center py-4">{t('seeds.noBatches')}</p>
         )}
 
-        {data && data.length > 0 && (
+        {data && data.length > 0 && (<>
           <div className="border border-divider rounded-lg overflow-hidden bg-bg">
             <table className="w-full">
               <thead>
@@ -80,7 +84,7 @@ export function SeedInventory() {
                 </tr>
               </thead>
               <tbody>
-                {data.map(item => {
+                {data.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map(item => {
                   const sp = species?.find(s => s.id === item.speciesId)
                   const name = sp?.commonNameSv ?? sp?.commonName ?? item.speciesName
                   const variant = sp?.variantNameSv ?? sp?.variantName
@@ -106,7 +110,8 @@ export function SeedInventory() {
               </tbody>
             </table>
           </div>
-        )}
+          <Pagination page={page} pageSize={PAGE_SIZE} total={data.length} onPageChange={setPage} />
+        </>)}
       </div>
 
       <Dialog open={showAdd} onClose={() => { setShowAdd(false); setAddSpeciesId(''); setSpeciesSearch(''); setAddQuantity(''); setAddCollection(''); setAddExpiration('') }} title={t('seeds.addSeedsTitle')} actions={
