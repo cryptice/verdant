@@ -185,6 +185,46 @@
     "sowing": "Sår...",
     "sow": "Så"
   },
+  "landing": {
+    "signIn": "Logga in",
+    "badge": "Gratis trädgårdsplanerare",
+    "heroTitle": "Planera, odla och skörda med tillförsikt",
+    "heroSubtitle": "Verdant hjälper dig organisera dina trädgårdar, följa varje planta från frö till skörd och aldrig missa en uppgift.",
+    "feature": {
+      "gardens": {
+        "title": "Trädgårdsplanering",
+        "description": "Organisera dina trädgårdar och bäddar. Håll koll på vad som växer var."
+      },
+      "plants": {
+        "title": "Växtuppföljning",
+        "description": "Följ varje planta från sådd till skörd. Registrera händelser och se din trädgård växa."
+      },
+      "seeds": {
+        "title": "Fröinventarie",
+        "description": "Håll reda på din frösamling, antal och utgångsdatum."
+      },
+      "tasks": {
+        "title": "Uppgiftshantering",
+        "description": "Schemalägg sådd, plantering och skörd så att inget faller mellan stolarna."
+      }
+    },
+    "howItWorks": "Så fungerar det",
+    "step1": {
+      "title": "Skapa dina trädgårdar",
+      "description": "Lägg upp dina trädgårdar och dela in dem i bäddar för att spegla din verkliga layout."
+    },
+    "step2": {
+      "title": "Så och plantera",
+      "description": "Registrera vad du sår och planterar, följ groningen och logga varje steg på vägen."
+    },
+    "step3": {
+      "title": "Skörda och lär dig",
+      "description": "Logga dina skördar, utvärdera vad som fungerade och planera en ännu bättre säsong nästa år."
+    },
+    "ctaTitle": "Starta din odlingssäsong",
+    "ctaSubtitle": "Logga in för att skapa din första trädgård — det tar bara ett ögonblick.",
+    "footer": "Ett verktyg för hemmaodlare"
+  },
   "tasks": {
     "title": "Uppgifter",
     "newTask": "+ Ny uppgift",

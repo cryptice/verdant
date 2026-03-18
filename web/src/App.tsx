@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
-import { LoginPage } from './auth/LoginPage'
+import { LandingPage } from './pages/LandingPage'
 import { Layout } from './components/Layout'
 import { Dashboard } from './pages/Dashboard'
 import { GardenDetail } from './pages/GardenDetail'
@@ -24,10 +24,19 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function PublicOnly({ children }: { children: React.ReactNode }) {
+  const { token, loading } = useAuth()
+  if (loading) return null
+  if (token) return <Navigate to="/" replace />
+  return <>{children}</>
+}
+
 export function App() {
+  const { token, loading } = useAuth()
+
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
+      <Route path="/login" element={<PublicOnly><LandingPage /></PublicOnly>} />
       <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<Dashboard />} />
         <Route path="garden/new" element={<GardenForm />} />
@@ -45,6 +54,8 @@ export function App() {
         <Route path="species" element={<SpeciesList />} />
         <Route path="account" element={<Account />} />
       </Route>
+      {/* Unauthenticated root shows landing page, authenticated shows dashboard via ProtectedRoute */}
+      {!loading && !token && <Route path="*" element={<Navigate to="/login" replace />} />}
     </Routes>
   )
 }

@@ -185,6 +185,46 @@
     "sowing": "Sowing...",
     "sow": "Sow"
   },
+  "landing": {
+    "signIn": "Sign in",
+    "badge": "Free garden planner",
+    "heroTitle": "Plan, grow, and harvest with confidence",
+    "heroSubtitle": "Verdant helps you organize your gardens, track every plant from seed to harvest, and never miss a task.",
+    "feature": {
+      "gardens": {
+        "title": "Garden planning",
+        "description": "Organize your gardens and beds. Keep a clear overview of what grows where."
+      },
+      "plants": {
+        "title": "Plant tracking",
+        "description": "Follow every plant from sowing to harvest. Record events and watch your garden grow."
+      },
+      "seeds": {
+        "title": "Seed inventory",
+        "description": "Keep track of your seed collection, quantities, and expiration dates."
+      },
+      "tasks": {
+        "title": "Task management",
+        "description": "Schedule sowing, planting, and harvesting tasks so nothing falls through the cracks."
+      }
+    },
+    "howItWorks": "How it works",
+    "step1": {
+      "title": "Create your gardens",
+      "description": "Set up your gardens and divide them into beds to mirror your real layout."
+    },
+    "step2": {
+      "title": "Sow and plant",
+      "description": "Record what you sow and plant, track germination, and log every step along the way."
+    },
+    "step3": {
+      "title": "Harvest and learn",
+      "description": "Log your harvests, review what worked, and plan an even better season next year."
+    },
+    "ctaTitle": "Start your growing season",
+    "ctaSubtitle": "Sign in to create your first garden — it only takes a moment.",
+    "footer": "A tool for home gardeners"
+  },
   "tasks": {
     "title": "Tasks",
     "newTask": "+ New task",
