@@ -109,9 +109,9 @@ export function SeedInventory() {
         )}
       </div>
 
-      <Dialog open={showAdd} onClose={() => setShowAdd(false)} title={t('seeds.addSeedsTitle')} actions={
+      <Dialog open={showAdd} onClose={() => { setShowAdd(false); setAddSpeciesId(''); setSpeciesSearch(''); setAddQuantity(''); setAddCollection(''); setAddExpiration('') }} title={t('seeds.addSeedsTitle')} actions={
         <>
-          <button onClick={() => setShowAdd(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button onClick={() => { setShowAdd(false); setAddSpeciesId(''); setSpeciesSearch(''); setAddQuantity(''); setAddCollection(''); setAddExpiration('') }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
           <button
             onClick={() => createMut.mutate()}
             disabled={!addSpeciesId || !addQuantity || createMut.isPending}
