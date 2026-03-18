@@ -29,7 +29,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import android.util.Log
 import javax.inject.Inject
+
+private const val TAG = "MyVerdantWorldScreen"
 
 data class MyWorldState(
     val isLoading: Boolean = true,
@@ -55,7 +58,7 @@ class MyWorldViewModel @Inject constructor(
             try {
                 val dashboard = repo.getDashboard()
                 val stats = repo.getHarvestStats()
-                val tray = try { repo.getTraySummary() } catch (_: Exception) { emptyList() }
+                val tray = try { repo.getTraySummary() } catch (e: Exception) { Log.e(TAG, "Failed to load tray summary", e); emptyList() }
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     dashboard = dashboard,

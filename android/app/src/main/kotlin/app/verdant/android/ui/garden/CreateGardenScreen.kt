@@ -174,7 +174,9 @@ class CreateGardenViewModel @Inject constructor(
                         onResult(latLng, formatted)
                     }
                 }
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                android.util.Log.e("CreateGarden", "Failed to search address", e)
+            }
         }
     }
 

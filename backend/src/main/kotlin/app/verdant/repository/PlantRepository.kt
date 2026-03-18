@@ -166,7 +166,8 @@ class PlantRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement("DELETE FROM plant WHERE id = ?").use { ps ->
                 ps.setLong(1, id)
-                ps.executeUpdate()
+                val rows = ps.executeUpdate()
+                if (rows == 0) throw jakarta.ws.rs.NotFoundException("Plant not found")
             }
         }
     }

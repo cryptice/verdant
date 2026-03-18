@@ -45,8 +45,11 @@ class AccountViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AccountState())
     val uiState = _uiState.asStateFlow()
 
-    init {
+    init { load() }
+
+    fun load() {
         viewModelScope.launch {
+            _uiState.value = AccountState(isLoading = true)
             try {
                 val user = gardenRepository.getMe()
                 _uiState.value = AccountState(isLoading = false, user = user)
@@ -128,7 +131,7 @@ fun AccountScreen(
             uiState.error != null -> {
                 app.verdant.android.ui.common.ConnectionErrorState(
                     message = stringResource(R.string.couldnt_load_account),
-                    onRetry = { viewModel.signOut() },
+                    onRetry = { viewModel.load() },
                     modifier = Modifier.padding(padding)
                 )
             }

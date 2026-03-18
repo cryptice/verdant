@@ -27,6 +27,8 @@ object AppModule {
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(90, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
+            // OkHttp interceptors are inherently synchronous, so runBlocking is the
+            // standard approach for accessing coroutine-based token stores here.
             .addInterceptor { chain ->
                 val token = runBlocking { tokenStore.getToken() }
                 val request = if (token != null) {
@@ -43,7 +45,7 @@ object AppModule {
                 response
             }
             .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
+                level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
             })
             .build()
     }

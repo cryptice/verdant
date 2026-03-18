@@ -72,8 +72,9 @@ android {
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("release")
-            val prodUrl = envGet("android", "prod-api-base-url").ifBlank { "https://verdant-api-5ai66vptja-lz.a.run.app/" }
+            val prodUrl = envGet("android", "prod-api-base-url").ifBlank { "https://verdantplanner.com/" }
             buildConfigField("String", "API_BASE_URL", "\"$prodUrl\"")
+            ndk.debugSymbolLevel = "FULL"
         }
     }
 

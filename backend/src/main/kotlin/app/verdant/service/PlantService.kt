@@ -7,6 +7,7 @@ import app.verdant.entity.PlantEventType
 import app.verdant.entity.PlantStatus
 import app.verdant.repository.*
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.ws.rs.BadRequestException
 import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 
@@ -67,6 +68,15 @@ class PlantService(
     }
 
     fun batchSow(request: BatchSowRequest, userId: Long): BatchSowResponse {
+        if (request.seedCount <= 0 || request.seedCount > 10000) {
+            throw BadRequestException("seedCount must be between 1 and 10000")
+        }
+        if (request.name.isBlank()) {
+            throw BadRequestException("name must not be blank")
+        }
+        if (request.name.length > 255) {
+            throw BadRequestException("name must not exceed 255 characters")
+        }
         if (request.bedId != null) checkBedOwnership(request.bedId, userId)
         val today = java.time.LocalDate.now()
         val plantIds = mutableListOf<Long>()
@@ -108,7 +118,11 @@ class PlantService(
     }
 
     fun getPlantGroups(userId: Long, status: String, trayOnly: Boolean): List<PlantGroupResponse> {
-        val plantStatus = PlantStatus.valueOf(status)
+        val plantStatus = try {
+            PlantStatus.valueOf(status)
+        } catch (e: IllegalArgumentException) {
+            throw BadRequestException("Invalid plant status: '$status'. Valid values: ${PlantStatus.entries.joinToString()}")
+        }
         return plantRepository.findGroupedBySpecies(userId, plantStatus, trayOnly).map { row ->
             PlantGroupResponse(
                 speciesId = row["speciesId"] as? Long ?: 0,

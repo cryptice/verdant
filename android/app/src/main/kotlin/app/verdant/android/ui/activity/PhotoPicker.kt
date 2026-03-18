@@ -29,10 +29,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
+import android.util.Log
 import app.verdant.android.R
 import app.verdant.android.data.model.CropBox
 import coil.compose.AsyncImage
 import java.io.ByteArrayOutputStream
+
+private const val TAG = "PhotoPicker"
 
 /** Crop a bitmap using normalized coordinates (0.0-1.0). */
 fun Bitmap.cropToBox(box: CropBox): Bitmap {
@@ -103,7 +106,9 @@ fun PhotoPicker(
                     bitmap = portrait
                     onImageCaptured(portrait.toCompressedBase64(), portrait)
                 }
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load image from gallery", e)
+            }
         }
     }
 

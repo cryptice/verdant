@@ -45,6 +45,9 @@ export function SeedInventory() {
     },
   })
 
+  const [updateError, setUpdateError] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
   const updateMut = useMutation({
     mutationFn: () => api.inventory.update(editItem!.id, {
       quantity: Number(editQuantity),
@@ -53,13 +56,15 @@ export function SeedInventory() {
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['seed-inventory'] })
-      setEditItem(null)
+      setEditItem(null); setUpdateError(null)
     },
+    onError: (err) => { setUpdateError(err instanceof Error ? err.message : String(err)) },
   })
 
   const deleteMut = useMutation({
     mutationFn: (id: number) => api.inventory.delete(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['seed-inventory'] }); setDeleteItem(null) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['seed-inventory'] }); setDeleteItem(null); setDeleteError(null) },
+    onError: (err) => { setDeleteError(err instanceof Error ? err.message : String(err)) },
   })
 
   if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
@@ -189,9 +194,9 @@ export function SeedInventory() {
         </div>
       </Dialog>
 
-      <Dialog open={editItem !== null} onClose={() => setEditItem(null)} title={t('seeds.editSeedsTitle')} actions={
+      <Dialog open={editItem !== null} onClose={() => { setEditItem(null); setUpdateError(null) }} title={t('seeds.editSeedsTitle')} actions={
         <>
-          <button onClick={() => setEditItem(null)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button onClick={() => { setEditItem(null); setUpdateError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
           <button
             onClick={() => updateMut.mutate()}
             disabled={!editQuantity || updateMut.isPending}
@@ -215,21 +220,23 @@ export function SeedInventory() {
             <input type="date" value={editExpiration} onChange={e => setEditExpiration(e.target.value)} className="input w-full" />
           </div>
           <button
-            onClick={() => { setEditItem(null); setDeleteItem(editItem) }}
+            onClick={() => { setEditItem(null); setUpdateError(null); setDeleteItem(editItem) }}
             className="text-sm text-error hover:underline"
           >
             {t('seeds.deleteBatch')}
           </button>
+          {updateError && <p className="text-error text-sm mt-2">{updateError}</p>}
         </div>
       </Dialog>
 
-      <Dialog open={deleteItem !== null} onClose={() => setDeleteItem(null)} title={t('seeds.deleteBatchTitle')} actions={
+      <Dialog open={deleteItem !== null} onClose={() => { setDeleteItem(null); setDeleteError(null) }} title={t('seeds.deleteBatchTitle')} actions={
         <>
-          <button onClick={() => setDeleteItem(null)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button onClick={() => { setDeleteItem(null); setDeleteError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
           <button onClick={() => deleteItem && deleteMut.mutate(deleteItem.id)} className="px-4 py-2 text-sm text-error font-semibold">{t('common.delete')}</button>
         </>
       }>
         <p className="text-text-secondary">{t('seeds.deleteBatchConfirm')}</p>
+        {deleteError && <p className="text-error text-sm mt-2">{deleteError}</p>}
       </Dialog>
 
     </div>

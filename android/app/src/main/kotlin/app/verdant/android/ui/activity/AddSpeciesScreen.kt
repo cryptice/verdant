@@ -31,7 +31,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import android.util.Log
 import javax.inject.Inject
+
+private const val TAG = "AddSpeciesScreen"
 
 data class AddSpeciesState(
     val isLoading: Boolean = false,
@@ -64,7 +67,9 @@ class AddSpeciesViewModel @Inject constructor(
                 val tags = repo.getSpeciesTags()
                 val existing = speciesId?.let { repo.getSpecies().find { s -> s.id == it } }
                 _uiState.value = _uiState.value.copy(groups = groups, tags = tags, existingSpecies = existing)
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load species data", e)
+            }
         }
     }
 
@@ -97,7 +102,9 @@ class AddSpeciesViewModel @Inject constructor(
             try {
                 repo.createSpeciesGroup(CreateSpeciesGroupRequest(name))
                 loadData()
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to create species group", e)
+            }
         }
     }
 
@@ -106,7 +113,9 @@ class AddSpeciesViewModel @Inject constructor(
             try {
                 repo.createSpeciesTag(CreateSpeciesTagRequest(name))
                 loadData()
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to create species tag", e)
+            }
         }
     }
 

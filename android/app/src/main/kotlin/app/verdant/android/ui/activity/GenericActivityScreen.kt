@@ -26,7 +26,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import android.util.Log
 import javax.inject.Inject
+
+private const val TAG = "GenericActivityScreen"
 
 data class GenericActivityState(
     val isLoading: Boolean = false,
@@ -58,7 +61,9 @@ class GenericActivityViewModel @Inject constructor(
                 val beds = repo.getAllBeds()
                 val task = taskId?.let { repo.getTask(it) }
                 _uiState.value = _uiState.value.copy(plant = plant, comments = comments, beds = beds, task = task)
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load activity data", e)
+            }
         }
     }
 

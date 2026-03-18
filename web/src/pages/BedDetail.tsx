@@ -44,9 +44,12 @@ export function BedDetail() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['bed', bedId] }); setEditing(false) },
   })
 
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
   const deleteMut = useMutation({
     mutationFn: () => api.beds.delete(bedId),
     onSuccess: () => { navigate(-1); qc.invalidateQueries({ queryKey: ['garden-beds'] }) },
+    onError: (err) => { setDeleteError(err instanceof Error ? err.message : String(err)) },
   })
 
   if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
@@ -148,13 +151,14 @@ export function BedDetail() {
         </div>
       </Dialog>
 
-      <Dialog open={showDelete} onClose={() => setShowDelete(false)} title={t('bed.deleteBedTitle')} actions={
+      <Dialog open={showDelete} onClose={() => { setShowDelete(false); setDeleteError(null) }} title={t('bed.deleteBedTitle')} actions={
         <>
-          <button onClick={() => setShowDelete(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button onClick={() => { setShowDelete(false); setDeleteError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
           <button onClick={() => deleteMut.mutate()} className="px-4 py-2 text-sm text-error font-semibold">{t('common.delete')}</button>
         </>
       }>
         <p className="text-text-secondary">{t('bed.deleteBedConfirm')}</p>
+        {deleteError && <p className="text-error text-sm mt-2">{deleteError}</p>}
       </Dialog>
 
       <Dialog open={showAdd} onClose={() => setShowAdd(false)} title={t('bed.addPlantTitle')} actions={

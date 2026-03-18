@@ -25,8 +25,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import android.util.Log
 import javax.inject.Inject
 import androidx.lifecycle.SavedStateHandle
+
+private const val TAG = "SowActivityScreen"
 
 data class SowActivityState(
     val isLoading: Boolean = false,
@@ -60,7 +63,9 @@ class SowActivityViewModel @Inject constructor(
                 val comments = repo.getFrequentComments().map { it.text }
                 val task = taskId?.let { repo.getTask(it) }
                 _uiState.value = _uiState.value.copy(species = species, beds = beds, comments = comments, task = task)
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load sow activity data", e)
+            }
         }
     }
 
@@ -69,7 +74,8 @@ class SowActivityViewModel @Inject constructor(
             try {
                 val lots = repo.getSeedInventory(speciesId).filter { it.quantity > 0 }
                 _uiState.value = _uiState.value.copy(seedBatches = lots)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load seed batches", e)
                 _uiState.value = _uiState.value.copy(seedBatches = emptyList())
             }
         }

@@ -204,7 +204,7 @@ export function SowActivity() {
 
       </div>
 
-      {sowMut.error && <p className="text-error text-sm mt-3">{(sowMut.error as Error).message}</p>}
+      {sowMut.error && <p className="text-error text-sm mt-3">{sowMut.error instanceof Error ? sowMut.error.message : String(sowMut.error)}</p>}
       <div className="mt-4 flex justify-end">
         <button onClick={() => sowMut.mutate()} disabled={!valid || sowMut.isPending} className="btn-primary">
           {sowMut.isPending ? t('sow.sowing') : t('sow.sow')}

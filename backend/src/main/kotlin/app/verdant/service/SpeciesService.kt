@@ -287,6 +287,7 @@ class SpeciesService(
         }
     }
 
+    @jakarta.transaction.Transactional
     fun importSpecies(entries: List<SpeciesExportEntry>): ImportResult {
         val existingSpecies = speciesRepository.findAll()
         val existingKeys = existingSpecies.map { (it.commonName to it.variantName) }.toSet()
@@ -465,7 +466,8 @@ class SpeciesService(
     }
 
     private fun SpeciesProvider.toResponse(): SpeciesProviderResponse {
-        val provider = providerRepository.findById(providerId)!!
+        val provider = providerRepository.findById(providerId)
+            ?: throw NotFoundException("Provider not found")
         return SpeciesProviderResponse(
             id = id!!,
             providerId = provider.id!!,

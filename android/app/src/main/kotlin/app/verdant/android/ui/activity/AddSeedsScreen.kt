@@ -26,7 +26,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import android.util.Log
 import javax.inject.Inject
+
+private const val TAG = "AddSeedsScreen"
 
 data class AddSeedsState(
     val isLoading: Boolean = false,
@@ -49,7 +52,9 @@ class AddSeedsViewModel @Inject constructor(
             try {
                 val species = repo.getSpecies()
                 _uiState.value = _uiState.value.copy(species = species)
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load species", e)
+            }
         }
     }
 

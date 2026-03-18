@@ -33,7 +33,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import android.util.Log
 import javax.inject.Inject
+
+private const val TAG = "SpeciesListScreen"
 
 private const val PAGE_SIZE = 50
 
@@ -72,7 +75,9 @@ class SpeciesListViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(
                     species = _uiState.value.species.filter { it.id != id }
                 )
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to delete species", e)
+            }
         }
     }
 }

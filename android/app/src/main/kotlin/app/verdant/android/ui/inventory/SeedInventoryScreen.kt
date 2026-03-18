@@ -30,7 +30,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import android.util.Log
 import javax.inject.Inject
+
+private const val TAG = "SeedInventoryScreen"
 
 data class SeedInventoryState(
     val isLoading: Boolean = true,
@@ -64,7 +67,9 @@ class SeedInventoryViewModel @Inject constructor(
             try {
                 repo.deleteSeedInventory(id)
                 refresh()
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to delete seed inventory", e)
+            }
         }
     }
 }

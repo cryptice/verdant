@@ -43,9 +43,12 @@ export function GardenDetail() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['garden', gardenId] }); setEditing(false) },
   })
 
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
   const deleteMut = useMutation({
     mutationFn: () => api.gardens.delete(gardenId),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['dashboard'] }); navigate('/') },
+    onError: (err) => { setDeleteError(err instanceof Error ? err.message : String(err)) },
   })
 
   if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
@@ -134,13 +137,14 @@ export function GardenDetail() {
         </div>
       </Dialog>
 
-      <Dialog open={showDelete} onClose={() => setShowDelete(false)} title={t('garden.deleteGardenTitle')} actions={
+      <Dialog open={showDelete} onClose={() => { setShowDelete(false); setDeleteError(null) }} title={t('garden.deleteGardenTitle')} actions={
         <>
-          <button onClick={() => setShowDelete(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button onClick={() => { setShowDelete(false); setDeleteError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
           <button onClick={() => deleteMut.mutate()} className="px-4 py-2 text-sm text-error font-semibold">{t('common.delete')}</button>
         </>
       }>
         <p className="text-text-secondary">{t('garden.deleteGardenConfirm')}</p>
+        {deleteError && <p className="text-error text-sm mt-2">{deleteError}</p>}
       </Dialog>
 
     </div>

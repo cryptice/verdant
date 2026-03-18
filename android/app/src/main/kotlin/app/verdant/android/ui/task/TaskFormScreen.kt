@@ -30,7 +30,10 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import android.util.Log
 import javax.inject.Inject
+
+private const val TAG = "TaskFormScreen"
 
 data class TaskFormState(
     val isLoading: Boolean = false,
@@ -57,7 +60,9 @@ class TaskFormViewModel @Inject constructor(
                 val species = repo.getSpecies()
                 val task = taskId?.let { repo.getTask(it) }
                 _uiState.value = _uiState.value.copy(species = species, existingTask = task)
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load task form data", e)
+            }
         }
     }
 

@@ -10,11 +10,13 @@ import java.io.FileInputStream
 import java.util.Base64
 import java.util.Optional
 import java.util.UUID
+import java.util.logging.Logger
 
 @ApplicationScoped
 class StorageService(
     @ConfigProperty(name = "verdant.gcs.service-account-key") private val serviceAccountKeyPath: Optional<String>,
 ) {
+    private val log = Logger.getLogger(StorageService::class.java.name)
     private val bucketName = "verdant-species"
     private val publicBase = "https://storage.googleapis.com/$bucketName"
 
@@ -32,7 +34,13 @@ class StorageService(
         val bytes = Base64.getDecoder().decode(base64)
         val blobId = BlobId.of(bucketName, path)
         val blobInfo = BlobInfo.newBuilder(blobId).setContentType("image/jpeg").build()
-        storage.create(blobInfo, bytes)
+        try {
+            storage.create(blobInfo, bytes)
+            log.info("Uploaded ${bytes.size} bytes to gs://$bucketName/$path")
+        } catch (ex: Exception) {
+            log.severe("Failed to upload to gs://$bucketName/$path: ${ex.message}")
+            throw ex
+        }
         return "$publicBase/$path"
     }
 

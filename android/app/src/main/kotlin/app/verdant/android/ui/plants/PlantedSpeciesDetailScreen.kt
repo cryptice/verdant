@@ -35,7 +35,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.Year
+import android.util.Log
 import javax.inject.Inject
+
+private const val TAG = "PlantedSpeciesDetail"
 
 data class PlantedSpeciesDetailState(
     val isLoading: Boolean = true,
@@ -73,7 +76,9 @@ class PlantedSpeciesDetailViewModel @Inject constructor(
                 )
                 load()
                 onDone()
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to submit batch event", e)
+            }
         }
     }
 

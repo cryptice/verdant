@@ -59,7 +59,7 @@ fun SplashScreen(
             val request = GetCredentialRequest.Builder()
                 .addCredentialOption(googleIdOption)
                 .build()
-            Log.d(TAG, "Requesting credential with serverClientId=${BuildConfig.GOOGLE_WEB_CLIENT_ID}")
+            Log.d(TAG, "Requesting credential")
 
             val activity = context as Activity
             val result = credentialManager.getCredential(activity, request)

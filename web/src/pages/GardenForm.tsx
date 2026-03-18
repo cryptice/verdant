@@ -60,7 +60,7 @@ export function GardenForm() {
           <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={t('common.optional')} rows={3} className="input" />
         </div>
       </div>
-      {mutation.error && <p className="text-error text-sm mt-3">{(mutation.error as Error).message}</p>}
+      {mutation.error && <p className="text-error text-sm mt-3">{mutation.error instanceof Error ? mutation.error.message : String(mutation.error)}</p>}
       <div className="mt-4 flex justify-end">
         <button onClick={() => mutation.mutate()} disabled={!name.trim() || mutation.isPending} className="btn-primary">
           {mutation.isPending ? t('garden.creatingGarden') : t('garden.createGarden')}

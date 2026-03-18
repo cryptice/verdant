@@ -20,12 +20,12 @@ export function Dashboard() {
     queryFn: api.dashboard,
   })
 
-  const { data: tray } = useQuery({
+  const { data: tray, error: trayError } = useQuery({
     queryKey: ['tray-summary'],
     queryFn: api.plants.traySummary,
   })
 
-  const { data: harvests } = useQuery({
+  const { data: harvests, error: harvestsError } = useQuery({
     queryKey: ['harvest-stats'],
     queryFn: api.stats.harvests,
   })
@@ -74,6 +74,13 @@ export function Dashboard() {
         </Link>
       ))}
 
+      {trayError && (
+        <section>
+          <h2 className="font-bold text-lg mb-2">{t('dashboard.plantsInTrays')}</h2>
+          <p className="text-error text-sm">{trayError instanceof Error ? trayError.message : String(trayError)}</p>
+        </section>
+      )}
+
       {tray && tray.length > 0 && (
         <section>
           <h2 className="font-bold text-lg mb-2">{t('dashboard.plantsInTrays')}</h2>
@@ -86,6 +93,13 @@ export function Dashboard() {
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {harvestsError && (
+        <section>
+          <h2 className="font-bold text-lg mb-2">{t('dashboard.harvestStats')}</h2>
+          <p className="text-error text-sm">{harvestsError instanceof Error ? harvestsError.message : String(harvestsError)}</p>
         </section>
       )}
 

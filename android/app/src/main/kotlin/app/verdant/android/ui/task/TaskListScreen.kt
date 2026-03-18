@@ -40,7 +40,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import android.util.Log
 import javax.inject.Inject
+
+private const val TAG = "TaskListScreen"
 
 data class TaskListState(
     val isLoading: Boolean = true,
@@ -77,7 +80,9 @@ class TaskListViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(
                     tasks = _uiState.value.tasks.filter { it.id != taskId }
                 )
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to delete task", e)
+            }
         }
     }
 }

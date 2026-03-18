@@ -91,7 +91,7 @@ export function LandingPage() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => { i18n.changeLanguage(i18n.language === 'sv' ? 'en' : 'sv'); localStorage.setItem('verdant-lang', i18n.language) }}
+            onClick={() => { const newLang = i18n.language === 'sv' ? 'en' : 'sv'; i18n.changeLanguage(newLang); localStorage.setItem('verdant-lang', newLang) }}
             className="text-xs font-medium text-text-secondary hover:text-text-primary transition-colors px-2 py-1 rounded-md hover:bg-bg cursor-pointer"
           >
             {i18n.language === 'sv' ? 'EN' : 'SV'}

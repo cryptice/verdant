@@ -41,7 +41,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import android.util.Log
 import javax.inject.Inject
+
+private const val TAG = "CreatePlantScreen"
 
 data class CreatePlantState(
     val isLoading: Boolean = false,
@@ -137,7 +140,9 @@ fun CreatePlantScreen(
                     val b64 = bitmap.toCompressedBase64()
                     viewModel.identifyPlant(b64)
                 }
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load image from gallery", e)
+            }
         }
     }
 

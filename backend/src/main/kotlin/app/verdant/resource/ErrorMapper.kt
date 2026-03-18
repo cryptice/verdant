@@ -20,10 +20,11 @@ class ErrorMapper : ExceptionMapper<Exception> {
         }
         if (status >= 500) {
             log.severe("Unhandled exception: ${exception.javaClass.name}: ${exception.message}")
-            exception.printStackTrace()
+            log.log(java.util.logging.Level.SEVERE, "Stack trace", exception)
         }
+        val message = if (status >= 500) "Internal server error" else (exception.message ?: "Internal server error")
         return Response.status(status)
-            .entity(ErrorResponse(exception.message ?: "Internal server error", status))
+            .entity(ErrorResponse(message, status))
             .build()
     }
 }
