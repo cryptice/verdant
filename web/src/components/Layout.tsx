@@ -23,10 +23,10 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
   return (
     <div className="flex flex-col h-full bg-sidebar border-r border-divider">
-      <div className="px-4 py-4 border-b border-divider">
-        <span className="font-semibold text-text-primary text-base tracking-tight">🌿 Verdant</span>
+      <div className="px-4 py-5">
+        <span className="font-semibold text-accent text-base tracking-tight">🌿 Verdant</span>
       </div>
-      <nav className="flex-1 py-2 overflow-y-auto">
+      <nav className="flex-1 py-1 px-2 overflow-y-auto">
         {navItems.map(({ to, label, icon }) => (
           <NavLink
             key={to}
@@ -34,10 +34,10 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
             end={to === '/'}
             onClick={onClose}
             className={({ isActive }) =>
-              `flex items-center gap-2.5 px-3 py-1.5 mx-1 my-0.5 rounded-md text-sm transition-colors ${
+              `flex items-center gap-2.5 px-3 py-2 my-0.5 rounded-xl text-sm transition-all duration-150 ${
                 isActive
-                  ? 'bg-accent-light text-accent font-medium'
-                  : 'text-text-secondary hover:bg-divider hover:text-text-primary'
+                  ? 'bg-accent-light text-accent font-medium shadow-sm'
+                  : 'text-text-secondary hover:bg-white/60 hover:text-text-primary'
               }`
             }
           >
@@ -46,17 +46,17 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
           </NavLink>
         ))}
       </nav>
-      <div className="px-4 py-3 border-t border-divider space-y-2">
+      <div className="px-4 py-3 border-t border-divider/50 space-y-2">
         <p className="text-xs text-text-muted truncate">{user?.displayName}</p>
         <div className="flex gap-1">
           {(['sv', 'en'] as const).map(lang => (
             <button
               key={lang}
               onClick={() => changeLang(lang)}
-              className={`text-xs px-2 py-0.5 rounded transition-colors ${
+              className={`text-xs px-2.5 py-1 rounded-lg transition-all duration-150 ${
                 i18n.language === lang
                   ? 'bg-accent-light text-accent font-medium'
-                  : 'text-text-muted hover:text-text-secondary'
+                  : 'text-text-muted hover:text-text-secondary hover:bg-white/60'
               }`}
             >
               {lang.toUpperCase()}

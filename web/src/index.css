@@ -1,17 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --color-surface: #F7F7F5;
+  --color-surface: #FAFAF7;
   --color-bg: #FFFFFF;
-  --color-sidebar: #FBFBFA;
-  --color-divider: #E9E9E7;
-  --color-accent: #458262;
-  --color-accent-hover: #37694F;
-  --color-accent-light: #EBF3EE;
-  --color-text-primary: #37352F;
-  --color-text-secondary: #9B9A97;
-  --color-text-muted: #C4C4C0;
-  --color-error: #E03E3E;
+  --color-sidebar: #F5F5F0;
+  --color-divider: #E8E5DD;
+  --color-accent: #5A9E78;
+  --color-accent-hover: #4A8866;
+  --color-accent-light: #EDF6F0;
+  --color-text-primary: #2D3228;
+  --color-text-secondary: #8A8D85;
+  --color-text-muted: #B8BAB3;
+  --color-error: #D4574E;
+  --color-warm: #F9F6F0;
 }
 
 body {
@@ -29,16 +30,17 @@ body {
   justify-content: center;
   background-color: var(--color-accent);
   color: white;
-  padding: 0.4375rem 0.875rem;
-  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
   font-weight: 500;
   font-size: 14px;
   font-family: inherit;
-  transition: background-color 0.1s;
+  transition: all 0.15s ease;
   cursor: pointer;
   border: none;
-  &:hover { background-color: var(--color-accent-hover); }
-  &:disabled { opacity: 0.45; cursor: not-allowed; }
+  box-shadow: 0 1px 2px rgba(90, 158, 120, 0.15);
+  &:hover { background-color: var(--color-accent-hover); box-shadow: 0 2px 6px rgba(90, 158, 120, 0.25); transform: translateY(-0.5px); }
+  &:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
 }
 
 @utility btn-secondary {
@@ -47,38 +49,42 @@ body {
   justify-content: center;
   background-color: transparent;
   color: var(--color-text-primary);
-  padding: 0.4375rem 0.875rem;
-  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
   font-weight: 500;
   font-size: 14px;
   font-family: inherit;
   border: 1px solid var(--color-divider);
-  transition: background-color 0.1s;
+  transition: all 0.15s ease;
   cursor: pointer;
-  &:hover { background-color: var(--color-surface); }
+  &:hover { background-color: var(--color-warm); border-color: #D5D2CA; }
   &:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 
 @utility card {
   background-color: var(--color-bg);
   border: 1px solid var(--color-divider);
-  border-radius: 8px;
-  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  padding: 1rem 1.125rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  &:hover { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); border-color: #D5D2CA; }
 }
 
 @utility input {
-  background-color: var(--color-surface);
-  border: 1px solid #D5D3CF;
-  border-radius: 6px;
-  padding: 0.4375rem 0.75rem;
+  background-color: var(--color-warm);
+  border: 1px solid var(--color-divider);
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
   font-size: 14px;
   color: var(--color-text-primary);
   font-family: inherit;
   outline: none;
-  transition: border-color 0.1s, box-shadow 0.1s;
+  transition: border-color 0.15s, box-shadow 0.15s;
   &:focus {
     border-color: var(--color-accent);
     box-shadow: 0 0 0 3px var(--color-accent-light);
+    background-color: var(--color-bg);
   }
   &::placeholder { color: var(--color-text-muted); }
 }
@@ -86,18 +92,20 @@ body {
 @utility form-card {
   background-color: var(--color-bg);
   border: 1px solid var(--color-divider);
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 1.125rem;
   overflow: visible;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 @utility field-label {
   display: block;
   font-size: 13px;
   font-weight: 500;
-  color: var(--color-text-primary);
+  color: var(--color-text-secondary);
   margin-bottom: 0.375rem;
+  letter-spacing: 0.01em;
 }

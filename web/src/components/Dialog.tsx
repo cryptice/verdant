@@ -22,7 +22,7 @@ export function Dialog({ open, onClose, title, children, actions }: Props) {
     <dialog
       ref={ref}
       onClose={onClose}
-      className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg p-0 w-[min(26rem,calc(100vw-2rem))] shadow-xl backdrop:bg-black/25 bg-bg border border-divider"
+      className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl p-0 w-[min(26rem,calc(100vw-2rem))] shadow-2xl backdrop:bg-black/20 backdrop:backdrop-blur-sm bg-bg border border-divider"
     >
       <div className="p-5">
         <h2 className="text-base font-semibold text-text-primary mb-4">{title}</h2>

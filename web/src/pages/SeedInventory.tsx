@@ -79,7 +79,7 @@ export function SeedInventory() {
         )}
 
         {data && data.length > 0 && (<>
-          <div className="border border-divider rounded-lg overflow-hidden bg-bg">
+          <div className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-divider bg-surface">

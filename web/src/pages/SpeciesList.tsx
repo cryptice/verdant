@@ -85,7 +85,7 @@ export function SpeciesList() {
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(0) }}
           placeholder={t('common.searchSpecies')}
-          className="w-full px-3 py-2 rounded-lg border border-divider bg-bg text-sm outline-none focus:ring-2 focus:ring-accent"
+          className="w-full px-3 py-2 rounded-xl border border-divider bg-warm text-sm outline-none focus:ring-2 focus:ring-accent-light focus:border-accent"
         />
       </div>
 
@@ -95,7 +95,7 @@ export function SpeciesList() {
 
       {filtered.length > 0 && (
         <div className="px-4 pb-24">
-          <div className="border border-divider rounded-lg overflow-hidden bg-bg">
+          <div className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-divider bg-surface">

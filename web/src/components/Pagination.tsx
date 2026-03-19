@@ -21,14 +21,14 @@ export function Pagination({ page, pageSize, total, onPageChange }: Props) {
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page === 0}
-          className="px-2.5 py-1 text-sm rounded-md border border-divider text-text-secondary hover:bg-surface disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="px-2.5 py-1 text-sm rounded-lg border border-divider text-text-secondary hover:bg-warm hover:border-divider disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
         >
           ‹
         </button>
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages - 1}
-          className="px-2.5 py-1 text-sm rounded-md border border-divider text-text-secondary hover:bg-surface disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="px-2.5 py-1 text-sm rounded-lg border border-divider text-text-secondary hover:bg-warm hover:border-divider disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
         >
           ›
         </button>

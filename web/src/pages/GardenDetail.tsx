@@ -87,7 +87,7 @@ export function GardenDetail() {
       </div>
 
       <div className="mt-auto px-4 pb-4 pt-6">
-        <div className="rounded-lg border border-error/25 overflow-hidden">
+        <div className="rounded-xl border border-error/20 overflow-hidden">
           <div className="px-4 py-2 bg-error/5 border-b border-error/25">
             <p className="text-xs font-semibold text-error uppercase tracking-wide">{t('common.dangerZone')}</p>
           </div>

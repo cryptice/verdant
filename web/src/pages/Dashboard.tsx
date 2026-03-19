@@ -63,8 +63,8 @@ export function Dashboard() {
       )}
 
       {dashboard?.gardens.map(g => (
-        <Link key={g.id} to={`/garden/${g.id}`} className="card flex items-center gap-4 no-underline text-inherit">
-          <span className="text-3xl">{g.emoji ?? '🌱'}</span>
+        <Link key={g.id} to={`/garden/${g.id}`} className="card flex items-center gap-4 no-underline text-inherit group">
+          <span className="text-4xl group-hover:scale-110 transition-transform duration-200">{g.emoji ?? '🌱'}</span>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-lg">{g.name}</p>
             <p className="text-sm text-text-secondary">

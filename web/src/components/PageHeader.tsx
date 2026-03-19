@@ -15,7 +15,7 @@ export function PageHeader({ title, icon, breadcrumbs, editAction, action }: Pro
         <Breadcrumb items={breadcrumbs} />
       )}
       <div className="flex items-center gap-2">
-        {icon && <span className="text-2xl leading-none">{icon}</span>}
+        {icon && <span className="text-3xl leading-none">{icon}</span>}
         <h1 className="text-xl font-semibold text-text-primary">{title}</h1>
         {editAction && (
           <button
