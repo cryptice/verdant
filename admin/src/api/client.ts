@@ -262,6 +262,7 @@ export const api = {
     getGardens: () => apiRequest<Garden[]>('/api/admin/gardens'),
 
     getSpecies: () => apiRequest<Species[]>('/api/admin/species'),
+    searchSpecies: (q: string, limit = 20) => apiRequest<Species[]>(`/api/admin/species?q=${encodeURIComponent(q)}&limit=${limit}`),
     getSpeciesById: (id: number) => apiRequest<Species>(`/api/admin/species/${id}`),
     createSpecies: (req: CreateSpeciesRequest) =>
       apiRequest<Species>('/api/admin/species', { method: 'POST', body: JSON.stringify(req) }),

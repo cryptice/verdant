@@ -123,6 +123,12 @@ class SpeciesService(
         return speciesRepository.findAll().map { it.toResponse(groups, tags) }
     }
 
+    fun searchAllSpecies(query: String, limit: Int = 20): List<SpeciesResponse> {
+        val groups = groupRepository.findAll().associateBy { it.id }
+        val tags = tagRepository.findAll().associateBy { it.id }
+        return speciesRepository.searchAll(query, limit).map { it.toResponse(groups, tags) }
+    }
+
     fun getSpeciesAdmin(speciesId: Long): SpeciesResponse {
         val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
         val groups: Map<Long?, SpeciesGroup> = species.groupId?.let { groupRepository.findById(it) }?.let { mapOf(it.id to it) } ?: emptyMap()

@@ -28,6 +28,27 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    fun searchAll(query: String, limit: Int = 20): List<Species> =
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                """SELECT * FROM species
+                   WHERE common_name ILIKE ? OR common_name_sv ILIKE ? OR variant_name ILIKE ? OR variant_name_sv ILIKE ? OR scientific_name ILIKE ?
+                   ORDER BY common_name_sv, common_name
+                   LIMIT ?"""
+            ).use { ps ->
+                val pattern = "%$query%"
+                ps.setString(1, pattern)
+                ps.setString(2, pattern)
+                ps.setString(3, pattern)
+                ps.setString(4, pattern)
+                ps.setString(5, pattern)
+                ps.setInt(6, limit)
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.toSpecies()) }
+                }
+            }
+        }
+
     fun findByUserId(userId: Long): List<Species> =
         ds.connection.use { conn ->
             conn.prepareStatement("SELECT * FROM species WHERE user_id = ? OR user_id IS NULL ORDER BY common_name").use { ps ->

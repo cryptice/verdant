@@ -43,7 +43,9 @@ class AdminResource(
 
     @GET
     @Path("/species")
-    fun listSpecies() = speciesService.getAllSpecies()
+    fun listSpecies(@QueryParam("q") query: String?, @QueryParam("limit") limit: Int?) =
+        if (query.isNullOrBlank()) speciesService.getAllSpecies()
+        else speciesService.searchAllSpecies(query.trim(), limit ?: 20)
 
     @GET
     @Path("/species/export")

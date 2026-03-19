@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, type Species, type UpdateSpeciesRequest, type CreateSpeciesRequest, type SpeciesPhoto, type SpeciesExportEntry, type AddSpeciesProviderRequest } from '../api/client'
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import ErrorDisplay from '../components/ErrorDisplay'
 
@@ -32,15 +32,21 @@ export function SpeciesListPage() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [previewSpecies, setPreviewSpecies] = useState<Species | null>(null)
   const [importStatus, setImportStatus] = useState<string | null>(null)
   const [exporting, setExporting] = useState(false)
   const [importing, setImporting] = useState(false)
   const importInputRef = useRef<HTMLInputElement>(null)
 
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 250)
+    return () => clearTimeout(timer)
+  }, [search])
+
   const { data: species, isLoading, error } = useQuery({
-    queryKey: ['admin', 'species'],
-    queryFn: api.admin.getSpecies
+    queryKey: ['admin', 'species', debouncedSearch],
+    queryFn: () => debouncedSearch ? api.admin.searchSpecies(debouncedSearch, 100) : api.admin.getSpecies(),
   })
 
   const handleExport = async () => {
@@ -83,14 +89,7 @@ export function SpeciesListPage() {
   }
 
   const filtered = species
-    ?.filter(s => {
-      const q = search.toLowerCase()
-      return !q ||
-        s.commonName.toLowerCase().includes(q) ||
-        s.commonNameSv?.toLowerCase().includes(q) ||
-        s.scientificName?.toLowerCase().includes(q) ||
-        s.groupName?.toLowerCase().includes(q)
-    })
+    ?.slice()
     .sort((a, b) => {
       const nameA = (a.commonNameSv || a.commonName).toLowerCase()
       const nameB = (b.commonNameSv || b.commonName).toLowerCase()
