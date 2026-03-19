@@ -44,7 +44,7 @@ export default function Layout() {
       </aside>
 
       <main className="flex-1 overflow-auto px-10 pt-6 pb-10">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-5xl">
           <Outlet />
         </div>
       </main>
