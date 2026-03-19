@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { api } from '../api/client'
+import { api, type SpeciesResponse } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
+import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import type { BreadcrumbItem } from '../components/Breadcrumb'
 
 export function SowActivity() {
@@ -15,7 +16,6 @@ export function SowActivity() {
   const presetSpeciesId = params.get('speciesId') ? Number(params.get('speciesId')) : null
   const taskId = params.get('taskId') ? Number(params.get('taskId')) : null
 
-  const { data: species } = useQuery({ queryKey: ['species'], queryFn: api.species.list })
   const { data: beds } = useQuery({ queryKey: ['beds'], queryFn: api.beds.list })
   const { data: task } = useQuery({
     queryKey: ['task', taskId],
@@ -35,19 +35,29 @@ export function SowActivity() {
     enabled: !!sowBed,
   })
 
-  const [speciesId, setSpeciesId] = useState(presetSpeciesId ? String(presetSpeciesId) : '')
+  // Fetch preset species (from URL param or task)
+  const presetId = presetSpeciesId ?? (task?.speciesId ?? null)
+  const { data: presetSpecies } = useQuery({
+    queryKey: ['species-by-id', presetId],
+    queryFn: () => api.species.search(String(presetId), 1).then(list => list.find(s => s.id === presetId) ?? null),
+    enabled: !!presetId,
+  })
+
+  const [selectedSpecies, setSelectedSpecies] = useState<SpeciesResponse | null>(null)
   const [bedId, setBedId] = useState(presetBedId ? String(presetBedId) : '')
   const [sowInTray, setSowInTray] = useState(false)
   const [seedCount, setSeedCount] = useState('')
   const [notes, setNotes] = useState('')
-  const [speciesSearch, setSpeciesSearch] = useState('')
 
   useEffect(() => {
-    if (task && !speciesId) {
-      setSpeciesId(String(task.speciesId))
-      setSeedCount(String(task.remainingCount))
-    }
-  }, [task, speciesId])
+    if (presetSpecies && !selectedSpecies) setSelectedSpecies(presetSpecies)
+  }, [presetSpecies, selectedSpecies])
+
+  useEffect(() => {
+    if (task && !seedCount) setSeedCount(String(task.remainingCount))
+  }, [task, seedCount])
+
+  const speciesId = selectedSpecies?.id ? String(selectedSpecies.id) : ''
 
   const { data: seedBatches } = useQuery({
     queryKey: ['seed-batches', speciesId],
@@ -59,7 +69,6 @@ export function SowActivity() {
 
   const sowMut = useMutation({
     mutationFn: async () => {
-      const selectedSpecies = species?.find(s => s.id === Number(speciesId))
       const lang = i18n.language
       const name = selectedSpecies
         ? ((lang === 'sv' ? selectedSpecies.commonNameSv ?? selectedSpecies.commonName : selectedSpecies.commonName) +
@@ -92,18 +101,6 @@ export function SowActivity() {
     },
   })
 
-  const filteredSpecies = species?.filter(s =>
-    !speciesSearch ||
-    s.commonName.toLowerCase().includes(speciesSearch.toLowerCase()) ||
-    s.commonNameSv?.toLowerCase().includes(speciesSearch.toLowerCase()) ||
-    s.variantName?.toLowerCase().includes(speciesSearch.toLowerCase()) ||
-    s.variantNameSv?.toLowerCase().includes(speciesSearch.toLowerCase())
-  ) ?? []
-
-  const selectedSpecies = species?.find(s => s.id === Number(speciesId))
-  const selectedSpeciesName = selectedSpecies
-    ? (i18n.language === 'sv' ? selectedSpecies.commonNameSv ?? selectedSpecies.commonName : selectedSpecies.commonName)
-    : ''
   const valid = speciesId && (sowInTray || bedId) && Number(seedCount) > 0
 
   const breadcrumbs: BreadcrumbItem[] = taskId
@@ -117,33 +114,12 @@ export function SowActivity() {
       <PageHeader title={t('sow.title')} breadcrumbs={breadcrumbs} />
       <div className="form-card">
 
-        <div className="relative">
+        <div>
           <label className="field-label">{t('common.speciesLabel')}</label>
-          <input
-            value={speciesSearch || selectedSpeciesName}
-            onChange={e => { setSpeciesSearch(e.target.value); setSpeciesId('') }}
-            placeholder={t('common.searchSpecies')}
-            className="input"
+          <SpeciesAutocomplete
+            value={selectedSpecies}
+            onChange={s => { setSelectedSpecies(s); setSeedBatchId('') }}
           />
-          {speciesSearch && (
-            <div className="absolute z-10 left-0 right-0 mt-1 border border-divider rounded-md bg-bg shadow-md max-h-48 overflow-y-auto">
-              {filteredSpecies.slice(0, 20).map(s => (
-                <button
-                  key={s.id}
-                  onClick={() => { setSpeciesId(String(s.id)); setSpeciesSearch(''); setSeedBatchId('') }}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-surface transition-colors"
-                >
-                  {i18n.language === 'sv' ? (s.commonNameSv ?? s.commonName) : s.commonName}
-                  {(i18n.language === 'sv' ? (s.variantNameSv ?? s.variantName) : s.variantName)
-                    ? ` — ${i18n.language === 'sv' ? (s.variantNameSv ?? s.variantName) : s.variantName}`
-                    : ''}
-                </button>
-              ))}
-              {filteredSpecies.length === 0 && (
-                <p className="px-3 py-2 text-sm text-text-secondary">{t('species.noSpeciesFoundDropdown')}</p>
-              )}
-            </div>
-          )}
         </div>
 
         {speciesId && seedBatches && seedBatches.length > 0 && (

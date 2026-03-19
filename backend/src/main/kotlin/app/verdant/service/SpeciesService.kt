@@ -25,6 +25,12 @@ class SpeciesService(
         return speciesRepository.findByUserId(userId).map { it.toResponse(groups, tags) }
     }
 
+    fun searchSpeciesForUser(userId: Long, query: String, limit: Int = 20): List<SpeciesResponse> {
+        val groups = groupRepository.findByUserId(userId).associateBy { it.id }
+        val tags = tagRepository.findByUserId(userId).associateBy { it.id }
+        return speciesRepository.searchByUserId(userId, query, limit).map { it.toResponse(groups, tags) }
+    }
+
     fun getSpecies(speciesId: Long, userId: Long): SpeciesResponse {
         val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
         if (species.userId != null && species.userId != userId) throw ForbiddenException()

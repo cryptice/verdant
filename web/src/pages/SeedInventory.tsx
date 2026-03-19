@@ -1,17 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { api, type SeedInventoryResponse } from '../api/client'
+import { api, type SeedInventoryResponse, type SpeciesResponse } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { Pagination } from '../components/Pagination'
+import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 
 const PAGE_SIZE = 50
 
 export function SeedInventory() {
   const qc = useQueryClient()
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['seed-inventory'],
     queryFn: () => api.inventory.list(),
@@ -20,8 +21,7 @@ export function SeedInventory() {
   const { data: species } = useQuery({ queryKey: ['species'], queryFn: api.species.list })
 
   const [showAdd, setShowAdd] = useState(false)
-  const [addSpeciesId, setAddSpeciesId] = useState('')
-  const [speciesSearch, setSpeciesSearch] = useState('')
+  const [addSpecies, setAddSpecies] = useState<SpeciesResponse | null>(null)
   const [addQuantity, setAddQuantity] = useState('')
   const [addCollection, setAddCollection] = useState('')
   const [addExpiration, setAddExpiration] = useState('')
@@ -34,14 +34,14 @@ export function SeedInventory() {
 
   const createMut = useMutation({
     mutationFn: () => api.inventory.create({
-      speciesId: Number(addSpeciesId),
+      speciesId: addSpecies!.id,
       quantity: Number(addQuantity),
       collectionDate: addCollection || undefined,
       expirationDate: addExpiration || undefined,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['seed-inventory'] })
-      setShowAdd(false); setAddSpeciesId(''); setSpeciesSearch(''); setAddQuantity(''); setAddCollection(''); setAddExpiration('')
+      setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration('')
     },
   })
 
@@ -119,12 +119,12 @@ export function SeedInventory() {
         </>)}
       </div>
 
-      <Dialog open={showAdd} onClose={() => { setShowAdd(false); setAddSpeciesId(''); setSpeciesSearch(''); setAddQuantity(''); setAddCollection(''); setAddExpiration('') }} title={t('seeds.addSeedsTitle')} actions={
+      <Dialog open={showAdd} onClose={() => { setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration('') }} title={t('seeds.addSeedsTitle')} actions={
         <>
-          <button onClick={() => { setShowAdd(false); setAddSpeciesId(''); setSpeciesSearch(''); setAddQuantity(''); setAddCollection(''); setAddExpiration('') }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button onClick={() => { setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration('') }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
           <button
             onClick={() => createMut.mutate()}
-            disabled={!addSpeciesId || !addQuantity || createMut.isPending}
+            disabled={!addSpecies || !addQuantity || createMut.isPending}
             className="btn-primary text-sm"
           >
             {createMut.isPending ? t('species.adding') : t('common.add')}
@@ -132,52 +132,9 @@ export function SeedInventory() {
         </>
       }>
         <div className="space-y-4">
-          <div className="relative">
+          <div>
             <label className="field-label">{t('common.speciesLabel')}</label>
-            <input
-              value={speciesSearch || (addSpeciesId ? (() => {
-                const s = species?.find(sp => sp.id === Number(addSpeciesId))
-                if (!s) return ''
-                const name = i18n.language === 'sv' ? (s.commonNameSv ?? s.commonName) : s.commonName
-                const variant = i18n.language === 'sv' ? (s.variantNameSv ?? s.variantName) : s.variantName
-                return variant ? `${name} — ${variant}` : name
-              })() : '')}
-              onChange={e => { setSpeciesSearch(e.target.value); setAddSpeciesId('') }}
-              placeholder={t('common.searchSpecies')}
-              className="input w-full"
-            />
-            {speciesSearch && (
-              <div className="absolute z-10 left-0 right-0 mt-1 border border-divider rounded-md bg-bg shadow-md max-h-48 overflow-y-auto">
-                {species?.filter(s => {
-                  const q = speciesSearch.toLowerCase()
-                  return s.commonName.toLowerCase().includes(q) ||
-                    s.commonNameSv?.toLowerCase().includes(q) ||
-                    s.variantName?.toLowerCase().includes(q) ||
-                    s.variantNameSv?.toLowerCase().includes(q)
-                }).slice(0, 20).map(s => {
-                  const name = i18n.language === 'sv' ? (s.commonNameSv ?? s.commonName) : s.commonName
-                  const variant = i18n.language === 'sv' ? (s.variantNameSv ?? s.variantName) : s.variantName
-                  return (
-                    <button
-                      key={s.id}
-                      onClick={() => { setAddSpeciesId(String(s.id)); setSpeciesSearch('') }}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-surface transition-colors"
-                    >
-                      {name}{variant ? ` — ${variant}` : ''}
-                    </button>
-                  )
-                })}
-                {species?.filter(s => {
-                  const q = speciesSearch.toLowerCase()
-                  return s.commonName.toLowerCase().includes(q) ||
-                    s.commonNameSv?.toLowerCase().includes(q) ||
-                    s.variantName?.toLowerCase().includes(q) ||
-                    s.variantNameSv?.toLowerCase().includes(q)
-                }).length === 0 && (
-                  <p className="px-3 py-2 text-sm text-text-secondary">{t('species.noSpeciesFoundDropdown')}</p>
-                )}
-              </div>
-            )}
+            <SpeciesAutocomplete value={addSpecies} onChange={setAddSpecies} />
           </div>
           <div>
             <label className="field-label">{t('seeds.quantityLabel')}</label>

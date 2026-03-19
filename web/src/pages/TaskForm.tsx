@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { api } from '../api/client'
+import { api, type SpeciesResponse } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
+import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import type { BreadcrumbItem } from '../components/Breadcrumb'
 
 const activityTypes = ['SOW', 'POT_UP', 'PLANT', 'HARVEST', 'RECOVER', 'DISCARD']
@@ -15,14 +16,20 @@ export function TaskForm() {
   const qc = useQueryClient()
   const { t } = useTranslation()
 
-  const { data: species } = useQuery({ queryKey: ['species'], queryFn: api.species.list })
   const { data: existing } = useQuery({
     queryKey: ['task', Number(taskId)],
     queryFn: () => api.tasks.get(Number(taskId)),
     enabled: isEdit,
   })
 
-  const [speciesId, setSpeciesId] = useState('')
+  // Fetch preset species for edit mode
+  const { data: presetSpecies } = useQuery({
+    queryKey: ['species-by-id', existing?.speciesId],
+    queryFn: () => api.species.search(String(existing!.speciesId), 1).then(list => list.find(s => s.id === existing!.speciesId) ?? null),
+    enabled: !!existing?.speciesId,
+  })
+
+  const [selectedSpecies, setSelectedSpecies] = useState<SpeciesResponse | null>(null)
   const [activityType, setActivityType] = useState('SOW')
   const [deadline, setDeadline] = useState('')
   const [targetCount, setTargetCount] = useState('')
@@ -30,13 +37,18 @@ export function TaskForm() {
 
   useEffect(() => {
     if (existing) {
-      setSpeciesId(String(existing.speciesId))
       setActivityType(existing.activityType)
       setDeadline(existing.deadline)
       setTargetCount(String(existing.targetCount))
       setNotes(existing.notes ?? '')
     }
   }, [existing])
+
+  useEffect(() => {
+    if (presetSpecies && !selectedSpecies) setSelectedSpecies(presetSpecies)
+  }, [presetSpecies, selectedSpecies])
+
+  const speciesId = selectedSpecies?.id ? String(selectedSpecies.id) : ''
 
   const createMut = useMutation({
     mutationFn: () => api.tasks.create({
@@ -63,12 +75,7 @@ export function TaskForm() {
       <div className="form-card">
         <div>
           <label className="field-label">{t('common.speciesLabel')}</label>
-          <select value={speciesId} onChange={e => setSpeciesId(e.target.value)} className="input">
-            <option value="">{t('common.selectSpecies')}</option>
-            {species?.map(s => (
-              <option key={s.id} value={s.id}>{s.commonName}{s.variantName ? ` — ${s.variantName}` : ''}</option>
-            ))}
-          </select>
+          <SpeciesAutocomplete value={selectedSpecies} onChange={setSelectedSpecies} />
         </div>
 
         <div>

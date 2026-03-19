@@ -23,7 +23,9 @@ class SpeciesResource(
     private fun userId() = jwt.subject.toLong()
 
     @GET
-    fun list() = speciesService.getSpeciesForUser(userId())
+    fun list(@QueryParam("q") query: String?, @QueryParam("limit") limit: Int?) =
+        if (query.isNullOrBlank()) speciesService.getSpeciesForUser(userId())
+        else speciesService.searchSpeciesForUser(userId(), query.trim(), limit ?: 20)
 
     @POST
     fun create(request: CreateSpeciesRequest): Response {

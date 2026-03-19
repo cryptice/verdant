@@ -209,6 +209,7 @@ export const api = {
 
   species: {
     list: () => apiRequest<SpeciesResponse[]>('/api/species'),
+    search: (q: string, limit = 20) => apiRequest<SpeciesResponse[]>(`/api/species?q=${encodeURIComponent(q)}&limit=${limit}`),
     create: (data: Record<string, unknown>) =>
       apiRequest<SpeciesResponse>('/api/species', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: number, data: Record<string, unknown>) =>
