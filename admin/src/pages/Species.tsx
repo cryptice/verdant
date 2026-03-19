@@ -37,7 +37,9 @@ export function SpeciesListPage() {
   const [importStatus, setImportStatus] = useState<string | null>(null)
   const [exporting, setExporting] = useState(false)
   const [importing, setImporting] = useState(false)
+  const [page, setPage] = useState(0)
   const importInputRef = useRef<HTMLInputElement>(null)
+  const pageSize = 50
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 250)
@@ -150,7 +152,7 @@ export function SpeciesListPage() {
           type="text"
           placeholder="Search by name, scientific name, or group..."
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={e => { setSearch(e.target.value); setPage(0) }}
           className="w-full max-w-md px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA]"
         />
       </div>
@@ -167,7 +169,7 @@ export function SpeciesListPage() {
             </tr>
           </thead>
           <tbody>
-            {filtered?.map((s: Species) => (
+            {filtered?.slice(page * pageSize, (page + 1) * pageSize).map((s: Species) => (
               <tr key={s.id} className="border-b border-[#E9E9E7] last:border-0 hover:bg-[#FBFBFA] cursor-pointer transition-colors" onClick={() => navigate(`/species/${s.id}`)}>
                 <td className="px-4 py-2.5">
                   <div className="text-sm font-medium text-[#37352F]">
@@ -201,6 +203,30 @@ export function SpeciesListPage() {
           </tbody>
         </table>
       </div>
+
+      {filtered && Math.ceil(filtered.length / pageSize) > 1 && (
+        <div className="flex items-center justify-between mt-3">
+          <p className="text-xs text-[#787774]">
+            {page * pageSize + 1}–{Math.min((page + 1) * pageSize, filtered.length)} of {filtered.length}
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPage(page - 1)}
+              disabled={page === 0}
+              className="px-2.5 py-1 text-sm rounded-md border border-[#E9E9E7] text-[#787774] hover:bg-[#F0F0EE] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              ‹
+            </button>
+            <button
+              onClick={() => setPage(page + 1)}
+              disabled={page >= Math.ceil(filtered.length / pageSize) - 1}
+              className="px-2.5 py-1 text-sm rounded-md border border-[#E9E9E7] text-[#787774] hover:bg-[#F0F0EE] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              ›
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Provider Images Modal */}
       {previewSpecies && (
