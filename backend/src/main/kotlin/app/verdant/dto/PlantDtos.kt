@@ -14,6 +14,7 @@ data class PlantResponse(
     val seedCount: Int?,
     val survivingCount: Int?,
     val bedId: Long?,
+    val seasonId: Long?,
     val createdAt: Instant,
     val updatedAt: Instant
 )
@@ -25,6 +26,7 @@ data class CreatePlantRequest(
     val status: PlantStatus = PlantStatus.SEEDED,
     val seedCount: Int? = null,
     val survivingCount: Int? = null,
+    val seasonId: Long? = null,
 )
 
 data class UpdatePlantRequest(
@@ -34,6 +36,7 @@ data class UpdatePlantRequest(
     val status: PlantStatus? = null,
     val seedCount: Int? = null,
     val survivingCount: Int? = null,
+    val seasonId: Long? = null,
 )
 
 data class SpeciesPlantSummary(

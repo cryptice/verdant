@@ -78,6 +78,9 @@ class SeedInventoryService(
         quantity = quantity,
         collectionDate = collectionDate,
         expirationDate = expirationDate,
+        costPerUnitCents = costPerUnitCents,
+        unitType = unitType.name,
+        seasonId = seasonId,
         createdAt = createdAt,
     )
 }

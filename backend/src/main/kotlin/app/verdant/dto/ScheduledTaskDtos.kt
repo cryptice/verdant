@@ -13,6 +13,8 @@ data class ScheduledTaskResponse(
     val remainingCount: Int,
     val status: String,
     val notes: String?,
+    val seasonId: Long?,
+    val successionScheduleId: Long?,
     val createdAt: Instant,
     val updatedAt: Instant,
 )
@@ -23,6 +25,8 @@ data class CreateScheduledTaskRequest(
     val deadline: LocalDate,
     val targetCount: Int,
     val notes: String? = null,
+    val seasonId: Long? = null,
+    val successionScheduleId: Long? = null,
 )
 
 data class UpdateScheduledTaskRequest(
@@ -31,6 +35,7 @@ data class UpdateScheduledTaskRequest(
     val deadline: LocalDate? = null,
     val targetCount: Int? = null,
     val notes: String? = null,
+    val seasonId: Long? = null,
 )
 
 data class CompleteTaskPartiallyRequest(

@@ -91,6 +91,8 @@ class ScheduledTaskService(
         remainingCount = remainingCount,
         status = status.name,
         notes = notes,
+        seasonId = seasonId,
+        successionScheduleId = successionScheduleId,
         createdAt = createdAt,
         updatedAt = updatedAt,
     )

@@ -72,5 +72,6 @@ class BedService(
 fun Bed.toResponse() = BedResponse(
     id = id!!, name = name, description = description,
     gardenId = gardenId, boundaryJson = boundaryJson,
+    lengthMeters = lengthMeters, widthMeters = widthMeters,
     createdAt = createdAt, updatedAt = updatedAt
 )

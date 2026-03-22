@@ -488,6 +488,8 @@ class SpeciesService(
             imageFrontUrl = imageFrontUrl,
             imageBackUrl = imageBackUrl,
             productUrl = productUrl,
+            costPerUnitCents = costPerUnitCents,
+            unitType = unitType.name,
         )
     }
 
@@ -524,6 +526,10 @@ class SpeciesService(
             groupName = groupId?.let { groups[it]?.name },
             tags = tagIds.mapNotNull { tags[it]?.let { t -> SpeciesTagResponse(t.id!!, t.name) } },
             providers = providers,
+            costPerSeedCents = costPerSeedCents,
+            expectedStemsPerPlant = expectedStemsPerPlant,
+            expectedVaseLifeDays = expectedVaseLifeDays,
+            plantType = plantType.name,
             isSystem = userId == null,
             createdAt = createdAt,
         )

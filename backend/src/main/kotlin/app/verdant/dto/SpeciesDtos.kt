@@ -35,6 +35,10 @@ data class SpeciesResponse(
     val groupName: String?,
     val tags: List<SpeciesTagResponse>,
     val providers: List<SpeciesProviderResponse>,
+    val costPerSeedCents: Int?,
+    val expectedStemsPerPlant: Int?,
+    val expectedVaseLifeDays: Int?,
+    val plantType: String?,
     @get:JsonProperty("isSystem") val isSystem: Boolean,
     val createdAt: Instant,
 )
@@ -59,6 +63,10 @@ data class CreateSpeciesRequest(
     val germinationRate: Int? = null,
     val groupId: Long? = null,
     val tagIds: List<Long>? = null,
+    val costPerSeedCents: Int? = null,
+    val expectedStemsPerPlant: Int? = null,
+    val expectedVaseLifeDays: Int? = null,
+    val plantType: String? = null,
 )
 
 data class UpdateSpeciesRequest(
@@ -81,6 +89,10 @@ data class UpdateSpeciesRequest(
     val germinationRate: Int? = null,
     val groupId: Long? = null,
     val tagIds: List<Long>? = null,
+    val costPerSeedCents: Int? = null,
+    val expectedStemsPerPlant: Int? = null,
+    val expectedVaseLifeDays: Int? = null,
+    val plantType: String? = null,
 )
 
 data class SpeciesGroupResponse(
@@ -146,6 +158,8 @@ data class SpeciesProviderResponse(
     val imageFrontUrl: String?,
     val imageBackUrl: String?,
     val productUrl: String?,
+    val costPerUnitCents: Int?,
+    val unitType: String?,
 )
 
 data class AddSpeciesProviderRequest(
@@ -153,12 +167,16 @@ data class AddSpeciesProviderRequest(
     val imageFrontBase64: String? = null,
     val imageBackBase64: String? = null,
     val productUrl: String? = null,
+    val costPerUnitCents: Int? = null,
+    val unitType: String? = null,
 )
 
 data class UpdateSpeciesProviderRequest(
     val imageFrontBase64: String? = null,
     val imageBackBase64: String? = null,
     val productUrl: String? = null,
+    val costPerUnitCents: Int? = null,
+    val unitType: String? = null,
 )
 
 data class UploadPhotoRequest(val imageBase64: String)

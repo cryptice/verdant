@@ -15,6 +15,12 @@ data class PlantEventResponse(
     val notes: String?,
     val imageUrl: String?,
     val aiSuggestions: String?,
+    val stemCount: Int?,
+    val stemLengthCm: Int?,
+    val qualityGrade: String?,
+    val vaseLifeDays: Int?,
+    val harvestDestinationId: Long?,
+    val customerName: String?,
     val createdAt: Instant,
 )
 
@@ -27,6 +33,11 @@ data class CreatePlantEventRequest(
     val notes: String? = null,
     val imageBase64: String? = null,
     val aiSuggestions: String? = null,
+    val stemCount: Int? = null,
+    val stemLengthCm: Int? = null,
+    val qualityGrade: String? = null,
+    val vaseLifeDays: Int? = null,
+    val harvestDestinationId: Long? = null,
 )
 
 data class IdentifyPlantRequest(

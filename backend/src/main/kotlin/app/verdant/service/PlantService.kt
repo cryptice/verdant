@@ -294,7 +294,8 @@ class PlantService(
         speciesName = resolveSpeciesName(speciesId),
         plantedDate = plantedDate, status = status,
         seedCount = seedCount, survivingCount = survivingCount,
-        bedId = bedId, createdAt = createdAt, updatedAt = updatedAt
+        bedId = bedId, seasonId = seasonId,
+        createdAt = createdAt, updatedAt = updatedAt
     )
 }
 
@@ -303,5 +304,10 @@ fun PlantEvent.toResponse() = PlantEventResponse(
     eventDate = eventDate, plantCount = plantCount,
     weightGrams = weightGrams, quantity = quantity,
     notes = notes, imageUrl = imageUrl,
-    aiSuggestions = aiSuggestions, createdAt = createdAt,
+    aiSuggestions = aiSuggestions,
+    stemCount = stemCount, stemLengthCm = stemLengthCm,
+    qualityGrade = qualityGrade, vaseLifeDays = vaseLifeDays,
+    harvestDestinationId = harvestDestinationId,
+    customerName = null,
+    createdAt = createdAt,
 )
