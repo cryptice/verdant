@@ -92,6 +92,18 @@ Defaults to `erik@l2c.se`. Creates 16 cut flower species, 5 customers, 6 beds, ~
 
 ### Database
 
+The schema is managed by Flyway with a single migration (`V1__schema.sql`). This was consolidated from 9 earlier migrations. If your database has the old V1–V9 history, you need to clean it before running the new migration:
+
+```bash
+# Reset an existing database (destroys all data)
+cd backend
+PGPASSWORD=verdant psql -h localhost -p 5433 -U verdant -d verdant -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+
+# Or in production, connect to Cloud SQL and run the same DROP/CREATE
+```
+
+Flyway runs automatically on startup (`quarkus.flyway.migrate-at-start=true`).
+
 ```bash
 cd backend
 ./gradlew dbBackup                # backup to db-backups/
