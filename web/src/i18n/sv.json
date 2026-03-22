@@ -15,7 +15,11 @@
     "targets": "Mål",
     "calendar": "Kalender",
     "analytics": "Analys",
-    "guide": "Guide"
+    "guide": "Guide",
+    "market": "Marknad",
+    "myListings": "Mina annonser",
+    "myOrders": "Mina ordrar",
+    "incomingOrders": "Inkommande ordrar"
   },
   "common": {
     "cancel": "Avbryt",
@@ -452,6 +456,63 @@
     "area": "Yta",
     "stemsPerM2": "Stjälkar/m\u00B2",
     "noData": "Ingen analysdata ännu"
+  },
+  "market": {
+    "title": "Blomstermarknad",
+    "browse": "Bl\u00e4ddra bland tillg\u00e4ngliga blommor",
+    "noListings": "Inga blommor tillg\u00e4ngliga just nu",
+    "perStem": "kr/stj\u00e4lk",
+    "available": "Tillg\u00e4nglig",
+    "lowStock": "L\u00e5gt lager",
+    "addToOrder": "L\u00e4gg till",
+    "cart": "Varukorg",
+    "cartEmpty": "Din varukorg \u00e4r tom",
+    "placeOrder": "L\u00e4gg best\u00e4llning",
+    "orderPlaced": "Best\u00e4llning lagd!",
+    "deliveryDate": "Leveransdatum",
+    "orderNotes": "Anteckningar",
+    "total": "Totalt",
+    "items": "artiklar",
+    "stems": "stj\u00e4lkar"
+  },
+  "listings": {
+    "title": "Mina annonser",
+    "new": "+ Ny annons",
+    "edit": "Redigera annons",
+    "speciesLabel": "Art",
+    "listingTitle": "Titel",
+    "description": "Beskrivning",
+    "quantity": "Tillg\u00e4ngligt antal",
+    "price": "Pris per stj\u00e4lk (\u00f6re)",
+    "availableFrom": "Tillg\u00e4nglig fr\u00e5n",
+    "availableUntil": "Tillg\u00e4nglig till",
+    "active": "Aktiv",
+    "noListings": "Inga annonser \u00e4nnu",
+    "deleteListing": "Radera annons",
+    "deleteConfirm": "Radera denna annons?"
+  },
+  "orders": {
+    "myTitle": "Mina ordrar",
+    "incomingTitle": "Inkommande ordrar",
+    "noOrders": "Inga ordrar",
+    "orderDate": "Datum",
+    "producer": "Producent",
+    "purchaser": "K\u00f6pare",
+    "status": "Status",
+    "deliveryDate": "Leverans",
+    "total": "Totalt",
+    "cancel": "Avbryt best\u00e4llning",
+    "accept": "Acceptera",
+    "fulfill": "Markera leveransklar",
+    "deliver": "Markera levererad",
+    "cancelConfirm": "Avbryt denna best\u00e4llning?"
+  },
+  "orderStatus": {
+    "PLACED": "Lagd",
+    "ACCEPTED": "Accepterad",
+    "FULFILLED": "Leveransklar",
+    "DELIVERED": "Levererad",
+    "CANCELLED": "Avbruten"
   },
   "guide": {
     "title": "Guide",

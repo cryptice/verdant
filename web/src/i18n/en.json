@@ -15,7 +15,11 @@
     "targets": "Targets",
     "calendar": "Calendar",
     "analytics": "Analytics",
-    "guide": "Guide"
+    "guide": "Guide",
+    "market": "Market",
+    "myListings": "My Listings",
+    "myOrders": "My Orders",
+    "incomingOrders": "Incoming Orders"
   },
   "common": {
     "cancel": "Cancel",
@@ -452,6 +456,63 @@
     "area": "Area",
     "stemsPerM2": "Stems/m\u00B2",
     "noData": "No analytics data yet"
+  },
+  "market": {
+    "title": "Flower Market",
+    "browse": "Browse available flowers",
+    "noListings": "No flowers available right now",
+    "perStem": "kr/stem",
+    "available": "Available",
+    "lowStock": "Low stock",
+    "addToOrder": "Add",
+    "cart": "Cart",
+    "cartEmpty": "Your cart is empty",
+    "placeOrder": "Place Order",
+    "orderPlaced": "Order placed!",
+    "deliveryDate": "Delivery date",
+    "orderNotes": "Notes",
+    "total": "Total",
+    "items": "items",
+    "stems": "stems"
+  },
+  "listings": {
+    "title": "My Listings",
+    "new": "+ New listing",
+    "edit": "Edit Listing",
+    "speciesLabel": "Species",
+    "listingTitle": "Title",
+    "description": "Description",
+    "quantity": "Quantity available",
+    "price": "Price per stem (\u00f6re)",
+    "availableFrom": "Available from",
+    "availableUntil": "Available until",
+    "active": "Active",
+    "noListings": "No listings yet",
+    "deleteListing": "Delete listing",
+    "deleteConfirm": "Delete this listing?"
+  },
+  "orders": {
+    "myTitle": "My Orders",
+    "incomingTitle": "Incoming Orders",
+    "noOrders": "No orders",
+    "orderDate": "Date",
+    "producer": "Producer",
+    "purchaser": "Purchaser",
+    "status": "Status",
+    "deliveryDate": "Delivery",
+    "total": "Total",
+    "cancel": "Cancel order",
+    "accept": "Accept",
+    "fulfill": "Mark fulfilled",
+    "deliver": "Mark delivered",
+    "cancelConfirm": "Cancel this order?"
+  },
+  "orderStatus": {
+    "PLACED": "Placed",
+    "ACCEPTED": "Accepted",
+    "FULFILLED": "Fulfilled",
+    "DELIVERED": "Delivered",
+    "CANCELLED": "Cancelled"
   },
   "guide": {
     "title": "Guide",

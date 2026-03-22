@@ -22,6 +22,10 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
     { to: '/trials', label: t('nav.trials'), icon: '🔬' },
     { to: '/pest-disease', label: t('nav.pestDisease'), icon: '🐛' },
     { to: '/analytics', label: t('nav.analytics'), icon: '📈' },
+    { to: '/market', label: t('nav.market'), icon: '🏪' },
+    { to: '/market/listings', label: t('nav.myListings'), icon: '📦' },
+    { to: '/market/orders', label: t('nav.myOrders'), icon: '🛒' },
+    { to: '/market/incoming', label: t('nav.incomingOrders'), icon: '📥' },
     { to: '/guide', label: t('nav.guide'), icon: '📖' },
     { to: '/account', label: t('nav.account'), icon: '👤' },
   ]
