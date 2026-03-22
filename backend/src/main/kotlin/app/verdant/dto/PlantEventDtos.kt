@@ -63,4 +63,5 @@ data class HarvestStatRow(
     val totalWeightGrams: Double,
     val totalQuantity: Int,
     val harvestCount: Int,
+    val totalStems: Int,
 )

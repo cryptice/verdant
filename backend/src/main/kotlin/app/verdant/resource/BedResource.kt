@@ -38,4 +38,8 @@ class BedResource(
         bedService.deleteBed(id, userId())
         return Response.noContent().build()
     }
+
+    @GET
+    @Path("/beds/{id}/history")
+    fun history(@PathParam("id") id: Long) = bedService.getBedHistory(id, userId())
 }

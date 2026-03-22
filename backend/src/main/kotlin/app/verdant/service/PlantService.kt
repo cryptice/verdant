@@ -283,6 +283,7 @@ class PlantService(
                 totalWeightGrams = it.totalWeightGrams,
                 totalQuantity = it.totalQuantity,
                 harvestCount = it.harvestCount,
+                totalStems = it.totalStems,
             )
         }
     }

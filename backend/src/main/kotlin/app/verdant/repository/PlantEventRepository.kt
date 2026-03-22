@@ -86,7 +86,8 @@ class PlantEventRepository(private val ds: AgroalDataSource) {
                 """SELECT s.common_name as species,
                           COALESCE(SUM(pe.weight_grams), 0) as total_weight,
                           COALESCE(SUM(pe.quantity), 0) as total_quantity,
-                          COUNT(pe.id) as harvest_count
+                          COUNT(pe.id) as harvest_count,
+                          COALESCE(SUM(pe.stem_count), 0) as total_stems
                    FROM plant_event pe
                    JOIN plant p ON pe.plant_id = p.id
                    JOIN species s ON p.species_id = s.id
@@ -104,6 +105,7 @@ class PlantEventRepository(private val ds: AgroalDataSource) {
                                 totalWeightGrams = rs.getDouble("total_weight"),
                                 totalQuantity = rs.getInt("total_quantity"),
                                 harvestCount = rs.getInt("harvest_count"),
+                                totalStems = rs.getInt("total_stems"),
                             )
                         )
                     }
@@ -136,4 +138,5 @@ data class HarvestStatResult(
     val totalWeightGrams: Double,
     val totalQuantity: Int,
     val harvestCount: Int,
+    val totalStems: Int,
 )
