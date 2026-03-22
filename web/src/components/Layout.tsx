@@ -131,7 +131,7 @@ export function Layout() {
           <span className="font-semibold text-text-primary text-sm">🌿 Verdant</span>
         </header>
 
-        <main className="flex-1 max-w-3xl w-full mr-auto px-4 md:px-8 py-6 flex flex-col">
+        <main className="flex-1 w-full px-4 md:px-8 py-6 flex flex-col">
           <Outlet />
         </main>
       </div>
