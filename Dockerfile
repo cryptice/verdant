@@ -15,6 +15,15 @@ RUN npm ci --no-update-notifier
 COPY admin/ ./
 RUN npm run build
 
+# Stage 2b: Build market UI
+FROM node:22-alpine AS market
+WORKDIR /market
+COPY market/package.json market/package-lock.json ./
+RUN npm ci --no-update-notifier
+COPY market/ ./
+ARG VITE_GOOGLE_CLIENT_ID
+RUN npm run build
+
 # Stage 3: Download backend dependencies (cached unless build files change)
 FROM gradle:8.12-jdk21 AS deps
 WORKDIR /app
@@ -27,6 +36,7 @@ FROM deps AS build
 COPY backend/src/ src/
 COPY --from=web /web/dist/ src/main/resources/META-INF/resources/
 COPY --from=admin /admin/dist/ src/main/resources/META-INF/resources/admin/
+COPY --from=market /market/dist/ src/main/resources/META-INF/resources/market/
 RUN gradle quarkusBuild --no-daemon -Dquarkus.profile=prod
 
 # Stage 5: Run

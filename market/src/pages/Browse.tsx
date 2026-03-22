@@ -1,17 +1,14 @@
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, Fragment } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type ListingResponse } from '../api/client'
-import { PageHeader } from '../components/PageHeader'
-import { ErrorDisplay } from '../components/ErrorDisplay'
-import { Dialog } from '../components/Dialog'
 
 interface CartItem {
   listing: ListingResponse
   quantity: number
 }
 
-export function MarketBrowse() {
+export function Browse() {
   const { t, i18n } = useTranslation()
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['market-listings'],
@@ -43,6 +40,7 @@ export function MarketBrowse() {
       setOrderError(null)
       setSuccessMsg(t('market.orderPlaced'))
       setTimeout(() => setSuccessMsg(null), 3000)
+      refetch()
     },
     onError: (err) => {
       setOrderError(err instanceof Error ? err.message : String(err))
@@ -91,7 +89,12 @@ export function MarketBrowse() {
   }
 
   if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
-  if (error) return <ErrorDisplay error={error} onRetry={refetch} />
+  if (error) return (
+    <div className="text-center py-12">
+      <p className="text-error text-sm mb-3">{error instanceof Error ? error.message : 'Something went wrong'}</p>
+      <button onClick={() => refetch()} className="btn-secondary text-sm">Try again</button>
+    </div>
+  )
 
   const filtered = data?.filter(l => {
     if (!search) return true
@@ -104,7 +107,8 @@ export function MarketBrowse() {
 
   return (
     <div>
-      <PageHeader title={t('market.title')} />
+      <h1 className="text-xl font-semibold text-text-primary mb-1">{t('market.title')}</h1>
+      <p className="text-text-secondary text-sm mb-5">{t('market.browse')}</p>
 
       {successMsg && (
         <div className="mb-4 px-4 py-3 rounded-xl bg-green-50 text-green-700 text-sm font-medium">
@@ -117,7 +121,7 @@ export function MarketBrowse() {
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder={t('market.browse')}
+          placeholder={t('market.search')}
           className="input flex-1"
         />
         <button
@@ -188,69 +192,71 @@ export function MarketBrowse() {
       )}
 
       {/* Cart / Place Order dialog */}
-      <Dialog
-        open={showCart}
-        onClose={() => { setShowCart(false); setOrderError(null) }}
-        title={t('market.cart')}
-        actions={
-          <>
-            <button onClick={() => { setShowCart(false); setOrderError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
-            <button
-              onClick={() => placeMut.mutate()}
-              disabled={cart.length === 0 || placeMut.isPending}
-              className="btn-primary text-sm"
-            >
-              {placeMut.isPending ? t('common.saving') : t('market.placeOrder')}
-            </button>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          {cart.length === 0 && (
-            <p className="text-text-secondary text-sm">{t('market.cartEmpty')}</p>
-          )}
-          {cart.map(ci => (
-            <div key={ci.listing.id} className="flex items-center gap-3 border border-divider rounded-xl p-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-text-primary truncate">{speciesDisplayName(ci.listing)}</p>
-                <p className="text-xs text-text-secondary">{formatPrice(ci.listing.pricePerStemCents)}</p>
-              </div>
-              <input
-                type="number"
-                min="1"
-                value={ci.quantity}
-                onChange={e => updateCartQty(ci.listing.id, Number(e.target.value))}
-                className="input w-16 text-center text-sm"
-              />
+      {showCart && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/20" onClick={() => { setShowCart(false); setOrderError(null) }} />
+          <div className="relative bg-bg border border-divider rounded-xl shadow-lg max-w-md w-full max-h-[80vh] flex flex-col">
+            <div className="px-5 py-4 border-b border-divider">
+              <h2 className="text-base font-semibold text-text-primary">{t('market.cart')}</h2>
+            </div>
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+              {cart.length === 0 && (
+                <p className="text-text-secondary text-sm">{t('market.cartEmpty')}</p>
+              )}
+              {cart.map(ci => (
+                <div key={ci.listing.id} className="flex items-center gap-3 border border-divider rounded-xl p-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-text-primary truncate">{speciesDisplayName(ci.listing)}</p>
+                    <p className="text-xs text-text-secondary">{formatPrice(ci.listing.pricePerStemCents)}</p>
+                  </div>
+                  <input
+                    type="number"
+                    min="1"
+                    value={ci.quantity}
+                    onChange={e => updateCartQty(ci.listing.id, Number(e.target.value))}
+                    className="input w-16 text-center text-sm"
+                  />
+                  <button
+                    onClick={() => removeFromCart(ci.listing.id)}
+                    className="text-xs text-error hover:underline"
+                  >
+                    {t('common.delete')}
+                  </button>
+                </div>
+              ))}
+
+              {cart.length > 0 && (
+                <Fragment>
+                  <div className="border-t border-divider pt-3 flex justify-between text-sm font-medium">
+                    <span>{t('market.total')}</span>
+                    <span>{formatTotal(cartTotal)}</span>
+                  </div>
+                  <div>
+                    <label className="field-label">{t('market.deliveryDate')}</label>
+                    <input type="date" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} className="input w-full" />
+                  </div>
+                  <div>
+                    <label className="field-label">{t('market.notes')}</label>
+                    <textarea value={orderNotes} onChange={e => setOrderNotes(e.target.value)} placeholder={t('common.optional')} rows={2} className="input w-full" />
+                  </div>
+                </Fragment>
+              )}
+
+              {orderError && <p className="text-error text-sm">{orderError}</p>}
+            </div>
+            <div className="px-5 py-3 border-t border-divider flex justify-end gap-2">
+              <button onClick={() => { setShowCart(false); setOrderError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
               <button
-                onClick={() => removeFromCart(ci.listing.id)}
-                className="text-xs text-error hover:underline"
+                onClick={() => placeMut.mutate()}
+                disabled={cart.length === 0 || placeMut.isPending}
+                className="btn-primary text-sm"
               >
-                {t('common.delete')}
+                {placeMut.isPending ? t('common.saving') : t('market.placeOrder')}
               </button>
             </div>
-          ))}
-
-          {cart.length > 0 && (
-            <>
-              <div className="border-t border-divider pt-3 flex justify-between text-sm font-medium">
-                <span>{t('market.total')}</span>
-                <span>{formatTotal(cartTotal)}</span>
-              </div>
-              <div>
-                <label className="field-label">{t('market.deliveryDate')}</label>
-                <input type="date" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} className="input" />
-              </div>
-              <div>
-                <label className="field-label">{t('market.orderNotes')}</label>
-                <textarea value={orderNotes} onChange={e => setOrderNotes(e.target.value)} placeholder={t('common.optional')} rows={2} className="input" />
-              </div>
-            </>
-          )}
-
-          {orderError && <p className="text-error text-sm">{orderError}</p>}
+          </div>
         </div>
-      </Dialog>
+      )}
     </div>
   )
 }

@@ -26,9 +26,7 @@ import { ProductionTargets } from './pages/ProductionTargets'
 import { Analytics } from './pages/Analytics'
 import { Account } from './pages/Account'
 import { Guide } from './pages/Guide'
-import { MarketBrowse } from './pages/MarketBrowse'
 import { MyListings } from './pages/MyListings'
-import { MyOrders } from './pages/MyOrders'
 import { IncomingOrders } from './pages/IncomingOrders'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -75,9 +73,7 @@ export function App() {
         <Route path="successions" element={<SuccessionSchedules />} />
         <Route path="targets" element={<ProductionTargets />} />
         <Route path="analytics" element={<Analytics />} />
-        <Route path="market" element={<MarketBrowse />} />
         <Route path="market/listings" element={<MyListings />} />
-        <Route path="market/orders" element={<MyOrders />} />
         <Route path="market/incoming" element={<IncomingOrders />} />
         <Route path="guide" element={<Guide />} />
         <Route path="account" element={<Account />} />

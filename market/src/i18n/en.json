@@ -1,0 +1,47 @@
+{
+  "nav": { "browse": "Browse", "myOrders": "My Orders", "account": "Account" },
+  "market": {
+    "title": "Flower Market",
+    "browse": "Browse available flowers",
+    "noListings": "No flowers available right now",
+    "perStem": "kr/stem",
+    "available": "Available",
+    "lowStock": "Low stock",
+    "addToOrder": "Add",
+    "cart": "Cart",
+    "cartEmpty": "Your cart is empty",
+    "placeOrder": "Place Order",
+    "orderPlaced": "Order placed successfully!",
+    "deliveryDate": "Delivery date",
+    "notes": "Notes",
+    "total": "Total",
+    "items": "items",
+    "stems": "stems",
+    "search": "Search flowers..."
+  },
+  "orders": {
+    "title": "My Orders",
+    "noOrders": "No orders yet",
+    "date": "Date",
+    "producer": "Producer",
+    "status": "Status",
+    "delivery": "Delivery",
+    "total": "Total",
+    "cancel": "Cancel order",
+    "cancelConfirm": "Cancel this order?"
+  },
+  "orderStatus": {
+    "PLACED": "Placed",
+    "ACCEPTED": "Accepted",
+    "FULFILLED": "Ready",
+    "DELIVERED": "Delivered",
+    "CANCELLED": "Cancelled"
+  },
+  "account": { "title": "Account", "signOut": "Sign out" },
+  "common": { "cancel": "Cancel", "save": "Save", "delete": "Delete", "optional": "Optional", "saving": "Saving..." },
+  "login": {
+    "title": "Verdant Market",
+    "subtitle": "Sign in to browse and order flowers",
+    "error": "Sign-in failed"
+  }
+}

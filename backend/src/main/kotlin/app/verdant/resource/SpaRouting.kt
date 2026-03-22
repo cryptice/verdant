@@ -15,6 +15,8 @@ class SpaRouting {
                 path.startsWith("/api/") || path.startsWith("/q/") || path.contains(".") -> ctx.next()
                 // Admin SPA
                 path.startsWith("/admin") -> ctx.reroute("/admin/index.html")
+                // Market SPA
+                path.startsWith("/market") -> ctx.reroute("/market/index.html")
                 // Main web SPA
                 else -> ctx.reroute("/index.html")
             }
