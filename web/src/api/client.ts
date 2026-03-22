@@ -73,6 +73,7 @@ export interface GardenResponse {
 }
 export interface BedResponse {
   id: number; name: string; description?: string; gardenId: number
+  lengthMeters?: number; widthMeters?: number
   createdAt: string; updatedAt: string
 }
 export interface BedWithGardenResponse extends BedResponse { gardenName: string }
@@ -86,6 +87,8 @@ export interface PlantResponse {
 export interface PlantEventResponse {
   id: number; plantId: number; eventType: string; eventDate: string
   plantCount?: number; weightGrams?: number; quantity?: number
+  stemCount?: number; stemLengthCm?: number; qualityGrade?: string
+  vaseLifeDays?: number; harvestDestinationId?: number; customerName?: string
   notes?: string; imageUrl?: string; createdAt: string
 }
 
@@ -95,6 +98,8 @@ export interface SpeciesResponse {
   daysToSprout?: number; daysToHarvest?: number; sowingDepthMm?: number
   heightCm?: number; germinationRate?: number
   bloomMonths?: string; sowingMonths?: string
+  costPerSeedCents?: number; expectedStemsPerPlant?: number
+  expectedVaseLifeDays?: number; plantType?: string
   photos: { id: number; imageUrl: string; sortOrder: number }[]
   tags: { id: number; name: string }[]
   custom: boolean
@@ -102,17 +107,20 @@ export interface SpeciesResponse {
 
 export interface SeedInventoryResponse {
   id: number; speciesId: number; speciesName: string
-  quantity: number; collectionDate?: string; expirationDate?: string; createdAt: string
+  quantity: number; collectionDate?: string; expirationDate?: string
+  costPerUnitCents?: number; unitType?: string; seasonId?: number
+  createdAt: string
 }
 
 export interface ScheduledTaskResponse {
   id: number; speciesId: number; speciesName: string; activityType: string
   deadline: string; targetCount: number; remainingCount: number
-  status: string; notes?: string; createdAt: string; updatedAt: string
+  status: string; notes?: string; seasonId?: number; successionScheduleId?: number
+  createdAt: string; updatedAt: string
 }
 
 export interface HarvestStatRow {
-  species: string; totalWeightGrams: number; totalQuantity: number; harvestCount: number
+  species: string; totalWeightGrams: number; totalQuantity: number; totalStems: number; harvestCount: number
 }
 
 export interface TraySummaryEntry { speciesName: string; status: string; count: number }
@@ -132,6 +140,113 @@ export interface FrequentCommentResponse { id: number; text: string; useCount: n
 export interface PlantGroupResponse {
   speciesId: number; speciesName: string; bedId?: number; bedName?: string
   gardenName?: string; plantedDate?: string; status: string; count: number
+}
+
+// Season
+export interface SeasonResponse {
+  id: number; name: string; year: number
+  startDate?: string; endDate?: string
+  lastFrostDate?: string; firstFrostDate?: string
+  growingDegreeBaseC?: number; notes?: string
+  isActive: boolean; createdAt: string; updatedAt: string
+}
+
+// Customer
+export interface CustomerResponse {
+  id: number; name: string; channel: string
+  contactInfo?: string; notes?: string; createdAt: string
+}
+
+// Pest/Disease
+export interface PestDiseaseLogResponse {
+  id: number; seasonId?: number; bedId?: number; speciesId?: number
+  observedDate: string; category: string; name: string
+  severity: string; treatment?: string; outcome?: string
+  notes?: string; imageUrl?: string; createdAt: string
+}
+
+// Variety Trial
+export interface VarietyTrialResponse {
+  id: number; seasonId: number; speciesId: number; bedId?: number
+  plantCount?: number; stemYield?: number; avgStemLengthCm?: number
+  avgVaseLifeDays?: number; qualityScore?: number
+  customerReception?: string; verdict: string
+  notes?: string; createdAt: string
+}
+
+// Bouquet Recipe
+export interface BouquetRecipeResponse {
+  id: number; name: string; description?: string
+  imageUrl?: string; priceCents?: number
+  items: BouquetRecipeItemResponse[]
+  createdAt: string; updatedAt: string
+}
+export interface BouquetRecipeItemResponse {
+  id: number; speciesId: number; speciesName: string
+  stemCount: number; role: string; notes?: string
+}
+
+// Succession Schedule
+export interface SuccessionScheduleResponse {
+  id: number; seasonId: number; speciesId: number; speciesName: string
+  bedId?: number; firstSowDate: string; intervalDays: number
+  totalSuccessions: number; seedsPerSuccession: number
+  notes?: string; createdAt: string
+}
+
+// Production Target
+export interface ProductionTargetResponse {
+  id: number; seasonId: number; speciesId: number; speciesName: string
+  stemsPerWeek: number; startDate: string; endDate: string
+  notes?: string; createdAt: string
+}
+export interface ProductionForecastResponse {
+  targetId: number; speciesName: string
+  totalStemsNeeded: number; plantsNeeded: number
+  seedsNeeded: number; suggestedSowDate?: string
+  weeksOfDelivery: number; warnings: string[]
+}
+
+// Analytics
+export interface SeasonSummaryResponse {
+  seasonId: number; seasonName: string; year: number
+  totalPlants: number; totalStemsHarvested: number
+  totalHarvestWeightGrams: number; speciesCount: number
+  topSpecies: SpeciesYieldSummary[]
+}
+export interface SpeciesYieldSummary {
+  speciesId: number; speciesName: string
+  plantCount: number; stemsHarvested: number
+  avgStemLength?: number; avgVaseLife?: number
+  qualityBreakdown: Record<string, number>
+}
+export interface SpeciesComparisonResponse {
+  speciesId: number; speciesName: string
+  seasons: SpeciesSeasonData[]
+}
+export interface SpeciesSeasonData {
+  seasonId: number; seasonName: string; year: number
+  plantCount: number; stemsHarvested: number
+  stemsPerPlant?: number; avgStemLength?: number
+  avgVaseLife?: number
+}
+export interface YieldPerBedResponse {
+  bedId: number; bedName: string; gardenName: string
+  areaM2?: number; seasons: BedSeasonYield[]
+}
+export interface BedSeasonYield {
+  seasonId: number; seasonName: string
+  stemsHarvested: number; stemsPerM2?: number
+}
+
+// Bed History
+export interface BedHistoryEntry {
+  seasonId?: number; seasonName?: string; year?: number
+  species: BedHistorySpecies[]
+}
+export interface BedHistorySpecies {
+  speciesId: number; speciesName: string
+  plantCount: number; totalStemsHarvested: number; status: string
 }
 
 // ── API ──
@@ -171,6 +286,7 @@ export const api = {
       apiRequest<BedResponse>(`/api/beds/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: number) => apiRequest<void>(`/api/beds/${id}`, { method: 'DELETE' }),
     plants: (bedId: number) => apiRequest<PlantResponse[]>(`/api/beds/${bedId}/plants`),
+    history: (id: number) => apiRequest<BedHistoryEntry[]>(`/api/beds/${id}/history`),
   },
 
   plants: {
@@ -188,6 +304,7 @@ export const api = {
     addEvent: (id: number, data: {
       eventType: string; eventDate?: string; plantCount?: number
       weightGrams?: number; quantity?: number; notes?: string; imageBase64?: string
+      stemCount?: number; stemLengthCm?: number; qualityGrade?: string; harvestDestinationId?: number
     }) => apiRequest<PlantEventResponse>(`/api/plants/${id}/events`, { method: 'POST', body: JSON.stringify(data) }),
     deleteEvent: (plantId: number, eventId: number) =>
       apiRequest<void>(`/api/plants/${plantId}/events/${eventId}`, { method: 'DELETE' }),
@@ -220,9 +337,9 @@ export const api = {
   inventory: {
     list: (speciesId?: number) =>
       apiRequest<SeedInventoryResponse[]>(`/api/seed-inventory${speciesId ? `?speciesId=${speciesId}` : ''}`),
-    create: (data: { speciesId: number; quantity: number; collectionDate?: string; expirationDate?: string }) =>
+    create: (data: { speciesId: number; quantity: number; collectionDate?: string; expirationDate?: string; costPerUnitCents?: number; unitType?: string }) =>
       apiRequest<SeedInventoryResponse>('/api/seed-inventory', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: number, data: { quantity?: number; collectionDate?: string; expirationDate?: string }) =>
+    update: (id: number, data: { quantity?: number; collectionDate?: string; expirationDate?: string; costPerUnitCents?: number; unitType?: string }) =>
       apiRequest<SeedInventoryResponse>(`/api/seed-inventory/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     decrement: (id: number, quantity: number) =>
       apiRequest<void>(`/api/seed-inventory/${id}/decrement`, { method: 'POST', body: JSON.stringify({ quantity }) }),
@@ -251,5 +368,69 @@ export const api = {
 
   stats: {
     harvests: () => apiRequest<HarvestStatRow[]>('/api/stats/harvests'),
+  },
+
+  seasons: {
+    list: () => apiRequest<SeasonResponse[]>('/api/seasons'),
+    get: (id: number) => apiRequest<SeasonResponse>(`/api/seasons/${id}`),
+    create: (data: Record<string, unknown>) => apiRequest<SeasonResponse>('/api/seasons', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: Record<string, unknown>) => apiRequest<SeasonResponse>(`/api/seasons/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: number) => apiRequest<void>(`/api/seasons/${id}`, { method: 'DELETE' }),
+  },
+
+  customers: {
+    list: () => apiRequest<CustomerResponse[]>('/api/customers'),
+    get: (id: number) => apiRequest<CustomerResponse>(`/api/customers/${id}`),
+    create: (data: Record<string, unknown>) => apiRequest<CustomerResponse>('/api/customers', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: Record<string, unknown>) => apiRequest<CustomerResponse>(`/api/customers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: number) => apiRequest<void>(`/api/customers/${id}`, { method: 'DELETE' }),
+  },
+
+  pestDisease: {
+    list: (seasonId?: number) => apiRequest<PestDiseaseLogResponse[]>(`/api/pest-disease-logs${seasonId ? `?seasonId=${seasonId}` : ''}`),
+    get: (id: number) => apiRequest<PestDiseaseLogResponse>(`/api/pest-disease-logs/${id}`),
+    create: (data: Record<string, unknown>) => apiRequest<PestDiseaseLogResponse>('/api/pest-disease-logs', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: Record<string, unknown>) => apiRequest<PestDiseaseLogResponse>(`/api/pest-disease-logs/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: number) => apiRequest<void>(`/api/pest-disease-logs/${id}`, { method: 'DELETE' }),
+  },
+
+  varietyTrials: {
+    list: (seasonId?: number) => apiRequest<VarietyTrialResponse[]>(`/api/variety-trials${seasonId ? `?seasonId=${seasonId}` : ''}`),
+    get: (id: number) => apiRequest<VarietyTrialResponse>(`/api/variety-trials/${id}`),
+    create: (data: Record<string, unknown>) => apiRequest<VarietyTrialResponse>('/api/variety-trials', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: Record<string, unknown>) => apiRequest<VarietyTrialResponse>(`/api/variety-trials/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: number) => apiRequest<void>(`/api/variety-trials/${id}`, { method: 'DELETE' }),
+  },
+
+  bouquetRecipes: {
+    list: () => apiRequest<BouquetRecipeResponse[]>('/api/bouquet-recipes'),
+    get: (id: number) => apiRequest<BouquetRecipeResponse>(`/api/bouquet-recipes/${id}`),
+    create: (data: Record<string, unknown>) => apiRequest<BouquetRecipeResponse>('/api/bouquet-recipes', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: Record<string, unknown>) => apiRequest<BouquetRecipeResponse>(`/api/bouquet-recipes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: number) => apiRequest<void>(`/api/bouquet-recipes/${id}`, { method: 'DELETE' }),
+  },
+
+  successionSchedules: {
+    list: (seasonId?: number) => apiRequest<SuccessionScheduleResponse[]>(`/api/succession-schedules${seasonId ? `?seasonId=${seasonId}` : ''}`),
+    get: (id: number) => apiRequest<SuccessionScheduleResponse>(`/api/succession-schedules/${id}`),
+    create: (data: Record<string, unknown>) => apiRequest<SuccessionScheduleResponse>('/api/succession-schedules', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: Record<string, unknown>) => apiRequest<SuccessionScheduleResponse>(`/api/succession-schedules/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: number) => apiRequest<void>(`/api/succession-schedules/${id}`, { method: 'DELETE' }),
+    generateTasks: (id: number) => apiRequest<number[]>(`/api/succession-schedules/${id}/generate-tasks`, { method: 'POST' }),
+  },
+
+  productionTargets: {
+    list: (seasonId?: number) => apiRequest<ProductionTargetResponse[]>(`/api/production-targets${seasonId ? `?seasonId=${seasonId}` : ''}`),
+    get: (id: number) => apiRequest<ProductionTargetResponse>(`/api/production-targets/${id}`),
+    create: (data: Record<string, unknown>) => apiRequest<ProductionTargetResponse>('/api/production-targets', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: Record<string, unknown>) => apiRequest<ProductionTargetResponse>(`/api/production-targets/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: number) => apiRequest<void>(`/api/production-targets/${id}`, { method: 'DELETE' }),
+    forecast: (id: number) => apiRequest<ProductionForecastResponse>(`/api/production-targets/${id}/forecast`),
+  },
+
+  analytics: {
+    seasonSummaries: () => apiRequest<SeasonSummaryResponse[]>('/api/analytics/seasons'),
+    speciesComparison: (speciesId: number) => apiRequest<SpeciesComparisonResponse>(`/api/analytics/species/${speciesId}/compare`),
+    yieldPerBed: (seasonId?: number) => apiRequest<YieldPerBedResponse[]>(`/api/analytics/yield-per-bed${seasonId ? `?seasonId=${seasonId}` : ''}`),
   },
 }

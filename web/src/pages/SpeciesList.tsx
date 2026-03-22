@@ -101,6 +101,7 @@ export function SpeciesList() {
                 <tr className="border-b border-divider bg-surface">
                   <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('species.colName')}</th>
                   <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('species.scientificName')}</th>
+                  <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('seeds.colCost')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -117,6 +118,9 @@ export function SpeciesList() {
                         {name}{variant ? <span className="text-text-secondary"> — {variant}</span> : ''}
                       </td>
                       <td className="px-4 py-2.5 text-sm text-text-secondary italic">{s.scientificName ?? '—'}</td>
+                      <td className="px-4 py-2.5 text-sm text-right tabular-nums text-text-secondary">
+                        {s.costPerSeedCents != null ? `${(s.costPerSeedCents / 100).toFixed(2)} kr` : '—'}
+                      </td>
                     </tr>
                   )
                 })}

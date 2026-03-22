@@ -12,6 +12,8 @@ import { Dialog } from '../components/Dialog'
 const eventIcons: Record<string, string> = {
   SEEDED: '🌰', POTTED_UP: '🪴', PLANTED_OUT: '🌳', GROWING: '🌿',
   HARVESTED: '🌾', RECOVERED: '💚', REMOVED: '🗑️', NOTE: '📝',
+  BUDDING: '🌼', FIRST_BLOOM: '🌸', PEAK_BLOOM: '💐', LAST_BLOOM: '🥀',
+  LIFTED: '⛏️', DIVIDED: '✂️', STORED: '📦', PINCHED: '🤏', DISBUDDED: '✂️',
 }
 
 export function PlantDetail() {
@@ -43,12 +45,21 @@ export function PlantDetail() {
     enabled: !!bed,
   })
 
+  const { data: customers } = useQuery({
+    queryKey: ['customers'],
+    queryFn: () => api.customers.list(),
+  })
+
   const [showDelete, setShowDelete] = useState(false)
   const [showAddEvent, setShowAddEvent] = useState(false)
   const [eventType, setEventType] = useState('NOTE')
   const [eventNotes, setEventNotes] = useState('')
   const [eventCount, setEventCount] = useState('')
   const [eventWeight, setEventWeight] = useState('')
+  const [eventStemCount, setEventStemCount] = useState('')
+  const [eventStemLength, setEventStemLength] = useState('')
+  const [eventQuality, setEventQuality] = useState('')
+  const [eventDestination, setEventDestination] = useState('')
   const [deleteEventId, setDeleteEventId] = useState<number | null>(null)
 
   const deletePlantMut = useMutation({
@@ -63,11 +74,16 @@ export function PlantDetail() {
       notes: eventNotes || undefined,
       plantCount: eventCount ? Number(eventCount) : undefined,
       weightGrams: eventWeight ? Number(eventWeight) : undefined,
+      stemCount: eventStemCount ? Number(eventStemCount) : undefined,
+      stemLengthCm: eventStemLength ? Number(eventStemLength) : undefined,
+      qualityGrade: eventQuality || undefined,
+      harvestDestinationId: eventDestination ? Number(eventDestination) : undefined,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['plant-events', plantId] })
       qc.invalidateQueries({ queryKey: ['plant', plantId] })
       setShowAddEvent(false); setEventNotes(''); setEventCount(''); setEventWeight('')
+      setEventStemCount(''); setEventStemLength(''); setEventQuality(''); setEventDestination('')
     },
   })
 
@@ -92,9 +108,14 @@ export function PlantDetail() {
     breadcrumbs.push({ label: garden.name, to: `/garden/${garden.id}` })
   }
 
-  const eventTypes = ['SEEDED', 'POTTED_UP', 'PLANTED_OUT', 'HARVESTED', 'RECOVERED', 'REMOVED', 'NOTE']
+  const eventTypes = [
+    'SEEDED', 'POTTED_UP', 'PLANTED_OUT', 'HARVESTED', 'RECOVERED', 'REMOVED', 'NOTE',
+    'BUDDING', 'FIRST_BLOOM', 'PEAK_BLOOM', 'LAST_BLOOM',
+    'LIFTED', 'DIVIDED', 'STORED', 'PINCHED', 'DISBUDDED',
+  ]
   const showCount = ['SEEDED', 'POTTED_UP', 'PLANTED_OUT'].includes(eventType)
   const showWeight = eventType === 'HARVESTED'
+  const showHarvestFields = eventType === 'HARVESTED'
 
   return (
     <div>
@@ -146,6 +167,10 @@ export function PlantDetail() {
               {ev.plantCount != null && <p>{t('plant.countField')} {ev.plantCount}</p>}
               {ev.weightGrams != null && <p>{t('plant.weightField')} {ev.weightGrams}g</p>}
               {ev.quantity != null && <p>{t('plant.quantityField')} {ev.quantity}</p>}
+              {ev.stemCount != null && <p>{t('plant.stemCount')}: {ev.stemCount}</p>}
+              {ev.stemLengthCm != null && <p>{t('plant.stemLength')}: {ev.stemLengthCm} cm</p>}
+              {ev.qualityGrade && <p>{t('plant.qualityGrade')}: {ev.qualityGrade}</p>}
+              {ev.customerName && <p>{t('plant.destination')}: {ev.customerName}</p>}
               {ev.notes && <p className="text-text-secondary">{ev.notes}</p>}
               {ev.imageUrl && <img src={ev.imageUrl} alt="" className="rounded-lg mt-2 max-h-40 object-cover" />}
             </div>
@@ -183,6 +208,46 @@ export function PlantDetail() {
               <label className="field-label">{t('plant.weightGrams')}</label>
               <input type="number" value={eventWeight} onChange={e => setEventWeight(e.target.value)} placeholder="e.g. 250" className="input" />
             </div>
+          )}
+          {showHarvestFields && (
+            <>
+              <div>
+                <label className="field-label">{t('plant.stemCount')}</label>
+                <input type="number" value={eventStemCount} onChange={e => setEventStemCount(e.target.value)} placeholder="e.g. 10" className="input" />
+              </div>
+              <div>
+                <label className="field-label">{t('plant.stemLength')}</label>
+                <input type="number" value={eventStemLength} onChange={e => setEventStemLength(e.target.value)} placeholder="e.g. 45" className="input" />
+              </div>
+              <div>
+                <label className="field-label">{t('plant.qualityGrade')}</label>
+                <div className="flex gap-2">
+                  {['A', 'B', 'C'].map(grade => (
+                    <button
+                      key={grade}
+                      type="button"
+                      onClick={() => setEventQuality(eventQuality === grade ? '' : grade)}
+                      className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                        eventQuality === grade
+                          ? 'bg-accent text-white border-accent'
+                          : 'bg-surface border-divider text-text-secondary hover:bg-white/60'
+                      }`}
+                    >
+                      {grade}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="field-label">{t('plant.destination')}</label>
+                <select value={eventDestination} onChange={e => setEventDestination(e.target.value)} className="input">
+                  <option value="">{t('plant.noneSelected')}</option>
+                  {(customers ?? []).map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+            </>
           )}
           <div>
             <label className="field-label">{t('common.notesLabel')}</label>

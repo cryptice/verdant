@@ -5,6 +5,7 @@
     "plants": "Växter",
     "tasks": "Uppgifter",
     "seeds": "Frön",
+    "seasons": "Säsonger",
     "account": "Konto"
   },
   "common": {
@@ -56,7 +57,16 @@
     "HARVESTED": "Skördat",
     "RECOVERED": "Återhämtat",
     "REMOVED": "Borttaget",
-    "NOTE": "Anteckning"
+    "NOTE": "Anteckning",
+    "BUDDING": "Knoppning",
+    "FIRST_BLOOM": "Första blomning",
+    "PEAK_BLOOM": "Full blomning",
+    "LAST_BLOOM": "Sista blomning",
+    "LIFTED": "Upptaget",
+    "DIVIDED": "Delat",
+    "STORED": "Lagrat",
+    "PINCHED": "Toppad",
+    "DISBUDDED": "Avknoppad"
   },
   "activityType": {
     "SOW": "Så",
@@ -141,7 +151,12 @@
     "deletePlantTitle": "Radera planta",
     "deletePlantConfirm": "Är du säker på att du vill radera denna planta och alla dess händelser?",
     "deleteEventTitle": "Radera händelse",
-    "deleteEventConfirm": "Ta bort den här händelsen?"
+    "deleteEventConfirm": "Ta bort den här händelsen?",
+    "stemCount": "Stjälkar",
+    "stemLength": "Stjälklängd (cm)",
+    "qualityGrade": "Kvalitet",
+    "destination": "Destination",
+    "noneSelected": "Ingen"
   },
   "species": {
     "title": "Arter",
@@ -179,7 +194,10 @@
     "editSeedsTitle": "Redigera frön",
     "deleteBatch": "Radera detta parti",
     "deleteBatchTitle": "Radera parti",
-    "deleteBatchConfirm": "Radera detta fröparti?"
+    "deleteBatchConfirm": "Radera detta fröparti?",
+    "costPerUnit": "Kostnad per enhet (öre)",
+    "unitType": "Enhetstyp",
+    "colCost": "Kostnad"
   },
   "sow": {
     "title": "Så",
@@ -249,5 +267,28 @@
     "targetCountLabel": "Målantal *",
     "updateTask": "Uppdatera uppgift",
     "createTask": "Skapa uppgift"
+  },
+  "seasons": {
+    "title": "Säsonger",
+    "newSeason": "+ Ny säsong",
+    "editSeason": "Redigera säsong",
+    "name": "Namn",
+    "year": "År",
+    "active": "Aktiv",
+    "lastFrost": "Sista frost",
+    "firstFrost": "Första frost",
+    "startDate": "Startdatum",
+    "endDate": "Slutdatum",
+    "notes": "Anteckningar",
+    "noSeasons": "Inga säsonger ännu",
+    "deleteSeason": "Radera säsong",
+    "deleteSeasonConfirm": "Radera denna säsong och avlänka all relaterad data?"
+  },
+  "unitTypes": {
+    "SEED": "Frö",
+    "PLUG": "Plugg",
+    "BULB": "Lök",
+    "TUBER": "Knöl",
+    "PLANT": "Planta"
   }
 }

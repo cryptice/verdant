@@ -25,12 +25,16 @@ export function SeedInventory() {
   const [addQuantity, setAddQuantity] = useState('')
   const [addCollection, setAddCollection] = useState('')
   const [addExpiration, setAddExpiration] = useState('')
+  const [addCost, setAddCost] = useState('')
+  const [addUnitType, setAddUnitType] = useState('')
   const [deleteItem, setDeleteItem] = useState<SeedInventoryResponse | null>(null)
   const [page, setPage] = useState(0)
   const [editItem, setEditItem] = useState<SeedInventoryResponse | null>(null)
   const [editQuantity, setEditQuantity] = useState('')
   const [editCollection, setEditCollection] = useState('')
   const [editExpiration, setEditExpiration] = useState('')
+  const [editCost, setEditCost] = useState('')
+  const [editUnitType, setEditUnitType] = useState('')
 
   const createMut = useMutation({
     mutationFn: () => api.inventory.create({
@@ -38,10 +42,13 @@ export function SeedInventory() {
       quantity: Number(addQuantity),
       collectionDate: addCollection || undefined,
       expirationDate: addExpiration || undefined,
+      costPerUnitCents: addCost ? Number(addCost) : undefined,
+      unitType: addUnitType || undefined,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['seed-inventory'] })
       setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration('')
+      setAddCost(''); setAddUnitType('')
     },
   })
 
@@ -53,6 +60,8 @@ export function SeedInventory() {
       quantity: Number(editQuantity),
       collectionDate: editCollection || undefined,
       expirationDate: editExpiration || undefined,
+      costPerUnitCents: editCost ? Number(editCost) : undefined,
+      unitType: editUnitType || undefined,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['seed-inventory'] })
@@ -85,6 +94,7 @@ export function SeedInventory() {
                 <tr className="border-b border-divider bg-surface">
                   <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('seeds.colName')}</th>
                   <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('seeds.colSeeds')}</th>
+                  <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('seeds.colCost')}</th>
                   <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('seeds.colExpires')}</th>
                 </tr>
               </thead>
@@ -102,12 +112,17 @@ export function SeedInventory() {
                         setEditQuantity(String(item.quantity))
                         setEditCollection(item.collectionDate ?? '')
                         setEditExpiration(item.expirationDate ?? '')
+                        setEditCost(item.costPerUnitCents != null ? String(item.costPerUnitCents) : '')
+                        setEditUnitType(item.unitType ?? '')
                       }}
                     >
                       <td className="px-4 py-2.5 text-sm">
                         {name}{variant ? <span className="text-text-secondary"> — {variant}</span> : ''}
                       </td>
                       <td className="px-4 py-2.5 text-sm text-right tabular-nums">{item.quantity}</td>
+                      <td className="px-4 py-2.5 text-sm text-right tabular-nums text-text-secondary">
+                        {item.costPerUnitCents != null ? `${(item.costPerUnitCents / 100).toFixed(2)} kr` : '—'}
+                      </td>
                       <td className="px-4 py-2.5 text-sm text-text-secondary">{item.expirationDate ?? '—'}</td>
                     </tr>
                   )
@@ -119,9 +134,9 @@ export function SeedInventory() {
         </>)}
       </div>
 
-      <Dialog open={showAdd} onClose={() => { setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration('') }} title={t('seeds.addSeedsTitle')} actions={
+      <Dialog open={showAdd} onClose={() => { setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration(''); setAddCost(''); setAddUnitType('') }} title={t('seeds.addSeedsTitle')} actions={
         <>
-          <button onClick={() => { setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration('') }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button onClick={() => { setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration(''); setAddCost(''); setAddUnitType('') }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
           <button
             onClick={() => createMut.mutate()}
             disabled={!addSpecies || !addQuantity || createMut.isPending}
@@ -147,6 +162,19 @@ export function SeedInventory() {
           <div>
             <label className="field-label">{t('seeds.expirationDate')}</label>
             <input type="date" value={addExpiration} onChange={e => setAddExpiration(e.target.value)} className="input" />
+          </div>
+          <div>
+            <label className="field-label">{t('seeds.costPerUnit')}</label>
+            <input type="number" value={addCost} onChange={e => setAddCost(e.target.value)} placeholder="e.g. 35" className="input" />
+          </div>
+          <div>
+            <label className="field-label">{t('seeds.unitType')}</label>
+            <select value={addUnitType} onChange={e => setAddUnitType(e.target.value)} className="input">
+              <option value="">{t('common.optional')}</option>
+              {['SEED', 'PLUG', 'BULB', 'TUBER', 'PLANT'].map(ut => (
+                <option key={ut} value={ut}>{t(`unitTypes.${ut}`)}</option>
+              ))}
+            </select>
           </div>
         </div>
       </Dialog>
@@ -175,6 +203,19 @@ export function SeedInventory() {
           <div>
             <label className="field-label">{t('seeds.expirationDate')}</label>
             <input type="date" value={editExpiration} onChange={e => setEditExpiration(e.target.value)} className="input w-full" />
+          </div>
+          <div>
+            <label className="field-label">{t('seeds.costPerUnit')}</label>
+            <input type="number" value={editCost} onChange={e => setEditCost(e.target.value)} placeholder="e.g. 35" className="input w-full" />
+          </div>
+          <div>
+            <label className="field-label">{t('seeds.unitType')}</label>
+            <select value={editUnitType} onChange={e => setEditUnitType(e.target.value)} className="input w-full">
+              <option value="">{t('common.optional')}</option>
+              {['SEED', 'PLUG', 'BULB', 'TUBER', 'PLANT'].map(ut => (
+                <option key={ut} value={ut}>{t(`unitTypes.${ut}`)}</option>
+              ))}
+            </select>
           </div>
           <button
             onClick={() => { setEditItem(null); setUpdateError(null); setDeleteItem(editItem) }}

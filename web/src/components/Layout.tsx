@@ -9,6 +9,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
   const navItems = [
     { to: '/', label: t('nav.myWorld'), icon: '🌍' },
+    { to: '/seasons', label: t('nav.seasons'), icon: '📅' },
     { to: '/species', label: t('nav.species'), icon: '🌿' },
     { to: '/plants', label: t('nav.plants'), icon: '🌱' },
     { to: '/tasks', label: t('nav.tasks'), icon: '📋' },

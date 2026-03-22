@@ -15,6 +15,7 @@ import { TaskForm } from './pages/TaskForm'
 import { SeedInventory } from './pages/SeedInventory'
 import { SowActivity } from './pages/SowActivity'
 import { SpeciesList } from './pages/SpeciesList'
+import { SeasonList } from './pages/SeasonList'
 import { Account } from './pages/Account'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -52,6 +53,7 @@ export function App() {
         <Route path="seeds" element={<SeedInventory />} />
         <Route path="sow" element={<SowActivity />} />
         <Route path="species" element={<SpeciesList />} />
+        <Route path="seasons" element={<SeasonList />} />
         <Route path="account" element={<Account />} />
       </Route>
       {/* Unauthenticated root shows landing page, authenticated shows dashboard via ProtectedRoute */}
