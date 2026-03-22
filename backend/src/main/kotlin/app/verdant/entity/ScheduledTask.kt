@@ -13,6 +13,8 @@ data class ScheduledTask(
     val remainingCount: Int,
     val status: ScheduledTaskStatus = ScheduledTaskStatus.PENDING,
     val notes: String? = null,
+    val seasonId: Long? = null,
+    val successionScheduleId: Long? = null,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),
 )

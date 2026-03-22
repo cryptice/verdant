@@ -8,6 +8,8 @@ data class Bed(
     val description: String? = null,
     val gardenId: Long,
     val boundaryJson: String? = null,
+    val lengthMeters: Double? = null,
+    val widthMeters: Double? = null,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),
 )

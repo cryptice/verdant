@@ -246,7 +246,12 @@ class PlantService(
             PlantEventType.REMOVED -> plant.copy(
                 status = PlantStatus.REMOVED,
             )
-            PlantEventType.NOTE -> plant
+            PlantEventType.LIFTED, PlantEventType.STORED -> plant.copy(
+                status = PlantStatus.DORMANT,
+            )
+            PlantEventType.NOTE, PlantEventType.BUDDING, PlantEventType.FIRST_BLOOM,
+            PlantEventType.PEAK_BLOOM, PlantEventType.LAST_BLOOM, PlantEventType.DIVIDED,
+            PlantEventType.PINCHED, PlantEventType.DISBUDDED -> plant
         }
 
         if (updatedPlant !== plant) {

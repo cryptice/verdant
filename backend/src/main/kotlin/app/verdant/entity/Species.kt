@@ -23,6 +23,10 @@ data class Species(
     val sowingMonths: List<Int> = emptyList(),
     val germinationRate: Int? = null,
     val groupId: Long? = null,
+    val costPerSeedCents: Int? = null,
+    val expectedStemsPerPlant: Int? = null,
+    val expectedVaseLifeDays: Int? = null,
+    val plantType: PlantType = PlantType.ANNUAL,
     val createdAt: Instant = Instant.now(),
 )
 
@@ -63,6 +67,8 @@ data class SpeciesProvider(
     val imageFrontUrl: String? = null,
     val imageBackUrl: String? = null,
     val productUrl: String? = null,
+    val costPerUnitCents: Int? = null,
+    val unitType: UnitType = UnitType.SEED,
     val createdAt: Instant = Instant.now(),
 )
 
@@ -72,3 +78,6 @@ data class FrequentComment(
     val text: String,
     val useCount: Int = 1,
 )
+
+enum class PlantType { ANNUAL, PERENNIAL, BULB, TUBER }
+enum class UnitType { SEED, PLUG, BULB, TUBER, PLANT }

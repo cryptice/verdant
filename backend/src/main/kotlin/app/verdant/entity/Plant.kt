@@ -13,8 +13,9 @@ data class Plant(
     val survivingCount: Int? = null,
     val bedId: Long? = null,
     val userId: Long,
+    val seasonId: Long? = null,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),
 )
 
-enum class PlantStatus { SEEDED, POTTED_UP, PLANTED_OUT, GROWING, HARVESTED, RECOVERED, REMOVED }
+enum class PlantStatus { SEEDED, POTTED_UP, PLANTED_OUT, GROWING, HARVESTED, RECOVERED, REMOVED, DORMANT }

@@ -14,7 +14,12 @@ data class PlantEvent(
     val notes: String? = null,
     val imageUrl: String? = null,
     val aiSuggestions: String? = null,
+    val stemCount: Int? = null,
+    val stemLengthCm: Int? = null,
+    val qualityGrade: String? = null,
+    val vaseLifeDays: Int? = null,
+    val harvestDestinationId: Long? = null,
     val createdAt: Instant = Instant.now(),
 )
 
-enum class PlantEventType { SEEDED, POTTED_UP, PLANTED_OUT, HARVESTED, RECOVERED, REMOVED, NOTE }
+enum class PlantEventType { SEEDED, POTTED_UP, PLANTED_OUT, HARVESTED, RECOVERED, REMOVED, NOTE, BUDDING, FIRST_BLOOM, PEAK_BLOOM, LAST_BLOOM, LIFTED, DIVIDED, STORED, PINCHED, DISBUDDED }
