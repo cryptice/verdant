@@ -24,6 +24,13 @@ class DevResource(
     private val plantEventRepository: PlantEventRepository,
     private val seedInventoryRepository: SeedInventoryRepository,
     private val scheduledTaskRepository: ScheduledTaskRepository,
+    private val seasonRepository: SeasonRepository,
+    private val customerRepository: CustomerRepository,
+    private val pestDiseaseLogRepository: PestDiseaseLogRepository,
+    private val varietyTrialRepository: VarietyTrialRepository,
+    private val bouquetRecipeRepository: BouquetRecipeRepository,
+    private val successionScheduleRepository: SuccessionScheduleRepository,
+    private val productionTargetRepository: ProductionTargetRepository,
 ) {
     private fun userId() = jwt.subject.toLong()
 
@@ -37,233 +44,1132 @@ class DevResource(
         val eventCount: Int,
         val seedInventoryCount: Int,
         val taskCount: Int,
+        val seasonCount: Int,
+        val customerCount: Int,
+        val pestDiseaseLogCount: Int,
+        val varietyTrialCount: Int,
+        val bouquetRecipeCount: Int,
+        val successionScheduleCount: Int,
+        val productionTargetCount: Int,
     )
+
+    private data class HarvestDef(val date: LocalDate, val stems: Int, val lengthCm: Int, val grade: String, val customerIdx: Int)
+
+    private data class Counters(var plants: Int = 0, var events: Int = 0)
+
+    private fun createPlant(
+        counters: Counters,
+        userId: Long,
+        name: String, speciesId: Long, bedId: Long, seasonId: Long,
+        plantedDate: LocalDate, status: PlantStatus,
+        seedCount: Int, surviving: Int,
+        events: List<Pair<PlantEventType, LocalDate>>,
+        harvests: List<HarvestDef> = emptyList(),
+        customerIds: List<Long> = emptyList(),
+    ): Long {
+        val plant = plantRepository.persist(Plant(
+            name = name, speciesId = speciesId, bedId = bedId, userId = userId,
+            seasonId = seasonId, plantedDate = plantedDate, status = status,
+            seedCount = seedCount, survivingCount = surviving,
+        ))
+        counters.plants++
+        val pid = plant.id!!
+
+        for ((type, date) in events) {
+            plantEventRepository.persist(PlantEvent(plantId = pid, eventType = type, eventDate = date, plantCount = surviving))
+            counters.events++
+        }
+        for (h in harvests) {
+            val destId = if (customerIds.isNotEmpty()) customerIds[h.customerIdx % customerIds.size] else null
+            plantEventRepository.persist(PlantEvent(
+                plantId = pid, eventType = PlantEventType.HARVESTED, eventDate = h.date,
+                stemCount = h.stems, stemLengthCm = h.lengthCm, qualityGrade = h.grade,
+                harvestDestinationId = destId,
+            ))
+            counters.events++
+        }
+        return pid
+    }
+
+    private fun dahliaHarvests(start: LocalDate, count: Int): List<HarvestDef> {
+        val result = mutableListOf<HarvestDef>()
+        var d = start
+        var remaining = count
+        var ci = 0
+        while (remaining > 0) {
+            val batch = minOf(remaining, (8..15).random())
+            val grade = if ((1..10).random() <= 8) "A" else "B"
+            result.add(HarvestDef(d, batch, (50..65).random(), grade, ci % 5))
+            remaining -= batch
+            d = d.plusDays((3..5).toLong())
+            ci++
+        }
+        return result
+    }
+
+    private fun annualHarvests(start: LocalDate, end: LocalDate, total: Int, lengthRange: IntRange): List<HarvestDef> {
+        val result = mutableListOf<HarvestDef>()
+        var d = start
+        var remaining = total
+        var ci = 0
+        while (d.isBefore(end) && remaining > 0) {
+            val batch = minOf(remaining, (5..15).random())
+            val grade = when ((1..10).random()) { in 1..7 -> "A"; in 8..9 -> "B"; else -> "C" }
+            result.add(HarvestDef(d, batch, lengthRange.random(), grade, ci % 5))
+            remaining -= batch
+            d = d.plusDays((3..7).toLong())
+            ci++
+        }
+        return result
+    }
 
     @POST
     @Path("/seed")
     fun seedTestData(): Response {
         val userId = userId()
-        val today = LocalDate.now()
+        val counters = Counters()
 
-        // ── Species Groups (system-level, no user_id) ──
-        val groups = listOf("Vegetables", "Herbs", "Fruits", "Flowers", "Root Vegetables").map { name ->
-            speciesGroupRepository.persist(SpeciesGroup(name = name))
-        }
-        val veggies = groups[0].id!!
-        val herbs = groups[1].id!!
-        val fruits = groups[2].id!!
-        val flowers = groups[3].id!!
-        val roots = groups[4].id!!
+        // ── Seasons ──
+        val season2024 = seasonRepository.persist(Season(
+            userId = userId, name = "2024", year = 2024,
+            startDate = LocalDate.of(2024, 3, 1), endDate = LocalDate.of(2024, 11, 15),
+            lastFrostDate = LocalDate.of(2024, 5, 12), firstFrostDate = LocalDate.of(2024, 10, 3),
+            notes = "First season. Learning year with core varieties.", isActive = false,
+        ))
+        val season2025 = seasonRepository.persist(Season(
+            userId = userId, name = "2025", year = 2025,
+            startDate = LocalDate.of(2025, 3, 1), endDate = LocalDate.of(2025, 11, 15),
+            lastFrostDate = LocalDate.of(2025, 5, 10), firstFrostDate = LocalDate.of(2025, 10, 1),
+            notes = "Added lisianthus and cosmos. Better yields overall.", isActive = false,
+        ))
+        val season2026 = seasonRepository.persist(Season(
+            userId = userId, name = "2026", year = 2026,
+            startDate = LocalDate.of(2026, 3, 1), endDate = LocalDate.of(2026, 11, 15),
+            lastFrostDate = LocalDate.of(2026, 5, 14), firstFrostDate = LocalDate.of(2026, 10, 5),
+            notes = "Full production season. Trialing ranunculus.", isActive = true,
+        ))
+        val s24 = season2024.id!!
+        val s25 = season2025.id!!
+        val s26 = season2026.id!!
 
-        // ── Tags (system-level, no user_id) ──
-        val tags = listOf("Annual", "Perennial", "Heirloom", "Easy to grow", "Cold hardy").map { name ->
-            speciesTagRepository.persist(SpeciesTag(name = name))
-        }
+        // ── Species Groups ──
+        val grpFlowers = speciesGroupRepository.persist(SpeciesGroup(name = "Flowers"))
+        val grpFoliage = speciesGroupRepository.persist(SpeciesGroup(name = "Foliage"))
+        val grpBulbs = speciesGroupRepository.persist(SpeciesGroup(name = "Bulbs & Tubers"))
+        val flowersId = grpFlowers.id!!
+        val foliageId = grpFoliage.id!!
+        val bulbsId = grpBulbs.id!!
 
-        // ── 20 Species ──
-        data class SpeciesDef(
-            val commonName: String, val sv: String, val scientific: String,
-            val groupId: Long, val positions: List<GrowingPosition>, val soils: List<SoilType>,
-            val daysToSprout: Int, val daysToHarvest: Int, val heightCm: Int,
-            val germinationRate: Int, val sowingDepthMm: Int,
-            val bloomMonths: List<Int>, val sowingMonths: List<Int>,
-            val tagIndices: List<Int> = emptyList(),
-            val variantName: String? = null,
+        // ── Tags ──
+        val tagAnnual = speciesTagRepository.persist(SpeciesTag(name = "Annual"))
+        val tagPerennial = speciesTagRepository.persist(SpeciesTag(name = "Perennial"))
+        val tagCutFlower = speciesTagRepository.persist(SpeciesTag(name = "Cut flower"))
+        val tagHeatLoving = speciesTagRepository.persist(SpeciesTag(name = "Heat loving"))
+        val tagCoolSeason = speciesTagRepository.persist(SpeciesTag(name = "Cool season"))
+        val tagLongSeason = speciesTagRepository.persist(SpeciesTag(name = "Long season"))
+        val tags = listOf(tagAnnual, tagPerennial, tagCutFlower, tagHeatLoving, tagCoolSeason, tagLongSeason)
+
+        // ── Species (15 cut flower varieties + 1 foliage) ──
+        val cafeAuLait = speciesRepository.persist(Species(
+            commonName = "Dahlia", variantName = "Cafe au Lait",
+            commonNameSv = "Dahlia", variantNameSv = "Cafe au Lait",
+            scientificName = "Dahlia x hybrida",
+            daysToSprout = 14, daysToHarvest = 90, germinationTimeDays = 14,
+            sowingDepthMm = 100, heightCm = 120,
+            growingPositions = listOf(GrowingPosition.SUNNY),
+            soils = listOf(SoilType.LOAMY, SoilType.SANDY),
+            bloomMonths = listOf(7, 8, 9, 10), sowingMonths = listOf(3, 4),
+            germinationRate = 95, groupId = bulbsId,
+            costPerSeedCents = 4500, expectedStemsPerPlant = 15, expectedVaseLifeDays = 6,
+            plantType = PlantType.TUBER,
+        ))
+        val labyrinth = speciesRepository.persist(Species(
+            commonName = "Dahlia", variantName = "Labyrinth",
+            commonNameSv = "Dahlia", variantNameSv = "Labyrinth",
+            scientificName = "Dahlia x hybrida",
+            daysToSprout = 14, daysToHarvest = 85, germinationTimeDays = 14,
+            sowingDepthMm = 100, heightCm = 110,
+            growingPositions = listOf(GrowingPosition.SUNNY),
+            soils = listOf(SoilType.LOAMY),
+            bloomMonths = listOf(7, 8, 9, 10), sowingMonths = listOf(3, 4),
+            germinationRate = 95, groupId = bulbsId,
+            costPerSeedCents = 3800, expectedStemsPerPlant = 12, expectedVaseLifeDays = 5,
+            plantType = PlantType.TUBER,
+        ))
+        val cornel = speciesRepository.persist(Species(
+            commonName = "Dahlia", variantName = "Cornel",
+            commonNameSv = "Dahlia", variantNameSv = "Cornel",
+            scientificName = "Dahlia x hybrida",
+            daysToSprout = 14, daysToHarvest = 85, germinationTimeDays = 14,
+            sowingDepthMm = 100, heightCm = 100,
+            growingPositions = listOf(GrowingPosition.SUNNY),
+            soils = listOf(SoilType.LOAMY),
+            bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(3, 4),
+            germinationRate = 93, groupId = bulbsId,
+            costPerSeedCents = 3200, expectedStemsPerPlant = 10, expectedVaseLifeDays = 5,
+            plantType = PlantType.TUBER,
+        ))
+        val zinniaGiant = speciesRepository.persist(Species(
+            commonName = "Zinnia", variantName = "Benary's Giant Mix",
+            commonNameSv = "Zinnia", variantNameSv = "Benary's Giant Mix",
+            scientificName = "Zinnia elegans",
+            daysToSprout = 5, daysToHarvest = 70, germinationTimeDays = 5,
+            sowingDepthMm = 6, heightCm = 100,
+            growingPositions = listOf(GrowingPosition.SUNNY),
+            soils = listOf(SoilType.LOAMY, SoilType.SANDY),
+            bloomMonths = listOf(6, 7, 8, 9), sowingMonths = listOf(4, 5, 6),
+            germinationRate = 85, groupId = flowersId,
+            costPerSeedCents = 25, expectedStemsPerPlant = 8, expectedVaseLifeDays = 8,
+            plantType = PlantType.ANNUAL,
+        ))
+        val zinniaQLO = speciesRepository.persist(Species(
+            commonName = "Zinnia", variantName = "Queen Lime Orange",
+            commonNameSv = "Zinnia", variantNameSv = "Queen Lime Orange",
+            scientificName = "Zinnia elegans",
+            daysToSprout = 5, daysToHarvest = 75, germinationTimeDays = 5,
+            sowingDepthMm = 6, heightCm = 80,
+            growingPositions = listOf(GrowingPosition.SUNNY),
+            soils = listOf(SoilType.LOAMY),
+            bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(4, 5, 6),
+            germinationRate = 80, groupId = flowersId,
+            costPerSeedCents = 45, expectedStemsPerPlant = 6, expectedVaseLifeDays = 8,
+            plantType = PlantType.ANNUAL,
+        ))
+        val snapMadame = speciesRepository.persist(Species(
+            commonName = "Snapdragon", variantName = "Madame Butterfly",
+            commonNameSv = "Lejongap", variantNameSv = "Madame Butterfly",
+            scientificName = "Antirrhinum majus",
+            daysToSprout = 10, daysToHarvest = 90, germinationTimeDays = 10,
+            sowingDepthMm = 0, heightCm = 90,
+            growingPositions = listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY),
+            soils = listOf(SoilType.LOAMY),
+            bloomMonths = listOf(6, 7, 8), sowingMonths = listOf(2, 3),
+            germinationRate = 75, groupId = flowersId,
+            costPerSeedCents = 15, expectedStemsPerPlant = 5, expectedVaseLifeDays = 7,
+            plantType = PlantType.ANNUAL,
+        ))
+        val snapChantilly = speciesRepository.persist(Species(
+            commonName = "Snapdragon", variantName = "Chantilly",
+            commonNameSv = "Lejongap", variantNameSv = "Chantilly",
+            scientificName = "Antirrhinum majus",
+            daysToSprout = 10, daysToHarvest = 85, germinationTimeDays = 10,
+            sowingDepthMm = 0, heightCm = 100,
+            growingPositions = listOf(GrowingPosition.SUNNY),
+            soils = listOf(SoilType.LOAMY),
+            bloomMonths = listOf(6, 7, 8), sowingMonths = listOf(2, 3),
+            germinationRate = 78, groupId = flowersId,
+            costPerSeedCents = 20, expectedStemsPerPlant = 6, expectedVaseLifeDays = 8,
+            plantType = PlantType.ANNUAL,
+        ))
+        val sunProCut = speciesRepository.persist(Species(
+            commonName = "Sunflower", variantName = "ProCut Orange",
+            commonNameSv = "Solros", variantNameSv = "ProCut Orange",
+            scientificName = "Helianthus annuus",
+            daysToSprout = 7, daysToHarvest = 60, germinationTimeDays = 7,
+            sowingDepthMm = 25, heightCm = 150,
+            growingPositions = listOf(GrowingPosition.SUNNY),
+            soils = listOf(SoilType.LOAMY, SoilType.SANDY),
+            bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(5, 6, 7),
+            germinationRate = 90, groupId = flowersId,
+            costPerSeedCents = 50, expectedStemsPerPlant = 1, expectedVaseLifeDays = 7,
+            plantType = PlantType.ANNUAL,
+        ))
+        val sunSunrich = speciesRepository.persist(Species(
+            commonName = "Sunflower", variantName = "Sunrich Gold",
+            commonNameSv = "Solros", variantNameSv = "Sunrich Gold",
+            scientificName = "Helianthus annuus",
+            daysToSprout = 7, daysToHarvest = 65, germinationTimeDays = 7,
+            sowingDepthMm = 25, heightCm = 160,
+            growingPositions = listOf(GrowingPosition.SUNNY),
+            soils = listOf(SoilType.LOAMY),
+            bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(5, 6, 7),
+            germinationRate = 88, groupId = flowersId,
+            costPerSeedCents = 55, expectedStemsPerPlant = 1, expectedVaseLifeDays = 8,
+            plantType = PlantType.ANNUAL,
+        ))
+        val lisEcho = speciesRepository.persist(Species(
+            commonName = "Lisianthus", variantName = "Echo Blue",
+            commonNameSv = "Prärieklocka", variantNameSv = "Echo Blue",
+            scientificName = "Eustoma grandiflorum",
+            daysToSprout = 14, daysToHarvest = 150, germinationTimeDays = 14,
+            sowingDepthMm = 0, heightCm = 70,
+            growingPositions = listOf(GrowingPosition.SUNNY),
+            soils = listOf(SoilType.LOAMY),
+            bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(1, 2),
+            germinationRate = 60, groupId = flowersId,
+            costPerSeedCents = 80, expectedStemsPerPlant = 4, expectedVaseLifeDays = 12,
+            plantType = PlantType.ANNUAL,
+        ))
+        val lisRosita = speciesRepository.persist(Species(
+            commonName = "Lisianthus", variantName = "Rosita Green",
+            commonNameSv = "Prärieklocka", variantNameSv = "Rosita Green",
+            scientificName = "Eustoma grandiflorum",
+            daysToSprout = 14, daysToHarvest = 155, germinationTimeDays = 14,
+            sowingDepthMm = 0, heightCm = 65,
+            growingPositions = listOf(GrowingPosition.SUNNY),
+            soils = listOf(SoilType.LOAMY),
+            bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(1, 2),
+            germinationRate = 55, groupId = flowersId,
+            costPerSeedCents = 90, expectedStemsPerPlant = 3, expectedVaseLifeDays = 12,
+            plantType = PlantType.ANNUAL,
+        ))
+        val sweetPea = speciesRepository.persist(Species(
+            commonName = "Sweet Pea", variantName = "Spencer Mix",
+            commonNameSv = "Luktärt", variantNameSv = "Spencer Mix",
+            scientificName = "Lathyrus odoratus",
+            daysToSprout = 10, daysToHarvest = 75, germinationTimeDays = 10,
+            sowingDepthMm = 20, heightCm = 180,
+            growingPositions = listOf(GrowingPosition.SUNNY),
+            soils = listOf(SoilType.LOAMY),
+            bloomMonths = listOf(6, 7), sowingMonths = listOf(3, 4),
+            germinationRate = 80, groupId = flowersId,
+            costPerSeedCents = 15, expectedStemsPerPlant = 20, expectedVaseLifeDays = 5,
+            plantType = PlantType.ANNUAL,
+        ))
+        val cosmosDC = speciesRepository.persist(Species(
+            commonName = "Cosmos", variantName = "Double Click",
+            commonNameSv = "Rosenskära", variantNameSv = "Double Click",
+            scientificName = "Cosmos bipinnatus",
+            daysToSprout = 7, daysToHarvest = 70, germinationTimeDays = 7,
+            sowingDepthMm = 3, heightCm = 120,
+            growingPositions = listOf(GrowingPosition.SUNNY),
+            soils = listOf(SoilType.LOAMY, SoilType.SANDY),
+            bloomMonths = listOf(7, 8, 9, 10), sowingMonths = listOf(4, 5),
+            germinationRate = 85, groupId = flowersId,
+            costPerSeedCents = 20, expectedStemsPerPlant = 10, expectedVaseLifeDays = 6,
+            plantType = PlantType.ANNUAL,
+        ))
+        val cosmosAL = speciesRepository.persist(Species(
+            commonName = "Cosmos", variantName = "Apricot Lemonade",
+            commonNameSv = "Rosenskära", variantNameSv = "Apricot Lemonade",
+            scientificName = "Cosmos bipinnatus",
+            daysToSprout = 7, daysToHarvest = 75, germinationTimeDays = 7,
+            sowingDepthMm = 3, heightCm = 100,
+            growingPositions = listOf(GrowingPosition.SUNNY),
+            soils = listOf(SoilType.LOAMY),
+            bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(4, 5),
+            germinationRate = 82, groupId = flowersId,
+            costPerSeedCents = 30, expectedStemsPerPlant = 8, expectedVaseLifeDays = 5,
+            plantType = PlantType.ANNUAL,
+        ))
+        val eucalyptus = speciesRepository.persist(Species(
+            commonName = "Eucalyptus", variantName = "Silver Dollar",
+            commonNameSv = "Eukalyptus", variantNameSv = "Silver Dollar",
+            scientificName = "Eucalyptus cinerea",
+            daysToSprout = 21, daysToHarvest = 120, germinationTimeDays = 21,
+            sowingDepthMm = 0, heightCm = 150,
+            growingPositions = listOf(GrowingPosition.SUNNY),
+            soils = listOf(SoilType.LOAMY, SoilType.SANDY),
+            bloomMonths = emptyList(), sowingMonths = listOf(2, 3),
+            germinationRate = 50, groupId = foliageId,
+            costPerSeedCents = 35, expectedStemsPerPlant = 20, expectedVaseLifeDays = 14,
+            plantType = PlantType.PERENNIAL,
+        ))
+        val ranunculus = speciesRepository.persist(Species(
+            commonName = "Ranunculus", variantName = "Elegance Mix",
+            commonNameSv = "Ranunkel", variantNameSv = "Elegance Mix",
+            scientificName = "Ranunculus asiaticus",
+            daysToSprout = 21, daysToHarvest = 90, germinationTimeDays = 21,
+            sowingDepthMm = 30, heightCm = 45,
+            growingPositions = listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY),
+            soils = listOf(SoilType.LOAMY),
+            bloomMonths = listOf(5, 6, 7), sowingMonths = listOf(2, 3),
+            germinationRate = 70, groupId = bulbsId,
+            costPerSeedCents = 200, expectedStemsPerPlant = 8, expectedVaseLifeDays = 7,
+            plantType = PlantType.BULB,
+        ))
+
+        val allSpecies = listOf(
+            cafeAuLait, labyrinth, cornel, zinniaGiant, zinniaQLO,
+            snapMadame, snapChantilly, sunProCut, sunSunrich,
+            lisEcho, lisRosita, sweetPea, cosmosDC, cosmosAL,
+            eucalyptus, ranunculus,
         )
 
-        // Species data sourced from impecta.se and standard Scandinavian growing guides
-        val speciesDefs = listOf(
-            // Tomato: impecta.se BID=105 — germination 4-6 days at 25°C, spacing 35-55cm, full sun, 7-8 weeks sowing to transplant
-            SpeciesDef("Tomato", "Tomat", "Solanum lycopersicum", veggies, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY), 5, 80, 150, 85, 10, listOf(6, 7, 8, 9), listOf(2, 3, 4), listOf(0, 3)),
-            // Basil: impecta.se BID=219 — min 12°C, don't cover seeds (light-dependent), moist seed soil
-            SpeciesDef("Basil", "Basilika", "Ocimum basilicum", herbs, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY, SoilType.SANDY), 7, 60, 45, 75, 0, listOf(7, 8, 9), listOf(3, 4, 5), listOf(0, 3)),
-            // Carrot: standard — deep sandy/loamy soil, direct sow, 14-21 day germination
-            SpeciesDef("Carrot", "Morot", "Daucus carota", roots, listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.SANDY, SoilType.LOAMY), 17, 75, 30, 70, 10, emptyList(), listOf(4, 5, 6), listOf(0, 4)),
-            // Strawberry: standard Scandinavian — full sun, humus-rich soil, runners for propagation
-            SpeciesDef("Strawberry", "Jordgubbe", "Fragaria × ananassa", fruits, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY), 14, 90, 25, 75, 3, listOf(5, 6), listOf(2, 3), listOf(1, 3)),
-            // Sunflower: standard — direct sow after frost, 20-25mm deep, full sun, 7-10 day germination
-            SpeciesDef("Sunflower", "Solros", "Helianthus annuus", flowers, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY, SoilType.SANDY), 8, 80, 200, 90, 25, listOf(7, 8, 9), listOf(4, 5), listOf(0)),
-            // Cucumber: impecta.se BID=111 — germination "a few days" at 25°C, spacing 60-80cm, full sun, nutrient-rich soil
-            SpeciesDef("Cucumber", "Gurka", "Cucumis sativus", veggies, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY), 5, 60, 40, 85, 15, listOf(6, 7, 8), listOf(4, 5), listOf(0, 3)),
-            // Mint: impecta.se BID=252 — spreads vigorously, 40-50cm height, Jul-Sep bloom, use root barriers
-            SpeciesDef("Mint", "Mynta", "Mentha spicata", herbs, listOf(GrowingPosition.PARTIALLY_SUNNY, GrowingPosition.SHADOWY), listOf(SoilType.LOAMY, SoilType.CLAY), 12, 90, 50, 70, 3, listOf(7, 8, 9), listOf(3, 4, 5), listOf(1, 3)),
-            // Pepper: impecta.se BID=62 — germination at 25°C, light-dependent seeds (don't cover), sow Feb-March
-            SpeciesDef("Pepper", "Paprika", "Capsicum annuum", veggies, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY), 12, 75, 60, 75, 0, listOf(6, 7, 8, 9), listOf(2, 3), listOf(0)),
-            // Lavender: impecta.se BID=204 — full sun, well-drained soil, slow germination (may need cold stratification)
-            SpeciesDef("Lavender", "Lavendel", "Lavandula angustifolia", flowers, listOf(GrowingPosition.SUNNY), listOf(SoilType.SANDY, SoilType.CHALKY), 21, 120, 60, 50, 3, listOf(6, 7, 8), listOf(2, 3), listOf(1, 4)),
-            // Zucchini: standard — direct sow or transplant, warm soil needed, spacing 80-100cm
-            SpeciesDef("Zucchini", "Zucchini", "Cucurbita pepo", veggies, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY), 6, 55, 50, 90, 20, listOf(6, 7, 8, 9), listOf(4, 5), listOf(0, 3)),
-            // Parsley: standard — notoriously slow germination (up to 28 days), soak seeds to speed up
-            SpeciesDef("Parsley", "Persilja", "Petroselinum crispum", herbs, listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.LOAMY), 21, 75, 30, 60, 5, emptyList(), listOf(3, 4, 5), listOf(0)),
-            // Beetroot: standard Scandinavian — direct sow, multi-germ seeds, thin seedlings
-            SpeciesDef("Beetroot", "Rödbeta", "Beta vulgaris", roots, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY, SoilType.SANDY), 10, 60, 35, 75, 15, emptyList(), listOf(4, 5, 6), listOf(0, 4)),
-            // Raspberry: standard — perennial canes, full sun to part shade, humus-rich moist soil
-            SpeciesDef("Raspberry", "Hallon", "Rubus idaeus", fruits, listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.LOAMY), 28, 365, 150, 70, 5, listOf(5, 6), listOf(3, 4), listOf(1)),
-            // Dill: standard — direct sow, dislikes transplanting, self-seeds freely
-            SpeciesDef("Dill", "Dill", "Anethum graveolens", herbs, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY, SoilType.SANDY), 10, 60, 90, 70, 5, listOf(6, 7, 8), listOf(4, 5, 6), listOf(0)),
-            // Pea: standard — direct sow early spring, cool weather crop, nitrogen fixer
-            SpeciesDef("Pea", "Ärt", "Pisum sativum", veggies, listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.LOAMY), 8, 65, 100, 85, 30, listOf(6, 7), listOf(3, 4, 5), listOf(0, 4)),
-            // Lettuce: impecta.se BID=132 — spacing 25-30cm, semi-shade preferred, bolts in heat
-            SpeciesDef("Lettuce", "Sallat", "Lactuca sativa", veggies, listOf(GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.LOAMY), 7, 45, 25, 85, 3, emptyList(), listOf(3, 4, 5, 6, 7), listOf(0, 3)),
-            // Radish: standard — fastest vegetable, direct sow, 3-5 day germination, harvest in 25 days
-            SpeciesDef("Radish", "Rädisa", "Raphanus sativus", roots, listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.SANDY, SoilType.LOAMY), 4, 25, 15, 90, 10, emptyList(), listOf(4, 5, 6, 7, 8), listOf(0, 3)),
-            // Thyme: impecta.se BID=296 — full sun, well-drained sandy soil, sow late winter/early spring indoors
-            SpeciesDef("Thyme", "Timjan", "Thymus vulgaris", herbs, listOf(GrowingPosition.SUNNY), listOf(SoilType.SANDY, SoilType.CHALKY), 14, 90, 25, 60, 3, listOf(6, 7), listOf(2, 3), listOf(1, 4)),
-            // Blueberry: standard — acidic peaty soil required (pH 4.5-5.5), full sun, slow to establish
-            SpeciesDef("Blueberry", "Blåbär", "Vaccinium corymbosum", fruits, listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY), listOf(SoilType.PEATY), 28, 365, 150, 55, 5, listOf(5, 6), listOf(3, 4), listOf(1)),
-            // Marigold: standard — easy annual, direct sow after frost, fast germination
-            SpeciesDef("Marigold", "Tagetes", "Tagetes erecta", flowers, listOf(GrowingPosition.SUNNY), listOf(SoilType.LOAMY, SoilType.SANDY), 5, 55, 40, 90, 5, listOf(6, 7, 8, 9, 10), listOf(4, 5), listOf(0, 3)),
-        )
+        // Tag assignments
+        val annualId = tagAnnual.id!!
+        val perennialId = tagPerennial.id!!
+        val cutFlowerId = tagCutFlower.id!!
+        val heatLovingId = tagHeatLoving.id!!
+        val coolSeasonId = tagCoolSeason.id!!
+        val longSeasonId = tagLongSeason.id!!
 
-        val speciesIds = speciesDefs.map { def ->
-            val species = speciesRepository.persist(Species(
-                commonName = def.commonName,
-                variantName = def.variantName,
-                commonNameSv = def.sv,
-                scientificName = def.scientific,
-                imageFrontUrl = "https://storage.googleapis.com/verdant-species/system/${def.commonName.lowercase().replace(" ", "-")}/front.jpg",
-                imageBackUrl = "https://storage.googleapis.com/verdant-species/system/${def.commonName.lowercase().replace(" ", "-")}/back.jpg",
-                daysToSprout = def.daysToSprout,
-                daysToHarvest = def.daysToHarvest,
-                germinationTimeDays = def.daysToSprout,
-                sowingDepthMm = def.sowingDepthMm,
-                growingPositions = def.positions,
-                soils = def.soils,
-                heightCm = def.heightCm,
-                bloomMonths = def.bloomMonths,
-                sowingMonths = def.sowingMonths,
-                germinationRate = def.germinationRate,
-                groupId = def.groupId,
-            ))
-            val sid = species.id!!
-            if (def.tagIndices.isNotEmpty()) {
-                speciesRepository.setTagsForSpecies(sid, def.tagIndices.map { tags[it].id!! })
-            }
-            sid
+        listOf(cafeAuLait, labyrinth, cornel).forEach {
+            speciesRepository.setTagsForSpecies(it.id!!, listOf(cutFlowerId, heatLovingId))
         }
-
-        // ── Gardens & Beds ──
-        val garden1 = gardenRepository.persist(Garden(name = "Home Garden", emoji = "\uD83C\uDF3B", ownerId = userId, description = "Main vegetable and herb garden"))
-        val garden2 = gardenRepository.persist(Garden(name = "Allotment", emoji = "\uD83C\uDF3E", ownerId = userId, description = "Community allotment plot"))
-
-        val beds = listOf(
-            bedRepository.persist(Bed(name = "Raised Bed A", description = "Tomatoes and peppers", gardenId = garden1.id!!)),
-            bedRepository.persist(Bed(name = "Herb Spiral", description = "Kitchen herbs", gardenId = garden1.id!!)),
-            bedRepository.persist(Bed(name = "Berry Corner", description = "Strawberries and raspberries", gardenId = garden1.id!!)),
-            bedRepository.persist(Bed(name = "Main Plot", description = "Mixed vegetables", gardenId = garden2.id!!)),
-            bedRepository.persist(Bed(name = "Flower Border", description = "Pollinator-friendly flowers", gardenId = garden2.id!!)),
-        )
-
-        // ── Plants & Events ──
-        data class PlantDef(val speciesIdx: Int, val bedIdx: Int, val name: String, val status: PlantStatus, val seedCount: Int, val surviving: Int, val plantedDaysAgo: Long)
-
-        val plantDefs = listOf(
-            // Raised Bed A
-            PlantDef(0, 0, "Tomato - Roma", PlantStatus.GROWING, 12, 8, 45),
-            PlantDef(7, 0, "Pepper - Bell", PlantStatus.GROWING, 8, 6, 50),
-            PlantDef(5, 0, "Cucumber - Marketmore", PlantStatus.PLANTED_OUT, 6, 5, 30),
-            // Herb Spiral
-            PlantDef(1, 1, "Sweet Basil", PlantStatus.GROWING, 20, 15, 35),
-            PlantDef(6, 1, "Spearmint", PlantStatus.GROWING, 4, 4, 60),
-            PlantDef(10, 1, "Flat Parsley", PlantStatus.POTTED_UP, 15, 10, 20),
-            PlantDef(13, 1, "Garden Dill", PlantStatus.SEEDED, 30, 30, 5),
-            PlantDef(17, 1, "Creeping Thyme", PlantStatus.GROWING, 6, 5, 90),
-            // Berry Corner
-            PlantDef(3, 2, "Strawberry Patch", PlantStatus.HARVESTED, 20, 18, 120),
-            PlantDef(12, 2, "Raspberry Canes", PlantStatus.GROWING, 5, 5, 365),
-            PlantDef(18, 2, "Blueberry Bush", PlantStatus.GROWING, 3, 3, 365),
-            // Main Plot
-            PlantDef(2, 3, "Nantes Carrots", PlantStatus.GROWING, 50, 40, 40),
-            PlantDef(14, 3, "Sugar Snap Peas", PlantStatus.HARVESTED, 30, 25, 60),
-            PlantDef(15, 3, "Butterhead Lettuce", PlantStatus.GROWING, 20, 18, 25),
-            PlantDef(11, 3, "Golden Beetroot", PlantStatus.GROWING, 25, 20, 35),
-            PlantDef(9, 3, "Green Zucchini", PlantStatus.GROWING, 4, 3, 40),
-            PlantDef(16, 3, "Cherry Belle Radish", PlantStatus.HARVESTED, 40, 35, 20),
-            // Flower Border
-            PlantDef(4, 4, "Giant Sunflower", PlantStatus.GROWING, 10, 8, 30),
-            PlantDef(8, 4, "English Lavender", PlantStatus.GROWING, 8, 7, 120),
-            PlantDef(19, 4, "French Marigold", PlantStatus.GROWING, 15, 12, 25),
-        )
-
-        var eventCount = 0
-        val plantIds = plantDefs.map { def ->
-            val plantedDate = today.minusDays(def.plantedDaysAgo)
-            val plant = plantRepository.persist(Plant(
-                name = def.name,
-                speciesId = speciesIds[def.speciesIdx],
-                plantedDate = plantedDate,
-                status = def.status,
-                seedCount = def.seedCount,
-                survivingCount = def.surviving,
-                bedId = beds[def.bedIdx].id!!,
-                userId = userId,
-            ))
-            val pid = plant.id!!
-
-            // Create lifecycle events
-            plantEventRepository.persist(PlantEvent(plantId = pid, eventType = PlantEventType.SEEDED, eventDate = plantedDate, plantCount = def.seedCount))
-            eventCount++
-
-            if (def.status in listOf(PlantStatus.POTTED_UP, PlantStatus.PLANTED_OUT, PlantStatus.GROWING, PlantStatus.HARVESTED)) {
-                plantEventRepository.persist(PlantEvent(plantId = pid, eventType = PlantEventType.POTTED_UP, eventDate = plantedDate.plusDays(14), plantCount = def.surviving))
-                eventCount++
-            }
-            if (def.status in listOf(PlantStatus.PLANTED_OUT, PlantStatus.GROWING, PlantStatus.HARVESTED)) {
-                plantEventRepository.persist(PlantEvent(plantId = pid, eventType = PlantEventType.PLANTED_OUT, eventDate = plantedDate.plusDays(28), plantCount = def.surviving))
-                eventCount++
-            }
-            if (def.status == PlantStatus.HARVESTED) {
-                plantEventRepository.persist(PlantEvent(plantId = pid, eventType = PlantEventType.HARVESTED, eventDate = today.minusDays(3), plantCount = def.surviving, weightGrams = (def.surviving * 150).toDouble(), quantity = def.surviving * 2))
-                eventCount++
-            }
-
-            pid
+        listOf(zinniaGiant, zinniaQLO).forEach {
+            speciesRepository.setTagsForSpecies(it.id!!, listOf(annualId, cutFlowerId, heatLovingId))
         }
+        listOf(snapMadame, snapChantilly).forEach {
+            speciesRepository.setTagsForSpecies(it.id!!, listOf(annualId, cutFlowerId, coolSeasonId))
+        }
+        listOf(sunProCut, sunSunrich).forEach {
+            speciesRepository.setTagsForSpecies(it.id!!, listOf(annualId, cutFlowerId))
+        }
+        listOf(lisEcho, lisRosita).forEach {
+            speciesRepository.setTagsForSpecies(it.id!!, listOf(annualId, cutFlowerId, longSeasonId))
+        }
+        speciesRepository.setTagsForSpecies(sweetPea.id!!, listOf(annualId, cutFlowerId, coolSeasonId))
+        listOf(cosmosDC, cosmosAL).forEach {
+            speciesRepository.setTagsForSpecies(it.id!!, listOf(annualId, cutFlowerId))
+        }
+        speciesRepository.setTagsForSpecies(eucalyptus.id!!, listOf(perennialId))
+        speciesRepository.setTagsForSpecies(ranunculus.id!!, listOf(cutFlowerId, coolSeasonId))
 
-        // ── Seed Inventory ──
-        val inventorySpecies = listOf(0, 2, 4, 5, 9, 14, 15, 16) // Tomato, Carrot, Sunflower, Cucumber, Pea, Lettuce, Radish, Thyme(nope, use indices)
+        // ── Customers ──
+        val cAndersson = customerRepository.persist(Customer(userId = userId, name = "Blomsterhandel Andersson", channel = Channel.FLORIST, contactInfo = "anna@andersson-blommor.se"))
+        val cStortorget = customerRepository.persist(Customer(userId = userId, name = "Stortorgets marknad", channel = Channel.FARMERS_MARKET, contactInfo = "Lördagar 08-14"))
+        val cCSA = customerRepository.persist(Customer(userId = userId, name = "Blomster-CSA", channel = Channel.CSA, contactInfo = "12 medlemmar, leverans torsdag"))
+        val cWedding = customerRepository.persist(Customer(userId = userId, name = "Weddingflowers.se", channel = Channel.WEDDING, contactInfo = "info@weddingflowers.se"))
+        val cICA = customerRepository.persist(Customer(userId = userId, name = "ICA Maxi Blommor", channel = Channel.WHOLESALE, contactInfo = "Beställning senast onsdag"))
+        val customerIds = listOf(cAndersson.id!!, cStortorget.id!!, cCSA.id!!, cWedding.id!!, cICA.id!!)
+
+        // ── Garden & Beds ──
+        val garden = gardenRepository.persist(Garden(
+            name = "Blomstergården", emoji = "\uD83C\uDF38", ownerId = userId,
+            description = "The Flower Farm — commercial cut flower production",
+        ))
+        val gId = garden.id!!
+        val bedDahlia = bedRepository.persist(Bed(name = "Dahlia field", description = "Dahlias — tubers planted 45cm spacing", gardenId = gId, lengthMeters = 20.0, widthMeters = 1.2))
+        val bedAnnualA = bedRepository.persist(Bed(name = "Annual cuts A", description = "Zinnias and snapdragons", gardenId = gId, lengthMeters = 15.0, widthMeters = 1.2))
+        val bedAnnualB = bedRepository.persist(Bed(name = "Annual cuts B", description = "Sunflowers and cosmos", gardenId = gId, lengthMeters = 15.0, widthMeters = 1.2))
+        val bedLis = bedRepository.persist(Bed(name = "Lisianthus house", description = "Heated tunnel for lisianthus", gardenId = gId, lengthMeters = 10.0, widthMeters = 1.2))
+        val bedSweet = bedRepository.persist(Bed(name = "Sweet pea tunnel", description = "Cordon-grown sweet peas", gardenId = gId, lengthMeters = 12.0, widthMeters = 1.2))
+        val bedFoliage = bedRepository.persist(Bed(name = "Foliage", description = "Eucalyptus and filler greenery", gardenId = gId, lengthMeters = 8.0, widthMeters = 1.2))
+        val beds = listOf(bedDahlia, bedAnnualA, bedAnnualB, bedLis, bedSweet, bedFoliage)
+
+        // ══════════════════════════════════════════
+        //  2024 SEASON — first year, complete
+        // ══════════════════════════════════════════
+
+        // Dahlias 2024: 3 varieties, ~500 stems total
+        createPlant(counters, userId, "Cafe au Lait 2024", cafeAuLait.id!!, bedDahlia.id!!, s24,
+            LocalDate.of(2024, 4, 15), PlantStatus.DORMANT, 20, 18,
+            listOf(
+                PlantEventType.PLANTED_OUT to LocalDate.of(2024, 5, 20),
+                PlantEventType.BUDDING to LocalDate.of(2024, 6, 28),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2024, 7, 8),
+                PlantEventType.PEAK_BLOOM to LocalDate.of(2024, 8, 1),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2024, 9, 20),
+                PlantEventType.LIFTED to LocalDate.of(2024, 10, 10),
+                PlantEventType.STORED to LocalDate.of(2024, 10, 12),
+            ),
+            dahliaHarvests(LocalDate.of(2024, 7, 10), 200), customerIds,
+        )
+        createPlant(counters, userId, "Labyrinth 2024", labyrinth.id!!, bedDahlia.id!!, s24,
+            LocalDate.of(2024, 4, 15), PlantStatus.DORMANT, 15, 14,
+            listOf(
+                PlantEventType.PLANTED_OUT to LocalDate.of(2024, 5, 20),
+                PlantEventType.BUDDING to LocalDate.of(2024, 7, 1),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2024, 7, 12),
+                PlantEventType.PEAK_BLOOM to LocalDate.of(2024, 8, 5),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2024, 9, 18),
+                PlantEventType.LIFTED to LocalDate.of(2024, 10, 10),
+                PlantEventType.STORED to LocalDate.of(2024, 10, 12),
+            ),
+            dahliaHarvests(LocalDate.of(2024, 7, 14), 170), customerIds,
+        )
+        createPlant(counters, userId, "Cornel 2024", cornel.id!!, bedDahlia.id!!, s24,
+            LocalDate.of(2024, 4, 15), PlantStatus.DORMANT, 12, 11,
+            listOf(
+                PlantEventType.PLANTED_OUT to LocalDate.of(2024, 5, 20),
+                PlantEventType.BUDDING to LocalDate.of(2024, 7, 3),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2024, 7, 15),
+                PlantEventType.PEAK_BLOOM to LocalDate.of(2024, 8, 8),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2024, 9, 10),
+                PlantEventType.LIFTED to LocalDate.of(2024, 10, 10),
+                PlantEventType.STORED to LocalDate.of(2024, 10, 12),
+            ),
+            dahliaHarvests(LocalDate.of(2024, 7, 18), 130), customerIds,
+        )
+
+        // Zinnias 2024: 2 successions, ~300 stems
+        createPlant(counters, userId, "Benary's Giant Mix — sow 1", zinniaGiant.id!!, bedAnnualA.id!!, s24,
+            LocalDate.of(2024, 4, 10), PlantStatus.REMOVED, 50, 40,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2024, 4, 10),
+                PlantEventType.POTTED_UP to LocalDate.of(2024, 4, 25),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2024, 5, 20),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2024, 6, 25),
+                PlantEventType.PEAK_BLOOM to LocalDate.of(2024, 7, 15),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2024, 9, 5),
+            ),
+            annualHarvests(LocalDate.of(2024, 6, 28), LocalDate.of(2024, 9, 10), 180, 45..65), customerIds,
+        )
+        createPlant(counters, userId, "Benary's Giant Mix — sow 2", zinniaGiant.id!!, bedAnnualA.id!!, s24,
+            LocalDate.of(2024, 5, 10), PlantStatus.REMOVED, 40, 35,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2024, 5, 10),
+                PlantEventType.POTTED_UP to LocalDate.of(2024, 5, 25),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2024, 6, 10),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2024, 7, 20),
+                PlantEventType.PEAK_BLOOM to LocalDate.of(2024, 8, 10),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2024, 9, 15),
+            ),
+            annualHarvests(LocalDate.of(2024, 7, 22), LocalDate.of(2024, 9, 20), 120, 45..65), customerIds,
+        )
+
+        // Snapdragons 2024: ~200 stems
+        createPlant(counters, userId, "Madame Butterfly 2024", snapMadame.id!!, bedAnnualA.id!!, s24,
+            LocalDate.of(2024, 3, 1), PlantStatus.REMOVED, 60, 50,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2024, 3, 1),
+                PlantEventType.POTTED_UP to LocalDate.of(2024, 3, 25),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2024, 5, 15),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2024, 6, 10),
+                PlantEventType.PEAK_BLOOM to LocalDate.of(2024, 7, 1),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2024, 8, 15),
+            ),
+            annualHarvests(LocalDate.of(2024, 6, 12), LocalDate.of(2024, 8, 20), 200, 55..75), customerIds,
+        )
+
+        // Sunflowers 2024: 3 successions, ~150 stems
+        createPlant(counters, userId, "ProCut Orange — sow 1", sunProCut.id!!, bedAnnualB.id!!, s24,
+            LocalDate.of(2024, 5, 5), PlantStatus.REMOVED, 25, 22,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2024, 5, 5),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2024, 5, 20),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2024, 7, 5),
+            ),
+            annualHarvests(LocalDate.of(2024, 7, 5), LocalDate.of(2024, 7, 20), 20, 60..80), customerIds,
+        )
+        createPlant(counters, userId, "ProCut Orange — sow 2", sunProCut.id!!, bedAnnualB.id!!, s24,
+            LocalDate.of(2024, 5, 25), PlantStatus.REMOVED, 30, 27,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2024, 5, 25),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2024, 6, 8),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2024, 7, 25),
+            ),
+            annualHarvests(LocalDate.of(2024, 7, 25), LocalDate.of(2024, 8, 10), 25, 60..80), customerIds,
+        )
+        createPlant(counters, userId, "Sunrich Gold — sow 1", sunSunrich.id!!, bedAnnualB.id!!, s24,
+            LocalDate.of(2024, 6, 5), PlantStatus.REMOVED, 40, 35,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2024, 6, 5),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2024, 6, 20),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2024, 8, 10),
+            ),
+            annualHarvests(LocalDate.of(2024, 8, 10), LocalDate.of(2024, 9, 5), 105, 65..80), customerIds,
+        )
+
+        // Sweet Peas 2024: ~250 stems
+        createPlant(counters, userId, "Spencer Mix 2024", sweetPea.id!!, bedSweet.id!!, s24,
+            LocalDate.of(2024, 4, 1), PlantStatus.REMOVED, 80, 65,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2024, 4, 1),
+                PlantEventType.POTTED_UP to LocalDate.of(2024, 4, 15),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2024, 5, 10),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2024, 6, 10),
+                PlantEventType.PEAK_BLOOM to LocalDate.of(2024, 6, 25),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2024, 7, 25),
+            ),
+            annualHarvests(LocalDate.of(2024, 6, 12), LocalDate.of(2024, 7, 28), 250, 40..55), customerIds,
+        )
+
+        // Eucalyptus 2024 — established, foliage harvest
+        createPlant(counters, userId, "Silver Dollar 2024", eucalyptus.id!!, bedFoliage.id!!, s24,
+            LocalDate.of(2024, 3, 15), PlantStatus.REMOVED, 10, 8,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2024, 3, 15),
+                PlantEventType.POTTED_UP to LocalDate.of(2024, 4, 20),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2024, 6, 1),
+            ),
+            annualHarvests(LocalDate.of(2024, 8, 1), LocalDate.of(2024, 10, 1), 80, 40..60), customerIds,
+        )
+
+        // ══════════════════════════════════════════
+        //  2025 SEASON — improved yields, added cosmos + lisianthus
+        // ══════════════════════════════════════════
+
+        // Dahlias 2025: ~700 stems
+        createPlant(counters, userId, "Cafe au Lait 2025", cafeAuLait.id!!, bedDahlia.id!!, s25,
+            LocalDate.of(2025, 4, 10), PlantStatus.DORMANT, 25, 24,
+            listOf(
+                PlantEventType.PLANTED_OUT to LocalDate.of(2025, 5, 18),
+                PlantEventType.PINCHED to LocalDate.of(2025, 6, 12),
+                PlantEventType.BUDDING to LocalDate.of(2025, 6, 25),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2025, 7, 5),
+                PlantEventType.PEAK_BLOOM to LocalDate.of(2025, 7, 25),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2025, 9, 25),
+                PlantEventType.LIFTED to LocalDate.of(2025, 10, 5),
+                PlantEventType.DIVIDED to LocalDate.of(2025, 10, 8),
+                PlantEventType.STORED to LocalDate.of(2025, 10, 10),
+            ),
+            dahliaHarvests(LocalDate.of(2025, 7, 7), 280), customerIds,
+        )
+        createPlant(counters, userId, "Labyrinth 2025", labyrinth.id!!, bedDahlia.id!!, s25,
+            LocalDate.of(2025, 4, 10), PlantStatus.DORMANT, 20, 19,
+            listOf(
+                PlantEventType.PLANTED_OUT to LocalDate.of(2025, 5, 18),
+                PlantEventType.PINCHED to LocalDate.of(2025, 6, 14),
+                PlantEventType.BUDDING to LocalDate.of(2025, 6, 28),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2025, 7, 10),
+                PlantEventType.PEAK_BLOOM to LocalDate.of(2025, 8, 1),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2025, 9, 20),
+                PlantEventType.LIFTED to LocalDate.of(2025, 10, 5),
+                PlantEventType.STORED to LocalDate.of(2025, 10, 10),
+            ),
+            dahliaHarvests(LocalDate.of(2025, 7, 12), 230), customerIds,
+        )
+        createPlant(counters, userId, "Cornel 2025", cornel.id!!, bedDahlia.id!!, s25,
+            LocalDate.of(2025, 4, 10), PlantStatus.DORMANT, 18, 17,
+            listOf(
+                PlantEventType.PLANTED_OUT to LocalDate.of(2025, 5, 18),
+                PlantEventType.BUDDING to LocalDate.of(2025, 7, 1),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2025, 7, 12),
+                PlantEventType.PEAK_BLOOM to LocalDate.of(2025, 8, 5),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2025, 9, 15),
+                PlantEventType.LIFTED to LocalDate.of(2025, 10, 5),
+                PlantEventType.STORED to LocalDate.of(2025, 10, 10),
+            ),
+            dahliaHarvests(LocalDate.of(2025, 7, 14), 190), customerIds,
+        )
+
+        // Zinnias 2025: ~450 stems
+        createPlant(counters, userId, "Benary's Giant Mix 2025 sow 1", zinniaGiant.id!!, bedAnnualA.id!!, s25,
+            LocalDate.of(2025, 4, 5), PlantStatus.REMOVED, 60, 52,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2025, 4, 5),
+                PlantEventType.POTTED_UP to LocalDate.of(2025, 4, 18),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2025, 5, 15),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2025, 6, 22),
+                PlantEventType.PEAK_BLOOM to LocalDate.of(2025, 7, 10),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2025, 9, 1),
+            ),
+            annualHarvests(LocalDate.of(2025, 6, 25), LocalDate.of(2025, 9, 5), 200, 50..70), customerIds,
+        )
+        createPlant(counters, userId, "Queen Lime Orange 2025 sow 1", zinniaQLO.id!!, bedAnnualA.id!!, s25,
+            LocalDate.of(2025, 4, 20), PlantStatus.REMOVED, 40, 34,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2025, 4, 20),
+                PlantEventType.POTTED_UP to LocalDate.of(2025, 5, 3),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2025, 5, 25),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2025, 7, 5),
+                PlantEventType.PEAK_BLOOM to LocalDate.of(2025, 7, 25),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2025, 9, 10),
+            ),
+            annualHarvests(LocalDate.of(2025, 7, 8), LocalDate.of(2025, 9, 15), 150, 45..60), customerIds,
+        )
+        createPlant(counters, userId, "Benary's Giant Mix 2025 sow 2", zinniaGiant.id!!, bedAnnualA.id!!, s25,
+            LocalDate.of(2025, 5, 15), PlantStatus.REMOVED, 40, 36,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2025, 5, 15),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2025, 6, 5),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2025, 7, 20),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2025, 9, 15),
+            ),
+            annualHarvests(LocalDate.of(2025, 7, 22), LocalDate.of(2025, 9, 18), 100, 50..65), customerIds,
+        )
+
+        // Snapdragons 2025: ~300 stems
+        createPlant(counters, userId, "Madame Butterfly 2025", snapMadame.id!!, bedAnnualA.id!!, s25,
+            LocalDate.of(2025, 2, 25), PlantStatus.REMOVED, 70, 60,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2025, 2, 25),
+                PlantEventType.POTTED_UP to LocalDate.of(2025, 3, 20),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2025, 5, 10),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2025, 6, 5),
+                PlantEventType.PEAK_BLOOM to LocalDate.of(2025, 6, 25),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2025, 8, 20),
+            ),
+            annualHarvests(LocalDate.of(2025, 6, 8), LocalDate.of(2025, 8, 25), 180, 55..75), customerIds,
+        )
+        createPlant(counters, userId, "Chantilly 2025", snapChantilly.id!!, bedAnnualA.id!!, s25,
+            LocalDate.of(2025, 2, 25), PlantStatus.REMOVED, 50, 42,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2025, 2, 25),
+                PlantEventType.POTTED_UP to LocalDate.of(2025, 3, 22),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2025, 5, 12),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2025, 6, 8),
+                PlantEventType.PEAK_BLOOM to LocalDate.of(2025, 7, 1),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2025, 8, 18),
+            ),
+            annualHarvests(LocalDate.of(2025, 6, 10), LocalDate.of(2025, 8, 22), 120, 60..80), customerIds,
+        )
+
+        // Cosmos 2025 (new): ~200 stems
+        createPlant(counters, userId, "Double Click 2025", cosmosDC.id!!, bedAnnualB.id!!, s25,
+            LocalDate.of(2025, 4, 15), PlantStatus.REMOVED, 50, 45,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2025, 4, 15),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2025, 5, 20),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2025, 7, 5),
+                PlantEventType.PEAK_BLOOM to LocalDate.of(2025, 8, 1),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2025, 9, 25),
+            ),
+            annualHarvests(LocalDate.of(2025, 7, 8), LocalDate.of(2025, 9, 28), 130, 50..70), customerIds,
+        )
+        createPlant(counters, userId, "Apricot Lemonade 2025", cosmosAL.id!!, bedAnnualB.id!!, s25,
+            LocalDate.of(2025, 4, 20), PlantStatus.REMOVED, 35, 30,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2025, 4, 20),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2025, 5, 22),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2025, 7, 10),
+                PlantEventType.PEAK_BLOOM to LocalDate.of(2025, 8, 5),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2025, 9, 20),
+            ),
+            annualHarvests(LocalDate.of(2025, 7, 12), LocalDate.of(2025, 9, 22), 70, 45..65), customerIds,
+        )
+
+        // Lisianthus 2025 (new): ~100 stems
+        createPlant(counters, userId, "Echo Blue 2025", lisEcho.id!!, bedLis.id!!, s25,
+            LocalDate.of(2025, 1, 15), PlantStatus.REMOVED, 40, 22,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2025, 1, 15),
+                PlantEventType.POTTED_UP to LocalDate.of(2025, 3, 1),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2025, 5, 15),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2025, 7, 15),
+                PlantEventType.PEAK_BLOOM to LocalDate.of(2025, 8, 5),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2025, 9, 10),
+            ),
+            annualHarvests(LocalDate.of(2025, 7, 18), LocalDate.of(2025, 9, 12), 60, 50..65), customerIds,
+        )
+        createPlant(counters, userId, "Rosita Green 2025", lisRosita.id!!, bedLis.id!!, s25,
+            LocalDate.of(2025, 1, 20), PlantStatus.REMOVED, 30, 15,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2025, 1, 20),
+                PlantEventType.POTTED_UP to LocalDate.of(2025, 3, 5),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2025, 5, 18),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2025, 7, 20),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2025, 9, 5),
+            ),
+            annualHarvests(LocalDate.of(2025, 7, 22), LocalDate.of(2025, 9, 8), 40, 45..60), customerIds,
+        )
+
+        // Sunflowers 2025
+        createPlant(counters, userId, "ProCut Orange 2025 sow 1", sunProCut.id!!, bedAnnualB.id!!, s25,
+            LocalDate.of(2025, 5, 1), PlantStatus.REMOVED, 30, 28,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2025, 5, 1),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2025, 5, 15),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2025, 7, 1),
+            ),
+            annualHarvests(LocalDate.of(2025, 7, 1), LocalDate.of(2025, 7, 15), 26, 65..80), customerIds,
+        )
+        createPlant(counters, userId, "Sunrich Gold 2025 sow 1", sunSunrich.id!!, bedAnnualB.id!!, s25,
+            LocalDate.of(2025, 5, 20), PlantStatus.REMOVED, 40, 36,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2025, 5, 20),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2025, 6, 5),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2025, 7, 25),
+            ),
+            annualHarvests(LocalDate.of(2025, 7, 25), LocalDate.of(2025, 8, 10), 34, 65..80), customerIds,
+        )
+        createPlant(counters, userId, "ProCut Orange 2025 sow 2", sunProCut.id!!, bedAnnualB.id!!, s25,
+            LocalDate.of(2025, 6, 10), PlantStatus.REMOVED, 35, 32,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2025, 6, 10),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2025, 6, 25),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2025, 8, 15),
+            ),
+            annualHarvests(LocalDate.of(2025, 8, 15), LocalDate.of(2025, 8, 30), 30, 60..75), customerIds,
+        )
+
+        // Sweet Peas 2025
+        createPlant(counters, userId, "Spencer Mix 2025", sweetPea.id!!, bedSweet.id!!, s25,
+            LocalDate.of(2025, 3, 20), PlantStatus.REMOVED, 100, 85,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2025, 3, 20),
+                PlantEventType.POTTED_UP to LocalDate.of(2025, 4, 5),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2025, 5, 5),
+                PlantEventType.FIRST_BLOOM to LocalDate.of(2025, 6, 5),
+                PlantEventType.PEAK_BLOOM to LocalDate.of(2025, 6, 20),
+                PlantEventType.LAST_BLOOM to LocalDate.of(2025, 7, 20),
+            ),
+            annualHarvests(LocalDate.of(2025, 6, 8), LocalDate.of(2025, 7, 22), 300, 40..55), customerIds,
+        )
+
+        // Eucalyptus 2025 — continuing perennial
+        createPlant(counters, userId, "Silver Dollar 2025", eucalyptus.id!!, bedFoliage.id!!, s25,
+            LocalDate.of(2025, 3, 1), PlantStatus.REMOVED, 8, 8,
+            listOf(
+                PlantEventType.NOTE to LocalDate.of(2025, 4, 1),
+            ),
+            annualHarvests(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 10, 1), 120, 40..65), customerIds,
+        )
+
+        // ══════════════════════════════════════════
+        //  2026 SEASON — current, in-progress
+        // ══════════════════════════════════════════
+
+        // Dahlias 2026: planted, growing (pinched, not yet blooming)
+        createPlant(counters, userId, "Cafe au Lait 2026", cafeAuLait.id!!, bedDahlia.id!!, s26,
+            LocalDate.of(2026, 4, 8), PlantStatus.GROWING, 30, 28,
+            listOf(
+                PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 16),
+                PlantEventType.PINCHED to LocalDate.of(2026, 6, 8),
+            ),
+        )
+        createPlant(counters, userId, "Labyrinth 2026", labyrinth.id!!, bedDahlia.id!!, s26,
+            LocalDate.of(2026, 4, 8), PlantStatus.GROWING, 24, 23,
+            listOf(
+                PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 16),
+                PlantEventType.PINCHED to LocalDate.of(2026, 6, 10),
+            ),
+        )
+        createPlant(counters, userId, "Cornel 2026", cornel.id!!, bedDahlia.id!!, s26,
+            LocalDate.of(2026, 4, 8), PlantStatus.PLANTED_OUT, 20, 19,
+            listOf(
+                PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 16),
+            ),
+        )
+
+        // Zinnias 2026: first succession planted out, second potted up
+        createPlant(counters, userId, "Benary's Giant Mix 2026 sow 1", zinniaGiant.id!!, bedAnnualA.id!!, s26,
+            LocalDate.of(2026, 4, 1), PlantStatus.PLANTED_OUT, 60, 55,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2026, 4, 1),
+                PlantEventType.POTTED_UP to LocalDate.of(2026, 4, 14),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 12),
+            ),
+        )
+        createPlant(counters, userId, "Queen Lime Orange 2026 sow 1", zinniaQLO.id!!, bedAnnualA.id!!, s26,
+            LocalDate.of(2026, 4, 15), PlantStatus.PLANTED_OUT, 45, 40,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2026, 4, 15),
+                PlantEventType.POTTED_UP to LocalDate.of(2026, 4, 28),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 20),
+            ),
+        )
+        createPlant(counters, userId, "Benary's Giant Mix 2026 sow 2", zinniaGiant.id!!, bedAnnualA.id!!, s26,
+            LocalDate.of(2026, 4, 29), PlantStatus.POTTED_UP, 50, 45,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2026, 4, 29),
+                PlantEventType.POTTED_UP to LocalDate.of(2026, 5, 12),
+            ),
+        )
+
+        // Snapdragons 2026
+        createPlant(counters, userId, "Madame Butterfly 2026", snapMadame.id!!, bedAnnualA.id!!, s26,
+            LocalDate.of(2026, 2, 20), PlantStatus.PLANTED_OUT, 80, 68,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2026, 2, 20),
+                PlantEventType.POTTED_UP to LocalDate.of(2026, 3, 15),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 8),
+            ),
+        )
+        createPlant(counters, userId, "Chantilly 2026", snapChantilly.id!!, bedAnnualA.id!!, s26,
+            LocalDate.of(2026, 2, 20), PlantStatus.PLANTED_OUT, 60, 52,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2026, 2, 20),
+                PlantEventType.POTTED_UP to LocalDate.of(2026, 3, 18),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 10),
+            ),
+        )
+
+        // Sunflowers 2026: first succession planted
+        createPlant(counters, userId, "ProCut Orange 2026 sow 1", sunProCut.id!!, bedAnnualB.id!!, s26,
+            LocalDate.of(2026, 5, 1), PlantStatus.PLANTED_OUT, 35, 33,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2026, 5, 1),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 15),
+            ),
+        )
+        createPlant(counters, userId, "Sunrich Gold 2026 sow 1", sunSunrich.id!!, bedAnnualB.id!!, s26,
+            LocalDate.of(2026, 5, 10), PlantStatus.SEEDED, 40, 38,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2026, 5, 10),
+            ),
+        )
+
+        // Lisianthus 2026: planted, growing
+        createPlant(counters, userId, "Echo Blue 2026", lisEcho.id!!, bedLis.id!!, s26,
+            LocalDate.of(2026, 1, 10), PlantStatus.PLANTED_OUT, 50, 30,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2026, 1, 10),
+                PlantEventType.POTTED_UP to LocalDate.of(2026, 2, 25),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 10),
+            ),
+        )
+        createPlant(counters, userId, "Rosita Green 2026", lisRosita.id!!, bedLis.id!!, s26,
+            LocalDate.of(2026, 1, 15), PlantStatus.PLANTED_OUT, 40, 22,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2026, 1, 15),
+                PlantEventType.POTTED_UP to LocalDate.of(2026, 3, 1),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 12),
+            ),
+        )
+
+        // Sweet Peas 2026
+        createPlant(counters, userId, "Spencer Mix 2026", sweetPea.id!!, bedSweet.id!!, s26,
+            LocalDate.of(2026, 3, 15), PlantStatus.PLANTED_OUT, 120, 100,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2026, 3, 15),
+                PlantEventType.POTTED_UP to LocalDate.of(2026, 3, 30),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 1),
+            ),
+        )
+
+        // Cosmos 2026
+        createPlant(counters, userId, "Double Click 2026", cosmosDC.id!!, bedAnnualB.id!!, s26,
+            LocalDate.of(2026, 4, 10), PlantStatus.PLANTED_OUT, 60, 55,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2026, 4, 10),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 18),
+            ),
+        )
+        createPlant(counters, userId, "Apricot Lemonade 2026", cosmosAL.id!!, bedAnnualB.id!!, s26,
+            LocalDate.of(2026, 4, 15), PlantStatus.PLANTED_OUT, 40, 36,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2026, 4, 15),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 20),
+            ),
+        )
+
+        // Eucalyptus 2026 — perennial, continuing
+        createPlant(counters, userId, "Silver Dollar 2026", eucalyptus.id!!, bedFoliage.id!!, s26,
+            LocalDate.of(2026, 3, 1), PlantStatus.GROWING, 8, 8,
+            listOf(
+                PlantEventType.NOTE to LocalDate.of(2026, 3, 15),
+            ),
+        )
+
+        // Ranunculus 2026 — new trial variety
+        createPlant(counters, userId, "Elegance Mix 2026 (trial)", ranunculus.id!!, bedFoliage.id!!, s26,
+            LocalDate.of(2026, 3, 1), PlantStatus.GROWING, 50, 35,
+            listOf(
+                PlantEventType.SEEDED to LocalDate.of(2026, 3, 1),
+                PlantEventType.POTTED_UP to LocalDate.of(2026, 3, 25),
+                PlantEventType.PLANTED_OUT to LocalDate.of(2026, 4, 20),
+                PlantEventType.BUDDING to LocalDate.of(2026, 5, 28),
+            ),
+        )
+
+        // ── Seed Inventory (2026 season) ──
         var seedInvCount = 0
-        inventorySpecies.forEach { idx ->
+        fun inv(speciesId: Long, qty: Int, cost: Int, unit: UnitType = UnitType.SEED) {
             seedInventoryRepository.persist(SeedInventory(
-                userId = userId,
-                speciesId = speciesIds[idx],
-                quantity = (50..200).random(),
-                collectionDate = today.minusDays((30..365).toLong()),
-                expirationDate = today.plusDays((180..730).toLong()),
+                userId = userId, speciesId = speciesId, quantity = qty, seasonId = s26,
+                collectionDate = LocalDate.of(2026, 1, 15),
+                expirationDate = LocalDate.of(2028, 12, 31),
+                costPerUnitCents = cost, unitType = unit,
             ))
             seedInvCount++
         }
+        inv(cafeAuLait.id!!, 40, 4500, UnitType.TUBER)
+        inv(labyrinth.id!!, 30, 3800, UnitType.TUBER)
+        inv(cornel.id!!, 25, 3200, UnitType.TUBER)
+        inv(zinniaGiant.id!!, 500, 25)
+        inv(zinniaQLO.id!!, 300, 45)
+        inv(snapMadame.id!!, 400, 15)
+        inv(snapChantilly.id!!, 300, 20)
+        inv(sunProCut.id!!, 250, 50)
+        inv(sunSunrich.id!!, 200, 55)
+        inv(lisEcho.id!!, 150, 80)
+        inv(lisRosita.id!!, 100, 90)
+        inv(sweetPea.id!!, 600, 15)
+        inv(cosmosDC.id!!, 400, 20)
+        inv(cosmosAL.id!!, 250, 30)
+        inv(eucalyptus.id!!, 50, 35)
+        inv(ranunculus.id!!, 80, 200, UnitType.BULB)
 
-        // ── Scheduled Tasks ──
-        val taskDefs = listOf(
-            Triple(0, "SOW", 20),       // Sow more tomatoes
-            Triple(5, "SOW", 10),       // Sow cucumbers
-            Triple(10, "POT_UP", 8),    // Pot up parsley
-            Triple(2, "PLANT", 15),     // Plant carrots
-            Triple(14, "HARVEST", 20),  // Harvest peas
-            Triple(9, "SOW", 6),        // Sow zucchini
-        )
-        taskDefs.forEach { (speciesIdx, activity, count) ->
-            scheduledTaskRepository.persist(ScheduledTask(
-                userId = userId,
-                speciesId = speciesIds[speciesIdx],
-                activityType = activity,
-                deadline = today.plusDays((3..21).toLong()),
-                targetCount = count,
-                remainingCount = count,
-            ))
-        }
+        // ── Succession Schedules (2026) ──
+        val succZinnia = successionScheduleRepository.persist(SuccessionSchedule(
+            userId = userId, seasonId = s26, speciesId = zinniaGiant.id!!,
+            bedId = bedAnnualA.id!!, firstSowDate = LocalDate.of(2026, 4, 15),
+            intervalDays = 14, totalSuccessions = 4, seedsPerSuccession = 50,
+            notes = "Benary's Giant Mix — 14 day intervals for continuous harvest",
+        ))
+        val succSunflower = successionScheduleRepository.persist(SuccessionSchedule(
+            userId = userId, seasonId = s26, speciesId = sunProCut.id!!,
+            bedId = bedAnnualB.id!!, firstSowDate = LocalDate.of(2026, 5, 1),
+            intervalDays = 10, totalSuccessions = 6, seedsPerSuccession = 30,
+            notes = "ProCut Orange — tight succession for wedding season",
+        ))
+
+        // ── Production Targets (2026) ──
+        productionTargetRepository.persist(ProductionTarget(
+            userId = userId, seasonId = s26, speciesId = cafeAuLait.id!!,
+            stemsPerWeek = 150, startDate = LocalDate.of(2026, 7, 1), endDate = LocalDate.of(2026, 9, 30),
+            notes = "Combined dahlia target across all 3 varieties",
+        ))
+        productionTargetRepository.persist(ProductionTarget(
+            userId = userId, seasonId = s26, speciesId = zinniaGiant.id!!,
+            stemsPerWeek = 100, startDate = LocalDate.of(2026, 6, 15), endDate = LocalDate.of(2026, 9, 15),
+            notes = "Zinnia target — both varieties combined",
+        ))
+        productionTargetRepository.persist(ProductionTarget(
+            userId = userId, seasonId = s26, speciesId = snapMadame.id!!,
+            stemsPerWeek = 50, startDate = LocalDate.of(2026, 6, 1), endDate = LocalDate.of(2026, 8, 31),
+            notes = "Snapdragon target — both varieties",
+        ))
+
+        // ── Scheduled Tasks (2026) ──
+        scheduledTaskRepository.persist(ScheduledTask(
+            userId = userId, speciesId = zinniaGiant.id!!, activityType = "SOW",
+            deadline = LocalDate.of(2026, 5, 13), targetCount = 50, remainingCount = 50,
+            seasonId = s26, successionScheduleId = succZinnia.id,
+            notes = "Succession 3 of 4",
+        ))
+        scheduledTaskRepository.persist(ScheduledTask(
+            userId = userId, speciesId = zinniaGiant.id!!, activityType = "SOW",
+            deadline = LocalDate.of(2026, 5, 27), targetCount = 50, remainingCount = 50,
+            seasonId = s26, successionScheduleId = succZinnia.id,
+            notes = "Succession 4 of 4",
+        ))
+        scheduledTaskRepository.persist(ScheduledTask(
+            userId = userId, speciesId = sunProCut.id!!, activityType = "SOW",
+            deadline = LocalDate.of(2026, 5, 11), targetCount = 30, remainingCount = 30,
+            seasonId = s26, successionScheduleId = succSunflower.id,
+            notes = "Sunflower succession 2 of 6",
+        ))
+        scheduledTaskRepository.persist(ScheduledTask(
+            userId = userId, speciesId = sunProCut.id!!, activityType = "SOW",
+            deadline = LocalDate.of(2026, 5, 21), targetCount = 30, remainingCount = 30,
+            seasonId = s26, successionScheduleId = succSunflower.id,
+            notes = "Sunflower succession 3 of 6",
+        ))
+        scheduledTaskRepository.persist(ScheduledTask(
+            userId = userId, speciesId = snapMadame.id!!, activityType = "PINCH",
+            deadline = LocalDate.of(2026, 6, 5), targetCount = 68, remainingCount = 68,
+            seasonId = s26, notes = "Pinch snapdragon main stems for branching",
+        ))
+        scheduledTaskRepository.persist(ScheduledTask(
+            userId = userId, speciesId = cafeAuLait.id!!, activityType = "DISBUD",
+            deadline = LocalDate.of(2026, 6, 15), targetCount = 28, remainingCount = 28,
+            seasonId = s26, notes = "Disbud Cafe au Lait for larger blooms",
+        ))
+
+        // ── Variety Trials ──
+        // 2024: dahlia varieties
+        varietyTrialRepository.persist(VarietyTrial(
+            userId = userId, seasonId = s24, speciesId = cafeAuLait.id!!,
+            bedId = bedDahlia.id!!, plantCount = 20, stemYield = 200,
+            avgStemLengthCm = 55, avgVaseLifeDays = 6, qualityScore = 9,
+            customerReception = Reception.LOVED, verdict = Verdict.EXPAND,
+            notes = "Huge demand, best seller. Expand significantly.",
+        ))
+        varietyTrialRepository.persist(VarietyTrial(
+            userId = userId, seasonId = s24, speciesId = labyrinth.id!!,
+            bedId = bedDahlia.id!!, plantCount = 15, stemYield = 170,
+            avgStemLengthCm = 50, avgVaseLifeDays = 5, qualityScore = 8,
+            customerReception = Reception.LIKED, verdict = Verdict.KEEP,
+            notes = "Good variety, reliable producer. Keep at current level.",
+        ))
+        varietyTrialRepository.persist(VarietyTrial(
+            userId = userId, seasonId = s24, speciesId = cornel.id!!,
+            bedId = bedDahlia.id!!, plantCount = 12, stemYield = 130,
+            avgStemLengthCm = 48, avgVaseLifeDays = 5, qualityScore = 7,
+            customerReception = Reception.LIKED, verdict = Verdict.KEEP,
+            notes = "Solid performer, great color. Compact growth habit.",
+        ))
+        // 2025: zinnias and cosmos
+        varietyTrialRepository.persist(VarietyTrial(
+            userId = userId, seasonId = s25, speciesId = zinniaGiant.id!!,
+            bedId = bedAnnualA.id!!, plantCount = 100, stemYield = 300,
+            avgStemLengthCm = 60, avgVaseLifeDays = 8, qualityScore = 9,
+            customerReception = Reception.LOVED, verdict = Verdict.EXPAND,
+            notes = "Workhorse variety. Big stems, great colors, long vase life.",
+        ))
+        varietyTrialRepository.persist(VarietyTrial(
+            userId = userId, seasonId = s25, speciesId = zinniaQLO.id!!,
+            bedId = bedAnnualA.id!!, plantCount = 40, stemYield = 150,
+            avgStemLengthCm = 52, avgVaseLifeDays = 8, qualityScore = 8,
+            customerReception = Reception.LOVED, verdict = Verdict.EXPAND,
+            notes = "Unique color, florists love it. Slightly shorter stems.",
+        ))
+        varietyTrialRepository.persist(VarietyTrial(
+            userId = userId, seasonId = s25, speciesId = cosmosDC.id!!,
+            bedId = bedAnnualB.id!!, plantCount = 50, stemYield = 130,
+            avgStemLengthCm = 58, avgVaseLifeDays = 6, qualityScore = 7,
+            customerReception = Reception.LIKED, verdict = Verdict.KEEP,
+            notes = "Nice in bouquets, slightly floppy stems. Good filler.",
+        ))
+        varietyTrialRepository.persist(VarietyTrial(
+            userId = userId, seasonId = s25, speciesId = cosmosAL.id!!,
+            bedId = bedAnnualB.id!!, plantCount = 35, stemYield = 70,
+            avgStemLengthCm = 50, avgVaseLifeDays = 5, qualityScore = 6,
+            customerReception = Reception.NEUTRAL, verdict = Verdict.REDUCE,
+            notes = "Beautiful color but short vase life and low yield.",
+        ))
+        // 2026: ranunculus trial
+        varietyTrialRepository.persist(VarietyTrial(
+            userId = userId, seasonId = s26, speciesId = ranunculus.id!!,
+            bedId = bedFoliage.id!!, plantCount = 50,
+            verdict = Verdict.UNDECIDED,
+            notes = "First trial. Planted from pre-sprouted corms. Monitoring establishment.",
+        ))
+
+        // ── Bouquet Recipes ──
+        val sommardrom = bouquetRecipeRepository.persist(BouquetRecipe(
+            userId = userId, name = "Sommardröm",
+            description = "Summer Dream — lush seasonal bouquet with dahlias as focal flower",
+            priceCents = 15000,
+        ))
+        bouquetRecipeRepository.persistItem(BouquetRecipeItem(recipeId = sommardrom.id!!, speciesId = cafeAuLait.id!!, stemCount = 5, role = ItemRole.FLOWER))
+        bouquetRecipeRepository.persistItem(BouquetRecipeItem(recipeId = sommardrom.id!!, speciesId = zinniaGiant.id!!, stemCount = 3, role = ItemRole.FLOWER))
+        bouquetRecipeRepository.persistItem(BouquetRecipeItem(recipeId = sommardrom.id!!, speciesId = cosmosDC.id!!, stemCount = 5, role = ItemRole.FILLER))
+        bouquetRecipeRepository.persistItem(BouquetRecipeItem(recipeId = sommardrom.id!!, speciesId = eucalyptus.id!!, stemCount = 3, role = ItemRole.FOLIAGE))
+
+        val solsken = bouquetRecipeRepository.persist(BouquetRecipe(
+            userId = userId, name = "Solsken",
+            description = "Sunshine — bright warm-toned bouquet for farmers market",
+            priceCents = 12000,
+        ))
+        bouquetRecipeRepository.persistItem(BouquetRecipeItem(recipeId = solsken.id!!, speciesId = sunProCut.id!!, stemCount = 3, role = ItemRole.FLOWER))
+        bouquetRecipeRepository.persistItem(BouquetRecipeItem(recipeId = solsken.id!!, speciesId = zinniaQLO.id!!, stemCount = 5, role = ItemRole.FLOWER))
+        bouquetRecipeRepository.persistItem(BouquetRecipeItem(recipeId = solsken.id!!, speciesId = snapMadame.id!!, stemCount = 3, role = ItemRole.ACCENT))
+
+        val romantik = bouquetRecipeRepository.persist(BouquetRecipe(
+            userId = userId, name = "Romantik",
+            description = "Romance — elegant wedding bouquet with soft tones",
+            priceCents = 18000,
+        ))
+        bouquetRecipeRepository.persistItem(BouquetRecipeItem(recipeId = romantik.id!!, speciesId = lisEcho.id!!, stemCount = 3, role = ItemRole.FLOWER))
+        bouquetRecipeRepository.persistItem(BouquetRecipeItem(recipeId = romantik.id!!, speciesId = ranunculus.id!!, stemCount = 3, role = ItemRole.FLOWER))
+        bouquetRecipeRepository.persistItem(BouquetRecipeItem(recipeId = romantik.id!!, speciesId = sweetPea.id!!, stemCount = 5, role = ItemRole.ACCENT))
+        bouquetRecipeRepository.persistItem(BouquetRecipeItem(recipeId = romantik.id!!, speciesId = eucalyptus.id!!, stemCount = 3, role = ItemRole.FOLIAGE))
+
+        // ── Pest/Disease Logs ──
+        pestDiseaseLogRepository.persist(PestDiseaseLog(
+            userId = userId, seasonId = s24, bedId = bedSweet.id!!,
+            speciesId = sweetPea.id!!, observedDate = LocalDate.of(2024, 6, 20),
+            category = PestCategory.PEST, name = "Aphids",
+            severity = Severity.MODERATE, treatment = "Insecticidal soap spray, 3 applications",
+            outcome = Outcome.RESOLVED,
+            notes = "Caught early. Concentrated on growing tips. Ladybugs helped after initial spray.",
+        ))
+        pestDiseaseLogRepository.persist(PestDiseaseLog(
+            userId = userId, seasonId = s25, bedId = bedAnnualA.id!!,
+            speciesId = zinniaGiant.id!!, observedDate = LocalDate.of(2025, 8, 5),
+            category = PestCategory.DISEASE, name = "Powdery mildew",
+            severity = Severity.HIGH, treatment = "Sulfur-based fungicide, improved air circulation",
+            outcome = Outcome.RESOLVED,
+            notes = "Late summer humidity triggered outbreak. Removed worst-affected leaves. Sulfur treatment effective.",
+        ))
+        pestDiseaseLogRepository.persist(PestDiseaseLog(
+            userId = userId, seasonId = s25, bedId = bedLis.id!!,
+            speciesId = lisEcho.id!!, observedDate = LocalDate.of(2025, 8, 20),
+            category = PestCategory.DISEASE, name = "Botrytis (gray mold)",
+            severity = Severity.MODERATE, treatment = "Improved ventilation, reduced watering frequency",
+            outcome = Outcome.ONGOING,
+            notes = "Tunnel humidity too high. Some bud drop. Need better ventilation system for 2026.",
+        ))
+        pestDiseaseLogRepository.persist(PestDiseaseLog(
+            userId = userId, seasonId = s26, bedId = bedDahlia.id!!,
+            speciesId = cafeAuLait.id!!, observedDate = LocalDate.of(2026, 5, 28),
+            category = PestCategory.PEST, name = "Thrips",
+            severity = Severity.LOW, outcome = Outcome.MONITORING,
+            notes = "Low numbers found on new growth. Monitoring weekly. Will treat if numbers increase.",
+        ))
 
         return Response.ok(SeedResult(
-            speciesCount = speciesDefs.size,
-            groupCount = groups.size,
+            speciesCount = allSpecies.size,
+            groupCount = 3,
             tagCount = tags.size,
-            gardenCount = 2,
+            gardenCount = 1,
             bedCount = beds.size,
-            plantCount = plantDefs.size,
-            eventCount = eventCount,
+            plantCount = counters.plants,
+            eventCount = counters.events,
             seedInventoryCount = seedInvCount,
-            taskCount = taskDefs.size,
+            taskCount = 6,
+            seasonCount = 3,
+            customerCount = customerIds.size,
+            pestDiseaseLogCount = 4,
+            varietyTrialCount = 9,
+            bouquetRecipeCount = 3,
+            successionScheduleCount = 2,
+            productionTargetCount = 3,
         )).build()
     }
 
