@@ -2,19 +2,16 @@ package app.verdant.resource
 
 import app.verdant.entity.*
 import app.verdant.repository.*
-import io.quarkus.security.Authenticated
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
-import org.eclipse.microprofile.jwt.JsonWebToken
 import java.time.LocalDate
 
 @Path("/api/dev")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Authenticated
 class DevResource(
-    private val jwt: JsonWebToken,
+    private val userRepository: UserRepository,
     private val speciesRepository: SpeciesRepository,
     private val speciesGroupRepository: SpeciesGroupRepository,
     private val speciesTagRepository: SpeciesTagRepository,
@@ -32,8 +29,6 @@ class DevResource(
     private val successionScheduleRepository: SuccessionScheduleRepository,
     private val productionTargetRepository: ProductionTargetRepository,
 ) {
-    private fun userId() = jwt.subject.toLong()
-
     data class SeedResult(
         val speciesCount: Int,
         val groupCount: Int,
@@ -125,8 +120,13 @@ class DevResource(
 
     @POST
     @Path("/seed")
-    fun seedTestData(): Response {
-        val userId = userId()
+    fun seedTestData(@QueryParam("email") email: String?): Response {
+        val targetEmail = email ?: "erik@l2c.se"
+        val user = userRepository.findByEmail(targetEmail)
+            ?: return Response.status(Response.Status.BAD_REQUEST)
+                .entity(mapOf("error" to "User '$targetEmail' not found. Log in with Google first to create the account."))
+                .build()
+        val userId = user.id!!
         val counters = Counters()
 
         // ── Seasons ──
