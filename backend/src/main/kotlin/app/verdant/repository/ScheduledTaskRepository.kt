@@ -35,8 +35,8 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
     fun persist(task: ScheduledTask): ScheduledTask {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO scheduled_task (user_id, species_id, activity_type, deadline, target_count, remaining_count, status, notes, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
+                """INSERT INTO scheduled_task (user_id, species_id, activity_type, deadline, target_count, remaining_count, status, notes, season_id, succession_schedule_id, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setLong(1, task.userId)
@@ -47,6 +47,8 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
                 ps.setInt(6, task.remainingCount)
                 ps.setString(7, task.status.name)
                 ps.setString(8, task.notes)
+                ps.setObject(9, task.seasonId)
+                ps.setObject(10, task.successionScheduleId)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -60,7 +62,8 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """UPDATE scheduled_task SET species_id = ?, activity_type = ?, deadline = ?,
-                   target_count = ?, remaining_count = ?, status = ?, notes = ?, updated_at = now()
+                   target_count = ?, remaining_count = ?, status = ?, notes = ?,
+                   season_id = ?, succession_schedule_id = ?, updated_at = now()
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setLong(1, task.speciesId)
@@ -70,7 +73,9 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
                 ps.setInt(5, task.remainingCount)
                 ps.setString(6, task.status.name)
                 ps.setString(7, task.notes)
-                ps.setLong(8, task.id!!)
+                ps.setObject(8, task.seasonId)
+                ps.setObject(9, task.successionScheduleId)
+                ps.setLong(10, task.id!!)
                 ps.executeUpdate()
             }
         }
@@ -112,6 +117,8 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
         remainingCount = getInt("remaining_count"),
         status = ScheduledTaskStatus.valueOf(getString("status")),
         notes = getString("notes"),
+        seasonId = getObject("season_id") as? Long,
+        successionScheduleId = getObject("succession_schedule_id") as? Long,
         createdAt = getTimestamp("created_at").toInstant(),
         updatedAt = getTimestamp("updated_at").toInstant(),
     )

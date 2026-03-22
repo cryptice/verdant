@@ -51,14 +51,16 @@ class BedRepository(private val ds: AgroalDataSource) {
     fun persist(bed: Bed): Bed {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO bed (name, description, garden_id, boundary_json, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, now(), now())""",
+                """INSERT INTO bed (name, description, garden_id, boundary_json, length_meters, width_meters, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, now(), now())""",
                 arrayOf("id")
             ).use { ps ->
                 ps.setString(1, bed.name)
                 ps.setString(2, bed.description)
                 ps.setLong(3, bed.gardenId)
                 ps.setString(4, bed.boundaryJson)
+                bed.lengthMeters?.let { ps.setDouble(5, it) } ?: ps.setNull(5, java.sql.Types.DOUBLE)
+                bed.widthMeters?.let { ps.setDouble(6, it) } ?: ps.setNull(6, java.sql.Types.DOUBLE)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -71,12 +73,14 @@ class BedRepository(private val ds: AgroalDataSource) {
     fun update(bed: Bed) {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                "UPDATE bed SET name = ?, description = ?, boundary_json = ?, updated_at = now() WHERE id = ?"
+                "UPDATE bed SET name = ?, description = ?, boundary_json = ?, length_meters = ?, width_meters = ?, updated_at = now() WHERE id = ?"
             ).use { ps ->
                 ps.setString(1, bed.name)
                 ps.setString(2, bed.description)
                 ps.setString(3, bed.boundaryJson)
-                ps.setLong(4, bed.id!!)
+                bed.lengthMeters?.let { ps.setDouble(4, it) } ?: ps.setNull(4, java.sql.Types.DOUBLE)
+                bed.widthMeters?.let { ps.setDouble(5, it) } ?: ps.setNull(5, java.sql.Types.DOUBLE)
+                ps.setLong(6, bed.id!!)
                 ps.executeUpdate()
             }
         }
@@ -98,6 +102,8 @@ class BedRepository(private val ds: AgroalDataSource) {
         description = getString("description"),
         gardenId = getLong("garden_id"),
         boundaryJson = getString("boundary_json"),
+        lengthMeters = getDouble("length_meters").takeIf { !wasNull() },
+        widthMeters = getDouble("width_meters").takeIf { !wasNull() },
         createdAt = getTimestamp("created_at").toInstant(),
         updatedAt = getTimestamp("updated_at").toInstant(),
     )
