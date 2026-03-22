@@ -83,4 +83,13 @@ class GardenRepository @Inject constructor(private val api: VerdantApi) {
     suspend fun updateTask(id: Long, request: UpdateScheduledTaskRequest) = api.updateTask(id, request)
     suspend fun completeTaskPartially(id: Long, request: CompleteTaskPartiallyRequest) = api.completeTaskPartially(id, request)
     suspend fun deleteTask(id: Long) = api.deleteTask(id)
+
+    // Seasons
+    suspend fun getSeasons() = api.getSeasons()
+    suspend fun createSeason(request: CreateSeasonRequest) = api.createSeason(request)
+    suspend fun updateSeason(id: Long, request: Map<String, Any?>) = api.updateSeason(id, request)
+    suspend fun deleteSeason(id: Long) = api.deleteSeason(id)
+
+    // Customers
+    suspend fun getCustomers() = api.getCustomers()
 }

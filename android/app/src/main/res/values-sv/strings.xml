@@ -297,4 +297,33 @@
     <string name="providers">Leverant\u00F6rer</string>
     <string name="no_providers">Inga leverant\u00F6rer</string>
     <string name="product_page">Produktsida</string>
+
+    <!-- Seasons -->
+    <string name="seasons">S\u00E4songer</string>
+    <string name="new_season">Ny s\u00E4song</string>
+    <string name="edit_season">Redigera s\u00E4song</string>
+    <string name="season_name">Namn</string>
+    <string name="season_year">\u00C5r</string>
+    <string name="active_season">Aktiv</string>
+    <string name="last_frost">Sista frost</string>
+    <string name="first_frost">F\u00F6rsta frost</string>
+    <string name="no_seasons">Inga s\u00E4songer \u00E4nnu</string>
+
+    <!-- Harvest / Flower Fields -->
+    <string name="stem_count">Stj\u00E4lkar</string>
+    <string name="stem_length">Stj\u00E4lkl\u00E4ngd (cm)</string>
+    <string name="quality_grade">Kvalitet</string>
+    <string name="destination">Destination</string>
+
+    <!-- Additional Event Types -->
+    <string name="budding">Knoppning</string>
+    <string name="first_bloom">F\u00F6rsta blomning</string>
+    <string name="peak_bloom">Full blomning</string>
+    <string name="last_bloom">Sista blomning</string>
+    <string name="lifted">Upptaget</string>
+    <string name="divided">Delat</string>
+    <string name="stored">Lagrat</string>
+    <string name="pinched">Toppad</string>
+    <string name="disbudded">Avknoppad</string>
+    <string name="dormant">Vilande</string>
 </resources>

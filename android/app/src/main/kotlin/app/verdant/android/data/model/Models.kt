@@ -58,6 +58,8 @@ data class BedResponse(
     val description: String?,
     val gardenId: Long,
     val boundaryJson: String?,
+    val lengthMeters: Double? = null,
+    val widthMeters: Double? = null,
     val createdAt: String,
     val updatedAt: String
 )
@@ -237,6 +239,12 @@ data class PlantEventResponse(
     val notes: String?,
     val imageUrl: String?,
     val aiSuggestions: String?,
+    val stemCount: Int? = null,
+    val stemLengthCm: Int? = null,
+    val qualityGrade: String? = null,
+    val vaseLifeDays: Int? = null,
+    val harvestDestinationId: Long? = null,
+    val customerName: String? = null,
     val createdAt: String,
 )
 
@@ -249,6 +257,10 @@ data class CreatePlantEventRequest(
     val notes: String? = null,
     val imageBase64: String? = null,
     val aiSuggestions: String? = null,
+    val stemCount: Int? = null,
+    val stemLengthCm: Int? = null,
+    val qualityGrade: String? = null,
+    val harvestDestinationId: Long? = null,
 )
 
 data class IdentifyPlantRequest(
@@ -331,6 +343,10 @@ data class SpeciesResponse(
     val tags: List<SpeciesTagResponse>,
     val providers: List<SpeciesProviderResponse> = emptyList(),
     val isSystem: Boolean = false,
+    val costPerSeedCents: Int? = null,
+    val expectedStemsPerPlant: Int? = null,
+    val expectedVaseLifeDays: Int? = null,
+    val plantType: String? = null,
     val createdAt: String,
 )
 
@@ -433,6 +449,9 @@ data class SeedInventoryResponse(
     val quantity: Int,
     val collectionDate: String?,
     val expirationDate: String?,
+    val costPerUnitCents: Int? = null,
+    val unitType: String? = null,
+    val seasonId: Long? = null,
     val createdAt: String,
 )
 
@@ -484,6 +503,8 @@ data class ScheduledTaskResponse(
     val remainingCount: Int,
     val status: String,
     val notes: String?,
+    val seasonId: Long? = null,
+    val successionScheduleId: Long? = null,
     val createdAt: String,
     val updatedAt: String,
 )
@@ -506,4 +527,81 @@ data class UpdateScheduledTaskRequest(
 
 data class CompleteTaskPartiallyRequest(
     val processedCount: Int,
+)
+
+// ── Seasons ──
+
+data class SeasonResponse(
+    val id: Long,
+    val name: String,
+    val year: Int,
+    val startDate: String?,
+    val endDate: String?,
+    val lastFrostDate: String?,
+    val firstFrostDate: String?,
+    val growingDegreeBaseC: Double?,
+    val notes: String?,
+    val isActive: Boolean,
+    val createdAt: String,
+    val updatedAt: String,
+)
+
+data class CreateSeasonRequest(
+    val name: String,
+    val year: Int,
+    val lastFrostDate: String? = null,
+    val firstFrostDate: String? = null,
+    val notes: String? = null,
+)
+
+// ── Customers ──
+
+data class CustomerResponse(
+    val id: Long,
+    val name: String,
+    val channel: String,
+    val contactInfo: String?,
+    val notes: String?,
+    val createdAt: String,
+)
+
+// ── Production Targets ──
+
+data class ProductionTargetResponse(
+    val id: Long,
+    val seasonId: Long,
+    val speciesId: Long,
+    val speciesName: String,
+    val stemsPerWeek: Int,
+    val startDate: String,
+    val endDate: String,
+    val notes: String?,
+    val createdAt: String,
+)
+
+data class ProductionForecastResponse(
+    val targetId: Long,
+    val speciesName: String,
+    val totalStemsNeeded: Int,
+    val plantsNeeded: Int,
+    val seedsNeeded: Int,
+    val suggestedSowDate: String?,
+    val weeksOfDelivery: Int,
+    val warnings: List<String>,
+)
+
+// ── Succession Schedules ──
+
+data class SuccessionScheduleResponse(
+    val id: Long,
+    val seasonId: Long,
+    val speciesId: Long,
+    val speciesName: String,
+    val bedId: Long?,
+    val firstSowDate: String,
+    val intervalDays: Int,
+    val totalSuccessions: Int,
+    val seedsPerSuccession: Int,
+    val notes: String?,
+    val createdAt: String,
 )

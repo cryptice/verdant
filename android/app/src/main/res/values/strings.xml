@@ -299,4 +299,33 @@
     <string name="providers">Providers</string>
     <string name="no_providers">No providers</string>
     <string name="product_page">Product page</string>
+
+    <!-- Seasons -->
+    <string name="seasons">Seasons</string>
+    <string name="new_season">New Season</string>
+    <string name="edit_season">Edit Season</string>
+    <string name="season_name">Name</string>
+    <string name="season_year">Year</string>
+    <string name="active_season">Active</string>
+    <string name="last_frost">Last frost</string>
+    <string name="first_frost">First frost</string>
+    <string name="no_seasons">No seasons yet</string>
+
+    <!-- Harvest / Flower Fields -->
+    <string name="stem_count">Stems</string>
+    <string name="stem_length">Stem length (cm)</string>
+    <string name="quality_grade">Quality</string>
+    <string name="destination">Destination</string>
+
+    <!-- Additional Event Types -->
+    <string name="budding">Budding</string>
+    <string name="first_bloom">First bloom</string>
+    <string name="peak_bloom">Peak bloom</string>
+    <string name="last_bloom">Last bloom</string>
+    <string name="lifted">Lifted</string>
+    <string name="divided">Divided</string>
+    <string name="stored">Stored</string>
+    <string name="pinched">Pinched</string>
+    <string name="disbudded">Disbudded</string>
+    <string name="dormant">Dormant</string>
 </resources>

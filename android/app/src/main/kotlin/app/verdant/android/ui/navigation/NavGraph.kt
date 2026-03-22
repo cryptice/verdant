@@ -38,6 +38,7 @@ import app.verdant.android.ui.inventory.SeedInventoryScreen
 import app.verdant.android.ui.plant.AddPlantEventScreen
 import app.verdant.android.ui.plant.CreatePlantScreen
 import app.verdant.android.ui.plant.PlantDetailScreen
+import app.verdant.android.ui.season.SeasonSelectorScreen
 import app.verdant.android.ui.splash.SplashScreen
 import app.verdant.android.ui.world.MyVerdantWorldScreen
 
@@ -81,6 +82,9 @@ sealed class Screen(val route: String) {
     data object EditTask : Screen("tasks/{taskId}/edit") {
         fun create(taskId: Long) = "tasks/$taskId/edit"
     }
+
+    // Seasons
+    data object Seasons : Screen("seasons")
 
     // Activity screens
     data object AddSpecies : Screen("activity/add-species")
@@ -188,6 +192,18 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                     onClick = {
                         scope.launch { drawerState.close() }
                         navController.navigate(Screen.SeedInventory.route) {
+                            popUpTo(Screen.MyWorld.route)
+                        }
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.seasons)) },
+                    icon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },
+                    selected = currentRoute == Screen.Seasons.route,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(Screen.Seasons.route) {
                             popUpTo(Screen.MyWorld.route)
                         }
                     },
@@ -372,6 +388,12 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                     onBack = { navController.popBackStack() },
                     onAddSeeds = { navController.navigate(Screen.AddSeeds.route) }
                 )
+            }
+
+            // ── Seasons ──
+
+            composable(Screen.Seasons.route) {
+                SeasonSelectorScreen(onBack = { navController.popBackStack() })
             }
 
             // ── Planted Species ──

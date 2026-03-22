@@ -8,6 +8,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,6 +36,7 @@ import app.verdant.android.R
 import app.verdant.android.ui.activity.toCompressedBase64
 import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.model.CreatePlantEventRequest
+import app.verdant.android.data.model.CustomerResponse
 import app.verdant.android.data.model.IdentifyPlantRequest
 import app.verdant.android.data.model.PlantSuggestion
 import app.verdant.android.data.repository.GardenRepository
@@ -54,6 +56,7 @@ data class AddPlantEventState(
     val error: String? = null,
     val identifying: Boolean = false,
     val suggestions: List<PlantSuggestion> = emptyList(),
+    val customers: List<CustomerResponse> = emptyList(),
 )
 
 @HiltViewModel
@@ -64,6 +67,19 @@ class AddPlantEventViewModel @Inject constructor(
     val plantId: Long = savedStateHandle.get<Long>("plantId")!!
     private val _uiState = MutableStateFlow(AddPlantEventState())
     val uiState = _uiState.asStateFlow()
+
+    init { loadCustomers() }
+
+    private fun loadCustomers() {
+        viewModelScope.launch {
+            try {
+                val customers = gardenRepository.getCustomers()
+                _uiState.value = _uiState.value.copy(customers = customers)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load customers", e)
+            }
+        }
+    }
 
     fun addEvent(request: CreatePlantEventRequest) {
         viewModelScope.launch {
@@ -101,11 +117,38 @@ fun AddPlantEventScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    val eventTypes = listOf("SEEDED", "POTTED_UP", "PLANTED_OUT", "HARVESTED", "RECOVERED", "REMOVED", "NOTE")
+    val eventTypes = listOf(
+        "SEEDED", "POTTED_UP", "PLANTED_OUT", "HARVESTED", "RECOVERED", "REMOVED", "NOTE",
+        "BUDDING", "FIRST_BLOOM", "PEAK_BLOOM", "LAST_BLOOM",
+        "LIFTED", "DIVIDED", "STORED", "PINCHED", "DISBUDDED",
+    )
+    val eventTypeLabels = mapOf(
+        "SEEDED" to R.string.event_seeded,
+        "POTTED_UP" to R.string.event_potted_up,
+        "PLANTED_OUT" to R.string.event_planted_out,
+        "HARVESTED" to R.string.event_harvested,
+        "RECOVERED" to R.string.event_recovered,
+        "REMOVED" to R.string.event_removed,
+        "NOTE" to R.string.event_note,
+        "BUDDING" to R.string.budding,
+        "FIRST_BLOOM" to R.string.first_bloom,
+        "PEAK_BLOOM" to R.string.peak_bloom,
+        "LAST_BLOOM" to R.string.last_bloom,
+        "LIFTED" to R.string.lifted,
+        "DIVIDED" to R.string.divided,
+        "STORED" to R.string.stored,
+        "PINCHED" to R.string.pinched,
+        "DISBUDDED" to R.string.disbudded,
+    )
     var selectedType by remember { mutableStateOf("NOTE") }
     var plantCount by remember { mutableStateOf("") }
     var weightGrams by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("") }
+    var stemCount by remember { mutableStateOf("") }
+    var stemLengthCm by remember { mutableStateOf("") }
+    var qualityGrade by remember { mutableStateOf<String?>(null) }
+    var selectedCustomerId by remember { mutableStateOf<Long?>(null) }
+    var customerDropdownExpanded by remember { mutableStateOf(false) }
     var notes by remember { mutableStateOf("") }
     var imageBase64 by remember { mutableStateOf<String?>(null) }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -178,17 +221,31 @@ fun AddPlantEventScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Event type chips
+            // Event type chips -- primary types
             Text(stringResource(R.string.event_type), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            val primaryTypes = listOf("SEEDED", "POTTED_UP", "PLANTED_OUT", "HARVESTED", "RECOVERED", "REMOVED", "NOTE")
+            val secondaryTypes = listOf("BUDDING", "FIRST_BLOOM", "PEAK_BLOOM", "LAST_BLOOM", "LIFTED", "DIVIDED", "STORED", "PINCHED", "DISBUDDED")
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                eventTypes.forEach { type ->
+                primaryTypes.forEach { type ->
                     FilterChip(
                         selected = selectedType == type,
                         onClick = { selectedType = type },
-                        label = { Text(type.replace("_", " "), fontSize = 11.sp) }
+                        label = { Text(stringResource(eventTypeLabels[type] ?: R.string.event_note), fontSize = 11.sp) }
+                    )
+                }
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                secondaryTypes.forEach { type ->
+                    FilterChip(
+                        selected = selectedType == type,
+                        onClick = { selectedType = type },
+                        label = { Text(stringResource(eventTypeLabels[type] ?: R.string.event_note), fontSize = 11.sp) }
                     )
                 }
             }
@@ -219,6 +276,67 @@ fun AddPlantEventScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
+                // Flower-specific harvest fields
+                OutlinedTextField(
+                    value = stemCount,
+                    onValueChange = { stemCount = it.filter { c -> c.isDigit() } },
+                    label = { Text(stringResource(R.string.stem_count)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                OutlinedTextField(
+                    value = stemLengthCm,
+                    onValueChange = { stemLengthCm = it.filter { c -> c.isDigit() } },
+                    label = { Text(stringResource(R.string.stem_length)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                // Quality grade
+                Text(stringResource(R.string.quality_grade), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("A", "B", "C").forEach { grade ->
+                        FilterChip(
+                            selected = qualityGrade == grade,
+                            onClick = { qualityGrade = if (qualityGrade == grade) null else grade },
+                            label = { Text(grade) }
+                        )
+                    }
+                }
+                // Destination (customer dropdown)
+                if (uiState.customers.isNotEmpty()) {
+                    Text(stringResource(R.string.destination), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Box {
+                        OutlinedTextField(
+                            value = uiState.customers.find { it.id == selectedCustomerId }?.name ?: "",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text(stringResource(R.string.destination)) },
+                            modifier = Modifier.fillMaxWidth().clickable { customerDropdownExpanded = true },
+                            shape = RoundedCornerShape(12.dp),
+                            enabled = false,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                                disabledBorderColor = MaterialTheme.colorScheme.outline,
+                                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        )
+                        DropdownMenu(
+                            expanded = customerDropdownExpanded,
+                            onDismissRequest = { customerDropdownExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.none)) },
+                                onClick = { selectedCustomerId = null; customerDropdownExpanded = false }
+                            )
+                            uiState.customers.forEach { customer ->
+                                DropdownMenuItem(
+                                    text = { Text(customer.name) },
+                                    onClick = { selectedCustomerId = customer.id; customerDropdownExpanded = false }
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             // Photo
@@ -302,6 +420,10 @@ fun AddPlantEventScreen(
                             notes = notes.ifBlank { null },
                             imageBase64 = imageBase64,
                             aiSuggestions = suggestionsJson,
+                            stemCount = stemCount.toIntOrNull(),
+                            stemLengthCm = stemLengthCm.toIntOrNull(),
+                            qualityGrade = qualityGrade,
+                            harvestDestinationId = selectedCustomerId,
                         )
                     )
                 },

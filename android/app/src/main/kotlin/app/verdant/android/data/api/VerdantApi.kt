@@ -202,4 +202,23 @@ interface VerdantApi {
 
     @DELETE("api/tasks/{id}")
     suspend fun deleteTask(@Path("id") id: Long)
+
+    // ── Seasons ──
+
+    @GET("api/seasons")
+    suspend fun getSeasons(): List<SeasonResponse>
+
+    @POST("api/seasons")
+    suspend fun createSeason(@Body request: CreateSeasonRequest): SeasonResponse
+
+    @PUT("api/seasons/{id}")
+    suspend fun updateSeason(@Path("id") id: Long, @Body request: Map<String, Any?>): SeasonResponse
+
+    @DELETE("api/seasons/{id}")
+    suspend fun deleteSeason(@Path("id") id: Long)
+
+    // ── Customers ──
+
+    @GET("api/customers")
+    suspend fun getCustomers(): List<CustomerResponse>
 }
