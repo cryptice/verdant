@@ -37,13 +37,13 @@ class PlantService(
 
     // ── Plant CRUD ──
 
-    fun getAllPlantsForUser(userId: Long, status: PlantStatus? = null): List<PlantResponse> {
-        return plantRepository.findByUserId(userId, status).map { it.toResponse() }
+    fun getAllPlantsForUser(userId: Long, status: PlantStatus? = null, seasonId: Long? = null): List<PlantResponse> {
+        return plantRepository.findByUserId(userId, status, seasonId).map { it.toResponse() }
     }
 
-    fun getPlantsForBed(bedId: Long, userId: Long): List<PlantResponse> {
+    fun getPlantsForBed(bedId: Long, userId: Long, seasonId: Long? = null): List<PlantResponse> {
         checkBedOwnership(bedId, userId)
-        return plantRepository.findByBedId(bedId).map { it.toResponse() }
+        return plantRepository.findByBedId(bedId, seasonId).map { it.toResponse() }
     }
 
     fun getPlant(plantId: Long, userId: Long): PlantResponse {

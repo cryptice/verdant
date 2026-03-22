@@ -32,6 +32,20 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    fun findBySeasonId(userId: Long, seasonId: Long): List<ScheduledTask> =
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                """SELECT * FROM scheduled_task WHERE user_id = ? AND season_id = ?
+                   ORDER BY CASE status WHEN 'PENDING' THEN 0 ELSE 1 END, deadline"""
+            ).use { ps ->
+                ps.setLong(1, userId)
+                ps.setLong(2, seasonId)
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.toScheduledTask()) }
+                }
+            }
+        }
+
     fun persist(task: ScheduledTask): ScheduledTask {
         ds.connection.use { conn ->
             conn.prepareStatement(

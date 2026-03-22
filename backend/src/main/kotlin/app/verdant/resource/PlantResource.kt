@@ -24,12 +24,13 @@ class PlantResource(
 
     @GET
     @Path("/plants")
-    fun listAll(@QueryParam("status") status: String?) =
-        plantService.getAllPlantsForUser(userId(), status?.let { app.verdant.entity.PlantStatus.valueOf(it) })
+    fun listAll(@QueryParam("status") status: String?, @QueryParam("seasonId") seasonId: Long?) =
+        plantService.getAllPlantsForUser(userId(), status?.let { app.verdant.entity.PlantStatus.valueOf(it) }, seasonId)
 
     @GET
     @Path("/beds/{bedId}/plants")
-    fun list(@PathParam("bedId") bedId: Long) = plantService.getPlantsForBed(bedId, userId())
+    fun list(@PathParam("bedId") bedId: Long, @QueryParam("seasonId") seasonId: Long?) =
+        plantService.getPlantsForBed(bedId, userId(), seasonId)
 
     @GET
     @Path("/plants/{id}")

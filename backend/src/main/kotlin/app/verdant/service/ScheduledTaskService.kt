@@ -23,8 +23,14 @@ class ScheduledTaskService(
     private fun resolveSpeciesName(speciesId: Long): String =
         speciesRepository.findById(speciesId)?.commonName ?: "Unknown"
 
-    fun getTasksForUser(userId: Long): List<ScheduledTaskResponse> =
-        taskRepository.findByUserId(userId).map { it.toResponse() }
+    fun getTasksForUser(userId: Long, seasonId: Long? = null): List<ScheduledTaskResponse> {
+        val tasks = if (seasonId != null) {
+            taskRepository.findBySeasonId(userId, seasonId)
+        } else {
+            taskRepository.findByUserId(userId)
+        }
+        return tasks.map { it.toResponse() }
+    }
 
     fun getTask(taskId: Long, userId: Long): ScheduledTaskResponse =
         checkOwnership(taskId, userId).toResponse()

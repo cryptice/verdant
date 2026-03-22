@@ -14,9 +14,11 @@ class SeedInventoryService(
     private val repo: SeedInventoryRepository,
     private val speciesRepo: SpeciesRepository,
 ) {
-    fun getInventoryForUser(userId: Long, speciesId: Long? = null): List<SeedInventoryResponse> {
+    fun getInventoryForUser(userId: Long, speciesId: Long? = null, seasonId: Long? = null): List<SeedInventoryResponse> {
         val items = if (speciesId != null) {
             repo.findByUserIdAndSpeciesId(userId, speciesId)
+        } else if (seasonId != null) {
+            repo.findBySeasonId(userId, seasonId)
         } else {
             repo.findByUserId(userId)
         }

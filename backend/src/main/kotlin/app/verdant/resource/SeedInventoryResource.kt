@@ -19,8 +19,8 @@ class SeedInventoryResource(
     private fun userId() = jwt.subject.toLong()
 
     @GET
-    fun list(@QueryParam("speciesId") speciesId: Long?) =
-        service.getInventoryForUser(userId(), speciesId)
+    fun list(@QueryParam("speciesId") speciesId: Long?, @QueryParam("seasonId") seasonId: Long?) =
+        service.getInventoryForUser(userId(), speciesId, seasonId)
 
     @POST
     fun create(request: CreateSeedInventoryRequest): Response {

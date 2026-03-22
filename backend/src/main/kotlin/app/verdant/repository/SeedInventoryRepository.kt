@@ -33,6 +33,22 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    fun findBySeasonId(userId: Long, seasonId: Long): List<SeedInventory> =
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                """SELECT si.* FROM seed_inventory si
+                   JOIN species s ON si.species_id = s.id
+                   WHERE si.user_id = ? AND si.season_id = ?
+                   ORDER BY s.common_name, si.expiration_date NULLS LAST"""
+            ).use { ps ->
+                ps.setLong(1, userId)
+                ps.setLong(2, seasonId)
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.toSeedInventory()) }
+                }
+            }
+        }
+
     fun findByUserIdAndSpeciesId(userId: Long, speciesId: Long): List<SeedInventory> =
         ds.connection.use { conn ->
             conn.prepareStatement(

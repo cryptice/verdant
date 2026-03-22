@@ -21,7 +21,8 @@ class ScheduledTaskResource(
     private fun userId() = jwt.subject.toLong()
 
     @GET
-    fun list() = taskService.getTasksForUser(userId())
+    fun list(@QueryParam("seasonId") seasonId: Long?) =
+        taskService.getTasksForUser(userId(), seasonId)
 
     @GET
     @Path("/{id}")

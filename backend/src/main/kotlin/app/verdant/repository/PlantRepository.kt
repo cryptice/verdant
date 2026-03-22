@@ -21,26 +21,35 @@ class PlantRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByBedId(bedId: Long): List<Plant> =
+    fun findByBedId(bedId: Long, seasonId: Long? = null): List<Plant> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM plant WHERE bed_id = ? ORDER BY id").use { ps ->
+            val sql = buildString {
+                append("SELECT * FROM plant WHERE bed_id = ?")
+                if (seasonId != null) append(" AND season_id = ?")
+                append(" ORDER BY id")
+            }
+            conn.prepareStatement(sql).use { ps ->
                 ps.setLong(1, bedId)
+                if (seasonId != null) ps.setLong(2, seasonId)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toPlant()) }
                 }
             }
         }
 
-    fun findByUserId(userId: Long, status: PlantStatus? = null): List<Plant> =
+    fun findByUserId(userId: Long, status: PlantStatus? = null, seasonId: Long? = null): List<Plant> =
         ds.connection.use { conn ->
             val sql = buildString {
                 append("SELECT p.* FROM plant p WHERE p.user_id = ?")
                 if (status != null) append(" AND p.status = ?")
+                if (seasonId != null) append(" AND p.season_id = ?")
                 append(" ORDER BY p.id")
             }
             conn.prepareStatement(sql).use { ps ->
-                ps.setLong(1, userId)
-                if (status != null) ps.setString(2, status.name)
+                var idx = 1
+                ps.setLong(idx++, userId)
+                if (status != null) ps.setString(idx++, status.name)
+                if (seasonId != null) ps.setLong(idx++, seasonId)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toPlant()) }
                 }
