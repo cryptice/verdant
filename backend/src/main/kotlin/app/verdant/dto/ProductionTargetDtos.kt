@@ -32,3 +32,18 @@ data class UpdateProductionTargetRequest(
     val endDate: LocalDate? = null,
     val notes: String? = null,
 )
+
+data class ProductionForecastResponse(
+    val targetId: Long,
+    val speciesId: Long,
+    val speciesName: String?,
+    val totalWeeks: Long,
+    val totalStemsNeeded: Long,
+    val stemsPerPlant: Int,
+    val plantsNeeded: Long,
+    val germinationRate: Int,
+    val seedsNeeded: Long,
+    val daysToHarvest: Int,
+    val suggestedSowDate: LocalDate,
+    val warnings: List<String>,
+)
