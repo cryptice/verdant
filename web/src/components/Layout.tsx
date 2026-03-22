@@ -14,6 +14,10 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
     { to: '/plants', label: t('nav.plants'), icon: '🌱' },
     { to: '/tasks', label: t('nav.tasks'), icon: '📋' },
     { to: '/seeds', label: t('nav.seeds'), icon: '🫘' },
+    { to: '/customers', label: t('nav.customers'), icon: '👥' },
+    { to: '/bouquets', label: t('nav.bouquets'), icon: '💐' },
+    { to: '/trials', label: t('nav.trials'), icon: '🔬' },
+    { to: '/pest-disease', label: t('nav.pestDisease'), icon: '🐛' },
     { to: '/account', label: t('nav.account'), icon: '👤' },
   ]
 

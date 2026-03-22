@@ -16,6 +16,10 @@ import { SeedInventory } from './pages/SeedInventory'
 import { SowActivity } from './pages/SowActivity'
 import { SpeciesList } from './pages/SpeciesList'
 import { SeasonList } from './pages/SeasonList'
+import { CustomerList } from './pages/CustomerList'
+import { PestDiseaseLog } from './pages/PestDiseaseLog'
+import { VarietyTrials } from './pages/VarietyTrials'
+import { BouquetRecipes } from './pages/BouquetRecipes'
 import { Account } from './pages/Account'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -54,6 +58,10 @@ export function App() {
         <Route path="sow" element={<SowActivity />} />
         <Route path="species" element={<SpeciesList />} />
         <Route path="seasons" element={<SeasonList />} />
+        <Route path="customers" element={<CustomerList />} />
+        <Route path="pest-disease" element={<PestDiseaseLog />} />
+        <Route path="trials" element={<VarietyTrials />} />
+        <Route path="bouquets" element={<BouquetRecipes />} />
         <Route path="account" element={<Account />} />
       </Route>
       {/* Unauthenticated root shows landing page, authenticated shows dashboard via ProtectedRoute */}

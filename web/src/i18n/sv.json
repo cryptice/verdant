@@ -6,6 +6,10 @@
     "tasks": "Uppgifter",
     "seeds": "Frön",
     "seasons": "Säsonger",
+    "customers": "Kunder",
+    "pestDisease": "Skadedjur & sjukdomar",
+    "trials": "Försök",
+    "bouquets": "Buketter",
     "account": "Konto"
   },
   "common": {
@@ -283,6 +287,106 @@
     "noSeasons": "Inga säsonger ännu",
     "deleteSeason": "Radera säsong",
     "deleteSeasonConfirm": "Radera denna säsong och avlänka all relaterad data?"
+  },
+  "customers": {
+    "title": "Kunder",
+    "newCustomer": "+ Ny kund",
+    "editCustomer": "Redigera kund",
+    "name": "Namn",
+    "channel": "Kanal",
+    "contactInfo": "Kontaktinfo",
+    "noCustomers": "Inga kunder ännu",
+    "deleteCustomer": "Radera kund",
+    "deleteConfirm": "Radera denna kund?"
+  },
+  "channels": {
+    "FLORIST": "Florist",
+    "FARMERS_MARKET": "Torgförsäljning",
+    "CSA": "Prenumeration",
+    "WEDDING": "Bröllop",
+    "WHOLESALE": "Grossist",
+    "DIRECT": "Direkt",
+    "OTHER": "Övrigt"
+  },
+  "pestDisease": {
+    "title": "Skadedjur & sjukdomar",
+    "new": "+ Ny post",
+    "edit": "Redigera post",
+    "observedDate": "Datum",
+    "category": "Kategori",
+    "name": "Namn",
+    "severity": "Allvarlighetsgrad",
+    "treatment": "Behandling",
+    "outcome": "Resultat",
+    "noEntries": "Inga poster",
+    "deleteEntry": "Radera post",
+    "deleteConfirm": "Radera denna post?",
+    "allSeasons": "Alla säsonger"
+  },
+  "pestCategories": {
+    "PEST": "Skadedjur",
+    "DISEASE": "Sjukdom",
+    "DEFICIENCY": "Brist",
+    "OTHER": "Övrigt"
+  },
+  "severities": {
+    "LOW": "Låg",
+    "MODERATE": "Måttlig",
+    "HIGH": "Hög",
+    "CRITICAL": "Kritisk"
+  },
+  "outcomes": {
+    "RESOLVED": "Löst",
+    "ONGOING": "Pågående",
+    "CROP_LOSS": "Skördeförlust",
+    "MONITORING": "Övervakas"
+  },
+  "trials": {
+    "title": "Sorteringsförsök",
+    "new": "+ Nytt försök",
+    "edit": "Redigera försök",
+    "plantCount": "Plantor",
+    "stemYield": "Stjälkar",
+    "avgLength": "Medellängd",
+    "avgVaseLife": "Medelvassliv",
+    "qualityScore": "Kvalitet",
+    "reception": "Mottagande",
+    "verdict": "Beslut",
+    "noTrials": "Inga försök"
+  },
+  "verdicts": {
+    "KEEP": "Behåll",
+    "EXPAND": "Utöka",
+    "REDUCE": "Minska",
+    "DROP": "Sluta",
+    "UNDECIDED": "Obestämt"
+  },
+  "receptions": {
+    "LOVED": "Älskad",
+    "LIKED": "Omtyckt",
+    "NEUTRAL": "Neutral",
+    "DISLIKED": "Ogillad"
+  },
+  "bouquets": {
+    "title": "Bukettrecept",
+    "new": "+ Nytt recept",
+    "edit": "Redigera recept",
+    "name": "Namn",
+    "description": "Beskrivning",
+    "price": "Pris (öre)",
+    "addItem": "+ Lägg till stjälk",
+    "stemCount": "Antal",
+    "role": "Roll",
+    "noRecipes": "Inga recept",
+    "deleteRecipe": "Radera recept",
+    "deleteConfirm": "Radera detta recept?",
+    "stems": "{{count}} stjälkar"
+  },
+  "roles": {
+    "FLOWER": "Blomma",
+    "FOLIAGE": "Bladverk",
+    "FILLER": "Fyllnad",
+    "ACCENT": "Accent"
   },
   "unitTypes": {
     "SEED": "Frö",

@@ -6,6 +6,10 @@
     "tasks": "Tasks",
     "seeds": "Seeds",
     "seasons": "Seasons",
+    "customers": "Customers",
+    "pestDisease": "Pest & Disease",
+    "trials": "Trials",
+    "bouquets": "Bouquets",
     "account": "Account"
   },
   "common": {
@@ -283,6 +287,106 @@
     "noSeasons": "No seasons yet",
     "deleteSeason": "Delete season",
     "deleteSeasonConfirm": "Delete this season and unlink all related data?"
+  },
+  "customers": {
+    "title": "Customers",
+    "newCustomer": "+ New customer",
+    "editCustomer": "Edit Customer",
+    "name": "Name",
+    "channel": "Channel",
+    "contactInfo": "Contact info",
+    "noCustomers": "No customers yet",
+    "deleteCustomer": "Delete customer",
+    "deleteConfirm": "Delete this customer?"
+  },
+  "channels": {
+    "FLORIST": "Florist",
+    "FARMERS_MARKET": "Farmers market",
+    "CSA": "CSA",
+    "WEDDING": "Wedding",
+    "WHOLESALE": "Wholesale",
+    "DIRECT": "Direct",
+    "OTHER": "Other"
+  },
+  "pestDisease": {
+    "title": "Pest & Disease Log",
+    "new": "+ New entry",
+    "edit": "Edit Entry",
+    "observedDate": "Date",
+    "category": "Category",
+    "name": "Name",
+    "severity": "Severity",
+    "treatment": "Treatment",
+    "outcome": "Outcome",
+    "noEntries": "No entries",
+    "deleteEntry": "Delete entry",
+    "deleteConfirm": "Delete this entry?",
+    "allSeasons": "All seasons"
+  },
+  "pestCategories": {
+    "PEST": "Pest",
+    "DISEASE": "Disease",
+    "DEFICIENCY": "Deficiency",
+    "OTHER": "Other"
+  },
+  "severities": {
+    "LOW": "Low",
+    "MODERATE": "Moderate",
+    "HIGH": "High",
+    "CRITICAL": "Critical"
+  },
+  "outcomes": {
+    "RESOLVED": "Resolved",
+    "ONGOING": "Ongoing",
+    "CROP_LOSS": "Crop loss",
+    "MONITORING": "Monitoring"
+  },
+  "trials": {
+    "title": "Variety Trials",
+    "new": "+ New trial",
+    "edit": "Edit Trial",
+    "plantCount": "Plants",
+    "stemYield": "Stems",
+    "avgLength": "Avg length",
+    "avgVaseLife": "Avg vase life",
+    "qualityScore": "Quality",
+    "reception": "Reception",
+    "verdict": "Verdict",
+    "noTrials": "No trials"
+  },
+  "verdicts": {
+    "KEEP": "Keep",
+    "EXPAND": "Expand",
+    "REDUCE": "Reduce",
+    "DROP": "Drop",
+    "UNDECIDED": "Undecided"
+  },
+  "receptions": {
+    "LOVED": "Loved",
+    "LIKED": "Liked",
+    "NEUTRAL": "Neutral",
+    "DISLIKED": "Disliked"
+  },
+  "bouquets": {
+    "title": "Bouquet Recipes",
+    "new": "+ New recipe",
+    "edit": "Edit Recipe",
+    "name": "Name",
+    "description": "Description",
+    "price": "Price (öre)",
+    "addItem": "+ Add stem",
+    "stemCount": "Count",
+    "role": "Role",
+    "noRecipes": "No recipes",
+    "deleteRecipe": "Delete recipe",
+    "deleteConfirm": "Delete this recipe?",
+    "stems": "{{count}} stems"
+  },
+  "roles": {
+    "FLOWER": "Flower",
+    "FOLIAGE": "Foliage",
+    "FILLER": "Filler",
+    "ACCENT": "Accent"
   },
   "unitTypes": {
     "SEED": "Seed",
