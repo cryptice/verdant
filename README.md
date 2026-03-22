@@ -73,6 +73,23 @@ cp .env.yaml.template .env.yaml  # set your laptop IP and API keys
 
 Open in Android Studio and run on device/emulator.
 
+### Sample Data
+
+To populate the database with 3 seasons of realistic flower production data, first log in with Google to create your account, then:
+
+```bash
+# Local development
+curl -X POST http://localhost:8081/api/dev/seed
+
+# Production
+curl -X POST https://verdantplanner.com/api/dev/seed
+
+# For a different user
+curl -X POST https://verdantplanner.com/api/dev/seed?email=someone@example.com
+```
+
+Defaults to `erik@l2c.se`. Creates 16 cut flower species, 5 customers, 6 beds, ~45 plants across 2024-2026 with full harvest data, succession schedules, production targets, variety trials, bouquet recipes, and pest/disease logs.
+
 ### Database
 
 ```bash
