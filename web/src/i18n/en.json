@@ -10,7 +10,11 @@
     "pestDisease": "Pest & Disease",
     "trials": "Trials",
     "bouquets": "Bouquets",
-    "account": "Account"
+    "account": "Account",
+    "successions": "Successions",
+    "targets": "Targets",
+    "calendar": "Calendar",
+    "analytics": "Analytics"
   },
   "common": {
     "cancel": "Cancel",
@@ -394,5 +398,58 @@
     "BULB": "Bulb",
     "TUBER": "Tuber",
     "PLANT": "Plant"
+  },
+  "calendar": {
+    "title": "Crop Calendar",
+    "noData": "No data for this season",
+    "sow": "Sow",
+    "bloom": "Bloom",
+    "harvest": "Harvest"
+  },
+  "successions": {
+    "title": "Succession Planting",
+    "new": "+ New schedule",
+    "edit": "Edit Schedule",
+    "firstSow": "First sow date",
+    "interval": "Interval (days)",
+    "totalSuccessions": "Rounds",
+    "seedsPerRound": "Seeds per round",
+    "totalSeeds": "Total seeds",
+    "generateTasks": "Generate tasks",
+    "tasksGenerated": "{{count}} tasks created",
+    "noSchedules": "No schedules"
+  },
+  "targets": {
+    "title": "Production Targets",
+    "new": "+ New target",
+    "edit": "Edit Target",
+    "stemsPerWeek": "Stems/week",
+    "deliveryWindow": "Delivery window",
+    "startDate": "Start",
+    "endDate": "End",
+    "noTargets": "No targets",
+    "forecast": "Forecast",
+    "totalStems": "Total stems",
+    "plantsNeeded": "Plants needed",
+    "seedsNeeded": "Seeds needed",
+    "suggestedSow": "Suggested sow date",
+    "selectTarget": "Select a target to see forecast"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "seasonOverview": "Season Overview",
+    "speciesComparison": "Species Comparison",
+    "yieldPerBed": "Yield per Bed",
+    "totalStems": "Total stems",
+    "plants": "Plants",
+    "speciesCount": "Species",
+    "topSpecies": "Top species",
+    "selectSpecies": "Select species to compare",
+    "stemsPerPlant": "Stems/plant",
+    "avgLength": "Avg length",
+    "avgVaseLife": "Avg vase life",
+    "area": "Area",
+    "stemsPerM2": "Stems/m\u00B2",
+    "noData": "No analytics data yet"
   }
 }

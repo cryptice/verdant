@@ -10,7 +10,11 @@
     "pestDisease": "Skadedjur & sjukdomar",
     "trials": "Försök",
     "bouquets": "Buketter",
-    "account": "Konto"
+    "account": "Konto",
+    "successions": "Successioner",
+    "targets": "Mål",
+    "calendar": "Kalender",
+    "analytics": "Analys"
   },
   "common": {
     "cancel": "Avbryt",
@@ -394,5 +398,58 @@
     "BULB": "Lök",
     "TUBER": "Knöl",
     "PLANT": "Planta"
+  },
+  "calendar": {
+    "title": "Odlingskalender",
+    "noData": "Ingen data för denna säsong",
+    "sow": "Sådd",
+    "bloom": "Blomning",
+    "harvest": "Skörd"
+  },
+  "successions": {
+    "title": "Successionsodling",
+    "new": "+ Nytt schema",
+    "edit": "Redigera schema",
+    "firstSow": "Första sådatum",
+    "interval": "Intervall (dagar)",
+    "totalSuccessions": "Omgångar",
+    "seedsPerRound": "Frön per omgång",
+    "totalSeeds": "Totalt frön",
+    "generateTasks": "Skapa uppgifter",
+    "tasksGenerated": "{{count}} uppgifter skapade",
+    "noSchedules": "Inga scheman"
+  },
+  "targets": {
+    "title": "Produktionsmål",
+    "new": "+ Nytt mål",
+    "edit": "Redigera mål",
+    "stemsPerWeek": "Stjälkar/vecka",
+    "deliveryWindow": "Leveransperiod",
+    "startDate": "Start",
+    "endDate": "Slut",
+    "noTargets": "Inga mål",
+    "forecast": "Prognos",
+    "totalStems": "Totalt stjälkar",
+    "plantsNeeded": "Plantor behövs",
+    "seedsNeeded": "Frön behövs",
+    "suggestedSow": "Föreslaget sådatum",
+    "selectTarget": "Välj ett mål för att se prognos"
+  },
+  "analytics": {
+    "title": "Analys",
+    "seasonOverview": "Säsongsöversikt",
+    "speciesComparison": "Artjämförelse",
+    "yieldPerBed": "Skörd per bädd",
+    "totalStems": "Totalt stjälkar",
+    "plants": "Plantor",
+    "speciesCount": "Arter",
+    "topSpecies": "Topparter",
+    "selectSpecies": "Välj art att jämföra",
+    "stemsPerPlant": "Stjälkar/planta",
+    "avgLength": "Medellängd",
+    "avgVaseLife": "Medelvassliv",
+    "area": "Yta",
+    "stemsPerM2": "Stjälkar/m\u00B2",
+    "noData": "Ingen analysdata ännu"
   }
 }
