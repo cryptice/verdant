@@ -353,7 +353,7 @@
     "plantCount": "Plantor",
     "stemYield": "Stjälkar",
     "avgLength": "Medellängd",
-    "avgVaseLife": "Medelvassliv",
+    "avgVaseLife": "Medellivsl\u00e4ngd i vas",
     "qualityScore": "Kvalitet",
     "reception": "Mottagande",
     "verdict": "Beslut",
@@ -448,7 +448,7 @@
     "selectSpecies": "Välj art att jämföra",
     "stemsPerPlant": "Stjälkar/planta",
     "avgLength": "Medellängd",
-    "avgVaseLife": "Medelvassliv",
+    "avgVaseLife": "Medellivsl\u00e4ngd i vas",
     "area": "Yta",
     "stemsPerM2": "Stjälkar/m\u00B2",
     "noData": "Ingen analysdata ännu"
