@@ -14,7 +14,8 @@
     "successions": "Successioner",
     "targets": "Mål",
     "calendar": "Kalender",
-    "analytics": "Analys"
+    "analytics": "Analys",
+    "guide": "Guide"
   },
   "common": {
     "cancel": "Avbryt",
@@ -451,5 +452,226 @@
     "area": "Yta",
     "stemsPerM2": "Stjälkar/m\u00B2",
     "noData": "Ingen analysdata ännu"
+  },
+  "guide": {
+    "title": "Guide",
+    "sections": {
+      "getting-started": {
+        "title": "Kom ig\u00e5ng",
+        "body": [
+          "Logga in med ditt Google-konto p\u00e5 verdantplanner.com.",
+          "Skapa din f\u00f6rsta s\u00e4song (t.ex. \"2026\") f\u00f6r att gruppera \u00e5rets arbete.",
+          "L\u00e4gg upp en tr\u00e4dg\u00e5rd och l\u00e4gg till b\u00e4ddar som matchar din fysiska layout.",
+          "L\u00e4gg till de arter du planerar att odla, eller s\u00f6k i den inbyggda databasen.",
+          "B\u00f6rja s\u00e5 och f\u00f6lj dina plantor genom s\u00e4songen."
+        ]
+      },
+      "concepts": {
+        "title": "Grundbegrepp",
+        "body": [
+          "S\u00e4song \u2014 Ett odlings\u00e5r eller period. Allt organiseras per s\u00e4song f\u00f6r j\u00e4mf\u00f6relse \u00e5r f\u00f6r \u00e5r.",
+          "Tr\u00e4dg\u00e5rd \u2014 En fysisk plats d\u00e4r du odlar, med en eller flera b\u00e4ddar.",
+          "B\u00e4dd \u2014 Ett odlingsomr\u00e5de i en tr\u00e4dg\u00e5rd. Kan ha m\u00e5tt f\u00f6r sk\u00f6rd-per-yta-ber\u00e4kningar.",
+          "Art \u2014 En v\u00e4xtsort med namn, svenskt namn, variant och vetenskapligt namn. Inneh\u00e5ller odlings- och produktionsdata.",
+          "Planta \u2014 En individuell planta eller grupp som g\u00e5r genom livscykelstadier: S\u00e5dd \u2192 Omplantering \u2192 Utplantering \u2192 V\u00e4xer \u2192 Sk\u00f6rdad.",
+          "Plantah\u00e4ndelse \u2014 En tidsstamplad h\u00e4ndelse: s\u00e5dd, omplantering, blomning, sk\u00f6rd m.m. Sk\u00f6rdeh\u00e4ndelser inkluderar stj\u00e4lkantal, l\u00e4ngd, kvalitet och destination."
+        ]
+      },
+      "dashboard": {
+        "title": "Dashboard",
+        "body": [
+          "Din startsida med en \u00f6versikt av din verksamhet.",
+          "- Tr\u00e4dg\u00e5rdskort med plant- och b\u00e4ddantal \u2014 klicka f\u00f6r att navigera",
+          "- Plantor i tr\u00e5g (ej \u00e4nnu utplanterade)",
+          "- Sk\u00f6rdestatistik: totalvikt, antal och sk\u00f6rdar per art"
+        ]
+      },
+      "seasons": {
+        "title": "S\u00e4songer",
+        "body": [
+          "Hantera dina odlingss\u00e4songer. Varje s\u00e4song har namn, \u00e5r och valfria frostdatum.",
+          "Sista frost och f\u00f6rsta frost anv\u00e4nds f\u00f6r att ber\u00e4kna s\u00e4kra s\u00e5f\u00f6nster.",
+          "En s\u00e4song kan markeras som aktiv. De flesta funktioner kan filtreras per s\u00e4song."
+        ]
+      },
+      "gardens": {
+        "title": "Tr\u00e4dg\u00e5rdar & B\u00e4ddar",
+        "body": [
+          "Tr\u00e4dg\u00e5rdar representerar dina fysiska odlingsplatser med namn, emoji och valfria GPS-koordinater.",
+          "B\u00e4ddar \u00e4r odlingsomr\u00e5den i en tr\u00e4dg\u00e5rd. Ange m\u00e5tt (l\u00e4ngd \u00d7 bredd) f\u00f6r sk\u00f6rd-per-yta-ber\u00e4kningar.",
+          "Varje b\u00e4dd visar sina plantor grupperade per art. Du kan s\u00e5 fr\u00f6n eller l\u00e4gga till plantor direkt fr\u00e5n b\u00e4ddsidan.",
+          "B\u00e4ddhistorik visar vad som odlades tidigare s\u00e4songer \u2014 anv\u00e4ndbart f\u00f6r v\u00e4xtf\u00f6ljdsplanering."
+        ]
+      },
+      "species": {
+        "title": "Arter",
+        "body": [
+          "Artdatabasen inneh\u00e5ller alla v\u00e4xtsorter du arbetar med.",
+          "- Namn: vanligt, svenskt, variant (b\u00e5da spr\u00e5ken) och vetenskapligt",
+          "- Odlingsinfo: dagar till grodd/sk\u00f6rd, s\u00e5djup, h\u00f6jd, grobarhet, blom- och s\u00e5m\u00e5nader",
+          "- Produktionsdata: f\u00f6rv\u00e4ntade stj\u00e4lkar per planta, vassliv, kostnad per fr\u00f6",
+          "- Planttyp: Ettrig, Flerig, L\u00f6k eller Kn\u00f6l",
+          "- Taggar, grupper, foton och fr\u00f6leverant\u00f6rsl\u00e4nkar",
+          "Listan \u00e4r s\u00f6kbar och sorterad p\u00e5 svenskt namn."
+        ]
+      },
+      "sowing": {
+        "title": "S\u00e5dd",
+        "body": [
+          "S\u00e5sk\u00e4rmen l\u00e5ter dig s\u00e5 fr\u00f6n i grupp.",
+          "1. S\u00f6k och v\u00e4lj en art",
+          "2. V\u00e4lj destination: en b\u00e4dd eller ett portabelt tr\u00e5g",
+          "3. Ange fr\u00f6antal",
+          "4. V\u00e4lj valfritt ett fr\u00f6parti \u2014 lagret minskas automatiskt",
+          "5. L\u00e4gg till anteckningar vid behov",
+          "Skapar en planta med status S\u00e5dd och en S\u00c5DD-h\u00e4ndelse."
+        ]
+      },
+      "plants": {
+        "title": "Plantor & H\u00e4ndelser",
+        "body": [
+          "Varje planta har en tidslinje med h\u00e4ndelser. Klicka p\u00e5 en planta f\u00f6r full historik.",
+          "## Livscykelh\u00e4ndelser",
+          "- S\u00e5dd, Omplantering, Utplantering \u2014 tillv\u00e4xtstadier",
+          "- Knoppning, F\u00f6rsta blomning, Full blomning, Sista blomning \u2014 blomningsmilstolpar",
+          "- Toppning, Avknoppning \u2014 besk\u00e4rnings\u00e5tg\u00e4rder",
+          "- Sk\u00f6rd \u2014 med stj\u00e4lkantal, l\u00e4ngd, kvalitetsgrad (A/B/C) och kunddestination",
+          "- Upptagning, Lagring, Delning \u2014 l\u00f6k/kn\u00f6lhantering",
+          "- \u00c5terh\u00e4mtning, Borttagning, Anteckning \u2014 andra f\u00f6r\u00e4ndringar",
+          "Blomningsh\u00e4ndelser \u00e4r nyckeldata som matar odlingskalendern och analysen."
+        ]
+      },
+      "tasks": {
+        "title": "Uppgifter",
+        "body": [
+          "Schemal\u00e4gg tr\u00e4dg\u00e5rdsaktiviteter med deadlines och f\u00f6lj framsteg.",
+          "- Aktivitetstyp: S\u00e5, Omplantera, Plantera ut, Sk\u00f6rda, \u00c5terh\u00e4mta eller Kasta",
+          "- M\u00e5lantal och \u00e5terst\u00e5ende antal \u2014 minskas n\u00e4r du utf\u00f6r uppgiften",
+          "- Filtrerbart per s\u00e4song",
+          "- F\u00f6rfallna uppgifter markeras i r\u00f6tt, dagens i orange",
+          "Att utf\u00f6ra en s\u00e5uppgift tar dig till s\u00e5sk\u00e4rmen med art och antal if\u00f6rda."
+        ]
+      },
+      "seeds": {
+        "title": "Fr\u00f6inventarie",
+        "body": [
+          "H\u00e5ll reda p\u00e5 ditt fr\u00f6-, l\u00f6k- och plugglager.",
+          "- Art, antal, enhetstyp (Fr\u00f6, Plugg, L\u00f6k, Kn\u00f6l, Planta)",
+          "- Kostnad per enhet f\u00f6r att ber\u00e4kna total investering",
+          "- Insamlings- och utg\u00e5ngsdatum",
+          "- S\u00e4songstillh\u00f6righet",
+          "N\u00e4r du s\u00e5r med ett fr\u00f6parti minskas antalet automatiskt."
+        ]
+      },
+      "successions": {
+        "title": "Successionsodling",
+        "body": [
+          "Planera f\u00f6rskjutna s\u00e5dder f\u00f6r kontinuerlig blomning genom s\u00e4songen.",
+          "Ange art, f\u00f6rsta s\u00e5datum, intervall (t.ex. var 14:e dag), antal omg\u00e5ngar och fr\u00f6n per omg\u00e5ng.",
+          "Klicka \"Skapa uppgifter\" f\u00f6r att automatiskt skapa en uppgift per successionsomg\u00e5ng.",
+          "Exempel: f\u00f6rsta s\u00e5dd 1 april, intervall 14 dagar, 6 omg\u00e5ngar \u2192 uppgifter 1/4, 15/4, 29/4, 13/5, 27/5, 10/6."
+        ]
+      },
+      "targets": {
+        "title": "Produktionsm\u00e5l & Prognoser",
+        "body": [
+          "S\u00e4tt leveransm\u00e5l och l\u00e5t Verdant ber\u00e4kna vad du beh\u00f6ver odla.",
+          "M\u00e5l: \"Jag beh\u00f6ver 100 stj\u00e4lkar dahlior per vecka fr\u00e5n juli till september.\"",
+          "## Prognos (ber\u00e4knas automatiskt):",
+          "- Totalt stj\u00e4lkar = stj\u00e4lkar/vecka \u00d7 veckor",
+          "- Plantor som beh\u00f6vs = totalt stj\u00e4lkar \u00f7 f\u00f6rv\u00e4ntade stj\u00e4lkar per planta",
+          "- Fr\u00f6n som beh\u00f6vs = plantor \u00f7 grobarhet",
+          "- F\u00f6reslaget s\u00e5datum = leveransstart \u2212 dagar till sk\u00f6rd",
+          "Varningar visas n\u00e4r artdata saknas och standardv\u00e4rden anv\u00e4nds."
+        ]
+      },
+      "calendar": {
+        "title": "Odlingskalender",
+        "body": [
+          "En visuell tidslinje \u00f6ver din s\u00e4song med livscykelfaser per art.",
+          "- Horisontell axel: 12 m\u00e5nader (jan\u2013dec)",
+          "- En rad per art",
+          "- Bl\u00e5 staplar: s\u00e5f\u00f6nster, Rosa staplar: blomf\u00f6nster, Orange staplar: sk\u00f6rdef\u00f6nster",
+          "Anv\u00e4nder verkliga h\u00e4ndelsedata n\u00e4r det finns, annars artens blomm\u00e5nader f\u00f6r f\u00f6rv\u00e4ntade f\u00f6nster.",
+          "Filtrera per s\u00e4song f\u00f6r att visa olika \u00e5r."
+        ]
+      },
+      "customers": {
+        "title": "Kunder",
+        "body": [
+          "Sp\u00e5ra vart dina blommor g\u00e5r.",
+          "- Namn, kanal (Florist, Torgf\u00f6rs\u00e4ljning, Prenumeration, Br\u00f6llop, Grossist, Direkt, \u00d6vrigt)",
+          "- Kontaktinfo och anteckningar",
+          "Kunder visas som destinationer vid sk\u00f6rdeh\u00e4ndelser s\u00e5 du kan sp\u00e5ra vilka sorter som g\u00e5r till vilka k\u00f6pare."
+        ]
+      },
+      "bouquets": {
+        "title": "Bukettrecept",
+        "body": [
+          "Spara dina signaturarrangemang som recept.",
+          "Varje recept har namn, beskrivning, pris och en lista stj\u00e4lkar:",
+          "- Art, antal stj\u00e4lkar och roll (Blomma, Bladverk, Fyllnad eller Accent)",
+          "Visas som kort med namn, pris och totalt stj\u00e4lkantal."
+        ]
+      },
+      "trials": {
+        "title": "Sorteringsf\u00f6rs\u00f6k",
+        "body": [
+          "F\u00f6lj hur nya sorter presterar sida vid sida \u00f6ver s\u00e4songer.",
+          "- Plantantal, stj\u00e4lksk\u00f6rd, medelstj\u00e4lkl\u00e4ngd och vassliv",
+          "- Kvalitetsbetyg (1\u201310) och kundmottagande (\u00c4lskad/Omtyckt/Neutral/Ogillad)",
+          "- Beslut: Beh\u00e5ll, Ut\u00f6ka, Minska, Sluta eller Obest\u00e4mt",
+          "F\u00e4rgkodade m\u00e4rken g\u00f6r det enkelt att scanna. \u00d6ver flera s\u00e4songer bygger f\u00f6rs\u00f6ken en historik av vilka sorter som \u00e4r v\u00e4rda att odla."
+        ]
+      },
+      "pestDisease": {
+        "title": "Skadedjur & Sjukdomar",
+        "body": [
+          "Strukturerad loggning av skadedjurs- och sjukdomsobservationer.",
+          "- Datum, kategori (Skadedjur/Sjukdom/Brist/\u00d6vrigt), namn, allvarlighetsgrad (L\u00e5g\u2013Kritisk)",
+          "- Vilken b\u00e4dd och art som p\u00e5verkades",
+          "- Behandling och resultat (L\u00f6st/P\u00e5g\u00e5ende/Sk\u00f6rdef\u00f6rlust/\u00d6vervakas)",
+          "- Foton och anteckningar",
+          "Filtrerbart per s\u00e4song. Bygger en kunskapsbas \u00f6ver tid."
+        ]
+      },
+      "analytics": {
+        "title": "Analys",
+        "body": [
+          "\u00c5r-f\u00f6r-\u00e5r prestationsdashboard med tre vyer.",
+          "## S\u00e4songs\u00f6versikt",
+          "Ett kort per s\u00e4song: totalt stj\u00e4lkar, plantor, artantal, topparter.",
+          "## Artj\u00e4mf\u00f6relse",
+          "V\u00e4lj en art f\u00f6r att j\u00e4mf\u00f6ra \u00f6ver s\u00e4songer: stj\u00e4lkar, stj\u00e4lkar/planta, l\u00e4ngd, vassliv.",
+          "## Sk\u00f6rd per b\u00e4dd",
+          "Stj\u00e4lkar per b\u00e4dd och s\u00e4song, stj\u00e4lkar per m\u00B2. Hj\u00e4lper planera v\u00e4xtf\u00f6ljd."
+        ]
+      },
+      "tutorial": {
+        "title": "Guide: Din f\u00f6rsta s\u00e4song",
+        "body": [
+          "## Steg 1: Skapa en s\u00e4song",
+          "G\u00e5 till S\u00e4songer och klicka + Ny s\u00e4song. Ange namn (\"2026\"), \u00e5r och dina lokala frostdatum.",
+          "## Steg 2: L\u00e4gg upp din tr\u00e4dg\u00e5rd",
+          "G\u00e5 till Min v\u00e4rld och skapa en tr\u00e4dg\u00e5rd. L\u00e4gg till b\u00e4ddar (t.ex. \"Dahliab\u00e4dd\", \"\u00c5rliga snitt\").",
+          "## Steg 3: L\u00e4gg till arter",
+          "G\u00e5 till Arter och l\u00e4gg till dina sorter med namn, planttyp, dagar till sk\u00f6rd och f\u00f6rv\u00e4ntade stj\u00e4lkar per planta.",
+          "## Steg 4: L\u00e4gg till fr\u00f6lager",
+          "G\u00e5 till Fr\u00f6n och l\u00e4gg till ditt lager med antal, enhetstyper och kostnader.",
+          "## Steg 5: Planera successioner",
+          "G\u00e5 till Successioner och l\u00e4gg upp f\u00f6rskjutna s\u00e5scheman. Klicka Skapa uppgifter.",
+          "## Steg 6: S\u00e4tt produktionsm\u00e5l",
+          "G\u00e5 till M\u00e5l och ange dina veckovisa stj\u00e4lkm\u00e5l. Kontrollera prognosen.",
+          "## Steg 7: B\u00f6rja s\u00e5",
+          "G\u00e5 till Uppgifter och klicka Utf\u00f6r p\u00e5 en s\u00e5uppgift. V\u00e4lj b\u00e4dd, bekr\u00e4fta antal och s\u00e5.",
+          "## Steg 8: F\u00f6lj tillv\u00e4xten",
+          "L\u00e4gg till h\u00e4ndelser: Omplantering, Utplantering, Knoppning, F\u00f6rsta blomning, Toppning.",
+          "## Steg 9: Registrera sk\u00f6rdar",
+          "L\u00e4gg till Sk\u00f6rdeh\u00e4ndelser med stj\u00e4lkantal, l\u00e4ngd, kvalitetsgrad och kunddestination.",
+          "## Steg 10: Utv\u00e4rdera s\u00e4songen",
+          "Anv\u00e4nd Sorteringsf\u00f6rs\u00f6k f\u00f6r att bed\u00f6ma sorter, Analys f\u00f6r j\u00e4mf\u00f6relse och Kalendern f\u00f6r visuell \u00f6verblick."
+        ]
+      }
+    }
   }
 }

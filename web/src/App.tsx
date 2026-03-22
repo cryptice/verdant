@@ -25,6 +25,7 @@ import { SuccessionSchedules } from './pages/SuccessionSchedules'
 import { ProductionTargets } from './pages/ProductionTargets'
 import { Analytics } from './pages/Analytics'
 import { Account } from './pages/Account'
+import { Guide } from './pages/Guide'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token, loading } = useAuth()
@@ -70,6 +71,7 @@ export function App() {
         <Route path="successions" element={<SuccessionSchedules />} />
         <Route path="targets" element={<ProductionTargets />} />
         <Route path="analytics" element={<Analytics />} />
+        <Route path="guide" element={<Guide />} />
         <Route path="account" element={<Account />} />
       </Route>
       {/* Unauthenticated root shows landing page, authenticated shows dashboard via ProtectedRoute */}

@@ -22,6 +22,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
     { to: '/trials', label: t('nav.trials'), icon: '🔬' },
     { to: '/pest-disease', label: t('nav.pestDisease'), icon: '🐛' },
     { to: '/analytics', label: t('nav.analytics'), icon: '📈' },
+    { to: '/guide', label: t('nav.guide'), icon: '📖' },
     { to: '/account', label: t('nav.account'), icon: '👤' },
   ]
 

@@ -14,7 +14,8 @@
     "successions": "Successions",
     "targets": "Targets",
     "calendar": "Calendar",
-    "analytics": "Analytics"
+    "analytics": "Analytics",
+    "guide": "Guide"
   },
   "common": {
     "cancel": "Cancel",
@@ -451,5 +452,226 @@
     "area": "Area",
     "stemsPerM2": "Stems/m\u00B2",
     "noData": "No analytics data yet"
+  },
+  "guide": {
+    "title": "Guide",
+    "sections": {
+      "getting-started": {
+        "title": "Getting Started",
+        "body": [
+          "Sign in with your Google account at verdantplanner.com.",
+          "Create your first season (e.g. \"2026\") to group all your work for the year.",
+          "Set up a garden and add beds to match your physical layout.",
+          "Add the species you plan to grow, or search the built-in database.",
+          "Start sowing and tracking your plants through the season."
+        ]
+      },
+      "concepts": {
+        "title": "Core Concepts",
+        "body": [
+          "Season \u2014 A growing year or period. Everything is organized by season for year-over-year comparison.",
+          "Garden \u2014 A physical location where you grow, containing one or more beds.",
+          "Bed \u2014 A growing area within a garden. Can have dimensions for yield-per-area calculations.",
+          "Species \u2014 A plant variety with common name, Swedish name, variant, and scientific name. Carries growing info and production data.",
+          "Plant \u2014 An individual plant or batch moving through lifecycle stages: Seeded \u2192 Potted Up \u2192 Planted Out \u2192 Growing \u2192 Harvested.",
+          "Plant Event \u2014 A timestamped record: sowing, potting up, blooming, harvesting, etc. Harvest events include stem count, length, quality, and destination."
+        ]
+      },
+      "dashboard": {
+        "title": "Dashboard",
+        "body": [
+          "Your home screen showing a summary of your operation.",
+          "- Garden cards with plant and bed counts \u2014 click to navigate",
+          "- Plants currently in trays (not yet planted out)",
+          "- Harvest statistics: total weight, quantity, and count per species"
+        ]
+      },
+      "seasons": {
+        "title": "Seasons",
+        "body": [
+          "Manage your growing seasons. Each season has a name, year, and optional frost dates.",
+          "Last frost and first frost dates are used for calculating safe sowing windows.",
+          "One season can be marked as active. Most features can be filtered by season."
+        ]
+      },
+      "gardens": {
+        "title": "Gardens & Beds",
+        "body": [
+          "Gardens represent your physical growing locations with a name, emoji, and optional GPS coordinates.",
+          "Beds are growing areas within a garden. Set dimensions (length \u00d7 width) for yield-per-area calculations.",
+          "Each bed shows its current plants grouped by species. You can sow seeds or add plants directly from the bed page.",
+          "Bed history shows what was grown in previous seasons \u2014 useful for crop rotation planning."
+        ]
+      },
+      "species": {
+        "title": "Species",
+        "body": [
+          "The species database contains all plant varieties you work with.",
+          "- Names: common, Swedish, variant (both languages), and scientific name",
+          "- Growing info: days to sprout/harvest, sowing depth, height, germination rate, bloom and sowing months",
+          "- Production data: expected stems per plant, expected vase life, cost per seed",
+          "- Plant type: Annual, Perennial, Bulb, or Tuber",
+          "- Tags, groups, photos, and seed provider links with per-unit cost",
+          "The list is searchable across all name fields and sorted by Swedish name."
+        ]
+      },
+      "sowing": {
+        "title": "Sowing",
+        "body": [
+          "The sow screen lets you plant seeds in bulk.",
+          "1. Search and select a species",
+          "2. Choose a destination: a specific bed or a portable tray",
+          "3. Enter seed count",
+          "4. Optionally select a seed batch \u2014 inventory is auto-decremented",
+          "5. Add notes if needed",
+          "Creates a plant record with Seeded status and a SEEDED event."
+        ]
+      },
+      "plants": {
+        "title": "Plants & Events",
+        "body": [
+          "Each plant has a timeline of events. Click a plant to see its full history.",
+          "## Lifecycle Events",
+          "- Seeded, Potted Up, Planted Out \u2014 growth stage transitions",
+          "- Budding, First Bloom, Peak Bloom, Last Bloom \u2014 flowering milestones",
+          "- Pinched, Disbudded \u2014 pruning actions",
+          "- Harvested \u2014 with stem count, length, quality grade (A/B/C), and customer destination",
+          "- Lifted, Stored, Divided \u2014 bulb/tuber winter management",
+          "- Recovered, Removed, Note \u2014 other lifecycle changes",
+          "Bloom events are key dates that feed into the crop calendar and analytics."
+        ]
+      },
+      "tasks": {
+        "title": "Tasks",
+        "body": [
+          "Schedule garden activities with deadlines and track progress.",
+          "- Activity type: Sow, Pot Up, Plant Out, Harvest, Recover, or Discard",
+          "- Target count and remaining count \u2014 decremented as you perform the task",
+          "- Filterable by season",
+          "- Overdue tasks highlighted in red, today's tasks in orange",
+          "Performing a sow task takes you to the sow screen with species and count pre-filled."
+        ]
+      },
+      "seeds": {
+        "title": "Seed Inventory",
+        "body": [
+          "Track your seed, bulb, and plug stock.",
+          "- Species, quantity, unit type (Seed, Plug, Bulb, Tuber, Plant)",
+          "- Cost per unit for calculating total investment",
+          "- Collection and expiration dates",
+          "- Season assignment",
+          "When you sow using a seed batch, the quantity is automatically decremented."
+        ]
+      },
+      "successions": {
+        "title": "Succession Planting",
+        "body": [
+          "Plan staggered sowings for continuous bloom throughout the season.",
+          "Set a species, first sow date, interval (e.g. every 14 days), number of rounds, and seeds per round.",
+          "Click \"Generate tasks\" to automatically create a scheduled task for each succession round.",
+          "Example: first sow April 1, interval 14 days, 6 rounds \u2192 tasks on Apr 1, Apr 15, Apr 29, May 13, May 27, Jun 10."
+        ]
+      },
+      "targets": {
+        "title": "Production Targets & Forecasting",
+        "body": [
+          "Set delivery targets and let Verdant calculate what you need to grow.",
+          "Target: \"I need 100 stems of dahlias per week from July to September.\"",
+          "## Forecast (auto-calculated):",
+          "- Total stems needed = stems/week \u00d7 weeks",
+          "- Plants needed = total stems \u00f7 expected stems per plant",
+          "- Seeds needed = plants \u00f7 germination rate",
+          "- Suggested sow date = delivery start \u2212 days to harvest",
+          "Warnings appear when species data is missing and defaults are used."
+        ]
+      },
+      "calendar": {
+        "title": "Crop Calendar",
+        "body": [
+          "A visual timeline of your season showing lifecycle phases per species.",
+          "- Horizontal axis: 12 months (Jan\u2013Dec)",
+          "- One row per species",
+          "- Blue bars: sow window, Pink bars: bloom window, Orange bars: harvest window",
+          "Uses actual event data when available, falls back to species bloom month data for expected windows.",
+          "Filter by season to view different years."
+        ]
+      },
+      "customers": {
+        "title": "Customers",
+        "body": [
+          "Track where your flowers go.",
+          "- Name, channel (Florist, Farmers Market, CSA, Wedding, Wholesale, Direct, Other)",
+          "- Contact info and notes",
+          "Customers appear as destinations when recording harvest events, so you can track which varieties go to which buyers."
+        ]
+      },
+      "bouquets": {
+        "title": "Bouquet Recipes",
+        "body": [
+          "Save your signature arrangements as recipes.",
+          "Each recipe has a name, description, price, and a list of stems:",
+          "- Species, stem count, and role (Flower, Foliage, Filler, or Accent)",
+          "Displayed as cards showing the name, price, and total stem count."
+        ]
+      },
+      "trials": {
+        "title": "Variety Trials",
+        "body": [
+          "Track how new varieties perform side by side across seasons.",
+          "- Plant count, stem yield, average stem length and vase life",
+          "- Quality score (1\u201310) and customer reception (Loved/Liked/Neutral/Disliked)",
+          "- Verdict: Keep, Expand, Reduce, Drop, or Undecided",
+          "Color-coded badges make it easy to scan. Over multiple seasons, trials build a record of which varieties are worth growing."
+        ]
+      },
+      "pestDisease": {
+        "title": "Pest & Disease Log",
+        "body": [
+          "Structured logging for pest and disease observations.",
+          "- Date, category (Pest/Disease/Deficiency/Other), name, severity (Low\u2013Critical)",
+          "- Which bed and species were affected",
+          "- Treatment applied and outcome (Resolved/Ongoing/Crop Loss/Monitoring)",
+          "- Photos and notes",
+          "Filterable by season. Builds a knowledge base over time."
+        ]
+      },
+      "analytics": {
+        "title": "Analytics",
+        "body": [
+          "Year-over-year performance dashboard with three views.",
+          "## Season Overview",
+          "One card per season: total stems, plants, species count, top performers.",
+          "## Species Comparison",
+          "Select a species to compare across seasons: stems, stems/plant, length, vase life.",
+          "## Yield per Bed",
+          "Stems per bed per season, stems per m\u00B2 if dimensions are set. Helps plan rotation."
+        ]
+      },
+      "tutorial": {
+        "title": "Tutorial: Your First Season",
+        "body": [
+          "## Step 1: Create a season",
+          "Go to Seasons and click + New season. Enter name (\"2026\"), year, and your local frost dates.",
+          "## Step 2: Set up your garden",
+          "Go to My world and create a garden. Add beds matching your physical layout (e.g. \"Dahlia bed\", \"Annual cuts\").",
+          "## Step 3: Add species",
+          "Go to Species and add your varieties with names, plant type, days to harvest, and expected stems per plant.",
+          "## Step 4: Add seed inventory",
+          "Go to Seeds and add your stock with quantities, unit types, and costs.",
+          "## Step 5: Plan successions",
+          "Go to Successions and set up staggered sowing schedules. Click Generate tasks.",
+          "## Step 6: Set production targets",
+          "Go to Targets and enter your weekly stem goals. Check the forecast to see how many seeds you need.",
+          "## Step 7: Start sowing",
+          "Go to Tasks and click Perform on a sowing task. Choose a bed, confirm the count, and sow.",
+          "## Step 8: Track growth",
+          "Add events as your plants grow: Potted Up, Planted Out, Budding, First Bloom, Pinched.",
+          "## Step 9: Record harvests",
+          "Add Harvested events with stem count, length, quality grade, and customer destination.",
+          "## Step 10: Review the season",
+          "Use Variety Trials to score varieties, Analytics to compare performance, and the Calendar for a visual overview."
+        ]
+      }
+    }
   }
 }
