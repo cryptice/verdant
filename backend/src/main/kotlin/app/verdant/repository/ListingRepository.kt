@@ -17,6 +17,14 @@ class ListingRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    fun findByIdForUpdate(id: Long): Listing? =
+        ds.connection.use { conn ->
+            conn.prepareStatement("SELECT * FROM listing WHERE id = ? FOR UPDATE").use { ps ->
+                ps.setLong(1, id)
+                ps.executeQuery().use { rs -> if (rs.next()) rs.toListing() else null }
+            }
+        }
+
     fun findByUserId(userId: Long): List<Listing> =
         ds.connection.use { conn ->
             conn.prepareStatement("SELECT * FROM listing WHERE user_id = ? ORDER BY created_at DESC").use { ps ->

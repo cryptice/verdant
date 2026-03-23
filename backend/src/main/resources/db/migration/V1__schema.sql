@@ -440,7 +440,10 @@ CREATE TABLE order_item (
     listing_id          BIGINT       NOT NULL REFERENCES listing(id) ON DELETE CASCADE,
     species_id          BIGINT       NOT NULL REFERENCES species(id) ON DELETE SET NULL,
     species_name        VARCHAR(255) NOT NULL,
-    quantity            INTEGER      NOT NULL,
-    price_per_stem_cents INTEGER    NOT NULL
+    quantity            INTEGER      NOT NULL CHECK (quantity > 0),
+    price_per_stem_cents INTEGER    NOT NULL CHECK (price_per_stem_cents >= 0)
 );
 CREATE INDEX idx_order_item_order ON order_item(order_id);
+
+CREATE INDEX idx_plant_event_type ON plant_event(plant_id, event_type);
+CREATE INDEX idx_plant_user_season ON plant(user_id, season_id);

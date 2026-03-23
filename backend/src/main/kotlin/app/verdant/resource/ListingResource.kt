@@ -27,7 +27,7 @@ class ListingResource(
 
     @GET
     @Path("/{id}")
-    fun get(@PathParam("id") id: Long) = service.getListing(id)
+    fun get(@PathParam("id") id: Long) = service.getListing(id, userId())
 
     @POST
     fun create(request: CreateListingRequest): Response {

@@ -221,4 +221,32 @@ interface VerdantApi {
 
     @GET("api/customers")
     suspend fun getCustomers(): List<CustomerResponse>
+
+    // ── Production Targets ──
+
+    @GET("api/production-targets")
+    suspend fun getProductionTargets(@Query("seasonId") seasonId: Long? = null): List<ProductionTargetResponse>
+
+    @POST("api/production-targets")
+    suspend fun createProductionTarget(@Body request: Map<String, Any?>): ProductionTargetResponse
+
+    @GET("api/production-targets/{id}/forecast")
+    suspend fun getProductionForecast(@Path("id") id: Long): ProductionForecastResponse
+
+    @DELETE("api/production-targets/{id}")
+    suspend fun deleteProductionTarget(@Path("id") id: Long)
+
+    // ── Succession Schedules ──
+
+    @GET("api/succession-schedules")
+    suspend fun getSuccessionSchedules(@Query("seasonId") seasonId: Long? = null): List<SuccessionScheduleResponse>
+
+    @POST("api/succession-schedules")
+    suspend fun createSuccessionSchedule(@Body request: Map<String, Any?>): SuccessionScheduleResponse
+
+    @POST("api/succession-schedules/{id}/generate-tasks")
+    suspend fun generateSuccessionTasks(@Path("id") id: Long): List<Long>
+
+    @DELETE("api/succession-schedules/{id}")
+    suspend fun deleteSuccessionSchedule(@Path("id") id: Long)
 }

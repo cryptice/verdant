@@ -5,7 +5,7 @@ import app.verdant.dto.ProviderResponse
 import app.verdant.dto.UpdateProviderRequest
 import app.verdant.entity.Provider
 import app.verdant.repository.ProviderRepository
-import io.quarkus.security.Authenticated
+import jakarta.annotation.security.RolesAllowed
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -13,7 +13,7 @@ import jakarta.ws.rs.core.Response
 @Path("/api/providers")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Authenticated
+@RolesAllowed("ADMIN")
 class ProviderResource(
     private val providerRepository: ProviderRepository,
 ) {

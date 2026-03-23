@@ -6,6 +6,7 @@ import app.verdant.entity.OrderItem
 import app.verdant.entity.OrderStatus
 import app.verdant.repository.*
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.transaction.Transactional
 import jakarta.ws.rs.BadRequestException
 import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
@@ -19,12 +20,13 @@ class MarketOrderService(
     private val userRepo: UserRepository,
 ) {
 
+    @Transactional
     fun placeOrder(request: CreateMarketOrderRequest, purchaserId: Long): MarketOrderResponse {
         if (request.items.isEmpty()) throw BadRequestException("Order must have at least one item")
 
         // Resolve all listings and validate
         val resolvedItems = request.items.map { itemReq ->
-            val listing = listingRepo.findById(itemReq.listingId)
+            val listing = listingRepo.findByIdForUpdate(itemReq.listingId)
                 ?: throw BadRequestException("Listing ${itemReq.listingId} not found")
             if (!listing.isActive) throw BadRequestException("Listing ${listing.id} is not active")
             if (itemReq.quantity <= 0) throw BadRequestException("Quantity must be positive")
@@ -90,6 +92,7 @@ class MarketOrderService(
         return order.toResponse()
     }
 
+    @Transactional
     fun updateOrderStatus(orderId: Long, request: UpdateOrderStatusRequest, userId: Long): MarketOrderResponse {
         val order = orderRepo.findById(orderId) ?: throw NotFoundException("Order not found")
         val newStatus = try {

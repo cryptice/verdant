@@ -260,6 +260,7 @@ data class CreatePlantEventRequest(
     val stemCount: Int? = null,
     val stemLengthCm: Int? = null,
     val qualityGrade: String? = null,
+    val vaseLifeDays: Int? = null,
     val harvestDestinationId: Long? = null,
 )
 
@@ -308,6 +309,7 @@ data class HarvestStatRow(
     val totalWeightGrams: Double,
     val totalQuantity: Int,
     val harvestCount: Int,
+    val totalStems: Int = 0,
 )
 
 // ── Species ──
@@ -571,7 +573,7 @@ data class ProductionTargetResponse(
     val id: Long,
     val seasonId: Long,
     val speciesId: Long,
-    val speciesName: String,
+    val speciesName: String?,
     val stemsPerWeek: Int,
     val startDate: String,
     val endDate: String,
@@ -581,12 +583,16 @@ data class ProductionTargetResponse(
 
 data class ProductionForecastResponse(
     val targetId: Long,
-    val speciesName: String,
-    val totalStemsNeeded: Int,
-    val plantsNeeded: Int,
-    val seedsNeeded: Int,
+    val speciesId: Long,
+    val speciesName: String?,
+    val totalWeeks: Long,
+    val totalStemsNeeded: Long,
+    val stemsPerPlant: Int,
+    val plantsNeeded: Long,
+    val germinationRate: Int,
+    val seedsNeeded: Long,
+    val daysToHarvest: Int,
     val suggestedSowDate: String?,
-    val weeksOfDelivery: Int,
     val warnings: List<String>,
 )
 

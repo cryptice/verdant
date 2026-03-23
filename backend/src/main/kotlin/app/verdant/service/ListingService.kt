@@ -25,8 +25,9 @@ class ListingService(
     fun getListingsForUser(userId: Long): List<ListingResponse> =
         repo.findByUserId(userId).map { it.toResponse() }
 
-    fun getListing(id: Long): ListingResponse {
+    fun getListing(id: Long, userId: Long): ListingResponse {
         val listing = repo.findById(id) ?: throw NotFoundException("Listing not found")
+        if (!listing.isActive && listing.userId != userId) throw ForbiddenException()
         return listing.toResponse()
     }
 

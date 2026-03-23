@@ -14,7 +14,7 @@ class TokenService {
             .groups(setOf(user.role.name))
             .claim("userId", user.id)
             .claim("displayName", user.displayName)
-            .expiresIn(Duration.ofDays(30))
+            .expiresIn(Duration.ofHours(24))
             .sign()
     }
 }
