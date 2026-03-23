@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from './AuthContext'
 import { api } from '../api/client'
 
@@ -19,6 +20,7 @@ declare global {
 export function LoginPage() {
   const { login, token } = useAuth()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -65,7 +67,7 @@ export function LoginPage() {
         <div className="text-center">
           <div className="text-4xl mb-3">🌿</div>
           <h1 className="text-2xl font-semibold text-text-primary">Verdant</h1>
-          <p className="text-text-secondary text-sm mt-1">Sign in to manage your garden</p>
+          <p className="text-text-secondary text-sm mt-1">{t('login.subtitle')}</p>
         </div>
         <div id="google-signin-btn" />
         {error && <p className="text-error text-sm">{error}</p>}

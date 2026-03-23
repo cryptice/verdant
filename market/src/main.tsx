@@ -7,7 +7,17 @@ import { App } from './App'
 import './i18n'
 import './index.css'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        if (error instanceof Error && 'status' in error) return false
+        return failureCount < 2
+      },
+      staleTime: 30_000,
+    },
+  },
+})
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

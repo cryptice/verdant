@@ -265,6 +265,9 @@
     "ctaSubtitle": "Sign in to create your first garden — it only takes a moment.",
     "footer": "A tool for home gardeners"
   },
+  "login": {
+    "subtitle": "Sign in to manage your garden"
+  },
   "tasks": {
     "title": "Tasks",
     "newTask": "+ New task",

@@ -265,6 +265,9 @@
     "ctaSubtitle": "Logga in för att skapa din första trädgård — det tar bara ett ögonblick.",
     "footer": "Ett verktyg för hemmaodlare"
   },
+  "login": {
+    "subtitle": "Logga in för att hantera din trädgård"
+  },
   "tasks": {
     "title": "Uppgifter",
     "newTask": "+ Ny uppgift",

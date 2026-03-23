@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, Fragment } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type ListingResponse } from '../api/client'
@@ -10,6 +10,7 @@ interface CartItem {
 
 export function Browse() {
   const { t, i18n } = useTranslation()
+  const queryClient = useQueryClient()
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['market-listings'],
     queryFn: () => api.market.listings(),
@@ -40,7 +41,7 @@ export function Browse() {
       setOrderError(null)
       setSuccessMsg(t('market.orderPlaced'))
       setTimeout(() => setSuccessMsg(null), 3000)
-      refetch()
+      queryClient.invalidateQueries({ queryKey: ['market-listings'] })
     },
     onError: (err) => {
       setOrderError(err instanceof Error ? err.message : String(err))
