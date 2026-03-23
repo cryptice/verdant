@@ -101,7 +101,7 @@ class GoogleTokenVerifier(private val objectMapper: ObjectMapper) {
                 keys[kid] = JwkKey(n = n, e = e)
             }
             cachedKeys = keys
-            cacheExpiry = Instant.now().plusSeconds(3600)
+            cacheExpiry = Instant.now().plusSeconds(600)
             log.fine("Refreshed ${keys.size} Google JWKS keys")
         } catch (ex: Exception) {
             log.warning("Failed to refresh Google JWKS keys: ${ex.message}")
