@@ -208,7 +208,7 @@
     "deleteBatch": "Delete this batch",
     "deleteBatchTitle": "Delete Batch",
     "deleteBatchConfirm": "Delete this seed batch?",
-    "costPerUnit": "Cost per unit (\u00f6re)",
+    "costPerUnit": "Cost per unit (SEK)",
     "unitType": "Unit type",
     "colCost": "Cost"
   },
@@ -385,7 +385,7 @@
     "edit": "Edit Recipe",
     "name": "Name",
     "description": "Description",
-    "price": "Price (öre)",
+    "price": "Price (SEK)",
     "addItem": "+ Add stem",
     "stemCount": "Count",
     "role": "Role",

@@ -208,7 +208,7 @@
     "deleteBatch": "Radera detta parti",
     "deleteBatchTitle": "Radera parti",
     "deleteBatchConfirm": "Radera detta fröparti?",
-    "costPerUnit": "Kostnad per enhet (öre)",
+    "costPerUnit": "Kostnad per enhet (SEK)",
     "unitType": "Enhetstyp",
     "colCost": "Kostnad"
   },
@@ -385,7 +385,7 @@
     "edit": "Redigera recept",
     "name": "Namn",
     "description": "Beskrivning",
-    "price": "Pris (öre)",
+    "price": "Pris (SEK)",
     "addItem": "+ Lägg till stjälk",
     "stemCount": "Antal",
     "role": "Roll",
