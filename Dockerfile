@@ -37,7 +37,7 @@ COPY backend/src/ src/
 COPY --from=web /web/dist/ src/main/resources/META-INF/resources/
 COPY --from=admin /admin/dist/ src/main/resources/META-INF/resources/admin/
 COPY --from=market /market/dist/ src/main/resources/META-INF/resources/market/
-RUN gradle quarkusBuild --no-daemon -Dquarkus.profile=prod
+RUN gradle quarkusBuild --no-daemon -Dquarkus.profile=prod && rm -rf /root/.kotlin
 
 # Stage 5: Run
 FROM eclipse-temurin:21-jre-alpine
