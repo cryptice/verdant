@@ -46,7 +46,7 @@ export function SpeciesListPage() {
     return () => clearTimeout(timer)
   }, [search])
 
-  const { data: species, isLoading, error, isFetching } = useQuery({
+  const { data: species, isLoading, error } = useQuery({
     queryKey: ['admin', 'species', debouncedSearch],
     queryFn: () => debouncedSearch ? api.admin.searchSpecies(debouncedSearch, 100) : api.admin.getSpecies(),
     placeholderData: (prev) => prev,
