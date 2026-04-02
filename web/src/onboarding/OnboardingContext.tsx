@@ -101,6 +101,29 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }
   }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Listen for query cache updates to detect completed mutation steps
+  useEffect(() => {
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      if (event.type !== 'updated' || event.action.type !== 'success') return
+
+      const queryKey = event.query.queryKey
+      for (const step of ONBOARDING_STEPS) {
+        if (step.completionType !== 'mutation') continue
+        if (state.completedSteps.includes(step.id)) continue
+        if (!step.mutationQueryKeys) continue
+
+        const matches = step.mutationQueryKeys.some(mk =>
+          mk.length <= queryKey.length && mk.every((k, i) => k === queryKey[i])
+        )
+        if (matches) {
+          completeStep(step.id)
+        }
+      }
+    })
+
+    return unsubscribe
+  }, [queryClient, state.completedSteps, completeStep])
+
   const startStep = useCallback((stepId: string) => {
     const step = ONBOARDING_STEPS.find(s => s.id === stepId)
     if (!step) return
