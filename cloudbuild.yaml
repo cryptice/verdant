@@ -1,4 +1,11 @@
 steps:
+  # Run backend unit tests before building
+  - name: 'gradle:8.12-jdk21'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - 'cd backend && gradle test --no-daemon'
+
   - name: 'gcr.io/kaniko-project/executor:latest'
     args:
       - '--destination=europe-north1-docker.pkg.dev/$PROJECT_ID/verdant/verdant-api'
@@ -28,7 +35,7 @@ steps:
           --max-instances=3 \
           --set-cloudsql-instances=verdant-planner-staging:europe-north2:verdant-staging \
           --set-env-vars="DB_USERNAME=verdant,DB_URL=jdbc:postgresql:///verdant?cloudSqlInstance=verdant-planner-staging:europe-north2:verdant-staging&socketFactory=com.google.cloud.sql.postgres.SocketFactory" \
-          --set-secrets="DB_PASSWORD=verdant-db-password:latest,GEMINI_API_KEY=verdant-gemini-key:latest,ADMIN_PASSWORD=verdant-admin-password:latest,JWT_PRIVATE_KEY=verdant-jwt-private-key:latest,JWT_PUBLIC_KEY=verdant-jwt-public-key:latest"
+          --set-secrets="DB_PASSWORD=verdant-db-password:latest,GEMINI_API_KEY=verdant-gemini-key:latest,ADMIN_PASSWORD=verdant-admin-password:latest,JWT_PRIVATE_KEY=verdant-jwt-private-key:latest,JWT_PUBLIC_KEY=verdant-jwt-public-key:latest,GOOGLE_CLIENT_ID=verdant-google-client-id:latest"
 
 availableSecrets:
   secretManager:
