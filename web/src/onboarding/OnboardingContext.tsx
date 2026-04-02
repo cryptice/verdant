@@ -1,0 +1,173 @@
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, type ReactNode } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
+import { useAuth } from '../auth/AuthContext'
+import { api } from '../api/client'
+import { ONBOARDING_STEPS, getStepsForSection } from './steps'
+import type { OnboardingState, OnboardingSection, PageTooltipConfig } from './types'
+
+interface OnboardingContextValue {
+  isActive: boolean
+  completedCount: number
+  totalCount: number
+  isStepComplete: (stepId: string) => boolean
+  sectionProgress: (section: OnboardingSection) => { completed: number; total: number }
+  completeStep: (stepId: string) => void
+  startStep: (stepId: string) => void
+  minimizeForSession: () => void
+  dismissPermanently: () => void
+  drawerOpen: boolean
+  setDrawerOpen: (open: boolean) => void
+  activeTour: PageTooltipConfig | null
+  clearActiveTour: () => void
+  minimized: boolean
+}
+
+const OnboardingContext = createContext<OnboardingContextValue | null>(null)
+
+function parseOnboardingState(json: string | undefined | null): OnboardingState {
+  if (!json) return { completedSteps: [], dismissed: false }
+  try {
+    const parsed = JSON.parse(json)
+    return {
+      completedSteps: parsed.completedSteps ?? [],
+      dismissed: parsed.dismissed ?? false,
+    }
+  } catch {
+    return { completedSteps: [], dismissed: false }
+  }
+}
+
+export function OnboardingProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const location = useLocation()
+
+  const [state, setState] = useState<OnboardingState>(() =>
+    parseOnboardingState(user?.onboarding)
+  )
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [minimized, setMinimized] = useState(false)
+  const [activeTour, setActiveTour] = useState<PageTooltipConfig | null>(null)
+
+  // Sync state when user data changes (e.g., on login)
+  useEffect(() => {
+    setState(parseOnboardingState(user?.onboarding))
+  }, [user?.onboarding])
+
+  const syncToBackend = useCallback((s: OnboardingState) => {
+    api.user.updateOnboarding({ completedSteps: s.completedSteps, dismissed: s.dismissed }).catch(() => {
+      // Silently fail — onboarding is non-critical
+    })
+  }, [])
+
+  const completeStep = useCallback((stepId: string) => {
+    setState(prev => {
+      if (prev.completedSteps.includes(stepId)) return prev
+      const updated = { ...prev, completedSteps: [...prev.completedSteps, stepId] }
+      syncToBackend(updated)
+      return updated
+    })
+  }, [syncToBackend])
+
+  // Auto-complete visit-type steps based on current route
+  useEffect(() => {
+    const visitSteps = ONBOARDING_STEPS.filter(s => s.completionType === 'visit')
+    for (const step of visitSteps) {
+      if (!state.completedSteps.includes(step.id) && location.pathname === step.route) {
+        completeStep(step.id)
+      }
+    }
+  }, [location.pathname, state.completedSteps, completeStep])
+
+  // Check query cache for pre-existing data on mount
+  useEffect(() => {
+    if (!user) return
+    const newCompleted: string[] = []
+    for (const step of ONBOARDING_STEPS) {
+      if (state.completedSteps.includes(step.id)) continue
+      if (step.queryKey) {
+        const data = queryClient.getQueryData(step.queryKey)
+        if (data && (Array.isArray(data) ? data.length > 0 : true)) {
+          newCompleted.push(step.id)
+        }
+      }
+    }
+    if (newCompleted.length > 0) {
+      const updated = [...state.completedSteps, ...newCompleted]
+      setState(prev => ({ ...prev, completedSteps: updated }))
+      syncToBackend({ completedSteps: updated, dismissed: state.dismissed })
+    }
+  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const startStep = useCallback((stepId: string) => {
+    const step = ONBOARDING_STEPS.find(s => s.id === stepId)
+    if (!step) return
+    setDrawerOpen(false)
+    navigate(step.route)
+    import('./tooltipConfigs').then(({ getTooltipConfig }) => {
+      const config = getTooltipConfig(stepId)
+      if (config) {
+        setTimeout(() => setActiveTour(config), 100)
+      }
+    })
+  }, [navigate])
+
+  const minimizeForSession = useCallback(() => {
+    setMinimized(true)
+    setDrawerOpen(false)
+  }, [])
+
+  const dismissPermanently = useCallback(() => {
+    const updated = { ...state, dismissed: true }
+    setState(updated)
+    setDrawerOpen(false)
+    syncToBackend(updated)
+  }, [state, syncToBackend])
+
+  const clearActiveTour = useCallback(() => setActiveTour(null), [])
+
+  const isStepComplete = useCallback((stepId: string) =>
+    state.completedSteps.includes(stepId), [state.completedSteps])
+
+  const sectionProgress = useCallback((section: OnboardingSection) => {
+    const steps = getStepsForSection(section)
+    const completed = steps.filter(s => state.completedSteps.includes(s.id)).length
+    return { completed, total: steps.length }
+  }, [state.completedSteps])
+
+  const completedCount = state.completedSteps.length
+  const totalCount = ONBOARDING_STEPS.length
+  const isActive = !state.dismissed && completedCount < totalCount
+
+  const value = useMemo<OnboardingContextValue>(() => ({
+    isActive,
+    completedCount,
+    totalCount,
+    isStepComplete,
+    sectionProgress,
+    completeStep,
+    startStep,
+    minimizeForSession,
+    dismissPermanently,
+    drawerOpen,
+    setDrawerOpen,
+    activeTour,
+    clearActiveTour,
+    minimized,
+  }), [isActive, completedCount, totalCount, isStepComplete, sectionProgress, completeStep,
+       startStep, minimizeForSession, dismissPermanently, drawerOpen, activeTour, clearActiveTour, minimized])
+
+  return (
+    <OnboardingContext.Provider value={value}>
+      {children}
+    </OnboardingContext.Provider>
+  )
+}
+
+export function useOnboarding() {
+  const ctx = useContext(OnboardingContext)
+  if (!ctx) throw new Error('useOnboarding must be used within OnboardingProvider')
+  return ctx
+}
