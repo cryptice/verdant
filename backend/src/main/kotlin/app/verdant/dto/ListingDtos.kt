@@ -17,7 +17,7 @@ data class ListingResponse(
     val title: String,
     val description: String?,
     val quantityAvailable: Int,
-    val pricePerStemCents: Int,
+    val pricePerStemSek: Int,
     val availableFrom: LocalDate,
     val availableUntil: LocalDate,
     val imageUrl: String?,
@@ -35,7 +35,7 @@ data class CreateListingRequest(
     @field:Min(0)
     val quantityAvailable: Int,
     @field:Min(0)
-    val pricePerStemCents: Int,
+    val pricePerStemSek: Int,
     @field:NotNull
     val availableFrom: LocalDate,
     @field:NotNull
@@ -51,7 +51,7 @@ data class UpdateListingRequest(
     @field:Min(0)
     val quantityAvailable: Int? = null,
     @field:Min(0)
-    val pricePerStemCents: Int? = null,
+    val pricePerStemSek: Int? = null,
     val availableFrom: LocalDate? = null,
     val availableUntil: LocalDate? = null,
     val isActive: Boolean? = null,

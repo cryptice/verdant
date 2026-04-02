@@ -1097,7 +1097,7 @@ class DevResource(
         val sommardrom = bouquetRecipeRepository.persist(BouquetRecipe(
             userId = userId, name = "Sommardröm",
             description = "Summer Dream — lush seasonal bouquet with dahlias as focal flower",
-            priceCents = 15000,
+            priceSek = 15000,
         ))
         bouquetRecipeRepository.persistItem(BouquetRecipeItem(recipeId = sommardrom.id!!, speciesId = cafeAuLait.id!!, stemCount = 5, role = ItemRole.FLOWER))
         bouquetRecipeRepository.persistItem(BouquetRecipeItem(recipeId = sommardrom.id!!, speciesId = zinniaGiant.id!!, stemCount = 3, role = ItemRole.FLOWER))
@@ -1107,7 +1107,7 @@ class DevResource(
         val solsken = bouquetRecipeRepository.persist(BouquetRecipe(
             userId = userId, name = "Solsken",
             description = "Sunshine — bright warm-toned bouquet for farmers market",
-            priceCents = 12000,
+            priceSek = 12000,
         ))
         bouquetRecipeRepository.persistItem(BouquetRecipeItem(recipeId = solsken.id!!, speciesId = sunProCut.id!!, stemCount = 3, role = ItemRole.FLOWER))
         bouquetRecipeRepository.persistItem(BouquetRecipeItem(recipeId = solsken.id!!, speciesId = zinniaQLO.id!!, stemCount = 5, role = ItemRole.FLOWER))
@@ -1116,7 +1116,7 @@ class DevResource(
         val romantik = bouquetRecipeRepository.persist(BouquetRecipe(
             userId = userId, name = "Romantik",
             description = "Romance — elegant wedding bouquet with soft tones",
-            priceCents = 18000,
+            priceSek = 18000,
         ))
         bouquetRecipeRepository.persistItem(BouquetRecipeItem(recipeId = romantik.id!!, speciesId = lisEcho.id!!, stemCount = 3, role = ItemRole.FLOWER))
         bouquetRecipeRepository.persistItem(BouquetRecipeItem(recipeId = romantik.id!!, speciesId = ranunculus.id!!, stemCount = 3, role = ItemRole.FLOWER))

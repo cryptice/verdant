@@ -13,7 +13,7 @@ data class BouquetRecipeResponse(
     val name: String,
     val description: String?,
     val imageUrl: String?,
-    val priceCents: Int?,
+    val priceSek: Int?,
     val items: List<BouquetRecipeItemResponse>,
     val createdAt: Instant,
     val updatedAt: Instant,
@@ -35,7 +35,7 @@ data class CreateBouquetRecipeRequest(
     val description: String? = null,
     val imageBase64: String? = null,
     @field:Min(0)
-    val priceCents: Int? = null,
+    val priceSek: Int? = null,
     @field:Size(max = 100)
     @field:Valid
     val items: List<CreateBouquetRecipeItemRequest> = emptyList(),
@@ -58,7 +58,7 @@ data class UpdateBouquetRecipeRequest(
     val description: String? = null,
     val imageBase64: String? = null,
     @field:Min(0)
-    val priceCents: Int? = null,
+    val priceSek: Int? = null,
     @field:Size(max = 100)
     @field:Valid
     val items: List<CreateBouquetRecipeItemRequest>? = null,

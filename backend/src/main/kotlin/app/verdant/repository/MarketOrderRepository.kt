@@ -45,7 +45,7 @@ class MarketOrderRepository(private val ds: AgroalDataSource) {
     fun persist(order: MarketOrder): MarketOrder {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO market_order (purchaser_id, producer_id, status, delivery_date, total_cents, notes, created_at, updated_at)
+                """INSERT INTO market_order (purchaser_id, producer_id, status, delivery_date, total_sek, notes, created_at, updated_at)
                    VALUES (?, ?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
@@ -53,7 +53,7 @@ class MarketOrderRepository(private val ds: AgroalDataSource) {
                 ps.setLong(2, order.producerId)
                 ps.setString(3, order.status.name)
                 ps.setObject(4, order.deliveryDate)
-                ps.setInt(5, order.totalCents)
+                ps.setInt(5, order.totalSek)
                 ps.setString(6, order.notes)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
@@ -90,7 +90,7 @@ class MarketOrderRepository(private val ds: AgroalDataSource) {
         producerId = getLong("producer_id"),
         status = OrderStatus.valueOf(getString("status")),
         deliveryDate = getObject("delivery_date", java.time.LocalDate::class.java),
-        totalCents = getInt("total_cents"),
+        totalSek = getInt("total_sek"),
         notes = getString("notes"),
         createdAt = getTimestamp("created_at").toInstant(),
         updatedAt = getTimestamp("updated_at").toInstant(),

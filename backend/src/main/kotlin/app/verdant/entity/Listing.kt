@@ -10,7 +10,7 @@ data class Listing(
     val title: String,
     val description: String? = null,
     val quantityAvailable: Int,
-    val pricePerStemCents: Int,
+    val pricePerStemSek: Int,
     val availableFrom: LocalDate,
     val availableUntil: LocalDate,
     val imageUrl: String? = null,

@@ -9,7 +9,7 @@ data class MarketOrder(
     val producerId: Long,
     val status: OrderStatus = OrderStatus.PLACED,
     val deliveryDate: LocalDate? = null,
-    val totalCents: Int = 0,
+    val totalSek: Int = 0,
     val notes: String? = null,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),
@@ -24,5 +24,5 @@ data class OrderItem(
     val speciesId: Long,
     val speciesName: String,
     val quantity: Int,
-    val pricePerStemCents: Int,
+    val pricePerStemSek: Int,
 )

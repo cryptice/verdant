@@ -22,7 +22,7 @@ class OrderItemRepository(private val ds: AgroalDataSource) {
     fun persist(item: OrderItem): OrderItem {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO order_item (order_id, listing_id, species_id, species_name, quantity, price_per_stem_cents)
+                """INSERT INTO order_item (order_id, listing_id, species_id, species_name, quantity, price_per_stem_sek)
                    VALUES (?, ?, ?, ?, ?, ?)""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
@@ -31,7 +31,7 @@ class OrderItemRepository(private val ds: AgroalDataSource) {
                 ps.setLong(3, item.speciesId)
                 ps.setString(4, item.speciesName)
                 ps.setInt(5, item.quantity)
-                ps.setInt(6, item.pricePerStemCents)
+                ps.setInt(6, item.pricePerStemSek)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -57,6 +57,6 @@ class OrderItemRepository(private val ds: AgroalDataSource) {
         speciesId = getLong("species_id"),
         speciesName = getString("species_name"),
         quantity = getInt("quantity"),
-        pricePerStemCents = getInt("price_per_stem_cents"),
+        pricePerStemSek = getInt("price_per_stem_sek"),
     )
 }

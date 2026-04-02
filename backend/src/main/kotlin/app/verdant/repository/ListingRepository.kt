@@ -56,7 +56,7 @@ class ListingRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """INSERT INTO listing (user_id, species_id, title, description, quantity_available,
-                   price_per_stem_cents, available_from, available_until, image_url, is_active, created_at, updated_at)
+                   price_per_stem_sek, available_from, available_until, image_url, is_active, created_at, updated_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
@@ -65,7 +65,7 @@ class ListingRepository(private val ds: AgroalDataSource) {
                 ps.setString(3, listing.title)
                 ps.setString(4, listing.description)
                 ps.setInt(5, listing.quantityAvailable)
-                ps.setInt(6, listing.pricePerStemCents)
+                ps.setInt(6, listing.pricePerStemSek)
                 ps.setObject(7, listing.availableFrom)
                 ps.setObject(8, listing.availableUntil)
                 ps.setString(9, listing.imageUrl)
@@ -83,14 +83,14 @@ class ListingRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """UPDATE listing SET title = ?, description = ?, quantity_available = ?,
-                   price_per_stem_cents = ?, available_from = ?, available_until = ?,
+                   price_per_stem_sek = ?, available_from = ?, available_until = ?,
                    image_url = ?, is_active = ?, updated_at = now()
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setString(1, listing.title)
                 ps.setString(2, listing.description)
                 ps.setInt(3, listing.quantityAvailable)
-                ps.setInt(4, listing.pricePerStemCents)
+                ps.setInt(4, listing.pricePerStemSek)
                 ps.setObject(5, listing.availableFrom)
                 ps.setObject(6, listing.availableUntil)
                 ps.setString(7, listing.imageUrl)
@@ -118,7 +118,7 @@ class ListingRepository(private val ds: AgroalDataSource) {
         title = getString("title"),
         description = getString("description"),
         quantityAvailable = getInt("quantity_available"),
-        pricePerStemCents = getInt("price_per_stem_cents"),
+        pricePerStemSek = getInt("price_per_stem_sek"),
         availableFrom = getObject("available_from", java.time.LocalDate::class.java),
         availableUntil = getObject("available_until", java.time.LocalDate::class.java),
         imageUrl = getString("image_url"),

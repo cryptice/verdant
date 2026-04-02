@@ -48,7 +48,7 @@ export function MyListings() {
     setFormTitle(item.title)
     setFormDescription(item.description ?? '')
     setFormQuantity(String(item.quantityAvailable))
-    setFormPrice(String(item.pricePerStemCents))
+    setFormPrice(String(item.pricePerStemSek))
     setFormFrom(item.availableFrom)
     setFormUntil(item.availableUntil)
     setFormError(null)
@@ -60,7 +60,7 @@ export function MyListings() {
     title: formTitle,
     description: formDescription || undefined,
     quantityAvailable: Number(formQuantity),
-    pricePerStemCents: Number(formPrice),
+    pricePerStemSek: Number(formPrice),
     availableFrom: formFrom,
     availableUntil: formUntil,
   })
@@ -156,7 +156,7 @@ export function MyListings() {
                     <td className="px-4 py-2.5 text-sm">{item.speciesName}</td>
                     <td className="px-4 py-2.5 text-sm text-text-secondary">{item.title}</td>
                     <td className="px-4 py-2.5 text-sm text-right tabular-nums">{item.quantityAvailable}</td>
-                    <td className="px-4 py-2.5 text-sm text-right tabular-nums">{formatPrice(item.pricePerStemCents)}</td>
+                    <td className="px-4 py-2.5 text-sm text-right tabular-nums">{formatPrice(item.pricePerStemSek)}</td>
                     <td className="px-4 py-2.5 text-sm text-text-secondary">{item.availableFrom}</td>
                     <td className="px-4 py-2.5 text-sm text-text-secondary">{item.availableUntil}</td>
                     <td className="px-4 py-2.5 text-sm">

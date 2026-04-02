@@ -181,7 +181,7 @@ class DataExportService(
                 name = recipe.name,
                 description = recipe.description,
                 imageUrl = recipe.imageUrl,
-                priceCents = recipe.priceCents,
+                priceSek = recipe.priceSek,
                 items = items.map { item ->
                     BouquetRecipeItemResponse(
                         id = item.id!!,
@@ -247,7 +247,7 @@ class DataExportService(
                 title = listing.title,
                 description = listing.description,
                 quantityAvailable = listing.quantityAvailable,
-                pricePerStemCents = listing.pricePerStemCents,
+                pricePerStemSek = listing.pricePerStemSek,
                 availableFrom = listing.availableFrom,
                 availableUntil = listing.availableUntil,
                 imageUrl = listing.imageUrl,
@@ -275,7 +275,7 @@ class DataExportService(
                 producerName = participantUsers[order.producerId]?.displayName ?: "Unknown",
                 status = order.status.name,
                 deliveryDate = order.deliveryDate,
-                totalCents = order.totalCents,
+                totalSek = order.totalSek,
                 notes = order.notes,
                 items = items.map { item ->
                     OrderItemResponse(
@@ -284,7 +284,7 @@ class DataExportService(
                         speciesId = item.speciesId,
                         speciesName = item.speciesName,
                         quantity = item.quantity,
-                        pricePerStemCents = item.pricePerStemCents,
+                        pricePerStemSek = item.pricePerStemSek,
                     )
                 },
                 createdAt = order.createdAt,

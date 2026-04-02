@@ -76,7 +76,7 @@ export function Browse() {
     ))
   }
 
-  const cartTotal = cart.reduce((sum, ci) => sum + ci.quantity * ci.listing.pricePerStemCents, 0)
+  const cartTotal = cart.reduce((sum, ci) => sum + ci.quantity * ci.listing.pricePerStemSek, 0)
   const cartItemCount = cart.reduce((sum, ci) => sum + ci.quantity, 0)
 
   const formatPrice = (cents: number) => `${(cents / 100).toFixed(2)} ${t('market.perStem')}`
@@ -171,7 +171,7 @@ export function Browse() {
 
               <div className="mt-3 flex items-center gap-3 text-xs text-text-secondary">
                 <span>{listing.producerName}</span>
-                <span className="font-medium text-accent">{formatPrice(listing.pricePerStemCents)}</span>
+                <span className="font-medium text-accent">{formatPrice(listing.pricePerStemSek)}</span>
               </div>
 
               <div className="mt-2 flex items-center gap-3 text-xs text-text-muted">
@@ -208,7 +208,7 @@ export function Browse() {
                 <div key={ci.listing.id} className="flex items-center gap-3 border border-divider rounded-xl p-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-text-primary truncate">{speciesDisplayName(ci.listing)}</p>
-                    <p className="text-xs text-text-secondary">{formatPrice(ci.listing.pricePerStemCents)}</p>
+                    <p className="text-xs text-text-secondary">{formatPrice(ci.listing.pricePerStemSek)}</p>
                   </div>
                   <input
                     type="number"

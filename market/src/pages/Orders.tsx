@@ -74,7 +74,7 @@ export function Orders() {
                         {t(`orderStatus.${order.status}` as const)}
                       </span>
                     </td>
-                    <td className="px-4 py-2.5 text-sm text-right tabular-nums">{formatTotal(order.totalCents)}</td>
+                    <td className="px-4 py-2.5 text-sm text-right tabular-nums">{formatTotal(order.totalSek)}</td>
                     <td className="px-4 py-2.5 text-sm text-text-secondary hidden sm:table-cell">{order.deliveryDate ?? '\u2014'}</td>
                     <td className="px-4 py-2.5 text-sm text-right">
                       {order.status === 'PLACED' && (
@@ -95,7 +95,7 @@ export function Orders() {
                             <div key={item.id} className="flex items-center justify-between text-xs text-text-secondary">
                               <span>{item.speciesName}</span>
                               <span className="tabular-nums">
-                                {item.quantity} x {(item.pricePerStemCents / 100).toFixed(2)} kr
+                                {item.quantity} x {(item.pricePerStemSek / 100).toFixed(2)} kr
                               </span>
                             </div>
                           ))}

@@ -64,7 +64,7 @@ class MarketOrderServiceTest {
         userId: Long,
         speciesId: Long = 10L,
         quantity: Int = 20,
-        pricePerStemCents: Int = 150,
+        pricePerStemSek: Int = 150,
         isActive: Boolean = true,
     ) = Listing(
         id = id,
@@ -72,7 +72,7 @@ class MarketOrderServiceTest {
         speciesId = speciesId,
         title = "Test listing",
         quantityAvailable = quantity,
-        pricePerStemCents = pricePerStemCents,
+        pricePerStemSek = pricePerStemSek,
         availableFrom = today.minusDays(1),
         availableUntil = today.plusDays(30),
         isActive = isActive,
@@ -85,13 +85,13 @@ class MarketOrderServiceTest {
         purchaserId: Long,
         producerId: Long,
         status: OrderStatus = OrderStatus.PLACED,
-        totalCents: Int = 0,
+        totalSek: Int = 0,
     ) = MarketOrder(
         id = id,
         purchaserId = purchaserId,
         producerId = producerId,
         status = status,
-        totalCents = totalCents,
+        totalSek = totalSek,
         createdAt = now,
         updatedAt = now,
     )
@@ -102,7 +102,7 @@ class MarketOrderServiceTest {
         listingId: Long,
         speciesId: Long = 10L,
         quantity: Int = 3,
-        pricePerStemCents: Int = 150,
+        pricePerStemSek: Int = 150,
     ) = OrderItem(
         id = id,
         orderId = orderId,
@@ -110,7 +110,7 @@ class MarketOrderServiceTest {
         speciesId = speciesId,
         speciesName = "Rose",
         quantity = quantity,
-        pricePerStemCents = pricePerStemCents,
+        pricePerStemSek = pricePerStemSek,
     )
 
     private fun makeUser(id: Long, displayName: String = "User $id") =
@@ -136,11 +136,11 @@ class MarketOrderServiceTest {
         val listingId = 100L
         val speciesId = 10L
         val quantity = 5
-        val pricePerStemCents = 200
+        val pricePerStemSek = 200
 
-        val listing = makeListing(listingId, producerId, speciesId, quantity = 10, pricePerStemCents = pricePerStemCents)
-        val savedOrder = makeOrder(1L, purchaserId, producerId, totalCents = pricePerStemCents * quantity)
-        val savedItem = makeOrderItem(1L, 1L, listingId, speciesId, quantity, pricePerStemCents)
+        val listing = makeListing(listingId, producerId, speciesId, quantity = 10, pricePerStemSek = pricePerStemSek)
+        val savedOrder = makeOrder(1L, purchaserId, producerId, totalSek = pricePerStemSek * quantity)
+        val savedItem = makeOrderItem(1L, 1L, listingId, speciesId, quantity, pricePerStemSek)
         val species = makeSpecies(speciesId)
 
         `when`(listingRepo.findByIdForUpdate(listingId)).thenReturn(listing)
@@ -419,15 +419,15 @@ class MarketOrderServiceTest {
         val speciesId = 10L
 
         // Two listings from the same producer
-        val listing1 = makeListing(100L, producerId, speciesId = speciesId, quantity = 20, pricePerStemCents = 100)
-        val listing2 = makeListing(101L, producerId, speciesId = speciesId, quantity = 20, pricePerStemCents = 250)
+        val listing1 = makeListing(100L, producerId, speciesId = speciesId, quantity = 20, pricePerStemSek = 100)
+        val listing2 = makeListing(101L, producerId, speciesId = speciesId, quantity = 20, pricePerStemSek = 250)
 
         // Expected total: (100 * 4) + (250 * 6) = 400 + 1500 = 1900
         val expectedTotal = 100 * 4 + 250 * 6
 
-        val savedOrder = makeOrder(1L, purchaserId, producerId, totalCents = expectedTotal)
-        val savedItem1 = makeOrderItem(1L, 1L, 100L, speciesId, quantity = 4, pricePerStemCents = 100)
-        val savedItem2 = makeOrderItem(2L, 1L, 101L, speciesId, quantity = 6, pricePerStemCents = 250)
+        val savedOrder = makeOrder(1L, purchaserId, producerId, totalSek = expectedTotal)
+        val savedItem1 = makeOrderItem(1L, 1L, 100L, speciesId, quantity = 4, pricePerStemSek = 100)
+        val savedItem2 = makeOrderItem(2L, 1L, 101L, speciesId, quantity = 6, pricePerStemSek = 250)
         val species = makeSpecies(speciesId)
 
         `when`(listingRepo.findByIdForUpdate(100L)).thenReturn(listing1)
@@ -451,6 +451,6 @@ class MarketOrderServiceTest {
 
         service.placeOrder(request, purchaserId)
 
-        assertEquals(expectedTotal, orderCaptor.firstValue.totalCents)
+        assertEquals(expectedTotal, orderCaptor.firstValue.totalSek)
     }
 }

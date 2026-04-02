@@ -34,7 +34,7 @@ class BouquetRecipeRepository(private val ds: AgroalDataSource) {
     fun persist(recipe: BouquetRecipe): BouquetRecipe {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO bouquet_recipe (user_id, name, description, image_url, price_cents, created_at, updated_at)
+                """INSERT INTO bouquet_recipe (user_id, name, description, image_url, price_sek, created_at, updated_at)
                    VALUES (?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
@@ -42,7 +42,7 @@ class BouquetRecipeRepository(private val ds: AgroalDataSource) {
                 ps.setString(2, recipe.name)
                 ps.setString(3, recipe.description)
                 ps.setString(4, recipe.imageUrl)
-                ps.setObject(5, recipe.priceCents)
+                ps.setObject(5, recipe.priceSek)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -55,12 +55,12 @@ class BouquetRecipeRepository(private val ds: AgroalDataSource) {
     fun update(recipe: BouquetRecipe) {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                "UPDATE bouquet_recipe SET name = ?, description = ?, image_url = ?, price_cents = ?, updated_at = now() WHERE id = ?"
+                "UPDATE bouquet_recipe SET name = ?, description = ?, image_url = ?, price_sek = ?, updated_at = now() WHERE id = ?"
             ).use { ps ->
                 ps.setString(1, recipe.name)
                 ps.setString(2, recipe.description)
                 ps.setString(3, recipe.imageUrl)
-                ps.setObject(4, recipe.priceCents)
+                ps.setObject(4, recipe.priceSek)
                 ps.setLong(5, recipe.id!!)
                 ps.executeUpdate()
             }
@@ -125,7 +125,7 @@ class BouquetRecipeRepository(private val ds: AgroalDataSource) {
         name = getString("name"),
         description = getString("description"),
         imageUrl = getString("image_url"),
-        priceCents = getObject("price_cents") as? Int,
+        priceSek = getObject("price_sek") as? Int,
         createdAt = getTimestamp("created_at").toInstant(),
         updatedAt = getTimestamp("updated_at").toInstant(),
     )

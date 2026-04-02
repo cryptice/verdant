@@ -60,7 +60,7 @@ export interface ListingResponse {
   id: number; sellerName: string; producerName: string
   speciesId: number; speciesName: string; speciesNameSv?: string
   title: string; description?: string
-  quantityAvailable: number; pricePerStemCents: number
+  quantityAvailable: number; pricePerStemSek: number
   availableFrom: string; availableUntil: string
   imageUrl?: string; isActive: boolean; createdAt: string
 }
@@ -69,7 +69,7 @@ export interface MarketOrderResponse {
   id: number; purchaserId: number; purchaserName: string
   producerId: number; producerName: string
   status: string; deliveryDate?: string
-  totalCents: number; notes?: string
+  totalSek: number; notes?: string
   items: OrderItemResponse[]
   createdAt: string; updatedAt: string
 }
@@ -77,7 +77,7 @@ export interface MarketOrderResponse {
 export interface OrderItemResponse {
   id: number; listingId: number
   speciesId: number; speciesName: string
-  quantity: number; pricePerStemCents: number
+  quantity: number; pricePerStemSek: number
 }
 
 // -- API --

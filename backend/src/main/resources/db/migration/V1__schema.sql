@@ -73,7 +73,7 @@ CREATE TABLE species (
     sowing_months             TEXT         DEFAULT '',
     germination_rate          INTEGER,
     group_id                  BIGINT       REFERENCES species_group(id) ON DELETE SET NULL,
-    cost_per_seed_sek       INTEGER,
+    cost_per_seed_cents       INTEGER,
     expected_stems_per_plant  INTEGER,
     expected_vase_life_days   INTEGER,
     plant_type                VARCHAR(20)  DEFAULT 'ANNUAL',
@@ -118,7 +118,7 @@ CREATE TABLE species_provider (
     image_front_url     TEXT,
     image_back_url      TEXT,
     product_url         TEXT,
-    cost_per_unit_sek   INTEGER,
+    cost_per_unit_cents INTEGER,
     unit_type           VARCHAR(20)  DEFAULT 'SEED',
     created_at          TIMESTAMPTZ  DEFAULT now(),
     UNIQUE (species_id, provider_id)
@@ -207,7 +207,7 @@ CREATE TABLE seed_inventory (
     quantity            INTEGER      NOT NULL CHECK (quantity >= 0),
     collection_date     DATE,
     expiration_date     DATE,
-    cost_per_unit_sek   INTEGER,
+    cost_per_unit_cents INTEGER,
     unit_type           VARCHAR(20)  DEFAULT 'SEED',
     season_id           BIGINT       REFERENCES season(id) ON DELETE SET NULL,
     created_at          TIMESTAMPTZ  DEFAULT now()
@@ -288,7 +288,7 @@ CREATE TABLE bouquet_recipe (
     name            VARCHAR(200) NOT NULL,
     description     TEXT,
     image_url       TEXT,
-    price_sek       INTEGER,
+    price_cents     INTEGER,
     created_at      TIMESTAMPTZ  DEFAULT now(),
     updated_at      TIMESTAMPTZ  DEFAULT now()
 );
@@ -406,7 +406,7 @@ CREATE TABLE listing (
     title               VARCHAR(255) NOT NULL,
     description         TEXT,
     quantity_available  INTEGER      NOT NULL CHECK (quantity_available >= 0),
-    price_per_stem_sek  INTEGER     NOT NULL,
+    price_per_stem_cents INTEGER    NOT NULL,
     available_from      DATE         NOT NULL,
     available_until     DATE         NOT NULL,
     image_url           TEXT,
@@ -425,7 +425,7 @@ CREATE TABLE market_order (
     producer_id     BIGINT       NOT NULL REFERENCES app_user(id) ON DELETE CASCADE,
     status          VARCHAR(20)  NOT NULL DEFAULT 'PLACED',
     delivery_date   DATE,
-    total_sek       INTEGER      NOT NULL DEFAULT 0,
+    total_cents     INTEGER      NOT NULL DEFAULT 0,
     notes           TEXT,
     created_at      TIMESTAMPTZ  DEFAULT now(),
     updated_at      TIMESTAMPTZ  DEFAULT now()
@@ -441,7 +441,7 @@ CREATE TABLE order_item (
     species_id          BIGINT       NOT NULL REFERENCES species(id) ON DELETE SET NULL,
     species_name        VARCHAR(255) NOT NULL,
     quantity            INTEGER      NOT NULL CHECK (quantity > 0),
-    price_per_stem_sek  INTEGER     NOT NULL CHECK (price_per_stem_sek >= 0)
+    price_per_stem_cents INTEGER    NOT NULL CHECK (price_per_stem_cents >= 0)
 );
 CREATE INDEX idx_order_item_order ON order_item(order_id);
 

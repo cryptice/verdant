@@ -15,7 +15,7 @@ data class MarketOrderResponse(
     val producerName: String,
     val status: String,
     val deliveryDate: LocalDate?,
-    val totalCents: Int,
+    val totalSek: Int,
     val notes: String?,
     val items: List<OrderItemResponse>,
     val createdAt: Instant,
@@ -28,7 +28,7 @@ data class OrderItemResponse(
     val speciesId: Long,
     val speciesName: String,
     val quantity: Int,
-    val pricePerStemCents: Int,
+    val pricePerStemSek: Int,
 )
 
 data class CreateMarketOrderRequest(

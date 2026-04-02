@@ -45,7 +45,7 @@ export function BouquetRecipes() {
   const openEdit = (recipe: BouquetRecipeResponse) => {
     setFormName(recipe.name)
     setFormDescription(recipe.description ?? '')
-    setFormPrice(recipe.priceCents != null ? String(recipe.priceCents) : '')
+    setFormPrice(recipe.priceSek != null ? String(recipe.priceSek) : '')
     setFormItems(recipe.items.map(item => ({
       species: { id: item.speciesId, commonName: item.speciesName } as SpeciesResponse,
       stemCount: String(item.stemCount),
@@ -70,7 +70,7 @@ export function BouquetRecipes() {
   const buildPayload = () => ({
     name: formName,
     description: formDescription || undefined,
-    priceCents: formPrice ? Number(formPrice) : undefined,
+    priceSek: formPrice ? Number(formPrice) : undefined,
     items: formItems
       .filter(item => item.species)
       .map(item => ({
@@ -190,7 +190,7 @@ export function BouquetRecipes() {
                   <span className="text-xs text-text-secondary">
                     {t('bouquets.stems', { count: totalStems(recipe) })}
                   </span>
-                  <span className="text-xs font-medium text-accent">{formatPrice(recipe.priceCents)}</span>
+                  <span className="text-xs font-medium text-accent">{formatPrice(recipe.priceSek)}</span>
                 </div>
               </button>
             ))}

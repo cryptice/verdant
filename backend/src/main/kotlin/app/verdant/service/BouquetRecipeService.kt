@@ -32,7 +32,7 @@ class BouquetRecipeService(
                 userId = userId,
                 name = request.name,
                 description = request.description,
-                priceCents = request.priceCents,
+                priceSek = request.priceSek,
             )
         )
         if (request.imageBase64 != null) {
@@ -72,7 +72,7 @@ class BouquetRecipeService(
             name = request.name ?: recipe.name,
             description = request.description ?: recipe.description,
             imageUrl = imageUrl,
-            priceCents = request.priceCents ?: recipe.priceCents,
+            priceSek = request.priceSek ?: recipe.priceSek,
         )
         repo.update(updated)
         if (request.items != null) {
@@ -107,7 +107,7 @@ class BouquetRecipeService(
             name = name,
             description = description,
             imageUrl = imageUrl,
-            priceCents = priceCents,
+            priceSek = priceSek,
             items = items.map { item ->
                 BouquetRecipeItemResponse(
                     id = item.id!!,

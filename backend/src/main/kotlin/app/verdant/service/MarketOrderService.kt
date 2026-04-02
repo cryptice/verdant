@@ -28,7 +28,7 @@ class MarketOrderService(
         // Each findByIdForUpdate acquires a row-level lock that is held for the duration of the
         // transaction, ensuring no concurrent transaction can check or modify the same quantity
         // between our check and our decrement.
-        data class ResolvedItem(val listingId: Long, val speciesId: Long, val quantity: Int, val pricePerStemCents: Int, val producerId: Long)
+        data class ResolvedItem(val listingId: Long, val speciesId: Long, val quantity: Int, val pricePerStemSek: Int, val producerId: Long)
         val resolvedItems = request.items.map { itemReq ->
             val listing = listingRepo.findByIdForUpdate(itemReq.listingId)
                 ?: throw BadRequestException("Listing ${itemReq.listingId} not found")
@@ -42,7 +42,7 @@ class MarketOrderService(
                 listingId = listing.id!!,
                 speciesId = listing.speciesId,
                 quantity = itemReq.quantity,
-                pricePerStemCents = listing.pricePerStemCents,
+                pricePerStemSek = listing.pricePerStemSek,
                 producerId = listing.userId,
             )
         }
@@ -54,14 +54,14 @@ class MarketOrderService(
 
         if (producerId == purchaserId) throw BadRequestException("Cannot place an order for your own listings")
 
-        val totalCents = resolvedItems.sumOf { it.pricePerStemCents * it.quantity }
+        val totalSek = resolvedItems.sumOf { it.pricePerStemSek * it.quantity }
 
         val order = orderRepo.persist(
             MarketOrder(
                 purchaserId = purchaserId,
                 producerId = producerId,
                 deliveryDate = request.deliveryDate,
-                totalCents = totalCents,
+                totalSek = totalSek,
                 notes = request.notes,
             )
         )
@@ -75,7 +75,7 @@ class MarketOrderService(
                     speciesId = item.speciesId,
                     speciesName = species?.commonName ?: "Unknown",
                     quantity = item.quantity,
-                    pricePerStemCents = item.pricePerStemCents,
+                    pricePerStemSek = item.pricePerStemSek,
                 )
             )
         }
@@ -142,7 +142,7 @@ class MarketOrderService(
                 speciesId = item.speciesId,
                 speciesName = item.speciesName,
                 quantity = item.quantity,
-                pricePerStemCents = item.pricePerStemCents,
+                pricePerStemSek = item.pricePerStemSek,
             )
         }
         return MarketOrderResponse(
@@ -153,7 +153,7 @@ class MarketOrderService(
             producerName = producer?.displayName ?: "Unknown",
             status = status.name,
             deliveryDate = deliveryDate,
-            totalCents = totalCents,
+            totalSek = totalSek,
             notes = notes,
             items = items,
             createdAt = createdAt,
