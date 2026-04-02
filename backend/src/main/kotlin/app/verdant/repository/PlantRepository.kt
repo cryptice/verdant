@@ -37,24 +37,41 @@ class PlantRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long, status: PlantStatus? = null, seasonId: Long? = null): List<Plant> =
+    fun findByUserId(userId: Long, status: PlantStatus? = null, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<Plant> =
         ds.connection.use { conn ->
             val sql = buildString {
                 append("SELECT p.* FROM plant p WHERE p.user_id = ?")
                 if (status != null) append(" AND p.status = ?")
                 if (seasonId != null) append(" AND p.season_id = ?")
-                append(" ORDER BY p.id")
+                append(" ORDER BY p.id LIMIT ? OFFSET ?")
             }
             conn.prepareStatement(sql).use { ps ->
                 var idx = 1
                 ps.setLong(idx++, userId)
                 if (status != null) ps.setString(idx++, status.name)
                 if (seasonId != null) ps.setLong(idx++, seasonId)
+                ps.setInt(idx++, limit)
+                ps.setInt(idx, offset)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toPlant()) }
                 }
             }
         }
+
+    fun countByGardenIds(gardenIds: Set<Long>): Map<Long, Int> {
+        if (gardenIds.isEmpty()) return emptyMap()
+        val placeholders = gardenIds.joinToString(",") { "?" }
+        return ds.connection.use { conn ->
+            conn.prepareStatement(
+                "SELECT b.garden_id, COUNT(*) FROM plant p JOIN bed b ON p.bed_id = b.id WHERE b.garden_id IN ($placeholders) GROUP BY b.garden_id"
+            ).use { ps ->
+                gardenIds.forEachIndexed { i, id -> ps.setLong(i + 1, id) }
+                ps.executeQuery().use { rs ->
+                    buildMap { while (rs.next()) put(rs.getLong("garden_id"), rs.getInt("count")) }
+                }
+            }
+        }
+    }
 
     fun countByGardenId(gardenId: Long): Long =
         ds.connection.use { conn ->

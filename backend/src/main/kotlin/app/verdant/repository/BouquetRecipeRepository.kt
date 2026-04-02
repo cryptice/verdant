@@ -19,10 +19,12 @@ class BouquetRecipeRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long): List<BouquetRecipe> =
+    fun findByUserId(userId: Long, limit: Int = 50, offset: Int = 0): List<BouquetRecipe> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM bouquet_recipe WHERE user_id = ? ORDER BY name").use { ps ->
+            conn.prepareStatement("SELECT * FROM bouquet_recipe WHERE user_id = ? ORDER BY name LIMIT ? OFFSET ?").use { ps ->
                 ps.setLong(1, userId)
+                ps.setInt(2, limit)
+                ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toBouquetRecipe()) }
                 }

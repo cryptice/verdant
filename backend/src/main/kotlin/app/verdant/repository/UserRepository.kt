@@ -19,6 +19,19 @@ class UserRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    fun findByIds(ids: Set<Long>): Map<Long, User> {
+        if (ids.isEmpty()) return emptyMap()
+        val placeholders = ids.joinToString(",") { "?" }
+        return ds.connection.use { conn ->
+            conn.prepareStatement("SELECT * FROM app_user WHERE id IN ($placeholders)").use { ps ->
+                ids.forEachIndexed { i, id -> ps.setLong(i + 1, id) }
+                ps.executeQuery().use { rs ->
+                    buildMap { while (rs.next()) { val u = rs.toUser(); put(u.id!!, u) } }
+                }
+            }
+        }
+    }
+
     fun findByGoogleSubject(subject: String): User? =
         ds.connection.use { conn ->
             conn.prepareStatement("SELECT * FROM app_user WHERE google_subject = ?").use { ps ->
@@ -92,7 +105,8 @@ class UserRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement("DELETE FROM app_user WHERE id = ?").use { ps ->
                 ps.setLong(1, id)
-                ps.executeUpdate()
+                val rows = ps.executeUpdate()
+                if (rows == 0) throw jakarta.ws.rs.NotFoundException("User not found")
             }
         }
     }

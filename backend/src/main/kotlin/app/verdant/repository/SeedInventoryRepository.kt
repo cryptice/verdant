@@ -18,31 +18,35 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long): List<SeedInventory> =
+    fun findByUserId(userId: Long, limit: Int = 50, offset: Int = 0): List<SeedInventory> =
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """SELECT si.* FROM seed_inventory si
                    JOIN species s ON si.species_id = s.id
                    WHERE si.user_id = ?
-                   ORDER BY s.common_name, si.expiration_date NULLS LAST"""
+                   ORDER BY s.common_name, si.expiration_date NULLS LAST LIMIT ? OFFSET ?"""
             ).use { ps ->
                 ps.setLong(1, userId)
+                ps.setInt(2, limit)
+                ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toSeedInventory()) }
                 }
             }
         }
 
-    fun findBySeasonId(userId: Long, seasonId: Long): List<SeedInventory> =
+    fun findBySeasonId(userId: Long, seasonId: Long, limit: Int = 50, offset: Int = 0): List<SeedInventory> =
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """SELECT si.* FROM seed_inventory si
                    JOIN species s ON si.species_id = s.id
                    WHERE si.user_id = ? AND si.season_id = ?
-                   ORDER BY s.common_name, si.expiration_date NULLS LAST"""
+                   ORDER BY s.common_name, si.expiration_date NULLS LAST LIMIT ? OFFSET ?"""
             ).use { ps ->
                 ps.setLong(1, userId)
                 ps.setLong(2, seasonId)
+                ps.setInt(3, limit)
+                ps.setInt(4, offset)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toSeedInventory()) }
                 }
@@ -67,7 +71,7 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
     fun persist(inventory: SeedInventory): SeedInventory {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO seed_inventory (user_id, species_id, quantity, collection_date, expiration_date, cost_per_unit_cents, unit_type, season_id, created_at)
+                """INSERT INTO seed_inventory (user_id, species_id, quantity, collection_date, expiration_date, cost_per_unit_sek, unit_type, season_id, created_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
@@ -76,7 +80,7 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
                 ps.setInt(3, inventory.quantity)
                 ps.setObject(4, inventory.collectionDate)
                 ps.setObject(5, inventory.expirationDate)
-                ps.setObject(6, inventory.costPerUnitCents)
+                ps.setObject(6, inventory.costPerUnitSek)
                 ps.setString(7, inventory.unitType.name)
                 ps.setObject(8, inventory.seasonId)
                 ps.executeUpdate()
@@ -92,13 +96,13 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """UPDATE seed_inventory SET quantity = ?, collection_date = ?, expiration_date = ?,
-                   cost_per_unit_cents = ?, unit_type = ?, season_id = ?
+                   cost_per_unit_sek = ?, unit_type = ?, season_id = ?
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setInt(1, inventory.quantity)
                 ps.setObject(2, inventory.collectionDate)
                 ps.setObject(3, inventory.expirationDate)
-                ps.setObject(4, inventory.costPerUnitCents)
+                ps.setObject(4, inventory.costPerUnitSek)
                 ps.setString(5, inventory.unitType.name)
                 ps.setObject(6, inventory.seasonId)
                 ps.setLong(7, inventory.id!!)
@@ -136,7 +140,7 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
         quantity = getInt("quantity"),
         collectionDate = getObject("collection_date", java.time.LocalDate::class.java),
         expirationDate = getObject("expiration_date", java.time.LocalDate::class.java),
-        costPerUnitCents = getObject("cost_per_unit_cents") as? Int,
+        costPerUnitSek = getObject("cost_per_unit_sek") as? Int,
         unitType = getString("unit_type")?.let { UnitType.valueOf(it) } ?: UnitType.SEED,
         seasonId = getObject("season_id") as? Long,
         createdAt = getTimestamp("created_at").toInstant(),

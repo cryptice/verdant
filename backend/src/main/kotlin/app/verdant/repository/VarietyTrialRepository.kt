@@ -19,21 +19,25 @@ class VarietyTrialRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long): List<VarietyTrial> =
+    fun findByUserId(userId: Long, limit: Int = 50, offset: Int = 0): List<VarietyTrial> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM variety_trial WHERE user_id = ? ORDER BY id DESC").use { ps ->
+            conn.prepareStatement("SELECT * FROM variety_trial WHERE user_id = ? ORDER BY id DESC LIMIT ? OFFSET ?").use { ps ->
                 ps.setLong(1, userId)
+                ps.setInt(2, limit)
+                ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toVarietyTrial()) }
                 }
             }
         }
 
-    fun findBySeasonId(userId: Long, seasonId: Long): List<VarietyTrial> =
+    fun findBySeasonId(userId: Long, seasonId: Long, limit: Int = 50, offset: Int = 0): List<VarietyTrial> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM variety_trial WHERE user_id = ? AND season_id = ? ORDER BY id DESC").use { ps ->
+            conn.prepareStatement("SELECT * FROM variety_trial WHERE user_id = ? AND season_id = ? ORDER BY id DESC LIMIT ? OFFSET ?").use { ps ->
                 ps.setLong(1, userId)
                 ps.setLong(2, seasonId)
+                ps.setInt(3, limit)
+                ps.setInt(4, offset)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toVarietyTrial()) }
                 }

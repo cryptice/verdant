@@ -19,27 +19,31 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long): List<ScheduledTask> =
+    fun findByUserId(userId: Long, limit: Int = 50, offset: Int = 0): List<ScheduledTask> =
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """SELECT * FROM scheduled_task WHERE user_id = ?
-                   ORDER BY CASE status WHEN 'PENDING' THEN 0 ELSE 1 END, deadline"""
+                   ORDER BY CASE status WHEN 'PENDING' THEN 0 ELSE 1 END, deadline LIMIT ? OFFSET ?"""
             ).use { ps ->
                 ps.setLong(1, userId)
+                ps.setInt(2, limit)
+                ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toScheduledTask()) }
                 }
             }
         }
 
-    fun findBySeasonId(userId: Long, seasonId: Long): List<ScheduledTask> =
+    fun findBySeasonId(userId: Long, seasonId: Long, limit: Int = 50, offset: Int = 0): List<ScheduledTask> =
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """SELECT * FROM scheduled_task WHERE user_id = ? AND season_id = ?
-                   ORDER BY CASE status WHEN 'PENDING' THEN 0 ELSE 1 END, deadline"""
+                   ORDER BY CASE status WHEN 'PENDING' THEN 0 ELSE 1 END, deadline LIMIT ? OFFSET ?"""
             ).use { ps ->
                 ps.setLong(1, userId)
                 ps.setLong(2, seasonId)
+                ps.setInt(3, limit)
+                ps.setInt(4, offset)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toScheduledTask()) }
                 }
@@ -116,7 +120,8 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement("DELETE FROM scheduled_task WHERE id = ?").use { ps ->
                 ps.setLong(1, id)
-                ps.executeUpdate()
+                val rows = ps.executeUpdate()
+                if (rows == 0) throw jakarta.ws.rs.NotFoundException("Scheduled task not found")
             }
         }
     }

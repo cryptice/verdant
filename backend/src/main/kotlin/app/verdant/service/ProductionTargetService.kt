@@ -18,11 +18,11 @@ class ProductionTargetService(
     private fun resolveSpeciesName(speciesId: Long): String? =
         speciesRepo.findById(speciesId)?.commonName
 
-    fun getTargetsForUser(userId: Long, seasonId: Long? = null): List<ProductionTargetResponse> {
+    fun getTargetsForUser(userId: Long, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<ProductionTargetResponse> {
         val targets = if (seasonId != null) {
-            repo.findBySeasonId(userId, seasonId)
+            repo.findBySeasonId(userId, seasonId, limit, offset)
         } else {
-            repo.findByUserId(userId)
+            repo.findByUserId(userId, limit, offset)
         }
         return targets.map { it.toResponse() }
     }

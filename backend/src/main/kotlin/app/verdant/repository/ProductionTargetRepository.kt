@@ -18,21 +18,25 @@ class ProductionTargetRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long): List<ProductionTarget> =
+    fun findByUserId(userId: Long, limit: Int = 50, offset: Int = 0): List<ProductionTarget> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM production_target WHERE user_id = ? ORDER BY start_date, id").use { ps ->
+            conn.prepareStatement("SELECT * FROM production_target WHERE user_id = ? ORDER BY start_date, id LIMIT ? OFFSET ?").use { ps ->
                 ps.setLong(1, userId)
+                ps.setInt(2, limit)
+                ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toProductionTarget()) }
                 }
             }
         }
 
-    fun findBySeasonId(userId: Long, seasonId: Long): List<ProductionTarget> =
+    fun findBySeasonId(userId: Long, seasonId: Long, limit: Int = 50, offset: Int = 0): List<ProductionTarget> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM production_target WHERE user_id = ? AND season_id = ? ORDER BY start_date, id").use { ps ->
+            conn.prepareStatement("SELECT * FROM production_target WHERE user_id = ? AND season_id = ? ORDER BY start_date, id LIMIT ? OFFSET ?").use { ps ->
                 ps.setLong(1, userId)
                 ps.setLong(2, seasonId)
+                ps.setInt(3, limit)
+                ps.setInt(4, offset)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toProductionTarget()) }
                 }

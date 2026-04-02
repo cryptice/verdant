@@ -21,21 +21,25 @@ class PestDiseaseLogRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long): List<PestDiseaseLog> =
+    fun findByUserId(userId: Long, limit: Int = 50, offset: Int = 0): List<PestDiseaseLog> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM pest_disease_log WHERE user_id = ? ORDER BY observed_date DESC, id DESC").use { ps ->
+            conn.prepareStatement("SELECT * FROM pest_disease_log WHERE user_id = ? ORDER BY observed_date DESC, id DESC LIMIT ? OFFSET ?").use { ps ->
                 ps.setLong(1, userId)
+                ps.setInt(2, limit)
+                ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toPestDiseaseLog()) }
                 }
             }
         }
 
-    fun findBySeasonId(userId: Long, seasonId: Long): List<PestDiseaseLog> =
+    fun findBySeasonId(userId: Long, seasonId: Long, limit: Int = 50, offset: Int = 0): List<PestDiseaseLog> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM pest_disease_log WHERE user_id = ? AND season_id = ? ORDER BY observed_date DESC, id DESC").use { ps ->
+            conn.prepareStatement("SELECT * FROM pest_disease_log WHERE user_id = ? AND season_id = ? ORDER BY observed_date DESC, id DESC LIMIT ? OFFSET ?").use { ps ->
                 ps.setLong(1, userId)
                 ps.setLong(2, seasonId)
+                ps.setInt(3, limit)
+                ps.setInt(4, offset)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toPestDiseaseLog()) }
                 }

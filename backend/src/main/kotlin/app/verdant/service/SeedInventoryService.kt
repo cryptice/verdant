@@ -14,13 +14,13 @@ class SeedInventoryService(
     private val repo: SeedInventoryRepository,
     private val speciesRepo: SpeciesRepository,
 ) {
-    fun getInventoryForUser(userId: Long, speciesId: Long? = null, seasonId: Long? = null): List<SeedInventoryResponse> {
+    fun getInventoryForUser(userId: Long, speciesId: Long? = null, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<SeedInventoryResponse> {
         val items = if (speciesId != null) {
             repo.findByUserIdAndSpeciesId(userId, speciesId)
         } else if (seasonId != null) {
-            repo.findBySeasonId(userId, seasonId)
+            repo.findBySeasonId(userId, seasonId, limit, offset)
         } else {
-            repo.findByUserId(userId)
+            repo.findByUserId(userId, limit, offset)
         }
         val speciesNames = items.map { it.speciesId }.distinct().associateWith { id ->
             speciesRepo.findById(id)?.commonName ?: "Unknown"
@@ -80,7 +80,7 @@ class SeedInventoryService(
         quantity = quantity,
         collectionDate = collectionDate,
         expirationDate = expirationDate,
-        costPerUnitCents = costPerUnitCents,
+        costPerUnitSek = costPerUnitSek,
         unitType = unitType.name,
         seasonId = seasonId,
         createdAt = createdAt,

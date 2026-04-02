@@ -11,8 +11,8 @@ import jakarta.ws.rs.NotFoundException
 class CustomerService(
     private val repo: CustomerRepository,
 ) {
-    fun getCustomersForUser(userId: Long): List<CustomerResponse> =
-        repo.findByUserId(userId).map { it.toResponse() }
+    fun getCustomersForUser(userId: Long, limit: Int = 50, offset: Int = 0): List<CustomerResponse> =
+        repo.findByUserId(userId, limit, offset).map { it.toResponse() }
 
     fun getCustomer(id: Long, userId: Long): CustomerResponse {
         val customer = repo.findById(id) ?: throw NotFoundException("Customer not found")

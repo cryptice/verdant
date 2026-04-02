@@ -19,16 +19,20 @@ class ListingService(
     private val storageService: StorageService,
 ) {
 
-    fun getActiveListings(): List<ListingResponse> =
-        repo.findActive().map { it.toResponse() }
+    fun getActiveListings(limit: Int = 50, offset: Int = 0): List<ListingResponse> {
+        val listings = repo.findActive(limit, offset)
+        return mapListings(listings)
+    }
 
-    fun getListingsForUser(userId: Long): List<ListingResponse> =
-        repo.findByUserId(userId).map { it.toResponse() }
+    fun getListingsForUser(userId: Long, limit: Int = 50, offset: Int = 0): List<ListingResponse> {
+        val listings = repo.findByUserId(userId, limit, offset)
+        return mapListings(listings)
+    }
 
     fun getListing(id: Long, userId: Long): ListingResponse {
         val listing = repo.findById(id) ?: throw NotFoundException("Listing not found")
         if (!listing.isActive && listing.userId != userId) throw ForbiddenException()
-        return listing.toResponse()
+        return mapListings(listOf(listing)).first()
     }
 
     fun createListing(request: CreateListingRequest, userId: Long): ListingResponse {
@@ -56,7 +60,7 @@ class ListingService(
                 imageUrl = imageUrl,
             )
         )
-        return listing.toResponse()
+        return mapListings(listOf(listing)).first()
     }
 
     fun updateListing(id: Long, request: UpdateListingRequest, userId: Long): ListingResponse {
@@ -72,7 +76,7 @@ class ListingService(
             isActive = request.isActive ?: listing.isActive,
         )
         repo.update(updated)
-        return updated.toResponse()
+        return mapListings(listOf(updated)).first()
     }
 
     fun deleteListing(id: Long, userId: Long) {
@@ -81,25 +85,32 @@ class ListingService(
         repo.delete(id)
     }
 
-    private fun Listing.toResponse(): ListingResponse {
-        val species = speciesRepo.findById(speciesId)
-        val user = userRepo.findById(userId)
-        return ListingResponse(
-            id = id!!,
-            userId = userId,
-            producerName = user?.displayName ?: "Unknown",
-            speciesId = speciesId,
-            speciesName = species?.commonName ?: "Unknown",
-            speciesNameSv = species?.commonNameSv,
-            title = title,
-            description = description,
-            quantityAvailable = quantityAvailable,
-            pricePerStemCents = pricePerStemCents,
-            availableFrom = availableFrom,
-            availableUntil = availableUntil,
-            imageUrl = imageUrl,
-            isActive = isActive,
-            createdAt = createdAt,
-        )
+    private fun mapListings(listings: List<Listing>): List<ListingResponse> {
+        if (listings.isEmpty()) return emptyList()
+        val speciesIds = listings.map { it.speciesId }.toSet()
+        val userIds = listings.map { it.userId }.toSet()
+        val speciesById = speciesRepo.findByIds(speciesIds)
+        val usersById = userRepo.findByIds(userIds)
+        return listings.map { listing ->
+            val species = speciesById[listing.speciesId]
+            val user = usersById[listing.userId]
+            ListingResponse(
+                id = listing.id!!,
+                sellerName = user?.displayName ?: "Unknown",
+                producerName = user?.displayName ?: "Unknown",
+                speciesId = listing.speciesId,
+                speciesName = species?.commonName ?: "Unknown",
+                speciesNameSv = species?.commonNameSv,
+                title = listing.title,
+                description = listing.description,
+                quantityAvailable = listing.quantityAvailable,
+                pricePerStemCents = listing.pricePerStemCents,
+                availableFrom = listing.availableFrom,
+                availableUntil = listing.availableUntil,
+                imageUrl = listing.imageUrl,
+                isActive = listing.isActive,
+                createdAt = listing.createdAt,
+            )
+        }
     }
 }

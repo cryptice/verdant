@@ -16,15 +16,17 @@ class DashboardService(
         val user = userRepository.findById(userId) ?: throw NotFoundException("User not found")
         val gardens = gardenRepository.findByOwnerId(userId)
 
+        val gardenIds = gardens.mapNotNull { it.id }.toSet()
+        val bedCounts = bedRepository.countByGardenIds(gardenIds)
+        val plantCounts = plantRepository.countByGardenIds(gardenIds)
+
         val gardenSummaries = gardens.map { garden ->
-            val beds = bedRepository.findByGardenId(garden.id!!)
-            val plantCount = plantRepository.countByGardenId(garden.id).toInt()
             GardenSummary(
-                id = garden.id,
+                id = garden.id!!,
                 name = garden.name,
                 emoji = garden.emoji,
-                bedCount = beds.size,
-                plantCount = plantCount
+                bedCount = bedCounts[garden.id] ?: 0,
+                plantCount = plantCounts[garden.id] ?: 0,
             )
         }
 

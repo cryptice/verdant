@@ -20,20 +20,21 @@ class ScheduledTaskService(
         return task
     }
 
-    private fun resolveSpeciesName(speciesId: Long): String =
-        speciesRepository.findById(speciesId)?.commonName ?: "Unknown"
-
-    fun getTasksForUser(userId: Long, seasonId: Long? = null): List<ScheduledTaskResponse> {
+    fun getTasksForUser(userId: Long, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<ScheduledTaskResponse> {
         val tasks = if (seasonId != null) {
-            taskRepository.findBySeasonId(userId, seasonId)
+            taskRepository.findBySeasonId(userId, seasonId, limit, offset)
         } else {
-            taskRepository.findByUserId(userId)
+            taskRepository.findByUserId(userId, limit, offset)
         }
-        return tasks.map { it.toResponse() }
+        val speciesNames = speciesRepository.findNamesByIds(tasks.map { it.speciesId }.toSet())
+        return tasks.map { it.toResponse(speciesNames) }
     }
 
-    fun getTask(taskId: Long, userId: Long): ScheduledTaskResponse =
-        checkOwnership(taskId, userId).toResponse()
+    fun getTask(taskId: Long, userId: Long): ScheduledTaskResponse {
+        val task = checkOwnership(taskId, userId)
+        val speciesNames = speciesRepository.findNamesByIds(setOf(task.speciesId))
+        return task.toResponse(speciesNames)
+    }
 
     fun createTask(request: CreateScheduledTaskRequest, userId: Long): ScheduledTaskResponse {
         speciesRepository.findById(request.speciesId) ?: throw NotFoundException("Species not found")
@@ -48,7 +49,8 @@ class ScheduledTaskService(
                 notes = request.notes,
             )
         )
-        return task.toResponse()
+        val speciesNames = speciesRepository.findNamesByIds(setOf(task.speciesId))
+        return task.toResponse(speciesNames)
     }
 
     fun updateTask(taskId: Long, request: UpdateScheduledTaskRequest, userId: Long): ScheduledTaskResponse {
@@ -73,13 +75,16 @@ class ScheduledTaskService(
             notes = request.notes ?: task.notes,
         )
         taskRepository.update(updated)
-        return updated.toResponse()
+        val speciesNames = speciesRepository.findNamesByIds(setOf(updated.speciesId))
+        return updated.toResponse(speciesNames)
     }
 
     fun completePartially(taskId: Long, processedCount: Int, userId: Long): ScheduledTaskResponse {
         checkOwnership(taskId, userId)
         taskRepository.decrementRemainingCount(taskId, processedCount)
-        return taskRepository.findById(taskId)!!.toResponse()
+        val task = taskRepository.findById(taskId)!!
+        val speciesNames = speciesRepository.findNamesByIds(setOf(task.speciesId))
+        return task.toResponse(speciesNames)
     }
 
     fun deleteTask(taskId: Long, userId: Long) {
@@ -87,10 +92,10 @@ class ScheduledTaskService(
         taskRepository.delete(taskId)
     }
 
-    private fun ScheduledTask.toResponse() = ScheduledTaskResponse(
+    private fun ScheduledTask.toResponse(speciesNames: Map<Long, String>) = ScheduledTaskResponse(
         id = id!!,
         speciesId = speciesId,
-        speciesName = resolveSpeciesName(speciesId),
+        speciesName = speciesNames[speciesId] ?: "Unknown",
         activityType = activityType,
         deadline = deadline,
         targetCount = targetCount,

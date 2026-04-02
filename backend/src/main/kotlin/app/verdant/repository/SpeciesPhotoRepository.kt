@@ -17,6 +17,24 @@ class SpeciesPhotoRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    fun findBySpeciesIds(speciesIds: Set<Long>): Map<Long, List<SpeciesPhoto>> {
+        if (speciesIds.isEmpty()) return emptyMap()
+        val placeholders = speciesIds.joinToString(",") { "?" }
+        return ds.connection.use { conn ->
+            conn.prepareStatement("SELECT * FROM species_photo WHERE species_id IN ($placeholders) ORDER BY sort_order, id").use { ps ->
+                speciesIds.forEachIndexed { i, id -> ps.setLong(i + 1, id) }
+                ps.executeQuery().use { rs ->
+                    val result = mutableMapOf<Long, MutableList<SpeciesPhoto>>()
+                    while (rs.next()) {
+                        val photo = rs.toPhoto()
+                        result.getOrPut(photo.speciesId) { mutableListOf() }.add(photo)
+                    }
+                    result
+                }
+            }
+        }
+    }
+
     fun findBySpeciesId(speciesId: Long): List<SpeciesPhoto> =
         ds.connection.use { conn ->
             conn.prepareStatement("SELECT * FROM species_photo WHERE species_id = ? ORDER BY sort_order, id").use { ps ->
@@ -49,7 +67,8 @@ class SpeciesPhotoRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement("DELETE FROM species_photo WHERE id = ?").use { ps ->
                 ps.setLong(1, id)
-                ps.executeUpdate()
+                val rows = ps.executeUpdate()
+                if (rows == 0) throw jakarta.ws.rs.NotFoundException("Species photo not found")
             }
         }
     }

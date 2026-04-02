@@ -18,20 +18,24 @@ class MarketOrderRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByPurchaserId(userId: Long): List<MarketOrder> =
+    fun findByPurchaserId(userId: Long, limit: Int = 50, offset: Int = 0): List<MarketOrder> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM market_order WHERE purchaser_id = ? ORDER BY created_at DESC").use { ps ->
+            conn.prepareStatement("SELECT * FROM market_order WHERE purchaser_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?").use { ps ->
                 ps.setLong(1, userId)
+                ps.setInt(2, limit)
+                ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toMarketOrder()) }
                 }
             }
         }
 
-    fun findByProducerId(userId: Long): List<MarketOrder> =
+    fun findByProducerId(userId: Long, limit: Int = 50, offset: Int = 0): List<MarketOrder> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM market_order WHERE producer_id = ? ORDER BY created_at DESC").use { ps ->
+            conn.prepareStatement("SELECT * FROM market_order WHERE producer_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?").use { ps ->
                 ps.setLong(1, userId)
+                ps.setInt(2, limit)
+                ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toMarketOrder()) }
                 }

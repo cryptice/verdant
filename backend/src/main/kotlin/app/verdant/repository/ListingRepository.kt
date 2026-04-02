@@ -25,23 +25,27 @@ class ListingRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long): List<Listing> =
+    fun findByUserId(userId: Long, limit: Int = 50, offset: Int = 0): List<Listing> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM listing WHERE user_id = ? ORDER BY created_at DESC").use { ps ->
+            conn.prepareStatement("SELECT * FROM listing WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?").use { ps ->
                 ps.setLong(1, userId)
+                ps.setInt(2, limit)
+                ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toListing()) }
                 }
             }
         }
 
-    fun findActive(): List<Listing> =
+    fun findActive(limit: Int = 50, offset: Int = 0): List<Listing> =
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """SELECT * FROM listing
                    WHERE is_active = true AND available_from <= CURRENT_DATE AND available_until >= CURRENT_DATE
-                   ORDER BY created_at DESC"""
+                   ORDER BY created_at DESC LIMIT ? OFFSET ?"""
             ).use { ps ->
+                ps.setInt(1, limit)
+                ps.setInt(2, offset)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toListing()) }
                 }

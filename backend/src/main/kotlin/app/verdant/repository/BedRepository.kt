@@ -38,6 +38,19 @@ class BedRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    fun countByGardenIds(gardenIds: Set<Long>): Map<Long, Int> {
+        if (gardenIds.isEmpty()) return emptyMap()
+        val placeholders = gardenIds.joinToString(",") { "?" }
+        return ds.connection.use { conn ->
+            conn.prepareStatement("SELECT garden_id, COUNT(*) FROM bed WHERE garden_id IN ($placeholders) GROUP BY garden_id").use { ps ->
+                gardenIds.forEachIndexed { i, id -> ps.setLong(i + 1, id) }
+                ps.executeQuery().use { rs ->
+                    buildMap { while (rs.next()) put(rs.getLong("garden_id"), rs.getInt("count")) }
+                }
+            }
+        }
+    }
+
     fun findByGardenId(gardenId: Long): List<Bed> =
         ds.connection.use { conn ->
             conn.prepareStatement("SELECT * FROM bed WHERE garden_id = ? ORDER BY id").use { ps ->

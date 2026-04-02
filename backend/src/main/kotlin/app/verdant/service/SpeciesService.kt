@@ -19,16 +19,18 @@ class SpeciesService(
 ) {
     // ── Species CRUD ──
 
-    fun getSpeciesForUser(userId: Long): List<SpeciesResponse> {
+    fun getSpeciesForUser(userId: Long, limit: Int = 50, offset: Int = 0): List<SpeciesResponse> {
         val groups = groupRepository.findByUserId(userId).associateBy { it.id }
         val tags = tagRepository.findByUserId(userId).associateBy { it.id }
-        return speciesRepository.findByUserId(userId).map { it.toResponse(groups, tags) }
+        val speciesList = speciesRepository.findByUserId(userId, limit, offset)
+        return mapSpeciesList(speciesList, groups, tags)
     }
 
     fun searchSpeciesForUser(userId: Long, query: String, limit: Int = 20): List<SpeciesResponse> {
         val groups = groupRepository.findByUserId(userId).associateBy { it.id }
         val tags = tagRepository.findByUserId(userId).associateBy { it.id }
-        return speciesRepository.searchByUserId(userId, query, limit).map { it.toResponse(groups, tags) }
+        val speciesList = speciesRepository.searchByUserId(userId, query, limit)
+        return mapSpeciesList(speciesList, groups, tags)
     }
 
     fun getSpecies(speciesId: Long, userId: Long): SpeciesResponse {
@@ -120,13 +122,15 @@ class SpeciesService(
     fun getAllSpecies(): List<SpeciesResponse> {
         val groups = groupRepository.findAll().associateBy { it.id }
         val tags = tagRepository.findAll().associateBy { it.id }
-        return speciesRepository.findAll().map { it.toResponse(groups, tags) }
+        val speciesList = speciesRepository.findAll()
+        return mapSpeciesList(speciesList, groups, tags)
     }
 
     fun searchAllSpecies(query: String, limit: Int = 20): List<SpeciesResponse> {
         val groups = groupRepository.findAll().associateBy { it.id }
         val tags = tagRepository.findAll().associateBy { it.id }
-        return speciesRepository.searchAll(query, limit).map { it.toResponse(groups, tags) }
+        val speciesList = speciesRepository.searchAll(query, limit)
+        return mapSpeciesList(speciesList, groups, tags)
     }
 
     fun getSpeciesAdmin(speciesId: Long): SpeciesResponse {
@@ -488,12 +492,45 @@ class SpeciesService(
             imageFrontUrl = imageFrontUrl,
             imageBackUrl = imageBackUrl,
             productUrl = productUrl,
-            costPerUnitCents = costPerUnitCents,
+            costPerUnitSek = costPerUnitSek,
             unitType = unitType.name,
         )
     }
 
     // ── Mapping ──
+
+    private fun mapSpeciesList(
+        speciesList: List<Species>,
+        groups: Map<Long?, SpeciesGroup>,
+        tags: Map<Long?, SpeciesTag>,
+    ): List<SpeciesResponse> {
+        if (speciesList.isEmpty()) return emptyList()
+        val ids = speciesList.map { it.id!! }.toSet()
+        val tagIdsBySpecies = speciesRepository.findTagIdsBySpeciesIds(ids)
+        val photosBySpecies = photoRepository.findBySpeciesIds(ids)
+        val providersBySpecies = speciesProviderRepository.findBySpeciesIds(ids)
+        val allProviderIds = providersBySpecies.values.flatten().map { it.providerId }.toSet()
+        val providersById = if (allProviderIds.isEmpty()) emptyMap() else providerRepository.findAll().associateBy { it.id }
+        return speciesList.map { species ->
+            val tagIds = tagIdsBySpecies[species.id] ?: emptyList()
+            val photos = photosBySpecies[species.id] ?: emptyList()
+            val providers = (providersBySpecies[species.id] ?: emptyList()).mapNotNull { sp ->
+                val provider = providersById[sp.providerId] ?: return@mapNotNull null
+                SpeciesProviderResponse(
+                    id = sp.id!!,
+                    providerId = provider.id!!,
+                    providerName = provider.name,
+                    providerIdentifier = provider.identifier,
+                    imageFrontUrl = sp.imageFrontUrl,
+                    imageBackUrl = sp.imageBackUrl,
+                    productUrl = sp.productUrl,
+                    costPerUnitSek = sp.costPerUnitSek,
+                    unitType = sp.unitType.name,
+                )
+            }
+            species.toResponse(groups, tags, tagIds, photos, providers)
+        }
+    }
 
     private fun Species.toResponse(
         groups: Map<Long?, SpeciesGroup>,
@@ -502,8 +539,18 @@ class SpeciesService(
         val tagIds = speciesRepository.findTagIdsForSpecies(id!!)
         val photos = photoRepository.findBySpeciesId(id)
         val providers = speciesProviderRepository.findBySpeciesId(id).map { it.toResponse() }
+        return toResponse(groups, tags, tagIds, photos, providers)
+    }
+
+    private fun Species.toResponse(
+        groups: Map<Long?, SpeciesGroup>,
+        tags: Map<Long?, SpeciesTag>,
+        tagIds: List<Long>,
+        photos: List<SpeciesPhoto>,
+        providers: List<SpeciesProviderResponse>,
+    ): SpeciesResponse {
         return SpeciesResponse(
-            id = id,
+            id = id!!,
             commonName = commonName,
             variantName = variantName,
             commonNameSv = commonNameSv,
@@ -526,7 +573,7 @@ class SpeciesService(
             groupName = groupId?.let { groups[it]?.name },
             tags = tagIds.mapNotNull { tags[it]?.let { t -> SpeciesTagResponse(t.id!!, t.name) } },
             providers = providers,
-            costPerSeedCents = costPerSeedCents,
+            costPerSeedSek = costPerSeedSek,
             expectedStemsPerPlant = expectedStemsPerPlant,
             expectedVaseLifeDays = expectedVaseLifeDays,
             plantType = plantType.name,

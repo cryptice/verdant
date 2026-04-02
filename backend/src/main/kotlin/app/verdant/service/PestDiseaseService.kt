@@ -12,11 +12,11 @@ class PestDiseaseService(
     private val repo: PestDiseaseLogRepository,
     private val storageService: StorageService,
 ) {
-    fun getLogsForUser(userId: Long, seasonId: Long? = null): List<PestDiseaseLogResponse> {
+    fun getLogsForUser(userId: Long, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<PestDiseaseLogResponse> {
         val logs = if (seasonId != null) {
-            repo.findBySeasonId(userId, seasonId)
+            repo.findBySeasonId(userId, seasonId, limit, offset)
         } else {
-            repo.findByUserId(userId)
+            repo.findByUserId(userId, limit, offset)
         }
         return logs.map { it.toResponse() }
     }

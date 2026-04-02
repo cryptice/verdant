@@ -18,21 +18,25 @@ class SuccessionScheduleRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long): List<SuccessionSchedule> =
+    fun findByUserId(userId: Long, limit: Int = 50, offset: Int = 0): List<SuccessionSchedule> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM succession_schedule WHERE user_id = ? ORDER BY first_sow_date, id").use { ps ->
+            conn.prepareStatement("SELECT * FROM succession_schedule WHERE user_id = ? ORDER BY first_sow_date, id LIMIT ? OFFSET ?").use { ps ->
                 ps.setLong(1, userId)
+                ps.setInt(2, limit)
+                ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toSuccessionSchedule()) }
                 }
             }
         }
 
-    fun findBySeasonId(userId: Long, seasonId: Long): List<SuccessionSchedule> =
+    fun findBySeasonId(userId: Long, seasonId: Long, limit: Int = 50, offset: Int = 0): List<SuccessionSchedule> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM succession_schedule WHERE user_id = ? AND season_id = ? ORDER BY first_sow_date, id").use { ps ->
+            conn.prepareStatement("SELECT * FROM succession_schedule WHERE user_id = ? AND season_id = ? ORDER BY first_sow_date, id LIMIT ? OFFSET ?").use { ps ->
                 ps.setLong(1, userId)
                 ps.setLong(2, seasonId)
+                ps.setInt(3, limit)
+                ps.setInt(4, offset)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toSuccessionSchedule()) }
                 }

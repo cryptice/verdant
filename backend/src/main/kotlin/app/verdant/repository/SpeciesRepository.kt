@@ -50,10 +50,12 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long): List<Species> =
+    fun findByUserId(userId: Long, limit: Int = 50, offset: Int = 0): List<Species> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM species WHERE user_id = ? OR user_id IS NULL ORDER BY common_name").use { ps ->
+            conn.prepareStatement("SELECT * FROM species WHERE user_id = ? OR user_id IS NULL ORDER BY common_name LIMIT ? OFFSET ?").use { ps ->
                 ps.setLong(1, userId)
+                ps.setInt(2, limit)
+                ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toSpecies()) }
                 }
@@ -89,7 +91,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 """INSERT INTO species (user_id, common_name, variant_name, common_name_sv, variant_name_sv, scientific_name, image_front_url, image_back_url,
                    days_to_sprout, days_to_harvest, germination_time_days, sowing_depth_mm,
                    growing_positions, soils, height_cm, bloom_months, sowing_months, germination_rate, group_id,
-                   cost_per_seed_cents, expected_stems_per_plant, expected_vase_life_days, plant_type, created_at)
+                   cost_per_seed_sek, expected_stems_per_plant, expected_vase_life_days, plant_type, created_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
@@ -112,7 +114,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 ps.setString(17, species.sowingMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
                 ps.setObject(18, species.germinationRate)
                 ps.setObject(19, species.groupId)
-                ps.setObject(20, species.costPerSeedCents)
+                ps.setObject(20, species.costPerSeedSek)
                 ps.setObject(21, species.expectedStemsPerPlant)
                 ps.setObject(22, species.expectedVaseLifeDays)
                 ps.setString(23, species.plantType.name)
@@ -133,7 +135,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                    days_to_sprout = ?, days_to_harvest = ?, germination_time_days = ?,
                    sowing_depth_mm = ?, growing_positions = ?, soils = ?, height_cm = ?,
                    bloom_months = ?, sowing_months = ?, germination_rate = ?, group_id = ?,
-                   cost_per_seed_cents = ?, expected_stems_per_plant = ?, expected_vase_life_days = ?, plant_type = ?
+                   cost_per_seed_sek = ?, expected_stems_per_plant = ?, expected_vase_life_days = ?, plant_type = ?
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setString(1, species.commonName)
@@ -154,7 +156,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 ps.setString(16, species.sowingMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
                 ps.setObject(17, species.germinationRate)
                 ps.setObject(18, species.groupId)
-                ps.setObject(19, species.costPerSeedCents)
+                ps.setObject(19, species.costPerSeedSek)
                 ps.setObject(20, species.expectedStemsPerPlant)
                 ps.setObject(21, species.expectedVaseLifeDays)
                 ps.setString(22, species.plantType.name)
@@ -168,7 +170,34 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement("DELETE FROM species WHERE id = ?").use { ps ->
                 ps.setLong(1, id)
-                ps.executeUpdate()
+                val rows = ps.executeUpdate()
+                if (rows == 0) throw jakarta.ws.rs.NotFoundException("Species not found")
+            }
+        }
+    }
+
+    fun findByIds(ids: Set<Long>): Map<Long, Species> {
+        if (ids.isEmpty()) return emptyMap()
+        val placeholders = ids.joinToString(",") { "?" }
+        return ds.connection.use { conn ->
+            conn.prepareStatement("SELECT * FROM species WHERE id IN ($placeholders)").use { ps ->
+                ids.forEachIndexed { i, id -> ps.setLong(i + 1, id) }
+                ps.executeQuery().use { rs ->
+                    buildMap { while (rs.next()) { val s = rs.toSpecies(); put(s.id!!, s) } }
+                }
+            }
+        }
+    }
+
+    fun findNamesByIds(ids: Set<Long>): Map<Long, String> {
+        if (ids.isEmpty()) return emptyMap()
+        val placeholders = ids.joinToString(",") { "?" }
+        return ds.connection.use { conn ->
+            conn.prepareStatement("SELECT id, common_name FROM species WHERE id IN ($placeholders)").use { ps ->
+                ids.forEachIndexed { i, id -> ps.setLong(i + 1, id) }
+                ps.executeQuery().use { rs ->
+                    buildMap { while (rs.next()) put(rs.getLong("id"), rs.getString("common_name")) }
+                }
             }
         }
     }
@@ -182,6 +211,23 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 }
             }
         }
+
+    fun findTagIdsBySpeciesIds(speciesIds: Set<Long>): Map<Long, List<Long>> {
+        if (speciesIds.isEmpty()) return emptyMap()
+        val placeholders = speciesIds.joinToString(",") { "?" }
+        return ds.connection.use { conn ->
+            conn.prepareStatement("SELECT species_id, tag_id FROM species_tag_mapping WHERE species_id IN ($placeholders)").use { ps ->
+                speciesIds.forEachIndexed { i, id -> ps.setLong(i + 1, id) }
+                ps.executeQuery().use { rs ->
+                    val result = mutableMapOf<Long, MutableList<Long>>()
+                    while (rs.next()) {
+                        result.getOrPut(rs.getLong("species_id")) { mutableListOf() }.add(rs.getLong("tag_id"))
+                    }
+                    result
+                }
+            }
+        }
+    }
 
     fun setTagsForSpecies(speciesId: Long, tagIds: List<Long>) {
         ds.connection.use { conn ->
@@ -223,7 +269,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
         sowingMonths = getString("sowing_months")?.split(",")?.map { it.toInt() } ?: emptyList(),
         germinationRate = getObject("germination_rate") as? Int,
         groupId = getObject("group_id") as? Long,
-        costPerSeedCents = getObject("cost_per_seed_cents") as? Int,
+        costPerSeedSek = getObject("cost_per_seed_sek") as? Int,
         expectedStemsPerPlant = getObject("expected_stems_per_plant") as? Int,
         expectedVaseLifeDays = getObject("expected_vase_life_days") as? Int,
         plantType = getString("plant_type")?.let { PlantType.valueOf(it) } ?: PlantType.ANNUAL,

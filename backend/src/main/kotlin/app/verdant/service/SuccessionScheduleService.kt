@@ -16,22 +16,21 @@ class SuccessionScheduleService(
     private val speciesRepo: SpeciesRepository,
     private val taskRepo: ScheduledTaskRepository,
 ) {
-    private fun resolveSpeciesName(speciesId: Long): String? =
-        speciesRepo.findById(speciesId)?.commonName
-
-    fun getSchedulesForUser(userId: Long, seasonId: Long? = null): List<SuccessionScheduleResponse> {
+    fun getSchedulesForUser(userId: Long, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<SuccessionScheduleResponse> {
         val schedules = if (seasonId != null) {
-            repo.findBySeasonId(userId, seasonId)
+            repo.findBySeasonId(userId, seasonId, limit, offset)
         } else {
-            repo.findByUserId(userId)
+            repo.findByUserId(userId, limit, offset)
         }
-        return schedules.map { it.toResponse() }
+        val speciesNames = speciesRepo.findNamesByIds(schedules.map { it.speciesId }.toSet())
+        return schedules.map { it.toResponse(speciesNames) }
     }
 
     fun getSchedule(id: Long, userId: Long): SuccessionScheduleResponse {
         val schedule = repo.findById(id) ?: throw NotFoundException("Succession schedule not found")
         if (schedule.userId != userId) throw ForbiddenException()
-        return schedule.toResponse()
+        val speciesNames = speciesRepo.findNamesByIds(setOf(schedule.speciesId))
+        return schedule.toResponse(speciesNames)
     }
 
     fun createSchedule(request: CreateSuccessionScheduleRequest, userId: Long): SuccessionScheduleResponse {
@@ -48,7 +47,8 @@ class SuccessionScheduleService(
                 notes = request.notes,
             )
         )
-        return schedule.toResponse()
+        val speciesNames = speciesRepo.findNamesByIds(setOf(schedule.speciesId))
+        return schedule.toResponse(speciesNames)
     }
 
     fun updateSchedule(id: Long, request: UpdateSuccessionScheduleRequest, userId: Long): SuccessionScheduleResponse {
@@ -65,7 +65,8 @@ class SuccessionScheduleService(
             notes = request.notes ?: schedule.notes,
         )
         repo.update(updated)
-        return updated.toResponse()
+        val speciesNames = speciesRepo.findNamesByIds(setOf(updated.speciesId))
+        return updated.toResponse(speciesNames)
     }
 
     fun deleteSchedule(id: Long, userId: Long) {
@@ -97,11 +98,11 @@ class SuccessionScheduleService(
         return taskIds
     }
 
-    private fun SuccessionSchedule.toResponse() = SuccessionScheduleResponse(
+    private fun SuccessionSchedule.toResponse(speciesNames: Map<Long, String>) = SuccessionScheduleResponse(
         id = id!!,
         seasonId = seasonId,
         speciesId = speciesId,
-        speciesName = resolveSpeciesName(speciesId),
+        speciesName = speciesNames[speciesId],
         bedId = bedId,
         firstSowDate = firstSowDate,
         intervalDays = intervalDays,
