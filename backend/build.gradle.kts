@@ -56,6 +56,9 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("com.google.cloud:google-cloud-storage:2.43.1")
     implementation("com.google.cloud.sql:postgres-socket-factory:1.21.0")
+    testImplementation("io.quarkus:quarkus-junit5")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
+    testImplementation("org.mockito:mockito-core:5.14.2")
 }
 
 java {
