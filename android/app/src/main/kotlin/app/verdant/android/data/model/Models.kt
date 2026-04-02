@@ -1,613 +1,625 @@
 package app.verdant.android.data.model
 
-data class GoogleAuthRequest(val idToken: String)
-data class AuthResponse(val token: String, val user: UserResponse)
+import com.google.gson.annotations.SerializedName
+
+data class GoogleAuthRequest(@SerializedName("idToken") val idToken: String)
+data class AuthResponse(@SerializedName("token") val token: String, @SerializedName("user") val user: UserResponse)
 
 data class UserResponse(
-    val id: Long,
-    val email: String,
-    val displayName: String,
-    val avatarUrl: String?,
-    val role: String,
-    val language: String = "sv",
-    val createdAt: String
+    @SerializedName("id") val id: Long,
+    @SerializedName("email") val email: String,
+    @SerializedName("displayName") val displayName: String,
+    @SerializedName("avatarUrl") val avatarUrl: String?,
+    @SerializedName("role") val role: String,
+    @SerializedName("language") val language: String = "sv",
+    @SerializedName("onboarding") val onboarding: String? = null,
+    @SerializedName("createdAt") val createdAt: String
 )
 
 data class UpdateUserRequest(
-    val displayName: String? = null,
-    val avatarUrl: String? = null,
-    val language: String? = null,
+    @SerializedName("displayName") val displayName: String? = null,
+    @SerializedName("avatarUrl") val avatarUrl: String? = null,
+    @SerializedName("language") val language: String? = null,
 )
 
 data class GardenResponse(
-    val id: Long,
-    val name: String,
-    val description: String?,
-    val emoji: String?,
-    val latitude: Double?,
-    val longitude: Double?,
-    val address: String?,
-    val boundaryJson: String?,
-    val createdAt: String,
-    val updatedAt: String
+    @SerializedName("id") val id: Long,
+    @SerializedName("name") val name: String,
+    @SerializedName("description") val description: String?,
+    @SerializedName("emoji") val emoji: String?,
+    @SerializedName("latitude") val latitude: Double?,
+    @SerializedName("longitude") val longitude: Double?,
+    @SerializedName("address") val address: String?,
+    @SerializedName("boundaryJson") val boundaryJson: String?,
+    @SerializedName("createdAt") val createdAt: String,
+    @SerializedName("updatedAt") val updatedAt: String
 )
 
 data class CreateGardenRequest(
-    val name: String,
-    val description: String? = null,
-    val emoji: String? = "\uD83C\uDF31",
-    val latitude: Double? = null,
-    val longitude: Double? = null,
-    val address: String? = null,
-    val boundaryJson: String? = null
+    @SerializedName("name") val name: String,
+    @SerializedName("description") val description: String? = null,
+    @SerializedName("emoji") val emoji: String? = "\uD83C\uDF31",
+    @SerializedName("latitude") val latitude: Double? = null,
+    @SerializedName("longitude") val longitude: Double? = null,
+    @SerializedName("address") val address: String? = null,
+    @SerializedName("boundaryJson") val boundaryJson: String? = null
 )
 
 data class UpdateGardenRequest(
-    val name: String? = null,
-    val description: String? = null,
-    val emoji: String? = null,
-    val latitude: Double? = null,
-    val longitude: Double? = null,
-    val address: String? = null,
-    val boundaryJson: String? = null
+    @SerializedName("name") val name: String? = null,
+    @SerializedName("description") val description: String? = null,
+    @SerializedName("emoji") val emoji: String? = null,
+    @SerializedName("latitude") val latitude: Double? = null,
+    @SerializedName("longitude") val longitude: Double? = null,
+    @SerializedName("address") val address: String? = null,
+    @SerializedName("boundaryJson") val boundaryJson: String? = null
 )
 
 data class BedResponse(
-    val id: Long,
-    val name: String,
-    val description: String?,
-    val gardenId: Long,
-    val boundaryJson: String?,
-    val lengthMeters: Double? = null,
-    val widthMeters: Double? = null,
-    val createdAt: String,
-    val updatedAt: String
+    @SerializedName("id") val id: Long,
+    @SerializedName("name") val name: String,
+    @SerializedName("description") val description: String?,
+    @SerializedName("gardenId") val gardenId: Long,
+    @SerializedName("boundaryJson") val boundaryJson: String?,
+    @SerializedName("lengthMeters") val lengthMeters: Double? = null,
+    @SerializedName("widthMeters") val widthMeters: Double? = null,
+    @SerializedName("createdAt") val createdAt: String,
+    @SerializedName("updatedAt") val updatedAt: String
 )
 
 data class CreateBedRequest(
-    val name: String,
-    val description: String? = null,
-    val boundaryJson: String? = null
+    @SerializedName("name") val name: String,
+    @SerializedName("description") val description: String? = null,
+    @SerializedName("boundaryJson") val boundaryJson: String? = null
 )
 
 data class UpdateBedRequest(
-    val name: String? = null,
-    val description: String? = null,
-    val boundaryJson: String? = null
+    @SerializedName("name") val name: String? = null,
+    @SerializedName("description") val description: String? = null,
+    @SerializedName("boundaryJson") val boundaryJson: String? = null
 )
 
 data class BedWithGardenResponse(
-    val id: Long,
-    val name: String,
-    val description: String?,
-    val gardenId: Long,
-    val gardenName: String,
-    val boundaryJson: String?,
+    @SerializedName("id") val id: Long,
+    @SerializedName("name") val name: String,
+    @SerializedName("description") val description: String?,
+    @SerializedName("gardenId") val gardenId: Long,
+    @SerializedName("gardenName") val gardenName: String,
+    @SerializedName("boundaryJson") val boundaryJson: String?,
 )
 
 data class PlantResponse(
-    val id: Long,
-    val name: String,
-    val speciesId: Long?,
-    val speciesName: String?,
-    val plantedDate: String?,
-    val status: String,
-    val seedCount: Int?,
-    val survivingCount: Int?,
-    val bedId: Long?,
-    val createdAt: String,
-    val updatedAt: String
+    @SerializedName("id") val id: Long,
+    @SerializedName("name") val name: String,
+    @SerializedName("speciesId") val speciesId: Long?,
+    @SerializedName("speciesName") val speciesName: String?,
+    @SerializedName("plantedDate") val plantedDate: String?,
+    @SerializedName("status") val status: String,
+    @SerializedName("seedCount") val seedCount: Int?,
+    @SerializedName("survivingCount") val survivingCount: Int?,
+    @SerializedName("bedId") val bedId: Long?,
+    @SerializedName("createdAt") val createdAt: String,
+    @SerializedName("updatedAt") val updatedAt: String
 )
 
 data class CreatePlantRequest(
-    val name: String,
-    val speciesId: Long? = null,
-    val plantedDate: String? = null,
-    val status: String = "SEEDED",
-    val seedCount: Int? = null,
-    val survivingCount: Int? = null,
+    @SerializedName("name") val name: String,
+    @SerializedName("speciesId") val speciesId: Long? = null,
+    @SerializedName("plantedDate") val plantedDate: String? = null,
+    @SerializedName("status") val status: String = "SEEDED",
+    @SerializedName("seedCount") val seedCount: Int? = null,
+    @SerializedName("survivingCount") val survivingCount: Int? = null,
 )
 
 data class BatchSowRequest(
-    val bedId: Long? = null,
-    val speciesId: Long,
-    val name: String,
-    val seedCount: Int,
-    val notes: String? = null,
-    val imageBase64: String? = null,
+    @SerializedName("bedId") val bedId: Long? = null,
+    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("name") val name: String,
+    @SerializedName("seedCount") val seedCount: Int,
+    @SerializedName("notes") val notes: String? = null,
+    @SerializedName("imageBase64") val imageBase64: String? = null,
 )
 
 data class BatchSowResponse(
-    val plantIds: List<Long>,
-    val count: Int,
+    @SerializedName("plantIds") val plantIds: List<Long>,
+    @SerializedName("count") val count: Int,
 )
 
 data class TraySummaryEntry(
-    val speciesName: String,
-    val status: String,
-    val count: Int,
+    @SerializedName("speciesName") val speciesName: String,
+    @SerializedName("status") val status: String,
+    @SerializedName("count") val count: Int,
 )
 
 data class PlantGroupResponse(
-    val speciesId: Long,
-    val speciesName: String?,
-    val bedId: Long?,
-    val bedName: String?,
-    val gardenName: String?,
-    val plantedDate: String?,
-    val status: String,
-    val count: Int,
+    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("speciesName") val speciesName: String?,
+    @SerializedName("bedId") val bedId: Long?,
+    @SerializedName("bedName") val bedName: String?,
+    @SerializedName("gardenName") val gardenName: String?,
+    @SerializedName("plantedDate") val plantedDate: String?,
+    @SerializedName("status") val status: String,
+    @SerializedName("count") val count: Int,
 )
 
 data class BatchEventRequest(
-    val speciesId: Long,
-    val bedId: Long? = null,
-    val plantedDate: String? = null,
-    val status: String,
-    val eventType: String,
-    val count: Int,
-    val notes: String? = null,
-    val imageBase64: String? = null,
-    val targetBedId: Long? = null,
+    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("bedId") val bedId: Long? = null,
+    @SerializedName("plantedDate") val plantedDate: String? = null,
+    @SerializedName("status") val status: String,
+    @SerializedName("eventType") val eventType: String,
+    @SerializedName("count") val count: Int,
+    @SerializedName("notes") val notes: String? = null,
+    @SerializedName("imageBase64") val imageBase64: String? = null,
+    @SerializedName("targetBedId") val targetBedId: Long? = null,
 )
 
 data class BatchEventResponse(
-    val updatedCount: Int,
+    @SerializedName("updatedCount") val updatedCount: Int,
 )
 
 data class UpdatePlantRequest(
-    val name: String? = null,
-    val speciesId: Long? = null,
-    val plantedDate: String? = null,
-    val status: String? = null,
-    val seedCount: Int? = null,
-    val survivingCount: Int? = null,
+    @SerializedName("name") val name: String? = null,
+    @SerializedName("speciesId") val speciesId: Long? = null,
+    @SerializedName("plantedDate") val plantedDate: String? = null,
+    @SerializedName("status") val status: String? = null,
+    @SerializedName("seedCount") val seedCount: Int? = null,
+    @SerializedName("survivingCount") val survivingCount: Int? = null,
 )
 
 data class DashboardResponse(
-    val user: UserResponse,
-    val gardens: List<GardenSummary>,
-    val stats: DashboardStats
+    @SerializedName("user") val user: UserResponse,
+    @SerializedName("gardens") val gardens: List<GardenSummary>,
+    @SerializedName("stats") val stats: DashboardStats
 )
 
 data class GardenSummary(
-    val id: Long,
-    val name: String,
-    val emoji: String?,
-    val bedCount: Int,
-    val plantCount: Int
+    @SerializedName("id") val id: Long,
+    @SerializedName("name") val name: String,
+    @SerializedName("emoji") val emoji: String?,
+    @SerializedName("bedCount") val bedCount: Int,
+    @SerializedName("plantCount") val plantCount: Int
 )
 
 data class DashboardStats(
-    val totalGardens: Int,
-    val totalBeds: Int,
-    val totalPlants: Int
+    @SerializedName("totalGardens") val totalGardens: Int,
+    @SerializedName("totalBeds") val totalBeds: Int,
+    @SerializedName("totalPlants") val totalPlants: Int
 )
 
-data class LatLng(val lat: Double, val lng: Double)
+data class LatLng(@SerializedName("lat") val lat: Double, @SerializedName("lng") val lng: Double)
 
 data class SuggestLayoutRequest(
-    val latitude: Double,
-    val longitude: Double,
-    val address: String? = null
+    @SerializedName("latitude") val latitude: Double,
+    @SerializedName("longitude") val longitude: Double,
+    @SerializedName("address") val address: String? = null
 )
 
 data class SuggestedBed(
-    val name: String,
-    val description: String?,
-    val boundary: List<LatLng>
+    @SerializedName("name") val name: String,
+    @SerializedName("description") val description: String?,
+    @SerializedName("boundary") val boundary: List<LatLng>
 )
 
 data class SuggestLayoutResponse(
-    val gardenName: String,
-    val boundary: List<LatLng>,
-    val beds: List<SuggestedBed>
+    @SerializedName("gardenName") val gardenName: String,
+    @SerializedName("boundary") val boundary: List<LatLng>,
+    @SerializedName("beds") val beds: List<SuggestedBed>
 )
 
 data class CreateGardenWithLayoutRequest(
-    val name: String,
-    val description: String? = null,
-    val emoji: String? = "\uD83C\uDF31",
-    val latitude: Double? = null,
-    val longitude: Double? = null,
-    val address: String? = null,
-    val boundaryJson: String? = null,
-    val beds: List<BedLayoutItem> = emptyList()
+    @SerializedName("name") val name: String,
+    @SerializedName("description") val description: String? = null,
+    @SerializedName("emoji") val emoji: String? = "\uD83C\uDF31",
+    @SerializedName("latitude") val latitude: Double? = null,
+    @SerializedName("longitude") val longitude: Double? = null,
+    @SerializedName("address") val address: String? = null,
+    @SerializedName("boundaryJson") val boundaryJson: String? = null,
+    @SerializedName("beds") val beds: List<BedLayoutItem> = emptyList()
 )
 
 data class BedLayoutItem(
-    val name: String,
-    val description: String? = null,
-    val boundaryJson: String? = null
+    @SerializedName("name") val name: String,
+    @SerializedName("description") val description: String? = null,
+    @SerializedName("boundaryJson") val boundaryJson: String? = null
 )
 
 data class GardenWithBedsResponse(
-    val garden: GardenResponse,
-    val beds: List<BedResponse>
+    @SerializedName("garden") val garden: GardenResponse,
+    @SerializedName("beds") val beds: List<BedResponse>
 )
 
 // ── Plant Events ──
 
 data class PlantEventResponse(
-    val id: Long,
-    val plantId: Long,
-    val eventType: String,
-    val eventDate: String,
-    val plantCount: Int?,
-    val weightGrams: Double?,
-    val quantity: Int?,
-    val notes: String?,
-    val imageUrl: String?,
-    val aiSuggestions: String?,
-    val stemCount: Int? = null,
-    val stemLengthCm: Int? = null,
-    val qualityGrade: String? = null,
-    val vaseLifeDays: Int? = null,
-    val harvestDestinationId: Long? = null,
-    val customerName: String? = null,
-    val createdAt: String,
+    @SerializedName("id") val id: Long,
+    @SerializedName("plantId") val plantId: Long,
+    @SerializedName("eventType") val eventType: String,
+    @SerializedName("eventDate") val eventDate: String,
+    @SerializedName("plantCount") val plantCount: Int?,
+    @SerializedName("weightGrams") val weightGrams: Double?,
+    @SerializedName("quantity") val quantity: Int?,
+    @SerializedName("notes") val notes: String?,
+    @SerializedName("imageUrl") val imageUrl: String?,
+    @SerializedName("aiSuggestions") val aiSuggestions: String?,
+    @SerializedName("stemCount") val stemCount: Int? = null,
+    @SerializedName("stemLengthCm") val stemLengthCm: Int? = null,
+    @SerializedName("qualityGrade") val qualityGrade: String? = null,
+    @SerializedName("vaseLifeDays") val vaseLifeDays: Int? = null,
+    @SerializedName("harvestDestinationId") val harvestDestinationId: Long? = null,
+    @SerializedName("customerName") val customerName: String? = null,
+    @SerializedName("createdAt") val createdAt: String,
 )
 
 data class CreatePlantEventRequest(
-    val eventType: String,
-    val eventDate: String? = null,
-    val plantCount: Int? = null,
-    val weightGrams: Double? = null,
-    val quantity: Int? = null,
-    val notes: String? = null,
-    val imageBase64: String? = null,
-    val aiSuggestions: String? = null,
-    val stemCount: Int? = null,
-    val stemLengthCm: Int? = null,
-    val qualityGrade: String? = null,
-    val vaseLifeDays: Int? = null,
-    val harvestDestinationId: Long? = null,
+    @SerializedName("eventType") val eventType: String,
+    @SerializedName("eventDate") val eventDate: String? = null,
+    @SerializedName("plantCount") val plantCount: Int? = null,
+    @SerializedName("weightGrams") val weightGrams: Double? = null,
+    @SerializedName("quantity") val quantity: Int? = null,
+    @SerializedName("notes") val notes: String? = null,
+    @SerializedName("imageBase64") val imageBase64: String? = null,
+    @SerializedName("aiSuggestions") val aiSuggestions: String? = null,
+    @SerializedName("stemCount") val stemCount: Int? = null,
+    @SerializedName("stemLengthCm") val stemLengthCm: Int? = null,
+    @SerializedName("qualityGrade") val qualityGrade: String? = null,
+    @SerializedName("vaseLifeDays") val vaseLifeDays: Int? = null,
+    @SerializedName("harvestDestinationId") val harvestDestinationId: Long? = null,
 )
 
 data class IdentifyPlantRequest(
-    val imageBase64: String,
+    @SerializedName("imageBase64") val imageBase64: String,
 )
 
 data class ExtractSpeciesInfoRequest(
-    val imageBase64: String,
+    @SerializedName("imageBase64") val imageBase64: String,
 )
 
 data class ExtractedSpeciesInfo(
-    val commonName: String? = null,
-    val variantName: String? = null,
-    val variantNameSv: String? = null,
-    val scientificName: String? = null,
-    val germinationTimeDays: Int? = null,
-    val sowingDepthMm: Int? = null,
-    val heightCm: Int? = null,
-    val bloomMonths: List<Int>? = null,
-    val sowingMonths: List<Int>? = null,
-    val germinationRate: Int? = null,
-    val growingPositions: List<String>? = null,
-    val soils: List<String>? = null,
-    val daysToSprout: Int? = null,
-    val daysToHarvest: Int? = null,
-    val cropBox: CropBox? = null,
+    @SerializedName("commonName") val commonName: String? = null,
+    @SerializedName("variantName") val variantName: String? = null,
+    @SerializedName("variantNameSv") val variantNameSv: String? = null,
+    @SerializedName("scientificName") val scientificName: String? = null,
+    @SerializedName("germinationTimeDays") val germinationTimeDays: Int? = null,
+    @SerializedName("sowingDepthMm") val sowingDepthMm: Int? = null,
+    @SerializedName("heightCm") val heightCm: Int? = null,
+    @SerializedName("bloomMonths") val bloomMonths: List<Int>? = null,
+    @SerializedName("sowingMonths") val sowingMonths: List<Int>? = null,
+    @SerializedName("germinationRate") val germinationRate: Int? = null,
+    @SerializedName("growingPositions") val growingPositions: List<String>? = null,
+    @SerializedName("soils") val soils: List<String>? = null,
+    @SerializedName("daysToSprout") val daysToSprout: Int? = null,
+    @SerializedName("daysToHarvest") val daysToHarvest: Int? = null,
+    @SerializedName("cropBox") val cropBox: CropBox? = null,
 )
 
 data class PlantSuggestion(
-    val species: String,
-    val commonName: String,
-    val confidence: Double,
-    val cropBox: CropBox? = null,
+    @SerializedName("species") val species: String,
+    @SerializedName("commonName") val commonName: String,
+    @SerializedName("confidence") val confidence: Double,
+    @SerializedName("cropBox") val cropBox: CropBox? = null,
 )
 
 data class CropBox(
-    val x: Double,
-    val y: Double,
-    val width: Double,
-    val height: Double,
+    @SerializedName("x") val x: Double,
+    @SerializedName("y") val y: Double,
+    @SerializedName("width") val width: Double,
+    @SerializedName("height") val height: Double,
 )
 
 data class HarvestStatRow(
-    val species: String,
-    val totalWeightGrams: Double,
-    val totalQuantity: Int,
-    val harvestCount: Int,
-    val totalStems: Int = 0,
+    @SerializedName("species") val species: String,
+    @SerializedName("totalWeightGrams") val totalWeightGrams: Double,
+    @SerializedName("totalQuantity") val totalQuantity: Int,
+    @SerializedName("harvestCount") val harvestCount: Int,
+    @SerializedName("totalStems") val totalStems: Int = 0,
 )
 
 // ── Species ──
 
 data class SpeciesPhotoResponse(
-    val id: Long,
-    val imageUrl: String,
-    val sortOrder: Int,
+    @SerializedName("id") val id: Long,
+    @SerializedName("imageUrl") val imageUrl: String,
+    @SerializedName("sortOrder") val sortOrder: Int,
 )
 
 data class SpeciesResponse(
-    val id: Long,
-    val commonName: String,
-    val commonNameSv: String?,
-    val variantName: String? = null,
-    val variantNameSv: String? = null,
-    val scientificName: String?,
-    val imageFrontUrl: String?,
-    val imageBackUrl: String?,
-    val photos: List<SpeciesPhotoResponse> = emptyList(),
-    val daysToSprout: Int?,
-    val daysToHarvest: Int?,
-    val germinationTimeDays: Int?,
-    val sowingDepthMm: Int?,
-    val growingPositions: List<String>,
-    val soils: List<String>,
-    val heightCm: Int?,
-    val bloomMonths: List<Int> = emptyList(),
-    val sowingMonths: List<Int> = emptyList(),
-    val germinationRate: Int?,
-    val groupId: Long?,
-    val groupName: String?,
-    val tags: List<SpeciesTagResponse>,
-    val providers: List<SpeciesProviderResponse> = emptyList(),
-    val isSystem: Boolean = false,
-    val costPerSeedCents: Int? = null,
-    val expectedStemsPerPlant: Int? = null,
-    val expectedVaseLifeDays: Int? = null,
-    val plantType: String? = null,
-    val createdAt: String,
+    @SerializedName("id") val id: Long,
+    @SerializedName("commonName") val commonName: String,
+    @SerializedName("commonNameSv") val commonNameSv: String?,
+    @SerializedName("variantName") val variantName: String? = null,
+    @SerializedName("variantNameSv") val variantNameSv: String? = null,
+    @SerializedName("scientificName") val scientificName: String?,
+    @SerializedName("imageFrontUrl") val imageFrontUrl: String?,
+    @SerializedName("imageBackUrl") val imageBackUrl: String?,
+    @SerializedName("photos") val photos: List<SpeciesPhotoResponse> = emptyList(),
+    @SerializedName("daysToSprout") val daysToSprout: Int?,
+    @SerializedName("daysToHarvest") val daysToHarvest: Int?,
+    @SerializedName("germinationTimeDays") val germinationTimeDays: Int?,
+    @SerializedName("sowingDepthMm") val sowingDepthMm: Int?,
+    @SerializedName("growingPositions") val growingPositions: List<String>,
+    @SerializedName("soils") val soils: List<String>,
+    @SerializedName("heightCm") val heightCm: Int?,
+    @SerializedName("bloomMonths") val bloomMonths: List<Int> = emptyList(),
+    @SerializedName("sowingMonths") val sowingMonths: List<Int> = emptyList(),
+    @SerializedName("germinationRate") val germinationRate: Int?,
+    @SerializedName("groupId") val groupId: Long?,
+    @SerializedName("groupName") val groupName: String?,
+    @SerializedName("tags") val tags: List<SpeciesTagResponse>,
+    @SerializedName("providers") val providers: List<SpeciesProviderResponse> = emptyList(),
+    @SerializedName("isSystem") val isSystem: Boolean = false,
+    @SerializedName("costPerSeedSek") val costPerSeedSek: Int? = null,
+    @SerializedName("expectedStemsPerPlant") val expectedStemsPerPlant: Int? = null,
+    @SerializedName("expectedVaseLifeDays") val expectedVaseLifeDays: Int? = null,
+    @SerializedName("plantType") val plantType: String? = null,
+    @SerializedName("createdAt") val createdAt: String,
 )
 
 data class CreateSpeciesRequest(
-    val commonName: String,
-    val commonNameSv: String? = null,
-    val variantName: String? = null,
-    val variantNameSv: String? = null,
-    val scientificName: String? = null,
-    val imageFrontBase64: String? = null,
-    val imageBackBase64: String? = null,
-    val daysToSprout: Int? = null,
-    val daysToHarvest: Int? = null,
-    val germinationTimeDays: Int? = null,
-    val sowingDepthMm: Int? = null,
-    val growingPositions: List<String> = emptyList(),
-    val soils: List<String> = emptyList(),
-    val heightCm: Int? = null,
-    val bloomMonths: List<Int> = emptyList(),
-    val sowingMonths: List<Int> = emptyList(),
-    val germinationRate: Int? = null,
-    val groupId: Long? = null,
-    val tagIds: List<Long> = emptyList(),
+    @SerializedName("commonName") val commonName: String,
+    @SerializedName("commonNameSv") val commonNameSv: String? = null,
+    @SerializedName("variantName") val variantName: String? = null,
+    @SerializedName("variantNameSv") val variantNameSv: String? = null,
+    @SerializedName("scientificName") val scientificName: String? = null,
+    @SerializedName("imageFrontBase64") val imageFrontBase64: String? = null,
+    @SerializedName("imageBackBase64") val imageBackBase64: String? = null,
+    @SerializedName("daysToSprout") val daysToSprout: Int? = null,
+    @SerializedName("daysToHarvest") val daysToHarvest: Int? = null,
+    @SerializedName("germinationTimeDays") val germinationTimeDays: Int? = null,
+    @SerializedName("sowingDepthMm") val sowingDepthMm: Int? = null,
+    @SerializedName("growingPositions") val growingPositions: List<String> = emptyList(),
+    @SerializedName("soils") val soils: List<String> = emptyList(),
+    @SerializedName("heightCm") val heightCm: Int? = null,
+    @SerializedName("bloomMonths") val bloomMonths: List<Int> = emptyList(),
+    @SerializedName("sowingMonths") val sowingMonths: List<Int> = emptyList(),
+    @SerializedName("germinationRate") val germinationRate: Int? = null,
+    @SerializedName("groupId") val groupId: Long? = null,
+    @SerializedName("tagIds") val tagIds: List<Long> = emptyList(),
 )
 
 data class UpdateSpeciesRequest(
-    val commonName: String? = null,
-    val commonNameSv: String? = null,
-    val variantName: String? = null,
-    val variantNameSv: String? = null,
-    val scientificName: String? = null,
-    val imageFrontBase64: String? = null,
-    val imageBackBase64: String? = null,
-    val daysToSprout: Int? = null,
-    val daysToHarvest: Int? = null,
-    val germinationTimeDays: Int? = null,
-    val sowingDepthMm: Int? = null,
-    val growingPositions: List<String>? = null,
-    val soils: List<String>? = null,
-    val heightCm: Int? = null,
-    val bloomMonths: List<Int>? = null,
-    val sowingMonths: List<Int>? = null,
-    val germinationRate: Int? = null,
-    val groupId: Long? = null,
-    val tagIds: List<Long>? = null,
+    @SerializedName("commonName") val commonName: String? = null,
+    @SerializedName("commonNameSv") val commonNameSv: String? = null,
+    @SerializedName("variantName") val variantName: String? = null,
+    @SerializedName("variantNameSv") val variantNameSv: String? = null,
+    @SerializedName("scientificName") val scientificName: String? = null,
+    @SerializedName("imageFrontBase64") val imageFrontBase64: String? = null,
+    @SerializedName("imageBackBase64") val imageBackBase64: String? = null,
+    @SerializedName("daysToSprout") val daysToSprout: Int? = null,
+    @SerializedName("daysToHarvest") val daysToHarvest: Int? = null,
+    @SerializedName("germinationTimeDays") val germinationTimeDays: Int? = null,
+    @SerializedName("sowingDepthMm") val sowingDepthMm: Int? = null,
+    @SerializedName("growingPositions") val growingPositions: List<String>? = null,
+    @SerializedName("soils") val soils: List<String>? = null,
+    @SerializedName("heightCm") val heightCm: Int? = null,
+    @SerializedName("bloomMonths") val bloomMonths: List<Int>? = null,
+    @SerializedName("sowingMonths") val sowingMonths: List<Int>? = null,
+    @SerializedName("germinationRate") val germinationRate: Int? = null,
+    @SerializedName("groupId") val groupId: Long? = null,
+    @SerializedName("tagIds") val tagIds: List<Long>? = null,
 )
 
 data class SpeciesGroupResponse(
-    val id: Long,
-    val name: String,
+    @SerializedName("id") val id: Long,
+    @SerializedName("name") val name: String,
 )
 
 data class CreateSpeciesGroupRequest(
-    val name: String,
+    @SerializedName("name") val name: String,
 )
 
 data class SpeciesTagResponse(
-    val id: Long,
-    val name: String,
+    @SerializedName("id") val id: Long,
+    @SerializedName("name") val name: String,
 )
 
 data class CreateSpeciesTagRequest(
-    val name: String,
+    @SerializedName("name") val name: String,
 )
 
 // ── Providers ──
 
 data class ProviderResponse(
-    val id: Long,
-    val name: String,
-    val identifier: String,
+    @SerializedName("id") val id: Long,
+    @SerializedName("name") val name: String,
+    @SerializedName("identifier") val identifier: String,
 )
 
 data class SpeciesProviderResponse(
-    val id: Long,
-    val providerId: Long,
-    val providerName: String,
-    val providerIdentifier: String,
-    val imageFrontUrl: String?,
-    val imageBackUrl: String?,
-    val productUrl: String?,
+    @SerializedName("id") val id: Long,
+    @SerializedName("providerId") val providerId: Long,
+    @SerializedName("providerName") val providerName: String,
+    @SerializedName("providerIdentifier") val providerIdentifier: String,
+    @SerializedName("imageFrontUrl") val imageFrontUrl: String?,
+    @SerializedName("imageBackUrl") val imageBackUrl: String?,
+    @SerializedName("productUrl") val productUrl: String?,
 )
 
 data class FrequentCommentResponse(
-    val id: Long,
-    val text: String,
-    val useCount: Int,
+    @SerializedName("id") val id: Long,
+    @SerializedName("text") val text: String,
+    @SerializedName("useCount") val useCount: Int,
 )
 
 data class RecordCommentRequest(
-    val text: String,
+    @SerializedName("text") val text: String,
 )
 
 // ── Seed Inventory ──
 
 data class SeedInventoryResponse(
-    val id: Long,
-    val speciesId: Long,
-    val speciesName: String,
-    val quantity: Int,
-    val collectionDate: String?,
-    val expirationDate: String?,
-    val costPerUnitCents: Int? = null,
-    val unitType: String? = null,
-    val seasonId: Long? = null,
-    val createdAt: String,
+    @SerializedName("id") val id: Long,
+    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("speciesName") val speciesName: String,
+    @SerializedName("quantity") val quantity: Int,
+    @SerializedName("collectionDate") val collectionDate: String?,
+    @SerializedName("expirationDate") val expirationDate: String?,
+    @SerializedName("costPerUnitSek") val costPerUnitSek: Int? = null,
+    @SerializedName("unitType") val unitType: String? = null,
+    @SerializedName("seasonId") val seasonId: Long? = null,
+    @SerializedName("createdAt") val createdAt: String,
 )
 
 data class CreateSeedInventoryRequest(
-    val speciesId: Long,
-    val quantity: Int,
-    val collectionDate: String? = null,
-    val expirationDate: String? = null,
+    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("quantity") val quantity: Int,
+    @SerializedName("collectionDate") val collectionDate: String? = null,
+    @SerializedName("expirationDate") val expirationDate: String? = null,
+    @SerializedName("costPerUnitSek") val costPerUnitSek: Int? = null,
+    @SerializedName("unitType") val unitType: String? = null,
+    @SerializedName("seasonId") val seasonId: Long? = null,
 )
 
 data class UpdateSeedInventoryRequest(
-    val quantity: Int? = null,
-    val collectionDate: String? = null,
-    val expirationDate: String? = null,
+    @SerializedName("quantity") val quantity: Int? = null,
+    @SerializedName("collectionDate") val collectionDate: String? = null,
+    @SerializedName("expirationDate") val expirationDate: String? = null,
+    @SerializedName("costPerUnitSek") val costPerUnitSek: Int? = null,
+    @SerializedName("unitType") val unitType: String? = null,
+    @SerializedName("seasonId") val seasonId: Long? = null,
 )
 
 data class DecrementSeedInventoryRequest(
-    val quantity: Int,
+    @SerializedName("quantity") val quantity: Int,
 )
 
 // ── Species Plant Summary ──
 
 data class SpeciesPlantSummary(
-    val speciesId: Long,
-    val speciesName: String,
-    val scientificName: String?,
-    val activePlantCount: Int,
-    val totalPlantCount: Int,
+    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("speciesName") val speciesName: String,
+    @SerializedName("scientificName") val scientificName: String?,
+    @SerializedName("activePlantCount") val activePlantCount: Int,
+    @SerializedName("totalPlantCount") val totalPlantCount: Int,
 )
 
 data class PlantLocationGroup(
-    val gardenName: String?,
-    val bedName: String?,
-    val bedId: Long?,
-    val status: String,
-    val count: Int,
-    val year: Int,
+    @SerializedName("gardenName") val gardenName: String?,
+    @SerializedName("bedName") val bedName: String?,
+    @SerializedName("bedId") val bedId: Long?,
+    @SerializedName("status") val status: String,
+    @SerializedName("count") val count: Int,
+    @SerializedName("year") val year: Int,
 )
 
 // ── Scheduled Tasks ──
 
 data class ScheduledTaskResponse(
-    val id: Long,
-    val speciesId: Long,
-    val speciesName: String,
-    val activityType: String,
-    val deadline: String,
-    val targetCount: Int,
-    val remainingCount: Int,
-    val status: String,
-    val notes: String?,
-    val seasonId: Long? = null,
-    val successionScheduleId: Long? = null,
-    val createdAt: String,
-    val updatedAt: String,
+    @SerializedName("id") val id: Long,
+    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("speciesName") val speciesName: String,
+    @SerializedName("activityType") val activityType: String,
+    @SerializedName("deadline") val deadline: String,
+    @SerializedName("targetCount") val targetCount: Int,
+    @SerializedName("remainingCount") val remainingCount: Int,
+    @SerializedName("status") val status: String,
+    @SerializedName("notes") val notes: String?,
+    @SerializedName("seasonId") val seasonId: Long? = null,
+    @SerializedName("successionScheduleId") val successionScheduleId: Long? = null,
+    @SerializedName("createdAt") val createdAt: String,
+    @SerializedName("updatedAt") val updatedAt: String,
 )
 
 data class CreateScheduledTaskRequest(
-    val speciesId: Long,
-    val activityType: String,
-    val deadline: String,
-    val targetCount: Int,
-    val notes: String? = null,
+    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("activityType") val activityType: String,
+    @SerializedName("deadline") val deadline: String,
+    @SerializedName("targetCount") val targetCount: Int,
+    @SerializedName("notes") val notes: String? = null,
+    @SerializedName("seasonId") val seasonId: Long? = null,
+    @SerializedName("successionScheduleId") val successionScheduleId: Long? = null,
 )
 
 data class UpdateScheduledTaskRequest(
-    val speciesId: Long? = null,
-    val activityType: String? = null,
-    val deadline: String? = null,
-    val targetCount: Int? = null,
-    val notes: String? = null,
+    @SerializedName("speciesId") val speciesId: Long? = null,
+    @SerializedName("activityType") val activityType: String? = null,
+    @SerializedName("deadline") val deadline: String? = null,
+    @SerializedName("targetCount") val targetCount: Int? = null,
+    @SerializedName("notes") val notes: String? = null,
+    @SerializedName("seasonId") val seasonId: Long? = null,
 )
 
 data class CompleteTaskPartiallyRequest(
-    val processedCount: Int,
+    @SerializedName("processedCount") val processedCount: Int,
 )
 
 // ── Seasons ──
 
 data class SeasonResponse(
-    val id: Long,
-    val name: String,
-    val year: Int,
-    val startDate: String?,
-    val endDate: String?,
-    val lastFrostDate: String?,
-    val firstFrostDate: String?,
-    val growingDegreeBaseC: Double?,
-    val notes: String?,
-    val isActive: Boolean,
-    val createdAt: String,
-    val updatedAt: String,
+    @SerializedName("id") val id: Long,
+    @SerializedName("name") val name: String,
+    @SerializedName("year") val year: Int,
+    @SerializedName("startDate") val startDate: String?,
+    @SerializedName("endDate") val endDate: String?,
+    @SerializedName("lastFrostDate") val lastFrostDate: String?,
+    @SerializedName("firstFrostDate") val firstFrostDate: String?,
+    @SerializedName("growingDegreeBaseC") val growingDegreeBaseC: Double?,
+    @SerializedName("notes") val notes: String?,
+    @SerializedName("isActive") val isActive: Boolean,
+    @SerializedName("createdAt") val createdAt: String,
+    @SerializedName("updatedAt") val updatedAt: String,
 )
 
 data class CreateSeasonRequest(
-    val name: String,
-    val year: Int,
-    val lastFrostDate: String? = null,
-    val firstFrostDate: String? = null,
-    val notes: String? = null,
+    @SerializedName("name") val name: String,
+    @SerializedName("year") val year: Int,
+    @SerializedName("lastFrostDate") val lastFrostDate: String? = null,
+    @SerializedName("firstFrostDate") val firstFrostDate: String? = null,
+    @SerializedName("notes") val notes: String? = null,
 )
 
 // ── Customers ──
 
 data class CustomerResponse(
-    val id: Long,
-    val name: String,
-    val channel: String,
-    val contactInfo: String?,
-    val notes: String?,
-    val createdAt: String,
+    @SerializedName("id") val id: Long,
+    @SerializedName("name") val name: String,
+    @SerializedName("channel") val channel: String,
+    @SerializedName("contactInfo") val contactInfo: String?,
+    @SerializedName("notes") val notes: String?,
+    @SerializedName("createdAt") val createdAt: String,
 )
 
 // ── Production Targets ──
 
 data class ProductionTargetResponse(
-    val id: Long,
-    val seasonId: Long,
-    val speciesId: Long,
-    val speciesName: String?,
-    val stemsPerWeek: Int,
-    val startDate: String,
-    val endDate: String,
-    val notes: String?,
-    val createdAt: String,
+    @SerializedName("id") val id: Long,
+    @SerializedName("seasonId") val seasonId: Long,
+    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("speciesName") val speciesName: String?,
+    @SerializedName("stemsPerWeek") val stemsPerWeek: Int,
+    @SerializedName("startDate") val startDate: String,
+    @SerializedName("endDate") val endDate: String,
+    @SerializedName("notes") val notes: String?,
+    @SerializedName("createdAt") val createdAt: String,
 )
 
 data class ProductionForecastResponse(
-    val targetId: Long,
-    val speciesId: Long,
-    val speciesName: String?,
-    val totalWeeks: Long,
-    val totalStemsNeeded: Long,
-    val stemsPerPlant: Int,
-    val plantsNeeded: Long,
-    val germinationRate: Int,
-    val seedsNeeded: Long,
-    val daysToHarvest: Int,
-    val suggestedSowDate: String?,
-    val warnings: List<String>,
+    @SerializedName("targetId") val targetId: Long,
+    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("speciesName") val speciesName: String?,
+    @SerializedName("totalWeeks") val totalWeeks: Long,
+    @SerializedName("totalStemsNeeded") val totalStemsNeeded: Long,
+    @SerializedName("stemsPerPlant") val stemsPerPlant: Int,
+    @SerializedName("plantsNeeded") val plantsNeeded: Long,
+    @SerializedName("germinationRate") val germinationRate: Int,
+    @SerializedName("seedsNeeded") val seedsNeeded: Long,
+    @SerializedName("daysToHarvest") val daysToHarvest: Int,
+    @SerializedName("suggestedSowDate") val suggestedSowDate: String?,
+    @SerializedName("warnings") val warnings: List<String>,
 )
 
 // ── Succession Schedules ──
 
 data class SuccessionScheduleResponse(
-    val id: Long,
-    val seasonId: Long,
-    val speciesId: Long,
-    val speciesName: String,
-    val bedId: Long?,
-    val firstSowDate: String,
-    val intervalDays: Int,
-    val totalSuccessions: Int,
-    val seedsPerSuccession: Int,
-    val notes: String?,
-    val createdAt: String,
+    @SerializedName("id") val id: Long,
+    @SerializedName("seasonId") val seasonId: Long,
+    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("speciesName") val speciesName: String,
+    @SerializedName("bedId") val bedId: Long?,
+    @SerializedName("firstSowDate") val firstSowDate: String,
+    @SerializedName("intervalDays") val intervalDays: Int,
+    @SerializedName("totalSuccessions") val totalSuccessions: Int,
+    @SerializedName("seedsPerSuccession") val seedsPerSuccession: Int,
+    @SerializedName("notes") val notes: String?,
+    @SerializedName("createdAt") val createdAt: String,
 )

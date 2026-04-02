@@ -23,7 +23,7 @@ data class Species(
     val sowingMonths: List<Int> = emptyList(),
     val germinationRate: Int? = null,
     val groupId: Long? = null,
-    val costPerSeedCents: Int? = null,
+    val costPerSeedSek: Int? = null,
     val expectedStemsPerPlant: Int? = null,
     val expectedVaseLifeDays: Int? = null,
     val plantType: PlantType = PlantType.ANNUAL,
@@ -67,7 +67,7 @@ data class SpeciesProvider(
     val imageFrontUrl: String? = null,
     val imageBackUrl: String? = null,
     val productUrl: String? = null,
-    val costPerUnitCents: Int? = null,
+    val costPerUnitSek: Int? = null,
     val unitType: UnitType = UnitType.SEED,
     val createdAt: Instant = Instant.now(),
 )

@@ -57,7 +57,7 @@ export interface UserResponse {
 }
 
 export interface ListingResponse {
-  id: number; userId: number; producerName: string
+  id: number; sellerName: string; producerName: string
   speciesId: number; speciesName: string; speciesNameSv?: string
   title: string; description?: string
   quantityAvailable: number; pricePerStemCents: number

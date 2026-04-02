@@ -82,6 +82,7 @@ export function SpeciesList() {
       <div className="px-4 py-3">
         <input
           type="search"
+          aria-label={t('common.searchSpecies')}
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(0) }}
           placeholder={t('common.searchSpecies')}
@@ -119,7 +120,7 @@ export function SpeciesList() {
                       </td>
                       <td className="px-4 py-2.5 text-sm text-text-secondary italic">{s.scientificName ?? '—'}</td>
                       <td className="px-4 py-2.5 text-sm text-right tabular-nums text-text-secondary">
-                        {s.costPerSeedCents != null ? `${(s.costPerSeedCents / 100).toFixed(2)} kr` : '—'}
+                        {s.costPerSeedSek != null ? `${s.costPerSeedSek} kr` : '—'}
                       </td>
                     </tr>
                   )

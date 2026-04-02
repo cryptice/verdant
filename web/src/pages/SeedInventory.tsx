@@ -42,7 +42,7 @@ export function SeedInventory() {
       quantity: Number(addQuantity),
       collectionDate: addCollection || undefined,
       expirationDate: addExpiration || undefined,
-      costPerUnitCents: addCost ? Number(addCost) : undefined,
+      costPerUnitSek: addCost ? Number(addCost) : undefined,
       unitType: addUnitType || undefined,
     }),
     onSuccess: () => {
@@ -60,7 +60,7 @@ export function SeedInventory() {
       quantity: Number(editQuantity),
       collectionDate: editCollection || undefined,
       expirationDate: editExpiration || undefined,
-      costPerUnitCents: editCost ? Number(editCost) : undefined,
+      costPerUnitSek: editCost ? Number(editCost) : undefined,
       unitType: editUnitType || undefined,
     }),
     onSuccess: () => {
@@ -112,7 +112,7 @@ export function SeedInventory() {
                         setEditQuantity(String(item.quantity))
                         setEditCollection(item.collectionDate ?? '')
                         setEditExpiration(item.expirationDate ?? '')
-                        setEditCost(item.costPerUnitCents != null ? String(item.costPerUnitCents) : '')
+                        setEditCost(item.costPerUnitSek != null ? String(item.costPerUnitSek) : '')
                         setEditUnitType(item.unitType ?? '')
                       }}
                     >
@@ -121,7 +121,7 @@ export function SeedInventory() {
                       </td>
                       <td className="px-4 py-2.5 text-sm text-right tabular-nums">{item.quantity}</td>
                       <td className="px-4 py-2.5 text-sm text-right tabular-nums text-text-secondary">
-                        {item.costPerUnitCents != null ? `${(item.costPerUnitCents / 100).toFixed(2)} kr` : '—'}
+                        {item.costPerUnitSek != null ? `${item.costPerUnitSek} kr` : '—'}
                       </td>
                       <td className="px-4 py-2.5 text-sm text-text-secondary">{item.expirationDate ?? '—'}</td>
                     </tr>
