@@ -37,6 +37,7 @@ export function Guide() {
           return (
             <div key={s.id} className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">
               <button
+                aria-expanded={isOpen}
                 onClick={() => setOpen(isOpen ? null : s.id)}
                 className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-surface transition-colors cursor-pointer"
               >

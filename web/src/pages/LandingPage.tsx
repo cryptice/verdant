@@ -68,7 +68,11 @@ export function LandingPage() {
       }
     }
     document.head.appendChild(script)
-    return () => { document.head.removeChild(script) }
+    return () => {
+      if (script.parentNode) {
+        document.head.removeChild(script)
+      }
+    }
   }, [handleCredentialResponse, i18n.language])
 
   return (

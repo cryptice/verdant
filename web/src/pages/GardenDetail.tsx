@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { BreadcrumbItem } from '../components/Breadcrumb'
 import { api } from '../api/client'
@@ -51,6 +51,11 @@ export function GardenDetail() {
     onError: (err) => { setDeleteError(err instanceof Error ? err.message : String(err)) },
   })
 
+  const sortedBeds = useMemo(() =>
+    beds?.slice().sort((a, b) => a.name.localeCompare(b.name)) ?? [],
+    [beds]
+  )
+
   if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
   if (!garden) return null
@@ -78,7 +83,7 @@ export function GardenDetail() {
           <p className="text-text-secondary text-sm">{t('garden.noBedsYet')}</p>
         )}
 
-        {beds?.slice().sort((a, b) => a.name.localeCompare(b.name)).map(bed => (
+        {sortedBeds.map(bed => (
           <Link key={bed.id} to={`/bed/${bed.id}`} className="card block no-underline text-inherit">
             <p className="font-semibold">{bed.name}</p>
             {bed.description && <p className="text-sm text-text-secondary mt-1">{bed.description}</p>}

@@ -39,7 +39,9 @@
     "speciesLabel": "Art *",
     "selectSpecies": "Välj art...",
     "searchSpecies": "Sök art...",
-    "iconLabel": "Ikon"
+    "iconLabel": "Ikon",
+    "close": "Stäng",
+    "image": "Bild"
   },
   "language": {
     "label": "Språk",

@@ -172,7 +172,7 @@ export function PlantDetail() {
               {ev.qualityGrade && <p>{t('plant.qualityGrade')}: {ev.qualityGrade}</p>}
               {ev.customerName && <p>{t('plant.destination')}: {ev.customerName}</p>}
               {ev.notes && <p className="text-text-secondary">{ev.notes}</p>}
-              {ev.imageUrl && <img src={ev.imageUrl} alt="" className="rounded-lg mt-2 max-h-40 object-cover" />}
+              {ev.imageUrl && <img src={ev.imageUrl} alt={t('common.image')} className="rounded-lg mt-2 max-h-40 object-cover" />}
             </div>
           </div>
         ))}

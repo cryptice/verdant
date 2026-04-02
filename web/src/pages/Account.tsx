@@ -24,7 +24,7 @@ export function Account() {
       <div className="px-4 py-4 space-y-6">
         <div className="card flex items-center gap-4">
           {user.avatarUrl ? (
-            <img src={user.avatarUrl} alt="" className="w-14 h-14 rounded-full" />
+            <img src={user.avatarUrl} alt={user.displayName} className="w-14 h-14 rounded-full" />
           ) : (
             <div className="w-14 h-14 rounded-full bg-accent/15 flex items-center justify-center text-xl font-bold text-accent">
               {user.displayName.charAt(0)}

@@ -100,7 +100,7 @@ export function BedDetail() {
           const expanded = expandedGroups.has(species)
           return (
             <div key={species} className="card p-0 overflow-hidden">
-              <button onClick={() => toggleGroup(species)} className="w-full flex items-center justify-between px-4 py-3 text-left">
+              <button aria-expanded={expanded} onClick={() => toggleGroup(species)} className="w-full flex items-center justify-between px-4 py-3 text-left">
                 <div>
                   <p className="font-semibold">{species}</p>
                   <p className="text-xs text-text-secondary">{t('bed.plantCount', { count: group!.length })}</p>

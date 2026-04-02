@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
@@ -22,16 +22,20 @@ export function PlantedSpeciesList() {
   if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
 
-  const filtered = data?.filter(s =>
-    s.speciesName.toLowerCase().includes(search.toLowerCase()) ||
-    (s.scientificName?.toLowerCase().includes(search.toLowerCase()))
-  ) ?? []
+  const filtered = useMemo(() =>
+    data?.filter(s =>
+      s.speciesName.toLowerCase().includes(search.toLowerCase()) ||
+      (s.scientificName?.toLowerCase().includes(search.toLowerCase()))
+    ) ?? [],
+    [data, search]
+  )
 
   return (
     <div>
       <PageHeader title={t('species.plantedTitle')} />
       <div data-onboarding="plant-actions" className="px-4 py-4 space-y-3">
         <input
+          aria-label={t('common.searchSpecies')}
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(0) }}
           placeholder={t('common.searchSpecies')}

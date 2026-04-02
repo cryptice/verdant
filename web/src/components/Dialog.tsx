@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useId, useRef, type ReactNode } from 'react'
 
 interface Props {
   open: boolean
@@ -10,6 +10,7 @@ interface Props {
 
 export function Dialog({ open, onClose, title, children, actions }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
+  const titleId = useId()
 
   useEffect(() => {
     const el = ref.current
@@ -21,11 +22,12 @@ export function Dialog({ open, onClose, title, children, actions }: Props) {
   return (
     <dialog
       ref={ref}
+      aria-labelledby={titleId}
       onClose={onClose}
       className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl p-0 w-[min(26rem,calc(100vw-2rem))] shadow-2xl backdrop:bg-black/20 backdrop:backdrop-blur-sm bg-bg border border-divider"
     >
       <div className="p-5">
-        <h2 className="text-base font-semibold text-text-primary mb-4">{title}</h2>
+        <h2 id={titleId} className="text-base font-semibold text-text-primary mb-4">{title}</h2>
         {children}
         {actions && <div className="flex justify-end gap-2 mt-5">{actions}</div>}
       </div>

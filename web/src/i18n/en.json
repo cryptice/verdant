@@ -39,7 +39,9 @@
     "speciesLabel": "Species *",
     "selectSpecies": "Select species...",
     "searchSpecies": "Search species...",
-    "iconLabel": "Icon"
+    "iconLabel": "Icon",
+    "close": "Close",
+    "image": "Image"
   },
   "language": {
     "label": "Language",
