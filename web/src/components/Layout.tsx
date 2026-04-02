@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthContext'
+import { OnboardingRoot } from '../onboarding/OnboardingRoot'
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const { user } = useAuth()
@@ -99,44 +100,47 @@ export function Layout() {
   }
 
   return (
-    <div className="min-h-screen flex bg-surface">
-      {/* Desktop sidebar */}
-      <div className="hidden md:flex md:flex-col md:w-56 md:fixed md:inset-y-0 md:left-0 z-20">
-        <SidebarContent />
-      </div>
-
-      {/* Mobile drawer overlay */}
-      {drawerOpen && (
-        <div className="fixed inset-0 z-30 md:hidden">
-          <div className="absolute inset-0 bg-black/20" onClick={() => setDrawerOpen(false)} />
-          <div className="absolute left-0 top-0 bottom-0 w-56">
-            <SidebarContent onClose={() => setDrawerOpen(false)} />
-          </div>
+    <>
+      <div className="min-h-screen flex bg-surface">
+        {/* Desktop sidebar */}
+        <div className="hidden md:flex md:flex-col md:w-56 md:fixed md:inset-y-0 md:left-0 z-20">
+          <SidebarContent />
         </div>
-      )}
 
-      {/* Main content */}
-      <div className="flex-1 md:ml-56 flex flex-col min-h-screen">
-        {/* Mobile top bar */}
-        <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-sidebar border-b border-divider sticky top-0 z-10">
-          <button
-            onClick={() => setDrawerOpen(true)}
-            className="text-text-secondary hover:text-text-primary transition-colors p-0.5"
-            aria-label="Open menu"
-          >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-              <line x1="2" y1="4.5" x2="16" y2="4.5" />
-              <line x1="2" y1="9" x2="16" y2="9" />
-              <line x1="2" y1="13.5" x2="16" y2="13.5" />
-            </svg>
-          </button>
-          <span className="font-semibold text-text-primary text-sm">🌿 Verdant</span>
-        </header>
+        {/* Mobile drawer overlay */}
+        {drawerOpen && (
+          <div className="fixed inset-0 z-30 md:hidden">
+            <div className="absolute inset-0 bg-black/20" onClick={() => setDrawerOpen(false)} />
+            <div className="absolute left-0 top-0 bottom-0 w-56">
+              <SidebarContent onClose={() => setDrawerOpen(false)} />
+            </div>
+          </div>
+        )}
 
-        <main className="flex-1 w-full px-4 md:px-8 py-6 flex flex-col">
-          <Outlet />
-        </main>
+        {/* Main content */}
+        <div className="flex-1 md:ml-56 flex flex-col min-h-screen">
+          {/* Mobile top bar */}
+          <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-sidebar border-b border-divider sticky top-0 z-10">
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="text-text-secondary hover:text-text-primary transition-colors p-0.5"
+              aria-label="Open menu"
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                <line x1="2" y1="4.5" x2="16" y2="4.5" />
+                <line x1="2" y1="9" x2="16" y2="9" />
+                <line x1="2" y1="13.5" x2="16" y2="13.5" />
+              </svg>
+            </button>
+            <span className="font-semibold text-text-primary text-sm">🌿 Verdant</span>
+          </header>
+
+          <main className="flex-1 w-full px-4 md:px-8 py-6 flex flex-col">
+            <Outlet />
+          </main>
+        </div>
       </div>
-    </div>
+      <OnboardingRoot />
+    </>
   )
 }
