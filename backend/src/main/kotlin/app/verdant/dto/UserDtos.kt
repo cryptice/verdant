@@ -29,3 +29,24 @@ data class UpdateOnboardingRequest(
     val completedSteps: List<String>? = null,
     val dismissed: Boolean? = null,
 )
+
+data class UserDataExport(
+    val user: UserResponse,
+    val gardens: List<GardenResponse>,
+    val beds: List<BedResponse>,
+    val plants: List<PlantResponse>,
+    val plantEvents: List<PlantEventResponse>,
+    val species: List<SpeciesResponse>,
+    val seedInventory: List<SeedInventoryResponse>,
+    val scheduledTasks: List<ScheduledTaskResponse>,
+    val seasons: List<SeasonResponse>,
+    val customers: List<CustomerResponse>,
+    val pestDiseaseLogs: List<PestDiseaseLogResponse>,
+    val varietyTrials: List<VarietyTrialResponse>,
+    val bouquetRecipes: List<BouquetRecipeResponse>,
+    val successionSchedules: List<SuccessionScheduleResponse>,
+    val productionTargets: List<ProductionTargetResponse>,
+    val marketListings: List<ListingResponse>,
+    val marketOrders: List<MarketOrderResponse>,
+    val exportedAt: Instant,
+)

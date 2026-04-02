@@ -4,11 +4,13 @@ import app.verdant.dto.UpdateOnboardingRequest
 import app.verdant.dto.UpdateUserRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import app.verdant.repository.UserRepository
+import app.verdant.service.DataExportService
 import app.verdant.service.toResponse
 import io.quarkus.security.Authenticated
 import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
+import jakarta.ws.rs.core.Response
 import org.eclipse.microprofile.jwt.JsonWebToken
 
 @Path("/api/users")
@@ -17,6 +19,7 @@ import org.eclipse.microprofile.jwt.JsonWebToken
 @Authenticated
 class UserResource(
     private val userRepository: UserRepository,
+    private val dataExportService: DataExportService,
     private val jwt: JsonWebToken
 ) {
     @GET
@@ -53,5 +56,15 @@ class UserResource(
         )
         userRepository.update(updated)
         return updated.toResponse()
+    }
+
+    @GET
+    @Path("/me/export")
+    fun exportData(): Response {
+        val userId = jwt.subject.toLong()
+        val export = dataExportService.exportUserData(userId)
+        return Response.ok(export)
+            .header("Content-Disposition", "attachment; filename=\"verdant-data-export.json\"")
+            .build()
     }
 }

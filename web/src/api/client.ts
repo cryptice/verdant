@@ -475,3 +475,39 @@ export const api = {
     yieldPerBed: (seasonId?: number) => apiRequest<YieldPerBedResponse[]>(`/api/analytics/yield-per-bed${seasonId ? `?seasonId=${seasonId}` : ''}`),
   },
 }
+
+export async function downloadDataExport(): Promise<void> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  const token = getToken()
+  if (token) headers['Authorization'] = `Bearer ${token}`
+
+  let res: Response
+  try {
+    res = await fetch('/api/users/me/export', { headers })
+  } catch {
+    throw new ApiError('Network error — check your connection', undefined, true)
+  }
+
+  if (res.status === 401 || res.status === 403) {
+    localStorage.removeItem('verdant_token')
+    onUnauthorized?.()
+    throw new ApiError('Unauthorized', res.status)
+  }
+
+  if (!res.ok) {
+    const body = await res.text()
+    let message = `Request failed (${res.status})`
+    try { message = JSON.parse(body).message ?? message } catch { /* use default */ }
+    throw new ApiError(message, res.status)
+  }
+
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'verdant-data-export.json'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
