@@ -14,6 +14,7 @@ import java.time.LocalDate
 @Consumes(MediaType.APPLICATION_JSON)
 @RolesAllowed("ADMIN")
 class DevResource(
+    private val ds: io.agroal.api.AgroalDataSource,
     private val userRepository: UserRepository,
     private val speciesRepository: SpeciesRepository,
     private val speciesGroupRepository: SpeciesGroupRepository,
@@ -119,6 +120,43 @@ class DevResource(
             ci++
         }
         return result
+    }
+
+    data class WipeResult(val tablesWiped: Int, val message: String)
+
+    @POST
+    @Path("/wipe")
+    fun wipeUserData(): Response {
+        val tables = listOf(
+            "order_item", "market_order", "listing",
+            "plant_event", "plant",
+            "bouquet_recipe_item", "bouquet_recipe",
+            "succession_schedule", "production_target", "scheduled_task",
+            "seed_inventory", "variety_trial", "pest_disease_log",
+            "frequent_comment", "customer",
+            "bed", "garden", "season",
+            "species_tag_mapping",
+            "species_photo", "species_provider",
+        )
+        ds.connection.use { conn ->
+            conn.autoCommit = false
+            try {
+                for (table in tables) {
+                    conn.prepareStatement("DELETE FROM $table").use { it.executeUpdate() }
+                }
+                // Delete user-created species/tags/groups but keep system ones (user_id IS NULL)
+                conn.prepareStatement("DELETE FROM species WHERE user_id IS NOT NULL").use { it.executeUpdate() }
+                conn.prepareStatement("DELETE FROM species_tag WHERE user_id IS NOT NULL").use { it.executeUpdate() }
+                conn.prepareStatement("DELETE FROM species_group WHERE user_id IS NOT NULL").use { it.executeUpdate() }
+                // Reset onboarding state for all users
+                conn.prepareStatement("UPDATE app_user SET onboarding_json = NULL").use { it.executeUpdate() }
+                conn.commit()
+            } catch (e: Exception) {
+                conn.rollback()
+                throw e
+            }
+        }
+        return Response.ok(WipeResult(tables.size + 3, "All user data wiped. Species, users, and system data preserved.")).build()
     }
 
     @POST
