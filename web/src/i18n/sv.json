@@ -737,5 +737,156 @@
         ]
       }
     }
+  },
+  "onboarding": {
+    "fab": {
+      "label": "Installationsguide",
+      "title": "Installationsguide — {{completed}}/{{total}} klara"
+    },
+    "drawer": {
+      "title": "Installationsguide",
+      "progress": "{{completed}} av {{total}} klara",
+      "options": "Alternativ",
+      "hideSession": "Dölj för nu",
+      "dismissForever": "Visa inte igen",
+      "allComplete": "Nu är du redo!",
+      "allCompleteHint": "Du har utforskat allt som Verdant har att erbjuda.",
+      "finish": "Stäng guiden"
+    },
+    "sections": {
+      "gettingStarted": "Kom igång",
+      "growing": "Odling",
+      "harvestingSales": "Skörd & Försäljning",
+      "planning": "Planering",
+      "advanced": "Avancerat"
+    },
+    "steps": {
+      "create_season": "Skapa en säsong",
+      "create_garden": "Skapa en trädgård",
+      "create_bed": "Skapa en bädd i din trädgård",
+      "browse_species": "Utforska arter",
+      "add_seeds": "Lägg till frön i inventariet",
+      "sow_seeds": "Så dina första frön",
+      "pot_up": "Kruka upp en planta",
+      "plant_out": "Plantera ut i en bädd",
+      "record_harvest": "Registrera en skörd",
+      "add_customer": "Lägg till en kund",
+      "create_bouquet": "Skapa ett bukettrecept",
+      "create_task": "Skapa en schemalagd uppgift",
+      "setup_succession": "Skapa ett successionsschema",
+      "set_target": "Sätt ett produktionsmål",
+      "view_calendar": "Visa odlingskalendern",
+      "start_trial": "Starta ett sortförsök",
+      "log_pest": "Logga skadedjur eller sjukdom",
+      "view_analytics": "Visa statistik",
+      "create_listing": "Skapa en marknadsannons"
+    },
+    "tooltip": {
+      "stepOf": "Steg {{current}} av {{total}}",
+      "next": "Nästa",
+      "back": "Tillbaka",
+      "skip": "Hoppa över",
+      "done": "Klart"
+    },
+    "tooltips": {
+      "createSeason": {
+        "title": "Skapa din första säsong",
+        "description": "Säsonger hjälper dig organisera ditt arbete efter odlingsperiod. Lägg till din första för att komma igång."
+      },
+      "createGarden": {
+        "title": "Namnge din trädgård",
+        "description": "Fyll i detaljerna och skapa din första trädgård. Du kan lägga till bäddar efteråt."
+      },
+      "createBed": {
+        "step1": {
+          "title": "Öppna din trädgård",
+          "description": "Klicka på din trädgård för att se detaljer och hantera bäddar."
+        },
+        "step2": {
+          "title": "Lägg till en bädd",
+          "description": "Klicka här för att skapa en ny bädd där dina plantor ska växa."
+        }
+      },
+      "browseSpecies": {
+        "title": "Utforska arter",
+        "description": "Bläddra i artbiblioteket för att se vad du kan odla. Du väljer bland dessa när du sår."
+      },
+      "addSeeds": {
+        "step1": {
+          "title": "Lägg till frön",
+          "description": "Klicka här för att lägga till en ny fröomgång i ditt inventarie."
+        },
+        "step2": {
+          "title": "Fyll i frödetaljer",
+          "description": "Ange art, antal och eventuellt leverantör och utgångsdatum."
+        }
+      },
+      "sowSeeds": {
+        "step1": {
+          "title": "Välj en art",
+          "description": "Välj vilken art du vill så."
+        },
+        "step2": {
+          "title": "Välj plats att så",
+          "description": "Välj en bädd eller så i en portabel bricka."
+        },
+        "step3": {
+          "title": "Så!",
+          "description": "Ange antal och tryck på så för att plantera dina frön."
+        }
+      },
+      "potUp": {
+        "title": "Kruka upp plantor",
+        "description": "Från plantlistan, välj en sådd planta och använd kruka upp-åtgärden för att flytta den till en kruka."
+      },
+      "plantOut": {
+        "title": "Plantera ut",
+        "description": "Välj en krukad planta och plantera ut den i en bädd i din trädgård."
+      },
+      "recordHarvest": {
+        "title": "Registrera en skörd",
+        "description": "Välj en växande planta och registrera en skörd med vikt eller antal."
+      },
+      "addCustomer": {
+        "title": "Lägg till en kund",
+        "description": "Klicka här för att lägga till din första kund. Du kan spåra vem som köper dina blommor."
+      },
+      "createBouquet": {
+        "title": "Skapa ett bukettrecept",
+        "description": "Klicka här för att designa ett bukettrecept med dina favoritkombinationer av blommor."
+      },
+      "createTask": {
+        "title": "Planera en uppgift",
+        "description": "Fyll i formuläret för att schemalägga en uppgift som sådd, uppkrukning eller skörd."
+      },
+      "setupSuccession": {
+        "title": "Skapa successionsplantering",
+        "description": "Klicka här för att skapa ett stegvist såddschema för kontinuerlig skörd."
+      },
+      "setTarget": {
+        "title": "Sätt ett produktionsmål",
+        "description": "Klicka här för att sätta mål för hur mycket av varje art du vill producera."
+      },
+      "viewCalendar": {
+        "title": "Din odlingskalender",
+        "description": "Detta är din visuella tidslinje som visar när du ska så, plantera och skörda under säsongen."
+      },
+      "startTrial": {
+        "title": "Starta ett sortförsök",
+        "description": "Klicka här för att starta ett försök som jämför olika sorter av en art."
+      },
+      "logPest": {
+        "title": "Logga skadedjur eller sjukdom",
+        "description": "Klicka här för att registrera observationer av skadedjur eller sjukdomar för att spåra problem över tid."
+      },
+      "viewAnalytics": {
+        "title": "Din statistik",
+        "description": "Denna instrumentpanel visar skördetrender, produktionsstatistik och insikter från din odlingsdata."
+      },
+      "createListing": {
+        "title": "Annonsera på marknadsplatsen",
+        "description": "Klicka här för att skapa en annons och sälja dina produkter till andra odlare och köpare."
+      }
+    }
   }
 }

@@ -737,5 +737,156 @@
         ]
       }
     }
+  },
+  "onboarding": {
+    "fab": {
+      "label": "Setup guide",
+      "title": "Setup guide — {{completed}}/{{total}} complete"
+    },
+    "drawer": {
+      "title": "Setup Guide",
+      "progress": "{{completed}} of {{total}} complete",
+      "options": "Options",
+      "hideSession": "Hide for now",
+      "dismissForever": "Don't show again",
+      "allComplete": "You're all set!",
+      "allCompleteHint": "You've explored everything Verdant has to offer.",
+      "finish": "Close guide"
+    },
+    "sections": {
+      "gettingStarted": "Getting Started",
+      "growing": "Growing",
+      "harvestingSales": "Harvesting & Sales",
+      "planning": "Planning",
+      "advanced": "Advanced"
+    },
+    "steps": {
+      "create_season": "Create a season",
+      "create_garden": "Create a garden",
+      "create_bed": "Create a bed in your garden",
+      "browse_species": "Browse species",
+      "add_seeds": "Add seeds to inventory",
+      "sow_seeds": "Sow your first seeds",
+      "pot_up": "Pot up a plant",
+      "plant_out": "Plant out to a bed",
+      "record_harvest": "Record a harvest",
+      "add_customer": "Add a customer",
+      "create_bouquet": "Create a bouquet recipe",
+      "create_task": "Create a scheduled task",
+      "setup_succession": "Set up a succession schedule",
+      "set_target": "Set a production target",
+      "view_calendar": "View the crop calendar",
+      "start_trial": "Start a variety trial",
+      "log_pest": "Log a pest or disease",
+      "view_analytics": "View analytics",
+      "create_listing": "Create a marketplace listing"
+    },
+    "tooltip": {
+      "stepOf": "Step {{current}} of {{total}}",
+      "next": "Next",
+      "back": "Back",
+      "skip": "Skip",
+      "done": "Got it"
+    },
+    "tooltips": {
+      "createSeason": {
+        "title": "Create your first season",
+        "description": "Seasons help you organise your work by growing period. Add your first one to get started."
+      },
+      "createGarden": {
+        "title": "Name your garden",
+        "description": "Fill in the details and create your first garden. You can add beds to it afterwards."
+      },
+      "createBed": {
+        "step1": {
+          "title": "Open your garden",
+          "description": "Click on your garden to see its details and manage beds."
+        },
+        "step2": {
+          "title": "Add a bed",
+          "description": "Click here to create a new bed where your plants will grow."
+        }
+      },
+      "browseSpecies": {
+        "title": "Explore species",
+        "description": "Browse the species library to see what you can grow. You'll pick from these when sowing."
+      },
+      "addSeeds": {
+        "step1": {
+          "title": "Add seeds",
+          "description": "Click here to add a new seed batch to your inventory."
+        },
+        "step2": {
+          "title": "Fill in seed details",
+          "description": "Enter the species, quantity, and optionally the provider and expiry date."
+        }
+      },
+      "sowSeeds": {
+        "step1": {
+          "title": "Pick a species",
+          "description": "Select which species you want to sow."
+        },
+        "step2": {
+          "title": "Choose where to sow",
+          "description": "Pick a bed or sow into a portable tray."
+        },
+        "step3": {
+          "title": "Sow!",
+          "description": "Set the count and hit sow to plant your seeds."
+        }
+      },
+      "potUp": {
+        "title": "Pot up plants",
+        "description": "From the plants list, select a seeded plant and use the pot up action to move it to a pot."
+      },
+      "plantOut": {
+        "title": "Plant out",
+        "description": "Select a potted plant and plant it out to a bed in your garden."
+      },
+      "recordHarvest": {
+        "title": "Record a harvest",
+        "description": "Select a growing plant and record a harvest with weight or quantity."
+      },
+      "addCustomer": {
+        "title": "Add a customer",
+        "description": "Click here to add your first customer. You can track who buys your flowers."
+      },
+      "createBouquet": {
+        "title": "Create a bouquet recipe",
+        "description": "Click here to design a bouquet recipe with your favourite flower combinations."
+      },
+      "createTask": {
+        "title": "Plan a task",
+        "description": "Fill in the form to schedule a task like sowing, potting up, or harvesting."
+      },
+      "setupSuccession": {
+        "title": "Set up succession planting",
+        "description": "Click here to create a staggered sowing schedule for continuous harvests."
+      },
+      "setTarget": {
+        "title": "Set a production target",
+        "description": "Click here to set goals for how much of each species you want to produce."
+      },
+      "viewCalendar": {
+        "title": "Your crop calendar",
+        "description": "This is your visual timeline showing when to sow, plant, and harvest through the season."
+      },
+      "startTrial": {
+        "title": "Start a variety trial",
+        "description": "Click here to set up a trial comparing different varieties of a species."
+      },
+      "logPest": {
+        "title": "Log a pest or disease",
+        "description": "Click here to record pest or disease observations to track issues over time."
+      },
+      "viewAnalytics": {
+        "title": "Your analytics",
+        "description": "This dashboard shows harvest trends, production stats, and insights from your growing data."
+      },
+      "createListing": {
+        "title": "List on the marketplace",
+        "description": "Click here to create a listing and sell your produce to other growers and buyers."
+      }
+    }
   }
 }
