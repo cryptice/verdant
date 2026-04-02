@@ -9,6 +9,7 @@ import app.verdant.service.AiService
 import app.verdant.service.SpeciesService
 import app.verdant.service.toResponse
 import jakarta.annotation.security.RolesAllowed
+import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -59,7 +60,7 @@ class AdminResource(
     @POST
     @Path("/species/extract-front")
     @Consumes(MediaType.APPLICATION_JSON)
-    fun extractFrontInfo(request: ExtractSpeciesInfoRequest): Response {
+    fun extractFrontInfo(@Valid request: ExtractSpeciesInfoRequest): Response {
         val info = aiService.extractFrontInfo(request.imageBase64)
             ?: return Response.status(Response.Status.BAD_REQUEST)
                 .entity(mapOf("error" to "Could not extract names from front image"))
@@ -70,7 +71,7 @@ class AdminResource(
     @POST
     @Path("/species/extract-back")
     @Consumes(MediaType.APPLICATION_JSON)
-    fun extractBackInfo(request: ExtractSpeciesInfoRequest): Response {
+    fun extractBackInfo(@Valid request: ExtractSpeciesInfoRequest): Response {
         val info = aiService.extractSpeciesInfo(request.imageBase64, "sv")
             ?: return Response.status(Response.Status.BAD_REQUEST)
                 .entity(mapOf("error" to "Could not extract species info from image"))
@@ -85,12 +86,12 @@ class AdminResource(
     @POST
     @Path("/species")
     @Consumes(MediaType.APPLICATION_JSON)
-    fun createSpecies(request: CreateSpeciesRequest) = speciesService.createSpeciesAdmin(request)
+    fun createSpecies(@Valid request: CreateSpeciesRequest) = speciesService.createSpeciesAdmin(request)
 
     @PUT
     @Path("/species/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    fun updateSpecies(@PathParam("id") id: Long, request: UpdateSpeciesRequest) =
+    fun updateSpecies(@PathParam("id") id: Long, @Valid request: UpdateSpeciesRequest) =
         speciesService.updateSpeciesAdmin(id, request)
 
     @DELETE
@@ -105,7 +106,7 @@ class AdminResource(
     @POST
     @Path("/species/{id}/photos")
     @Consumes(MediaType.APPLICATION_JSON)
-    fun uploadSpeciesPhoto(@PathParam("id") id: Long, request: UploadPhotoRequest) =
+    fun uploadSpeciesPhoto(@PathParam("id") id: Long, @Valid request: UploadPhotoRequest) =
         speciesService.uploadSpeciesPhoto(id, request.imageBase64)
 
     @DELETE
@@ -124,7 +125,7 @@ class AdminResource(
     @POST
     @Path("/providers")
     @Consumes(MediaType.APPLICATION_JSON)
-    fun createProvider(request: CreateProviderRequest): Response {
+    fun createProvider(@Valid request: CreateProviderRequest): Response {
         val provider = providerRepository.persist(Provider(name = request.name, identifier = request.identifier))
         return Response.status(Response.Status.CREATED).entity(ProviderResponse(provider.id!!, provider.name, provider.identifier)).build()
     }
@@ -132,7 +133,7 @@ class AdminResource(
     @PUT
     @Path("/providers/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    fun updateProvider(@PathParam("id") id: Long, request: UpdateProviderRequest): ProviderResponse {
+    fun updateProvider(@PathParam("id") id: Long, @Valid request: UpdateProviderRequest): ProviderResponse {
         val provider = providerRepository.findById(id) ?: throw NotFoundException("Provider not found")
         val updated = provider.copy(name = request.name ?: provider.name, identifier = request.identifier ?: provider.identifier)
         providerRepository.update(updated)
@@ -152,7 +153,7 @@ class AdminResource(
     @POST
     @Path("/species/{id}/providers")
     @Consumes(MediaType.APPLICATION_JSON)
-    fun addSpeciesProvider(@PathParam("id") id: Long, request: AddSpeciesProviderRequest) =
+    fun addSpeciesProvider(@PathParam("id") id: Long, @Valid request: AddSpeciesProviderRequest) =
         speciesService.addSpeciesProviderAdmin(id, request)
 
     @PUT
@@ -161,7 +162,7 @@ class AdminResource(
     fun updateSpeciesProvider(
         @PathParam("id") id: Long,
         @PathParam("spId") spId: Long,
-        request: UpdateSpeciesProviderRequest
+        @Valid request: UpdateSpeciesProviderRequest
     ) = speciesService.updateSpeciesProviderAdmin(id, spId, request)
 
     @DELETE

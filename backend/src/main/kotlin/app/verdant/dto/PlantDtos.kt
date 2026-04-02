@@ -1,6 +1,10 @@
 package app.verdant.dto
 
 import app.verdant.entity.PlantStatus
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 import java.time.Instant
 import java.time.LocalDate
 
@@ -20,21 +24,27 @@ data class PlantResponse(
 )
 
 data class CreatePlantRequest(
+    @field:NotBlank @field:Size(max = 255)
     val name: String,
     val speciesId: Long? = null,
     val plantedDate: LocalDate? = null,
     val status: PlantStatus = PlantStatus.SEEDED,
+    @field:Min(0)
     val seedCount: Int? = null,
+    @field:Min(0)
     val survivingCount: Int? = null,
     val seasonId: Long? = null,
 )
 
 data class UpdatePlantRequest(
+    @field:Size(max = 255)
     val name: String? = null,
     val speciesId: Long? = null,
     val plantedDate: LocalDate? = null,
     val status: PlantStatus? = null,
+    @field:Min(0)
     val seedCount: Int? = null,
+    @field:Min(0)
     val survivingCount: Int? = null,
     val seasonId: Long? = null,
 )
@@ -49,9 +59,13 @@ data class SpeciesPlantSummary(
 
 data class BatchSowRequest(
     val bedId: Long? = null,
+    @field:NotNull
     val speciesId: Long,
+    @field:NotBlank @field:Size(max = 255)
     val name: String,
+    @field:Min(1)
     val seedCount: Int,
+    @field:Size(max = 2000)
     val notes: String? = null,
     val imageBase64: String? = null,
 )
@@ -62,12 +76,17 @@ data class BatchSowResponse(
 )
 
 data class BatchEventRequest(
+    @field:NotNull
     val speciesId: Long,
     val bedId: Long? = null,
     val plantedDate: String? = null,
+    @field:NotBlank
     val status: String,
+    @field:NotBlank
     val eventType: String,
+    @field:Min(1)
     val count: Int,
+    @field:Size(max = 2000)
     val notes: String? = null,
     val imageBase64: String? = null,
     val targetBedId: Long? = null,

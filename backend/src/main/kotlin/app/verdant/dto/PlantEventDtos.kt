@@ -1,6 +1,9 @@
 package app.verdant.dto
 
 import app.verdant.entity.PlantEventType
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 import java.time.Instant
 import java.time.LocalDate
 
@@ -25,22 +28,32 @@ data class PlantEventResponse(
 )
 
 data class CreatePlantEventRequest(
+    @field:NotNull
     val eventType: PlantEventType,
     val eventDate: LocalDate = LocalDate.now(),
+    @field:Min(0)
     val plantCount: Int? = null,
     val weightGrams: Double? = null,
+    @field:Min(0)
     val quantity: Int? = null,
+    @field:Size(max = 2000)
     val notes: String? = null,
     val imageBase64: String? = null,
+    @field:Size(max = 2000)
     val aiSuggestions: String? = null,
+    @field:Min(0)
     val stemCount: Int? = null,
+    @field:Min(0)
     val stemLengthCm: Int? = null,
+    @field:Size(max = 255)
     val qualityGrade: String? = null,
+    @field:Min(0)
     val vaseLifeDays: Int? = null,
     val harvestDestinationId: Long? = null,
 )
 
 data class IdentifyPlantRequest(
+    @field:NotNull
     val imageBase64: String,
 )
 

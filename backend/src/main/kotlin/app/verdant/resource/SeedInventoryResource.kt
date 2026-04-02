@@ -3,6 +3,7 @@ package app.verdant.resource
 import app.verdant.dto.*
 import app.verdant.service.SeedInventoryService
 import io.quarkus.security.Authenticated
+import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -19,23 +20,27 @@ class SeedInventoryResource(
     private fun userId() = jwt.subject.toLong()
 
     @GET
-    fun list(@QueryParam("speciesId") speciesId: Long?, @QueryParam("seasonId") seasonId: Long?) =
-        service.getInventoryForUser(userId(), speciesId, seasonId)
+    fun list(
+        @QueryParam("speciesId") speciesId: Long?,
+        @QueryParam("seasonId") seasonId: Long?,
+        @QueryParam("limit") @DefaultValue("50") limit: Int,
+        @QueryParam("offset") @DefaultValue("0") offset: Int,
+    ) = service.getInventoryForUser(userId(), speciesId, seasonId, limit.coerceIn(1, 200), offset.coerceAtLeast(0))
 
     @POST
-    fun create(request: CreateSeedInventoryRequest): Response {
+    fun create(@Valid request: CreateSeedInventoryRequest): Response {
         val inventory = service.createInventory(request, userId())
         return Response.status(Response.Status.CREATED).entity(inventory).build()
     }
 
     @PUT
     @Path("/{id}")
-    fun update(@PathParam("id") id: Long, request: UpdateSeedInventoryRequest) =
+    fun update(@PathParam("id") id: Long, @Valid request: UpdateSeedInventoryRequest) =
         service.updateInventory(id, request, userId())
 
     @POST
     @Path("/{id}/decrement")
-    fun decrement(@PathParam("id") id: Long, request: DecrementSeedInventoryRequest) =
+    fun decrement(@PathParam("id") id: Long, @Valid request: DecrementSeedInventoryRequest) =
         service.decrementInventory(id, request, userId())
 
     @DELETE

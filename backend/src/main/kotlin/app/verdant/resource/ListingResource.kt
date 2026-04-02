@@ -3,6 +3,7 @@ package app.verdant.resource
 import app.verdant.dto.*
 import app.verdant.service.ListingService
 import io.quarkus.security.Authenticated
+import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -19,25 +20,31 @@ class ListingResource(
     private fun userId() = jwt.subject.toLong()
 
     @GET
-    fun browse() = service.getActiveListings()
+    fun browse(
+        @QueryParam("limit") @DefaultValue("50") limit: Int,
+        @QueryParam("offset") @DefaultValue("0") offset: Int,
+    ) = service.getActiveListings(limit.coerceIn(1, 200), offset.coerceAtLeast(0))
 
     @GET
     @Path("/mine")
-    fun mine() = service.getListingsForUser(userId())
+    fun mine(
+        @QueryParam("limit") @DefaultValue("50") limit: Int,
+        @QueryParam("offset") @DefaultValue("0") offset: Int,
+    ) = service.getListingsForUser(userId(), limit.coerceIn(1, 200), offset.coerceAtLeast(0))
 
     @GET
     @Path("/{id}")
     fun get(@PathParam("id") id: Long) = service.getListing(id, userId())
 
     @POST
-    fun create(request: CreateListingRequest): Response {
+    fun create(@Valid request: CreateListingRequest): Response {
         val listing = service.createListing(request, userId())
         return Response.status(Response.Status.CREATED).entity(listing).build()
     }
 
     @PUT
     @Path("/{id}")
-    fun update(@PathParam("id") id: Long, request: UpdateListingRequest) =
+    fun update(@PathParam("id") id: Long, @Valid request: UpdateListingRequest) =
         service.updateListing(id, request, userId())
 
     @DELETE

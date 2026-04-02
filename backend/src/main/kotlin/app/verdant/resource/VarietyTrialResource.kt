@@ -3,6 +3,7 @@ package app.verdant.resource
 import app.verdant.dto.*
 import app.verdant.service.VarietyTrialService
 import io.quarkus.security.Authenticated
+import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -19,22 +20,25 @@ class VarietyTrialResource(
     private fun userId() = jwt.subject.toLong()
 
     @GET
-    fun list(@QueryParam("seasonId") seasonId: Long?) =
-        service.getTrialsForUser(userId(), seasonId)
+    fun list(
+        @QueryParam("seasonId") seasonId: Long?,
+        @QueryParam("limit") @DefaultValue("50") limit: Int,
+        @QueryParam("offset") @DefaultValue("0") offset: Int,
+    ) = service.getTrialsForUser(userId(), seasonId, limit.coerceIn(1, 200), offset.coerceAtLeast(0))
 
     @GET
     @Path("/{id}")
     fun get(@PathParam("id") id: Long) = service.getTrial(id, userId())
 
     @POST
-    fun create(request: CreateVarietyTrialRequest): Response {
+    fun create(@Valid request: CreateVarietyTrialRequest): Response {
         val trial = service.createTrial(request, userId())
         return Response.status(Response.Status.CREATED).entity(trial).build()
     }
 
     @PUT
     @Path("/{id}")
-    fun update(@PathParam("id") id: Long, request: UpdateVarietyTrialRequest) =
+    fun update(@PathParam("id") id: Long, @Valid request: UpdateVarietyTrialRequest) =
         service.updateTrial(id, request, userId())
 
     @DELETE

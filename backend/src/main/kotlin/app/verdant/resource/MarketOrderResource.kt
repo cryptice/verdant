@@ -3,6 +3,7 @@ package app.verdant.resource
 import app.verdant.dto.*
 import app.verdant.service.MarketOrderService
 import io.quarkus.security.Authenticated
+import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -19,18 +20,24 @@ class MarketOrderResource(
     private fun userId() = jwt.subject.toLong()
 
     @POST
-    fun place(request: CreateMarketOrderRequest): Response {
+    fun place(@Valid request: CreateMarketOrderRequest): Response {
         val order = service.placeOrder(request, userId())
         return Response.status(Response.Status.CREATED).entity(order).build()
     }
 
     @GET
     @Path("/mine")
-    fun mine() = service.getOrdersForPurchaser(userId())
+    fun mine(
+        @QueryParam("limit") @DefaultValue("50") limit: Int,
+        @QueryParam("offset") @DefaultValue("0") offset: Int,
+    ) = service.getOrdersForPurchaser(userId(), limit.coerceIn(1, 200), offset.coerceAtLeast(0))
 
     @GET
     @Path("/incoming")
-    fun incoming() = service.getOrdersForProducer(userId())
+    fun incoming(
+        @QueryParam("limit") @DefaultValue("50") limit: Int,
+        @QueryParam("offset") @DefaultValue("0") offset: Int,
+    ) = service.getOrdersForProducer(userId(), limit.coerceIn(1, 200), offset.coerceAtLeast(0))
 
     @GET
     @Path("/{id}")
@@ -38,6 +45,6 @@ class MarketOrderResource(
 
     @PUT
     @Path("/{id}/status")
-    fun updateStatus(@PathParam("id") id: Long, request: UpdateOrderStatusRequest) =
+    fun updateStatus(@PathParam("id") id: Long, @Valid request: UpdateOrderStatusRequest) =
         service.updateOrderStatus(id, request, userId())
 }

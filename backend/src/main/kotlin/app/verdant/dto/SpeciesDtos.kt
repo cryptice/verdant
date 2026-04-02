@@ -3,6 +3,10 @@ package app.verdant.dto
 import app.verdant.entity.GrowingPosition
 import app.verdant.entity.SoilType
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 import java.time.Instant
 
 data class SpeciesPhotoResponse(
@@ -35,7 +39,7 @@ data class SpeciesResponse(
     val groupName: String?,
     val tags: List<SpeciesTagResponse>,
     val providers: List<SpeciesProviderResponse>,
-    val costPerSeedCents: Int?,
+    val costPerSeedSek: Int?,
     val expectedStemsPerPlant: Int?,
     val expectedVaseLifeDays: Int?,
     val plantType: String?,
@@ -44,54 +48,94 @@ data class SpeciesResponse(
 )
 
 data class CreateSpeciesRequest(
+    @field:NotBlank @field:Size(max = 255)
     val commonName: String,
+    @field:Size(max = 255)
     val variantName: String? = null,
+    @field:Size(max = 255)
     val commonNameSv: String? = null,
+    @field:Size(max = 255)
     val variantNameSv: String? = null,
+    @field:Size(max = 255)
     val scientificName: String? = null,
     val imageFrontBase64: String? = null,
     val imageBackBase64: String? = null,
+    @field:Min(0)
     val daysToSprout: Int? = null,
+    @field:Min(0)
     val daysToHarvest: Int? = null,
+    @field:Min(0)
     val germinationTimeDays: Int? = null,
+    @field:Min(0)
     val sowingDepthMm: Int? = null,
+    @field:Size(max = 100)
     val growingPositions: List<GrowingPosition>? = null,
+    @field:Size(max = 100)
     val soils: List<SoilType>? = null,
+    @field:Min(0)
     val heightCm: Int? = null,
+    @field:Size(max = 12)
     val bloomMonths: List<Int>? = null,
+    @field:Size(max = 12)
     val sowingMonths: List<Int>? = null,
+    @field:Min(0)
     val germinationRate: Int? = null,
     val groupId: Long? = null,
+    @field:Size(max = 100)
     val tagIds: List<Long>? = null,
-    val costPerSeedCents: Int? = null,
+    @field:Min(0)
+    val costPerSeedSek: Int? = null,
+    @field:Min(0)
     val expectedStemsPerPlant: Int? = null,
+    @field:Min(0)
     val expectedVaseLifeDays: Int? = null,
+    @field:Size(max = 255)
     val plantType: String? = null,
 )
 
 data class UpdateSpeciesRequest(
+    @field:Size(max = 255)
     val commonName: String? = null,
+    @field:Size(max = 255)
     val variantName: String? = null,
+    @field:Size(max = 255)
     val commonNameSv: String? = null,
+    @field:Size(max = 255)
     val variantNameSv: String? = null,
+    @field:Size(max = 255)
     val scientificName: String? = null,
     val imageFrontBase64: String? = null,
     val imageBackBase64: String? = null,
+    @field:Min(0)
     val daysToSprout: Int? = null,
+    @field:Min(0)
     val daysToHarvest: Int? = null,
+    @field:Min(0)
     val germinationTimeDays: Int? = null,
+    @field:Min(0)
     val sowingDepthMm: Int? = null,
+    @field:Size(max = 100)
     val growingPositions: List<GrowingPosition>? = null,
+    @field:Size(max = 100)
     val soils: List<SoilType>? = null,
+    @field:Min(0)
     val heightCm: Int? = null,
+    @field:Size(max = 12)
     val bloomMonths: List<Int>? = null,
+    @field:Size(max = 12)
     val sowingMonths: List<Int>? = null,
+    @field:Min(0)
     val germinationRate: Int? = null,
     val groupId: Long? = null,
+    @field:Size(max = 100)
     val tagIds: List<Long>? = null,
-    val costPerSeedCents: Int? = null,
+    @field:Min(0)
+    val costPerSeedSek: Int? = null,
+    @field:Min(0)
     val expectedStemsPerPlant: Int? = null,
+    @field:Min(0)
     val expectedVaseLifeDays: Int? = null,
+    @field:Size(max = 255)
     val plantType: String? = null,
 )
 
@@ -101,6 +145,7 @@ data class SpeciesGroupResponse(
 )
 
 data class CreateSpeciesGroupRequest(
+    @field:NotBlank @field:Size(max = 255)
     val name: String,
 )
 
@@ -110,6 +155,7 @@ data class SpeciesTagResponse(
 )
 
 data class CreateSpeciesTagRequest(
+    @field:NotBlank @field:Size(max = 255)
     val name: String,
 )
 
@@ -120,6 +166,7 @@ data class FrequentCommentResponse(
 )
 
 data class RecordCommentRequest(
+    @field:NotBlank @field:Size(max = 2000)
     val text: String,
 )
 
@@ -141,12 +188,16 @@ data class ProviderResponse(
 )
 
 data class CreateProviderRequest(
+    @field:NotBlank @field:Size(max = 255)
     val name: String,
+    @field:NotBlank @field:Size(max = 255)
     val identifier: String,
 )
 
 data class UpdateProviderRequest(
+    @field:Size(max = 255)
     val name: String? = null,
+    @field:Size(max = 255)
     val identifier: String? = null,
 )
 
@@ -158,28 +209,38 @@ data class SpeciesProviderResponse(
     val imageFrontUrl: String?,
     val imageBackUrl: String?,
     val productUrl: String?,
-    val costPerUnitCents: Int?,
+    val costPerUnitSek: Int?,
     val unitType: String?,
 )
 
 data class AddSpeciesProviderRequest(
+    @field:NotNull
     val providerId: Long,
     val imageFrontBase64: String? = null,
     val imageBackBase64: String? = null,
+    @field:Size(max = 255)
     val productUrl: String? = null,
-    val costPerUnitCents: Int? = null,
+    @field:Min(0)
+    val costPerUnitSek: Int? = null,
+    @field:Size(max = 255)
     val unitType: String? = null,
 )
 
 data class UpdateSpeciesProviderRequest(
     val imageFrontBase64: String? = null,
     val imageBackBase64: String? = null,
+    @field:Size(max = 255)
     val productUrl: String? = null,
-    val costPerUnitCents: Int? = null,
+    @field:Min(0)
+    val costPerUnitSek: Int? = null,
+    @field:Size(max = 255)
     val unitType: String? = null,
 )
 
-data class UploadPhotoRequest(val imageBase64: String)
+data class UploadPhotoRequest(
+    @field:NotNull
+    val imageBase64: String
+)
 
 data class SpeciesExportProvider(
     val providerName: String,
@@ -214,7 +275,10 @@ data class SpeciesExportEntry(
 
 data class ImportResult(val created: Int, val skipped: Int)
 
-data class ExtractSpeciesInfoRequest(val imageBase64: String)
+data class ExtractSpeciesInfoRequest(
+    @field:NotNull
+    val imageBase64: String
+)
 
 data class ExtractedFrontInfo(
     val commonName: String? = null,

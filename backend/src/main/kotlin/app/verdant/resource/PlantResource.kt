@@ -5,6 +5,7 @@ import app.verdant.repository.UserRepository
 import app.verdant.service.AiService
 import app.verdant.service.PlantService
 import io.quarkus.security.Authenticated
+import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -24,8 +25,12 @@ class PlantResource(
 
     @GET
     @Path("/plants")
-    fun listAll(@QueryParam("status") status: String?, @QueryParam("seasonId") seasonId: Long?) =
-        plantService.getAllPlantsForUser(userId(), status?.let { app.verdant.entity.PlantStatus.valueOf(it) }, seasonId)
+    fun listAll(
+        @QueryParam("status") status: String?,
+        @QueryParam("seasonId") seasonId: Long?,
+        @QueryParam("limit") @DefaultValue("50") limit: Int,
+        @QueryParam("offset") @DefaultValue("0") offset: Int,
+    ) = plantService.getAllPlantsForUser(userId(), status?.let { app.verdant.entity.PlantStatus.valueOf(it) }, seasonId, limit.coerceIn(1, 200), offset.coerceAtLeast(0))
 
     @GET
     @Path("/beds/{bedId}/plants")
@@ -38,21 +43,21 @@ class PlantResource(
 
     @POST
     @Path("/beds/{bedId}/plants")
-    fun create(@PathParam("bedId") bedId: Long, request: CreatePlantRequest): Response {
+    fun create(@PathParam("bedId") bedId: Long, @Valid request: CreatePlantRequest): Response {
         val plant = plantService.createPlant(bedId, request, userId())
         return Response.status(Response.Status.CREATED).entity(plant).build()
     }
 
     @POST
     @Path("/plants")
-    fun createWithoutBed(request: CreatePlantRequest): Response {
+    fun createWithoutBed(@Valid request: CreatePlantRequest): Response {
         val plant = plantService.createPlant(null, request, userId())
         return Response.status(Response.Status.CREATED).entity(plant).build()
     }
 
     @POST
     @Path("/plants/batch-sow")
-    fun batchSow(request: BatchSowRequest): Response {
+    fun batchSow(@Valid request: BatchSowRequest): Response {
         val result = plantService.batchSow(request, userId())
         return Response.status(Response.Status.CREATED).entity(result).build()
     }
@@ -68,14 +73,14 @@ class PlantResource(
 
     @POST
     @Path("/plants/batch-event")
-    fun batchEvent(request: BatchEventRequest): Response {
+    fun batchEvent(@Valid request: BatchEventRequest): Response {
         val result = plantService.batchEvent(request, userId())
         return Response.ok(result).build()
     }
 
     @PUT
     @Path("/plants/{id}")
-    fun update(@PathParam("id") id: Long, request: UpdatePlantRequest) =
+    fun update(@PathParam("id") id: Long, @Valid request: UpdatePlantRequest) =
         plantService.updatePlant(id, request, userId())
 
     @DELETE
@@ -104,7 +109,7 @@ class PlantResource(
 
     @POST
     @Path("/plants/{id}/events")
-    fun addEvent(@PathParam("id") id: Long, request: CreatePlantEventRequest): Response {
+    fun addEvent(@PathParam("id") id: Long, @Valid request: CreatePlantEventRequest): Response {
         val event = plantService.addEvent(id, request, userId())
         return Response.status(Response.Status.CREATED).entity(event).build()
     }
@@ -120,7 +125,7 @@ class PlantResource(
 
     @POST
     @Path("/plants/identify")
-    fun identify(request: IdentifyPlantRequest): List<PlantSuggestion> {
+    fun identify(@Valid request: IdentifyPlantRequest): List<PlantSuggestion> {
         val language = userRepository.findById(userId())?.language ?: "sv"
         return aiService.identifyPlant(request.imageBase64, language)
     }

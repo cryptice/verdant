@@ -1,5 +1,9 @@
 package app.verdant.dto
 
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 import java.time.Instant
 import java.time.LocalDate
 
@@ -20,10 +24,15 @@ data class ScheduledTaskResponse(
 )
 
 data class CreateScheduledTaskRequest(
+    @field:NotNull
     val speciesId: Long,
+    @field:NotBlank @field:Size(max = 255)
     val activityType: String,
+    @field:NotNull
     val deadline: LocalDate,
+    @field:Min(1)
     val targetCount: Int,
+    @field:Size(max = 2000)
     val notes: String? = null,
     val seasonId: Long? = null,
     val successionScheduleId: Long? = null,
@@ -31,13 +40,17 @@ data class CreateScheduledTaskRequest(
 
 data class UpdateScheduledTaskRequest(
     val speciesId: Long? = null,
+    @field:Size(max = 255)
     val activityType: String? = null,
     val deadline: LocalDate? = null,
+    @field:Min(1)
     val targetCount: Int? = null,
+    @field:Size(max = 2000)
     val notes: String? = null,
     val seasonId: Long? = null,
 )
 
 data class CompleteTaskPartiallyRequest(
+    @field:Min(1)
     val processedCount: Int,
 )

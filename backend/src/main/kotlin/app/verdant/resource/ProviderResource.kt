@@ -6,6 +6,7 @@ import app.verdant.dto.UpdateProviderRequest
 import app.verdant.entity.Provider
 import app.verdant.repository.ProviderRepository
 import jakarta.annotation.security.RolesAllowed
+import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -21,14 +22,14 @@ class ProviderResource(
     fun list() = providerRepository.findAll().map { it.toResponse() }
 
     @POST
-    fun create(request: CreateProviderRequest): Response {
+    fun create(@Valid request: CreateProviderRequest): Response {
         val provider = providerRepository.persist(Provider(name = request.name, identifier = request.identifier))
         return Response.status(Response.Status.CREATED).entity(provider.toResponse()).build()
     }
 
     @PUT
     @Path("/{id}")
-    fun update(@PathParam("id") id: Long, request: UpdateProviderRequest): ProviderResponse {
+    fun update(@PathParam("id") id: Long, @Valid request: UpdateProviderRequest): ProviderResponse {
         val provider = providerRepository.findById(id) ?: throw NotFoundException("Provider not found")
         val updated = provider.copy(
             name = request.name ?: provider.name,

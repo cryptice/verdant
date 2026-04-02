@@ -1,5 +1,9 @@
 package app.verdant.dto
 
+import jakarta.validation.Valid
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 import java.time.Instant
 import java.time.LocalDate
 
@@ -29,15 +33,21 @@ data class OrderItemResponse(
 
 data class CreateMarketOrderRequest(
     val deliveryDate: LocalDate? = null,
+    @field:Size(max = 2000)
     val notes: String? = null,
+    @field:Size(min = 1, max = 100)
+    @field:Valid
     val items: List<CreateOrderItemRequest>,
 )
 
 data class CreateOrderItemRequest(
+    @field:NotNull
     val listingId: Long,
+    @field:Min(1)
     val quantity: Int,
 )
 
 data class UpdateOrderStatusRequest(
+    @field:NotNull
     val status: String,
 )

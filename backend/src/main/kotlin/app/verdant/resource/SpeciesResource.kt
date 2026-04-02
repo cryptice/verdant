@@ -5,6 +5,7 @@ import app.verdant.repository.UserRepository
 import app.verdant.service.AiService
 import app.verdant.service.SpeciesService
 import io.quarkus.security.Authenticated
+import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -23,19 +24,22 @@ class SpeciesResource(
     private fun userId() = jwt.subject.toLong()
 
     @GET
-    fun list(@QueryParam("q") query: String?, @QueryParam("limit") limit: Int?) =
-        if (query.isNullOrBlank()) speciesService.getSpeciesForUser(userId())
-        else speciesService.searchSpeciesForUser(userId(), query.trim(), limit ?: 20)
+    fun list(
+        @QueryParam("q") query: String?,
+        @QueryParam("limit") @DefaultValue("50") limit: Int,
+        @QueryParam("offset") @DefaultValue("0") offset: Int,
+    ) = if (query.isNullOrBlank()) speciesService.getSpeciesForUser(userId(), limit.coerceIn(1, 200), offset.coerceAtLeast(0))
+        else speciesService.searchSpeciesForUser(userId(), query.trim(), limit.coerceIn(1, 200))
 
     @POST
-    fun create(request: CreateSpeciesRequest): Response {
+    fun create(@Valid request: CreateSpeciesRequest): Response {
         val species = speciesService.createSpecies(request, userId())
         return Response.status(Response.Status.CREATED).entity(species).build()
     }
 
     @PUT
     @Path("/{id}")
-    fun update(@PathParam("id") id: Long, request: UpdateSpeciesRequest) =
+    fun update(@PathParam("id") id: Long, @Valid request: UpdateSpeciesRequest) =
         speciesService.updateSpecies(id, request, userId())
 
     @DELETE
@@ -49,7 +53,7 @@ class SpeciesResource(
 
     @POST
     @Path("/extract-info")
-    fun extractInfo(request: ExtractSpeciesInfoRequest): Response {
+    fun extractInfo(@Valid request: ExtractSpeciesInfoRequest): Response {
         val language = userRepository.findById(userId())?.language ?: "sv"
         val info = aiService.extractSpeciesInfo(request.imageBase64, language)
             ?: return Response.status(Response.Status.BAD_REQUEST)
@@ -66,7 +70,7 @@ class SpeciesResource(
 
     @POST
     @Path("/groups")
-    fun createGroup(request: CreateSpeciesGroupRequest): Response {
+    fun createGroup(@Valid request: CreateSpeciesGroupRequest): Response {
         val group = speciesService.createGroup(request, userId())
         return Response.status(Response.Status.CREATED).entity(group).build()
     }
@@ -86,7 +90,7 @@ class SpeciesResource(
 
     @POST
     @Path("/tags")
-    fun createTag(request: CreateSpeciesTagRequest): Response {
+    fun createTag(@Valid request: CreateSpeciesTagRequest): Response {
         val tag = speciesService.createTag(request, userId())
         return Response.status(Response.Status.CREATED).entity(tag).build()
     }
@@ -107,7 +111,7 @@ class SpeciesResource(
 
     @POST
     @Path("/{speciesId}/providers")
-    fun addProvider(@PathParam("speciesId") speciesId: Long, request: AddSpeciesProviderRequest): Response {
+    fun addProvider(@PathParam("speciesId") speciesId: Long, @Valid request: AddSpeciesProviderRequest): Response {
         val sp = speciesService.addProviderToSpecies(speciesId, request, userId())
         return Response.status(Response.Status.CREATED).entity(sp).build()
     }
@@ -117,7 +121,7 @@ class SpeciesResource(
     fun updateProvider(
         @PathParam("speciesId") speciesId: Long,
         @PathParam("spId") spId: Long,
-        request: UpdateSpeciesProviderRequest,
+        @Valid request: UpdateSpeciesProviderRequest,
     ) = speciesService.updateSpeciesProvider(speciesId, spId, request, userId())
 
     @DELETE

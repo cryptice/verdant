@@ -4,6 +4,7 @@ import app.verdant.dto.FrequentCommentResponse
 import app.verdant.dto.RecordCommentRequest
 import app.verdant.repository.FrequentCommentRepository
 import io.quarkus.security.Authenticated
+import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -25,7 +26,7 @@ class FrequentCommentResource(
     }
 
     @POST
-    fun record(request: RecordCommentRequest): Response {
+    fun record(@Valid request: RecordCommentRequest): Response {
         val comment = repo.recordUsage(userId(), request.text)
         return Response.status(Response.Status.CREATED)
             .entity(FrequentCommentResponse(comment.id!!, comment.text, comment.useCount))

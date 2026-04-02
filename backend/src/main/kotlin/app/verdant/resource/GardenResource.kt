@@ -4,6 +4,7 @@ import app.verdant.dto.*
 import app.verdant.service.BedService
 import app.verdant.service.GardenService
 import io.quarkus.security.Authenticated
+import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -33,14 +34,14 @@ class GardenResource(
     }
 
     @POST
-    fun create(request: CreateGardenRequest): Response {
+    fun create(@Valid request: CreateGardenRequest): Response {
         val garden = gardenService.createGarden(request, userId())
         return Response.status(Response.Status.CREATED).entity(garden).build()
     }
 
     @PUT
     @Path("/{id}")
-    fun update(@PathParam("id") id: Long, request: UpdateGardenRequest) =
+    fun update(@PathParam("id") id: Long, @Valid request: UpdateGardenRequest) =
         gardenService.updateGarden(id, request, userId())
 
     @DELETE
@@ -57,19 +58,19 @@ class GardenResource(
 
     @POST
     @Path("/{gardenId}/beds")
-    fun createBed(@PathParam("gardenId") gardenId: Long, request: CreateBedRequest): Response {
+    fun createBed(@PathParam("gardenId") gardenId: Long, @Valid request: CreateBedRequest): Response {
         val bed = bedService.createBed(gardenId, request, userId())
         return Response.status(Response.Status.CREATED).entity(bed).build()
     }
 
     @POST
     @Path("/suggest-layout")
-    fun suggestLayout(request: SuggestLayoutRequest) =
+    fun suggestLayout(@Valid request: SuggestLayoutRequest) =
         gardenService.suggestLayout(request)
 
     @POST
     @Path("/with-layout")
-    fun createWithLayout(request: CreateGardenWithLayoutRequest): Response {
+    fun createWithLayout(@Valid request: CreateGardenWithLayoutRequest): Response {
         log.info("POST /api/gardens/with-layout: name=${request.name}, beds=${request.beds.size}")
         val result = gardenService.createGardenWithLayout(request, userId())
         log.info("Created garden id=${result.garden.id}")

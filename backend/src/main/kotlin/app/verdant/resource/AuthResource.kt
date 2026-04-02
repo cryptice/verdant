@@ -3,6 +3,7 @@ package app.verdant.resource
 import app.verdant.dto.AdminLoginRequest
 import app.verdant.dto.GoogleAuthRequest
 import app.verdant.service.AuthService
+import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 
@@ -13,9 +14,9 @@ class AuthResource(private val authService: AuthService) {
 
     @POST
     @Path("/google")
-    fun googleAuth(request: GoogleAuthRequest) = authService.authenticateWithGoogle(request.idToken)
+    fun googleAuth(@Valid request: GoogleAuthRequest) = authService.authenticateWithGoogle(request.idToken)
 
     @POST
     @Path("/admin")
-    fun adminLogin(request: AdminLoginRequest) = authService.authenticateAdmin(request.email, request.password)
+    fun adminLogin(@Valid request: AdminLoginRequest) = authService.authenticateAdmin(request.email, request.password)
 }

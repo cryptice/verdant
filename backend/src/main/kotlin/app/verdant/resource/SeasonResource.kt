@@ -3,6 +3,7 @@ package app.verdant.resource
 import app.verdant.dto.*
 import app.verdant.service.SeasonService
 import io.quarkus.security.Authenticated
+import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -26,14 +27,14 @@ class SeasonResource(
     fun get(@PathParam("id") id: Long) = service.getSeason(id, userId())
 
     @POST
-    fun create(request: CreateSeasonRequest): Response {
+    fun create(@Valid request: CreateSeasonRequest): Response {
         val season = service.createSeason(request, userId())
         return Response.status(Response.Status.CREATED).entity(season).build()
     }
 
     @PUT
     @Path("/{id}")
-    fun update(@PathParam("id") id: Long, request: UpdateSeasonRequest) =
+    fun update(@PathParam("id") id: Long, @Valid request: UpdateSeasonRequest) =
         service.updateSeason(id, request, userId())
 
     @DELETE

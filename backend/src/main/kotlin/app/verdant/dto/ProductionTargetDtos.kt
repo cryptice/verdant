@@ -1,5 +1,8 @@
 package app.verdant.dto
 
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 import java.time.Instant
 import java.time.LocalDate
 
@@ -16,20 +19,28 @@ data class ProductionTargetResponse(
 )
 
 data class CreateProductionTargetRequest(
+    @field:NotNull
     val seasonId: Long,
+    @field:NotNull
     val speciesId: Long,
+    @field:Min(1)
     val stemsPerWeek: Int,
+    @field:NotNull
     val startDate: LocalDate,
+    @field:NotNull
     val endDate: LocalDate,
+    @field:Size(max = 2000)
     val notes: String? = null,
 )
 
 data class UpdateProductionTargetRequest(
     val seasonId: Long? = null,
     val speciesId: Long? = null,
+    @field:Min(1)
     val stemsPerWeek: Int? = null,
     val startDate: LocalDate? = null,
     val endDate: LocalDate? = null,
+    @field:Size(max = 2000)
     val notes: String? = null,
 )
 

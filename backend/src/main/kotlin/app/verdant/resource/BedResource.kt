@@ -4,6 +4,7 @@ import app.verdant.dto.CreateBedRequest
 import app.verdant.dto.UpdateBedRequest
 import app.verdant.service.BedService
 import io.quarkus.security.Authenticated
+import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -29,7 +30,7 @@ class BedResource(
 
     @PUT
     @Path("/beds/{id}")
-    fun update(@PathParam("id") id: Long, request: UpdateBedRequest) =
+    fun update(@PathParam("id") id: Long, @Valid request: UpdateBedRequest) =
         bedService.updateBed(id, request, userId())
 
     @DELETE

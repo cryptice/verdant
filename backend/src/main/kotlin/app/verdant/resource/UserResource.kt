@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import app.verdant.repository.UserRepository
 import app.verdant.service.toResponse
 import io.quarkus.security.Authenticated
+import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import org.eclipse.microprofile.jwt.JsonWebToken
@@ -25,7 +26,7 @@ class UserResource(
 
     @PUT
     @Path("/me")
-    fun updateMe(request: UpdateUserRequest): Any {
+    fun updateMe(@Valid request: UpdateUserRequest): Any {
         val user = userRepository.findById(jwt.subject.toLong()) ?: throw NotFoundException("User not found")
         val updated = user.copy(
             displayName = request.displayName ?: user.displayName,
@@ -45,7 +46,7 @@ class UserResource(
 
     @PUT
     @Path("/me/onboarding")
-    fun updateOnboarding(request: UpdateOnboardingRequest): Any {
+    fun updateOnboarding(@Valid request: UpdateOnboardingRequest): Any {
         val user = userRepository.findById(jwt.subject.toLong()) ?: throw NotFoundException("User not found")
         val updated = user.copy(
             onboardingJson = ObjectMapper().writeValueAsString(request)
