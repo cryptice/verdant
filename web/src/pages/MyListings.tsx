@@ -126,7 +126,7 @@ export function MyListings() {
 
   return (
     <div>
-      <PageHeader title={t('listings.title')} action={{ label: t('listings.new'), onClick: openAdd }} />
+      <PageHeader title={t('listings.title')} action={{ label: t('listings.new'), onClick: openAdd, 'data-onboarding': 'add-listing-btn' }} />
       <div className="px-4 py-4">
         {data && data.length === 0 && (
           <p className="text-text-secondary text-sm text-center py-4">{t('listings.noListings')}</p>

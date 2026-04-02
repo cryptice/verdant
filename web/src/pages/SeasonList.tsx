@@ -91,7 +91,7 @@ export function SeasonList() {
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
 
   const formFields = (
-    <div className="space-y-4">
+    <div data-onboarding="season-form" className="space-y-4">
       <div>
         <label className="field-label">{t('seasons.name')} *</label>
         <input type="text" value={formName} onChange={e => setFormName(e.target.value)} placeholder="e.g. Spring 2026" className="input" />

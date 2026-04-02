@@ -81,7 +81,7 @@ export function SeedInventory() {
 
   return (
     <div>
-      <PageHeader title={t('seeds.title')} action={{ label: t('seeds.addSeeds'), onClick: () => setShowAdd(true) }} />
+      <PageHeader title={t('seeds.title')} action={{ label: t('seeds.addSeeds'), onClick: () => setShowAdd(true), 'data-onboarding': 'add-seed-btn' }} />
       <div className="px-4 py-4">
         {data && data.length === 0 && (
           <p className="text-text-secondary text-sm text-center py-4">{t('seeds.noBatches')}</p>
@@ -146,7 +146,7 @@ export function SeedInventory() {
           </button>
         </>
       }>
-        <div className="space-y-4">
+        <div data-onboarding="seed-form" className="space-y-4">
           <div>
             <label className="field-label">{t('common.speciesLabel')}</label>
             <SpeciesAutocomplete value={addSpecies} onChange={setAddSpecies} />

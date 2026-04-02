@@ -72,7 +72,7 @@ export function TaskForm() {
   return (
     <div className="max-w-lg">
       <PageHeader title={isEdit ? t('tasks.editTaskTitle') : t('tasks.newTaskTitle')} breadcrumbs={breadcrumbs} />
-      <div className="form-card">
+      <div data-onboarding="task-form" className="form-card">
         <div>
           <label className="field-label">{t('common.speciesLabel')}</label>
           <SpeciesAutocomplete value={selectedSpecies} onChange={setSelectedSpecies} />

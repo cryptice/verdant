@@ -5,7 +5,7 @@ interface Props {
   icon?: string
   breadcrumbs?: BreadcrumbItem[]
   editAction?: () => void
-  action?: { label: string; onClick: () => void }
+  action?: { label: string; onClick: () => void; 'data-onboarding'?: string }
 }
 
 export function PageHeader({ title, icon, breadcrumbs, editAction, action }: Props) {
@@ -30,7 +30,7 @@ export function PageHeader({ title, icon, breadcrumbs, editAction, action }: Pro
           </button>
         )}
         {action && (
-          <button onClick={action.onClick} className="btn-primary ml-auto">
+          <button onClick={action.onClick} className="btn-primary ml-auto" data-onboarding={action['data-onboarding']}>
             {action.label}
           </button>
         )}

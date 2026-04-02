@@ -142,7 +142,7 @@ export function ProductionTargets() {
 
   return (
     <div>
-      <PageHeader title={t('targets.title')} action={{ label: t('targets.new'), onClick: openAdd }} />
+      <PageHeader title={t('targets.title')} action={{ label: t('targets.new'), onClick: openAdd, 'data-onboarding': 'add-target-btn' }} />
       <div className="px-4 py-4">
         {/* Season filter */}
         <div className="mb-4">
