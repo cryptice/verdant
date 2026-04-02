@@ -4,7 +4,7 @@ steps:
     entrypoint: 'bash'
     args:
       - '-c'
-      - 'cd backend && gradle test --no-daemon'
+      - 'cd backend && gradle test --no-daemon && rm -rf /tmp/hsperfdata_* backend/build'
 
   - name: 'gcr.io/kaniko-project/executor:latest'
     args:
