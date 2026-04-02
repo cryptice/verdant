@@ -1,6 +1,7 @@
 package app.verdant.android.di
 
 import app.verdant.android.BuildConfig
+import app.verdant.android.data.AppError
 import app.verdant.android.data.SessionManager
 import app.verdant.android.data.TokenStore
 import app.verdant.android.data.api.VerdantApi
@@ -38,10 +39,25 @@ object AppModule {
                 } else {
                     chain.request()
                 }
-                val response = chain.proceed(request)
-                if (response.code == 401 && token != null) {
-                    runBlocking { sessionManager.onUnauthorized() }
+
+                val response = try {
+                    chain.proceed(request)
+                } catch (e: java.io.IOException) {
+                    throw AppError.Network()
                 }
+
+                if (!response.isSuccessful) {
+                    when (response.code) {
+                        401 -> {
+                            runBlocking { sessionManager.onUnauthorized() }
+                            throw AppError.Unauthorized()
+                        }
+                        404 -> throw AppError.NotFound()
+                        in 500..599 -> throw AppError.Server()
+                        else -> throw AppError.Unknown("Request failed with status ${response.code}")
+                    }
+                }
+
                 response
             }
             .addInterceptor(HttpLoggingInterceptor().apply {
