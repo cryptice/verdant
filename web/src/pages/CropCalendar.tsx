@@ -195,7 +195,7 @@ export function CropCalendar() {
         )}
 
         {seasonId && rows.length > 0 && (
-          <div className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">
+          <div data-onboarding="calendar-view" className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">
             {/* Month headers */}
             <div className="flex border-b border-divider bg-surface">
               <div className="w-48 min-w-[12rem] shrink-0 px-4 py-2 text-xs font-medium text-text-secondary">

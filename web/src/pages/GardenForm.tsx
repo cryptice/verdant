@@ -31,7 +31,7 @@ export function GardenForm() {
   return (
     <div className="max-w-lg">
       <PageHeader title={t('garden.newGardenTitle')} breadcrumbs={breadcrumbs} />
-      <div className="form-card">
+      <div data-onboarding="garden-form" className="form-card">
         <div>
           <label className="field-label">{t('common.iconLabel')}</label>
           <div className="grid grid-cols-8 gap-1 p-2 bg-surface rounded-md border border-divider">

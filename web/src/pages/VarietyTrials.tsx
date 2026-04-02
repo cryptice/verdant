@@ -235,7 +235,7 @@ export function VarietyTrials() {
 
   return (
     <div>
-      <PageHeader title={t('trials.title')} action={{ label: t('trials.new'), onClick: openAdd }} />
+      <PageHeader title={t('trials.title')} action={{ label: t('trials.new'), onClick: openAdd, 'data-onboarding': 'add-trial-btn' }} />
       <div className="px-4 py-4">
         {/* Season filter */}
         <div className="mb-4">

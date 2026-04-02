@@ -94,7 +94,7 @@ export function SpeciesList() {
       )}
 
       {filtered.length > 0 && (
-        <div className="px-4 pb-24">
+        <div data-onboarding="species-list" className="px-4 pb-24">
           <div className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">
             <table className="w-full">
               <thead>

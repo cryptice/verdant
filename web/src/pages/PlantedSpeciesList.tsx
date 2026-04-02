@@ -30,7 +30,7 @@ export function PlantedSpeciesList() {
   return (
     <div>
       <PageHeader title={t('species.plantedTitle')} />
-      <div className="px-4 py-4 space-y-3">
+      <div data-onboarding="plant-actions" className="px-4 py-4 space-y-3">
         <input
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(0) }}

@@ -53,7 +53,7 @@ export function Analytics() {
   return (
     <div>
       <PageHeader title={t('analytics.title')} />
-      <div className="px-4 py-4 space-y-8">
+      <div data-onboarding="analytics-view" className="px-4 py-4 space-y-8">
 
         {/* ── Section 1: Season overview cards ── */}
         <section>

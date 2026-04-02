@@ -232,7 +232,7 @@ export function PestDiseaseLog() {
 
   return (
     <div>
-      <PageHeader title={t('pestDisease.title')} action={{ label: t('pestDisease.new'), onClick: openAdd }} />
+      <PageHeader title={t('pestDisease.title')} action={{ label: t('pestDisease.new'), onClick: openAdd, 'data-onboarding': 'add-pest-btn' }} />
       <div className="px-4 py-4">
         {/* Season filter */}
         <div className="mb-4">

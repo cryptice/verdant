@@ -114,7 +114,7 @@ export function SowActivity() {
       <PageHeader title={t('sow.title')} breadcrumbs={breadcrumbs} />
       <div className="form-card">
 
-        <div>
+        <div data-onboarding="sow-species">
           <label className="field-label">{t('common.speciesLabel')}</label>
           <SpeciesAutocomplete
             value={selectedSpecies}
@@ -159,7 +159,7 @@ export function SowActivity() {
         )}
 
         {!sowInTray && (
-          <div>
+          <div data-onboarding="sow-location">
             <label className="field-label">{t('sow.bedLabel')}</label>
             <select value={bedId} onChange={e => setBedId(e.target.value)} className="input">
               <option value="">{t('sow.selectBed')}</option>
@@ -182,7 +182,7 @@ export function SowActivity() {
 
       {sowMut.error && <p className="text-error text-sm mt-3">{sowMut.error instanceof Error ? sowMut.error.message : String(sowMut.error)}</p>}
       <div className="mt-4 flex justify-end">
-        <button onClick={() => sowMut.mutate()} disabled={!valid || sowMut.isPending} className="btn-primary">
+        <button data-onboarding="sow-submit" onClick={() => sowMut.mutate()} disabled={!valid || sowMut.isPending} className="btn-primary">
           {sowMut.isPending ? t('sow.sowing') : t('sow.sow')}
         </button>
       </div>

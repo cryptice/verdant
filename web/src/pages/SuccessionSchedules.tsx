@@ -169,7 +169,7 @@ export function SuccessionSchedules() {
 
   return (
     <div>
-      <PageHeader title={t('successions.title')} action={{ label: t('successions.new'), onClick: openAdd }} />
+      <PageHeader title={t('successions.title')} action={{ label: t('successions.new'), onClick: openAdd, 'data-onboarding': 'add-succession-btn' }} />
       <div className="px-4 py-4">
         {/* Season filter */}
         <div className="mb-4">

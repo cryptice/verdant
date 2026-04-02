@@ -71,7 +71,7 @@ export function GardenDetail() {
 
         <div className="flex items-center justify-between">
           <h2 className="font-semibold">{t('garden.beds')}</h2>
-          <button onClick={() => navigate(`/garden/${gardenId}/bed/new`)} className="btn-primary text-sm">{t('garden.newBed')}</button>
+          <button data-onboarding="add-bed-btn" onClick={() => navigate(`/garden/${gardenId}/bed/new`)} className="btn-primary text-sm">{t('garden.newBed')}</button>
         </div>
 
         {beds && beds.length === 0 && (

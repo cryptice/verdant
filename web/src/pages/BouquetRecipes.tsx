@@ -168,7 +168,7 @@ export function BouquetRecipes() {
 
   return (
     <div>
-      <PageHeader title={t('bouquets.title')} action={{ label: t('bouquets.new'), onClick: openAdd }} />
+      <PageHeader title={t('bouquets.title')} action={{ label: t('bouquets.new'), onClick: openAdd, 'data-onboarding': 'add-bouquet-btn' }} />
       <div className="px-4 py-4">
         {data && data.length === 0 && (
           <p className="text-text-secondary text-sm text-center py-4">{t('bouquets.noRecipes')}</p>
