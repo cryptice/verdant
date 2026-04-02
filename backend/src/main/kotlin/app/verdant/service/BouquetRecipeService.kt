@@ -6,6 +6,7 @@ import app.verdant.entity.BouquetRecipeItem
 import app.verdant.repository.BouquetRecipeRepository
 import app.verdant.repository.SpeciesRepository
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.transaction.Transactional
 import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 
@@ -15,8 +16,8 @@ class BouquetRecipeService(
     private val speciesRepo: SpeciesRepository,
     private val storageService: StorageService,
 ) {
-    fun getRecipesForUser(userId: Long): List<BouquetRecipeResponse> =
-        repo.findByUserId(userId).map { it.toResponseWithItems() }
+    fun getRecipesForUser(userId: Long, limit: Int = 50, offset: Int = 0): List<BouquetRecipeResponse> =
+        repo.findByUserId(userId, limit, offset).map { it.toResponseWithItems() }
 
     fun getRecipe(id: Long, userId: Long): BouquetRecipeResponse {
         val recipe = repo.findById(id) ?: throw NotFoundException("Bouquet recipe not found")
@@ -24,6 +25,7 @@ class BouquetRecipeService(
         return recipe.toResponseWithItems()
     }
 
+    @Transactional
     fun createRecipe(request: CreateBouquetRecipeRequest, userId: Long): BouquetRecipeResponse {
         var recipe = repo.persist(
             BouquetRecipe(
@@ -55,6 +57,7 @@ class BouquetRecipeService(
         return recipe.toResponseWithItems()
     }
 
+    @Transactional
     fun updateRecipe(id: Long, request: UpdateBouquetRecipeRequest, userId: Long): BouquetRecipeResponse {
         val recipe = repo.findById(id) ?: throw NotFoundException("Bouquet recipe not found")
         if (recipe.userId != userId) throw ForbiddenException()
@@ -98,9 +101,7 @@ class BouquetRecipeService(
 
     private fun BouquetRecipe.toResponseWithItems(): BouquetRecipeResponse {
         val items = repo.findItemsByRecipeId(id!!)
-        val speciesNames = items.map { it.speciesId }.distinct().associateWith { speciesId ->
-            speciesRepo.findById(speciesId)?.commonName
-        }
+        val speciesNames = speciesRepo.findNamesByIds(items.map { it.speciesId }.toSet())
         return BouquetRecipeResponse(
             id = id,
             name = name,

@@ -2,6 +2,8 @@ package app.verdant.auth
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.ws.rs.BadRequestException
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.math.BigInteger
 import java.net.URI
 import java.security.KeyFactory
@@ -13,7 +15,10 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger
 
 @ApplicationScoped
-class GoogleTokenVerifier(private val objectMapper: ObjectMapper) {
+class GoogleTokenVerifier(
+    private val objectMapper: ObjectMapper,
+    @ConfigProperty(name = "verdant.google.client-id") private val expectedClientId: String,
+) {
 
     private val log = Logger.getLogger(GoogleTokenVerifier::class.java.name)
     private val jwksUrl = "https://www.googleapis.com/oauth2/v3/certs"
@@ -67,6 +72,12 @@ class GoogleTokenVerifier(private val objectMapper: ObjectMapper) {
         val exp = node.get("exp")?.asLong() ?: throw IllegalArgumentException("Missing exp claim")
         if (Instant.ofEpochSecond(exp).isBefore(Instant.now())) {
             throw SecurityException("Token has expired")
+        }
+
+        // Check audience
+        val audience = node.get("aud")?.asText() ?: throw IllegalArgumentException("Missing aud claim")
+        if (audience != expectedClientId) {
+            throw BadRequestException("Invalid token audience")
         }
 
         return GoogleClaims(

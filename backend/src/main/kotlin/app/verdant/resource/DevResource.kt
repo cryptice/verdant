@@ -2,6 +2,8 @@ package app.verdant.resource
 
 import app.verdant.entity.*
 import app.verdant.repository.*
+import io.quarkus.security.Authenticated
+import jakarta.annotation.security.RolesAllowed
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -10,6 +12,7 @@ import java.time.LocalDate
 @Path("/api/dev")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@RolesAllowed("ADMIN")
 class DevResource(
     private val userRepository: UserRepository,
     private val speciesRepository: SpeciesRepository,
@@ -180,7 +183,7 @@ class DevResource(
             soils = listOf(SoilType.LOAMY, SoilType.SANDY),
             bloomMonths = listOf(7, 8, 9, 10), sowingMonths = listOf(3, 4),
             germinationRate = 95, groupId = bulbsId,
-            costPerSeedCents = 4500, expectedStemsPerPlant = 15, expectedVaseLifeDays = 6,
+            costPerSeedSek = 4500, expectedStemsPerPlant = 15, expectedVaseLifeDays = 6,
             plantType = PlantType.TUBER,
         ))
         val labyrinth = speciesRepository.persist(Species(
@@ -193,7 +196,7 @@ class DevResource(
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(7, 8, 9, 10), sowingMonths = listOf(3, 4),
             germinationRate = 95, groupId = bulbsId,
-            costPerSeedCents = 3800, expectedStemsPerPlant = 12, expectedVaseLifeDays = 5,
+            costPerSeedSek = 3800, expectedStemsPerPlant = 12, expectedVaseLifeDays = 5,
             plantType = PlantType.TUBER,
         ))
         val cornel = speciesRepository.persist(Species(
@@ -206,7 +209,7 @@ class DevResource(
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(3, 4),
             germinationRate = 93, groupId = bulbsId,
-            costPerSeedCents = 3200, expectedStemsPerPlant = 10, expectedVaseLifeDays = 5,
+            costPerSeedSek = 3200, expectedStemsPerPlant = 10, expectedVaseLifeDays = 5,
             plantType = PlantType.TUBER,
         ))
         val zinniaGiant = speciesRepository.persist(Species(
@@ -219,7 +222,7 @@ class DevResource(
             soils = listOf(SoilType.LOAMY, SoilType.SANDY),
             bloomMonths = listOf(6, 7, 8, 9), sowingMonths = listOf(4, 5, 6),
             germinationRate = 85, groupId = flowersId,
-            costPerSeedCents = 25, expectedStemsPerPlant = 8, expectedVaseLifeDays = 8,
+            costPerSeedSek = 25, expectedStemsPerPlant = 8, expectedVaseLifeDays = 8,
             plantType = PlantType.ANNUAL,
         ))
         val zinniaQLO = speciesRepository.persist(Species(
@@ -232,7 +235,7 @@ class DevResource(
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(4, 5, 6),
             germinationRate = 80, groupId = flowersId,
-            costPerSeedCents = 45, expectedStemsPerPlant = 6, expectedVaseLifeDays = 8,
+            costPerSeedSek = 45, expectedStemsPerPlant = 6, expectedVaseLifeDays = 8,
             plantType = PlantType.ANNUAL,
         ))
         val snapMadame = speciesRepository.persist(Species(
@@ -245,7 +248,7 @@ class DevResource(
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(6, 7, 8), sowingMonths = listOf(2, 3),
             germinationRate = 75, groupId = flowersId,
-            costPerSeedCents = 15, expectedStemsPerPlant = 5, expectedVaseLifeDays = 7,
+            costPerSeedSek = 15, expectedStemsPerPlant = 5, expectedVaseLifeDays = 7,
             plantType = PlantType.ANNUAL,
         ))
         val snapChantilly = speciesRepository.persist(Species(
@@ -258,7 +261,7 @@ class DevResource(
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(6, 7, 8), sowingMonths = listOf(2, 3),
             germinationRate = 78, groupId = flowersId,
-            costPerSeedCents = 20, expectedStemsPerPlant = 6, expectedVaseLifeDays = 8,
+            costPerSeedSek = 20, expectedStemsPerPlant = 6, expectedVaseLifeDays = 8,
             plantType = PlantType.ANNUAL,
         ))
         val sunProCut = speciesRepository.persist(Species(
@@ -271,7 +274,7 @@ class DevResource(
             soils = listOf(SoilType.LOAMY, SoilType.SANDY),
             bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(5, 6, 7),
             germinationRate = 90, groupId = flowersId,
-            costPerSeedCents = 50, expectedStemsPerPlant = 1, expectedVaseLifeDays = 7,
+            costPerSeedSek = 50, expectedStemsPerPlant = 1, expectedVaseLifeDays = 7,
             plantType = PlantType.ANNUAL,
         ))
         val sunSunrich = speciesRepository.persist(Species(
@@ -284,7 +287,7 @@ class DevResource(
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(5, 6, 7),
             germinationRate = 88, groupId = flowersId,
-            costPerSeedCents = 55, expectedStemsPerPlant = 1, expectedVaseLifeDays = 8,
+            costPerSeedSek = 55, expectedStemsPerPlant = 1, expectedVaseLifeDays = 8,
             plantType = PlantType.ANNUAL,
         ))
         val lisEcho = speciesRepository.persist(Species(
@@ -297,7 +300,7 @@ class DevResource(
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(1, 2),
             germinationRate = 60, groupId = flowersId,
-            costPerSeedCents = 80, expectedStemsPerPlant = 4, expectedVaseLifeDays = 12,
+            costPerSeedSek = 80, expectedStemsPerPlant = 4, expectedVaseLifeDays = 12,
             plantType = PlantType.ANNUAL,
         ))
         val lisRosita = speciesRepository.persist(Species(
@@ -310,7 +313,7 @@ class DevResource(
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(1, 2),
             germinationRate = 55, groupId = flowersId,
-            costPerSeedCents = 90, expectedStemsPerPlant = 3, expectedVaseLifeDays = 12,
+            costPerSeedSek = 90, expectedStemsPerPlant = 3, expectedVaseLifeDays = 12,
             plantType = PlantType.ANNUAL,
         ))
         val sweetPea = speciesRepository.persist(Species(
@@ -323,7 +326,7 @@ class DevResource(
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(6, 7), sowingMonths = listOf(3, 4),
             germinationRate = 80, groupId = flowersId,
-            costPerSeedCents = 15, expectedStemsPerPlant = 20, expectedVaseLifeDays = 5,
+            costPerSeedSek = 15, expectedStemsPerPlant = 20, expectedVaseLifeDays = 5,
             plantType = PlantType.ANNUAL,
         ))
         val cosmosDC = speciesRepository.persist(Species(
@@ -336,7 +339,7 @@ class DevResource(
             soils = listOf(SoilType.LOAMY, SoilType.SANDY),
             bloomMonths = listOf(7, 8, 9, 10), sowingMonths = listOf(4, 5),
             germinationRate = 85, groupId = flowersId,
-            costPerSeedCents = 20, expectedStemsPerPlant = 10, expectedVaseLifeDays = 6,
+            costPerSeedSek = 20, expectedStemsPerPlant = 10, expectedVaseLifeDays = 6,
             plantType = PlantType.ANNUAL,
         ))
         val cosmosAL = speciesRepository.persist(Species(
@@ -349,7 +352,7 @@ class DevResource(
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(4, 5),
             germinationRate = 82, groupId = flowersId,
-            costPerSeedCents = 30, expectedStemsPerPlant = 8, expectedVaseLifeDays = 5,
+            costPerSeedSek = 30, expectedStemsPerPlant = 8, expectedVaseLifeDays = 5,
             plantType = PlantType.ANNUAL,
         ))
         val eucalyptus = speciesRepository.persist(Species(
@@ -362,7 +365,7 @@ class DevResource(
             soils = listOf(SoilType.LOAMY, SoilType.SANDY),
             bloomMonths = emptyList(), sowingMonths = listOf(2, 3),
             germinationRate = 50, groupId = foliageId,
-            costPerSeedCents = 35, expectedStemsPerPlant = 20, expectedVaseLifeDays = 14,
+            costPerSeedSek = 35, expectedStemsPerPlant = 20, expectedVaseLifeDays = 14,
             plantType = PlantType.PERENNIAL,
         ))
         val ranunculus = speciesRepository.persist(Species(
@@ -375,7 +378,7 @@ class DevResource(
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(5, 6, 7), sowingMonths = listOf(2, 3),
             germinationRate = 70, groupId = bulbsId,
-            costPerSeedCents = 200, expectedStemsPerPlant = 8, expectedVaseLifeDays = 7,
+            costPerSeedSek = 200, expectedStemsPerPlant = 8, expectedVaseLifeDays = 7,
             plantType = PlantType.BULB,
         ))
 
@@ -942,7 +945,7 @@ class DevResource(
                 userId = userId, speciesId = speciesId, quantity = qty, seasonId = s26,
                 collectionDate = LocalDate.of(2026, 1, 15),
                 expirationDate = LocalDate.of(2028, 12, 31),
-                costPerUnitCents = cost, unitType = unit,
+                costPerUnitSek = cost, unitType = unit,
             ))
             seedInvCount++
         }

@@ -24,7 +24,11 @@ class MarketOrderService(
     fun placeOrder(request: CreateMarketOrderRequest, purchaserId: Long): MarketOrderResponse {
         if (request.items.isEmpty()) throw BadRequestException("Order must have at least one item")
 
-        // Resolve all listings and validate
+        // Resolve all listings, validate, and decrement quantities atomically under FOR UPDATE locks.
+        // Each findByIdForUpdate acquires a row-level lock that is held for the duration of the
+        // transaction, ensuring no concurrent transaction can check or modify the same quantity
+        // between our check and our decrement.
+        data class ResolvedItem(val listingId: Long, val speciesId: Long, val quantity: Int, val pricePerStemCents: Int, val producerId: Long)
         val resolvedItems = request.items.map { itemReq ->
             val listing = listingRepo.findByIdForUpdate(itemReq.listingId)
                 ?: throw BadRequestException("Listing ${itemReq.listingId} not found")
@@ -32,19 +36,25 @@ class MarketOrderService(
             if (itemReq.quantity <= 0) throw BadRequestException("Quantity must be positive")
             if (itemReq.quantity > listing.quantityAvailable)
                 throw BadRequestException("Requested ${itemReq.quantity} but only ${listing.quantityAvailable} available for listing ${listing.id}")
-            listing to itemReq
+            // Decrement immediately while holding the FOR UPDATE lock
+            listingRepo.update(listing.copy(quantityAvailable = listing.quantityAvailable - itemReq.quantity))
+            ResolvedItem(
+                listingId = listing.id!!,
+                speciesId = listing.speciesId,
+                quantity = itemReq.quantity,
+                pricePerStemCents = listing.pricePerStemCents,
+                producerId = listing.userId,
+            )
         }
 
         // All items must belong to the same producer
-        val producerIds = resolvedItems.map { it.first.userId }.toSet()
+        val producerIds = resolvedItems.map { it.producerId }.toSet()
         if (producerIds.size != 1) throw BadRequestException("All items in an order must be from the same producer")
         val producerId = producerIds.first()
 
         if (producerId == purchaserId) throw BadRequestException("Cannot place an order for your own listings")
 
-        val totalCents = resolvedItems.sumOf { (listing, itemReq) ->
-            listing.pricePerStemCents * itemReq.quantity
-        }
+        val totalCents = resolvedItems.sumOf { it.pricePerStemCents * it.quantity }
 
         val order = orderRepo.persist(
             MarketOrder(
@@ -56,30 +66,28 @@ class MarketOrderService(
             )
         )
 
-        for ((listing, itemReq) in resolvedItems) {
-            val species = speciesRepo.findById(listing.speciesId)
+        for (item in resolvedItems) {
+            val species = speciesRepo.findById(item.speciesId)
             itemRepo.persist(
                 OrderItem(
                     orderId = order.id!!,
-                    listingId = listing.id!!,
-                    speciesId = listing.speciesId,
+                    listingId = item.listingId,
+                    speciesId = item.speciesId,
                     speciesName = species?.commonName ?: "Unknown",
-                    quantity = itemReq.quantity,
-                    pricePerStemCents = listing.pricePerStemCents,
+                    quantity = item.quantity,
+                    pricePerStemCents = item.pricePerStemCents,
                 )
             )
-            // Decrement available quantity
-            listingRepo.update(listing.copy(quantityAvailable = listing.quantityAvailable - itemReq.quantity))
         }
 
         return getOrder(order.id!!)
     }
 
-    fun getOrdersForPurchaser(userId: Long): List<MarketOrderResponse> =
-        orderRepo.findByPurchaserId(userId).map { it.toResponse() }
+    fun getOrdersForPurchaser(userId: Long, limit: Int = 50, offset: Int = 0): List<MarketOrderResponse> =
+        orderRepo.findByPurchaserId(userId, limit, offset).map { it.toResponse() }
 
-    fun getOrdersForProducer(userId: Long): List<MarketOrderResponse> =
-        orderRepo.findByProducerId(userId).map { it.toResponse() }
+    fun getOrdersForProducer(userId: Long, limit: Int = 50, offset: Int = 0): List<MarketOrderResponse> =
+        orderRepo.findByProducerId(userId, limit, offset).map { it.toResponse() }
 
     fun getOrder(id: Long): MarketOrderResponse {
         val order = orderRepo.findById(id) ?: throw NotFoundException("Order not found")

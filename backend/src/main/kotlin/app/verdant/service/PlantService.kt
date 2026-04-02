@@ -7,6 +7,7 @@ import app.verdant.entity.PlantEventType
 import app.verdant.entity.PlantStatus
 import app.verdant.repository.*
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.transaction.Transactional
 import jakarta.ws.rs.BadRequestException
 import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
@@ -32,22 +33,25 @@ class PlantService(
         return plant
     }
 
-    private fun resolveSpeciesName(speciesId: Long?): String? =
-        speciesId?.let { speciesRepository.findById(it)?.commonName }
-
     // ── Plant CRUD ──
 
-    fun getAllPlantsForUser(userId: Long, status: PlantStatus? = null, seasonId: Long? = null): List<PlantResponse> {
-        return plantRepository.findByUserId(userId, status, seasonId).map { it.toResponse() }
+    fun getAllPlantsForUser(userId: Long, status: PlantStatus? = null, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<PlantResponse> {
+        val plants = plantRepository.findByUserId(userId, status, seasonId, limit, offset)
+        val speciesNames = speciesRepository.findNamesByIds(plants.mapNotNull { it.speciesId }.toSet())
+        return plants.map { it.toResponse(speciesNames[it.speciesId]) }
     }
 
     fun getPlantsForBed(bedId: Long, userId: Long, seasonId: Long? = null): List<PlantResponse> {
         checkBedOwnership(bedId, userId)
-        return plantRepository.findByBedId(bedId, seasonId).map { it.toResponse() }
+        val plants = plantRepository.findByBedId(bedId, seasonId)
+        val speciesNames = speciesRepository.findNamesByIds(plants.mapNotNull { it.speciesId }.toSet())
+        return plants.map { it.toResponse(speciesNames[it.speciesId]) }
     }
 
     fun getPlant(plantId: Long, userId: Long): PlantResponse {
-        return checkPlantOwnership(plantId, userId).toResponse()
+        val plant = checkPlantOwnership(plantId, userId)
+        val speciesName = plant.speciesId?.let { speciesRepository.findNamesByIds(setOf(it))[it] }
+        return plant.toResponse(speciesName)
     }
 
     fun createPlant(bedId: Long?, request: CreatePlantRequest, userId: Long): PlantResponse {
@@ -64,9 +68,11 @@ class PlantService(
                 userId = userId,
             )
         )
-        return plant.toResponse()
+        val speciesName = plant.speciesId?.let { speciesRepository.findNamesByIds(setOf(it))[it] }
+        return plant.toResponse(speciesName)
     }
 
+    @Transactional
     fun batchSow(request: BatchSowRequest, userId: Long): BatchSowResponse {
         if (request.seedCount <= 0 || request.seedCount > 10000) {
             throw BadRequestException("seedCount must be between 1 and 10000")
@@ -137,6 +143,7 @@ class PlantService(
         }
     }
 
+    @Transactional
     fun batchEvent(request: BatchEventRequest, userId: Long): BatchEventResponse {
         val plantStatus = PlantStatus.valueOf(request.status)
         val newStatus = PlantStatus.valueOf(request.eventType.let {
@@ -183,7 +190,8 @@ class PlantService(
             survivingCount = request.survivingCount ?: plant.survivingCount,
         )
         plantRepository.update(updated)
-        return updated.toResponse()
+        val speciesName = updated.speciesId?.let { speciesRepository.findNamesByIds(setOf(it))[it] }
+        return updated.toResponse(speciesName)
     }
 
     fun deletePlant(plantId: Long, userId: Long) {
@@ -290,9 +298,9 @@ class PlantService(
 
     // ── Mapping ──
 
-    private fun Plant.toResponse() = PlantResponse(
+    private fun Plant.toResponse(speciesName: String?) = PlantResponse(
         id = id!!, name = name, speciesId = speciesId,
-        speciesName = resolveSpeciesName(speciesId),
+        speciesName = speciesName,
         plantedDate = plantedDate, status = status,
         seedCount = seedCount, survivingCount = survivingCount,
         bedId = bedId, seasonId = seasonId,

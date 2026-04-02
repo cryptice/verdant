@@ -5,6 +5,7 @@ import com.google.cloud.storage.BlobId
 import com.google.cloud.storage.BlobInfo
 import com.google.cloud.storage.StorageOptions
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.ws.rs.BadRequestException
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.io.FileInputStream
 import java.util.Base64
@@ -19,6 +20,7 @@ class StorageService(
     private val log = Logger.getLogger(StorageService::class.java.name)
     private val bucketName = "verdant-species"
     private val publicBase = "https://storage.googleapis.com/$bucketName"
+    private val MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024 // 5MB
 
     private val storage by lazy {
         val path = serviceAccountKeyPath.orElse(null)
@@ -31,6 +33,10 @@ class StorageService(
     }
 
     fun uploadImage(base64: String, path: String): String {
+        val estimatedSize = (base64.length * 3) / 4
+        if (estimatedSize > MAX_IMAGE_SIZE_BYTES) {
+            throw BadRequestException("Image exceeds maximum size of 5MB")
+        }
         val bytes = Base64.getDecoder().decode(base64)
         val blobId = BlobId.of(bucketName, path)
         val blobInfo = BlobInfo.newBuilder(blobId).setContentType("image/jpeg").build()
