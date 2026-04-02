@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthContext'
 import { api } from '../api/client'
@@ -216,7 +216,12 @@ export function LandingPage() {
             <span>🌿</span>
             <span>Verdant</span>
           </div>
-          <p className="text-xs text-text-muted">{t('landing.footer')}</p>
+          <div className="flex items-center gap-4">
+            <p className="text-xs text-text-muted">{t('landing.footer')}</p>
+            <Link to="/privacy" className="text-xs text-text-muted hover:text-text-secondary transition-colors">
+              {t('privacy.title')}
+            </Link>
+          </div>
         </div>
       </footer>
 

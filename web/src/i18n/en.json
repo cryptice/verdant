@@ -890,5 +890,43 @@
         "description": "Click here to create a listing and sell your produce to other growers and buyers."
       }
     }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: April 2, 2026",
+    "sections": {
+      "dataCollected": {
+        "title": "What data we collect and why",
+        "body": "We collect the data you provide when using Verdant. This includes your Google account information (name, email address, and profile picture) obtained via Google OAuth when you sign in. We also store the garden and business data you enter into the application, such as garden locations (geographic coordinates), species and planting records, task lists, seed inventory, customer information, production targets, and sales data. This data is necessary to provide the core functionality of the service."
+      },
+      "dataStorage": {
+        "title": "How data is stored and protected",
+        "body": "Your data is stored in a Cloud SQL (PostgreSQL) database hosted on Google Cloud Platform (GCP) within the European Union. Data is encrypted at rest and in transit. Access to the database is restricted to the application and authorised personnel. We follow industry-standard practices to protect your data against unauthorised access, loss, or disclosure."
+      },
+      "thirdParties": {
+        "title": "Third-party services",
+        "body": "Verdant uses the following third-party services: Google OAuth for authentication (Google LLC, USA); Google Cloud Storage for storing images you upload (Google LLC, USA); and Google Gemini for AI-powered features within the application (Google LLC, USA). These services are governed by Google's own privacy policies. Data transferred to Google is subject to appropriate safeguards under GDPR, including Google's Standard Contractual Clauses. We do not sell your data to third parties."
+      },
+      "retention": {
+        "title": "Data retention",
+        "body": "We retain your data for as long as your account is active. When you delete your account, all associated data — including your profile, gardens, plants, tasks, customers, and any other records — is permanently deleted from our systems via a cascading deletion. Deletion is irreversible."
+      },
+      "yourRights": {
+        "title": "Your rights under GDPR",
+        "body": "As a data subject under the General Data Protection Regulation (GDPR), you have the right to access the personal data we hold about you; the right to rectification of inaccurate data; the right to erasure (the right to be forgotten); the right to data portability (to receive your data in a structured, machine-readable format); the right to restrict processing; and the right to object to processing. You also have the right to lodge a complaint with your national supervisory authority (in Sweden: Integritetsskyddsmyndigheten, IMY)."
+      },
+      "exercisingRights": {
+        "title": "How to exercise your rights",
+        "body": "You can update your profile information directly within the application. To export your data, use the data export function available in your account settings. To delete your account and all associated data, use the account deletion option in your account settings. For any other requests or questions regarding your personal data, contact us by email (see Contact section below)."
+      },
+      "cookies": {
+        "title": "Cookies and local storage",
+        "body": "Verdant uses browser local storage solely for functional purposes, such as storing your authentication token and language preference. We do not use tracking cookies, advertising cookies, or any third-party analytics cookies. No data stored locally is shared with third parties for marketing or profiling purposes."
+      },
+      "contact": {
+        "title": "Contact",
+        "body": "The data controller for Verdant is Erik Lindblad. If you have questions about this privacy policy or wish to exercise your data rights, please contact us at: privacy@verdant.app"
+      }
+    }
   }
 }

@@ -890,5 +890,43 @@
         "description": "Klicka här för att skapa en annons och sälja dina produkter till andra odlare och köpare."
       }
     }
+  },
+  "privacy": {
+    "title": "Integritetspolicy",
+    "lastUpdated": "Senast uppdaterad: 2 april 2026",
+    "sections": {
+      "dataCollected": {
+        "title": "Vilka uppgifter vi samlar in och varför",
+        "body": "Vi samlar in de uppgifter du lämnar när du använder Verdant. Det inkluderar information från ditt Google-konto (namn, e-postadress och profilbild) som hämtas via Google OAuth när du loggar in. Vi lagrar även de trädgårds- och verksamhetsuppgifter du registrerar i tjänsten, såsom trädgårdsplatser (geografiska koordinater), arter och odlingsregistreringar, uppgiftslistor, frölager, kundinformation, produktionsmål och försäljningsdata. Dessa uppgifter är nödvändiga för att tillhandahålla tjänstens grundläggande funktioner."
+      },
+      "dataStorage": {
+        "title": "Hur uppgifter lagras och skyddas",
+        "body": "Dina uppgifter lagras i en Cloud SQL-databas (PostgreSQL) som driftas av Google Cloud Platform (GCP) inom EU. Uppgifterna krypteras i vila och under överföring. Åtkomst till databasen är begränsad till applikationen och behörig personal. Vi följer branschstandarder för att skydda dina uppgifter mot obehörig åtkomst, förlust eller röjande."
+      },
+      "thirdParties": {
+        "title": "Tredjepartstjänster",
+        "body": "Verdant använder följande tredjepartstjänster: Google OAuth för autentisering (Google LLC, USA); Google Cloud Storage för lagring av bilder du laddar upp (Google LLC, USA); samt Google Gemini för AI-funktioner i tjänsten (Google LLC, USA). Dessa tjänster regleras av Googles egna integritetspolicyer. Uppgifter som överförs till Google skyddas av lämpliga garantier enligt GDPR, inklusive Googles standardavtalsklausuler. Vi säljer inte dina uppgifter till tredje part."
+      },
+      "retention": {
+        "title": "Lagringsperiod",
+        "body": "Vi lagrar dina uppgifter så länge ditt konto är aktivt. När du raderar ditt konto raderas alla tillhörande uppgifter permanent från våra system – inklusive din profil, trädgårdar, växter, uppgifter, kunder och övriga registreringar – via en kaskadradering. Raderingen är oåterkallelig."
+      },
+      "yourRights": {
+        "title": "Dina rättigheter enligt GDPR",
+        "body": "Som registrerad enligt dataskyddsförordningen (GDPR) har du rätt att få tillgång till de personuppgifter vi behandlar om dig; rätt till rättelse av felaktiga uppgifter; rätt till radering (rätten att bli bortglömd); rätt till dataportabilitet (att få dina uppgifter i ett strukturerat, maskinläsbart format); rätt till begränsning av behandling; samt rätt att invända mot behandling. Du har också rätt att inge klagomål till tillsynsmyndigheten (i Sverige: Integritetsskyddsmyndigheten, IMY)."
+      },
+      "exercisingRights": {
+        "title": "Hur du utövar dina rättigheter",
+        "body": "Du kan uppdatera din profilinformation direkt i applikationen. För att exportera dina uppgifter, använd dataexportfunktionen i kontoinställningarna. För att radera ditt konto och alla tillhörande uppgifter, använd kontoradering i kontoinställningarna. För övriga frågor eller önskemål om dina personuppgifter, kontakta oss via e-post (se avsnittet Kontakt nedan)."
+      },
+      "cookies": {
+        "title": "Cookies och lokal lagring",
+        "body": "Verdant använder webbläsarens lokala lagring uteslutande för funktionella ändamål, till exempel för att spara din autentiseringstoken och språkinställning. Vi använder inga spårningscookies, reklamcookies eller tredjepartsanalyscookies. Uppgifter som lagras lokalt delas inte med tredje part för marknadsförings- eller profileringssyften."
+      },
+      "contact": {
+        "title": "Kontakt",
+        "body": "Personuppgiftsansvarig för Verdant är Erik Lindblad. Om du har frågor om denna integritetspolicy eller vill utöva dina rättigheter, kontakta oss på: privacy@verdant.app"
+      }
+    }
   }
 }

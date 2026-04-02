@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { api } from '../api/client'
+import { api, downloadDataExport } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import { PageHeader } from '../components/PageHeader'
 import { Dialog } from '../components/Dialog'
@@ -14,6 +15,10 @@ export function Account() {
   const deleteMut = useMutation({
     mutationFn: () => api.user.delete(),
     onSuccess: logout,
+  })
+
+  const exportMut = useMutation({
+    mutationFn: () => downloadDataExport(),
   })
 
   if (!user) return null
@@ -38,6 +43,18 @@ export function Account() {
 
         <button onClick={logout} className="btn-secondary w-full">
           {t('account.signOut')}
+        </button>
+
+        <Link to="/privacy" className="block px-3 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-surface rounded-md transition-colors">
+          {t('privacy.title')}
+        </Link>
+
+        <button
+          onClick={() => exportMut.mutate()}
+          disabled={exportMut.isPending}
+          className="w-full text-left px-3 py-2 text-sm text-text-secondary hover:bg-surface rounded-md transition-colors disabled:opacity-50"
+        >
+          {exportMut.isPending ? t('account.exportingData') : t('account.downloadMyData')}
         </button>
 
         <button onClick={() => setShowDelete(true)} className="w-full text-left px-3 py-2 text-sm text-error hover:bg-error/5 rounded-md transition-colors">

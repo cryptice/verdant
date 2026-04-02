@@ -28,6 +28,7 @@ import { Account } from './pages/Account'
 import { Guide } from './pages/Guide'
 import { MyListings } from './pages/MyListings'
 import { IncomingOrders } from './pages/IncomingOrders'
+import { PrivacyPolicy } from './pages/PrivacyPolicy'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token, loading } = useAuth()
@@ -49,6 +50,7 @@ export function App() {
   return (
     <Routes>
       <Route path="/login" element={<PublicOnly><LandingPage /></PublicOnly>} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<Dashboard />} />
         <Route path="garden/new" element={<GardenForm />} />
