@@ -1,6 +1,8 @@
 package app.verdant.resource
 
+import app.verdant.dto.UpdateOnboardingRequest
 import app.verdant.dto.UpdateUserRequest
+import com.fasterxml.jackson.databind.ObjectMapper
 import app.verdant.repository.UserRepository
 import app.verdant.service.toResponse
 import io.quarkus.security.Authenticated
@@ -39,5 +41,16 @@ class UserResource(
     fun deleteMe() {
         val user = userRepository.findById(jwt.subject.toLong()) ?: throw NotFoundException("User not found")
         userRepository.delete(user.id!!)
+    }
+
+    @PUT
+    @Path("/me/onboarding")
+    fun updateOnboarding(request: UpdateOnboardingRequest): Any {
+        val user = userRepository.findById(jwt.subject.toLong()) ?: throw NotFoundException("User not found")
+        val updated = user.copy(
+            onboardingJson = ObjectMapper().writeValueAsString(request)
+        )
+        userRepository.update(updated)
+        return updated.toResponse()
     }
 }
