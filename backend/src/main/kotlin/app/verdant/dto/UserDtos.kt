@@ -10,6 +10,7 @@ data class UserResponse(
     val avatarUrl: String?,
     val role: Role,
     val language: String,
+    val onboarding: String?,
     val createdAt: Instant
 )
 
@@ -17,4 +18,9 @@ data class UpdateUserRequest(
     val displayName: String? = null,
     val avatarUrl: String? = null,
     val language: String? = null,
+)
+
+data class UpdateOnboardingRequest(
+    val completedSteps: List<String>? = null,
+    val dismissed: Boolean? = null,
 )
