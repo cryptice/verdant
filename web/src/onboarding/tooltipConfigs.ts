@@ -15,14 +15,6 @@ const configs: PageTooltipConfig[] = [
     ],
   },
   {
-    stepId: 'sow_seeds',
-    tooltips: [
-      { targetSelector: '[data-onboarding="sow-species"]', titleKey: 'onboarding.tooltips.sowSeeds.step1.title', descriptionKey: 'onboarding.tooltips.sowSeeds.step1.description' },
-      { targetSelector: '[data-onboarding="sow-location"]', titleKey: 'onboarding.tooltips.sowSeeds.step2.title', descriptionKey: 'onboarding.tooltips.sowSeeds.step2.description' },
-      { targetSelector: '[data-onboarding="sow-submit"]', titleKey: 'onboarding.tooltips.sowSeeds.step3.title', descriptionKey: 'onboarding.tooltips.sowSeeds.step3.description' },
-    ],
-  },
-  {
     stepId: 'pot_up',
     tooltips: [
       { targetSelector: '[data-onboarding="plant-actions"]', titleKey: 'onboarding.tooltips.potUp.title', descriptionKey: 'onboarding.tooltips.potUp.description' },
