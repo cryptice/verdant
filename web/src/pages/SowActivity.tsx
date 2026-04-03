@@ -37,13 +37,14 @@ export function SowActivity() {
     enabled: !!sowBed,
   })
 
-  // Fetch preset species (from URL param or task)
+  // Fetch species list to resolve preset species by ID
   const presetId = presetSpeciesId ?? (task?.speciesId ?? null)
-  const { data: presetSpecies } = useQuery({
-    queryKey: ['species-by-id', presetId],
-    queryFn: () => api.species.search(String(presetId), 1).then(list => list.find(s => s.id === presetId) ?? null),
+  const { data: allSpecies } = useQuery({
+    queryKey: ['species'],
+    queryFn: api.species.list,
     enabled: !!presetId,
   })
+  const presetSpecies = presetId ? allSpecies?.find(s => s.id === presetId) ?? null : null
 
   const [selectedSpecies, setSelectedSpecies] = useState<SpeciesResponse | null>(null)
   const [bedId, setBedId] = useState(presetBedId ? String(presetBedId) : '')
