@@ -44,11 +44,20 @@ export function SeasonList() {
 
   const openAdd = () => {
     resetForm()
-    const year = String(new Date().getFullYear())
+    const y = new Date().getFullYear()
+    const year = String(y)
     setFormYear(year)
     setFormName(t('seasons.defaultName', { year }))
     setFormStartDate(`${year}-01-01`)
     setFormEndDate(`${year}-12-31`)
+    // Last frost: Sunday closest to May 15
+    const mid = new Date(y, 4, 15)
+    const dayOfWeek = mid.getDay()
+    const offset = dayOfWeek === 0 ? 0 : (dayOfWeek <= 3 ? -dayOfWeek : 7 - dayOfWeek)
+    const lastFrost = new Date(y, 4, 15 + offset)
+    setFormLastFrost(lastFrost.toISOString().split('T')[0])
+    // First frost: October 1
+    setFormFirstFrost(`${year}-10-01`)
     setShowAdd(true)
   }
 
