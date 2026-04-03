@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect, useMemo, type ReactNode } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../auth/AuthContext'
 import { api } from '../api/client'
@@ -42,7 +42,6 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const location = useLocation()
 
   const [state, setState] = useState<OnboardingState>(() =>
     parseOnboardingState(user?.onboarding)
@@ -71,15 +70,9 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     })
   }, [syncToBackend])
 
-  // Auto-complete visit-type steps based on current route
-  useEffect(() => {
-    const visitSteps = ONBOARDING_STEPS.filter(s => s.completionType === 'visit')
-    for (const step of visitSteps) {
-      if (!state.completedSteps.includes(step.id) && location.pathname === step.route) {
-        completeStep(step.id)
-      }
-    }
-  }, [location.pathname, state.completedSteps, completeStep])
+  // Visit-type steps are completed via the tooltip tour in OnboardingRoot,
+  // not by auto-detecting route visits. This prevents accidental completion
+  // when users navigate normally through the sidebar.
 
   // Check query cache for pre-existing data on mount
   useEffect(() => {
