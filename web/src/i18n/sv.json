@@ -789,6 +789,30 @@
       "view_analytics": "Visa statistik",
       "create_listing": "Skapa en marknadsannons"
     },
+    "hint": {
+      "showMe": "Visa"
+    },
+    "hints": {
+      "create_season": "Skapa din första säsong för att organisera ditt odlingsår.",
+      "create_garden": "Ge din trädgård ett namn för att börja spåra bäddar och plantor.",
+      "create_bed": "Lägg till en bädd i din trädgård så att du kan börja plantera.",
+      "browse_species": "Utforska artbiblioteket för att se vad du kan odla.",
+      "add_seeds": "Lägg till dina fröomgångar för att hålla koll på vad du har.",
+      "sow_seeds": "Så frön i en bädd eller bricka för att börja odla.",
+      "pot_up": "Välj en sådd planta och kruka upp den.",
+      "plant_out": "Flytta en krukad planta ut i en trädgårdsbädd.",
+      "record_harvest": "Registrera en skörd från en av dina växande plantor.",
+      "add_customer": "Lägg till din första kund för att spåra vem som köper dina blommor.",
+      "create_bouquet": "Designa ett bukettrecept med dina favoritblommor.",
+      "create_task": "Schemalägg en uppgift som sådd, uppkrukning eller skörd.",
+      "setup_succession": "Skapa ett stegvist såddschema för kontinuerlig skörd.",
+      "set_target": "Sätt ett mål för hur mycket av en art du vill producera.",
+      "view_calendar": "Se din odlingstidslinje i en överblick.",
+      "start_trial": "Starta ett försök för att jämföra olika sorter.",
+      "log_pest": "Registrera en observation av skadedjur eller sjukdom.",
+      "view_analytics": "Se dina skördetrender och produktionsstatistik.",
+      "create_listing": "Annonsera dina produkter på marknadsplatsen."
+    },
     "tooltip": {
       "stepOf": "Steg {{current}} av {{total}}",
       "next": "Nästa",

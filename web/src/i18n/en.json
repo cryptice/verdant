@@ -789,6 +789,30 @@
       "view_analytics": "View analytics",
       "create_listing": "Create a marketplace listing"
     },
+    "hint": {
+      "showMe": "Show me"
+    },
+    "hints": {
+      "create_season": "Create your first season to organise your growing year.",
+      "create_garden": "Give your garden a name to start tracking your beds and plants.",
+      "create_bed": "Add a bed to your garden so you can start planting.",
+      "browse_species": "Explore the species library to see what you can grow.",
+      "add_seeds": "Add your seed batches to keep track of what you have.",
+      "sow_seeds": "Sow seeds into a bed or tray to start growing.",
+      "pot_up": "Select a seeded plant and pot it up.",
+      "plant_out": "Move a potted plant out into a garden bed.",
+      "record_harvest": "Record a harvest from one of your growing plants.",
+      "add_customer": "Add your first customer to track who buys your flowers.",
+      "create_bouquet": "Design a bouquet recipe with your favourite flowers.",
+      "create_task": "Schedule a task like sowing, potting up, or harvesting.",
+      "setup_succession": "Create a staggered sowing schedule for continuous harvests.",
+      "set_target": "Set a goal for how much of a species you want to produce.",
+      "view_calendar": "See your growing timeline at a glance.",
+      "start_trial": "Set up a trial to compare different varieties.",
+      "log_pest": "Record a pest or disease observation.",
+      "view_analytics": "Review your harvest trends and production stats.",
+      "create_listing": "List your produce on the marketplace."
+    },
     "tooltip": {
       "stepOf": "Step {{current}} of {{total}}",
       "next": "Next",

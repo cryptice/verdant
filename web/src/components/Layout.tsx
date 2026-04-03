@@ -3,6 +3,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthContext'
 import { OnboardingRoot } from '../onboarding/OnboardingRoot'
+import { OnboardingHint } from '../onboarding/OnboardingHint'
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const { user } = useAuth()
@@ -136,6 +137,7 @@ export function Layout() {
           </header>
 
           <main className="flex-1 w-full px-4 md:px-8 py-6 flex flex-col">
+            <OnboardingHint />
             <Outlet />
           </main>
         </div>

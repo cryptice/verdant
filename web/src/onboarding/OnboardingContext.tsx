@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../auth/AuthContext'
 import { api } from '../api/client'
 import { ONBOARDING_STEPS, getStepsForSection } from './steps'
-import type { OnboardingState, OnboardingSection, PageTooltipConfig } from './types'
+import type { OnboardingStep, OnboardingState, OnboardingSection, PageTooltipConfig } from './types'
 
 interface OnboardingContextValue {
   isActive: boolean
@@ -21,6 +21,8 @@ interface OnboardingContextValue {
   activeTour: PageTooltipConfig | null
   clearActiveTour: () => void
   minimized: boolean
+  /** Get incomplete onboarding steps that match the given route */
+  getHintsForRoute: (pathname: string) => OnboardingStep[]
 }
 
 const OnboardingContext = createContext<OnboardingContextValue | null>(null)
@@ -179,6 +181,13 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const totalCount = ONBOARDING_STEPS.length
   const isActive = !state.dismissed && completedCount < totalCount
 
+  const getHintsForRoute = useCallback((pathname: string) => {
+    if (!isActive) return []
+    return ONBOARDING_STEPS.filter(s =>
+      !state.completedSteps.includes(s.id) && s.route === pathname
+    )
+  }, [isActive, state.completedSteps])
+
   const value = useMemo<OnboardingContextValue>(() => ({
     isActive,
     completedCount,
@@ -194,8 +203,9 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     activeTour,
     clearActiveTour,
     minimized,
+    getHintsForRoute,
   }), [isActive, completedCount, totalCount, isStepComplete, sectionProgress, completeStep,
-       startStep, minimizeForSession, dismissPermanently, drawerOpen, activeTour, clearActiveTour, minimized])
+       startStep, minimizeForSession, dismissPermanently, drawerOpen, activeTour, clearActiveTour, minimized, getHintsForRoute])
 
   return (
     <OnboardingContext.Provider value={value}>
