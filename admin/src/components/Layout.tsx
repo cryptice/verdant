@@ -29,6 +29,7 @@ export default function Layout() {
           <NavLink to="/users" className={linkClass}>Users</NavLink>
           <NavLink to="/gardens" className={linkClass}>Gardens</NavLink>
           <NavLink to="/providers" className={linkClass}>Providers</NavLink>
+          <NavLink to="/reset" className={linkClass}>Reset Data</NavLink>
           {window.location.hostname === 'localhost' && (
             <NavLink to="/dev" className={linkClass}>Dev Tools</NavLink>
           )}
