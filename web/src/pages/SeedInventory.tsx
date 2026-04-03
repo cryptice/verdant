@@ -165,13 +165,15 @@ export function SeedInventory() {
               if (addCostPackage && qty) setAddCostUnit(String(Math.round((Number(addCostPackage) / qty) * 100) / 100))
             }} placeholder="e.g. 50" className="input" />
           </div>
-          <div>
-            <label className="field-label">{t('seeds.collectionDate')}</label>
-            <input type="date" value={addCollection} onChange={e => setAddCollection(e.target.value)} className="input" />
-          </div>
-          <div>
-            <label className="field-label">{t('seeds.expirationDate')}</label>
-            <input type="date" value={addExpiration} onChange={e => setAddExpiration(e.target.value)} className="input" />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="field-label">{t('seeds.collectionDate')}</label>
+              <input type="date" value={addCollection} onChange={e => setAddCollection(e.target.value)} className="input" />
+            </div>
+            <div>
+              <label className="field-label">{t('seeds.expirationDate')}</label>
+              <input type="date" value={addExpiration} onChange={e => setAddExpiration(e.target.value)} className="input" />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
