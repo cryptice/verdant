@@ -2,6 +2,7 @@ package app.verdant.service
 
 import app.verdant.dto.*
 import app.verdant.entity.SeedInventory
+import app.verdant.entity.UnitType
 import app.verdant.repository.SeedInventoryRepository
 import app.verdant.repository.SpeciesRepository
 import jakarta.enterprise.context.ApplicationScoped
@@ -38,6 +39,9 @@ class SeedInventoryService(
                 quantity = request.quantity,
                 collectionDate = request.collectionDate,
                 expirationDate = request.expirationDate,
+                costPerUnitSek = request.costPerUnitSek,
+                unitType = UnitType.valueOf(request.unitType),
+                seasonId = request.seasonId,
             )
         )
         return inventory.toResponse(species.commonName)
