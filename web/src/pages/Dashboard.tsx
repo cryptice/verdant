@@ -60,7 +60,13 @@ export function Dashboard() {
     },
   })
 
-  const openNewGarden = () => { resetGardenForm(); setShowNewGarden(true) }
+  const openNewGarden = () => {
+    resetGardenForm()
+    const gardenCount = dashboard?.gardens.length ?? 0
+    const defaultIcon = GARDEN_ICONS[gardenCount % GARDEN_ICONS.length]
+    setGardenEmoji(defaultIcon)
+    setShowNewGarden(true)
+  }
 
   const isGardenStepIncomplete = isActive && !isStepComplete('create_garden')
 
