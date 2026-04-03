@@ -20,6 +20,17 @@ export function OnboardingDrawer() {
 
   const allComplete = completedCount >= totalCount
 
+  // Auto-expand the first section with incomplete steps when drawer opens
+  useEffect(() => {
+    if (drawerOpen) {
+      const firstIncomplete = SECTIONS.find(s => {
+        const { completed, total } = sectionProgress(s.id)
+        return completed < total
+      })
+      if (firstIncomplete) setExpandedSection(firstIncomplete.id)
+    }
+  }, [drawerOpen, sectionProgress])
+
   // Slide in/out animation
   useEffect(() => {
     if (drawerOpen) {
