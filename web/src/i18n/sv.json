@@ -225,7 +225,8 @@
     "costHint": "Ange antingen per frö/lök eller per förpackning",
     "unitType": "Typ",
     "colCost": "Kostnad",
-    "sow": "Så"
+    "sow": "Så",
+    "expires": "utg."
   },
   "sow": {
     "title": "Så",

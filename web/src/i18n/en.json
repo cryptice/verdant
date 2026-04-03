@@ -225,7 +225,8 @@
     "costHint": "Enter either per seed/bulb or per package",
     "unitType": "Type",
     "colCost": "Cost",
-    "sow": "Sow"
+    "sow": "Sow",
+    "expires": "exp."
   },
   "sow": {
     "title": "Sow",

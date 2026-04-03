@@ -138,11 +138,18 @@ export function SowActivity() {
             <label className="field-label">{t('sow.seedBatch')}</label>
             <select value={seedBatchId} onChange={e => setSeedBatchId(e.target.value)} className="input w-full">
               <option value="">{t('sow.seedBatchNone')}</option>
-              {seedBatches?.map(b => (
-                <option key={b.id} value={b.id}>
-                  {t('seeds.seedCount', { count: b.quantity })}{b.collectionDate ? ` · ${b.collectionDate}` : ''}
-                </option>
-              ))}
+              {seedBatches?.map(b => {
+                const parts = [
+                  t('seeds.seedCount', { count: b.quantity }),
+                  b.unitType ? t(`unitTypes.${b.unitType}`) : null,
+                  b.expirationDate ? `${t('seeds.expires')} ${b.expirationDate}` : null,
+                ]
+                return (
+                  <option key={b.id} value={b.id}>
+                    {parts.filter(Boolean).join(' · ')}
+                  </option>
+                )
+              })}
             </select>
             {seedBatches && seedBatches.length === 0 && (
               <p className="text-xs text-text-secondary mt-1">{t('sow.noSeedStock')}</p>
