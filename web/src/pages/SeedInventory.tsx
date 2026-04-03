@@ -94,7 +94,16 @@ export function SeedInventory() {
       <OnboardingHint />
       <div className="px-4 py-4">
         {data && data.length === 0 && (
-          <p className="text-text-secondary text-sm text-center py-4">{t('seeds.noBatches')}</p>
+          <div className="bg-accent-light/50 border border-accent/15 rounded-2xl px-6 py-6 text-center">
+            <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3">
+              <span className="text-xl">🫘</span>
+            </div>
+            <p className="font-semibold text-text-primary">{t('seeds.noBatchesTitle')}</p>
+            <p className="text-sm text-text-secondary mt-1 max-w-md mx-auto">{t('seeds.noBatchesHint')}</p>
+            <button onClick={() => setShowAdd(true)} className="btn-primary mt-4">
+              {t('seeds.addSeeds')}
+            </button>
+          </div>
         )}
 
         {data && data.length > 0 && (<>

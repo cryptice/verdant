@@ -206,6 +206,8 @@
     "title": "Seed Stock",
     "addSeeds": "+ Add seed stock",
     "noBatches": "No seed batches. Tap + to add one.",
+    "noBatchesTitle": "No seed stock yet",
+    "noBatchesHint": "Add your first seed stock to start tracking what you have available for sowing.",
     "seedCount_one": "{{count}} seed",
     "seedCount_other": "{{count}} seeds",
     "collected": "Collected {{date}}",

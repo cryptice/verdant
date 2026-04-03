@@ -206,6 +206,8 @@
     "title": "Utsäde",
     "addSeeds": "+ Lägg till utsäde",
     "noBatches": "Inga fröpartier. Tryck + för att lägga till.",
+    "noBatchesTitle": "Inget utsäde ännu",
+    "noBatchesHint": "Lägg till ditt första utsäde för att börja hålla koll på vad du har tillgängligt att så.",
     "seedCount_one": "{{count}} frö",
     "seedCount_other": "{{count}} frön",
     "collected": "Insamlad {{date}}",
