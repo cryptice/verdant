@@ -14,7 +14,7 @@ export function BedDetail() {
   const bedId = Number(id)
   const navigate = useNavigate()
   const qc = useQueryClient()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   const { data: bed, error, isLoading, refetch } = useQuery({
     queryKey: ['bed', bedId],
@@ -30,6 +30,11 @@ export function BedDetail() {
     queryKey: ['garden', bed?.gardenId],
     queryFn: () => api.gardens.get(bed!.gardenId),
     enabled: !!bed,
+  })
+
+  const { data: speciesList } = useQuery({
+    queryKey: ['species'],
+    queryFn: api.species.list,
   })
 
   const [editing, setEditing] = useState(false)
@@ -56,9 +61,21 @@ export function BedDetail() {
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
   if (!bed) return null
 
+  const resolveSpeciesName = (p: { speciesId?: number; speciesName?: string; name: string }) => {
+    if (p.speciesId && speciesList) {
+      const sp = speciesList.find(s => s.id === p.speciesId)
+      if (sp) {
+        const name = i18n.language === 'sv' ? (sp.commonNameSv ?? sp.commonName) : sp.commonName
+        const variant = i18n.language === 'sv' ? (sp.variantNameSv ?? sp.variantName) : sp.variantName
+        return variant ? `${name} — ${variant}` : name
+      }
+    }
+    return p.speciesName ?? p.name
+  }
+
   const grouped = new Map<string, typeof plants>()
   plants?.forEach(p => {
-    const key = p.speciesName ?? p.name
+    const key = resolveSpeciesName(p)
     if (!grouped.has(key)) grouped.set(key, [])
     grouped.get(key)!.push(p)
   })
