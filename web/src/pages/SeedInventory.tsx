@@ -177,6 +177,20 @@ export function SeedInventory() {
             <label className="field-label">{t('common.speciesLabel')}</label>
             <SpeciesAutocomplete value={addSpecies} onChange={s => { setAddSpecies(s); setAddProviderId(s && s.providers.length > 0 ? s.providers[0].id : '') }} />
           </div>
+          <div>
+            <label className="field-label">{t('seeds.provider')}</label>
+            <select
+              value={addProviderId}
+              onChange={e => setAddProviderId(e.target.value ? Number(e.target.value) : '')}
+              disabled={!addSpecies}
+              className="input w-full"
+            >
+              <option value="">{addSpecies ? t('common.none') : t('common.select')}</option>
+              {addSpecies?.providers.map(p => (
+                <option key={p.id} value={p.id}>{p.providerName}</option>
+              ))}
+            </select>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="field-label">{t('seeds.quantityLabel')}</label>
@@ -228,17 +242,6 @@ export function SeedInventory() {
             </div>
           </div>
           <p className="text-xs text-text-secondary -mt-2">{t('seeds.costHint')}</p>
-          {addSpecies && (
-            <div>
-              <label className="field-label">{t('seeds.provider')}</label>
-              <select value={addProviderId} onChange={e => setAddProviderId(e.target.value ? Number(e.target.value) : '')} className="input w-full">
-                <option value="">{t('common.none')}</option>
-                {addSpecies.providers.map(p => (
-                  <option key={p.id} value={p.id}>{p.providerName}</option>
-                ))}
-              </select>
-            </div>
-          )}
         </div>
       </Dialog>
 
@@ -255,6 +258,25 @@ export function SeedInventory() {
         </>
       }>
         <div className="space-y-4">
+          {(() => {
+            const sp = editItem ? species?.find(s => s.id === editItem.speciesId) : null
+            return (
+              <div>
+                <label className="field-label">{t('seeds.provider')}</label>
+                <select
+                  value={editProviderId}
+                  onChange={e => setEditProviderId(e.target.value ? Number(e.target.value) : '')}
+                  disabled={!sp}
+                  className="input w-full"
+                >
+                  <option value="">{sp ? t('common.none') : t('common.select')}</option>
+                  {sp?.providers.map(p => (
+                    <option key={p.id} value={p.id}>{p.providerName}</option>
+                  ))}
+                </select>
+              </div>
+            )
+          })()}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="field-label">{t('seeds.quantityLabel')}</label>
@@ -306,20 +328,6 @@ export function SeedInventory() {
             </div>
           </div>
           <p className="text-xs text-text-secondary -mt-2">{t('seeds.costHint')}</p>
-          {editItem && (() => {
-            const sp = species?.find(s => s.id === editItem.speciesId)
-            return sp ? (
-              <div>
-                <label className="field-label">{t('seeds.provider')}</label>
-                <select value={editProviderId} onChange={e => setEditProviderId(e.target.value ? Number(e.target.value) : '')} className="input w-full">
-                  <option value="">{t('common.none')}</option>
-                  {sp.providers.map(p => (
-                    <option key={p.id} value={p.id}>{p.providerName}</option>
-                  ))}
-                </select>
-              </div>
-            ) : null
-          })()}
           <button
             onClick={() => { setEditItem(null); setUpdateError(null); setDeleteItem(editItem) }}
             className="text-sm text-error hover:underline"
