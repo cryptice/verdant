@@ -4,7 +4,6 @@ import { LandingPage } from './pages/LandingPage'
 import { Layout } from './components/Layout'
 import { Dashboard } from './pages/Dashboard'
 import { GardenDetail } from './pages/GardenDetail'
-import { GardenForm } from './pages/GardenForm'
 import { BedDetail } from './pages/BedDetail'
 import { BedForm } from './pages/BedForm'
 import { PlantDetail } from './pages/PlantDetail'
@@ -53,7 +52,7 @@ export function App() {
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<Dashboard />} />
-        <Route path="garden/new" element={<GardenForm />} />
+        <Route path="garden/new" element={<Navigate to="/" replace />} />
         <Route path="garden/:id" element={<GardenDetail />} />
         <Route path="garden/:gardenId/bed/new" element={<BedForm />} />
         <Route path="bed/:id" element={<BedDetail />} />

@@ -3,7 +3,7 @@ import type { OnboardingStep, OnboardingSection } from './types'
 export const ONBOARDING_STEPS: OnboardingStep[] = [
   // Section 1: Getting Started
   { id: 'create_season', section: 'getting_started', route: '/seasons', completionType: 'mutation', queryKey: ['seasons'], mutationQueryKeys: [['seasons']] },
-  { id: 'create_garden', section: 'getting_started', route: '/garden/new', completionType: 'mutation', mutationQueryKeys: [['dashboard']] },
+  { id: 'create_garden', section: 'getting_started', route: '/', completionType: 'mutation', mutationQueryKeys: [['dashboard']] },
   { id: 'create_bed', section: 'getting_started', route: '/', completionType: 'mutation', mutationQueryKeys: [['dashboard']] },
 
   // Section 2: Growing
