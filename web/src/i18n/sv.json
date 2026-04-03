@@ -223,7 +223,7 @@
     "costPerUnit": "Per enhet (SEK)",
     "costPerPackage": "Per förpackning (SEK)",
     "costHint": "Ange antingen per frö/lök eller per förpackning",
-    "unitType": "Enhetstyp",
+    "unitType": "Typ",
     "colCost": "Kostnad"
   },
   "sow": {

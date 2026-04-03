@@ -223,7 +223,7 @@
     "costPerUnit": "Per unit (SEK)",
     "costPerPackage": "Per package (SEK)",
     "costHint": "Enter either per seed/bulb or per package",
-    "unitType": "Unit type",
+    "unitType": "Type",
     "colCost": "Cost"
   },
   "sow": {
