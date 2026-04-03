@@ -18,7 +18,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   // Section 2: Growing
   { id: 'browse_species', section: 'growing', route: '/species', completionType: 'visit' },
   { id: 'add_seeds', section: 'growing', route: '/seeds', completionType: 'mutation', queryKey: ['seed-inventory'], mutationQueryKeys: [['seed-inventory']] },
-  { id: 'sow_seeds', section: 'growing', route: '/sow', completionType: 'mutation', mutationQueryKeys: [['plants'], ['tray-summary']] },
+  { id: 'sow_seeds', section: 'growing', route: '/sow', completionType: 'mutation', mutationQueryKeys: [['bed-plants']] },
   { id: 'pot_up', section: 'growing', route: '/plants', completionType: 'mutation', mutationQueryKeys: [['plants']] },
   { id: 'plant_out', section: 'growing', route: '/plants', completionType: 'mutation', mutationQueryKeys: [['plants']] },
 

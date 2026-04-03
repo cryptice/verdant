@@ -136,10 +136,12 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
     const queryUnsub = queryClient.getQueryCache().subscribe((event) => {
       if (!mutationInProgress.current) return
-      if (event.type !== 'updated' || event.action.type !== 'success') return
+      if (event.type !== 'updated') return
+
+      const actionType = event.action.type
+      if (actionType !== 'success' && actionType !== 'invalidate') return
 
       const queryKey = event.query.queryKey
-      if (event.query.state.fetchStatus !== 'idle') return
 
       for (const step of ONBOARDING_STEPS) {
         if (step.completionType !== 'mutation') continue
@@ -150,9 +152,14 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
           mk.length <= queryKey.length && mk.every((k, i) => k === queryKey[i])
         )
         if (matches) {
-          const data = event.query.state.data
-          if (data && (Array.isArray(data) ? data.length > 0 : true)) {
+          if (actionType === 'invalidate') {
+            // Query was invalidated by a mutation — step is complete
             completeStep(step.id)
+          } else if (actionType === 'success' && event.query.state.fetchStatus === 'idle') {
+            const data = event.query.state.data
+            if (data && (Array.isArray(data) ? data.length > 0 : true)) {
+              completeStep(step.id)
+            }
           }
         }
       }
