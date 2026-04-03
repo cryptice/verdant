@@ -96,44 +96,44 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }
   }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Listen for mutation successes to detect completed action steps.
-  // We track invalidated query keys so we only mark steps complete when
-  // a mutation triggers a refetch, not on initial page-load fetches.
+  // Listen for query invalidations triggered by mutations.
+  // Track which query keys transition from stale→fresh after invalidation.
   useEffect(() => {
-    const recentlyInvalidated = new Set<string>()
+    let mutationInProgress = false
 
-    // When a mutation succeeds, record which queries it invalidates
     const mutUnsub = queryClient.getMutationCache().subscribe((event) => {
-      if (event.type !== 'updated' || event.mutation?.state.status !== 'success') return
-      // After a mutation, queries get invalidated. Mark a short window.
-      for (const step of ONBOARDING_STEPS) {
-        if (step.mutationQueryKeys) {
-          for (const mk of step.mutationQueryKeys) {
-            recentlyInvalidated.add(mk.join(','))
-          }
-        }
+      if (event.type === 'updated' && event.mutation?.state.status === 'pending') {
+        mutationInProgress = true
       }
-      // Clear after a short delay
-      setTimeout(() => recentlyInvalidated.clear(), 2000)
+      if (event.type === 'updated' && event.mutation?.state.status === 'success') {
+        // Keep the flag on briefly to catch the refetches that follow
+        setTimeout(() => { mutationInProgress = false }, 2000)
+      }
     })
 
-    // When queries refetch after invalidation, check if they match onboarding steps
     const queryUnsub = queryClient.getQueryCache().subscribe((event) => {
+      if (!mutationInProgress) return
       if (event.type !== 'updated' || event.action.type !== 'success') return
-      if (recentlyInvalidated.size === 0) return
 
       const queryKey = event.query.queryKey
+      const fetchStatus = event.query.state.fetchStatus
+      // Only match queries that were just refetched (not from cache)
+      if (fetchStatus !== 'idle') return
+
       for (const step of ONBOARDING_STEPS) {
         if (step.completionType !== 'mutation') continue
         if (state.completedSteps.includes(step.id)) continue
         if (!step.mutationQueryKeys) continue
 
         const matches = step.mutationQueryKeys.some(mk =>
-          recentlyInvalidated.has(mk.join(',')) &&
           mk.length <= queryKey.length && mk.every((k, i) => k === queryKey[i])
         )
         if (matches) {
-          completeStep(step.id)
+          // Verify the query actually has data (not just a successful empty fetch)
+          const data = event.query.state.data
+          if (data && (Array.isArray(data) ? data.length > 0 : true)) {
+            completeStep(step.id)
+          }
         }
       }
     })
