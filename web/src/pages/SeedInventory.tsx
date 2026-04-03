@@ -26,7 +26,8 @@ export function SeedInventory() {
   const [addQuantity, setAddQuantity] = useState('')
   const [addCollection, setAddCollection] = useState('')
   const [addExpiration, setAddExpiration] = useState('')
-  const [addCost, setAddCost] = useState('')
+  const [addCostUnit, setAddCostUnit] = useState('')
+  const [addCostPackage, setAddCostPackage] = useState('')
   const [addUnitType, setAddUnitType] = useState('')
   const [deleteItem, setDeleteItem] = useState<SeedInventoryResponse | null>(null)
   const [page, setPage] = useState(0)
@@ -34,7 +35,8 @@ export function SeedInventory() {
   const [editQuantity, setEditQuantity] = useState('')
   const [editCollection, setEditCollection] = useState('')
   const [editExpiration, setEditExpiration] = useState('')
-  const [editCost, setEditCost] = useState('')
+  const [editCostUnit, setEditCostUnit] = useState('')
+  const [editCostPackage, setEditCostPackage] = useState('')
   const [editUnitType, setEditUnitType] = useState('')
 
   const createMut = useMutation({
@@ -43,13 +45,13 @@ export function SeedInventory() {
       quantity: Number(addQuantity),
       collectionDate: addCollection || undefined,
       expirationDate: addExpiration || undefined,
-      costPerUnitSek: addCost ? Number(addCost) : undefined,
+      costPerUnitSek: addCostUnit ? Number(addCostUnit) : undefined,
       unitType: addUnitType || undefined,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['seed-inventory'] })
       setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration('')
-      setAddCost(''); setAddUnitType('')
+      setAddCostUnit(''); setAddCostPackage(''); setAddUnitType('')
     },
   })
 
@@ -61,7 +63,7 @@ export function SeedInventory() {
       quantity: Number(editQuantity),
       collectionDate: editCollection || undefined,
       expirationDate: editExpiration || undefined,
-      costPerUnitSek: editCost ? Number(editCost) : undefined,
+      costPerUnitSek: editCostUnit ? Number(editCostUnit) : undefined,
       unitType: editUnitType || undefined,
     }),
     onSuccess: () => {
@@ -114,7 +116,8 @@ export function SeedInventory() {
                         setEditQuantity(String(item.quantity))
                         setEditCollection(item.collectionDate ?? '')
                         setEditExpiration(item.expirationDate ?? '')
-                        setEditCost(item.costPerUnitSek != null ? String(item.costPerUnitSek) : '')
+                        setEditCostUnit(item.costPerUnitSek != null ? String(item.costPerUnitSek) : '')
+                        setEditCostPackage(item.costPerUnitSek != null && item.quantity ? String(Math.round(item.costPerUnitSek * item.quantity)) : '')
                         setEditUnitType(item.unitType ?? '')
                       }}
                     >
@@ -136,9 +139,9 @@ export function SeedInventory() {
         </>)}
       </div>
 
-      <Dialog open={showAdd} onClose={() => { setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration(''); setAddCost(''); setAddUnitType('') }} title={t('seeds.addSeedsTitle')} actions={
+      <Dialog open={showAdd} onClose={() => { setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration(''); setAddCostUnit(''); setAddCostPackage(''); setAddUnitType('') }} title={t('seeds.addSeedsTitle')} actions={
         <>
-          <button onClick={() => { setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration(''); setAddCost(''); setAddUnitType('') }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button onClick={() => { setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration(''); setAddCostUnit(''); setAddCostPackage(''); setAddUnitType('') }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
           <button
             onClick={() => createMut.mutate()}
             disabled={!addSpecies || !addQuantity || createMut.isPending}
@@ -165,9 +168,25 @@ export function SeedInventory() {
             <label className="field-label">{t('seeds.expirationDate')}</label>
             <input type="date" value={addExpiration} onChange={e => setAddExpiration(e.target.value)} className="input" />
           </div>
-          <div>
-            <label className="field-label">{t('seeds.costPerUnit')}</label>
-            <input type="number" value={addCost} onChange={e => setAddCost(e.target.value)} placeholder="e.g. 35" className="input" />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="field-label">{t('seeds.costPerUnit')}</label>
+              <input type="number" value={addCostUnit} onChange={e => {
+                const v = e.target.value
+                setAddCostUnit(v)
+                const qty = Number(addQuantity)
+                setAddCostPackage(v && qty ? String(Math.round(Number(v) * qty)) : '')
+              }} placeholder="e.g. 2" className="input" />
+            </div>
+            <div>
+              <label className="field-label">{t('seeds.costPerPackage')}</label>
+              <input type="number" value={addCostPackage} onChange={e => {
+                const v = e.target.value
+                setAddCostPackage(v)
+                const qty = Number(addQuantity)
+                setAddCostUnit(v && qty ? String(Math.round((Number(v) / qty) * 100) / 100) : '')
+              }} placeholder="e.g. 100" className="input" />
+            </div>
           </div>
           <div>
             <label className="field-label">{t('seeds.unitType')}</label>
@@ -206,9 +225,25 @@ export function SeedInventory() {
             <label className="field-label">{t('seeds.expirationDate')}</label>
             <input type="date" value={editExpiration} onChange={e => setEditExpiration(e.target.value)} className="input w-full" />
           </div>
-          <div>
-            <label className="field-label">{t('seeds.costPerUnit')}</label>
-            <input type="number" value={editCost} onChange={e => setEditCost(e.target.value)} placeholder="e.g. 35" className="input w-full" />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="field-label">{t('seeds.costPerUnit')}</label>
+              <input type="number" value={editCostUnit} onChange={e => {
+                const v = e.target.value
+                setEditCostUnit(v)
+                const qty = Number(editQuantity)
+                setEditCostPackage(v && qty ? String(Math.round(Number(v) * qty)) : '')
+              }} placeholder="e.g. 2" className="input w-full" />
+            </div>
+            <div>
+              <label className="field-label">{t('seeds.costPerPackage')}</label>
+              <input type="number" value={editCostPackage} onChange={e => {
+                const v = e.target.value
+                setEditCostPackage(v)
+                const qty = Number(editQuantity)
+                setEditCostUnit(v && qty ? String(Math.round((Number(v) / qty) * 100) / 100) : '')
+              }} placeholder="e.g. 100" className="input w-full" />
+            </div>
           </div>
           <div>
             <label className="field-label">{t('seeds.unitType')}</label>

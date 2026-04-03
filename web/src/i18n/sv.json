@@ -219,7 +219,8 @@
     "deleteBatch": "Radera detta parti",
     "deleteBatchTitle": "Radera parti",
     "deleteBatchConfirm": "Radera detta fröparti?",
-    "costPerUnit": "Kostnad per enhet (SEK)",
+    "costPerUnit": "Per enhet (SEK)",
+    "costPerPackage": "Per förpackning (SEK)",
     "unitType": "Enhetstyp",
     "colCost": "Kostnad"
   },

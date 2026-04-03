@@ -219,7 +219,8 @@
     "deleteBatch": "Delete this batch",
     "deleteBatchTitle": "Delete Batch",
     "deleteBatchConfirm": "Delete this seed batch?",
-    "costPerUnit": "Cost per unit (SEK)",
+    "costPerUnit": "Per unit (SEK)",
+    "costPerPackage": "Per package (SEK)",
     "unitType": "Unit type",
     "colCost": "Cost"
   },
