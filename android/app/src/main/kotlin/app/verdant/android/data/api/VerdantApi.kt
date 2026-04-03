@@ -168,19 +168,19 @@ interface VerdantApi {
 
     // ── Seed Inventory ──
 
-    @GET("api/seed-inventory")
+    @GET("api/seed-stock")
     suspend fun getSeedInventory(@Query("speciesId") speciesId: Long? = null): List<SeedInventoryResponse>
 
-    @POST("api/seed-inventory")
+    @POST("api/seed-stock")
     suspend fun createSeedInventory(@Body request: CreateSeedInventoryRequest): SeedInventoryResponse
 
-    @PUT("api/seed-inventory/{id}")
+    @PUT("api/seed-stock/{id}")
     suspend fun updateSeedInventory(@Path("id") id: Long, @Body request: UpdateSeedInventoryRequest): SeedInventoryResponse
 
-    @POST("api/seed-inventory/{id}/decrement")
+    @POST("api/seed-stock/{id}/decrement")
     suspend fun decrementSeedInventory(@Path("id") id: Long, @Body request: DecrementSeedInventoryRequest): SeedInventoryResponse
 
-    @DELETE("api/seed-inventory/{id}")
+    @DELETE("api/seed-stock/{id}")
     suspend fun deleteSeedInventory(@Path("id") id: Long)
 
     // ── Scheduled Tasks ──

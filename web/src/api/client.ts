@@ -363,14 +363,14 @@ export const api = {
 
   inventory: {
     list: (speciesId?: number) =>
-      apiRequest<SeedInventoryResponse[]>(`/api/seed-inventory${speciesId ? `?speciesId=${speciesId}` : ''}`),
+      apiRequest<SeedInventoryResponse[]>(`/api/seed-stock${speciesId ? `?speciesId=${speciesId}` : ''}`),
     create: (data: { speciesId: number; quantity: number; collectionDate?: string; expirationDate?: string; costPerUnitSek?: number; unitType?: string }) =>
-      apiRequest<SeedInventoryResponse>('/api/seed-inventory', { method: 'POST', body: JSON.stringify(data) }),
+      apiRequest<SeedInventoryResponse>('/api/seed-stock', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: number, data: { quantity?: number; collectionDate?: string; expirationDate?: string; costPerUnitSek?: number; unitType?: string }) =>
-      apiRequest<SeedInventoryResponse>(`/api/seed-inventory/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+      apiRequest<SeedInventoryResponse>(`/api/seed-stock/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     decrement: (id: number, quantity: number) =>
-      apiRequest<void>(`/api/seed-inventory/${id}/decrement`, { method: 'POST', body: JSON.stringify({ quantity }) }),
-    delete: (id: number) => apiRequest<void>(`/api/seed-inventory/${id}`, { method: 'DELETE' }),
+      apiRequest<void>(`/api/seed-stock/${id}/decrement`, { method: 'POST', body: JSON.stringify({ quantity }) }),
+    delete: (id: number) => apiRequest<void>(`/api/seed-stock/${id}`, { method: 'DELETE' }),
   },
 
   tasks: {
