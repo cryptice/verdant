@@ -421,11 +421,11 @@
     "ACCENT": "Accent"
   },
   "unitTypes": {
-    "SEED": "Seed",
-    "PLUG": "Plug",
-    "BULB": "Bulb",
-    "TUBER": "Tuber",
-    "PLANT": "Plant"
+    "SEED": "Seeds",
+    "PLUG": "Plugs",
+    "BULB": "Bulbs",
+    "TUBER": "Tubers",
+    "PLANT": "Plants"
   },
   "calendar": {
     "title": "Crop Calendar",

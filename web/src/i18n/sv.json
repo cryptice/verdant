@@ -421,11 +421,11 @@
     "ACCENT": "Accent"
   },
   "unitTypes": {
-    "SEED": "Frö",
-    "PLUG": "Plugg",
-    "BULB": "Lök",
-    "TUBER": "Knöl",
-    "PLANT": "Planta"
+    "SEED": "Frön",
+    "PLUG": "Pluggar",
+    "BULB": "Lökar",
+    "TUBER": "Knölar",
+    "PLANT": "Plantor"
   },
   "calendar": {
     "title": "Odlingskalender",
