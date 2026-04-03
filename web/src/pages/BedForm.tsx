@@ -36,7 +36,7 @@ export function BedForm() {
         <div>
           <label className="field-label">{t('common.nameLabel')}</label>
           <input value={name} onChange={e => setName(e.target.value)} placeholder={t('bed.bedNamePlaceholder')} className="input" />
-          <p className="text-xs text-text-muted mt-1">{t('bed.bedNameHint')}</p>
+          <p className="text-xs text-text-secondary mt-1">{t('bed.bedNameHint')}</p>
         </div>
         <div>
           <label className="field-label">{t('common.descriptionLabel')}</label>
