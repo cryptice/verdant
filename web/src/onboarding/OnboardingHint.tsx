@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useOnboarding } from './OnboardingContext'
+import { ONBOARDING_STEPS } from './steps'
 
 export function OnboardingHint() {
   const { getHintsForRoute, startStep } = useOnboarding()
@@ -11,6 +12,8 @@ export function OnboardingHint() {
   if (hints.length === 0) return null
 
   const step = hints[0]
+  const stepDef = ONBOARDING_STEPS.find(s => s.id === step.id)
+  const isVisit = stepDef?.completionType === 'visit'
 
   return (
     <div className="bg-accent-light/50 border border-accent/15 rounded-2xl px-6 py-5 flex items-center gap-4">
@@ -21,12 +24,14 @@ export function OnboardingHint() {
         <p className="font-semibold text-text-primary">{t(`onboarding.steps.${step.id}`)}</p>
         <p className="text-sm text-text-secondary mt-1">{t(`onboarding.hints.${step.id}`)}</p>
       </div>
-      <button
-        onClick={() => startStep(step.id)}
-        className="text-sm px-4 py-2 rounded-xl bg-accent text-white hover:bg-accent-hover transition-colors font-medium shrink-0"
-      >
-        {t('onboarding.hint.showMe')}
-      </button>
+      {!isVisit && (
+        <button
+          onClick={() => startStep(step.id)}
+          className="text-sm px-4 py-2 rounded-xl bg-accent text-white hover:bg-accent-hover transition-colors font-medium shrink-0"
+        >
+          {t('onboarding.hint.showMe')}
+        </button>
+      )}
     </div>
   )
 }
