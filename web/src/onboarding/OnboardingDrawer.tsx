@@ -214,7 +214,7 @@ export function OnboardingDrawer() {
                                 justCompleted
                                   ? 'bg-accent-light scale-[1.02]'
                                   : blocked
-                                    ? 'text-text-muted/50 cursor-not-allowed'
+                                    ? 'text-text-muted/70 cursor-not-allowed'
                                   : isNext
                                     ? 'bg-accent-light/50 ring-1 ring-accent/30'
                                     : complete
