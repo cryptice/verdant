@@ -21,6 +21,8 @@ interface OnboardingContextValue {
   activeTour: PageTooltipConfig | null
   clearActiveTour: () => void
   minimized: boolean
+  /** ID of the step that was just completed (for animation), cleared after a delay */
+  lastCompletedStepId: string | null
   /** Get incomplete onboarding steps that match the given route */
   getHintsForRoute: (pathname: string) => OnboardingStep[]
 }
@@ -52,6 +54,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [minimized, setMinimized] = useState(false)
   const [activeTour, setActiveTour] = useState<PageTooltipConfig | null>(null)
+  const [lastCompletedStepId, setLastCompletedStepId] = useState<string | null>(null)
 
   // Sync state when user data changes (e.g., on login)
   useEffect(() => {
@@ -71,6 +74,11 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       syncToBackend(updated)
       return updated
     })
+    // Show celebration: open drawer and highlight the completed step
+    setLastCompletedStepId(stepId)
+    setDrawerOpen(true)
+    // Clear the highlight after animation plays
+    setTimeout(() => setLastCompletedStepId(null), 3000)
   }, [syncToBackend])
 
   // Auto-complete visit-type steps when the user navigates to the page
@@ -211,9 +219,10 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     activeTour,
     clearActiveTour,
     minimized,
+    lastCompletedStepId,
     getHintsForRoute,
   }), [isActive, completedCount, totalCount, isStepComplete, sectionProgress, completeStep,
-       startStep, minimizeForSession, dismissPermanently, drawerOpen, activeTour, clearActiveTour, minimized, getHintsForRoute])
+       startStep, minimizeForSession, dismissPermanently, drawerOpen, activeTour, clearActiveTour, minimized, lastCompletedStepId, getHintsForRoute])
 
   return (
     <OnboardingContext.Provider value={value}>
