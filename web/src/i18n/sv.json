@@ -4,7 +4,7 @@
     "species": "Arter",
     "plants": "Växter",
     "tasks": "Uppgifter",
-    "seeds": "Frön",
+    "seeds": "Utsäde",
     "seasons": "Säsonger",
     "customers": "Kunder",
     "pestDisease": "Skadedjur & sjukdomar",
@@ -23,6 +23,7 @@
   },
   "common": {
     "cancel": "Avbryt",
+    "select": "Välj…",
     "save": "Spara",
     "delete": "Radera",
     "deleting": "Raderar...",
@@ -201,8 +202,8 @@
     "noActivePlants": "Inga aktiva plantor i år"
   },
   "seeds": {
-    "title": "Fröinventarie",
-    "addSeeds": "+ Lägg till frön",
+    "title": "Utsäde",
+    "addSeeds": "+ Lägg till utsäde",
     "noBatches": "Inga fröpartier. Tryck + för att lägga till.",
     "seedCount_one": "{{count}} frö",
     "seedCount_other": "{{count}} frön",

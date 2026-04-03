@@ -4,7 +4,7 @@
     "species": "Species",
     "plants": "Plants",
     "tasks": "Tasks",
-    "seeds": "Seeds",
+    "seeds": "Seed stock",
     "seasons": "Seasons",
     "customers": "Customers",
     "pestDisease": "Pest & Disease",
@@ -23,6 +23,7 @@
   },
   "common": {
     "cancel": "Cancel",
+    "select": "Select…",
     "save": "Save",
     "delete": "Delete",
     "deleting": "Deleting...",
@@ -201,8 +202,8 @@
     "noActivePlants": "No active plants this year"
   },
   "seeds": {
-    "title": "Seed Inventory",
-    "addSeeds": "+ Add seeds",
+    "title": "Seed Stock",
+    "addSeeds": "+ Add seed stock",
     "noBatches": "No seed batches. Tap + to add one.",
     "seedCount_one": "{{count}} seed",
     "seedCount_other": "{{count}} seeds",
