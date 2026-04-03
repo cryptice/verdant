@@ -237,6 +237,7 @@
     "seedBatch": "Seed batch",
     "seedBatchNone": "Don't deduct from seed stock",
     "noSeedStock": "No seed stock available for this species. You can still sow without deducting.",
+    "recentSeedStock": "Recent seed stock",
     "destination": "Destination *",
     "bed": "Bed",
     "tray": "Tray",

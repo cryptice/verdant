@@ -37,14 +37,19 @@ export function SowActivity() {
     enabled: !!sowBed,
   })
 
-  // Fetch species list to resolve preset species by ID
+  // Fetch species list to resolve names
   const presetId = presetSpeciesId ?? (task?.speciesId ?? null)
   const { data: allSpecies } = useQuery({
     queryKey: ['species'],
     queryFn: api.species.list,
-    enabled: !!presetId,
   })
   const presetSpecies = presetId ? allSpecies?.find(s => s.id === presetId) ?? null : null
+
+  // Fetch all seed stock for the recent list
+  const { data: allSeedStock } = useQuery({
+    queryKey: ['seed-inventory'],
+    queryFn: () => api.inventory.list(),
+  })
 
   const [selectedSpecies, setSelectedSpecies] = useState<SpeciesResponse | null>(null)
   const [bedId, setBedId] = useState(presetBedId ? String(presetBedId) : '')
@@ -211,6 +216,50 @@ export function SowActivity() {
           {sowMut.isPending ? t('sow.sowing') : t('sow.sow')}
         </button>
       </div>
+
+      {allSeedStock && allSeedStock.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-sm font-semibold text-text-secondary mb-2">{t('sow.recentSeedStock')}</h2>
+          <div className="space-y-1.5">
+            {allSeedStock
+              .filter(s => s.quantity > 0)
+              .slice(0, 10)
+              .reverse()
+              .map(item => {
+                const sp = allSpecies?.find(s => s.id === item.speciesId)
+                const name = i18n.language === 'sv'
+                  ? (sp?.commonNameSv ?? sp?.commonName ?? item.speciesName)
+                  : (sp?.commonName ?? item.speciesName)
+                const variant = i18n.language === 'sv'
+                  ? (sp?.variantNameSv ?? sp?.variantName)
+                  : sp?.variantName
+                const unitLabel = item.unitType ? t(`unitTypes.${item.unitType}`).toLowerCase() : ''
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      if (sp) setSelectedSpecies(sp)
+                      setSeedBatchId(String(item.id))
+                      setSeedCount(String(item.quantity))
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-divider hover:bg-surface transition-colors text-left"
+                  >
+                    <span className="text-lg">🫘</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {name}{variant ? <span className="text-text-secondary"> — {variant}</span> : ''}
+                      </p>
+                      <p className="text-xs text-text-secondary">
+                        {item.quantity} {unitLabel}
+                        {item.providerName ? ` · ${item.providerName}` : ''}
+                      </p>
+                    </div>
+                  </button>
+                )
+              })}
+          </div>
+        </section>
+      )}
     </div>
   )
 }
