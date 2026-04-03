@@ -254,7 +254,7 @@
         "description": "Follow every plant from sowing to harvest. Record events and watch your garden grow."
       },
       "seeds": {
-        "title": "Seed inventory",
+        "title": "Seed stock",
         "description": "Keep track of your seed collection, quantities, and expiration dates."
       },
       "tasks": {
@@ -633,7 +633,7 @@
         ]
       },
       "seeds": {
-        "title": "Seed Inventory",
+        "title": "Seed Stock",
         "body": [
           "Track your seed, bulb, and plug stock.",
           "- Species, quantity, unit type (Seed, Plug, Bulb, Tuber, Plant)",
@@ -736,7 +736,7 @@
           "Go to My world and create a garden. Add beds matching your physical layout (e.g. \"Dahlia bed\", \"Annual cuts\").",
           "## Step 3: Add species",
           "Go to Species and add your varieties with names, plant type, days to harvest, and expected stems per plant.",
-          "## Step 4: Add seed inventory",
+          "## Step 4: Add seed stock",
           "Go to Seeds and add your stock with quantities, unit types, and costs.",
           "## Step 5: Plan successions",
           "Go to Successions and set up staggered sowing schedules. Click Generate tasks.",
@@ -935,7 +935,7 @@
     "sections": {
       "dataCollected": {
         "title": "What data we collect and why",
-        "body": "We collect the data you provide when using Verdant. This includes your Google account information (name, email address, and profile picture) obtained via Google OAuth when you sign in. We also store the garden and business data you enter into the application, such as garden locations (geographic coordinates), species and planting records, task lists, seed inventory, customer information, production targets, and sales data. This data is necessary to provide the core functionality of the service."
+        "body": "We collect the data you provide when using Verdant. This includes your Google account information (name, email address, and profile picture) obtained via Google OAuth when you sign in. We also store the garden and business data you enter into the application, such as garden locations (geographic coordinates), species and planting records, task lists, seed stock, customer information, production targets, and sales data. This data is necessary to provide the core functionality of the service."
       },
       "dataStorage": {
         "title": "How data is stored and protected",

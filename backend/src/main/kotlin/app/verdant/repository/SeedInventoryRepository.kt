@@ -128,7 +128,7 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
             conn.prepareStatement("DELETE FROM seed_inventory WHERE id = ?").use { ps ->
                 ps.setLong(1, id)
                 val rows = ps.executeUpdate()
-                if (rows == 0) throw jakarta.ws.rs.NotFoundException("Seed inventory not found")
+                if (rows == 0) throw jakarta.ws.rs.NotFoundException("Seed stock not found")
             }
         }
     }

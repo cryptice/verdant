@@ -48,7 +48,7 @@ class SeedInventoryService(
     }
 
     fun updateInventory(id: Long, request: UpdateSeedInventoryRequest, userId: Long): SeedInventoryResponse {
-        val inventory = repo.findById(id) ?: throw NotFoundException("Seed inventory not found")
+        val inventory = repo.findById(id) ?: throw NotFoundException("Seed stock not found")
         if (inventory.userId != userId) throw ForbiddenException()
         val updated = inventory.copy(
             quantity = request.quantity ?: inventory.quantity,
@@ -61,7 +61,7 @@ class SeedInventoryService(
     }
 
     fun decrementInventory(id: Long, request: DecrementSeedInventoryRequest, userId: Long): SeedInventoryResponse {
-        val inventory = repo.findById(id) ?: throw NotFoundException("Seed inventory not found")
+        val inventory = repo.findById(id) ?: throw NotFoundException("Seed stock not found")
         if (inventory.userId != userId) throw ForbiddenException()
         if (!repo.decrementQuantity(id, request.quantity)) {
             throw BadRequestException("Insufficient seeds (have ${inventory.quantity}, need ${request.quantity})")
@@ -72,7 +72,7 @@ class SeedInventoryService(
     }
 
     fun deleteInventory(id: Long, userId: Long) {
-        val inventory = repo.findById(id) ?: throw NotFoundException("Seed inventory not found")
+        val inventory = repo.findById(id) ?: throw NotFoundException("Seed stock not found")
         if (inventory.userId != userId) throw ForbiddenException()
         repo.delete(id)
     }

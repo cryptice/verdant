@@ -41,7 +41,7 @@ export default function DevSeed() {
         <h2 className="text-base font-semibold text-[#37352F] mb-2">Seed Test Data</h2>
         <p className="text-sm text-[#787774] mb-4">
           Creates 20 species (5 groups, 5 tags), 2 gardens with 5 beds, 20 plants with lifecycle
-          events, seed inventory for 8 species, and 6 scheduled tasks. Data is created for the
+          events, seed stock for 8 species, and 6 scheduled tasks. Data is created for the
           currently logged-in user.
         </p>
 

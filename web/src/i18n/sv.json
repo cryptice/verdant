@@ -254,7 +254,7 @@
         "description": "Följ varje planta från sådd till skörd. Registrera händelser och se din trädgård växa."
       },
       "seeds": {
-        "title": "Fröinventarie",
+        "title": "Utsäde",
         "description": "Håll reda på din frösamling, antal och utgångsdatum."
       },
       "tasks": {
