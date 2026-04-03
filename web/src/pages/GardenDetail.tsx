@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import type { BreadcrumbItem } from '../components/Breadcrumb'
 import { api } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
+import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 
@@ -70,6 +71,7 @@ export function GardenDetail() {
         breadcrumbs={breadcrumbs}
         editAction={() => { setEditName(garden.name); setEditDesc(garden.description ?? ''); setEditEmoji(garden.emoji ?? ''); setEditing(true) }}
       />
+      <OnboardingHint />
 
       <div className="px-4 py-4 space-y-4">
         {garden.description && <p className="text-text-secondary">{garden.description}</p>}

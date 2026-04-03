@@ -161,11 +161,17 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     const step = ONBOARDING_STEPS.find(s => s.id === stepId)
     if (!step) return
     setDrawerOpen(false)
-    navigate(step.route)
+    // Only navigate if we're not already on a matching page
+    const currentPath = window.location.pathname
+    const alreadyOnPage = currentPath === step.route ||
+      step.extraRoutePrefixes?.some(p => currentPath.startsWith(p))
+    if (!alreadyOnPage) {
+      navigate(step.route)
+    }
     import('./tooltipConfigs').then(({ getTooltipConfig }) => {
       const config = getTooltipConfig(stepId)
       if (config) {
-        setTimeout(() => setActiveTour(config), 100)
+        setTimeout(() => setActiveTour(config), alreadyOnPage ? 50 : 100)
       }
     })
   }, [navigate])
@@ -200,7 +206,8 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const getHintsForRoute = useCallback((pathname: string) => {
     if (!isActive) return []
     return ONBOARDING_STEPS.filter(s =>
-      !state.completedSteps.includes(s.id) && s.route === pathname
+      !state.completedSteps.includes(s.id) &&
+      (s.route === pathname || s.extraRoutePrefixes?.some(p => pathname.startsWith(p)))
     )
   }, [isActive, state.completedSteps])
 

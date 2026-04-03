@@ -4,7 +4,6 @@ const configs: PageTooltipConfig[] = [
   {
     stepId: 'create_bed',
     tooltips: [
-      { targetSelector: '[data-onboarding="garden-card"]', titleKey: 'onboarding.tooltips.createBed.step1.title', descriptionKey: 'onboarding.tooltips.createBed.step1.description' },
       { targetSelector: '[data-onboarding="add-bed-btn"]', titleKey: 'onboarding.tooltips.createBed.step2.title', descriptionKey: 'onboarding.tooltips.createBed.step2.description' },
     ],
   },

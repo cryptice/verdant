@@ -146,6 +146,7 @@
     "plantCount_other": "{{count}} plants",
     "editBedTitle": "Edit Bed",
     "bedNamePlaceholder": "Bed name",
+    "bedNameHint": "Use a descriptive name, e.g. \"Front side, south\" or \"Behind the greenhouse, #1\"",
     "descriptionOptionalPlaceholder": "Description (optional)",
     "deleteBedTitle": "Delete Bed",
     "deleteBedConfirm": "This will delete the bed and all its plants. Are you sure?",

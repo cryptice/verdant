@@ -146,6 +146,7 @@
     "plantCount_other": "{{count}} plantor",
     "editBedTitle": "Redigera bädd",
     "bedNamePlaceholder": "Bäddnamn",
+    "bedNameHint": "Använd ett beskrivande namn, t.ex. \"Framsidan, söder\" eller \"Bakom växthuset, #1\"",
     "descriptionOptionalPlaceholder": "Beskrivning (valfritt)",
     "deleteBedTitle": "Radera bädd",
     "deleteBedConfirm": "Detta raderar bädden och alla dess plantor. Är du säker?",

@@ -2,6 +2,8 @@ export interface OnboardingStep {
   id: string
   section: OnboardingSection
   route: string
+  /** Additional route prefixes where the hint should also appear */
+  extraRoutePrefixes?: string[]
   completionType: 'mutation' | 'visit' | 'query'
   queryKey?: string[]
   mutationQueryKeys?: string[][]

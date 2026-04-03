@@ -47,7 +47,7 @@ export function OnboardingTooltip({
       {/* Arrow */}
       <div
         ref={arrowRef}
-        className="absolute w-3 h-3 bg-white border border-divider rotate-45"
+        className="absolute w-3 h-3 bg-white border border-divider rotate-45 -z-10"
         style={{
           left: middlewareData.arrow?.x,
           top: middlewareData.arrow?.y,
