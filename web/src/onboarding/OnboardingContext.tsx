@@ -171,7 +171,8 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     import('./tooltipConfigs').then(({ getTooltipConfig }) => {
       const config = getTooltipConfig(stepId)
       if (config) {
-        setTimeout(() => setActiveTour(config), alreadyOnPage ? 50 : 100)
+        // Delay to let drawer close animation (300ms) finish and page render
+        setTimeout(() => setActiveTour(config), 400)
       }
     })
   }, [navigate])
