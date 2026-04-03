@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
 import { useOnboarding } from './OnboardingContext'
 import { SECTIONS, getStepsForSection, ONBOARDING_STEPS } from './steps'
 
@@ -12,6 +13,7 @@ export function OnboardingDrawer() {
   } = useOnboarding()
   const [expandedSection, setExpandedSection] = useState<string>(SECTIONS[0].id)
   const [showDismissMenu, setShowDismissMenu] = useState(false)
+  const queryClient = useQueryClient()
   const [visible, setVisible] = useState(false)
   const [animatingIn, setAnimatingIn] = useState(false)
   const nextStepRef = useRef<HTMLButtonElement>(null)
@@ -197,16 +199,22 @@ export function OnboardingDrawer() {
                           const complete = isStepComplete(step.id)
                           const justCompleted = step.id === lastCompletedStepId
                           const isNext = step.id === nextIncompleteId
+                          // A step is blocked if it has a resolveRoute that returns the fallback route
+                          const blocked = !complete && step.resolveRoute
+                            ? step.resolveRoute(queryClient) === step.route
+                            : false
 
                           return (
                             <button
                               key={step.id}
                               ref={isNext ? nextStepRef : undefined}
-                              onClick={() => !complete && startStep(step.id)}
-                              disabled={complete}
+                              onClick={() => !complete && !blocked && startStep(step.id)}
+                              disabled={complete || blocked}
                               className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm transition-all duration-300 ${
                                 justCompleted
                                   ? 'bg-accent-light scale-[1.02]'
+                                  : blocked
+                                    ? 'text-text-muted/50 cursor-not-allowed'
                                   : isNext
                                     ? 'bg-accent-light/50 ring-1 ring-accent/30'
                                     : complete
@@ -220,9 +228,11 @@ export function OnboardingDrawer() {
                                     ? 'border-accent bg-accent text-white scale-125'
                                     : complete
                                       ? 'border-accent bg-accent text-white'
-                                      : isNext
-                                        ? 'border-accent'
-                                        : 'border-divider'
+                                      : blocked
+                                        ? 'border-divider/50'
+                                        : isNext
+                                          ? 'border-accent'
+                                          : 'border-divider'
                                 }`}
                               >
                                 {complete && '✓'}
