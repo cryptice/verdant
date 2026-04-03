@@ -77,6 +77,8 @@ class DataExportService(
                 costPerUnitSek = item.costPerUnitSek,
                 unitType = item.unitType.name,
                 seasonId = item.seasonId,
+                speciesProviderId = item.speciesProviderId,
+                providerName = null,
                 createdAt = item.createdAt,
             )
         }

@@ -31,6 +31,7 @@ export function SeedInventory() {
   const [addCostUnit, setAddCostUnit] = useState('')
   const [addCostPackage, setAddCostPackage] = useState('')
   const [addUnitType, setAddUnitType] = useState('SEED')
+  const [addProviderId, setAddProviderId] = useState<number | ''>('')
   const [deleteItem, setDeleteItem] = useState<SeedInventoryResponse | null>(null)
   const [page, setPage] = useState(0)
   const [editItem, setEditItem] = useState<SeedInventoryResponse | null>(null)
@@ -40,6 +41,7 @@ export function SeedInventory() {
   const [editCostUnit, setEditCostUnit] = useState('')
   const [editCostPackage, setEditCostPackage] = useState('')
   const [editUnitType, setEditUnitType] = useState('')
+  const [editProviderId, setEditProviderId] = useState<number | ''>('')
 
   const createMut = useMutation({
     mutationFn: () => api.inventory.create({
@@ -49,11 +51,12 @@ export function SeedInventory() {
       expirationDate: addExpiration || undefined,
       costPerUnitSek: addCostUnit ? Number(addCostUnit) : undefined,
       unitType: addUnitType || undefined,
+      speciesProviderId: addProviderId !== '' ? addProviderId : undefined,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['seed-inventory'] })
       setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration('')
-      setAddCostUnit(''); setAddCostPackage(''); setAddUnitType('SEED')
+      setAddCostUnit(''); setAddCostPackage(''); setAddUnitType('SEED'); setAddProviderId('')
     },
   })
 
@@ -67,6 +70,7 @@ export function SeedInventory() {
       expirationDate: editExpiration || undefined,
       costPerUnitSek: editCostUnit ? Number(editCostUnit) : undefined,
       unitType: editUnitType || undefined,
+      speciesProviderId: editProviderId !== '' ? editProviderId : undefined,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['seed-inventory'] })
@@ -135,6 +139,7 @@ export function SeedInventory() {
                             setEditCostUnit(item.costPerUnitSek != null ? String(item.costPerUnitSek) : '')
                             setEditCostPackage(item.costPerUnitSek != null && item.quantity ? String(Math.round(item.costPerUnitSek * item.quantity)) : '')
                             setEditUnitType(item.unitType ?? '')
+                            setEditProviderId(item.speciesProviderId ?? '')
                           }}
                           className="text-text-muted hover:text-text-secondary transition-colors"
                           aria-label={t('common.edit')}
@@ -155,9 +160,9 @@ export function SeedInventory() {
         </>)}
       </div>
 
-      <Dialog open={showAdd} onClose={() => { setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration(''); setAddCostUnit(''); setAddCostPackage(''); setAddUnitType('SEED') }} title={t('seeds.addSeedsTitle')} actions={
+      <Dialog open={showAdd} onClose={() => { setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration(''); setAddCostUnit(''); setAddCostPackage(''); setAddUnitType('SEED'); setAddProviderId('') }} title={t('seeds.addSeedsTitle')} actions={
         <>
-          <button onClick={() => { setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration(''); setAddCostUnit(''); setAddCostPackage(''); setAddUnitType('SEED') }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button onClick={() => { setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration(''); setAddCostUnit(''); setAddCostPackage(''); setAddUnitType('SEED'); setAddProviderId('') }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
           <button
             onClick={() => createMut.mutate()}
             disabled={!addSpecies || !addQuantity || !addUnitType || createMut.isPending}
@@ -170,7 +175,7 @@ export function SeedInventory() {
         <div data-onboarding="seed-form" className="space-y-4">
           <div>
             <label className="field-label">{t('common.speciesLabel')}</label>
-            <SpeciesAutocomplete value={addSpecies} onChange={setAddSpecies} />
+            <SpeciesAutocomplete value={addSpecies} onChange={s => { setAddSpecies(s); setAddProviderId(s && s.providers.length > 0 ? s.providers[0].id : '') }} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -223,6 +228,17 @@ export function SeedInventory() {
             </div>
           </div>
           <p className="text-xs text-text-secondary -mt-2">{t('seeds.costHint')}</p>
+          {addSpecies && addSpecies.providers.length > 0 && (
+            <div>
+              <label className="field-label">{t('seeds.provider')}</label>
+              <select value={addProviderId} onChange={e => setAddProviderId(e.target.value ? Number(e.target.value) : '')} className="input w-full">
+                <option value="">{t('common.none')}</option>
+                {addSpecies.providers.map(p => (
+                  <option key={p.id} value={p.id}>{p.providerName}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       </Dialog>
 
@@ -239,22 +255,35 @@ export function SeedInventory() {
         </>
       }>
         <div className="space-y-4">
-          <div>
-            <label className="field-label">{t('seeds.quantityLabel')}</label>
-            <input type="number" value={editQuantity} onChange={e => {
-              const v = e.target.value
-              setEditQuantity(v)
-              const qty = Number(v)
-              if (editCostPackage && qty) setEditCostUnit(String(Math.round((Number(editCostPackage) / qty) * 100) / 100))
-            }} className="input w-full" />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="field-label">{t('seeds.quantityLabel')}</label>
+              <input type="number" value={editQuantity} onChange={e => {
+                const v = e.target.value
+                setEditQuantity(v)
+                const qty = Number(v)
+                if (editCostPackage && qty) setEditCostUnit(String(Math.round((Number(editCostPackage) / qty) * 100) / 100))
+              }} className="input w-full" />
+            </div>
+            <div>
+              <label className="field-label">{t('seeds.unitType')} *</label>
+              <select value={editUnitType} onChange={e => setEditUnitType(e.target.value)} className="input w-full">
+                <option value="">{t('common.select')}</option>
+                {['SEED', 'PLUG', 'BULB', 'TUBER', 'PLANT'].map(ut => (
+                  <option key={ut} value={ut}>{t(`unitTypes.${ut}`)}</option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div>
-            <label className="field-label">{t('seeds.collectionDate')}</label>
-            <input type="date" value={editCollection} onChange={e => setEditCollection(e.target.value)} className="input w-full" />
-          </div>
-          <div>
-            <label className="field-label">{t('seeds.expirationDate')}</label>
-            <input type="date" value={editExpiration} onChange={e => setEditExpiration(e.target.value)} className="input w-full" />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="field-label">{t('seeds.collectionDate')}</label>
+              <input type="date" value={editCollection} onChange={e => setEditCollection(e.target.value)} className="input w-full" />
+            </div>
+            <div>
+              <label className="field-label">{t('seeds.expirationDate')}</label>
+              <input type="date" value={editExpiration} onChange={e => setEditExpiration(e.target.value)} className="input w-full" />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -277,15 +306,20 @@ export function SeedInventory() {
             </div>
           </div>
           <p className="text-xs text-text-secondary -mt-2">{t('seeds.costHint')}</p>
-          <div>
-            <label className="field-label">{t('seeds.unitType')} *</label>
-            <select value={editUnitType} onChange={e => setEditUnitType(e.target.value)} className="input w-full">
-              <option value="">{t('common.select')}</option>
-              {['SEED', 'PLUG', 'BULB', 'TUBER', 'PLANT'].map(ut => (
-                <option key={ut} value={ut}>{t(`unitTypes.${ut}`)}</option>
-              ))}
-            </select>
-          </div>
+          {editItem && (() => {
+            const sp = species?.find(s => s.id === editItem.speciesId)
+            return sp && sp.providers.length > 0 ? (
+              <div>
+                <label className="field-label">{t('seeds.provider')}</label>
+                <select value={editProviderId} onChange={e => setEditProviderId(e.target.value ? Number(e.target.value) : '')} className="input w-full">
+                  <option value="">{t('common.none')}</option>
+                  {sp.providers.map(p => (
+                    <option key={p.id} value={p.id}>{p.providerName}</option>
+                  ))}
+                </select>
+              </div>
+            ) : null
+          })()}
           <button
             onClick={() => { setEditItem(null); setUpdateError(null); setDeleteItem(editItem) }}
             className="text-sm text-error hover:underline"

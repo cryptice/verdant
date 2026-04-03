@@ -102,6 +102,7 @@ export interface SpeciesResponse {
   expectedVaseLifeDays?: number; plantType?: string
   photos: { id: number; imageUrl: string; sortOrder: number }[]
   tags: { id: number; name: string }[]
+  providers: { id: number; providerId: number; providerName: string }[]
   custom: boolean
 }
 
@@ -109,6 +110,7 @@ export interface SeedInventoryResponse {
   id: number; speciesId: number; speciesName: string
   quantity: number; collectionDate?: string; expirationDate?: string
   costPerUnitSek?: number; unitType?: string; seasonId?: number
+  speciesProviderId?: number; providerName?: string
   createdAt: string
 }
 
@@ -364,9 +366,9 @@ export const api = {
   inventory: {
     list: (speciesId?: number) =>
       apiRequest<SeedInventoryResponse[]>(`/api/seed-stock${speciesId ? `?speciesId=${speciesId}` : ''}`),
-    create: (data: { speciesId: number; quantity: number; collectionDate?: string; expirationDate?: string; costPerUnitSek?: number; unitType?: string }) =>
+    create: (data: { speciesId: number; quantity: number; collectionDate?: string; expirationDate?: string; costPerUnitSek?: number; unitType?: string; speciesProviderId?: number }) =>
       apiRequest<SeedInventoryResponse>('/api/seed-stock', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: number, data: { quantity?: number; collectionDate?: string; expirationDate?: string; costPerUnitSek?: number; unitType?: string }) =>
+    update: (id: number, data: { quantity?: number; collectionDate?: string; expirationDate?: string; costPerUnitSek?: number; unitType?: string; speciesProviderId?: number }) =>
       apiRequest<SeedInventoryResponse>(`/api/seed-stock/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     decrement: (id: number, quantity: number) =>
       apiRequest<void>(`/api/seed-stock/${id}/decrement`, { method: 'POST', body: JSON.stringify({ quantity }) }),

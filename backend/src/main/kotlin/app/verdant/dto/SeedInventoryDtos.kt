@@ -17,6 +17,8 @@ data class SeedInventoryResponse(
     val costPerUnitSek: Int?,
     val unitType: String?,
     val seasonId: Long?,
+    val speciesProviderId: Long?,
+    val providerName: String?,
     val createdAt: Instant,
 )
 
@@ -32,6 +34,7 @@ data class CreateSeedInventoryRequest(
     @field:NotBlank @field:Size(max = 255)
     val unitType: String,
     val seasonId: Long? = null,
+    val speciesProviderId: Long? = null,
 )
 
 data class UpdateSeedInventoryRequest(
@@ -44,6 +47,7 @@ data class UpdateSeedInventoryRequest(
     @field:Size(max = 255)
     val unitType: String? = null,
     val seasonId: Long? = null,
+    val speciesProviderId: Long? = null,
 )
 
 data class DecrementSeedInventoryRequest(

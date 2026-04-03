@@ -3,7 +3,9 @@ package app.verdant.service
 import app.verdant.dto.*
 import app.verdant.entity.SeedInventory
 import app.verdant.entity.UnitType
+import app.verdant.repository.ProviderRepository
 import app.verdant.repository.SeedInventoryRepository
+import app.verdant.repository.SpeciesProviderRepository
 import app.verdant.repository.SpeciesRepository
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.ws.rs.BadRequestException
@@ -14,6 +16,8 @@ import jakarta.ws.rs.NotFoundException
 class SeedInventoryService(
     private val repo: SeedInventoryRepository,
     private val speciesRepo: SpeciesRepository,
+    private val speciesProviderRepo: SpeciesProviderRepository,
+    private val providerRepo: ProviderRepository,
 ) {
     fun getInventoryForUser(userId: Long, speciesId: Long? = null, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<SeedInventoryResponse> {
         val items = if (speciesId != null) {
@@ -26,7 +30,8 @@ class SeedInventoryService(
         val speciesNames = items.map { it.speciesId }.distinct().associateWith { id ->
             speciesRepo.findById(id)?.commonName ?: "Unknown"
         }
-        return items.map { it.toResponse(speciesNames[it.speciesId] ?: "Unknown") }
+        val providerNames = resolveProviderNames(items.mapNotNull { it.speciesProviderId }.distinct())
+        return items.map { it.toResponse(speciesNames[it.speciesId] ?: "Unknown", providerNames) }
     }
 
     fun createInventory(request: CreateSeedInventoryRequest, userId: Long): SeedInventoryResponse {
@@ -42,9 +47,11 @@ class SeedInventoryService(
                 costPerUnitSek = request.costPerUnitSek,
                 unitType = UnitType.valueOf(request.unitType),
                 seasonId = request.seasonId,
+                speciesProviderId = request.speciesProviderId,
             )
         )
-        return inventory.toResponse(species.commonName)
+        val providerNames = resolveProviderNames(listOfNotNull(inventory.speciesProviderId))
+        return inventory.toResponse(species.commonName, providerNames)
     }
 
     fun updateInventory(id: Long, request: UpdateSeedInventoryRequest, userId: Long): SeedInventoryResponse {
@@ -54,10 +61,12 @@ class SeedInventoryService(
             quantity = request.quantity ?: inventory.quantity,
             collectionDate = request.collectionDate ?: inventory.collectionDate,
             expirationDate = request.expirationDate ?: inventory.expirationDate,
+            speciesProviderId = if (request.speciesProviderId != null) request.speciesProviderId else inventory.speciesProviderId,
         )
         repo.update(updated)
         val speciesName = speciesRepo.findById(updated.speciesId)?.commonName ?: "Unknown"
-        return updated.toResponse(speciesName)
+        val providerNames = resolveProviderNames(listOfNotNull(updated.speciesProviderId))
+        return updated.toResponse(speciesName, providerNames)
     }
 
     fun decrementInventory(id: Long, request: DecrementSeedInventoryRequest, userId: Long): SeedInventoryResponse {
@@ -68,7 +77,8 @@ class SeedInventoryService(
         }
         val updated = repo.findById(id)!!
         val speciesName = speciesRepo.findById(updated.speciesId)?.commonName ?: "Unknown"
-        return updated.toResponse(speciesName)
+        val providerNames = resolveProviderNames(listOfNotNull(updated.speciesProviderId))
+        return updated.toResponse(speciesName, providerNames)
     }
 
     fun deleteInventory(id: Long, userId: Long) {
@@ -77,7 +87,16 @@ class SeedInventoryService(
         repo.delete(id)
     }
 
-    private fun SeedInventory.toResponse(speciesName: String) = SeedInventoryResponse(
+    private fun resolveProviderNames(speciesProviderIds: List<Long>): Map<Long, String> {
+        if (speciesProviderIds.isEmpty()) return emptyMap()
+        return speciesProviderIds.mapNotNull { spId ->
+            val sp = speciesProviderRepo.findById(spId) ?: return@mapNotNull null
+            val provider = providerRepo.findById(sp.providerId) ?: return@mapNotNull null
+            spId to provider.name
+        }.toMap()
+    }
+
+    private fun SeedInventory.toResponse(speciesName: String, providerNames: Map<Long, String> = emptyMap()) = SeedInventoryResponse(
         id = id!!,
         speciesId = speciesId,
         speciesName = speciesName,
@@ -87,6 +106,8 @@ class SeedInventoryService(
         costPerUnitSek = costPerUnitSek,
         unitType = unitType.name,
         seasonId = seasonId,
+        speciesProviderId = speciesProviderId,
+        providerName = speciesProviderId?.let { providerNames[it] },
         createdAt = createdAt,
     )
 }

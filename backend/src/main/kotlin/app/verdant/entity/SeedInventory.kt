@@ -13,5 +13,6 @@ data class SeedInventory(
     val costPerUnitSek: Int? = null,
     val unitType: UnitType = UnitType.SEED,
     val seasonId: Long? = null,
+    val speciesProviderId: Long? = null,
     val createdAt: Instant = Instant.now(),
 )
