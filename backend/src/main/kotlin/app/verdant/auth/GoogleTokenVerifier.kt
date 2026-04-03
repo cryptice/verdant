@@ -17,7 +17,7 @@ import java.util.logging.Logger
 @ApplicationScoped
 class GoogleTokenVerifier(
     private val objectMapper: ObjectMapper,
-    @ConfigProperty(name = "verdant.google.client-id") private val expectedClientId: String,
+    @ConfigProperty(name = "verdant.google.client-id") private val expectedClientId: java.util.Optional<String>,
 ) {
 
     private val log = Logger.getLogger(GoogleTokenVerifier::class.java.name)
@@ -74,10 +74,12 @@ class GoogleTokenVerifier(
             throw SecurityException("Token has expired")
         }
 
-        // Check audience
-        val audience = node.get("aud")?.asText() ?: throw IllegalArgumentException("Missing aud claim")
-        if (audience != expectedClientId) {
-            throw BadRequestException("Invalid token audience")
+        // Check audience (skip if client ID not configured, e.g. local dev)
+        if (expectedClientId.isPresent) {
+            val audience = node.get("aud")?.asText() ?: throw IllegalArgumentException("Missing aud claim")
+            if (audience != expectedClientId.get()) {
+                throw BadRequestException("Invalid token audience")
+            }
         }
 
         return GoogleClaims(
