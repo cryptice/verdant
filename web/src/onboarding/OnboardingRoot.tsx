@@ -6,7 +6,7 @@ import { useOnboarding } from './OnboardingContext'
 import { useTooltipTour } from './useTooltipTour'
 
 export function OnboardingRoot() {
-  const { activeTour, clearActiveTour, completeStep, isActive } = useOnboarding()
+  const { activeTour, clearActiveTour, completeStep, isActive, drawerOpen } = useOnboarding()
 
   const tour = useTooltipTour(activeTour, () => {
     if (activeTour) {
@@ -15,12 +15,10 @@ export function OnboardingRoot() {
     clearActiveTour()
   })
 
-  if (!isActive) return null
-
   return (
     <>
-      <OnboardingFab />
-      <OnboardingDrawer />
+      {isActive && <OnboardingFab />}
+      {drawerOpen && <OnboardingDrawer />}
       {activeTour && tour.targetElement && (
         <>
           <OnboardingOverlay targetElement={tour.targetElement} onClick={clearActiveTour} />

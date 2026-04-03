@@ -5,6 +5,7 @@ import { api } from '../api/client'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { StatusBadge } from '../components/StatusBadge'
 import { useAuth } from '../auth/AuthContext'
+import { useOnboarding } from '../onboarding/OnboardingContext'
 
 function formatWeight(grams: number) {
   return grams >= 1000 ? `${(grams / 1000).toFixed(1)} kg` : `${grams} g`
@@ -14,6 +15,7 @@ export function Dashboard() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const { isActive, completedCount, totalCount, setDrawerOpen } = useOnboarding()
 
   const { data: dashboard, error, isLoading, refetch } = useQuery({
     queryKey: ['dashboard'],
@@ -53,6 +55,35 @@ export function Dashboard() {
         </div>
         <button onClick={() => navigate('/garden/new')} className="btn-primary shrink-0">{t('dashboard.newGarden')}</button>
       </div>
+
+      {isActive && (
+        <div className="card bg-accent-light border-accent/20">
+          <div className="flex items-center gap-4">
+            <span className="text-3xl">🌿</span>
+            <div className="flex-1">
+              <p className="font-semibold">{t('dashboard.onboardingWidget.title')}</p>
+              <p className="text-sm text-text-secondary mt-0.5">{t('dashboard.onboardingWidget.description')}</p>
+              <div className="flex items-center gap-3 mt-2">
+                <div className="flex-1 h-1.5 bg-white/50 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-accent rounded-full transition-all duration-500"
+                    style={{ width: `${(completedCount / totalCount) * 100}%` }}
+                  />
+                </div>
+                <span className="text-xs text-text-secondary whitespace-nowrap">
+                  {t('dashboard.onboardingWidget.progress', { completed: completedCount, total: totalCount })}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="btn-primary shrink-0 text-sm"
+            >
+              {t('dashboard.onboardingWidget.button')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {dashboard && dashboard.gardens.length === 0 && (
         <div className="card text-center py-8">

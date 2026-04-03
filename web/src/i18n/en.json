@@ -107,7 +107,13 @@
     "weight": "Weight",
     "quantity": "Quantity",
     "harvests": "Harvests",
-    "noHarvests": "No harvests yet"
+    "noHarvests": "No harvests yet",
+    "onboardingWidget": {
+      "title": "Get started with Verdant",
+      "description": "Follow the setup guide to learn how to use all features.",
+      "progress": "{{completed}} of {{total}} steps complete",
+      "button": "Open setup guide"
+    }
   },
   "account": {
     "title": "Account",

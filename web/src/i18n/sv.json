@@ -107,7 +107,13 @@
     "weight": "Vikt",
     "quantity": "Antal",
     "harvests": "Skördar",
-    "noHarvests": "Inga skördar ännu"
+    "noHarvests": "Inga skördar ännu",
+    "onboardingWidget": {
+      "title": "Kom igång med Verdant",
+      "description": "Följ installationsguiden för att lära dig alla funktioner.",
+      "progress": "{{completed}} av {{total}} steg klara",
+      "button": "Öppna guiden"
+    }
   },
   "account": {
     "title": "Konto",
