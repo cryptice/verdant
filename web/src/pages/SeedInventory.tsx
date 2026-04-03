@@ -162,7 +162,7 @@ export function SeedInventory() {
               const v = e.target.value
               setAddQuantity(v)
               const qty = Number(v)
-              if (addCostUnit && qty) setAddCostPackage(String(Math.round(Number(addCostUnit) * qty)))
+              if (addCostPackage && qty) setAddCostUnit(String(Math.round((Number(addCostPackage) / qty) * 100) / 100))
             }} placeholder="e.g. 50" className="input" />
           </div>
           <div>
@@ -193,6 +193,7 @@ export function SeedInventory() {
               }} placeholder="e.g. 100" className="input" />
             </div>
           </div>
+          <p className="text-xs text-text-secondary -mt-2">{t('seeds.costHint')}</p>
           <div>
             <label className="field-label">{t('seeds.unitType')}</label>
             <select value={addUnitType} onChange={e => setAddUnitType(e.target.value)} className="input">
@@ -224,7 +225,7 @@ export function SeedInventory() {
               const v = e.target.value
               setEditQuantity(v)
               const qty = Number(v)
-              if (editCostUnit && qty) setEditCostPackage(String(Math.round(Number(editCostUnit) * qty)))
+              if (editCostPackage && qty) setEditCostUnit(String(Math.round((Number(editCostPackage) / qty) * 100) / 100))
             }} className="input w-full" />
           </div>
           <div>
@@ -255,6 +256,7 @@ export function SeedInventory() {
               }} placeholder="e.g. 100" className="input w-full" />
             </div>
           </div>
+          <p className="text-xs text-text-secondary -mt-2">{t('seeds.costHint')}</p>
           <div>
             <label className="field-label">{t('seeds.unitType')}</label>
             <select value={editUnitType} onChange={e => setEditUnitType(e.target.value)} className="input w-full">
