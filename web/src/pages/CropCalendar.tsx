@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { api, type SpeciesResponse, type PlantResponse, type PlantEventResponse } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
+import { OnboardingHint } from '../onboarding/OnboardingHint'
 
 const MONTHS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D']
 
@@ -155,6 +156,7 @@ export function CropCalendar() {
   return (
     <div>
       <PageHeader title={t('calendar.title')} />
+      <OnboardingHint />
       <div className="px-4 py-4">
         {/* Season filter */}
         <div className="mb-4">

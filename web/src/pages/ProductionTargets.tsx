@@ -7,6 +7,7 @@ import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { Pagination } from '../components/Pagination'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
+import { OnboardingHint } from '../onboarding/OnboardingHint'
 
 const PAGE_SIZE = 50
 
@@ -143,6 +144,7 @@ export function ProductionTargets() {
   return (
     <div>
       <PageHeader title={t('targets.title')} action={{ label: t('targets.new'), onClick: openAdd, 'data-onboarding': 'add-target-btn' }} />
+      <OnboardingHint />
       <div className="px-4 py-4">
         {/* Season filter */}
         <div className="mb-4">

@@ -6,6 +6,7 @@ import { api, type SpeciesResponse } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import type { BreadcrumbItem } from '../components/Breadcrumb'
+import { OnboardingHint } from '../onboarding/OnboardingHint'
 
 export function SowActivity() {
   const navigate = useNavigate()
@@ -112,6 +113,7 @@ export function SowActivity() {
   return (
     <div className="max-w-lg">
       <PageHeader title={t('sow.title')} breadcrumbs={breadcrumbs} />
+      <OnboardingHint />
       <div className="form-card">
 
         <div data-onboarding="sow-species">

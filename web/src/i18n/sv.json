@@ -120,7 +120,9 @@
     "signOut": "Logga ut",
     "deleteAccount": "Radera konto",
     "deleteAccountTitle": "Radera konto",
-    "deleteAccountConfirm": "Detta raderar ditt konto och all din data permanent. Det går inte att ångra."
+    "deleteAccountConfirm": "Detta raderar ditt konto och all din data permanent. Det går inte att ångra.",
+    "advancedMode": "Avancerat läge",
+    "advancedModeDescription": "Visa avancerade funktioner som statistik, sortförsök, successioner och marknadsplats"
   },
   "garden": {
     "beds": "Bäddar",

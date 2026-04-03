@@ -120,7 +120,9 @@
     "signOut": "Sign out",
     "deleteAccount": "Delete account",
     "deleteAccountTitle": "Delete Account",
-    "deleteAccountConfirm": "This will permanently delete your account and all your data. This action cannot be undone."
+    "deleteAccountConfirm": "This will permanently delete your account and all your data. This action cannot be undone.",
+    "advancedMode": "Advanced mode",
+    "advancedModeDescription": "Show advanced features like analytics, variety trials, successions, and marketplace"
   },
   "garden": {
     "beds": "Beds",

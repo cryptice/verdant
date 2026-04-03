@@ -3,32 +3,33 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthContext'
 import { OnboardingRoot } from '../onboarding/OnboardingRoot'
-import { OnboardingHint } from '../onboarding/OnboardingHint'
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const { user } = useAuth()
   const { t, i18n } = useTranslation()
 
-  const navItems = [
+  const allNavItems = [
     { to: '/', label: t('nav.myWorld'), icon: '🌍' },
     { to: '/seasons', label: t('nav.seasons'), icon: '📅' },
     { to: '/species', label: t('nav.species'), icon: '🌿' },
     { to: '/plants', label: t('nav.plants'), icon: '🌱' },
     { to: '/tasks', label: t('nav.tasks'), icon: '📋' },
     { to: '/seeds', label: t('nav.seeds'), icon: '🫘' },
-    { to: '/successions', label: t('nav.successions'), icon: '🔄' },
-    { to: '/targets', label: t('nav.targets'), icon: '🎯' },
-    { to: '/calendar', label: t('nav.calendar'), icon: '📊' },
+    { to: '/successions', label: t('nav.successions'), icon: '🔄', advanced: true },
+    { to: '/targets', label: t('nav.targets'), icon: '🎯', advanced: true },
+    { to: '/calendar', label: t('nav.calendar'), icon: '📊', advanced: true },
     { to: '/customers', label: t('nav.customers'), icon: '👥' },
-    { to: '/bouquets', label: t('nav.bouquets'), icon: '💐' },
-    { to: '/trials', label: t('nav.trials'), icon: '🔬' },
-    { to: '/pest-disease', label: t('nav.pestDisease'), icon: '🐛' },
-    { to: '/analytics', label: t('nav.analytics'), icon: '📈' },
-    { to: '/market/listings', label: t('nav.myListings'), icon: '📦' },
-    { to: '/market/incoming', label: t('nav.incomingOrders'), icon: '📥' },
+    { to: '/bouquets', label: t('nav.bouquets'), icon: '💐', advanced: true },
+    { to: '/trials', label: t('nav.trials'), icon: '🔬', advanced: true },
+    { to: '/pest-disease', label: t('nav.pestDisease'), icon: '🐛', advanced: true },
+    { to: '/analytics', label: t('nav.analytics'), icon: '📈', advanced: true },
+    { to: '/market/listings', label: t('nav.myListings'), icon: '📦', advanced: true },
+    { to: '/market/incoming', label: t('nav.incomingOrders'), icon: '📥', advanced: true },
     { to: '/guide', label: t('nav.guide'), icon: '📖' },
     { to: '/account', label: t('nav.account'), icon: '👤' },
   ]
+
+  const navItems = allNavItems.filter(item => !item.advanced || user?.advancedMode)
 
   const changeLang = (lang: string) => {
     localStorage.setItem('verdant-lang', lang)
@@ -137,7 +138,6 @@ export function Layout() {
           </header>
 
           <main className="flex-1 w-full px-4 md:px-8 py-6 flex flex-col">
-            <OnboardingHint />
             <Outlet />
           </main>
         </div>

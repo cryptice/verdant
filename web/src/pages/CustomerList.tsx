@@ -6,6 +6,7 @@ import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { Pagination } from '../components/Pagination'
+import { OnboardingHint } from '../onboarding/OnboardingHint'
 
 const PAGE_SIZE = 50
 
@@ -125,6 +126,7 @@ export function CustomerList() {
   return (
     <div>
       <PageHeader title={t('customers.title')} action={{ label: t('customers.newCustomer'), onClick: openAdd, 'data-onboarding': 'add-customer-btn' }} />
+      <OnboardingHint />
       <div className="px-4 py-4">
         {data && data.length === 0 && (
           <p className="text-text-secondary text-sm text-center py-4">{t('customers.noCustomers')}</p>

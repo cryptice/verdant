@@ -35,6 +35,7 @@ class UserResource(
             displayName = request.displayName ?: user.displayName,
             avatarUrl = request.avatarUrl ?: user.avatarUrl,
             language = request.language ?: user.language,
+            advancedMode = request.advancedMode ?: user.advancedMode,
         )
         userRepository.update(updated)
         return updated.toResponse()

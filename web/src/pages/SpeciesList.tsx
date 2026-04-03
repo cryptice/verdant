@@ -7,6 +7,7 @@ import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { Pagination } from '../components/Pagination'
+import { OnboardingHint } from '../onboarding/OnboardingHint'
 
 const PAGE_SIZE = 50
 
@@ -78,6 +79,7 @@ export function SpeciesList() {
   return (
     <div>
       <PageHeader title={t('species.title')} action={{ label: t('species.newSpecies'), onClick: () => setShowAdd(true) }} />
+      <OnboardingHint />
 
       <div className="px-4 py-3">
         <input

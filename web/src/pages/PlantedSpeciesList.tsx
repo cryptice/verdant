@@ -6,6 +6,7 @@ import { api } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Pagination } from '../components/Pagination'
+import { OnboardingHint } from '../onboarding/OnboardingHint'
 
 const PAGE_SIZE = 50
 
@@ -33,6 +34,7 @@ export function PlantedSpeciesList() {
   return (
     <div>
       <PageHeader title={t('species.plantedTitle')} />
+      <OnboardingHint />
       <div data-onboarding="plant-actions" className="px-4 py-4 space-y-3">
         <input
           aria-label={t('common.searchSpecies')}

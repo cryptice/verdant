@@ -8,9 +8,14 @@ import { PageHeader } from '../components/PageHeader'
 import { Dialog } from '../components/Dialog'
 
 export function Account() {
-  const { user, logout } = useAuth()
+  const { user, logout, refreshUser } = useAuth()
   const { t } = useTranslation()
   const [showDelete, setShowDelete] = useState(false)
+
+  const advancedModeMut = useMutation({
+    mutationFn: (enabled: boolean) => api.user.update({ advancedMode: enabled }),
+    onSuccess: () => refreshUser(),
+  })
 
   const deleteMut = useMutation({
     mutationFn: () => api.user.delete(),
@@ -44,6 +49,28 @@ export function Account() {
         <button onClick={logout} className="btn-secondary w-full">
           {t('account.signOut')}
         </button>
+
+        <div className="card flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-text-primary">{t('account.advancedMode')}</p>
+            <p className="text-xs text-text-secondary mt-0.5">{t('account.advancedModeDescription')}</p>
+          </div>
+          <button
+            role="switch"
+            aria-checked={user.advancedMode}
+            onClick={() => advancedModeMut.mutate(!user.advancedMode)}
+            disabled={advancedModeMut.isPending}
+            className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none disabled:opacity-50 ${
+              user.advancedMode ? 'bg-accent' : 'bg-divider'
+            }`}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${
+                user.advancedMode ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
 
         <Link to="/privacy" className="block px-3 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-surface rounded-md transition-colors">
           {t('privacy.title')}

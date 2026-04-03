@@ -6,6 +6,7 @@ import { api, type SpeciesResponse } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import type { BreadcrumbItem } from '../components/Breadcrumb'
+import { OnboardingHint } from '../onboarding/OnboardingHint'
 
 const activityTypes = ['SOW', 'POT_UP', 'PLANT', 'HARVEST', 'RECOVER', 'DISCARD']
 
@@ -72,6 +73,7 @@ export function TaskForm() {
   return (
     <div className="max-w-lg">
       <PageHeader title={isEdit ? t('tasks.editTaskTitle') : t('tasks.newTaskTitle')} breadcrumbs={breadcrumbs} />
+      <OnboardingHint />
       <div data-onboarding="task-form" className="form-card">
         <div>
           <label className="field-label">{t('common.speciesLabel')}</label>

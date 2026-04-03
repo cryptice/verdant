@@ -63,5 +63,6 @@ fun User.toResponse() = UserResponse(
     role = role,
     language = language,
     onboarding = onboardingJson,
+    advancedMode = advancedMode,
     createdAt = createdAt
 )

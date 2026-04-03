@@ -12,6 +12,7 @@ data class UserResponse(
     val role: Role,
     val language: String,
     val onboarding: String?,
+    val advancedMode: Boolean,
     val createdAt: Instant
 )
 
@@ -22,6 +23,7 @@ data class UpdateUserRequest(
     val avatarUrl: String? = null,
     @field:Size(max = 10)
     val language: String? = null,
+    val advancedMode: Boolean? = null,
 )
 
 data class UpdateOnboardingRequest(

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { api, type SeasonResponse } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
+import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { Dialog } from '../components/Dialog'
 import { Pagination } from '../components/Pagination'
 
@@ -127,6 +128,7 @@ export function SeasonList() {
   return (
     <div>
       <PageHeader title={t('seasons.title')} action={{ label: t('seasons.newSeason'), onClick: openAdd }} />
+      <OnboardingHint />
       <div className="px-4 py-4">
         {data && data.length === 0 && (
           <p className="text-text-secondary text-sm text-center py-4">{t('seasons.noSeasons')}</p>

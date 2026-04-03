@@ -12,6 +12,7 @@ data class User(
     val role: Role = Role.USER,
     val language: String = "sv",
     val onboardingJson: String? = null,
+    val advancedMode: Boolean = false,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),
 )

@@ -6,6 +6,7 @@ import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
+import { OnboardingHint } from '../onboarding/OnboardingHint'
 
 const ROLES = ['FLOWER', 'FOLIAGE', 'FILLER', 'ACCENT'] as const
 
@@ -169,6 +170,7 @@ export function BouquetRecipes() {
   return (
     <div>
       <PageHeader title={t('bouquets.title')} action={{ label: t('bouquets.new'), onClick: openAdd, 'data-onboarding': 'add-bouquet-btn' }} />
+      <OnboardingHint />
       <div className="px-4 py-4">
         {data && data.length === 0 && (
           <p className="text-text-secondary text-sm text-center py-4">{t('bouquets.noRecipes')}</p>

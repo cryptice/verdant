@@ -60,8 +60,8 @@ class UserRepository(private val ds: AgroalDataSource) {
     fun persist(user: User): User {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO app_user (google_subject, email, display_name, avatar_url, password_hash, role, language, onboarding_json, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
+                """INSERT INTO app_user (google_subject, email, display_name, avatar_url, password_hash, role, language, onboarding_json, advanced_mode, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setString(1, user.googleSubject)
@@ -72,6 +72,7 @@ class UserRepository(private val ds: AgroalDataSource) {
                 ps.setString(6, user.role.name)
                 ps.setString(7, user.language)
                 ps.setString(8, user.onboardingJson)
+                ps.setBoolean(9, user.advancedMode)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -85,7 +86,7 @@ class UserRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """UPDATE app_user SET google_subject = ?, email = ?, display_name = ?, avatar_url = ?,
-                   password_hash = ?, role = ?, language = ?, onboarding_json = ?, updated_at = now() WHERE id = ?"""
+                   password_hash = ?, role = ?, language = ?, onboarding_json = ?, advanced_mode = ?, updated_at = now() WHERE id = ?"""
             ).use { ps ->
                 ps.setString(1, user.googleSubject)
                 ps.setString(2, user.email)
@@ -95,7 +96,8 @@ class UserRepository(private val ds: AgroalDataSource) {
                 ps.setString(6, user.role.name)
                 ps.setString(7, user.language)
                 ps.setString(8, user.onboardingJson)
-                ps.setLong(9, user.id!!)
+                ps.setBoolean(9, user.advancedMode)
+                ps.setLong(10, user.id!!)
                 ps.executeUpdate()
             }
         }
@@ -121,6 +123,7 @@ class UserRepository(private val ds: AgroalDataSource) {
         role = Role.valueOf(getString("role")),
         language = getString("language") ?: "sv",
         onboardingJson = getString("onboarding_json"),
+        advancedMode = getBoolean("advanced_mode"),
         createdAt = getTimestamp("created_at").toInstant(),
         updatedAt = getTimestamp("updated_at").toInstant(),
     )

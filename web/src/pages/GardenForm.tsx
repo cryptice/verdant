@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import type { BreadcrumbItem } from '../components/Breadcrumb'
+import { OnboardingHint } from '../onboarding/OnboardingHint'
 
 const GARDEN_ICONS = [
   '🌱', '🌿', '🌾', '🌻', '🌸', '🌺', '🌼', '🍀',
@@ -31,6 +32,7 @@ export function GardenForm() {
   return (
     <div className="max-w-lg">
       <PageHeader title={t('garden.newGardenTitle')} breadcrumbs={breadcrumbs} />
+      <OnboardingHint />
       <div data-onboarding="garden-form" className="form-card">
         <div>
           <label className="field-label">{t('common.iconLabel')}</label>

@@ -7,6 +7,7 @@ import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { Pagination } from '../components/Pagination'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
+import { OnboardingHint } from '../onboarding/OnboardingHint'
 
 const PAGE_SIZE = 50
 
@@ -82,6 +83,7 @@ export function SeedInventory() {
   return (
     <div>
       <PageHeader title={t('seeds.title')} action={{ label: t('seeds.addSeeds'), onClick: () => setShowAdd(true), 'data-onboarding': 'add-seed-btn' }} />
+      <OnboardingHint />
       <div className="px-4 py-4">
         {data && data.length === 0 && (
           <p className="text-text-secondary text-sm text-center py-4">{t('seeds.noBatches')}</p>

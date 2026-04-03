@@ -5,6 +5,7 @@ import { api, type SpeciesResponse } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
+import { OnboardingHint } from '../onboarding/OnboardingHint'
 
 export function Analytics() {
   const { t } = useTranslation()
@@ -53,6 +54,7 @@ export function Analytics() {
   return (
     <div>
       <PageHeader title={t('analytics.title')} />
+      <OnboardingHint />
       <div data-onboarding="analytics-view" className="px-4 py-4 space-y-8">
 
         {/* ── Section 1: Season overview cards ── */}

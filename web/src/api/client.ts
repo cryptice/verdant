@@ -53,7 +53,7 @@ async function apiRequest<T>(path: string, options?: RequestInit): Promise<T> {
 export interface AuthResponse { token: string; user: UserResponse }
 export interface UserResponse {
   id: number; email: string; displayName: string; avatarUrl?: string
-  role: string; language?: string; onboarding?: string; createdAt: string
+  role: string; language?: string; onboarding?: string; advancedMode: boolean; createdAt: string
 }
 
 export interface DashboardResponse {
@@ -284,7 +284,7 @@ export const api = {
 
   user: {
     me: () => apiRequest<UserResponse>('/api/users/me'),
-    update: (data: { displayName?: string; language?: string }) =>
+    update: (data: { displayName?: string; language?: string; advancedMode?: boolean }) =>
       apiRequest<UserResponse>('/api/users/me', { method: 'PUT', body: JSON.stringify(data) }),
     delete: () => apiRequest<void>('/api/users/me', { method: 'DELETE' }),
     updateOnboarding: (data: { completedSteps?: string[]; dismissed?: boolean }) =>
