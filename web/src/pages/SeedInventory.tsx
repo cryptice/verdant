@@ -114,15 +114,7 @@ export function SeedInventory() {
                     <tr
                       key={item.id}
                       className="border-b border-divider last:border-0 hover:bg-surface cursor-pointer transition-colors"
-                      onClick={() => {
-                        setEditItem(item)
-                        setEditQuantity(String(item.quantity))
-                        setEditCollection(item.collectionDate ?? '')
-                        setEditExpiration(item.expirationDate ?? '')
-                        setEditCostUnit(item.costPerUnitSek != null ? String(item.costPerUnitSek) : '')
-                        setEditCostPackage(item.costPerUnitSek != null && item.quantity ? String(Math.round(item.costPerUnitSek * item.quantity)) : '')
-                        setEditUnitType(item.unitType ?? '')
-                      }}
+                      onClick={() => item.quantity > 0 && navigate(`/sow?speciesId=${item.speciesId}&seedBatchId=${item.id}`)}
                     >
                       <td className="px-4 py-2.5 text-sm">
                         {name}{variant ? <span className="text-text-secondary"> — {variant}</span> : ''}
@@ -133,20 +125,25 @@ export function SeedInventory() {
                       </td>
                       <td className="px-4 py-2.5 text-sm text-text-secondary">{item.expirationDate ?? '—'}</td>
                       <td className="px-4 py-2.5 text-sm text-right">
-                        {item.quantity > 0 && (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); navigate(`/sow?speciesId=${item.speciesId}&seedBatchId=${item.id}`) }}
-                            className="text-accent hover:text-accent-hover transition-colors"
-                            aria-label={t('seeds.sow')}
-                            title={t('seeds.sow')}
-                          >
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M8 14V7" />
-                              <path d="M8 7C8 7 5 5.5 4 3C3 0.5 5.5 0 8 2" />
-                              <path d="M8 7C8 7 11 5.5 12 3C13 0.5 10.5 0 8 2" />
-                            </svg>
-                          </button>
-                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setEditItem(item)
+                            setEditQuantity(String(item.quantity))
+                            setEditCollection(item.collectionDate ?? '')
+                            setEditExpiration(item.expirationDate ?? '')
+                            setEditCostUnit(item.costPerUnitSek != null ? String(item.costPerUnitSek) : '')
+                            setEditCostPackage(item.costPerUnitSek != null && item.quantity ? String(Math.round(item.costPerUnitSek * item.quantity)) : '')
+                            setEditUnitType(item.unitType ?? '')
+                          }}
+                          className="text-text-muted hover:text-text-secondary transition-colors"
+                          aria-label={t('common.edit')}
+                          title={t('common.edit')}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11.5 2.5l2 2M2 14l1-4L11 2l2 2-8 8-3 1z" />
+                          </svg>
+                        </button>
                       </td>
                     </tr>
                   )
