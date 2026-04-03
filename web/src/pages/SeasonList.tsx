@@ -101,7 +101,14 @@ export function SeasonList() {
       </div>
       <div>
         <label className="field-label">{t('seasons.year')} *</label>
-        <input type="number" value={formYear} onChange={e => setFormYear(e.target.value)} placeholder="e.g. 2026" className="input" />
+        <input type="number" value={formYear} onChange={e => {
+          const y = e.target.value
+          setFormYear(y)
+          if (y.length === 4) {
+            if (!formStartDate) setFormStartDate(`${y}-01-01`)
+            if (!formEndDate) setFormEndDate(`${y}-12-31`)
+          }
+        }} placeholder="e.g. 2026" className="input" />
       </div>
       <div>
         <label className="field-label">{t('seasons.startDate')}</label>
