@@ -569,9 +569,10 @@ class SpeciesService(
         groups: Map<Long?, SpeciesGroup>,
         tags: Map<Long?, SpeciesTag>,
     ): SpeciesResponse {
-        val tagIds = speciesRepository.findTagIdsForSpecies(id!!)
-        val photos = photoRepository.findBySpeciesId(id)
-        val providers = speciesProviderRepository.findBySpeciesId(id).map { it.toResponse() }
+        val speciesId = id!!
+        val tagIds = speciesRepository.findTagIdsForSpecies(speciesId)
+        val photos = photoRepository.findBySpeciesId(speciesId)
+        val providers = speciesProviderRepository.findBySpeciesId(speciesId).map { it.toResponse() }
         return toResponse(groups, tags, tagIds, photos, providers)
     }
 
