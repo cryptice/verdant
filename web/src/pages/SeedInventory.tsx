@@ -158,7 +158,12 @@ export function SeedInventory() {
           </div>
           <div>
             <label className="field-label">{t('seeds.quantityLabel')}</label>
-            <input type="number" value={addQuantity} onChange={e => setAddQuantity(e.target.value)} placeholder="e.g. 50" className="input" />
+            <input type="number" value={addQuantity} onChange={e => {
+              const v = e.target.value
+              setAddQuantity(v)
+              const qty = Number(v)
+              if (addCostUnit && qty) setAddCostPackage(String(Math.round(Number(addCostUnit) * qty)))
+            }} placeholder="e.g. 50" className="input" />
           </div>
           <div>
             <label className="field-label">{t('seeds.collectionDate')}</label>
@@ -215,7 +220,12 @@ export function SeedInventory() {
         <div className="space-y-4">
           <div>
             <label className="field-label">{t('seeds.quantityLabel')}</label>
-            <input type="number" value={editQuantity} onChange={e => setEditQuantity(e.target.value)} className="input w-full" />
+            <input type="number" value={editQuantity} onChange={e => {
+              const v = e.target.value
+              setEditQuantity(v)
+              const qty = Number(v)
+              if (editCostUnit && qty) setEditCostPackage(String(Math.round(Number(editCostUnit) * qty)))
+            }} className="input w-full" />
           </div>
           <div>
             <label className="field-label">{t('seeds.collectionDate')}</label>
