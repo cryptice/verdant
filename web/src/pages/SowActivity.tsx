@@ -127,7 +127,7 @@ export function SowActivity() {
         {speciesId && seedBatches && seedBatches.length > 0 && (
           <div>
             <label className="field-label">{t('sow.seedBatch')}</label>
-            <select value={seedBatchId} onChange={e => setSeedBatchId(e.target.value)} className="input">
+            <select value={seedBatchId} onChange={e => setSeedBatchId(e.target.value)} className="input w-full">
               <option value="">{t('sow.seedBatchNone')}</option>
               {seedBatches.map(b => (
                 <option key={b.id} value={b.id}>
@@ -163,7 +163,7 @@ export function SowActivity() {
         {!sowInTray && (
           <div data-onboarding="sow-location">
             <label className="field-label">{t('sow.bedLabel')}</label>
-            <select value={bedId} onChange={e => setBedId(e.target.value)} className="input">
+            <select value={bedId} onChange={e => setBedId(e.target.value)} className="input w-full">
               <option value="">{t('sow.selectBed')}</option>
               {beds?.map(b => <option key={b.id} value={b.id}>{b.gardenName} — {b.name}</option>)}
             </select>
@@ -177,7 +177,7 @@ export function SowActivity() {
 
         <div>
           <label className="field-label">{t('common.notesLabel')}</label>
-          <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('common.optional')} rows={2} className="input" />
+          <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('common.optional')} rows={2} className="input w-full" />
         </div>
 
       </div>
