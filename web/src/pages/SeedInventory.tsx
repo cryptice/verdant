@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api, type SeedInventoryResponse, type SpeciesResponse } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
@@ -13,6 +14,7 @@ const PAGE_SIZE = 50
 
 export function SeedInventory() {
   const qc = useQueryClient()
+  const navigate = useNavigate()
   const { t } = useTranslation()
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['seed-inventory'],
@@ -100,6 +102,7 @@ export function SeedInventory() {
                   <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('seeds.colSeeds')}</th>
                   <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('seeds.colCost')}</th>
                   <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('seeds.colExpires')}</th>
+                  <th className="px-4 py-2"></th>
                 </tr>
               </thead>
               <tbody>
@@ -129,6 +132,16 @@ export function SeedInventory() {
                         {item.costPerUnitSek != null ? `${item.costPerUnitSek} kr` : '—'}
                       </td>
                       <td className="px-4 py-2.5 text-sm text-text-secondary">{item.expirationDate ?? '—'}</td>
+                      <td className="px-4 py-2.5 text-sm text-right">
+                        {item.quantity > 0 && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); navigate(`/sow?speciesId=${item.speciesId}`) }}
+                            className="text-accent hover:text-accent-hover text-xs font-medium transition-colors"
+                          >
+                            {t('seeds.sow')}
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   )
                 })}
