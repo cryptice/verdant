@@ -230,7 +230,8 @@
   "sow": {
     "title": "Så",
     "seedBatch": "Fröparti",
-    "seedBatchNone": "Inget (valfritt)",
+    "seedBatchNone": "Dra inte av från utsäde",
+    "noSeedStock": "Inget utsäde finns för denna art. Du kan fortfarande så utan avdrag.",
     "destination": "Destination *",
     "bed": "Bädd",
     "tray": "Tråg",

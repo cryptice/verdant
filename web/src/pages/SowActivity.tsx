@@ -15,6 +15,7 @@ export function SowActivity() {
   const [params] = useSearchParams()
   const presetBedId = params.get('bedId') ? Number(params.get('bedId')) : null
   const presetSpeciesId = params.get('speciesId') ? Number(params.get('speciesId')) : null
+  const presetSeedBatchId = params.get('seedBatchId') ?? ''
   const taskId = params.get('taskId') ? Number(params.get('taskId')) : null
 
   const { data: beds } = useQuery({ queryKey: ['beds'], queryFn: api.beds.list })
@@ -66,7 +67,7 @@ export function SowActivity() {
     enabled: !!speciesId,
     select: (items) => items.filter(i => i.quantity > 0),
   })
-  const [seedBatchId, setSeedBatchId] = useState('')
+  const [seedBatchId, setSeedBatchId] = useState(presetSeedBatchId)
 
   const sowMut = useMutation({
     mutationFn: async () => {
@@ -124,17 +125,20 @@ export function SowActivity() {
           />
         </div>
 
-        {speciesId && seedBatches && seedBatches.length > 0 && (
+        {speciesId && (
           <div>
             <label className="field-label">{t('sow.seedBatch')}</label>
             <select value={seedBatchId} onChange={e => setSeedBatchId(e.target.value)} className="input w-full">
               <option value="">{t('sow.seedBatchNone')}</option>
-              {seedBatches.map(b => (
+              {seedBatches?.map(b => (
                 <option key={b.id} value={b.id}>
                   {t('seeds.seedCount', { count: b.quantity })}{b.collectionDate ? ` · ${b.collectionDate}` : ''}
                 </option>
               ))}
             </select>
+            {seedBatches && seedBatches.length === 0 && (
+              <p className="text-xs text-text-secondary mt-1">{t('sow.noSeedStock')}</p>
+            )}
           </div>
         )}
 

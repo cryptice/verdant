@@ -230,7 +230,8 @@
   "sow": {
     "title": "Sow",
     "seedBatch": "Seed batch",
-    "seedBatchNone": "None (optional)",
+    "seedBatchNone": "Don't deduct from seed stock",
+    "noSeedStock": "No seed stock available for this species. You can still sow without deducting.",
     "destination": "Destination *",
     "bed": "Bed",
     "tray": "Tray",

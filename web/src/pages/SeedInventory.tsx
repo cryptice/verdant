@@ -135,13 +135,15 @@ export function SeedInventory() {
                       <td className="px-4 py-2.5 text-sm text-right">
                         {item.quantity > 0 && (
                           <button
-                            onClick={(e) => { e.stopPropagation(); navigate(`/sow?speciesId=${item.speciesId}`) }}
+                            onClick={(e) => { e.stopPropagation(); navigate(`/sow?speciesId=${item.speciesId}&seedBatchId=${item.id}`) }}
                             className="text-accent hover:text-accent-hover transition-colors"
                             aria-label={t('seeds.sow')}
                             title={t('seeds.sow')}
                           >
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M8 2v8M5 7l3 3 3-3M3 13h10" />
+                              <path d="M8 14V7" />
+                              <path d="M8 7C8 7 5 5.5 4 3C3 0.5 5.5 0 8 2" />
+                              <path d="M8 7C8 7 11 5.5 12 3C13 0.5 10.5 0 8 2" />
                             </svg>
                           </button>
                         )}
