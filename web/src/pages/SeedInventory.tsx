@@ -156,14 +156,25 @@ export function SeedInventory() {
             <label className="field-label">{t('common.speciesLabel')}</label>
             <SpeciesAutocomplete value={addSpecies} onChange={setAddSpecies} />
           </div>
-          <div>
-            <label className="field-label">{t('seeds.quantityLabel')}</label>
-            <input type="number" value={addQuantity} onChange={e => {
-              const v = e.target.value
-              setAddQuantity(v)
-              const qty = Number(v)
-              if (addCostPackage && qty) setAddCostUnit(String(Math.round((Number(addCostPackage) / qty) * 100) / 100))
-            }} placeholder="e.g. 50" className="input" />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="field-label">{t('seeds.quantityLabel')}</label>
+              <input type="number" value={addQuantity} onChange={e => {
+                const v = e.target.value
+                setAddQuantity(v)
+                const qty = Number(v)
+                if (addCostPackage && qty) setAddCostUnit(String(Math.round((Number(addCostPackage) / qty) * 100) / 100))
+              }} placeholder="e.g. 50" className="input" />
+            </div>
+            <div>
+              <label className="field-label">{t('seeds.unitType')} *</label>
+              <select value={addUnitType} onChange={e => setAddUnitType(e.target.value)} className="input">
+                <option value="">{t('common.select')}</option>
+                {['SEED', 'PLUG', 'BULB', 'TUBER', 'PLANT'].map(ut => (
+                  <option key={ut} value={ut}>{t(`unitTypes.${ut}`)}</option>
+                ))}
+              </select>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -196,15 +207,6 @@ export function SeedInventory() {
             </div>
           </div>
           <p className="text-xs text-text-secondary -mt-2">{t('seeds.costHint')}</p>
-          <div>
-            <label className="field-label">{t('seeds.unitType')} *</label>
-            <select value={addUnitType} onChange={e => setAddUnitType(e.target.value)} className="input">
-              <option value="">{t('common.select')}</option>
-              {['SEED', 'PLUG', 'BULB', 'TUBER', 'PLANT'].map(ut => (
-                <option key={ut} value={ut}>{t(`unitTypes.${ut}`)}</option>
-              ))}
-            </select>
-          </div>
         </div>
       </Dialog>
 
