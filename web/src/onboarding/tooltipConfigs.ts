@@ -2,12 +2,6 @@ import type { PageTooltipConfig } from './types'
 
 const configs: PageTooltipConfig[] = [
   {
-    stepId: 'create_bed',
-    tooltips: [
-      { targetSelector: '[data-onboarding="add-bed-btn"]', titleKey: 'onboarding.tooltips.createBed.step2.title', descriptionKey: 'onboarding.tooltips.createBed.step2.description' },
-    ],
-  },
-  {
     stepId: 'browse_species',
     tooltips: [
       { targetSelector: '[data-onboarding="species-list"]', titleKey: 'onboarding.tooltips.browseSpecies.title', descriptionKey: 'onboarding.tooltips.browseSpecies.description' },
