@@ -4,6 +4,8 @@ export interface OnboardingStep {
   route: string
   /** Additional route prefixes where the hint should also appear */
   extraRoutePrefixes?: string[]
+  /** Dynamic route resolver — called at runtime to get the actual navigation target */
+  resolveRoute?: (queryClient: import('@tanstack/react-query').QueryClient) => string | null
   completionType: 'mutation' | 'visit' | 'query'
   queryKey?: string[]
   mutationQueryKeys?: string[][]

@@ -161,12 +161,12 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     const step = ONBOARDING_STEPS.find(s => s.id === stepId)
     if (!step) return
     setDrawerOpen(false)
-    // Only navigate if we're not already on a matching page
+    const targetRoute = step.resolveRoute?.(queryClient) ?? step.route
     const currentPath = window.location.pathname
-    const alreadyOnPage = currentPath === step.route ||
+    const alreadyOnPage = currentPath === targetRoute ||
       step.extraRoutePrefixes?.some(p => currentPath.startsWith(p))
     if (!alreadyOnPage) {
-      navigate(step.route)
+      navigate(targetRoute)
     }
     import('./tooltipConfigs').then(({ getTooltipConfig }) => {
       const config = getTooltipConfig(stepId)
