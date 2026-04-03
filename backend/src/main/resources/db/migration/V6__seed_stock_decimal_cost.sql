@@ -1,1 +1,2 @@
-ALTER TABLE seed_inventory ALTER COLUMN cost_per_unit_sek TYPE NUMERIC(10,2);
+-- cost_per_unit_sek stores öre (cents) as integer to avoid rounding
+-- No schema change needed — column is already INTEGER

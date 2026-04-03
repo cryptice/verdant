@@ -49,7 +49,7 @@ export function SeedInventory() {
       quantity: Number(addQuantity),
       collectionDate: addCollection || undefined,
       expirationDate: addExpiration || undefined,
-      costPerUnitSek: addCostUnit ? Number(addCostUnit) : undefined,
+      costPerUnitSek: addCostUnit ? Math.round(Number(addCostUnit) * 100) : undefined,
       unitType: addUnitType || undefined,
       speciesProviderId: addProviderId !== '' ? addProviderId : undefined,
     }),
@@ -68,7 +68,7 @@ export function SeedInventory() {
       quantity: Number(editQuantity),
       collectionDate: editCollection || undefined,
       expirationDate: editExpiration || undefined,
-      costPerUnitSek: editCostUnit ? Number(editCostUnit) : undefined,
+      costPerUnitSek: editCostUnit ? Math.round(Number(editCostUnit) * 100) : undefined,
       unitType: editUnitType || undefined,
       speciesProviderId: editProviderId !== '' ? editProviderId : undefined,
     }),
@@ -125,7 +125,7 @@ export function SeedInventory() {
                       </td>
                       <td className="px-4 py-2.5 text-sm text-right tabular-nums">{item.quantity}</td>
                       <td className="px-4 py-2.5 text-sm text-right tabular-nums text-text-secondary">
-                        {item.costPerUnitSek != null ? `${Number(item.costPerUnitSek).toFixed(2)} kr` : '—'}
+                        {item.costPerUnitSek != null ? `${(item.costPerUnitSek / 100).toFixed(2)} kr` : '—'}
                       </td>
                       <td className="px-4 py-2.5 text-sm text-text-secondary">{item.expirationDate ?? '—'}</td>
                       <td className="px-4 py-2.5 text-sm text-right">
@@ -136,8 +136,8 @@ export function SeedInventory() {
                             setEditQuantity(String(item.quantity))
                             setEditCollection(item.collectionDate ?? '')
                             setEditExpiration(item.expirationDate ?? '')
-                            setEditCostUnit(item.costPerUnitSek != null ? String(item.costPerUnitSek) : '')
-                            setEditCostPackage(item.costPerUnitSek != null && item.quantity ? String(Math.round(item.costPerUnitSek * item.quantity)) : '')
+                            setEditCostUnit(item.costPerUnitSek != null ? String(item.costPerUnitSek / 100) : '')
+                            setEditCostPackage(item.costPerUnitSek != null && item.quantity ? String((item.costPerUnitSek * item.quantity / 100).toFixed(2)) : '')
                             setEditUnitType(item.unitType ?? '')
                             setEditProviderId(item.speciesProviderId ?? '')
                           }}
