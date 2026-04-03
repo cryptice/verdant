@@ -157,7 +157,7 @@ export function SowActivity() {
           </div>
         )}
 
-        {!presetBedId && (
+        {speciesId && !presetBedId && (
           <div>
             <label className="field-label">{t('sow.destination')}</label>
             <div className="flex gap-2">
@@ -179,7 +179,7 @@ export function SowActivity() {
           </div>
         )}
 
-        {!sowInTray && (
+        {speciesId && !sowInTray && (
           <div data-onboarding="sow-location">
             <label className="field-label">{t('sow.bedLabel')}</label>
             <select value={bedId} onChange={e => setBedId(e.target.value)} className="input w-full">
@@ -189,15 +189,19 @@ export function SowActivity() {
           </div>
         )}
 
-        <div>
-          <label className="field-label">{t('sow.seedCount')}</label>
-          <input type="number" value={seedCount} onChange={e => setSeedCount(e.target.value)} placeholder="e.g. 12" className="input" />
-        </div>
+        {speciesId && (
+          <div>
+            <label className="field-label">{t('sow.seedCount')}</label>
+            <input type="number" value={seedCount} onChange={e => setSeedCount(e.target.value)} placeholder="e.g. 12" className="input" />
+          </div>
+        )}
 
-        <div>
-          <label className="field-label">{t('common.notesLabel')}</label>
-          <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('common.optional')} rows={2} className="input w-full" />
-        </div>
+        {speciesId && (
+          <div>
+            <label className="field-label">{t('common.notesLabel')}</label>
+            <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('common.optional')} rows={2} className="input w-full" />
+          </div>
+        )}
 
       </div>
 
