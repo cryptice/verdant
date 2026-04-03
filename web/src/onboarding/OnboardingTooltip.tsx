@@ -66,13 +66,15 @@ export function OnboardingTooltip({
       <p className="text-sm text-text-secondary">{t(descriptionKey)}</p>
 
       {/* Actions */}
-      <div className="flex items-center justify-between mt-3 pt-2 border-t border-divider/50">
-        <button
-          onClick={onSkip}
-          className="text-xs text-text-muted hover:text-text-secondary transition-colors"
-        >
-          {t('onboarding.tooltip.skip')}
-        </button>
+      <div className={`flex items-center mt-3 pt-2 border-t border-divider/50 ${totalSteps > 1 ? 'justify-between' : 'justify-end'}`}>
+        {totalSteps > 1 && (
+          <button
+            onClick={onSkip}
+            className="text-xs text-text-muted hover:text-text-secondary transition-colors"
+          >
+            {t('onboarding.tooltip.skip')}
+          </button>
+        )}
         <div className="flex gap-2">
           {!isFirst && (
             <button
@@ -86,7 +88,7 @@ export function OnboardingTooltip({
             onClick={onNext}
             className="text-xs px-2.5 py-1.5 rounded-lg bg-accent text-white hover:bg-accent-hover transition-colors font-medium"
           >
-            {isLast ? t('onboarding.tooltip.done') : t('onboarding.tooltip.next')}
+            {totalSteps === 1 || isLast ? t('onboarding.tooltip.done') : t('onboarding.tooltip.next')}
           </button>
         </div>
       </div>
