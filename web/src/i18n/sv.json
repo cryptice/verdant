@@ -297,6 +297,7 @@
   "seasons": {
     "title": "Säsonger",
     "newSeason": "+ Ny säsong",
+    "defaultName": "Huvudsäsong {{year}}",
     "editSeason": "Redigera säsong",
     "name": "Namn",
     "year": "År",

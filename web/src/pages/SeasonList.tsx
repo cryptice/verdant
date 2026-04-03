@@ -42,7 +42,15 @@ export function SeasonList() {
     setFormLastFrost(''); setFormFirstFrost(''); setFormNotes(''); setFormError(null)
   }
 
-  const openAdd = () => { resetForm(); setShowAdd(true) }
+  const openAdd = () => {
+    resetForm()
+    const year = String(new Date().getFullYear())
+    setFormYear(year)
+    setFormName(t('seasons.defaultName', { year }))
+    setFormStartDate(`${year}-01-01`)
+    setFormEndDate(`${year}-12-31`)
+    setShowAdd(true)
+  }
 
   const openEdit = (s: SeasonResponse) => {
     setFormName(s.name)

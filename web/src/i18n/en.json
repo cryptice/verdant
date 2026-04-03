@@ -297,6 +297,7 @@
   "seasons": {
     "title": "Seasons",
     "newSeason": "+ New season",
+    "defaultName": "Main season {{year}}",
     "editSeason": "Edit Season",
     "name": "Name",
     "year": "Year",
