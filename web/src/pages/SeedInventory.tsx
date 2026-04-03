@@ -228,7 +228,7 @@ export function SeedInventory() {
             </div>
           </div>
           <p className="text-xs text-text-secondary -mt-2">{t('seeds.costHint')}</p>
-          {addSpecies && addSpecies.providers.length > 0 && (
+          {addSpecies && (
             <div>
               <label className="field-label">{t('seeds.provider')}</label>
               <select value={addProviderId} onChange={e => setAddProviderId(e.target.value ? Number(e.target.value) : '')} className="input w-full">
@@ -308,7 +308,7 @@ export function SeedInventory() {
           <p className="text-xs text-text-secondary -mt-2">{t('seeds.costHint')}</p>
           {editItem && (() => {
             const sp = species?.find(s => s.id === editItem.speciesId)
-            return sp && sp.providers.length > 0 ? (
+            return sp ? (
               <div>
                 <label className="field-label">{t('seeds.provider')}</label>
                 <select value={editProviderId} onChange={e => setEditProviderId(e.target.value ? Number(e.target.value) : '')} className="input w-full">
