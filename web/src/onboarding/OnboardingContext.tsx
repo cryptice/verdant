@@ -101,10 +101,31 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }
   }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Listen for query cache updates to detect completed mutation steps
+  // Listen for mutation successes to detect completed action steps.
+  // We track invalidated query keys so we only mark steps complete when
+  // a mutation triggers a refetch, not on initial page-load fetches.
   useEffect(() => {
-    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+    const recentlyInvalidated = new Set<string>()
+
+    // When a mutation succeeds, record which queries it invalidates
+    const mutUnsub = queryClient.getMutationCache().subscribe((event) => {
+      if (event.type !== 'updated' || event.mutation?.state.status !== 'success') return
+      // After a mutation, queries get invalidated. Mark a short window.
+      for (const step of ONBOARDING_STEPS) {
+        if (step.mutationQueryKeys) {
+          for (const mk of step.mutationQueryKeys) {
+            recentlyInvalidated.add(mk.join(','))
+          }
+        }
+      }
+      // Clear after a short delay
+      setTimeout(() => recentlyInvalidated.clear(), 2000)
+    })
+
+    // When queries refetch after invalidation, check if they match onboarding steps
+    const queryUnsub = queryClient.getQueryCache().subscribe((event) => {
       if (event.type !== 'updated' || event.action.type !== 'success') return
+      if (recentlyInvalidated.size === 0) return
 
       const queryKey = event.query.queryKey
       for (const step of ONBOARDING_STEPS) {
@@ -113,6 +134,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         if (!step.mutationQueryKeys) continue
 
         const matches = step.mutationQueryKeys.some(mk =>
+          recentlyInvalidated.has(mk.join(',')) &&
           mk.length <= queryKey.length && mk.every((k, i) => k === queryKey[i])
         )
         if (matches) {
@@ -121,7 +143,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       }
     })
 
-    return unsubscribe
+    return () => { mutUnsub(); queryUnsub() }
   }, [queryClient, state.completedSteps, completeStep])
 
   const startStep = useCallback((stepId: string) => {
