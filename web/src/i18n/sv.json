@@ -34,6 +34,7 @@
     "add": "Lägg till",
     "dangerZone": "Riskzon",
     "optional": "Valfritt",
+    "none": "Ingen",
     "nameLabel": "Namn *",
     "descriptionLabel": "Beskrivning",
     "notesLabel": "Anteckningar",
@@ -226,7 +227,8 @@
     "unitType": "Typ",
     "colCost": "Kostnad",
     "sow": "Så",
-    "expires": "utg."
+    "expires": "utg.",
+    "provider": "Leverantör"
   },
   "sow": {
     "title": "Så",

@@ -34,6 +34,7 @@
     "add": "Add",
     "dangerZone": "Danger zone",
     "optional": "Optional",
+    "none": "None",
     "nameLabel": "Name *",
     "descriptionLabel": "Description",
     "notesLabel": "Notes",
@@ -226,7 +227,8 @@
     "unitType": "Type",
     "colCost": "Cost",
     "sow": "Sow",
-    "expires": "exp."
+    "expires": "exp.",
+    "provider": "Provider"
   },
   "sow": {
     "title": "Sow",
