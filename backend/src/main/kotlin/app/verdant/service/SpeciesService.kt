@@ -276,6 +276,8 @@ class SpeciesService(
                     imageFrontUrl = sp.imageFrontUrl,
                     imageBackUrl = sp.imageBackUrl,
                     productUrl = sp.productUrl,
+                    costPerUnitSek = sp.costPerUnitSek,
+                    unitType = sp.unitType.name,
                 )
             }
             SpeciesExportEntry(
@@ -319,11 +321,40 @@ class SpeciesService(
             .toMutableMap()
 
         var created = 0
+        var updated = 0
         var skipped = 0
+
+        // Map existing species by (commonName, variantName) for provider updates
+        val existingByKey = existingSpecies.associateBy { it.commonName to it.variantName }
 
         for (entry in entries) {
             val key = entry.commonName to entry.variantName
             if (key in existingKeys) {
+                // Update providers for existing species
+                val existing = existingByKey[key]
+                if (existing != null && entry.providers.isNotEmpty()) {
+                    val providersByIdentifier = providerRepository.findAll().associateBy { it.identifier }.toMutableMap()
+                    val existingProviderIds = speciesProviderRepository.findBySpeciesId(existing.id!!).map { it.providerId }.toSet()
+                    for (ep in entry.providers) {
+                        val provider = providersByIdentifier.getOrPut(ep.providerIdentifier) {
+                            providerRepository.persist(Provider(name = ep.providerName, identifier = ep.providerIdentifier))
+                        }
+                        if (provider.id!! !in existingProviderIds) {
+                            speciesProviderRepository.persist(
+                                SpeciesProvider(
+                                    speciesId = existing.id!!,
+                                    providerId = provider.id!!,
+                                    imageFrontUrl = ep.imageFrontUrl,
+                                    imageBackUrl = ep.imageBackUrl,
+                                    productUrl = ep.productUrl,
+                                    costPerUnitSek = ep.costPerUnitSek,
+                                    unitType = ep.unitType?.let { UnitType.valueOf(it) } ?: UnitType.SEED,
+                                )
+                            )
+                            updated++
+                        }
+                    }
+                }
                 skipped++
                 continue
             }
@@ -385,6 +416,8 @@ class SpeciesService(
                         imageFrontUrl = ep.imageFrontUrl,
                         imageBackUrl = ep.imageBackUrl,
                         productUrl = ep.productUrl,
+                        costPerUnitSek = ep.costPerUnitSek,
+                        unitType = ep.unitType?.let { UnitType.valueOf(it) } ?: UnitType.SEED,
                     )
                 )
             }
@@ -392,7 +425,7 @@ class SpeciesService(
             created++
         }
 
-        return ImportResult(created = created, skipped = skipped)
+        return ImportResult(created = created, updated = updated, skipped = skipped)
     }
 
     // ── Admin Species Providers ──

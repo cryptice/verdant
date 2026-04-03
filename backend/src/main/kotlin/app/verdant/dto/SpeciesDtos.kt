@@ -248,6 +248,8 @@ data class SpeciesExportProvider(
     val imageFrontUrl: String? = null,
     val imageBackUrl: String? = null,
     val productUrl: String? = null,
+    val costPerUnitSek: Int? = null,
+    val unitType: String? = null,
 )
 
 data class SpeciesExportEntry(
@@ -273,7 +275,7 @@ data class SpeciesExportEntry(
     val providers: List<SpeciesExportProvider> = emptyList(),
 )
 
-data class ImportResult(val created: Int, val skipped: Int)
+data class ImportResult(val created: Int, val updated: Int, val skipped: Int)
 
 data class ExtractSpeciesInfoRequest(
     @field:NotNull
