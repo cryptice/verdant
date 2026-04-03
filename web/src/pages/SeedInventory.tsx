@@ -164,11 +164,11 @@ export function SeedInventory() {
                 setAddQuantity(v)
                 const qty = Number(v)
                 if (addCostPackage && qty) setAddCostUnit(String(Math.round((Number(addCostPackage) / qty) * 100) / 100))
-              }} placeholder="e.g. 50" className="input" />
+              }} placeholder="e.g. 50" className="input w-full" />
             </div>
             <div>
               <label className="field-label">{t('seeds.unitType')} *</label>
-              <select value={addUnitType} onChange={e => setAddUnitType(e.target.value)} className="input">
+              <select value={addUnitType} onChange={e => setAddUnitType(e.target.value)} className="input w-full">
                 <option value="">{t('common.select')}</option>
                 {['SEED', 'PLUG', 'BULB', 'TUBER', 'PLANT'].map(ut => (
                   <option key={ut} value={ut}>{t(`unitTypes.${ut}`)}</option>
@@ -179,11 +179,11 @@ export function SeedInventory() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="field-label">{t('seeds.collectionDate')}</label>
-              <input type="date" value={addCollection} onChange={e => setAddCollection(e.target.value)} className="input" />
+              <input type="date" value={addCollection} onChange={e => setAddCollection(e.target.value)} className="input w-full" />
             </div>
             <div>
               <label className="field-label">{t('seeds.expirationDate')}</label>
-              <input type="date" value={addExpiration} onChange={e => setAddExpiration(e.target.value)} className="input" />
+              <input type="date" value={addExpiration} onChange={e => setAddExpiration(e.target.value)} className="input w-full" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -194,7 +194,7 @@ export function SeedInventory() {
                 setAddCostUnit(v)
                 const qty = Number(addQuantity)
                 setAddCostPackage(v && qty ? String(Math.round(Number(v) * qty)) : '')
-              }} placeholder="e.g. 2" className="input" />
+              }} placeholder="e.g. 2" className="input w-full" />
             </div>
             <div>
               <label className="field-label">{t('seeds.costPerPackage')}</label>
@@ -203,7 +203,7 @@ export function SeedInventory() {
                 setAddCostPackage(v)
                 const qty = Number(addQuantity)
                 setAddCostUnit(v && qty ? String(Math.round((Number(v) / qty) * 100) / 100) : '')
-              }} placeholder="e.g. 100" className="input" />
+              }} placeholder="e.g. 100" className="input w-full" />
             </div>
           </div>
           <p className="text-xs text-text-secondary -mt-2">{t('seeds.costHint')}</p>
