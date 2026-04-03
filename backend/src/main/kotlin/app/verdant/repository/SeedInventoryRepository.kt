@@ -142,7 +142,7 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
         quantity = getInt("quantity"),
         collectionDate = getObject("collection_date", java.time.LocalDate::class.java),
         expirationDate = getObject("expiration_date", java.time.LocalDate::class.java),
-        costPerUnitSek = getObject("cost_per_unit_sek") as? Int,
+        costPerUnitSek = getObject("cost_per_unit_sek")?.let { (it as Number).toDouble() },
         unitType = getString("unit_type")?.let { UnitType.valueOf(it) } ?: UnitType.SEED,
         seasonId = getObject("season_id") as? Long,
         speciesProviderId = getObject("species_provider_id") as? Long,

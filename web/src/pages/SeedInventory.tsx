@@ -125,7 +125,7 @@ export function SeedInventory() {
                       </td>
                       <td className="px-4 py-2.5 text-sm text-right tabular-nums">{item.quantity}</td>
                       <td className="px-4 py-2.5 text-sm text-right tabular-nums text-text-secondary">
-                        {item.costPerUnitSek != null ? `${item.costPerUnitSek} kr` : '—'}
+                        {item.costPerUnitSek != null ? `${Number(item.costPerUnitSek).toFixed(2)} kr` : '—'}
                       </td>
                       <td className="px-4 py-2.5 text-sm text-text-secondary">{item.expirationDate ?? '—'}</td>
                       <td className="px-4 py-2.5 text-sm text-right">

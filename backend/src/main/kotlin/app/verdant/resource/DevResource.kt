@@ -978,7 +978,7 @@ class DevResource(
 
         // ── Seed Inventory (2026 season) ──
         var seedInvCount = 0
-        fun inv(speciesId: Long, qty: Int, cost: Int, unit: UnitType = UnitType.SEED) {
+        fun inv(speciesId: Long, qty: Int, cost: Double, unit: UnitType = UnitType.SEED) {
             seedInventoryRepository.persist(SeedInventory(
                 userId = userId, speciesId = speciesId, quantity = qty, seasonId = s26,
                 collectionDate = LocalDate.of(2026, 1, 15),
@@ -987,22 +987,22 @@ class DevResource(
             ))
             seedInvCount++
         }
-        inv(cafeAuLait.id!!, 40, 4500, UnitType.TUBER)
-        inv(labyrinth.id!!, 30, 3800, UnitType.TUBER)
-        inv(cornel.id!!, 25, 3200, UnitType.TUBER)
-        inv(zinniaGiant.id!!, 500, 25)
-        inv(zinniaQLO.id!!, 300, 45)
-        inv(snapMadame.id!!, 400, 15)
-        inv(snapChantilly.id!!, 300, 20)
-        inv(sunProCut.id!!, 250, 50)
-        inv(sunSunrich.id!!, 200, 55)
-        inv(lisEcho.id!!, 150, 80)
-        inv(lisRosita.id!!, 100, 90)
-        inv(sweetPea.id!!, 600, 15)
-        inv(cosmosDC.id!!, 400, 20)
-        inv(cosmosAL.id!!, 250, 30)
-        inv(eucalyptus.id!!, 50, 35)
-        inv(ranunculus.id!!, 80, 200, UnitType.BULB)
+        inv(cafeAuLait.id!!, 40, 45.00, UnitType.TUBER)
+        inv(labyrinth.id!!, 30, 38.00, UnitType.TUBER)
+        inv(cornel.id!!, 25, 32.00, UnitType.TUBER)
+        inv(zinniaGiant.id!!, 500, 0.25)
+        inv(zinniaQLO.id!!, 300, 0.45)
+        inv(snapMadame.id!!, 400, 0.15)
+        inv(snapChantilly.id!!, 300, 0.20)
+        inv(sunProCut.id!!, 250, 0.50)
+        inv(sunSunrich.id!!, 200, 0.55)
+        inv(lisEcho.id!!, 150, 0.80)
+        inv(lisRosita.id!!, 100, 0.90)
+        inv(sweetPea.id!!, 600, 0.15)
+        inv(cosmosDC.id!!, 400, 0.20)
+        inv(cosmosAL.id!!, 250, 0.30)
+        inv(eucalyptus.id!!, 50, 0.35)
+        inv(ranunculus.id!!, 80, 2.00, UnitType.BULB)
 
         // ── Succession Schedules (2026) ──
         val succZinnia = successionScheduleRepository.persist(SuccessionSchedule(
