@@ -2,12 +2,6 @@ import type { PageTooltipConfig } from './types'
 
 const configs: PageTooltipConfig[] = [
   {
-    stepId: 'create_season',
-    tooltips: [
-      { targetSelector: '[data-onboarding="season-form"]', titleKey: 'onboarding.tooltips.createSeason.title', descriptionKey: 'onboarding.tooltips.createSeason.description' },
-    ],
-  },
-  {
     stepId: 'create_garden',
     tooltips: [
       { targetSelector: '[data-onboarding="garden-form"]', titleKey: 'onboarding.tooltips.createGarden.title', descriptionKey: 'onboarding.tooltips.createGarden.description' },

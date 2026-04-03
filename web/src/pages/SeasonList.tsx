@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { api, type SeasonResponse } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
-import { OnboardingHint } from '../onboarding/OnboardingHint'
+import { useOnboarding } from '../onboarding/OnboardingContext'
 import { Dialog } from '../components/Dialog'
 import { Pagination } from '../components/Pagination'
 
@@ -13,6 +13,8 @@ const PAGE_SIZE = 50
 export function SeasonList() {
   const qc = useQueryClient()
   const { t } = useTranslation()
+  const { isActive: isOnboardingActive, isStepComplete } = useOnboarding()
+  const isSeasonStepComplete = isStepComplete('create_season')
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['seasons'],
     queryFn: () => api.seasons.list(),
@@ -128,9 +130,20 @@ export function SeasonList() {
   return (
     <div>
       <PageHeader title={t('seasons.title')} action={{ label: t('seasons.newSeason'), onClick: openAdd }} />
-      <OnboardingHint />
+      {isOnboardingActive && !isSeasonStepComplete && (
+        <div className="bg-accent-light/50 border border-accent/15 rounded-2xl px-6 py-6 text-center">
+          <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3">
+            <span className="text-xl">📅</span>
+          </div>
+          <p className="font-semibold text-text-primary">{t('onboarding.steps.create_season')}</p>
+          <p className="text-sm text-text-secondary mt-1 max-w-md mx-auto">{t('onboarding.hints.create_season')}</p>
+          <button onClick={openAdd} className="btn-primary mt-4">
+            {t('seasons.newSeason')}
+          </button>
+        </div>
+      )}
       <div className="px-4 py-4">
-        {data && data.length === 0 && (
+        {data && data.length === 0 && !(isOnboardingActive && !isSeasonStepComplete) && (
           <p className="text-text-secondary text-sm text-center py-4">{t('seasons.noSeasons')}</p>
         )}
 
