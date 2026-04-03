@@ -136,9 +136,13 @@ export function SeedInventory() {
                         {item.quantity > 0 && (
                           <button
                             onClick={(e) => { e.stopPropagation(); navigate(`/sow?speciesId=${item.speciesId}`) }}
-                            className="text-accent hover:text-accent-hover text-xs font-medium transition-colors"
+                            className="text-accent hover:text-accent-hover transition-colors"
+                            aria-label={t('seeds.sow')}
+                            title={t('seeds.sow')}
                           >
-                            {t('seeds.sow')}
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M8 2v8M5 7l3 3 3-3M3 13h10" />
+                            </svg>
                           </button>
                         )}
                       </td>
