@@ -139,9 +139,9 @@ export function SowActivity() {
             <select value={seedBatchId} onChange={e => setSeedBatchId(e.target.value)} className="input w-full">
               <option value="">{t('sow.seedBatchNone')}</option>
               {seedBatches?.map(b => {
+                const unitLabel = b.unitType ? t(`unitTypes.${b.unitType}`) : ''
                 const parts = [
-                  t('seeds.seedCount', { count: b.quantity }),
-                  b.unitType ? t(`unitTypes.${b.unitType}`) : null,
+                  unitLabel ? `${b.quantity} ${unitLabel.toLowerCase()}` : String(b.quantity),
                   b.expirationDate ? `${t('seeds.expires')} ${b.expirationDate}` : null,
                 ]
                 return (
