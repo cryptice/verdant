@@ -19,7 +19,7 @@ export function OnboardingHint() {
   const showButton = !isVisit && hasTooltip
 
   return (
-    <div className="bg-accent-light/50 border border-accent/15 rounded-2xl px-6 py-5 flex items-center gap-4">
+    <div className="bg-accent-light/50 border border-accent/15 rounded-2xl px-6 py-5 mb-4 flex items-center gap-4">
       <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
         <span className="text-xl">🌿</span>
       </div>
