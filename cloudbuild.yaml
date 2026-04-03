@@ -14,7 +14,7 @@ steps:
       - '--cache-ttl=168h'
       - '--custom-platform=linux/amd64'
       - '--snapshot-mode=redo'
-      - '--ignore-path=/tmp'
+      - '--ignore-path=/tmp/hsperfdata_root'
       - '--build-arg=VITE_GOOGLE_CLIENT_ID'
     secretEnv:
       - 'VITE_GOOGLE_CLIENT_ID'
