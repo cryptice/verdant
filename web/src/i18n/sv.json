@@ -110,7 +110,7 @@
     "noHarvests": "Inga skördar ännu",
     "onboardingWidget": {
       "title": "Kom igång med Verdant",
-      "description": "Följ installationsguiden för att lära dig alla funktioner.",
+      "description": "Följ guiden för att lära dig alla funktioner i Verdant. Du kan alltid öppna listan genom att klicka på cirkeln i nedre högra hörnet.",
       "progress": "{{completed}} av {{total}} steg klara",
       "button": "Öppna guiden"
     }
