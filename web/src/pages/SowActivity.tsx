@@ -69,6 +69,13 @@ export function SowActivity() {
   })
   const [seedBatchId, setSeedBatchId] = useState(presetSeedBatchId)
 
+  // Auto-select first seed batch when species has stock
+  useEffect(() => {
+    if (!presetSeedBatchId && seedBatches && seedBatches.length > 0 && !seedBatchId) {
+      setSeedBatchId(String(seedBatches[0].id))
+    }
+  }, [seedBatches, presetSeedBatchId, seedBatchId])
+
   const sowMut = useMutation({
     mutationFn: async () => {
       const lang = i18n.language
