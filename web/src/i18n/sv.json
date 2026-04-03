@@ -141,7 +141,7 @@
   },
   "bed": {
     "plants": "Växter",
-    "addPlant": "+ Lägg till planta",
+    "addPlant": "+ Lägg till växter",
     "deleteBed": "Radera bädd",
     "noPlantsYet": "Inga plantor ännu.",
     "plantCount_one": "{{count}} planta",
@@ -152,7 +152,7 @@
     "descriptionOptionalPlaceholder": "Beskrivning (valfritt)",
     "deleteBedTitle": "Radera bädd",
     "deleteBedConfirm": "Detta raderar bädden och alla dess plantor. Är du säker?",
-    "addPlantTitle": "Lägg till planta",
+    "addPlantTitle": "Lägg till växter",
     "sowSeedsInBed": "Så frön i bädd",
     "newBedTitle": "Ny bädd",
     "createBed": "Skapa bädd",
