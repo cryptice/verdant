@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, useMemo, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../auth/AuthContext'
@@ -112,40 +112,44 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }
   }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Listen for query invalidations triggered by mutations.
-  // Track which query keys transition from stale→fresh after invalidation.
-  useEffect(() => {
-    let mutationInProgress = false
+  // Listen for query invalidations triggered by user-initiated mutations.
+  // Uses a ref so the flag persists across re-renders without recreating subscriptions.
+  const mutationInProgress = useRef(false)
+  const completedStepsRef = useRef(state.completedSteps)
+  completedStepsRef.current = state.completedSteps
 
+  useEffect(() => {
     const mutUnsub = queryClient.getMutationCache().subscribe((event) => {
-      if (event.type === 'updated' && event.mutation?.state.status === 'pending') {
-        mutationInProgress = true
+      if (event.type !== 'updated') return
+      const status = event.mutation?.state.status
+      // Ignore the onboarding sync mutation
+      const endpoint = event.mutation?.state.variables as { completedSteps?: unknown } | undefined
+      if (endpoint && 'completedSteps' in (endpoint ?? {})) return
+
+      if (status === 'pending') {
+        mutationInProgress.current = true
       }
-      if (event.type === 'updated' && event.mutation?.state.status === 'success') {
-        // Keep the flag on briefly to catch the refetches that follow
-        setTimeout(() => { mutationInProgress = false }, 2000)
+      if (status === 'success') {
+        setTimeout(() => { mutationInProgress.current = false }, 2000)
       }
     })
 
     const queryUnsub = queryClient.getQueryCache().subscribe((event) => {
-      if (!mutationInProgress) return
+      if (!mutationInProgress.current) return
       if (event.type !== 'updated' || event.action.type !== 'success') return
 
       const queryKey = event.query.queryKey
-      const fetchStatus = event.query.state.fetchStatus
-      // Only match queries that were just refetched (not from cache)
-      if (fetchStatus !== 'idle') return
+      if (event.query.state.fetchStatus !== 'idle') return
 
       for (const step of ONBOARDING_STEPS) {
         if (step.completionType !== 'mutation') continue
-        if (state.completedSteps.includes(step.id)) continue
+        if (completedStepsRef.current.includes(step.id)) continue
         if (!step.mutationQueryKeys) continue
 
         const matches = step.mutationQueryKeys.some(mk =>
           mk.length <= queryKey.length && mk.every((k, i) => k === queryKey[i])
         )
         if (matches) {
-          // Verify the query actually has data (not just a successful empty fetch)
           const data = event.query.state.data
           if (data && (Array.isArray(data) ? data.length > 0 : true)) {
             completeStep(step.id)
@@ -155,7 +159,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     })
 
     return () => { mutUnsub(); queryUnsub() }
-  }, [queryClient, state.completedSteps, completeStep])
+  }, [queryClient, completeStep])
 
   const startStep = useCallback((stepId: string) => {
     const step = ONBOARDING_STEPS.find(s => s.id === stepId)
