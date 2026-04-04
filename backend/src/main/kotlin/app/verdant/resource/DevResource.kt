@@ -138,7 +138,7 @@ class DevResource(
             "frequent_comment", "customer",
             "bed", "garden", "season",
             "species_tag_mapping",
-            "species_photo", "species_provider",
+            "species_photo",
         )
         ds.connection.use { conn ->
             conn.autoCommit = false
