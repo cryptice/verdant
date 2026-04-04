@@ -855,6 +855,20 @@ export function SpeciesDetailPage() {
           </section>
         )}
 
+        {/* Commercial & Classification */}
+        {(species.costPerSeedSek != null || species.expectedStemsPerPlant != null || species.expectedVaseLifeDays != null || species.plantType || species.defaultUnitType) && (
+          <section className="border border-[#E9E9E7] rounded-lg p-5">
+            <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Commercial & Classification</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <InfoField label="Cost per seed" value={species.costPerSeedSek != null ? `${(species.costPerSeedSek / 100).toFixed(2)} kr` : undefined} />
+              <InfoField label="Stems per plant" value={species.expectedStemsPerPlant} />
+              <InfoField label="Vase life (days)" value={species.expectedVaseLifeDays} />
+              <InfoField label="Plant type" value={species.plantType} />
+              <InfoField label="Default unit type" value={species.defaultUnitType} />
+            </div>
+          </section>
+        )}
+
         {/* Additional Photos */}
         {species.photos.length > 0 && (
           <section className="border border-[#E9E9E7] rounded-lg p-5">
