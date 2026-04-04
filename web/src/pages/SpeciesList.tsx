@@ -8,6 +8,7 @@ import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { Pagination } from '../components/Pagination'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
+import { GroupManagement } from '../components/GroupManagement'
 
 const PAGE_SIZE = 50
 
@@ -80,6 +81,7 @@ export function SpeciesList() {
     <div>
       <PageHeader title={t('species.title')} action={{ label: t('species.newSpecies'), onClick: () => setShowAdd(true) }} />
       <OnboardingHint />
+      <GroupManagement />
 
       <div className="px-4 py-3">
         <input
@@ -115,7 +117,7 @@ export function SpeciesList() {
                     <tr
                       key={s.id}
                       className="border-b border-divider last:border-0 hover:bg-surface cursor-pointer transition-colors"
-                      onClick={() => navigate(`/sow?speciesId=${s.id}`)}
+                      onClick={() => navigate(`/species/${s.id}`)}
                     >
                       <td className="px-4 py-2.5 text-sm">
                         {name}{variant ? <span className="text-text-secondary"> — {variant}</span> : ''}

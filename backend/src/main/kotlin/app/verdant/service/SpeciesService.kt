@@ -43,7 +43,10 @@ class SpeciesService(
     fun getSpecies(speciesId: Long, orgId: Long): SpeciesResponse {
         val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
         if (species.orgId != null && species.orgId != orgId) throw NotFoundException("Species not found")
-        val groups: Map<Long?, SpeciesGroup> = species.groupId?.let { groupRepository.findById(it) }?.let { mapOf(it.id to it) } ?: emptyMap()
+        val groupIds = groupRepository.findGroupIdsBySpeciesId(species.id!!)
+        val groups = if (groupIds.isNotEmpty()) {
+            groupIds.mapNotNull { groupRepository.findById(it) }.associateBy { it.id }
+        } else emptyMap<Long?, SpeciesGroup>()
         val tags = tagRepository.findByOrgId(orgId).associateBy { it.id }
         return species.toResponse(groups, tags)
     }
@@ -67,7 +70,6 @@ class SpeciesService(
                 bloomMonths = request.bloomMonths ?: emptyList(),
                 sowingMonths = request.sowingMonths ?: emptyList(),
                 germinationRate = request.germinationRate,
-                groupId = request.groupId,
                 costPerSeedSek = request.costPerSeedSek,
                 expectedStemsPerPlant = request.expectedStemsPerPlant,
                 expectedVaseLifeDays = request.expectedVaseLifeDays,
@@ -113,7 +115,6 @@ class SpeciesService(
             bloomMonths = request.bloomMonths ?: species.bloomMonths,
             sowingMonths = request.sowingMonths ?: species.sowingMonths,
             germinationRate = request.germinationRate ?: species.germinationRate,
-            groupId = request.groupId ?: species.groupId,
             costPerSeedSek = request.costPerSeedSek ?: species.costPerSeedSek,
             expectedStemsPerPlant = request.expectedStemsPerPlant ?: species.expectedStemsPerPlant,
             expectedVaseLifeDays = request.expectedVaseLifeDays ?: species.expectedVaseLifeDays,
@@ -152,7 +153,10 @@ class SpeciesService(
 
     fun getSpeciesAdmin(speciesId: Long): SpeciesResponse {
         val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
-        val groups: Map<Long?, SpeciesGroup> = species.groupId?.let { groupRepository.findById(it) }?.let { mapOf(it.id to it) } ?: emptyMap()
+        val groupIds = groupRepository.findGroupIdsBySpeciesId(species.id!!)
+        val groups = if (groupIds.isNotEmpty()) {
+            groupIds.mapNotNull { groupRepository.findById(it) }.associateBy { it.id }
+        } else emptyMap<Long?, SpeciesGroup>()
         val tags = tagRepository.findAll().associateBy { it.id }
         return species.toResponse(groups, tags)
     }
@@ -176,7 +180,6 @@ class SpeciesService(
                 bloomMonths = request.bloomMonths ?: emptyList(),
                 sowingMonths = request.sowingMonths ?: emptyList(),
                 germinationRate = request.germinationRate,
-                groupId = request.groupId,
                 costPerSeedSek = request.costPerSeedSek,
                 expectedStemsPerPlant = request.expectedStemsPerPlant,
                 expectedVaseLifeDays = request.expectedVaseLifeDays,
@@ -218,7 +221,6 @@ class SpeciesService(
             bloomMonths = request.bloomMonths ?: species.bloomMonths,
             sowingMonths = request.sowingMonths ?: species.sowingMonths,
             germinationRate = request.germinationRate ?: species.germinationRate,
-            groupId = request.groupId ?: species.groupId,
             costPerSeedSek = request.costPerSeedSek ?: species.costPerSeedSek,
             expectedStemsPerPlant = request.expectedStemsPerPlant ?: species.expectedStemsPerPlant,
             expectedVaseLifeDays = request.expectedVaseLifeDays ?: species.expectedVaseLifeDays,
@@ -253,28 +255,6 @@ class SpeciesService(
         photoRepository.delete(photoId)
     }
 
-    // ── Admin Groups ──
-
-    fun getAllGroups(): List<SpeciesGroupResponse> =
-        groupRepository.findAll().map { SpeciesGroupResponse(it.id!!, it.name) }
-
-    fun createGroupAdmin(request: CreateSpeciesGroupRequest): SpeciesGroupResponse {
-        val group = groupRepository.persist(SpeciesGroup(orgId = null, name = request.name))
-        return SpeciesGroupResponse(group.id!!, group.name)
-    }
-
-    fun updateGroupAdmin(id: Long, request: CreateSpeciesGroupRequest): SpeciesGroupResponse {
-        val group = groupRepository.findById(id) ?: throw NotFoundException("Group not found")
-        val updated = group.copy(name = request.name)
-        groupRepository.update(updated)
-        return SpeciesGroupResponse(updated.id!!, updated.name)
-    }
-
-    fun deleteGroupAdmin(id: Long) {
-        groupRepository.findById(id) ?: throw NotFoundException("Group not found")
-        groupRepository.delete(id)
-    }
-
     // ── Groups ──
 
     fun getGroupsForUser(orgId: Long): List<SpeciesGroupResponse> =
@@ -285,11 +265,42 @@ class SpeciesService(
         return SpeciesGroupResponse(group.id!!, group.name)
     }
 
+    fun updateGroup(groupId: Long, request: CreateSpeciesGroupRequest, orgId: Long): SpeciesGroupResponse {
+        val group = groupRepository.findById(groupId) ?: throw NotFoundException("Group not found")
+        if (group.orgId != orgId) throw NotFoundException("Group not found")
+        val updated = group.copy(name = request.name)
+        groupRepository.update(updated)
+        return SpeciesGroupResponse(updated.id!!, updated.name)
+    }
+
     fun deleteGroup(groupId: Long, orgId: Long) {
         val group = groupRepository.findById(groupId) ?: throw NotFoundException("Group not found")
-        if (group.orgId == null) throw ForbiddenException("Cannot delete system group")
         if (group.orgId != orgId) throw NotFoundException("Group not found")
         groupRepository.delete(groupId)
+    }
+
+    // ── Group Membership ──
+
+    fun addSpeciesToGroup(groupId: Long, speciesId: Long, orgId: Long) {
+        val group = groupRepository.findById(groupId) ?: throw NotFoundException("Group not found")
+        if (group.orgId != orgId) throw NotFoundException("Group not found")
+        speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
+        groupRepository.addSpeciesToGroup(speciesId, groupId)
+    }
+
+    fun removeSpeciesFromGroup(groupId: Long, speciesId: Long, orgId: Long) {
+        val group = groupRepository.findById(groupId) ?: throw NotFoundException("Group not found")
+        if (group.orgId != orgId) throw NotFoundException("Group not found")
+        groupRepository.removeSpeciesFromGroup(speciesId, groupId)
+    }
+
+    fun getGroupMembers(groupId: Long, orgId: Long): List<SpeciesResponse> {
+        val group = groupRepository.findById(groupId) ?: throw NotFoundException("Group not found")
+        if (group.orgId != orgId) throw NotFoundException("Group not found")
+        val allGroups = groupRepository.findByOrgId(orgId).associateBy { it.id }
+        val tags = tagRepository.findByOrgId(orgId).associateBy { it.id }
+        val speciesList = speciesRepository.findByGroupId(groupId)
+        return mapSpeciesList(speciesList, allGroups, tags)
     }
 
     // ── Tags ──
@@ -347,7 +358,7 @@ class SpeciesService(
                 bloomMonths = species.bloomMonths,
                 sowingMonths = species.sowingMonths,
                 germinationRate = species.germinationRate,
-                groupName = species.groupId?.let { groups[it]?.name },
+                groupNames = groupRepository.findGroupIdsBySpeciesId(species.id!!).mapNotNull { groups[it]?.name },
                 tagNames = tagIds.mapNotNull { tags[it]?.name },
                 providers = speciesProviders,
                 costPerSeedSek = species.costPerSeedSek,
@@ -413,12 +424,12 @@ class SpeciesService(
                 continue
             }
 
-            // Resolve group
-            val groupId = entry.groupName?.let { name ->
+            // Resolve groups
+            val groupIds = entry.groupNames.map { name ->
                 val group = groupsByName.getOrPut(name) {
                     groupRepository.persist(SpeciesGroup(orgId = null, name = name))
                 }
-                group.id
+                group.id!!
             }
 
             // Resolve tags
@@ -449,7 +460,6 @@ class SpeciesService(
                     bloomMonths = entry.bloomMonths,
                     sowingMonths = entry.sowingMonths,
                     germinationRate = entry.germinationRate,
-                    groupId = groupId,
                     costPerSeedSek = entry.costPerSeedSek,
                     expectedStemsPerPlant = entry.expectedStemsPerPlant,
                     expectedVaseLifeDays = entry.expectedVaseLifeDays,
@@ -460,6 +470,9 @@ class SpeciesService(
 
             if (tagIds.isNotEmpty()) {
                 speciesRepository.setTagsForSpecies(species.id!!, tagIds)
+            }
+            for (gid in groupIds) {
+                groupRepository.addSpeciesToGroup(species.id!!, gid)
             }
 
             // Restore providers
@@ -598,6 +611,7 @@ class SpeciesService(
     ): List<SpeciesResponse> {
         if (speciesList.isEmpty()) return emptyList()
         val ids = speciesList.map { it.id!! }.toSet()
+        val groupIdsBySpecies = groupRepository.findGroupIdsBySpeciesIds(ids)
         val tagIdsBySpecies = speciesRepository.findTagIdsBySpeciesIds(ids)
         val photosBySpecies = photoRepository.findBySpeciesIds(ids)
         val providersBySpecies = speciesProviderRepository.findBySpeciesIds(ids)
@@ -620,7 +634,7 @@ class SpeciesService(
                     unitType = sp.unitType.name,
                 )
             }
-            species.toResponse(groups, tags, tagIds, photos, providers)
+            species.toResponse(groups, tags, tagIds, photos, providers, groupIdsBySpecies)
         }
     }
 
@@ -632,7 +646,8 @@ class SpeciesService(
         val tagIds = speciesRepository.findTagIdsForSpecies(speciesId)
         val photos = photoRepository.findBySpeciesId(speciesId)
         val providers = speciesProviderRepository.findBySpeciesId(speciesId).map { it.toResponse() }
-        return toResponse(groups, tags, tagIds, photos, providers)
+        val groupIdsBySpecies = mapOf(speciesId to groupRepository.findGroupIdsBySpeciesId(speciesId))
+        return toResponse(groups, tags, tagIds, photos, providers, groupIdsBySpecies)
     }
 
     private fun Species.toResponse(
@@ -641,6 +656,7 @@ class SpeciesService(
         tagIds: List<Long>,
         photos: List<SpeciesPhoto>,
         providers: List<SpeciesProviderResponse>,
+        groupIdsBySpecies: Map<Long, List<Long>>,
     ): SpeciesResponse {
         return SpeciesResponse(
             id = id!!,
@@ -662,8 +678,9 @@ class SpeciesService(
             bloomMonths = bloomMonths,
             sowingMonths = sowingMonths,
             germinationRate = germinationRate,
-            groupId = groupId,
-            groupName = groupId?.let { groups[it]?.name },
+            groups = (groupIdsBySpecies[id] ?: emptyList()).mapNotNull { gid ->
+                groups[gid]?.let { SpeciesGroupResponse(it.id!!, it.name) }
+            },
             tags = tagIds.mapNotNull { tags[it]?.let { t -> SpeciesTagResponse(t.id!!, t.name) } },
             providers = providers,
             costPerSeedSek = costPerSeedSek,

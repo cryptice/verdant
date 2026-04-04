@@ -1018,5 +1018,37 @@
       "role": { "OWNER": "Ägare", "MEMBER": "Medlem" }
     },
     "nav": "Organisation"
+  },
+  "groups": {
+    "manageGroups": "Hantera grupper",
+    "newGroupPlaceholder": "Nytt gruppnamn...",
+    "create": "Skapa",
+    "remove": "Ta bort",
+    "empty": "Inga arter i denna grupp",
+    "noGroups": "Inga grupper ännu",
+    "addSpeciesPlaceholder": "Sök för att lägga till art..."
+  },
+  "speciesDetail": {
+    "basicInfo": "Grundinfo",
+    "commonNameSv": "Svenskt namn",
+    "plantType": "Växttyp",
+    "unitType": "Enhetstyp",
+    "growing": "Odling",
+    "daysToSprout": "Dagar till grodd",
+    "daysToHarvest": "Dagar till skörd",
+    "germinationTime": "Grodningstid",
+    "sowingDepth": "Sådjup",
+    "height": "Höjd",
+    "germinationRate": "Groningsgrad",
+    "bloomMonths": "Blomningsmånader",
+    "sowingMonths": "Såningsmånader",
+    "days": "dagar",
+    "commercial": "Kommersiellt",
+    "costPerSeed": "Kostnad per frö",
+    "stemsPerPlant": "Stjälkar per planta",
+    "vaseLife": "Vaslivslängd",
+    "groups": "Grupper",
+    "tags": "Taggar",
+    "providers": "Leverantörer"
   }
 }

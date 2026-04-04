@@ -113,8 +113,7 @@ export interface Species {
   bloomMonths: number[]
   sowingMonths: number[]
   germinationRate: number | null
-  groupId: number | null
-  groupName: string | null
+  groups: { id: number; name: string }[]
   tags: SpeciesTag[]
   providers: SpeciesProvider[]
   costPerSeedSek: number | null
@@ -149,7 +148,6 @@ export interface CreateSpeciesRequest {
   bloomMonths?: number[]
   sowingMonths?: number[]
   germinationRate?: number | null
-  groupId?: number | null
   tagIds?: number[]
   costPerSeedSek?: number | null
   expectedStemsPerPlant?: number | null
@@ -176,7 +174,6 @@ export interface UpdateSpeciesRequest {
   bloomMonths?: number[]
   sowingMonths?: number[]
   germinationRate?: number | null
-  groupId?: number | null
   tagIds?: number[] | null
   costPerSeedSek?: number | null
   expectedStemsPerPlant?: number | null
@@ -234,7 +231,7 @@ export interface SpeciesExportEntry {
   bloomMonths: number[]
   sowingMonths: number[]
   germinationRate: number | null
-  groupName: string | null
+  groupNames: string[]
   tagNames: string[]
   providers: SpeciesExportProvider[]
 }
@@ -311,13 +308,6 @@ export const api = {
         body: JSON.stringify(entries)
       }),
 
-    getSpeciesGroups: () => apiRequest<SpeciesGroup[]>('/api/admin/species/groups'),
-    createSpeciesGroup: (name: string) =>
-      apiRequest<SpeciesGroup>('/api/admin/species/groups', { method: 'POST', body: JSON.stringify({ name }) }),
-    updateSpeciesGroup: (id: number, name: string) =>
-      apiRequest<SpeciesGroup>(`/api/admin/species/groups/${id}`, { method: 'PUT', body: JSON.stringify({ name }) }),
-    deleteSpeciesGroup: (id: number) =>
-      apiRequest<void>(`/api/admin/species/groups/${id}`, { method: 'DELETE' }),
     getSpeciesTags: () => apiRequest<SpeciesTag[]>('/api/species/tags'),
 
     // Providers

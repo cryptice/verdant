@@ -17,6 +17,7 @@ import { TaskForm } from './pages/TaskForm'
 import { SeedInventory } from './pages/SeedInventory'
 import { SowActivity } from './pages/SowActivity'
 import { SpeciesList } from './pages/SpeciesList'
+import { SpeciesDetail } from './pages/SpeciesDetail'
 import { SeasonList } from './pages/SeasonList'
 import { CustomerList } from './pages/CustomerList'
 import { PestDiseaseLog } from './pages/PestDiseaseLog'
@@ -72,6 +73,7 @@ export function App() {
         <Route path="bed/:id" element={<BedDetail />} />
         <Route path="plant/:id" element={<PlantDetail />} />
         <Route path="plants" element={<PlantedSpeciesList />} />
+        <Route path="species/:id" element={<SpeciesDetail />} />
         <Route path="species/:speciesId/plants" element={<PlantedSpeciesDetail />} />
         <Route path="tasks" element={<TaskList />} />
         <Route path="task/new" element={<TaskForm />} />

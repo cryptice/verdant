@@ -137,6 +137,7 @@ class DevResource(
             "seed_inventory", "variety_trial", "pest_disease_log",
             "frequent_comment", "customer",
             "bed", "garden", "season",
+            "species_group_membership",
             "species_tag_mapping",
             "species_photo",
         )
@@ -201,9 +202,9 @@ class DevResource(
         val s26 = season2026.id!!
 
         // ── Species Groups ──
-        val grpFlowers = speciesGroupRepository.persist(SpeciesGroup(name = "Flowers"))
-        val grpFoliage = speciesGroupRepository.persist(SpeciesGroup(name = "Foliage"))
-        val grpBulbs = speciesGroupRepository.persist(SpeciesGroup(name = "Bulbs & Tubers"))
+        val grpFlowers = speciesGroupRepository.persist(SpeciesGroup(orgId = orgId, name = "Flowers"))
+        val grpFoliage = speciesGroupRepository.persist(SpeciesGroup(orgId = orgId, name = "Foliage"))
+        val grpBulbs = speciesGroupRepository.persist(SpeciesGroup(orgId = orgId, name = "Bulbs & Tubers"))
         val flowersId = grpFlowers.id!!
         val foliageId = grpFoliage.id!!
         val bulbsId = grpBulbs.id!!
@@ -227,7 +228,7 @@ class DevResource(
             growingPositions = listOf(GrowingPosition.SUNNY),
             soils = listOf(SoilType.LOAMY, SoilType.SANDY),
             bloomMonths = listOf(7, 8, 9, 10), sowingMonths = listOf(3, 4),
-            germinationRate = 95, groupId = bulbsId,
+            germinationRate = 95,
             costPerSeedSek = 4500, expectedStemsPerPlant = 15, expectedVaseLifeDays = 6,
             plantType = PlantType.TUBER,
         ))
@@ -240,7 +241,7 @@ class DevResource(
             growingPositions = listOf(GrowingPosition.SUNNY),
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(7, 8, 9, 10), sowingMonths = listOf(3, 4),
-            germinationRate = 95, groupId = bulbsId,
+            germinationRate = 95,
             costPerSeedSek = 3800, expectedStemsPerPlant = 12, expectedVaseLifeDays = 5,
             plantType = PlantType.TUBER,
         ))
@@ -253,7 +254,7 @@ class DevResource(
             growingPositions = listOf(GrowingPosition.SUNNY),
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(3, 4),
-            germinationRate = 93, groupId = bulbsId,
+            germinationRate = 93,
             costPerSeedSek = 3200, expectedStemsPerPlant = 10, expectedVaseLifeDays = 5,
             plantType = PlantType.TUBER,
         ))
@@ -266,7 +267,7 @@ class DevResource(
             growingPositions = listOf(GrowingPosition.SUNNY),
             soils = listOf(SoilType.LOAMY, SoilType.SANDY),
             bloomMonths = listOf(6, 7, 8, 9), sowingMonths = listOf(4, 5, 6),
-            germinationRate = 85, groupId = flowersId,
+            germinationRate = 85,
             costPerSeedSek = 25, expectedStemsPerPlant = 8, expectedVaseLifeDays = 8,
             plantType = PlantType.ANNUAL,
         ))
@@ -279,7 +280,7 @@ class DevResource(
             growingPositions = listOf(GrowingPosition.SUNNY),
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(4, 5, 6),
-            germinationRate = 80, groupId = flowersId,
+            germinationRate = 80,
             costPerSeedSek = 45, expectedStemsPerPlant = 6, expectedVaseLifeDays = 8,
             plantType = PlantType.ANNUAL,
         ))
@@ -292,7 +293,7 @@ class DevResource(
             growingPositions = listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY),
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(6, 7, 8), sowingMonths = listOf(2, 3),
-            germinationRate = 75, groupId = flowersId,
+            germinationRate = 75,
             costPerSeedSek = 15, expectedStemsPerPlant = 5, expectedVaseLifeDays = 7,
             plantType = PlantType.ANNUAL,
         ))
@@ -305,7 +306,7 @@ class DevResource(
             growingPositions = listOf(GrowingPosition.SUNNY),
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(6, 7, 8), sowingMonths = listOf(2, 3),
-            germinationRate = 78, groupId = flowersId,
+            germinationRate = 78,
             costPerSeedSek = 20, expectedStemsPerPlant = 6, expectedVaseLifeDays = 8,
             plantType = PlantType.ANNUAL,
         ))
@@ -318,7 +319,7 @@ class DevResource(
             growingPositions = listOf(GrowingPosition.SUNNY),
             soils = listOf(SoilType.LOAMY, SoilType.SANDY),
             bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(5, 6, 7),
-            germinationRate = 90, groupId = flowersId,
+            germinationRate = 90,
             costPerSeedSek = 50, expectedStemsPerPlant = 1, expectedVaseLifeDays = 7,
             plantType = PlantType.ANNUAL,
         ))
@@ -331,7 +332,7 @@ class DevResource(
             growingPositions = listOf(GrowingPosition.SUNNY),
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(5, 6, 7),
-            germinationRate = 88, groupId = flowersId,
+            germinationRate = 88,
             costPerSeedSek = 55, expectedStemsPerPlant = 1, expectedVaseLifeDays = 8,
             plantType = PlantType.ANNUAL,
         ))
@@ -344,7 +345,7 @@ class DevResource(
             growingPositions = listOf(GrowingPosition.SUNNY),
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(1, 2),
-            germinationRate = 60, groupId = flowersId,
+            germinationRate = 60,
             costPerSeedSek = 80, expectedStemsPerPlant = 4, expectedVaseLifeDays = 12,
             plantType = PlantType.ANNUAL,
         ))
@@ -357,7 +358,7 @@ class DevResource(
             growingPositions = listOf(GrowingPosition.SUNNY),
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(1, 2),
-            germinationRate = 55, groupId = flowersId,
+            germinationRate = 55,
             costPerSeedSek = 90, expectedStemsPerPlant = 3, expectedVaseLifeDays = 12,
             plantType = PlantType.ANNUAL,
         ))
@@ -370,7 +371,7 @@ class DevResource(
             growingPositions = listOf(GrowingPosition.SUNNY),
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(6, 7), sowingMonths = listOf(3, 4),
-            germinationRate = 80, groupId = flowersId,
+            germinationRate = 80,
             costPerSeedSek = 15, expectedStemsPerPlant = 20, expectedVaseLifeDays = 5,
             plantType = PlantType.ANNUAL,
         ))
@@ -383,7 +384,7 @@ class DevResource(
             growingPositions = listOf(GrowingPosition.SUNNY),
             soils = listOf(SoilType.LOAMY, SoilType.SANDY),
             bloomMonths = listOf(7, 8, 9, 10), sowingMonths = listOf(4, 5),
-            germinationRate = 85, groupId = flowersId,
+            germinationRate = 85,
             costPerSeedSek = 20, expectedStemsPerPlant = 10, expectedVaseLifeDays = 6,
             plantType = PlantType.ANNUAL,
         ))
@@ -396,7 +397,7 @@ class DevResource(
             growingPositions = listOf(GrowingPosition.SUNNY),
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(7, 8, 9), sowingMonths = listOf(4, 5),
-            germinationRate = 82, groupId = flowersId,
+            germinationRate = 82,
             costPerSeedSek = 30, expectedStemsPerPlant = 8, expectedVaseLifeDays = 5,
             plantType = PlantType.ANNUAL,
         ))
@@ -409,7 +410,7 @@ class DevResource(
             growingPositions = listOf(GrowingPosition.SUNNY),
             soils = listOf(SoilType.LOAMY, SoilType.SANDY),
             bloomMonths = emptyList(), sowingMonths = listOf(2, 3),
-            germinationRate = 50, groupId = foliageId,
+            germinationRate = 50,
             costPerSeedSek = 35, expectedStemsPerPlant = 20, expectedVaseLifeDays = 14,
             plantType = PlantType.PERENNIAL,
         ))
@@ -422,7 +423,7 @@ class DevResource(
             growingPositions = listOf(GrowingPosition.SUNNY, GrowingPosition.PARTIALLY_SUNNY),
             soils = listOf(SoilType.LOAMY),
             bloomMonths = listOf(5, 6, 7), sowingMonths = listOf(2, 3),
-            germinationRate = 70, groupId = bulbsId,
+            germinationRate = 70,
             costPerSeedSek = 200, expectedStemsPerPlant = 8, expectedVaseLifeDays = 7,
             plantType = PlantType.BULB,
         ))
@@ -433,6 +434,16 @@ class DevResource(
             lisEcho, lisRosita, sweetPea, cosmosDC, cosmosAL,
             eucalyptus, ranunculus,
         )
+
+        // Group assignments
+        listOf(cafeAuLait, labyrinth, cornel, ranunculus).forEach {
+            speciesGroupRepository.addSpeciesToGroup(it.id!!, bulbsId)
+        }
+        listOf(zinniaGiant, zinniaQLO, snapMadame, snapChantilly, sunProCut, sunSunrich,
+            lisEcho, lisRosita, sweetPea, cosmosDC, cosmosAL).forEach {
+            speciesGroupRepository.addSpeciesToGroup(it.id!!, flowersId)
+        }
+        speciesGroupRepository.addSpeciesToGroup(eucalyptus.id!!, foliageId)
 
         // Tag assignments
         val annualId = tagAnnual.id!!

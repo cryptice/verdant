@@ -1018,5 +1018,37 @@
       "role": { "OWNER": "Owner", "MEMBER": "Member" }
     },
     "nav": "Organization"
+  },
+  "groups": {
+    "manageGroups": "Manage Groups",
+    "newGroupPlaceholder": "New group name...",
+    "create": "Create",
+    "remove": "Remove",
+    "empty": "No species in this group",
+    "noGroups": "No groups yet",
+    "addSpeciesPlaceholder": "Search to add species..."
+  },
+  "speciesDetail": {
+    "basicInfo": "Basic Info",
+    "commonNameSv": "Swedish Name",
+    "plantType": "Plant Type",
+    "unitType": "Unit Type",
+    "growing": "Growing",
+    "daysToSprout": "Days to Sprout",
+    "daysToHarvest": "Days to Harvest",
+    "germinationTime": "Germination Time",
+    "sowingDepth": "Sowing Depth",
+    "height": "Height",
+    "germinationRate": "Germination Rate",
+    "bloomMonths": "Bloom Months",
+    "sowingMonths": "Sowing Months",
+    "days": "days",
+    "commercial": "Commercial",
+    "costPerSeed": "Cost per Seed",
+    "stemsPerPlant": "Stems per Plant",
+    "vaseLife": "Vase Life",
+    "groups": "Groups",
+    "tags": "Tags",
+    "providers": "Providers"
   }
 }

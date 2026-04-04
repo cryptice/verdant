@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api, type Species, type UpdateSpeciesRequest, type CreateSpeciesRequest, type SpeciesPhoto, type SpeciesExportEntry, type AddSpeciesProviderRequest, type SpeciesGroup, type SpeciesTag } from '../api/client'
+import { api, type Species, type UpdateSpeciesRequest, type CreateSpeciesRequest, type SpeciesPhoto, type SpeciesExportEntry, type AddSpeciesProviderRequest, type SpeciesTag } from '../api/client'
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import ErrorDisplay from '../components/ErrorDisplay'
@@ -24,180 +24,6 @@ function fileToBase64(file: File): Promise<string> {
     reader.onerror = reject
     reader.readAsDataURL(file)
   })
-}
-
-// ── Manage Groups Section ──
-
-function ManageGroupsSection() {
-  const queryClient = useQueryClient()
-  const [open, setOpen] = useState(false)
-  const [newName, setNewName] = useState('')
-  const [editingId, setEditingId] = useState<number | null>(null)
-  const [editingName, setEditingName] = useState('')
-  const [deletingId, setDeletingId] = useState<number | null>(null)
-
-  const { data: groups } = useQuery({
-    queryKey: ['admin', 'speciesGroups'],
-    queryFn: api.admin.getSpeciesGroups,
-    enabled: open,
-  })
-
-  const createMutation = useMutation({
-    mutationFn: (name: string) => api.admin.createSpeciesGroup(name),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'speciesGroups'] })
-      queryClient.invalidateQueries({ queryKey: ['admin', 'species'] })
-      setNewName('')
-    }
-  })
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, name }: { id: number; name: string }) => api.admin.updateSpeciesGroup(id, name),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'speciesGroups'] })
-      queryClient.invalidateQueries({ queryKey: ['admin', 'species'] })
-      setEditingId(null)
-    }
-  })
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => api.admin.deleteSpeciesGroup(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'speciesGroups'] })
-      queryClient.invalidateQueries({ queryKey: ['admin', 'species'] })
-      setDeletingId(null)
-    }
-  })
-
-  const startEdit = (group: SpeciesGroup) => {
-    setEditingId(group.id)
-    setEditingName(group.name)
-  }
-
-  return (
-    <div className="mb-5 border border-[#E9E9E7] rounded-lg overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-4 py-3 bg-[#FBFBFA] hover:bg-[#F0F0EE] transition-colors text-sm font-medium text-[#37352F]"
-      >
-        <span>Manage Groups</span>
-        <svg
-          className={`w-4 h-4 text-[#787774] transition-transform ${open ? 'rotate-180' : ''}`}
-          fill="none" stroke="currentColor" viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-
-      {open && (
-        <div className="px-4 py-3 border-t border-[#E9E9E7]">
-          {groups && groups.length > 0 ? (
-            <ul className="space-y-1 mb-3">
-              {groups.map(g => (
-                <li key={g.id} className="flex items-center gap-2 py-1">
-                  {editingId === g.id ? (
-                    <>
-                      <input
-                        autoFocus
-                        type="text"
-                        value={editingName}
-                        onChange={e => setEditingName(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter' && editingName.trim()) updateMutation.mutate({ id: g.id, name: editingName.trim() })
-                          if (e.key === 'Escape') setEditingId(null)
-                        }}
-                        className="flex-1 px-2 py-1 border border-[#2EAADC] rounded text-sm outline-none focus:ring-2 focus:ring-[#2EAADC]/30"
-                      />
-                      <button
-                        type="button"
-                        disabled={!editingName.trim() || updateMutation.isPending}
-                        onClick={() => { if (editingName.trim()) updateMutation.mutate({ id: g.id, name: editingName.trim() }) }}
-                        className="text-sm text-[#2EAADC] hover:underline disabled:opacity-50"
-                      >
-                        Save
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditingId(null)}
-                        className="text-sm text-[#787774] hover:underline"
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <span className="flex-1 text-sm text-[#37352F]">{g.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => startEdit(g)}
-                        className="text-xs text-[#787774] hover:text-[#37352F] transition-colors"
-                      >
-                        Edit
-                      </button>
-                      {deletingId === g.id ? (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => deleteMutation.mutate(g.id)}
-                            disabled={deleteMutation.isPending}
-                            className="text-xs text-[#E03E3E] font-medium hover:underline disabled:opacity-50"
-                          >
-                            Confirm
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDeletingId(null)}
-                            className="text-xs text-[#787774] hover:underline"
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setDeletingId(g.id)}
-                          className="text-xs text-[#787774] hover:text-[#E03E3E] transition-colors"
-                        >
-                          Delete
-                        </button>
-                      )}
-                    </>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : groups ? (
-            <p className="text-sm text-[#A5A29C] mb-3">No groups yet.</p>
-          ) : null}
-
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              placeholder="New group name"
-              value={newName}
-              onChange={e => setNewName(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && newName.trim()) createMutation.mutate(newName.trim()) }}
-              className="flex-1 max-w-xs px-3 py-1.5 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA]"
-            />
-            <button
-              type="button"
-              disabled={!newName.trim() || createMutation.isPending}
-              onClick={() => { if (newName.trim()) createMutation.mutate(newName.trim()) }}
-              className="px-3 py-1.5 bg-[#2EAADC] text-white rounded-md hover:bg-[#2898C4] disabled:opacity-50 transition-colors text-sm font-medium"
-            >
-              {createMutation.isPending ? 'Adding...' : 'Add'}
-            </button>
-          </div>
-          {(createMutation.error || updateMutation.error || deleteMutation.error) && (
-            <p className="text-xs text-[#E03E3E] mt-2">
-              {(createMutation.error ?? updateMutation.error ?? deleteMutation.error)?.message}
-            </p>
-          )}
-        </div>
-      )}
-    </div>
-  )
 }
 
 // ── Species List ──
@@ -322,8 +148,6 @@ export function SpeciesListPage() {
         </div>
       )}
 
-      <ManageGroupsSection />
-
       <div className="mb-4">
         <input
           type="text"
@@ -355,7 +179,7 @@ export function SpeciesListPage() {
                   </div>
                 </td>
                 <td className="px-4 py-2.5 text-sm text-[#787774] italic">{s.scientificName || '—'}</td>
-                <td className="px-4 py-2.5 text-sm text-[#787774]">{s.groupName || '—'}</td>
+                <td className="px-4 py-2.5 text-sm text-[#787774]">{s.groups.map(g => g.name).join(', ') || '—'}</td>
                 <td className="px-4 py-2.5">
                   <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                     s.isSystem ? 'bg-[#D3E5EF] text-[#2B6CB0]' : 'bg-[#E9E9E7] text-[#787774]'
@@ -833,13 +657,13 @@ export function SpeciesDetailPage() {
         </div>
 
         {/* Group & Tags */}
-        {(species.groupName || species.tags.length > 0) && (
+        {(species.groups.length > 0 || species.tags.length > 0) && (
           <section className="border border-[#E9E9E7] rounded-lg p-5">
-            <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Group & Tags</h3>
-            {species.groupName && (
+            <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Groups & Tags</h3>
+            {species.groups.length > 0 && (
               <div className="mb-3">
-                <label className="block text-xs font-medium text-[#787774] mb-1">Group</label>
-                <span className="text-sm text-[#37352F]">{species.groupName}</span>
+                <label className="block text-xs font-medium text-[#787774] mb-1">Groups</label>
+                <span className="text-sm text-[#37352F]">{species.groups.map(g => g.name).join(', ')}</span>
               </div>
             )}
             {species.tags.length > 0 && (
@@ -1128,7 +952,6 @@ function SpeciesForm({
   const [germinationRate, setGerminationRate] = useState(species?.germinationRate?.toString() ?? '')
   const [positions, setPositions] = useState<Set<string>>(new Set(species?.growingPositions ?? []))
   const [soils, setSoils] = useState<Set<string>>(new Set(species?.soils ?? []))
-  const [groupId, setGroupId] = useState<number | null>(species?.groupId ?? null)
   const [tagIds, setTagIds] = useState<Set<number>>(new Set(species?.tags.map(t => t.id) ?? []))
   const [costPerSeedSek, setCostPerSeedSek] = useState(species?.costPerSeedSek != null ? (species.costPerSeedSek / 100).toString() : '')
   const [expectedStemsPerPlant, setExpectedStemsPerPlant] = useState(species?.expectedStemsPerPlant?.toString() ?? '')
@@ -1157,11 +980,6 @@ function SpeciesForm({
   const { data: availableProviders } = useQuery({
     queryKey: ['admin', 'providers'],
     queryFn: api.admin.getProviders
-  })
-
-  const { data: availableGroups } = useQuery({
-    queryKey: ['admin', 'speciesGroups'],
-    queryFn: api.admin.getSpeciesGroups,
   })
 
   const { data: availableTags } = useQuery({
@@ -1274,7 +1092,6 @@ function SpeciesForm({
       germinationRate: germinationRate ? parseInt(germinationRate) : undefined,
       growingPositions: [...positions],
       soils: [...soils],
-      groupId: groupId ?? undefined,
       tagIds: tagIds.size > 0 ? [...tagIds] : undefined,
       costPerSeedSek: costPerSeedSek ? Math.round(parseFloat(costPerSeedSek) * 100) : undefined,
       expectedStemsPerPlant: expectedStemsPerPlant ? parseInt(expectedStemsPerPlant) : undefined,
@@ -1428,19 +1245,6 @@ function SpeciesForm({
             <Field label="Variant Name (Swedish)" value={variantNameSv} onChange={setVariantNameSv} />
             <Field label="Variant Name (English)" value={variantName} onChange={setVariantName} />
             <Field label="Scientific Name" value={scientificName} onChange={setScientificName} className="col-span-2" />
-          </div>
-          <div className="mt-4">
-            <label className="block text-xs font-medium text-[#787774] mb-1.5">Group</label>
-            <select
-              value={groupId ?? ''}
-              onChange={e => setGroupId(e.target.value ? Number(e.target.value) : null)}
-              className="w-full max-w-xs px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA]"
-            >
-              <option value="">None</option>
-              {availableGroups?.map(g => (
-                <option key={g.id} value={g.id}>{g.name}</option>
-              ))}
-            </select>
           </div>
         </section>
 

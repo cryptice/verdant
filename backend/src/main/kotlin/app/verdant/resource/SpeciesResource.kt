@@ -79,10 +79,36 @@ class SpeciesResource(
         return Response.status(Response.Status.CREATED).entity(group).build()
     }
 
+    @PUT
+    @Path("/groups/{id}")
+    fun updateGroup(@PathParam("id") id: Long, @Valid request: CreateSpeciesGroupRequest): Response {
+        val group = speciesService.updateGroup(id, request, orgContext.orgId)
+        return Response.ok(group).build()
+    }
+
     @DELETE
     @Path("/groups/{id}")
     fun deleteGroup(@PathParam("id") id: Long): Response {
         speciesService.deleteGroup(id, orgContext.orgId)
+        return Response.noContent().build()
+    }
+
+    @GET
+    @Path("/groups/{groupId}/species")
+    fun listGroupMembers(@PathParam("groupId") groupId: Long) =
+        speciesService.getGroupMembers(groupId, orgContext.orgId)
+
+    @POST
+    @Path("/groups/{groupId}/species/{speciesId}")
+    fun addSpeciesToGroup(@PathParam("groupId") groupId: Long, @PathParam("speciesId") speciesId: Long): Response {
+        speciesService.addSpeciesToGroup(groupId, speciesId, orgContext.orgId)
+        return Response.noContent().build()
+    }
+
+    @DELETE
+    @Path("/groups/{groupId}/species/{speciesId}")
+    fun removeSpeciesFromGroup(@PathParam("groupId") groupId: Long, @PathParam("speciesId") speciesId: Long): Response {
+        speciesService.removeSpeciesFromGroup(groupId, speciesId, orgContext.orgId)
         return Response.noContent().build()
     }
 

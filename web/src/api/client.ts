@@ -134,7 +134,9 @@ export interface SpeciesResponse {
   photos: { id: number; imageUrl: string; sortOrder: number }[]
   tags: { id: number; name: string }[]
   providers: { id: number; providerId: number; providerName: string }[]
+  groups: { id: number; name: string }[]
   custom: boolean
+  isSystem: boolean
 }
 
 export interface SeedInventoryResponse {
@@ -393,6 +395,7 @@ export const api = {
 
   species: {
     list: () => apiRequest<SpeciesResponse[]>('/api/species'),
+    get: (id: number) => apiRequest<SpeciesResponse>(`/api/species/${id}`),
     search: (q: string, limit = 20) => apiRequest<SpeciesResponse[]>(`/api/species?q=${encodeURIComponent(q)}&limit=${limit}`),
     create: (data: Record<string, unknown>) =>
       apiRequest<SpeciesResponse>('/api/species', { method: 'POST', body: JSON.stringify(data) }),
@@ -404,6 +407,16 @@ export const api = {
 
   speciesGroups: {
     list: () => apiRequest<{ id: number; name: string }[]>('/api/species/groups'),
+    create: (name: string) =>
+      apiRequest<{ id: number; name: string }>('/api/species/groups', { method: 'POST', body: JSON.stringify({ name }) }),
+    update: (id: number, name: string) =>
+      apiRequest<{ id: number; name: string }>(`/api/species/groups/${id}`, { method: 'PUT', body: JSON.stringify({ name }) }),
+    delete: (id: number) => apiRequest<void>(`/api/species/groups/${id}`, { method: 'DELETE' }),
+    members: (groupId: number) => apiRequest<SpeciesResponse[]>(`/api/species/groups/${groupId}/species`),
+    addSpecies: (groupId: number, speciesId: number) =>
+      apiRequest<void>(`/api/species/groups/${groupId}/species/${speciesId}`, { method: 'POST' }),
+    removeSpecies: (groupId: number, speciesId: number) =>
+      apiRequest<void>(`/api/species/groups/${groupId}/species/${speciesId}`, { method: 'DELETE' }),
   },
 
   inventory: {
