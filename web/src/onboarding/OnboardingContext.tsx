@@ -1,6 +1,5 @@
-import { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../auth/AuthContext'
 import { api } from '../api/client'
 import { ONBOARDING_STEPS, getStepsForSection } from './steps'
@@ -11,6 +10,7 @@ interface OnboardingContextValue {
   completedCount: number
   totalCount: number
   isStepComplete: (stepId: string) => boolean
+  isStepBlocked: (stepId: string) => boolean
   sectionProgress: (section: OnboardingSection) => { completed: number; total: number }
   completeStep: (stepId: string) => void
   startStep: (stepId: string) => void
@@ -21,9 +21,7 @@ interface OnboardingContextValue {
   activeTour: PageTooltipConfig | null
   clearActiveTour: () => void
   minimized: boolean
-  /** ID of the step that was just completed (for animation), cleared after a delay */
   lastCompletedStepId: string | null
-  /** Get incomplete onboarding steps that match the given route */
   getHintsForRoute: (pathname: string) => OnboardingStep[]
 }
 
@@ -46,7 +44,6 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const queryClient = useQueryClient()
 
   const [state, setState] = useState<OnboardingState>(() =>
     parseOnboardingState(user?.onboarding)
@@ -74,10 +71,8 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       syncToBackend(updated)
       return updated
     })
-    // Show celebration: open drawer and highlight the completed step
     setLastCompletedStepId(stepId)
     setDrawerOpen(true)
-    // Clear the highlight after animation plays
     setTimeout(() => setLastCompletedStepId(null), 3000)
   }, [syncToBackend])
 
@@ -100,97 +95,16 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }
   }, [user, state.completedSteps, completeStep])
 
-  // Check query cache for pre-existing data on mount
-  useEffect(() => {
-    if (!user) return
-    const newCompleted: string[] = []
-    for (const step of ONBOARDING_STEPS) {
-      if (state.completedSteps.includes(step.id)) continue
-      if (step.queryKey) {
-        const data = queryClient.getQueryData(step.queryKey)
-        if (data && (Array.isArray(data) ? data.length > 0 : true)) {
-          newCompleted.push(step.id)
-        }
-      }
-    }
-    if (newCompleted.length > 0) {
-      const updated = [...state.completedSteps, ...newCompleted]
-      setState(prev => ({ ...prev, completedSteps: updated }))
-      syncToBackend({ completedSteps: updated, dismissed: state.dismissed })
-    }
-  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Listen for query invalidations triggered by user-initiated mutations.
-  // Uses a ref so the flag persists across re-renders without recreating subscriptions.
-  const mutationInProgress = useRef(false)
-  const completedStepsRef = useRef(state.completedSteps)
-  completedStepsRef.current = state.completedSteps
-
-  useEffect(() => {
-    const mutUnsub = queryClient.getMutationCache().subscribe((event) => {
-      if (event.type !== 'updated') return
-      const status = event.mutation?.state.status
-      // Ignore the onboarding sync mutation
-      const endpoint = event.mutation?.state.variables as { completedSteps?: unknown } | undefined
-      if (endpoint && 'completedSteps' in (endpoint ?? {})) return
-
-      if (status === 'pending') {
-        mutationInProgress.current = true
-      }
-      if (status === 'success') {
-        setTimeout(() => { mutationInProgress.current = false }, 2000)
-      }
-    })
-
-    const queryUnsub = queryClient.getQueryCache().subscribe((event) => {
-      if (!mutationInProgress.current) return
-      if (event.type !== 'updated') return
-
-      const actionType = event.action.type
-      if (actionType !== 'success' && actionType !== 'invalidate') return
-
-      const queryKey = event.query.queryKey
-
-      for (const step of ONBOARDING_STEPS) {
-        if (step.completionType !== 'mutation') continue
-        if (completedStepsRef.current.includes(step.id)) continue
-        if (!step.mutationQueryKeys) continue
-
-        const matches = step.mutationQueryKeys.some(mk =>
-          mk.length <= queryKey.length && mk.every((k, i) => k === queryKey[i])
-        )
-        if (matches) {
-          if (actionType === 'invalidate') {
-            // Query was invalidated by a mutation — step is complete
-            completeStep(step.id)
-          } else if (actionType === 'success' && event.query.state.fetchStatus === 'idle') {
-            const data = event.query.state.data
-            if (data && (Array.isArray(data) ? data.length > 0 : true)) {
-              completeStep(step.id)
-            }
-          }
-        }
-      }
-    })
-
-    return () => { mutUnsub(); queryUnsub() }
-  }, [queryClient, completeStep])
-
   const startStep = useCallback((stepId: string) => {
     const step = ONBOARDING_STEPS.find(s => s.id === stepId)
     if (!step) return
     setDrawerOpen(false)
-    const targetRoute = step.resolveRoute?.(queryClient) ?? step.route
-    const currentPath = window.location.pathname
-    const alreadyOnPage = currentPath === targetRoute ||
-      step.extraRoutePrefixes?.some(p => currentPath.startsWith(p))
-    if (!alreadyOnPage) {
-      navigate(targetRoute)
+    if (window.location.pathname !== step.route) {
+      navigate(step.route)
     }
     import('./tooltipConfigs').then(({ getTooltipConfig }) => {
       const config = getTooltipConfig(stepId)
       if (config) {
-        // Delay to let drawer close animation (300ms) finish and page render
         setTimeout(() => setActiveTour(config), 400)
       }
     })
@@ -213,6 +127,12 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const isStepComplete = useCallback((stepId: string) =>
     state.completedSteps.includes(stepId), [state.completedSteps])
 
+  const isStepBlocked = useCallback((stepId: string) => {
+    const step = ONBOARDING_STEPS.find(s => s.id === stepId)
+    if (!step?.requires) return false
+    return !state.completedSteps.includes(step.requires)
+  }, [state.completedSteps])
+
   const sectionProgress = useCallback((section: OnboardingSection) => {
     const steps = getStepsForSection(section)
     const completed = steps.filter(s => state.completedSteps.includes(s.id)).length
@@ -226,30 +146,22 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const getHintsForRoute = useCallback((pathname: string) => {
     if (!isActive) return []
     return ONBOARDING_STEPS.filter(s =>
-      !state.completedSteps.includes(s.id) &&
-      (s.route === pathname || s.extraRoutePrefixes?.some(p => pathname.startsWith(p)))
+      !state.completedSteps.includes(s.id) && s.route === pathname
     )
   }, [isActive, state.completedSteps])
 
   const value = useMemo<OnboardingContextValue>(() => ({
-    isActive,
-    completedCount,
-    totalCount,
-    isStepComplete,
-    sectionProgress,
-    completeStep,
-    startStep,
-    minimizeForSession,
-    dismissPermanently,
-    drawerOpen,
-    setDrawerOpen,
-    activeTour,
-    clearActiveTour,
-    minimized,
-    lastCompletedStepId,
+    isActive, completedCount, totalCount,
+    isStepComplete, isStepBlocked, sectionProgress,
+    completeStep, startStep,
+    minimizeForSession, dismissPermanently,
+    drawerOpen, setDrawerOpen,
+    activeTour, clearActiveTour,
+    minimized, lastCompletedStepId,
     getHintsForRoute,
-  }), [isActive, completedCount, totalCount, isStepComplete, sectionProgress, completeStep,
-       startStep, minimizeForSession, dismissPermanently, drawerOpen, activeTour, clearActiveTour, minimized, lastCompletedStepId, getHintsForRoute])
+  }), [isActive, completedCount, totalCount, isStepComplete, isStepBlocked, sectionProgress,
+       completeStep, startStep, minimizeForSession, dismissPermanently,
+       drawerOpen, activeTour, clearActiveTour, minimized, lastCompletedStepId, getHintsForRoute])
 
   return (
     <OnboardingContext.Provider value={value}>

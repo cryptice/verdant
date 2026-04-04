@@ -1,19 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useQueryClient } from '@tanstack/react-query'
 import { useOnboarding } from './OnboardingContext'
 import { SECTIONS, getStepsForSection, ONBOARDING_STEPS } from './steps'
 
 export function OnboardingDrawer() {
   const { t } = useTranslation()
   const {
-    drawerOpen, setDrawerOpen, isStepComplete, sectionProgress,
+    drawerOpen, setDrawerOpen, isStepComplete, isStepBlocked, sectionProgress,
     startStep, completedCount, totalCount,
     minimizeForSession, dismissPermanently, lastCompletedStepId,
   } = useOnboarding()
   const [expandedSection, setExpandedSection] = useState<string>(SECTIONS[0].id)
   const [showDismissMenu, setShowDismissMenu] = useState(false)
-  const queryClient = useQueryClient()
   const [visible, setVisible] = useState(false)
   const [animatingIn, setAnimatingIn] = useState(false)
   const nextStepRef = useRef<HTMLButtonElement>(null)
@@ -210,10 +208,7 @@ export function OnboardingDrawer() {
                           const complete = isStepComplete(step.id)
                           const justCompleted = step.id === lastCompletedStepId
                           const isNext = step.id === nextIncompleteId
-                          // A step is blocked if it has a resolveRoute that returns the fallback route
-                          const blocked = !complete && step.resolveRoute
-                            ? step.resolveRoute(queryClient) === step.route
-                            : false
+                          const blocked = isStepBlocked(step.id)
 
                           return (
                             <button

@@ -13,7 +13,7 @@ const PAGE_SIZE = 50
 export function SeasonList() {
   const qc = useQueryClient()
   const { t } = useTranslation()
-  const { isActive: isOnboardingActive, isStepComplete } = useOnboarding()
+  const { isActive: isOnboardingActive, isStepComplete, completeStep } = useOnboarding()
   const isSeasonStepComplete = isStepComplete('create_season')
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['seasons'],
@@ -83,7 +83,7 @@ export function SeasonList() {
       firstFrostDate: formFirstFrost || undefined,
       notes: formNotes || undefined,
     }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['seasons'] }); setShowAdd(false); resetForm() },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['seasons'] }); setShowAdd(false); resetForm(); completeStep('create_season') },
     onError: (err) => { setFormError(err instanceof Error ? err.message : String(err)) },
   })
 

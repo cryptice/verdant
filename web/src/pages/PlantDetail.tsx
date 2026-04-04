@@ -8,6 +8,7 @@ import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { StatusBadge } from '../components/StatusBadge'
 import { Dialog } from '../components/Dialog'
+import { useOnboarding } from '../onboarding/OnboardingContext'
 
 const eventIcons: Record<string, string> = {
   SEEDED: '🌰', POTTED_UP: '🪴', PLANTED_OUT: '🌳', GROWING: '🌿',
@@ -22,6 +23,7 @@ export function PlantDetail() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const { t } = useTranslation()
+  const { completeStep } = useOnboarding()
 
   const { data: plant, error, isLoading, refetch } = useQuery({
     queryKey: ['plant', plantId],
@@ -82,6 +84,9 @@ export function PlantDetail() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['plant-events', plantId] })
       qc.invalidateQueries({ queryKey: ['plant', plantId] })
+      if (eventType === 'POTTED_UP') completeStep('pot_up')
+      else if (eventType === 'PLANTED_OUT') completeStep('plant_out')
+      else if (eventType === 'HARVESTED') completeStep('record_harvest')
       setShowAddEvent(false); setEventNotes(''); setEventCount(''); setEventWeight('')
       setEventStemCount(''); setEventStemLength(''); setEventQuality(''); setEventDestination('')
     },

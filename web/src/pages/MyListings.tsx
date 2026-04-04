@@ -8,12 +8,14 @@ import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { Pagination } from '../components/Pagination'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
+import { useOnboarding } from '../onboarding/OnboardingContext'
 
 const PAGE_SIZE = 50
 
 export function MyListings() {
   const qc = useQueryClient()
   const { t } = useTranslation()
+  const { completeStep } = useOnboarding()
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['my-listings'],
     queryFn: () => api.market.myListings(),
@@ -68,7 +70,7 @@ export function MyListings() {
 
   const createMut = useMutation({
     mutationFn: () => api.market.createListing(buildPayload()),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['my-listings'] }); setShowAdd(false); resetForm() },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['my-listings'] }); setShowAdd(false); resetForm(); completeStep('create_listing') },
     onError: (err) => { setFormError(err instanceof Error ? err.message : String(err)) },
   })
 

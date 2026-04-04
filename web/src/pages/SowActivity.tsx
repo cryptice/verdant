@@ -7,11 +7,13 @@ import { PageHeader } from '../components/PageHeader'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import type { BreadcrumbItem } from '../components/Breadcrumb'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
+import { useOnboarding } from '../onboarding/OnboardingContext'
 
 export function SowActivity() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const { t, i18n } = useTranslation()
+  const { completeStep } = useOnboarding()
   const [params] = useSearchParams()
   const presetBedId = params.get('bedId') ? Number(params.get('bedId')) : null
   const presetSpeciesId = params.get('speciesId') ? Number(params.get('speciesId')) : null
@@ -112,6 +114,7 @@ export function SowActivity() {
       qc.invalidateQueries({ queryKey: ['dashboard'] })
       qc.invalidateQueries({ queryKey: ['tasks'] })
       qc.invalidateQueries({ queryKey: ['seed-inventory'] })
+      completeStep('sow_seeds')
       navigate(-1)
     },
   })

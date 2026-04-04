@@ -139,7 +139,6 @@ class DevResource(
             "bed", "garden", "season",
             "species_tag_mapping",
             "species_photo", "species_provider",
-            "org_invite", "org_member", "organization",
         )
         ds.connection.use { conn ->
             conn.autoCommit = false
@@ -147,10 +146,10 @@ class DevResource(
                 for (table in tables) {
                     conn.prepareStatement("DELETE FROM $table").use { it.executeUpdate() }
                 }
-                // Delete user-created species/tags/groups but keep system ones (user_id IS NULL)
-                conn.prepareStatement("DELETE FROM species WHERE user_id IS NOT NULL").use { it.executeUpdate() }
-                conn.prepareStatement("DELETE FROM species_tag WHERE user_id IS NOT NULL").use { it.executeUpdate() }
-                conn.prepareStatement("DELETE FROM species_group WHERE user_id IS NOT NULL").use { it.executeUpdate() }
+                // Delete org-created species/tags/groups but keep system ones (org_id IS NULL)
+                conn.prepareStatement("DELETE FROM species WHERE org_id IS NOT NULL").use { it.executeUpdate() }
+                conn.prepareStatement("DELETE FROM species_tag WHERE org_id IS NOT NULL").use { it.executeUpdate() }
+                conn.prepareStatement("DELETE FROM species_group WHERE org_id IS NOT NULL").use { it.executeUpdate() }
                 // Reset onboarding state for all users
                 conn.prepareStatement("UPDATE app_user SET onboarding_json = NULL").use { it.executeUpdate() }
                 conn.commit()

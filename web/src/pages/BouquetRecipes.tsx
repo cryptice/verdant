@@ -7,6 +7,7 @@ import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
+import { useOnboarding } from '../onboarding/OnboardingContext'
 
 const ROLES = ['FLOWER', 'FOLIAGE', 'FILLER', 'ACCENT'] as const
 
@@ -19,6 +20,7 @@ interface FormItem {
 export function BouquetRecipes() {
   const qc = useQueryClient()
   const { t } = useTranslation()
+  const { completeStep } = useOnboarding()
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['bouquet-recipes'],
     queryFn: () => api.bouquetRecipes.list(),
@@ -83,7 +85,7 @@ export function BouquetRecipes() {
 
   const createMut = useMutation({
     mutationFn: () => api.bouquetRecipes.create(buildPayload()),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bouquet-recipes'] }); setShowAdd(false); resetForm() },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bouquet-recipes'] }); setShowAdd(false); resetForm(); completeStep('create_bouquet') },
     onError: (err) => { setFormError(err instanceof Error ? err.message : String(err)) },
   })
 

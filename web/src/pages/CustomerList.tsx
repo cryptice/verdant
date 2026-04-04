@@ -7,6 +7,7 @@ import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { Pagination } from '../components/Pagination'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
+import { useOnboarding } from '../onboarding/OnboardingContext'
 
 const PAGE_SIZE = 50
 
@@ -15,6 +16,7 @@ const CHANNELS = ['FLORIST', 'FARMERS_MARKET', 'CSA', 'WEDDING', 'WHOLESALE', 'D
 export function CustomerList() {
   const qc = useQueryClient()
   const { t } = useTranslation()
+  const { completeStep } = useOnboarding()
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['customers'],
     queryFn: () => api.customers.list(),
@@ -56,7 +58,7 @@ export function CustomerList() {
       contactInfo: formContactInfo || undefined,
       notes: formNotes || undefined,
     }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['customers'] }); setShowAdd(false); resetForm() },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['customers'] }); setShowAdd(false); resetForm(); completeStep('add_customer') },
     onError: (err) => { setFormError(err instanceof Error ? err.message : String(err)) },
   })
 

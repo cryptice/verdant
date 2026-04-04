@@ -20,7 +20,7 @@ export function GardenList() {
   const qc = useQueryClient()
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { isActive, isStepComplete } = useOnboarding()
+  const { isActive, isStepComplete, completeStep } = useOnboarding()
 
   const { data: gardens, error, isLoading, refetch } = useQuery({
     queryKey: ['gardens'],
@@ -41,6 +41,7 @@ export function GardenList() {
       qc.invalidateQueries({ queryKey: ['dashboard'] })
       setShowNewGarden(false)
       resetGardenForm()
+      completeStep('create_garden')
       navigate(`/garden/${g.id}`)
     },
   })

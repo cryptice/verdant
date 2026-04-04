@@ -8,6 +8,7 @@ import { Dialog } from '../components/Dialog'
 import { Pagination } from '../components/Pagination'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
+import { useOnboarding } from '../onboarding/OnboardingContext'
 
 const PAGE_SIZE = 50
 
@@ -17,6 +18,7 @@ const RECEPTIONS = ['LOVED', 'LIKED', 'NEUTRAL', 'DISLIKED'] as const
 export function VarietyTrials() {
   const qc = useQueryClient()
   const { t } = useTranslation()
+  const { completeStep } = useOnboarding()
 
   const [seasonFilter, setSeasonFilter] = useState<number | undefined>(undefined)
 
@@ -102,7 +104,7 @@ export function VarietyTrials() {
 
   const createMut = useMutation({
     mutationFn: () => api.varietyTrials.create(buildPayload()),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['variety-trials'] }); setShowAdd(false); resetForm() },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['variety-trials'] }); setShowAdd(false); resetForm(); completeStep('start_trial') },
     onError: (err) => { setFormError(err instanceof Error ? err.message : String(err)) },
   })
 

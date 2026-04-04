@@ -9,6 +9,7 @@ import { Dialog } from '../components/Dialog'
 import { Pagination } from '../components/Pagination'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
+import { useOnboarding } from '../onboarding/OnboardingContext'
 
 const PAGE_SIZE = 50
 
@@ -16,6 +17,7 @@ export function SeedInventory() {
   const qc = useQueryClient()
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const { completeStep } = useOnboarding()
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['seed-inventory'],
     queryFn: () => api.inventory.list(),
@@ -57,6 +59,7 @@ export function SeedInventory() {
       qc.invalidateQueries({ queryKey: ['seed-inventory'] })
       setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration('')
       setAddCostUnit(''); setAddCostPackage(''); setAddUnitType('SEED'); setAddProviderId('')
+      completeStep('add_seeds')
     },
   })
 

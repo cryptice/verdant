@@ -5,12 +5,14 @@ import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import type { BreadcrumbItem } from '../components/Breadcrumb'
+import { useOnboarding } from '../onboarding/OnboardingContext'
 
 export function BedForm() {
   const { gardenId } = useParams<{ gardenId: string }>()
   const navigate = useNavigate()
   const qc = useQueryClient()
   const { t } = useTranslation()
+  const { completeStep } = useOnboarding()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
 
@@ -21,7 +23,7 @@ export function BedForm() {
 
   const mutation = useMutation({
     mutationFn: () => api.beds.create(Number(gardenId), { name, description: description || undefined }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['garden-beds', Number(gardenId)] }); navigate(`/garden/${gardenId}`, { replace: true }) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['garden-beds', Number(gardenId)] }); completeStep('create_bed'); navigate(`/garden/${gardenId}`, { replace: true }) },
   })
 
   const breadcrumbs: BreadcrumbItem[] = [

@@ -8,12 +8,14 @@ import { Dialog } from '../components/Dialog'
 import { Pagination } from '../components/Pagination'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
+import { useOnboarding } from '../onboarding/OnboardingContext'
 
 const PAGE_SIZE = 50
 
 export function SuccessionSchedules() {
   const qc = useQueryClient()
   const { t } = useTranslation()
+  const { completeStep } = useOnboarding()
 
   const [seasonFilter, setSeasonFilter] = useState<number | undefined>(undefined)
 
@@ -85,7 +87,7 @@ export function SuccessionSchedules() {
 
   const createMut = useMutation({
     mutationFn: () => api.successionSchedules.create(buildPayload()),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['succession-schedules'] }); setShowAdd(false); resetForm() },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['succession-schedules'] }); setShowAdd(false); resetForm(); completeStep('setup_succession') },
     onError: (err) => { setFormError(err instanceof Error ? err.message : String(err)) },
   })
 

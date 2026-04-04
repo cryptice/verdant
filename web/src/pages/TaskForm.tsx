@@ -7,6 +7,7 @@ import { PageHeader } from '../components/PageHeader'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import type { BreadcrumbItem } from '../components/Breadcrumb'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
+import { useOnboarding } from '../onboarding/OnboardingContext'
 
 const activityTypes = ['SOW', 'POT_UP', 'PLANT', 'HARVEST', 'RECOVER', 'DISCARD']
 
@@ -16,6 +17,7 @@ export function TaskForm() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const { t } = useTranslation()
+  const { completeStep } = useOnboarding()
 
   const { data: existing } = useQuery({
     queryKey: ['task', Number(taskId)],
@@ -55,7 +57,7 @@ export function TaskForm() {
     mutationFn: () => api.tasks.create({
       speciesId: Number(speciesId), activityType, deadline, targetCount: Number(targetCount), notes: notes || undefined,
     }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['tasks'] }); navigate('/tasks', { replace: true }) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['tasks'] }); completeStep('create_task'); navigate('/tasks', { replace: true }) },
   })
 
   const updateMut = useMutation({
