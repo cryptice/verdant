@@ -22,7 +22,6 @@ data class Species(
     val bloomMonths: List<Int> = emptyList(),
     val sowingMonths: List<Int> = emptyList(),
     val germinationRate: Int? = null,
-    val groupId: Long? = null,
     val costPerSeedSek: Int? = null,
     val expectedStemsPerPlant: Int? = null,
     val expectedVaseLifeDays: Int? = null,

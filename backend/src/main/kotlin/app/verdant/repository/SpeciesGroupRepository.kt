@@ -86,6 +86,66 @@ class SpeciesGroupRepository(private val ds: AgroalDataSource) {
         }
     }
 
+    fun findGroupIdsBySpeciesId(speciesId: Long): List<Long> =
+        ds.connection.use { conn ->
+            conn.prepareStatement("SELECT group_id FROM species_group_membership WHERE species_id = ?").use { ps ->
+                ps.setLong(1, speciesId)
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.getLong("group_id")) }
+                }
+            }
+        }
+
+    fun findGroupIdsBySpeciesIds(speciesIds: Set<Long>): Map<Long, List<Long>> {
+        if (speciesIds.isEmpty()) return emptyMap()
+        val placeholders = speciesIds.joinToString(",") { "?" }
+        return ds.connection.use { conn ->
+            conn.prepareStatement("SELECT species_id, group_id FROM species_group_membership WHERE species_id IN ($placeholders)").use { ps ->
+                speciesIds.forEachIndexed { i, id -> ps.setLong(i + 1, id) }
+                ps.executeQuery().use { rs ->
+                    val result = mutableMapOf<Long, MutableList<Long>>()
+                    while (rs.next()) {
+                        result.getOrPut(rs.getLong("species_id")) { mutableListOf() }
+                            .add(rs.getLong("group_id"))
+                    }
+                    result
+                }
+            }
+        }
+    }
+
+    fun findSpeciesIdsByGroupId(groupId: Long): List<Long> =
+        ds.connection.use { conn ->
+            conn.prepareStatement("SELECT species_id FROM species_group_membership WHERE group_id = ?").use { ps ->
+                ps.setLong(1, groupId)
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.getLong("species_id")) }
+                }
+            }
+        }
+
+    fun addSpeciesToGroup(speciesId: Long, groupId: Long) {
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                "INSERT INTO species_group_membership (species_id, group_id) VALUES (?, ?) ON CONFLICT DO NOTHING"
+            ).use { ps ->
+                ps.setLong(1, speciesId)
+                ps.setLong(2, groupId)
+                ps.executeUpdate()
+            }
+        }
+    }
+
+    fun removeSpeciesFromGroup(speciesId: Long, groupId: Long) {
+        ds.connection.use { conn ->
+            conn.prepareStatement("DELETE FROM species_group_membership WHERE species_id = ? AND group_id = ?").use { ps ->
+                ps.setLong(1, speciesId)
+                ps.setLong(2, groupId)
+                ps.executeUpdate()
+            }
+        }
+    }
+
     private fun ResultSet.toGroup() = SpeciesGroup(
         id = getLong("id"),
         orgId = getObject("org_id") as? Long,

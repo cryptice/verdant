@@ -53,7 +53,12 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
 
     fun findByGroupId(groupId: Long): List<Species> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM species WHERE group_id = ? ORDER BY common_name").use { ps ->
+            conn.prepareStatement(
+                """SELECT s.* FROM species s
+                   JOIN species_group_membership m ON s.id = m.species_id
+                   WHERE m.group_id = ?
+                   ORDER BY s.common_name"""
+            ).use { ps ->
                 ps.setLong(1, groupId)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toSpecies()) }
@@ -101,9 +106,9 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
             conn.prepareStatement(
                 """INSERT INTO species (org_id, common_name, variant_name, common_name_sv, variant_name_sv, scientific_name, image_front_url, image_back_url,
                    days_to_sprout, days_to_harvest, germination_time_days, sowing_depth_mm,
-                   growing_positions, soils, height_cm, bloom_months, sowing_months, germination_rate, group_id,
+                   growing_positions, soils, height_cm, bloom_months, sowing_months, germination_rate,
                    cost_per_seed_sek, expected_stems_per_plant, expected_vase_life_days, plant_type, default_unit_type, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 if (species.orgId != null) ps.setLong(1, species.orgId) else ps.setNull(1, java.sql.Types.BIGINT)
@@ -124,12 +129,11 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 ps.setString(16, species.bloomMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
                 ps.setString(17, species.sowingMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
                 ps.setObject(18, species.germinationRate)
-                ps.setObject(19, species.groupId)
-                ps.setObject(20, species.costPerSeedSek)
-                ps.setObject(21, species.expectedStemsPerPlant)
-                ps.setObject(22, species.expectedVaseLifeDays)
-                ps.setString(23, species.plantType.name)
-                ps.setString(24, species.defaultUnitType.name)
+                ps.setObject(19, species.costPerSeedSek)
+                ps.setObject(20, species.expectedStemsPerPlant)
+                ps.setObject(21, species.expectedVaseLifeDays)
+                ps.setString(22, species.plantType.name)
+                ps.setString(23, species.defaultUnitType.name)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -146,7 +150,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                    image_front_url = ?, image_back_url = ?,
                    days_to_sprout = ?, days_to_harvest = ?, germination_time_days = ?,
                    sowing_depth_mm = ?, growing_positions = ?, soils = ?, height_cm = ?,
-                   bloom_months = ?, sowing_months = ?, germination_rate = ?, group_id = ?,
+                   bloom_months = ?, sowing_months = ?, germination_rate = ?,
                    cost_per_seed_sek = ?, expected_stems_per_plant = ?, expected_vase_life_days = ?, plant_type = ?, default_unit_type = ?
                    WHERE id = ?"""
             ).use { ps ->
@@ -167,13 +171,12 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 ps.setString(15, species.bloomMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
                 ps.setString(16, species.sowingMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
                 ps.setObject(17, species.germinationRate)
-                ps.setObject(18, species.groupId)
-                ps.setObject(19, species.costPerSeedSek)
-                ps.setObject(20, species.expectedStemsPerPlant)
-                ps.setObject(21, species.expectedVaseLifeDays)
-                ps.setString(22, species.plantType.name)
-                ps.setString(23, species.defaultUnitType.name)
-                ps.setLong(24, species.id!!)
+                ps.setObject(18, species.costPerSeedSek)
+                ps.setObject(19, species.expectedStemsPerPlant)
+                ps.setObject(20, species.expectedVaseLifeDays)
+                ps.setString(21, species.plantType.name)
+                ps.setString(22, species.defaultUnitType.name)
+                ps.setLong(23, species.id!!)
                 ps.executeUpdate()
             }
         }
@@ -281,7 +284,6 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
         bloomMonths = getString("bloom_months")?.split(",")?.map { it.toInt() } ?: emptyList(),
         sowingMonths = getString("sowing_months")?.split(",")?.map { it.toInt() } ?: emptyList(),
         germinationRate = getObject("germination_rate") as? Int,
-        groupId = getObject("group_id") as? Long,
         costPerSeedSek = getObject("cost_per_seed_sek") as? Int,
         expectedStemsPerPlant = getObject("expected_stems_per_plant") as? Int,
         expectedVaseLifeDays = getObject("expected_vase_life_days") as? Int,

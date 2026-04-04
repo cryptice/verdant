@@ -35,8 +35,7 @@ data class SpeciesResponse(
     val bloomMonths: List<Int>,
     val sowingMonths: List<Int>,
     val germinationRate: Int?,
-    val groupId: Long?,
-    val groupName: String?,
+    val groups: List<SpeciesGroupResponse>,
     val tags: List<SpeciesTagResponse>,
     val providers: List<SpeciesProviderResponse>,
     val costPerSeedSek: Int?,
@@ -81,7 +80,6 @@ data class CreateSpeciesRequest(
     val sowingMonths: List<Int>? = null,
     @field:Min(0)
     val germinationRate: Int? = null,
-    val groupId: Long? = null,
     @field:Size(max = 100)
     val tagIds: List<Long>? = null,
     @field:Min(0)
@@ -129,7 +127,6 @@ data class UpdateSpeciesRequest(
     val sowingMonths: List<Int>? = null,
     @field:Min(0)
     val germinationRate: Int? = null,
-    val groupId: Long? = null,
     @field:Size(max = 100)
     val tagIds: List<Long>? = null,
     @field:Min(0)
@@ -275,7 +272,7 @@ data class SpeciesExportEntry(
     val bloomMonths: List<Int> = emptyList(),
     val sowingMonths: List<Int> = emptyList(),
     val germinationRate: Int? = null,
-    val groupName: String? = null,
+    val groupNames: List<String> = emptyList(),
     val tagNames: List<String> = emptyList(),
     val providers: List<SpeciesExportProvider> = emptyList(),
     val costPerSeedSek: Int? = null,
