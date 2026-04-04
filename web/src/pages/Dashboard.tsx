@@ -54,6 +54,7 @@ export function Dashboard() {
     mutationFn: () => api.gardens.create({ name: gardenName, description: gardenDescription || undefined, emoji: gardenEmoji || undefined }),
     onSuccess: (g) => {
       qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['gardens'] })
       setShowNewGarden(false)
       resetGardenForm()
       navigate(`/garden/${g.id}`)
