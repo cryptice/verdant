@@ -92,7 +92,7 @@ export function SpeciesGroups() {
 
         {/* Group list */}
         {groups?.map(group => (
-          <div key={group.id} className="border border-divider rounded-xl overflow-hidden">
+          <div key={group.id} className="border border-divider rounded-xl">
             {/* Group header */}
             <div className="flex items-center gap-2 px-3 py-2 bg-surface">
               {editingId === group.id ? (
