@@ -151,7 +151,7 @@ export function SpeciesGroups() {
                 {members?.length === 0 && (
                   <p className="text-xs text-text-secondary">{t('groups.empty')}</p>
                 )}
-                <div className="pt-1">
+                <div className="pt-1 max-w-xs">
                   <SpeciesAutocomplete
                     value={null}
                     onChange={s => {
