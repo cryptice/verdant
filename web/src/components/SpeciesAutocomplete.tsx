@@ -66,13 +66,24 @@ export function SpeciesAutocomplete({ value, onChange, onGroupSelect, placeholde
 
   return (
     <div className="relative" ref={ref}>
-      <input
-        value={open ? search : displayValue}
-        onChange={e => { setSearch(e.target.value); onChange(null); setOpen(true) }}
-        onFocus={() => { if (!value) setOpen(true) }}
-        placeholder={placeholder ?? t('common.searchSpecies')}
-        className="input w-full"
-      />
+      <div className="flex gap-1">
+        <input
+          value={open ? search : displayValue}
+          onChange={e => { setSearch(e.target.value); onChange(null); setOpen(true) }}
+          onFocus={() => { if (!value) setOpen(true) }}
+          placeholder={placeholder ?? t('common.searchSpecies')}
+          className="input w-full"
+        />
+        {(search || value) && (
+          <button
+            onClick={() => { setSearch(''); setDebouncedSearch(''); onChange(null); setOpen(false) }}
+            className="px-2 text-text-secondary hover:text-text text-sm shrink-0"
+            type="button"
+          >
+            {t('common.clear')}
+          </button>
+        )}
+      </div>
       {open && debouncedSearch && (
         <div className="absolute z-10 left-0 right-0 mt-1 border border-divider rounded-xl bg-bg shadow-md max-h-48 overflow-y-auto">
           {isFetching && (!filteredResults || filteredResults.length === 0) && filteredGroups.length === 0 && (
