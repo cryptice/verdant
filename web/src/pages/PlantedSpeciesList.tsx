@@ -20,9 +20,6 @@ export function PlantedSpeciesList() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
 
-  if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
-  if (error) return <ErrorDisplay error={error} onRetry={refetch} />
-
   const filtered = useMemo(() =>
     data?.filter(s =>
       s.speciesName.toLowerCase().includes(search.toLowerCase()) ||
@@ -30,6 +27,9 @@ export function PlantedSpeciesList() {
     ) ?? [],
     [data, search]
   )
+
+  if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
+  if (error) return <ErrorDisplay error={error} onRetry={refetch} />
 
   return (
     <div>
