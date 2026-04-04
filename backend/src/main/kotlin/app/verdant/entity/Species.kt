@@ -27,6 +27,7 @@ data class Species(
     val expectedStemsPerPlant: Int? = null,
     val expectedVaseLifeDays: Int? = null,
     val plantType: PlantType = PlantType.ANNUAL,
+    val defaultUnitType: UnitType = UnitType.SEED,
     val createdAt: Instant = Instant.now(),
 )
 

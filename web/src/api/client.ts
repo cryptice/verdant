@@ -130,7 +130,7 @@ export interface SpeciesResponse {
   heightCm?: number; germinationRate?: number
   bloomMonths?: string; sowingMonths?: string
   costPerSeedSek?: number; expectedStemsPerPlant?: number
-  expectedVaseLifeDays?: number; plantType?: string
+  expectedVaseLifeDays?: number; plantType?: string; defaultUnitType?: string
   photos: { id: number; imageUrl: string; sortOrder: number }[]
   tags: { id: number; name: string }[]
   providers: { id: number; providerId: number; providerName: string }[]

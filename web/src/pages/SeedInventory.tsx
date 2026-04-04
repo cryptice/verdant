@@ -185,7 +185,7 @@ export function SeedInventory() {
         <div data-onboarding="seed-form" className="space-y-4">
           <div>
             <label className="field-label">{t('common.speciesLabel')}</label>
-            <SpeciesAutocomplete value={addSpecies} onChange={s => { setAddSpecies(s); setAddProviderId(s && s.providers.length > 0 ? s.providers[0].id : '') }} />
+            <SpeciesAutocomplete value={addSpecies} onChange={s => { setAddSpecies(s); setAddProviderId(s && s.providers.length > 0 ? s.providers[0].id : ''); setAddUnitType(s?.defaultUnitType ?? 'SEED') }} />
           </div>
           <div>
             <label className="field-label">{t('seeds.provider')}</label>

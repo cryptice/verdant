@@ -43,6 +43,7 @@ data class SpeciesResponse(
     val expectedStemsPerPlant: Int?,
     val expectedVaseLifeDays: Int?,
     val plantType: String?,
+    val defaultUnitType: String?,
     @get:JsonProperty("isSystem") val isSystem: Boolean,
     val createdAt: Instant,
 )
@@ -91,6 +92,8 @@ data class CreateSpeciesRequest(
     val expectedVaseLifeDays: Int? = null,
     @field:Size(max = 255)
     val plantType: String? = null,
+    @field:Size(max = 20)
+    val defaultUnitType: String? = null,
 )
 
 data class UpdateSpeciesRequest(
@@ -137,6 +140,8 @@ data class UpdateSpeciesRequest(
     val expectedVaseLifeDays: Int? = null,
     @field:Size(max = 255)
     val plantType: String? = null,
+    @field:Size(max = 20)
+    val defaultUnitType: String? = null,
 )
 
 data class SpeciesGroupResponse(

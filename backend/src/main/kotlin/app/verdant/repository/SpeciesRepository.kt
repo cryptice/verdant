@@ -4,6 +4,7 @@ import app.verdant.entity.GrowingPosition
 import app.verdant.entity.PlantType
 import app.verdant.entity.SoilType
 import app.verdant.entity.Species
+import app.verdant.entity.UnitType
 import io.agroal.api.AgroalDataSource
 import jakarta.enterprise.context.ApplicationScoped
 import java.sql.ResultSet
@@ -91,8 +92,8 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 """INSERT INTO species (org_id, common_name, variant_name, common_name_sv, variant_name_sv, scientific_name, image_front_url, image_back_url,
                    days_to_sprout, days_to_harvest, germination_time_days, sowing_depth_mm,
                    growing_positions, soils, height_cm, bloom_months, sowing_months, germination_rate, group_id,
-                   cost_per_seed_sek, expected_stems_per_plant, expected_vase_life_days, plant_type, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
+                   cost_per_seed_sek, expected_stems_per_plant, expected_vase_life_days, plant_type, default_unit_type, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 if (species.orgId != null) ps.setLong(1, species.orgId) else ps.setNull(1, java.sql.Types.BIGINT)
@@ -118,6 +119,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 ps.setObject(21, species.expectedStemsPerPlant)
                 ps.setObject(22, species.expectedVaseLifeDays)
                 ps.setString(23, species.plantType.name)
+                ps.setString(24, species.defaultUnitType.name)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -135,7 +137,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                    days_to_sprout = ?, days_to_harvest = ?, germination_time_days = ?,
                    sowing_depth_mm = ?, growing_positions = ?, soils = ?, height_cm = ?,
                    bloom_months = ?, sowing_months = ?, germination_rate = ?, group_id = ?,
-                   cost_per_seed_sek = ?, expected_stems_per_plant = ?, expected_vase_life_days = ?, plant_type = ?
+                   cost_per_seed_sek = ?, expected_stems_per_plant = ?, expected_vase_life_days = ?, plant_type = ?, default_unit_type = ?
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setString(1, species.commonName)
@@ -160,7 +162,8 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 ps.setObject(20, species.expectedStemsPerPlant)
                 ps.setObject(21, species.expectedVaseLifeDays)
                 ps.setString(22, species.plantType.name)
-                ps.setLong(23, species.id!!)
+                ps.setString(23, species.defaultUnitType.name)
+                ps.setLong(24, species.id!!)
                 ps.executeUpdate()
             }
         }
@@ -273,6 +276,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
         expectedStemsPerPlant = getObject("expected_stems_per_plant") as? Int,
         expectedVaseLifeDays = getObject("expected_vase_life_days") as? Int,
         plantType = getString("plant_type")?.let { PlantType.valueOf(it) } ?: PlantType.ANNUAL,
+        defaultUnitType = getString("default_unit_type")?.let { UnitType.valueOf(it) } ?: UnitType.SEED,
         createdAt = getTimestamp("created_at").toInstant(),
     )
 }

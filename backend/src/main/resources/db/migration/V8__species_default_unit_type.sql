@@ -1,0 +1,1 @@
+ALTER TABLE species ADD COLUMN default_unit_type VARCHAR(20) DEFAULT 'SEED';

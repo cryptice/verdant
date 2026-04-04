@@ -240,7 +240,7 @@
     "title": "Så",
     "seedBatch": "Fröparti",
     "seedBatchNone": "Dra inte av från utsäde",
-    "noSeedStock": "Inget utsäde finns för denna art. Du kan fortfarande så utan avdrag.",
+    "noSeedStock": "Inget utsäde finns för denna art. Du kan fortfarande så men det kommer att påverka beräkningen av kostnader. Vi rekommenderar att du lägger till utsäde först för att få en korrekt kostnadsbild.",
     "recentSeedStock": "Senaste utsäde",
     "destination": "Destination *",
     "bed": "Bädd",

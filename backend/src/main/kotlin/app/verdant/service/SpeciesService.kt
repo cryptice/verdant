@@ -61,6 +61,7 @@ class SpeciesService(
                 sowingMonths = request.sowingMonths ?: emptyList(),
                 germinationRate = request.germinationRate,
                 groupId = request.groupId,
+                defaultUnitType = request.defaultUnitType?.let { UnitType.valueOf(it) } ?: UnitType.SEED,
             )
         )
         val sid = species.id!!
@@ -102,6 +103,7 @@ class SpeciesService(
             sowingMonths = request.sowingMonths ?: species.sowingMonths,
             germinationRate = request.germinationRate ?: species.germinationRate,
             groupId = request.groupId ?: species.groupId,
+            defaultUnitType = request.defaultUnitType?.let { UnitType.valueOf(it) } ?: species.defaultUnitType,
         )
         speciesRepository.update(updated)
         if (request.tagIds != null) {
@@ -160,6 +162,7 @@ class SpeciesService(
                 sowingMonths = request.sowingMonths ?: emptyList(),
                 germinationRate = request.germinationRate,
                 groupId = request.groupId,
+                defaultUnitType = request.defaultUnitType?.let { UnitType.valueOf(it) } ?: UnitType.SEED,
             )
         )
         val sid = species.id!!
@@ -197,6 +200,7 @@ class SpeciesService(
             sowingMonths = request.sowingMonths ?: species.sowingMonths,
             germinationRate = request.germinationRate ?: species.germinationRate,
             groupId = request.groupId ?: species.groupId,
+            defaultUnitType = request.defaultUnitType?.let { UnitType.valueOf(it) } ?: species.defaultUnitType,
         )
         speciesRepository.update(updated)
         if (request.tagIds != null) {
@@ -633,6 +637,7 @@ class SpeciesService(
             expectedStemsPerPlant = expectedStemsPerPlant,
             expectedVaseLifeDays = expectedVaseLifeDays,
             plantType = plantType.name,
+            defaultUnitType = defaultUnitType.name,
             isSystem = orgId == null,
             createdAt = createdAt,
         )
