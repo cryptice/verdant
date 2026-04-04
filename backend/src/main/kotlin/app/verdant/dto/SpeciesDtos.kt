@@ -278,6 +278,11 @@ data class SpeciesExportEntry(
     val groupName: String? = null,
     val tagNames: List<String> = emptyList(),
     val providers: List<SpeciesExportProvider> = emptyList(),
+    val costPerSeedSek: Int? = null,
+    val expectedStemsPerPlant: Int? = null,
+    val expectedVaseLifeDays: Int? = null,
+    val plantType: String? = null,
+    val defaultUnitType: String? = null,
 )
 
 data class ImportResult(val created: Int, val updated: Int, val skipped: Int)

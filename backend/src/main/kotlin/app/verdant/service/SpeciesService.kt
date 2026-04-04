@@ -327,6 +327,11 @@ class SpeciesService(
                 groupName = species.groupId?.let { groups[it]?.name },
                 tagNames = tagIds.mapNotNull { tags[it]?.name },
                 providers = speciesProviders,
+                costPerSeedSek = species.costPerSeedSek,
+                expectedStemsPerPlant = species.expectedStemsPerPlant,
+                expectedVaseLifeDays = species.expectedVaseLifeDays,
+                plantType = species.plantType.name,
+                defaultUnitType = species.defaultUnitType.name,
             )
         }
     }
@@ -422,6 +427,11 @@ class SpeciesService(
                     sowingMonths = entry.sowingMonths,
                     germinationRate = entry.germinationRate,
                     groupId = groupId,
+                    costPerSeedSek = entry.costPerSeedSek,
+                    expectedStemsPerPlant = entry.expectedStemsPerPlant,
+                    expectedVaseLifeDays = entry.expectedVaseLifeDays,
+                    plantType = entry.plantType?.let { PlantType.valueOf(it) } ?: PlantType.ANNUAL,
+                    defaultUnitType = entry.defaultUnitType?.let { UnitType.valueOf(it) } ?: UnitType.SEED,
                 )
             )
 
