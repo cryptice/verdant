@@ -61,6 +61,10 @@ class SpeciesService(
                 sowingMonths = request.sowingMonths ?: emptyList(),
                 germinationRate = request.germinationRate,
                 groupId = request.groupId,
+                costPerSeedSek = request.costPerSeedSek,
+                expectedStemsPerPlant = request.expectedStemsPerPlant,
+                expectedVaseLifeDays = request.expectedVaseLifeDays,
+                plantType = request.plantType?.let { PlantType.valueOf(it) } ?: PlantType.ANNUAL,
                 defaultUnitType = request.defaultUnitType?.let { UnitType.valueOf(it) } ?: UnitType.SEED,
             )
         )
@@ -103,6 +107,10 @@ class SpeciesService(
             sowingMonths = request.sowingMonths ?: species.sowingMonths,
             germinationRate = request.germinationRate ?: species.germinationRate,
             groupId = request.groupId ?: species.groupId,
+            costPerSeedSek = request.costPerSeedSek ?: species.costPerSeedSek,
+            expectedStemsPerPlant = request.expectedStemsPerPlant ?: species.expectedStemsPerPlant,
+            expectedVaseLifeDays = request.expectedVaseLifeDays ?: species.expectedVaseLifeDays,
+            plantType = request.plantType?.let { PlantType.valueOf(it) } ?: species.plantType,
             defaultUnitType = request.defaultUnitType?.let { UnitType.valueOf(it) } ?: species.defaultUnitType,
         )
         speciesRepository.update(updated)
@@ -162,6 +170,10 @@ class SpeciesService(
                 sowingMonths = request.sowingMonths ?: emptyList(),
                 germinationRate = request.germinationRate,
                 groupId = request.groupId,
+                costPerSeedSek = request.costPerSeedSek,
+                expectedStemsPerPlant = request.expectedStemsPerPlant,
+                expectedVaseLifeDays = request.expectedVaseLifeDays,
+                plantType = request.plantType?.let { PlantType.valueOf(it) } ?: PlantType.ANNUAL,
                 defaultUnitType = request.defaultUnitType?.let { UnitType.valueOf(it) } ?: UnitType.SEED,
             )
         )
@@ -200,6 +212,10 @@ class SpeciesService(
             sowingMonths = request.sowingMonths ?: species.sowingMonths,
             germinationRate = request.germinationRate ?: species.germinationRate,
             groupId = request.groupId ?: species.groupId,
+            costPerSeedSek = request.costPerSeedSek ?: species.costPerSeedSek,
+            expectedStemsPerPlant = request.expectedStemsPerPlant ?: species.expectedStemsPerPlant,
+            expectedVaseLifeDays = request.expectedVaseLifeDays ?: species.expectedVaseLifeDays,
+            plantType = request.plantType?.let { PlantType.valueOf(it) } ?: species.plantType,
             defaultUnitType = request.defaultUnitType?.let { UnitType.valueOf(it) } ?: species.defaultUnitType,
         )
         speciesRepository.update(updated)
