@@ -286,9 +286,9 @@ export function OnboardingDrawer() {
               onClick={dismissPermanently}
               className="w-full flex items-center justify-center gap-2 text-xs text-text-muted hover:text-text-secondary transition-colors text-center py-1.5"
             >
-              <span>👩‍🌾</span>
+              <span>🌿</span>
               <span>{t('onboarding.drawer.skipAll')}</span>
-              <span>👨‍🌾</span>
+              <span>🌱</span>
             </button>
           </div>
         )}
