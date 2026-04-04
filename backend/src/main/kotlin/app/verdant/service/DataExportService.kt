@@ -84,12 +84,21 @@ class DataExportService(
         }
 
         val scheduledTasks = scheduledTaskRepository.findByOrgId(orgId, limit = Int.MAX_VALUE)
-        val speciesNamesForTasks = speciesRepository.findNamesByIds(scheduledTasks.map { it.speciesId }.toSet())
+        val taskIds = scheduledTasks.map { it.id!! }.toSet()
+        val acceptableByTask = scheduledTaskRepository.findAcceptableSpeciesIdsByTaskIds(taskIds)
+        val allSpeciesIdsForTasks = acceptableByTask.values.flatten().toSet() +
+            scheduledTasks.mapNotNull { it.speciesId }.toSet()
+        val speciesNamesForTasks = speciesRepository.findNamesByIds(allSpeciesIdsForTasks)
+
+        val groupIds = scheduledTasks.mapNotNull { it.originGroupId }.toSet()
+        val groupNames = speciesGroupRepository.findNamesByIds(groupIds)
+
         val scheduledTaskResponses = scheduledTasks.map { task ->
+            val myAcceptable = acceptableByTask[task.id] ?: emptyList()
             ScheduledTaskResponse(
                 id = task.id!!,
                 speciesId = task.speciesId,
-                speciesName = speciesNamesForTasks[task.speciesId] ?: "Unknown",
+                speciesName = task.speciesId?.let { speciesNamesForTasks[it] },
                 activityType = task.activityType,
                 deadline = task.deadline,
                 targetCount = task.targetCount,
@@ -98,6 +107,11 @@ class DataExportService(
                 notes = task.notes,
                 seasonId = task.seasonId,
                 successionScheduleId = task.successionScheduleId,
+                originGroupId = task.originGroupId,
+                originGroupName = task.originGroupId?.let { groupNames[it] },
+                acceptableSpecies = myAcceptable.map { sid ->
+                    AcceptableSpeciesEntry(sid, speciesNamesForTasks[sid] ?: "Unknown")
+                },
                 createdAt = task.createdAt,
                 updatedAt = task.updatedAt,
             )

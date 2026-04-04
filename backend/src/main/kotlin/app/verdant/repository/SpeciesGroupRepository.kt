@@ -26,6 +26,19 @@ class SpeciesGroupRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    fun findNamesByIds(ids: Set<Long>): Map<Long, String> {
+        if (ids.isEmpty()) return emptyMap()
+        val placeholders = ids.joinToString(",") { "?" }
+        return ds.connection.use { conn ->
+            conn.prepareStatement("SELECT id, name FROM species_group WHERE id IN ($placeholders)").use { ps ->
+                ids.forEachIndexed { i, id -> ps.setLong(i + 1, id) }
+                ps.executeQuery().use { rs ->
+                    buildMap { while (rs.next()) put(rs.getLong("id"), rs.getString("name")) }
+                }
+            }
+        }
+    }
+
     fun findByOrgId(orgId: Long): List<SpeciesGroup> =
         ds.connection.use { conn ->
             conn.prepareStatement("SELECT * FROM species_group WHERE org_id = ? OR org_id IS NULL ORDER BY name").use { ps ->

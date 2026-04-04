@@ -44,7 +44,7 @@ class ScheduledTaskResource(
     @POST
     @Path("/{id}/complete")
     fun completePartially(@PathParam("id") id: Long, @Valid request: CompleteTaskPartiallyRequest) =
-        taskService.completePartially(id, request.processedCount, orgContext.orgId)
+        taskService.completePartially(id, request.speciesId, request.processedCount, orgContext.orgId)
 
     @DELETE
     @Path("/{id}")

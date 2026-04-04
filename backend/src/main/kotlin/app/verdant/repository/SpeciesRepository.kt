@@ -51,6 +51,16 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    fun findByGroupId(groupId: Long): List<Species> =
+        ds.connection.use { conn ->
+            conn.prepareStatement("SELECT * FROM species WHERE group_id = ? ORDER BY common_name").use { ps ->
+                ps.setLong(1, groupId)
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.toSpecies()) }
+                }
+            }
+        }
+
     fun findByOrgId(orgId: Long, limit: Int = 50, offset: Int = 0): List<Species> =
         ds.connection.use { conn ->
             conn.prepareStatement("SELECT * FROM species WHERE org_id = ? OR org_id IS NULL ORDER BY common_name LIMIT ? OFFSET ?").use { ps ->

@@ -9,8 +9,8 @@ import java.time.LocalDate
 
 data class ScheduledTaskResponse(
     val id: Long,
-    val speciesId: Long,
-    val speciesName: String,
+    val speciesId: Long?,
+    val speciesName: String?,
     val activityType: String,
     val deadline: LocalDate,
     val targetCount: Int,
@@ -19,13 +19,22 @@ data class ScheduledTaskResponse(
     val notes: String?,
     val seasonId: Long?,
     val successionScheduleId: Long?,
+    val originGroupId: Long?,
+    val originGroupName: String?,
+    val acceptableSpecies: List<AcceptableSpeciesEntry>,
     val createdAt: Instant,
     val updatedAt: Instant,
 )
 
-data class CreateScheduledTaskRequest(
-    @field:NotNull
+data class AcceptableSpeciesEntry(
     val speciesId: Long,
+    val speciesName: String,
+)
+
+data class CreateScheduledTaskRequest(
+    val speciesId: Long? = null,
+    val speciesGroupId: Long? = null,
+    val speciesIds: List<Long>? = null,
     @field:NotBlank @field:Size(max = 255)
     val activityType: String,
     @field:NotNull
@@ -51,6 +60,8 @@ data class UpdateScheduledTaskRequest(
 )
 
 data class CompleteTaskPartiallyRequest(
+    @field:NotNull
+    val speciesId: Long,
     @field:Min(1)
     val processedCount: Int,
 )
