@@ -6,7 +6,6 @@ import { api } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
-import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
 const GARDEN_ICONS = [
@@ -69,7 +68,6 @@ export function GardenList() {
   return (
     <div>
       <PageHeader title={t('nav.myWorld')} action={{ label: t('dashboard.newGarden'), onClick: openNewGarden }} />
-      <OnboardingHint />
 
       <div className="px-4 py-4 space-y-4">
         {gardens && gardens.length === 0 && (

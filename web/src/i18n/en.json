@@ -778,7 +778,8 @@
       "dismissForever": "Don't show again",
       "allComplete": "You're all set!",
       "allCompleteHint": "You've explored everything Verdant has to offer.",
-      "finish": "Close guide"
+      "finish": "Close guide",
+      "skipAll": "I have used Verdant before, mark onboarding as complete"
     },
     "sections": {
       "gettingStarted": "Getting Started",

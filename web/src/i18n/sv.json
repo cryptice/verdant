@@ -778,7 +778,8 @@
       "dismissForever": "Visa inte igen",
       "allComplete": "Nu är du redo!",
       "allCompleteHint": "Du har utforskat allt som Verdant har att erbjuda.",
-      "finish": "Stäng guiden"
+      "finish": "Stäng guiden",
+      "skipAll": "Jag har använt Verdant förut, markera introduktionen som klar"
     },
     "sections": {
       "gettingStarted": "Kom igång",

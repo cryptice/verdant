@@ -279,6 +279,17 @@ export function OnboardingDrawer() {
             })
           )}
         </div>
+
+        {!allComplete && (
+          <div className="px-4 py-3 border-t border-divider/50">
+            <button
+              onClick={dismissPermanently}
+              className="w-full text-xs text-text-muted hover:text-text-secondary transition-colors text-center py-1"
+            >
+              {t('onboarding.drawer.skipAll')}
+            </button>
+          </div>
+        )}
       </div>
     </>
   )
