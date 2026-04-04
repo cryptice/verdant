@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { api } from '../api/client'
+import { api, setActiveOrgId } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 
 const GARDEN_ICONS = [
@@ -14,6 +15,7 @@ const GARDEN_ICONS = [
 export function OrgSetup() {
   const { t } = useTranslation()
   const { refreshUser } = useAuth()
+  const navigate = useNavigate()
 
   const [orgName, setOrgName] = useState('')
   const [orgEmoji, setOrgEmoji] = useState(GARDEN_ICONS[0])
@@ -25,12 +27,20 @@ export function OrgSetup() {
 
   const createMutation = useMutation({
     mutationFn: () => api.organizations.create({ name: orgName.trim(), emoji: orgEmoji || undefined }),
-    onSuccess: () => refreshUser(),
+    onSuccess: async (org) => {
+      setActiveOrgId(org.id)
+      await refreshUser()
+      navigate('/', { replace: true })
+    },
   })
 
   const acceptMutation = useMutation({
     mutationFn: (id: number) => api.invites.accept(id),
-    onSuccess: () => refreshUser(),
+    onSuccess: async (org) => {
+      setActiveOrgId(org.id)
+      await refreshUser()
+      navigate('/', { replace: true })
+    },
   })
 
   const declineMutation = useMutation({
