@@ -93,21 +93,6 @@
     "RECOVER": "Återhämta",
     "DISCARD": "Kasta"
   },
-  "org": {
-    "setup": {
-      "title": "Välkommen till Verdant",
-      "subtitle": "Skapa din organisation eller acceptera en väntande inbjudan för att komma igång.",
-      "pendingInvites": "Väntande inbjudningar",
-      "invitedBy": "Inbjuden av {{name}}",
-      "accept": "Acceptera",
-      "accepting": "Accepterar…",
-      "decline": "Avböj",
-      "createTitle": "Skapa din organisation",
-      "namePlaceholder": "Min gård",
-      "create": "Skapa organisation",
-      "creating": "Skapar…"
-    }
-  },
   "dashboard": {
     "greeting": "Hej, {{name}}",
     "gardens_one": "{{count}} trädgård",
@@ -994,17 +979,18 @@
   },
   "org": {
     "setup": {
-      "title": "Kom igång",
-      "createTitle": "Skapa en organisation",
+      "title": "Välkommen till Verdant",
+      "subtitle": "Skapa din organisation eller acceptera en väntande inbjudan för att komma igång.",
+      "createTitle": "Skapa din organisation",
       "createDescription": "Skapa din gård eller odlingsverksamhet.",
-      "createButton": "Skapa organisation",
-      "nameLabel": "Organisationsnamn *",
-      "namePlaceholder": "t.ex. Lindblads Blommor",
-      "invitesTitle": "Du har blivit inbjuden",
-      "noInvites": "Inga väntande inbjudningar",
+      "pendingInvites": "Väntande inbjudningar",
+      "invitedBy": "Inbjuden av {{name}}",
+      "namePlaceholder": "Min gård",
       "accept": "Acceptera",
+      "accepting": "Accepterar…",
       "decline": "Avböj",
-      "or": "eller"
+      "create": "Skapa organisation",
+      "creating": "Skapar…"
     },
     "settings": {
       "title": "Organisation",
