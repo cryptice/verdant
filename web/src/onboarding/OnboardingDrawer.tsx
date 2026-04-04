@@ -216,9 +216,9 @@ export function OnboardingDrawer() {
                               ref={isNext ? nextStepRef : undefined}
                               onClick={() => !complete && !blocked && startStep(step.id)}
                               disabled={complete || blocked}
-                              className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm transition-all duration-300 ${
+                              className={`relative w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm transition-all duration-300 ${
                                 justCompleted
-                                  ? 'bg-accent-light scale-[1.02]'
+                                  ? 'bg-accent-light animate-zoom-bounce'
                                   : blocked
                                     ? 'text-text-muted/70 cursor-not-allowed'
                                   : isNext
@@ -229,19 +229,27 @@ export function OnboardingDrawer() {
                               }`}
                             >
                               <span
-                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 text-xs transition-all duration-500 ${
+                                className={`relative w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 text-xs transition-all duration-500 ${
                                   justCompleted
-                                    ? 'border-accent bg-accent text-white scale-125'
+                                    ? 'border-accent bg-accent text-white animate-glitter'
                                     : complete
                                       ? 'border-accent bg-accent text-white'
                                       : blocked
                                         ? 'border-divider/50'
                                         : isNext
-                                          ? 'border-accent'
+                                          ? 'border-accent animate-gentle-bounce'
                                           : 'border-divider'
                                 }`}
                               >
                                 {complete && '✓'}
+                                {justCompleted && (
+                                  <>
+                                    <span className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-accent" style={{ animation: 'sparkle 0.8s ease-out 0.1s both' }} />
+                                    <span className="absolute -top-0.5 -left-1.5 w-1 h-1 rounded-full bg-accent/70" style={{ animation: 'sparkle 0.8s ease-out 0.25s both' }} />
+                                    <span className="absolute -bottom-1 -right-0.5 w-1 h-1 rounded-full bg-accent/60" style={{ animation: 'sparkle 0.8s ease-out 0.4s both' }} />
+                                    <span className="absolute -bottom-0.5 -left-1 w-1.5 h-1.5 rounded-full bg-accent/50" style={{ animation: 'sparkle 0.8s ease-out 0.55s both' }} />
+                                  </>
+                                )}
                               </span>
                               <span className={`transition-all duration-300 ${
                                 justCompleted
@@ -255,10 +263,10 @@ export function OnboardingDrawer() {
                                 {t(`onboarding.steps.${step.id}`)}
                               </span>
                               {justCompleted && (
-                                <span className="ml-auto text-accent text-xs font-medium animate-pulse">✓</span>
+                                <span className="ml-auto text-accent text-sm font-bold animate-zoom-bounce">✓</span>
                               )}
                               {isNext && !complete && (
-                                <span className="ml-auto text-accent text-xs animate-pulse">→</span>
+                                <span className="ml-auto text-accent text-xs animate-gentle-bounce">→</span>
                               )}
                             </button>
                           )
