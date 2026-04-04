@@ -62,6 +62,15 @@ export function SpeciesAutocomplete({ value, onChange, onGroupSelect, placeholde
     ? groups.filter(g => g.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
     : []
 
+  // Auto-clear when no results remain (e.g. all matching species already added to group)
+  useEffect(() => {
+    if (keepSearchOnSelect && debouncedSearch && filteredResults && filteredResults.length === 0 && filteredGroups.length === 0 && !isFetching) {
+      setSearch('')
+      setDebouncedSearch('')
+      setOpen(false)
+    }
+  }, [keepSearchOnSelect, debouncedSearch, filteredResults, filteredGroups, isFetching])
+
   const displayValue = value ? speciesLabel(value, i18n.language) : ''
 
   return (
