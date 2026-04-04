@@ -26,6 +26,12 @@ export function GardenList() {
     queryFn: () => api.gardens.list(),
   })
 
+  const { data: beds } = useQuery({
+    queryKey: ['beds'],
+    queryFn: () => api.beds.list(),
+    enabled: (gardens?.length ?? 0) > 0,
+  })
+
   const [showNewGarden, setShowNewGarden] = useState(false)
   const [gardenName, setGardenName] = useState('')
   const [gardenDescription, setGardenDescription] = useState('')
@@ -54,6 +60,7 @@ export function GardenList() {
   }
 
   const isGardenStepIncomplete = isActive && !isStepComplete('create_garden')
+  const isBedStepIncomplete = isActive && !isStepComplete('create_bed')
 
   if (isLoading) {
     return (
@@ -67,7 +74,22 @@ export function GardenList() {
 
   return (
     <div>
-      <PageHeader title={t('nav.myWorld')} action={{ label: t('dashboard.newGarden'), onClick: openNewGarden }} />
+      <PageHeader title={t('nav.gardens')} action={{ label: t('dashboard.newGarden'), onClick: openNewGarden }} />
+
+      {gardens && gardens.length > 0 && isBedStepIncomplete && beds && beds.length === 0 && (
+        <div className="px-4 pt-4">
+          <div className="bg-accent-light/50 border border-accent/15 rounded-2xl px-6 py-6 text-center">
+            <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3">
+              <span className="text-xl">🌾</span>
+            </div>
+            <p className="font-semibold text-text-primary">{t('onboarding.steps.create_bed')}</p>
+            <p className="text-sm text-text-secondary mt-1 max-w-md mx-auto">{t('onboarding.hints.create_bed')}</p>
+            <button onClick={() => navigate(`/garden/${gardens[0].id}`)} className="btn-primary mt-4">
+              {t('garden.addBed')}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="px-4 py-4 space-y-4">
         {gardens && gardens.length === 0 && (
@@ -99,6 +121,7 @@ export function GardenList() {
             </div>
           </Link>
         ))}
+
       </div>
 
       <Dialog open={showNewGarden} onClose={() => { setShowNewGarden(false); resetGardenForm() }} title={t('garden.newGardenTitle')} actions={

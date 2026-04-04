@@ -8,6 +8,7 @@ import { PageHeader } from '../components/PageHeader'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
+import { useOnboarding } from '../onboarding/OnboardingContext'
 
 const GARDEN_ICONS = [
   '🌱', '🌿', '🌾', '🌻', '🌸', '🌺', '🌼', '🍀',
@@ -22,6 +23,7 @@ export function GardenDetail() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const { t } = useTranslation()
+  const { completeStep } = useOnboarding()
 
   const { data: garden, error, isLoading, refetch } = useQuery({
     queryKey: ['garden', gardenId],
@@ -33,11 +35,26 @@ export function GardenDetail() {
     queryFn: () => api.gardens.beds(gardenId),
   })
 
+  const [showNewBed, setShowNewBed] = useState(false)
+  const [bedName, setBedName] = useState('')
+  const [bedDescription, setBedDescription] = useState('')
+
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState('')
   const [editDesc, setEditDesc] = useState('')
   const [editEmoji, setEditEmoji] = useState('')
   const [showDelete, setShowDelete] = useState(false)
+
+  const createBedMut = useMutation({
+    mutationFn: () => api.beds.create(gardenId, { name: bedName, description: bedDescription || undefined }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['garden-beds', gardenId] })
+      setShowNewBed(false)
+      setBedName('')
+      setBedDescription('')
+      completeStep('create_bed')
+    },
+  })
 
   const updateMut = useMutation({
     mutationFn: () => api.gardens.update(gardenId, { name: editName, description: editDesc || undefined, emoji: editEmoji || undefined }),
@@ -78,7 +95,7 @@ export function GardenDetail() {
 
         <div className="flex items-center justify-between">
           <h2 className="font-semibold">{t('garden.beds')}</h2>
-          <button data-onboarding="add-bed-btn" onClick={() => navigate(`/garden/${gardenId}/bed/new`)} className="btn-primary text-sm">{t('garden.newBed')}</button>
+          <button data-onboarding="add-bed-btn" onClick={() => setShowNewBed(true)} className="btn-primary text-sm">{t('garden.newBed')}</button>
         </div>
 
         {beds && beds.length === 0 && (
@@ -152,6 +169,27 @@ export function GardenDetail() {
       }>
         <p className="text-text-secondary">{t('garden.deleteGardenConfirm')}</p>
         {deleteError && <p className="text-error text-sm mt-2">{deleteError}</p>}
+      </Dialog>
+
+      <Dialog open={showNewBed} onClose={() => { setShowNewBed(false); setBedName(''); setBedDescription('') }} title={t('bed.newBedTitle')} actions={
+        <>
+          <button onClick={() => { setShowNewBed(false); setBedName(''); setBedDescription('') }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button onClick={() => createBedMut.mutate()} disabled={!bedName.trim() || createBedMut.isPending} className="btn-primary text-sm">
+            {createBedMut.isPending ? t('bed.creatingBed') : t('bed.createBed')}
+          </button>
+        </>
+      }>
+        <div className="space-y-4">
+          <div>
+            <label className="field-label">{t('common.nameLabel')}</label>
+            <input value={bedName} onChange={e => setBedName(e.target.value)} placeholder={t('bed.bedNamePlaceholder')} className="input w-full" />
+            <p className="text-xs text-text-secondary mt-1">{t('bed.bedNameHint')}</p>
+          </div>
+          <div>
+            <label className="field-label">{t('common.descriptionLabel')}</label>
+            <textarea value={bedDescription} onChange={e => setBedDescription(e.target.value)} placeholder={t('common.optional')} rows={2} className="input w-full" />
+          </div>
+        </div>
       </Dialog>
 
     </div>

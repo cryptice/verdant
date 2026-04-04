@@ -140,7 +140,8 @@
     "deleteGardenConfirm": "This will delete the garden and all its beds and plants. Are you sure?",
     "newGardenTitle": "New Garden",
     "createGarden": "Create Garden",
-    "creatingGarden": "Creating..."
+    "creatingGarden": "Creating...",
+    "addBed": "Add a bed"
   },
   "bed": {
     "plants": "Plants",

@@ -140,7 +140,8 @@
     "deleteGardenConfirm": "Detta raderar trädgården och alla dess bäddar och plantor. Är du säker?",
     "newGardenTitle": "Ny trädgård",
     "createGarden": "Skapa trädgård",
-    "creatingGarden": "Skapar..."
+    "creatingGarden": "Skapar...",
+    "addBed": "Lägg till en bädd"
   },
   "bed": {
     "plants": "Växter",
