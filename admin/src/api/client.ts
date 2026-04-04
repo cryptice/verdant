@@ -117,6 +117,11 @@ export interface Species {
   groupName: string | null
   tags: SpeciesTag[]
   providers: SpeciesProvider[]
+  costPerSeedSek: number | null
+  expectedStemsPerPlant: number | null
+  expectedVaseLifeDays: number | null
+  plantType: string | null
+  defaultUnitType: string | null
   isSystem: boolean
   createdAt: string
 }
@@ -146,6 +151,11 @@ export interface CreateSpeciesRequest {
   germinationRate?: number | null
   groupId?: number | null
   tagIds?: number[]
+  costPerSeedSek?: number | null
+  expectedStemsPerPlant?: number | null
+  expectedVaseLifeDays?: number | null
+  plantType?: string | null
+  defaultUnitType?: string | null
 }
 
 export interface UpdateSpeciesRequest {
@@ -168,6 +178,11 @@ export interface UpdateSpeciesRequest {
   germinationRate?: number | null
   groupId?: number | null
   tagIds?: number[] | null
+  costPerSeedSek?: number | null
+  expectedStemsPerPlant?: number | null
+  expectedVaseLifeDays?: number | null
+  plantType?: string | null
+  defaultUnitType?: string | null
 }
 
 export interface ExtractedFrontInfo {

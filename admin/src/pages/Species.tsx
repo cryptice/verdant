@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api, type Species, type UpdateSpeciesRequest, type CreateSpeciesRequest, type SpeciesPhoto, type SpeciesExportEntry, type AddSpeciesProviderRequest, type SpeciesGroup } from '../api/client'
+import { api, type Species, type UpdateSpeciesRequest, type CreateSpeciesRequest, type SpeciesPhoto, type SpeciesExportEntry, type AddSpeciesProviderRequest, type SpeciesGroup, type SpeciesTag } from '../api/client'
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import ErrorDisplay from '../components/ErrorDisplay'
@@ -1115,6 +1115,12 @@ function SpeciesForm({
   const [positions, setPositions] = useState<Set<string>>(new Set(species?.growingPositions ?? []))
   const [soils, setSoils] = useState<Set<string>>(new Set(species?.soils ?? []))
   const [groupId, setGroupId] = useState<number | null>(species?.groupId ?? null)
+  const [tagIds, setTagIds] = useState<Set<number>>(new Set(species?.tags.map(t => t.id) ?? []))
+  const [costPerSeedSek, setCostPerSeedSek] = useState(species?.costPerSeedSek?.toString() ?? '')
+  const [expectedStemsPerPlant, setExpectedStemsPerPlant] = useState(species?.expectedStemsPerPlant?.toString() ?? '')
+  const [expectedVaseLifeDays, setExpectedVaseLifeDays] = useState(species?.expectedVaseLifeDays?.toString() ?? '')
+  const [plantType, setPlantType] = useState(species?.plantType ?? '')
+  const [defaultUnitType, setDefaultUnitType] = useState(species?.defaultUnitType ?? '')
   const [imageFrontBase64, setImageFrontBase64] = useState<string | null>(null)
   const [imageBackBase64, setImageBackBase64] = useState<string | null>(null)
   const [deletingPhotoId, setDeletingPhotoId] = useState<number | null>(null)
@@ -1142,6 +1148,11 @@ function SpeciesForm({
   const { data: availableGroups } = useQuery({
     queryKey: ['admin', 'speciesGroups'],
     queryFn: api.admin.getSpeciesGroups,
+  })
+
+  const { data: availableTags } = useQuery({
+    queryKey: ['admin', 'speciesTags'],
+    queryFn: api.admin.getSpeciesTags,
   })
 
   const photoInputRef = useRef<HTMLInputElement>(null)
@@ -1221,6 +1232,12 @@ function SpeciesForm({
     setSowingMonths(next)
   }
 
+  const toggleTag = (id: number) => {
+    const next = new Set(tagIds)
+    if (next.has(id)) next.delete(id); else next.add(id)
+    setTagIds(next)
+  }
+
   const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1244,6 +1261,12 @@ function SpeciesForm({
       growingPositions: [...positions],
       soils: [...soils],
       groupId: groupId ?? undefined,
+      tagIds: tagIds.size > 0 ? [...tagIds] : undefined,
+      costPerSeedSek: costPerSeedSek ? parseInt(costPerSeedSek) : undefined,
+      expectedStemsPerPlant: expectedStemsPerPlant ? parseInt(expectedStemsPerPlant) : undefined,
+      expectedVaseLifeDays: expectedVaseLifeDays ? parseInt(expectedVaseLifeDays) : undefined,
+      plantType: plantType || undefined,
+      defaultUnitType: defaultUnitType || undefined,
     }
     const provider = !isEdit && selectedProviderId ? {
       providerId: selectedProviderId,
@@ -1634,17 +1657,58 @@ function SpeciesForm({
           </section>
         )}
 
-        {/* Tags (read-only for now) */}
-        {isEdit && species!.tags.length > 0 && (
+        {/* Tags */}
+        {availableTags && availableTags.length > 0 && (
           <section className="border border-[#E9E9E7] rounded-lg p-5">
             <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Tags</h3>
             <div className="flex gap-1.5 flex-wrap">
-              {species!.tags.map(t => (
-                <span key={t.id} className="px-2 py-0.5 bg-[#D3E5EF] text-[#2B6CB0] rounded text-xs font-medium">{t.name}</span>
+              {availableTags.map((t: SpeciesTag) => (
+                <ChipToggle key={t.id} label={t.name} selected={tagIds.has(t.id)} onClick={() => toggleTag(t.id)} />
               ))}
             </div>
           </section>
         )}
+
+        {/* Commercial & Classification */}
+        <section className="border border-[#E9E9E7] rounded-lg p-5">
+          <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Commercial & Classification</h3>
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <Field label="Cost per seed (öre)" value={costPerSeedSek} onChange={v => setCostPerSeedSek(v.replace(/\D/g, ''))} type="text" />
+            <Field label="Expected stems per plant" value={expectedStemsPerPlant} onChange={v => setExpectedStemsPerPlant(v.replace(/\D/g, ''))} type="text" />
+            <Field label="Expected vase life (days)" value={expectedVaseLifeDays} onChange={v => setExpectedVaseLifeDays(v.replace(/\D/g, ''))} type="text" />
+          </div>
+          <div className="grid grid-cols-2 gap-4 max-w-sm">
+            <div>
+              <label className="block text-xs font-medium text-[#787774] mb-1.5">Plant type</label>
+              <select
+                value={plantType}
+                onChange={e => setPlantType(e.target.value)}
+                className="w-full px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA]"
+              >
+                <option value="">—</option>
+                <option value="ANNUAL">Annual</option>
+                <option value="PERENNIAL">Perennial</option>
+                <option value="BULB">Bulb</option>
+                <option value="TUBER">Tuber</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-[#787774] mb-1.5">Default unit type</label>
+              <select
+                value={defaultUnitType}
+                onChange={e => setDefaultUnitType(e.target.value)}
+                className="w-full px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA]"
+              >
+                <option value="">—</option>
+                <option value="SEED">Seed</option>
+                <option value="PLUG">Plug</option>
+                <option value="BULB">Bulb</option>
+                <option value="TUBER">Tuber</option>
+                <option value="PLANT">Plant</option>
+              </select>
+            </div>
+          </div>
+        </section>
 
         {/* Submit */}
         {error && (
