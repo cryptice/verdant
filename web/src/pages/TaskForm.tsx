@@ -78,13 +78,8 @@ export function TaskForm() {
       <OnboardingHint />
       <div data-onboarding="task-form" className="form-card">
         <div>
-          <label className="field-label">{t('common.speciesLabel')}</label>
-          <SpeciesAutocomplete value={selectedSpecies} onChange={setSelectedSpecies} />
-        </div>
-
-        <div>
           <label className="field-label">{t('tasks.activityLabel')}</label>
-          <select value={activityType} onChange={e => setActivityType(e.target.value)} className="input">
+          <select value={activityType} onChange={e => setActivityType(e.target.value)} className="input w-full">
             {activityTypes.map(tp => (
               <option key={tp} value={tp}>{t(`activityType.${tp}`, { defaultValue: tp.replace(/_/g, ' ') })}</option>
             ))}
@@ -92,18 +87,24 @@ export function TaskForm() {
         </div>
 
         <div>
-          <label className="field-label">{t('tasks.deadlineLabel')}</label>
-          <input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} className="input" />
+          <label className="field-label">{t('common.speciesLabel')}</label>
+          <SpeciesAutocomplete value={selectedSpecies} onChange={setSelectedSpecies} />
         </div>
 
-        <div>
-          <label className="field-label">{t('tasks.targetCountLabel')}</label>
-          <input type="number" value={targetCount} onChange={e => setTargetCount(e.target.value)} placeholder="e.g. 10" className="input" />
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="field-label">{t('tasks.deadlineLabel')}</label>
+            <input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} className="input w-full" />
+          </div>
+          <div>
+            <label className="field-label">{t('tasks.targetCountLabel')}</label>
+            <input type="number" value={targetCount} onChange={e => setTargetCount(e.target.value)} placeholder="e.g. 10" className="input w-full" />
+          </div>
         </div>
 
         <div>
           <label className="field-label">{t('common.notesLabel')}</label>
-          <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('common.optional')} rows={2} className="input" />
+          <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('common.optional')} rows={2} className="input w-full" />
         </div>
       </div>
 
