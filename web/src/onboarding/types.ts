@@ -10,8 +10,10 @@ export interface OnboardingStep {
 export type OnboardingSection =
   | 'getting_started'
   | 'growing'
-  | 'harvesting_sales'
   | 'planning'
+  | 'planting'
+  | 'harvest'
+  | 'sell'
   | 'advanced'
 
 export interface OnboardingState {

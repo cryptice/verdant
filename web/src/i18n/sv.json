@@ -785,8 +785,10 @@
     "sections": {
       "gettingStarted": "Kom igång",
       "growing": "Förbered",
-      "harvestingSales": "Skörd & Försäljning",
-      "planning": "Planering",
+      "planning": "Planera",
+      "planting": "Plantera",
+      "harvest": "Skörda",
+      "sell": "Sälj",
       "advanced": "Avancerat"
     },
     "steps": {

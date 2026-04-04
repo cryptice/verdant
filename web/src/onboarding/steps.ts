@@ -11,8 +11,6 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   { id: 'browse_species', section: 'growing', route: '/species', completionType: 'visit' },
   { id: 'add_seeds', section: 'growing', route: '/seeds', completionType: 'explicit' },
   { id: 'sow_seeds', section: 'growing', route: '/sow', completionType: 'explicit' },
-  { id: 'pot_up', section: 'growing', route: '/plants', completionType: 'explicit' },
-  { id: 'plant_out', section: 'growing', route: '/plants', completionType: 'explicit' },
 
   // Section 3: Planning
   { id: 'create_task', section: 'planning', route: '/task/new', completionType: 'explicit' },
@@ -20,10 +18,16 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   { id: 'set_target', section: 'planning', route: '/targets', completionType: 'explicit' },
   { id: 'view_calendar', section: 'planning', route: '/calendar', completionType: 'visit' },
 
-  // Section 4: Harvesting & Sales
-  { id: 'record_harvest', section: 'harvesting_sales', route: '/plants', completionType: 'explicit' },
-  { id: 'add_customer', section: 'harvesting_sales', route: '/customers', completionType: 'explicit' },
-  { id: 'create_bouquet', section: 'harvesting_sales', route: '/bouquets', completionType: 'explicit' },
+  // Section 4: Plant
+  { id: 'pot_up', section: 'planting', route: '/plants', completionType: 'explicit' },
+  { id: 'plant_out', section: 'planting', route: '/plants', completionType: 'explicit' },
+
+  // Section 5: Harvest
+  { id: 'record_harvest', section: 'harvest', route: '/plants', completionType: 'explicit' },
+
+  // Section 6: Sell
+  { id: 'add_customer', section: 'sell', route: '/customers', completionType: 'explicit' },
+  { id: 'create_bouquet', section: 'sell', route: '/bouquets', completionType: 'explicit' },
 
   // Section 5: Advanced
   { id: 'start_trial', section: 'advanced', route: '/trials', completionType: 'explicit' },
@@ -36,7 +40,9 @@ export const SECTIONS: { id: OnboardingSection; titleKey: string; icon: string }
   { id: 'getting_started', titleKey: 'onboarding.sections.gettingStarted', icon: '🚀' },
   { id: 'growing', titleKey: 'onboarding.sections.growing', icon: '🌱' },
   { id: 'planning', titleKey: 'onboarding.sections.planning', icon: '📋' },
-  { id: 'harvesting_sales', titleKey: 'onboarding.sections.harvestingSales', icon: '🌾' },
+  { id: 'planting', titleKey: 'onboarding.sections.planting', icon: '🌿' },
+  { id: 'harvest', titleKey: 'onboarding.sections.harvest', icon: '🌾' },
+  { id: 'sell', titleKey: 'onboarding.sections.sell', icon: '💐' },
   { id: 'advanced', titleKey: 'onboarding.sections.advanced', icon: '⚡' },
 ]
 

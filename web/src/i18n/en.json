@@ -785,8 +785,10 @@
     "sections": {
       "gettingStarted": "Getting Started",
       "growing": "Prepare",
-      "harvestingSales": "Harvesting & Sales",
-      "planning": "Planning",
+      "planning": "Plan",
+      "planting": "Plant",
+      "harvest": "Harvest",
+      "sell": "Sell",
       "advanced": "Advanced"
     },
     "steps": {
