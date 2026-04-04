@@ -6,7 +6,6 @@ import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
-import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
 const ROLES = ['FLOWER', 'FOLIAGE', 'FILLER', 'ACCENT'] as const
@@ -20,7 +19,7 @@ interface FormItem {
 export function BouquetRecipes() {
   const qc = useQueryClient()
   const { t } = useTranslation()
-  const { completeStep } = useOnboarding()
+  const { completeStep, isActive, isStepComplete } = useOnboarding()
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['bouquet-recipes'],
     queryFn: () => api.bouquetRecipes.list(),
@@ -172,10 +171,22 @@ export function BouquetRecipes() {
   return (
     <div>
       <PageHeader title={t('bouquets.title')} action={{ label: t('bouquets.new'), onClick: openAdd, 'data-onboarding': 'add-bouquet-btn' }} />
-      <OnboardingHint />
       <div className="px-4 py-4">
         {data && data.length === 0 && (
-          <p className="text-text-secondary text-sm text-center py-4">{t('bouquets.noRecipes')}</p>
+          isActive && !isStepComplete('create_bouquet') ? (
+            <div className="bg-accent-light/50 border border-accent/15 rounded-2xl px-6 py-6 text-center">
+              <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3">
+                <span className="text-xl">💐</span>
+              </div>
+              <p className="font-semibold text-text-primary">{t('onboarding.steps.create_bouquet')}</p>
+              <p className="text-sm text-text-secondary mt-1 max-w-md mx-auto">{t('onboarding.hints.create_bouquet')}</p>
+              <button onClick={openAdd} className="btn-primary mt-4">
+                {t('bouquets.new')}
+              </button>
+            </div>
+          ) : (
+            <p className="text-text-secondary text-sm text-center py-4">{t('bouquets.noRecipes')}</p>
+          )
         )}
 
         {data && data.length > 0 && (
