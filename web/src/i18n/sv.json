@@ -207,7 +207,7 @@
     "noActivePlants": "Inga aktiva plantor i år"
   },
   "seeds": {
-    "title": "Utsäde",
+    "title": "Utsädelager",
     "addSeeds": "+ Lägg till utsäde",
     "noBatches": "Inga fröpartier. Tryck + för att lägga till.",
     "noBatchesTitle": "Inget utsäde ännu",
@@ -645,7 +645,7 @@
         ]
       },
       "seeds": {
-        "title": "Fr\u00f6inventarie",
+        "title": "Utsädelager",
         "body": [
           "H\u00e5ll reda p\u00e5 ditt fr\u00f6-, l\u00f6k- och plugglager.",
           "- Art, antal, enhetstyp (Fr\u00f6, Plugg, L\u00f6k, Kn\u00f6l, Planta)",
@@ -794,7 +794,7 @@
       "create_garden": "Skapa en trädgård",
       "create_bed": "Skapa en bädd i din trädgård",
       "browse_species": "Utforska arter",
-      "add_seeds": "Lägg till frön i inventariet",
+      "add_seeds": "Lägg till frön i utsädelagret",
       "sow_seeds": "Så dina första frön",
       "pot_up": "Kruka upp en planta",
       "plant_out": "Plantera ut i en bädd",
@@ -869,7 +869,7 @@
       "addSeeds": {
         "step1": {
           "title": "Lägg till frön",
-          "description": "Klicka här för att lägga till en ny fröomgång i ditt inventarie."
+          "description": "Klicka här för att lägga till en ny fröomgång i ditt utsädelager."
         },
         "step2": {
           "title": "Fyll i frödetaljer",
