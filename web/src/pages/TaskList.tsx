@@ -74,6 +74,11 @@ export function TaskList() {
                       task.speciesName
                     )}
                   </p>
+                  {task.acceptableSpecies.length > 1 && (
+                    <p className="text-xs text-text-secondary mt-0.5">
+                      {task.acceptableSpecies.map(s => s.speciesName).join(', ')}
+                    </p>
+                  )}
                   <p className="text-xs text-text-secondary">{t('tasks.remaining', { remaining: task.remainingCount, total: task.targetCount })}</p>
                 </div>
               </div>
