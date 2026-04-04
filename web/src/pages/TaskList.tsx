@@ -74,11 +74,22 @@ export function TaskList() {
                       task.speciesName
                     )}
                   </p>
-                  {task.acceptableSpecies.length > 1 && (
-                    <p className="text-xs text-text-secondary mt-0.5">
-                      {task.acceptableSpecies.map(s => s.speciesName).join(', ')}
-                    </p>
-                  )}
+                  {task.acceptableSpecies.length > 1 && (() => {
+                    const grouped = new Map<string, string[]>()
+                    for (const s of task.acceptableSpecies) {
+                      const idx = s.speciesName.indexOf(' — ')
+                      const main = idx >= 0 ? s.speciesName.substring(0, idx) : s.speciesName
+                      const variant = idx >= 0 ? s.speciesName.substring(idx + 3) : null
+                      const variants = grouped.get(main) ?? []
+                      if (variant) variants.push(variant)
+                      grouped.set(main, variants)
+                    }
+                    return <div className="text-xs text-text-secondary mt-0.5 space-y-0.5">
+                      {Array.from(grouped.entries()).map(([main, variants]) => (
+                        <p key={main}>{main}{variants.length > 0 ? `: ${variants.join(', ')}` : ''}</p>
+                      ))}
+                    </div>
+                  })()}
                   <p className="text-xs text-text-secondary">{t('tasks.remaining', { remaining: task.remainingCount, total: task.targetCount })}</p>
                 </div>
               </div>
