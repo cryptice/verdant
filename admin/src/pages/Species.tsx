@@ -1116,7 +1116,7 @@ function SpeciesForm({
   const [soils, setSoils] = useState<Set<string>>(new Set(species?.soils ?? []))
   const [groupId, setGroupId] = useState<number | null>(species?.groupId ?? null)
   const [tagIds, setTagIds] = useState<Set<number>>(new Set(species?.tags.map(t => t.id) ?? []))
-  const [costPerSeedSek, setCostPerSeedSek] = useState(species?.costPerSeedSek?.toString() ?? '')
+  const [costPerSeedSek, setCostPerSeedSek] = useState(species?.costPerSeedSek != null ? (species.costPerSeedSek / 100).toString() : '')
   const [expectedStemsPerPlant, setExpectedStemsPerPlant] = useState(species?.expectedStemsPerPlant?.toString() ?? '')
   const [expectedVaseLifeDays, setExpectedVaseLifeDays] = useState(species?.expectedVaseLifeDays?.toString() ?? '')
   const [plantType, setPlantType] = useState(species?.plantType ?? '')
@@ -1262,7 +1262,7 @@ function SpeciesForm({
       soils: [...soils],
       groupId: groupId ?? undefined,
       tagIds: tagIds.size > 0 ? [...tagIds] : undefined,
-      costPerSeedSek: costPerSeedSek ? parseInt(costPerSeedSek) : undefined,
+      costPerSeedSek: costPerSeedSek ? Math.round(parseFloat(costPerSeedSek) * 100) : undefined,
       expectedStemsPerPlant: expectedStemsPerPlant ? parseInt(expectedStemsPerPlant) : undefined,
       expectedVaseLifeDays: expectedVaseLifeDays ? parseInt(expectedVaseLifeDays) : undefined,
       plantType: plantType || undefined,
@@ -1673,7 +1673,7 @@ function SpeciesForm({
         <section className="border border-[#E9E9E7] rounded-lg p-5">
           <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Commercial & Classification</h3>
           <div className="grid grid-cols-3 gap-4 mb-4">
-            <Field label="Cost per seed (öre)" value={costPerSeedSek} onChange={v => setCostPerSeedSek(v.replace(/\D/g, ''))} type="text" />
+            <Field label="Cost per seed (SEK)" value={costPerSeedSek} onChange={setCostPerSeedSek} type="text" />
             <Field label="Expected stems per plant" value={expectedStemsPerPlant} onChange={v => setExpectedStemsPerPlant(v.replace(/\D/g, ''))} type="text" />
             <Field label="Expected vase life (days)" value={expectedVaseLifeDays} onChange={v => setExpectedVaseLifeDays(v.replace(/\D/g, ''))} type="text" />
           </div>
