@@ -7,7 +7,7 @@ import jakarta.enterprise.context.ApplicationScoped
 @ApplicationScoped
 class AnalyticsService(private val ds: AgroalDataSource) {
 
-    fun getSeasonSummaries(userId: Long): List<SeasonSummaryResponse> {
+    fun getSeasonSummaries(orgId: Long): List<SeasonSummaryResponse> {
         data class SpeciesRow(
             val seasonId: Long,
             val seasonName: String,
@@ -35,11 +35,11 @@ class AnalyticsService(private val ds: AgroalDataSource) {
                    JOIN season s ON p.season_id = s.id
                    JOIN species sp ON p.species_id = sp.id
                    LEFT JOIN plant_event pe ON pe.plant_id = p.id AND pe.event_type = 'HARVESTED'
-                   WHERE p.user_id = ?
+                   WHERE p.org_id = ?
                    GROUP BY s.id, s.name, s.year, sp.id, sp.common_name
                    ORDER BY s.year DESC, s.name, stems_harvested DESC"""
             ).use { ps ->
-                ps.setLong(1, userId)
+                ps.setLong(1, orgId)
                 ps.executeQuery().use { rs ->
                     buildList {
                         while (rs.next()) add(
@@ -72,10 +72,10 @@ class AnalyticsService(private val ds: AgroalDataSource) {
                    JOIN season s ON p.season_id = s.id
                    JOIN species sp ON p.species_id = sp.id
                    JOIN plant_event pe ON pe.plant_id = p.id AND pe.event_type = 'HARVESTED'
-                   WHERE p.user_id = ? AND pe.quality_grade IS NOT NULL
+                   WHERE p.org_id = ? AND pe.quality_grade IS NOT NULL
                    GROUP BY s.id, sp.id, pe.quality_grade"""
             ).use { ps ->
-                ps.setLong(1, userId)
+                ps.setLong(1, orgId)
                 ps.executeQuery().use { rs ->
                     buildList {
                         while (rs.next()) add(
@@ -102,10 +102,10 @@ class AnalyticsService(private val ds: AgroalDataSource) {
                    FROM plant p
                    JOIN season s ON p.season_id = s.id
                    JOIN plant_event pe ON pe.plant_id = p.id AND pe.event_type = 'HARVESTED'
-                   WHERE p.user_id = ?
+                   WHERE p.org_id = ?
                    GROUP BY s.id"""
             ).use { ps ->
-                ps.setLong(1, userId)
+                ps.setLong(1, orgId)
                 ps.executeQuery().use { rs ->
                     buildList {
                         while (rs.next()) add(
@@ -150,7 +150,7 @@ class AnalyticsService(private val ds: AgroalDataSource) {
             }
     }
 
-    fun getSpeciesComparison(userId: Long, speciesId: Long): SpeciesComparisonResponse {
+    fun getSpeciesComparison(orgId: Long, speciesId: Long): SpeciesComparisonResponse {
         data class Row(
             val speciesName: String,
             val seasonId: Long,
@@ -176,11 +176,11 @@ class AnalyticsService(private val ds: AgroalDataSource) {
                    JOIN season s ON p.season_id = s.id
                    JOIN species sp ON p.species_id = sp.id
                    LEFT JOIN plant_event pe ON pe.plant_id = p.id AND pe.event_type = 'HARVESTED'
-                   WHERE p.user_id = ? AND sp.id = ?
+                   WHERE p.org_id = ? AND sp.id = ?
                    GROUP BY sp.common_name, s.id, s.name, s.year
                    ORDER BY s.year"""
             ).use { ps ->
-                ps.setLong(1, userId)
+                ps.setLong(1, orgId)
                 ps.setLong(2, speciesId)
                 ps.executeQuery().use { rs ->
                     buildList {
@@ -229,7 +229,7 @@ class AnalyticsService(private val ds: AgroalDataSource) {
         )
     }
 
-    fun getYieldPerBed(userId: Long, seasonId: Long?): List<YieldPerBedResponse> {
+    fun getYieldPerBed(orgId: Long, seasonId: Long?): List<YieldPerBedResponse> {
         data class Row(
             val bedId: Long,
             val bedName: String,
@@ -257,11 +257,11 @@ class AnalyticsService(private val ds: AgroalDataSource) {
                    JOIN garden g ON b.garden_id = g.id
                    JOIN season s ON p.season_id = s.id
                    LEFT JOIN plant_event pe ON pe.plant_id = p.id AND pe.event_type = 'HARVESTED'
-                   WHERE g.owner_id = ? $seasonFilter
+                   WHERE g.org_id = ? $seasonFilter
                    GROUP BY b.id, b.name, g.name, b.length_meters, b.width_meters, s.id, s.name
                    ORDER BY b.name, s.year"""
             ).use { ps ->
-                ps.setLong(1, userId)
+                ps.setLong(1, orgId)
                 if (seasonId != null) ps.setLong(2, seasonId)
                 ps.executeQuery().use { rs ->
                     buildList {

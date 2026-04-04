@@ -17,20 +17,20 @@ class SeasonRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long): List<Season> =
+    fun findByOrgId(orgId: Long): List<Season> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM season WHERE user_id = ? ORDER BY year DESC, id DESC").use { ps ->
-                ps.setLong(1, userId)
+            conn.prepareStatement("SELECT * FROM season WHERE org_id = ? ORDER BY year DESC, id DESC").use { ps ->
+                ps.setLong(1, orgId)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toSeason()) }
                 }
             }
         }
 
-    fun findActiveByUserId(userId: Long): List<Season> =
+    fun findActiveByOrgId(orgId: Long): List<Season> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM season WHERE user_id = ? AND is_active = true ORDER BY year DESC, id DESC").use { ps ->
-                ps.setLong(1, userId)
+            conn.prepareStatement("SELECT * FROM season WHERE org_id = ? AND is_active = true ORDER BY year DESC, id DESC").use { ps ->
+                ps.setLong(1, orgId)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toSeason()) }
                 }
@@ -40,12 +40,12 @@ class SeasonRepository(private val ds: AgroalDataSource) {
     fun persist(season: Season): Season {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO season (user_id, name, year, start_date, end_date, last_frost_date, first_frost_date,
+                """INSERT INTO season (org_id, name, year, start_date, end_date, last_frost_date, first_frost_date,
                    growing_degree_base_c, notes, is_active, created_at, updated_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
-                ps.setLong(1, season.userId)
+                ps.setLong(1, season.orgId)
                 ps.setString(2, season.name)
                 ps.setInt(3, season.year)
                 ps.setObject(4, season.startDate)
@@ -98,7 +98,7 @@ class SeasonRepository(private val ds: AgroalDataSource) {
 
     private fun ResultSet.toSeason() = Season(
         id = getLong("id"),
-        userId = getLong("user_id"),
+        orgId = getLong("org_id"),
         name = getString("name"),
         year = getInt("year"),
         startDate = getObject("start_date", java.time.LocalDate::class.java),

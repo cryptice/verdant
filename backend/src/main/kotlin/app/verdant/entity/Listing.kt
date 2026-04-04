@@ -5,7 +5,7 @@ import java.time.LocalDate
 
 data class Listing(
     val id: Long? = null,
-    val userId: Long,
+    val orgId: Long,
     val speciesId: Long,
     val title: String,
     val description: String? = null,

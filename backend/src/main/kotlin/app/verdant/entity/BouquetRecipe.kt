@@ -4,7 +4,7 @@ import java.time.Instant
 
 data class BouquetRecipe(
     val id: Long? = null,
-    val userId: Long,
+    val orgId: Long,
     val name: String,
     val description: String? = null,
     val imageUrl: String? = null,

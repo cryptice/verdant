@@ -21,14 +21,14 @@ class MarketOrderService(
 ) {
 
     @Transactional
-    fun placeOrder(request: CreateMarketOrderRequest, purchaserId: Long): MarketOrderResponse {
+    fun placeOrder(request: CreateMarketOrderRequest, purchaserOrgId: Long): MarketOrderResponse {
         if (request.items.isEmpty()) throw BadRequestException("Order must have at least one item")
 
         // Resolve all listings, validate, and decrement quantities atomically under FOR UPDATE locks.
         // Each findByIdForUpdate acquires a row-level lock that is held for the duration of the
         // transaction, ensuring no concurrent transaction can check or modify the same quantity
         // between our check and our decrement.
-        data class ResolvedItem(val listingId: Long, val speciesId: Long, val quantity: Int, val pricePerStemSek: Int, val producerId: Long)
+        data class ResolvedItem(val listingId: Long, val speciesId: Long, val quantity: Int, val pricePerStemSek: Int, val producerOrgId: Long)
         val resolvedItems = request.items.map { itemReq ->
             val listing = listingRepo.findByIdForUpdate(itemReq.listingId)
                 ?: throw BadRequestException("Listing ${itemReq.listingId} not found")
@@ -43,23 +43,23 @@ class MarketOrderService(
                 speciesId = listing.speciesId,
                 quantity = itemReq.quantity,
                 pricePerStemSek = listing.pricePerStemSek,
-                producerId = listing.userId,
+                producerOrgId = listing.orgId,
             )
         }
 
         // All items must belong to the same producer
-        val producerIds = resolvedItems.map { it.producerId }.toSet()
-        if (producerIds.size != 1) throw BadRequestException("All items in an order must be from the same producer")
-        val producerId = producerIds.first()
+        val producerOrgIds = resolvedItems.map { it.producerOrgId }.toSet()
+        if (producerOrgIds.size != 1) throw BadRequestException("All items in an order must be from the same producer")
+        val producerOrgId = producerOrgIds.first()
 
-        if (producerId == purchaserId) throw BadRequestException("Cannot place an order for your own listings")
+        if (producerOrgId == purchaserOrgId) throw BadRequestException("Cannot place an order for your own listings")
 
         val totalSek = resolvedItems.sumOf { it.pricePerStemSek * it.quantity }
 
         val order = orderRepo.persist(
             MarketOrder(
-                purchaserId = purchaserId,
-                producerId = producerId,
+                purchaserOrgId = purchaserOrgId,
+                producerOrgId = producerOrgId,
                 deliveryDate = request.deliveryDate,
                 totalSek = totalSek,
                 notes = request.notes,
@@ -83,25 +83,25 @@ class MarketOrderService(
         return getOrder(order.id!!)
     }
 
-    fun getOrdersForPurchaser(userId: Long, limit: Int = 50, offset: Int = 0): List<MarketOrderResponse> =
-        orderRepo.findByPurchaserId(userId, limit, offset).map { it.toResponse() }
+    fun getOrdersForPurchaser(purchaserOrgId: Long, limit: Int = 50, offset: Int = 0): List<MarketOrderResponse> =
+        orderRepo.findByPurchaserOrgId(purchaserOrgId, limit, offset).map { it.toResponse() }
 
-    fun getOrdersForProducer(userId: Long, limit: Int = 50, offset: Int = 0): List<MarketOrderResponse> =
-        orderRepo.findByProducerId(userId, limit, offset).map { it.toResponse() }
+    fun getOrdersForProducer(producerOrgId: Long, limit: Int = 50, offset: Int = 0): List<MarketOrderResponse> =
+        orderRepo.findByProducerOrgId(producerOrgId, limit, offset).map { it.toResponse() }
 
     fun getOrder(id: Long): MarketOrderResponse {
         val order = orderRepo.findById(id) ?: throw NotFoundException("Order not found")
         return order.toResponse()
     }
 
-    fun getOrderForUser(id: Long, userId: Long): MarketOrderResponse {
+    fun getOrderForUser(id: Long, orgId: Long): MarketOrderResponse {
         val order = orderRepo.findById(id) ?: throw NotFoundException("Order not found")
-        if (order.purchaserId != userId && order.producerId != userId) throw ForbiddenException()
+        if (order.purchaserOrgId != orgId && order.producerOrgId != orgId) throw NotFoundException("Order not found")
         return order.toResponse()
     }
 
     @Transactional
-    fun updateOrderStatus(orderId: Long, request: UpdateOrderStatusRequest, userId: Long): MarketOrderResponse {
+    fun updateOrderStatus(orderId: Long, request: UpdateOrderStatusRequest, orgId: Long): MarketOrderResponse {
         val order = orderRepo.findById(orderId) ?: throw NotFoundException("Order not found")
         val newStatus = try {
             OrderStatus.valueOf(request.status)
@@ -111,7 +111,7 @@ class MarketOrderService(
 
         when (newStatus) {
             OrderStatus.CANCELLED -> {
-                if (order.purchaserId != userId) throw ForbiddenException("Only the purchaser can cancel")
+                if (order.purchaserOrgId != orgId) throw ForbiddenException("Only the purchaser can cancel")
                 if (order.status != OrderStatus.PLACED) throw BadRequestException("Can only cancel orders with status PLACED")
                 // Restore listing quantities
                 val items = itemRepo.findByOrderId(orderId)
@@ -123,7 +123,7 @@ class MarketOrderService(
                 }
             }
             OrderStatus.ACCEPTED, OrderStatus.FULFILLED, OrderStatus.DELIVERED -> {
-                if (order.producerId != userId) throw ForbiddenException("Only the producer can update to $newStatus")
+                if (order.producerOrgId != orgId) throw ForbiddenException("Only the producer can update to $newStatus")
             }
             OrderStatus.PLACED -> throw BadRequestException("Cannot set status back to PLACED")
         }
@@ -133,8 +133,8 @@ class MarketOrderService(
     }
 
     private fun MarketOrder.toResponse(): MarketOrderResponse {
-        val purchaser = userRepo.findById(purchaserId)
-        val producer = userRepo.findById(producerId)
+        val purchaser = userRepo.findById(purchaserOrgId)
+        val producer = userRepo.findById(producerOrgId)
         val items = itemRepo.findByOrderId(id!!).map { item ->
             OrderItemResponse(
                 id = item.id!!,
@@ -147,9 +147,9 @@ class MarketOrderService(
         }
         return MarketOrderResponse(
             id = id,
-            purchaserId = purchaserId,
+            purchaserId = purchaserOrgId,
             purchaserName = purchaser?.displayName ?: "Unknown",
-            producerId = producerId,
+            producerId = producerOrgId,
             producerName = producer?.displayName ?: "Unknown",
             status = status.name,
             deliveryDate = deliveryDate,

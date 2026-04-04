@@ -61,14 +61,14 @@ class MarketOrderServiceTest {
 
     private fun makeListing(
         id: Long,
-        userId: Long,
+        orgId: Long,
         speciesId: Long = 10L,
         quantity: Int = 20,
         pricePerStemSek: Int = 150,
         isActive: Boolean = true,
     ) = Listing(
         id = id,
-        userId = userId,
+        orgId = orgId,
         speciesId = speciesId,
         title = "Test listing",
         quantityAvailable = quantity,
@@ -82,14 +82,14 @@ class MarketOrderServiceTest {
 
     private fun makeOrder(
         id: Long,
-        purchaserId: Long,
-        producerId: Long,
+        purchaserOrgId: Long,
+        producerOrgId: Long,
         status: OrderStatus = OrderStatus.PLACED,
         totalSek: Int = 0,
     ) = MarketOrder(
         id = id,
-        purchaserId = purchaserId,
-        producerId = producerId,
+        purchaserOrgId = purchaserOrgId,
+        producerOrgId = producerOrgId,
         status = status,
         totalSek = totalSek,
         createdAt = now,
@@ -123,8 +123,8 @@ class MarketOrderServiceTest {
     private fun stubGetOrder(order: MarketOrder, items: List<OrderItem>) {
         `when`(orderRepo.findById(order.id!!)).thenReturn(order)
         `when`(itemRepo.findByOrderId(order.id!!)).thenReturn(items)
-        `when`(userRepo.findById(order.purchaserId)).thenReturn(makeUser(order.purchaserId, "Buyer"))
-        `when`(userRepo.findById(order.producerId)).thenReturn(makeUser(order.producerId, "Seller"))
+        `when`(userRepo.findById(order.purchaserOrgId)).thenReturn(makeUser(order.purchaserOrgId, "Buyer"))
+        `when`(userRepo.findById(order.producerOrgId)).thenReturn(makeUser(order.producerOrgId, "Seller"))
     }
 
     // ── 1. placeOrder succeeds with valid data ────────────────────────────────
@@ -166,10 +166,10 @@ class MarketOrderServiceTest {
     // ── 2. placeOrder rejects ordering own listing ────────────────────────────
 
     @Test
-    fun `placeOrder throws when purchaser is the same user as the listing owner`() {
-        val userId = 1L
+    fun `placeOrder throws when purchaser is the same org as the listing owner`() {
+        val orgId = 1L
         val listingId = 100L
-        val listing = makeListing(listingId, userId)
+        val listing = makeListing(listingId, orgId)
 
         `when`(listingRepo.findByIdForUpdate(listingId)).thenReturn(listing)
 
@@ -178,7 +178,7 @@ class MarketOrderServiceTest {
         )
 
         assertThrows<BadRequestException> {
-            service.placeOrder(request, userId)
+            service.placeOrder(request, orgId)
         }
 
         verify(orderRepo, never()).persist(any())
@@ -268,71 +268,71 @@ class MarketOrderServiceTest {
 
     @Test
     fun `producer can accept a PLACED order`() {
-        val producerId = 2L
-        val order = makeOrder(1L, purchaserId = 1L, producerId = producerId, status = OrderStatus.PLACED)
+        val producerOrgId = 2L
+        val order = makeOrder(1L, purchaserOrgId = 1L, producerOrgId = producerOrgId, status = OrderStatus.PLACED)
         val updatedOrder = order.copy(status = OrderStatus.ACCEPTED)
 
         `when`(orderRepo.findById(1L)).thenReturn(order).thenReturn(updatedOrder)
         `when`(itemRepo.findByOrderId(1L)).thenReturn(emptyList())
         `when`(userRepo.findById(any())).thenReturn(makeUser(1L))
 
-        service.updateOrderStatus(1L, UpdateOrderStatusRequest("ACCEPTED"), producerId)
+        service.updateOrderStatus(1L, UpdateOrderStatusRequest("ACCEPTED"), producerOrgId)
 
         verify(orderRepo).updateStatus(1L, OrderStatus.ACCEPTED)
     }
 
     @Test
     fun `producer can mark an ACCEPTED order as FULFILLED`() {
-        val producerId = 2L
-        val order = makeOrder(1L, purchaserId = 1L, producerId = producerId, status = OrderStatus.ACCEPTED)
+        val producerOrgId = 2L
+        val order = makeOrder(1L, purchaserOrgId = 1L, producerOrgId = producerOrgId, status = OrderStatus.ACCEPTED)
         val updatedOrder = order.copy(status = OrderStatus.FULFILLED)
 
         `when`(orderRepo.findById(1L)).thenReturn(order).thenReturn(updatedOrder)
         `when`(itemRepo.findByOrderId(1L)).thenReturn(emptyList())
         `when`(userRepo.findById(any())).thenReturn(makeUser(1L))
 
-        service.updateOrderStatus(1L, UpdateOrderStatusRequest("FULFILLED"), producerId)
+        service.updateOrderStatus(1L, UpdateOrderStatusRequest("FULFILLED"), producerOrgId)
 
         verify(orderRepo).updateStatus(1L, OrderStatus.FULFILLED)
     }
 
     @Test
     fun `producer can mark a FULFILLED order as DELIVERED`() {
-        val producerId = 2L
-        val order = makeOrder(1L, purchaserId = 1L, producerId = producerId, status = OrderStatus.FULFILLED)
+        val producerOrgId = 2L
+        val order = makeOrder(1L, purchaserOrgId = 1L, producerOrgId = producerOrgId, status = OrderStatus.FULFILLED)
         val updatedOrder = order.copy(status = OrderStatus.DELIVERED)
 
         `when`(orderRepo.findById(1L)).thenReturn(order).thenReturn(updatedOrder)
         `when`(itemRepo.findByOrderId(1L)).thenReturn(emptyList())
         `when`(userRepo.findById(any())).thenReturn(makeUser(1L))
 
-        service.updateOrderStatus(1L, UpdateOrderStatusRequest("DELIVERED"), producerId)
+        service.updateOrderStatus(1L, UpdateOrderStatusRequest("DELIVERED"), producerOrgId)
 
         verify(orderRepo).updateStatus(1L, OrderStatus.DELIVERED)
     }
 
     @Test
     fun `purchaser can cancel a PLACED order`() {
-        val purchaserId = 1L
-        val order = makeOrder(1L, purchaserId = purchaserId, producerId = 2L, status = OrderStatus.PLACED)
+        val purchaserOrgId = 1L
+        val order = makeOrder(1L, purchaserOrgId = purchaserOrgId, producerOrgId = 2L, status = OrderStatus.PLACED)
         val updatedOrder = order.copy(status = OrderStatus.CANCELLED)
 
         `when`(orderRepo.findById(1L)).thenReturn(order).thenReturn(updatedOrder)
         `when`(itemRepo.findByOrderId(1L)).thenReturn(emptyList())
         `when`(userRepo.findById(any())).thenReturn(makeUser(1L))
 
-        service.updateOrderStatus(1L, UpdateOrderStatusRequest("CANCELLED"), purchaserId)
+        service.updateOrderStatus(1L, UpdateOrderStatusRequest("CANCELLED"), purchaserOrgId)
 
         verify(orderRepo).updateStatus(1L, OrderStatus.CANCELLED)
     }
 
     @Test
     fun `non-purchaser cannot cancel an order`() {
-        val order = makeOrder(1L, purchaserId = 1L, producerId = 2L, status = OrderStatus.PLACED)
+        val order = makeOrder(1L, purchaserOrgId = 1L, producerOrgId = 2L, status = OrderStatus.PLACED)
         `when`(orderRepo.findById(1L)).thenReturn(order)
 
         assertThrows<ForbiddenException> {
-            service.updateOrderStatus(1L, UpdateOrderStatusRequest("CANCELLED"), userId = 99L)
+            service.updateOrderStatus(1L, UpdateOrderStatusRequest("CANCELLED"), orgId = 99L)
         }
 
         verify(orderRepo, never()).updateStatus(any(), any())
@@ -340,11 +340,11 @@ class MarketOrderServiceTest {
 
     @Test
     fun `non-producer cannot accept an order`() {
-        val order = makeOrder(1L, purchaserId = 1L, producerId = 2L, status = OrderStatus.PLACED)
+        val order = makeOrder(1L, purchaserOrgId = 1L, producerOrgId = 2L, status = OrderStatus.PLACED)
         `when`(orderRepo.findById(1L)).thenReturn(order)
 
         assertThrows<ForbiddenException> {
-            service.updateOrderStatus(1L, UpdateOrderStatusRequest("ACCEPTED"), userId = 99L)
+            service.updateOrderStatus(1L, UpdateOrderStatusRequest("ACCEPTED"), orgId = 99L)
         }
 
         verify(orderRepo, never()).updateStatus(any(), any())
@@ -352,11 +352,11 @@ class MarketOrderServiceTest {
 
     @Test
     fun `cannot set status back to PLACED`() {
-        val order = makeOrder(1L, purchaserId = 1L, producerId = 2L, status = OrderStatus.ACCEPTED)
+        val order = makeOrder(1L, purchaserOrgId = 1L, producerOrgId = 2L, status = OrderStatus.ACCEPTED)
         `when`(orderRepo.findById(1L)).thenReturn(order)
 
         assertThrows<BadRequestException> {
-            service.updateOrderStatus(1L, UpdateOrderStatusRequest("PLACED"), userId = 2L)
+            service.updateOrderStatus(1L, UpdateOrderStatusRequest("PLACED"), orgId = 2L)
         }
 
         verify(orderRepo, never()).updateStatus(any(), any())
@@ -364,11 +364,11 @@ class MarketOrderServiceTest {
 
     @Test
     fun `cannot cancel an order that is not in PLACED status`() {
-        val order = makeOrder(1L, purchaserId = 1L, producerId = 2L, status = OrderStatus.ACCEPTED)
+        val order = makeOrder(1L, purchaserOrgId = 1L, producerOrgId = 2L, status = OrderStatus.ACCEPTED)
         `when`(orderRepo.findById(1L)).thenReturn(order)
 
         assertThrows<BadRequestException> {
-            service.updateOrderStatus(1L, UpdateOrderStatusRequest("CANCELLED"), userId = 1L)
+            service.updateOrderStatus(1L, UpdateOrderStatusRequest("CANCELLED"), orgId = 1L)
         }
 
         verify(orderRepo, never()).updateStatus(any(), any())
@@ -376,11 +376,11 @@ class MarketOrderServiceTest {
 
     @Test
     fun `invalid status string throws BadRequestException`() {
-        val order = makeOrder(1L, purchaserId = 1L, producerId = 2L, status = OrderStatus.PLACED)
+        val order = makeOrder(1L, purchaserOrgId = 1L, producerOrgId = 2L, status = OrderStatus.PLACED)
         `when`(orderRepo.findById(1L)).thenReturn(order)
 
         assertThrows<BadRequestException> {
-            service.updateOrderStatus(1L, UpdateOrderStatusRequest("BOGUS_STATUS"), userId = 2L)
+            service.updateOrderStatus(1L, UpdateOrderStatusRequest("BOGUS_STATUS"), orgId = 2L)
         }
     }
 
@@ -388,12 +388,12 @@ class MarketOrderServiceTest {
 
     @Test
     fun `cancelling an order restores listing quantities`() {
-        val purchaserId = 1L
+        val purchaserOrgId = 1L
         val listingId = 100L
         val orderedQuantity = 3
         val currentQuantity = 7
 
-        val order = makeOrder(1L, purchaserId = purchaserId, producerId = 2L, status = OrderStatus.PLACED)
+        val order = makeOrder(1L, purchaserOrgId = purchaserOrgId, producerOrgId = 2L, status = OrderStatus.PLACED)
         val item = makeOrderItem(1L, 1L, listingId, quantity = orderedQuantity)
         val listing = makeListing(listingId, 2L, quantity = currentQuantity)
         val updatedOrder = order.copy(status = OrderStatus.CANCELLED)
@@ -403,7 +403,7 @@ class MarketOrderServiceTest {
         `when`(listingRepo.findById(listingId)).thenReturn(listing)
         `when`(userRepo.findById(any())).thenReturn(makeUser(1L))
 
-        service.updateOrderStatus(1L, UpdateOrderStatusRequest("CANCELLED"), purchaserId)
+        service.updateOrderStatus(1L, UpdateOrderStatusRequest("CANCELLED"), purchaserOrgId)
 
         val listingCaptor = argumentCaptor<Listing>()
         verify(listingRepo).update(listingCaptor.capture())

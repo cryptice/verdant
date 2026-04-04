@@ -25,10 +25,10 @@ class ListingRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long, limit: Int = 50, offset: Int = 0): List<Listing> =
+    fun findByOrgId(orgId: Long, limit: Int = 50, offset: Int = 0): List<Listing> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM listing WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?").use { ps ->
-                ps.setLong(1, userId)
+            conn.prepareStatement("SELECT * FROM listing WHERE org_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?").use { ps ->
+                ps.setLong(1, orgId)
                 ps.setInt(2, limit)
                 ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
@@ -55,12 +55,12 @@ class ListingRepository(private val ds: AgroalDataSource) {
     fun persist(listing: Listing): Listing {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO listing (user_id, species_id, title, description, quantity_available,
+                """INSERT INTO listing (org_id, species_id, title, description, quantity_available,
                    price_per_stem_sek, available_from, available_until, image_url, is_active, created_at, updated_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
-                ps.setLong(1, listing.userId)
+                ps.setLong(1, listing.orgId)
                 ps.setLong(2, listing.speciesId)
                 ps.setString(3, listing.title)
                 ps.setString(4, listing.description)
@@ -113,7 +113,7 @@ class ListingRepository(private val ds: AgroalDataSource) {
 
     private fun ResultSet.toListing() = Listing(
         id = getLong("id"),
-        userId = getLong("user_id"),
+        orgId = getLong("org_id"),
         speciesId = getLong("species_id"),
         title = getString("title"),
         description = getString("description"),

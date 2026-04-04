@@ -5,7 +5,6 @@ import app.verdant.entity.VarietyTrial
 import app.verdant.repository.SpeciesRepository
 import app.verdant.repository.VarietyTrialRepository
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 
 @ApplicationScoped
@@ -16,28 +15,28 @@ class VarietyTrialService(
     private fun resolveSpeciesName(speciesId: Long): String? =
         speciesRepo.findById(speciesId)?.commonName
 
-    fun getTrialsForUser(userId: Long, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<VarietyTrialResponse> {
+    fun getTrialsForUser(orgId: Long, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<VarietyTrialResponse> {
         val trials = if (seasonId != null) {
-            repo.findBySeasonId(userId, seasonId, limit, offset)
+            repo.findBySeasonId(orgId, seasonId, limit, offset)
         } else {
-            repo.findByUserId(userId, limit, offset)
+            repo.findByOrgId(orgId, limit, offset)
         }
         return trials.map { it.toResponse() }
     }
 
-    fun getTrialsBySpecies(userId: Long, speciesId: Long): List<VarietyTrialResponse> =
-        repo.findBySpeciesId(userId, speciesId).map { it.toResponse() }
+    fun getTrialsBySpecies(orgId: Long, speciesId: Long): List<VarietyTrialResponse> =
+        repo.findBySpeciesId(orgId, speciesId).map { it.toResponse() }
 
-    fun getTrial(id: Long, userId: Long): VarietyTrialResponse {
+    fun getTrial(id: Long, orgId: Long): VarietyTrialResponse {
         val trial = repo.findById(id) ?: throw NotFoundException("Variety trial not found")
-        if (trial.userId != userId) throw ForbiddenException()
+        if (trial.orgId != orgId) throw NotFoundException("Variety trial not found")
         return trial.toResponse()
     }
 
-    fun createTrial(request: CreateVarietyTrialRequest, userId: Long): VarietyTrialResponse {
+    fun createTrial(request: CreateVarietyTrialRequest, orgId: Long): VarietyTrialResponse {
         val trial = repo.persist(
             VarietyTrial(
-                userId = userId,
+                orgId = orgId,
                 seasonId = request.seasonId,
                 speciesId = request.speciesId,
                 bedId = request.bedId,
@@ -54,9 +53,9 @@ class VarietyTrialService(
         return trial.toResponse()
     }
 
-    fun updateTrial(id: Long, request: UpdateVarietyTrialRequest, userId: Long): VarietyTrialResponse {
+    fun updateTrial(id: Long, request: UpdateVarietyTrialRequest, orgId: Long): VarietyTrialResponse {
         val trial = repo.findById(id) ?: throw NotFoundException("Variety trial not found")
-        if (trial.userId != userId) throw ForbiddenException()
+        if (trial.orgId != orgId) throw NotFoundException("Variety trial not found")
         val updated = trial.copy(
             seasonId = request.seasonId ?: trial.seasonId,
             speciesId = request.speciesId ?: trial.speciesId,
@@ -74,9 +73,9 @@ class VarietyTrialService(
         return updated.toResponse()
     }
 
-    fun deleteTrial(id: Long, userId: Long) {
+    fun deleteTrial(id: Long, orgId: Long) {
         val trial = repo.findById(id) ?: throw NotFoundException("Variety trial not found")
-        if (trial.userId != userId) throw ForbiddenException()
+        if (trial.orgId != orgId) throw NotFoundException("Variety trial not found")
         repo.delete(id)
     }
 

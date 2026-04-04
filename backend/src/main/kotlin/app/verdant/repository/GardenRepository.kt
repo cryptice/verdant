@@ -17,10 +17,10 @@ class GardenRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByOwnerId(ownerId: Long): List<Garden> =
+    fun findByOrgId(orgId: Long): List<Garden> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM garden WHERE owner_id = ? ORDER BY id").use { ps ->
-                ps.setLong(1, ownerId)
+            conn.prepareStatement("SELECT * FROM garden WHERE org_id = ? ORDER BY id").use { ps ->
+                ps.setLong(1, orgId)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toGarden()) }
                 }
@@ -39,14 +39,14 @@ class GardenRepository(private val ds: AgroalDataSource) {
     fun persist(garden: Garden): Garden {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO garden (name, description, emoji, owner_id, latitude, longitude, address, boundary_json, created_at, updated_at)
+                """INSERT INTO garden (name, description, emoji, org_id, latitude, longitude, address, boundary_json, created_at, updated_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
                 arrayOf("id")
             ).use { ps ->
                 ps.setString(1, garden.name)
                 ps.setString(2, garden.description)
                 ps.setString(3, garden.emoji)
-                ps.setLong(4, garden.ownerId)
+                ps.setLong(4, garden.orgId)
                 garden.latitude?.let { ps.setDouble(5, it) } ?: ps.setNull(5, java.sql.Types.DOUBLE)
                 garden.longitude?.let { ps.setDouble(6, it) } ?: ps.setNull(6, java.sql.Types.DOUBLE)
                 ps.setString(7, garden.address)
@@ -93,7 +93,7 @@ class GardenRepository(private val ds: AgroalDataSource) {
         name = getString("name"),
         description = getString("description"),
         emoji = getString("emoji"),
-        ownerId = getLong("owner_id"),
+        orgId = getLong("org_id"),
         latitude = getDouble("latitude").takeIf { !wasNull() },
         longitude = getDouble("longitude").takeIf { !wasNull() },
         address = getString("address"),

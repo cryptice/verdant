@@ -1,13 +1,13 @@
 package app.verdant.resource
 
 import app.verdant.dto.*
+import app.verdant.filter.OrgContext
 import app.verdant.service.SeasonService
 import io.quarkus.security.Authenticated
 import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
-import org.eclipse.microprofile.jwt.JsonWebToken
 
 @Path("/api/seasons")
 @Produces(MediaType.APPLICATION_JSON)
@@ -15,32 +15,30 @@ import org.eclipse.microprofile.jwt.JsonWebToken
 @Authenticated
 class SeasonResource(
     private val service: SeasonService,
-    private val jwt: JsonWebToken
+    private val orgContext: OrgContext
 ) {
-    private fun userId() = jwt.subject.toLong()
-
     @GET
-    fun list() = service.getSeasonsForUser(userId())
+    fun list() = service.getSeasonsForUser(orgContext.orgId)
 
     @GET
     @Path("/{id}")
-    fun get(@PathParam("id") id: Long) = service.getSeason(id, userId())
+    fun get(@PathParam("id") id: Long) = service.getSeason(id, orgContext.orgId)
 
     @POST
     fun create(@Valid request: CreateSeasonRequest): Response {
-        val season = service.createSeason(request, userId())
+        val season = service.createSeason(request, orgContext.orgId)
         return Response.status(Response.Status.CREATED).entity(season).build()
     }
 
     @PUT
     @Path("/{id}")
     fun update(@PathParam("id") id: Long, @Valid request: UpdateSeasonRequest) =
-        service.updateSeason(id, request, userId())
+        service.updateSeason(id, request, orgContext.orgId)
 
     @DELETE
     @Path("/{id}")
     fun delete(@PathParam("id") id: Long): Response {
-        service.deleteSeason(id, userId())
+        service.deleteSeason(id, orgContext.orgId)
         return Response.noContent().build()
     }
 }

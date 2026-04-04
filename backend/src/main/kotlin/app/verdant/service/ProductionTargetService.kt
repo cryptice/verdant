@@ -5,7 +5,6 @@ import app.verdant.entity.ProductionTarget
 import app.verdant.repository.ProductionTargetRepository
 import app.verdant.repository.SpeciesRepository
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 import java.time.temporal.ChronoUnit
 import kotlin.math.ceil
@@ -18,25 +17,25 @@ class ProductionTargetService(
     private fun resolveSpeciesName(speciesId: Long): String? =
         speciesRepo.findById(speciesId)?.commonName
 
-    fun getTargetsForUser(userId: Long, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<ProductionTargetResponse> {
+    fun getTargetsForUser(orgId: Long, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<ProductionTargetResponse> {
         val targets = if (seasonId != null) {
-            repo.findBySeasonId(userId, seasonId, limit, offset)
+            repo.findBySeasonId(orgId, seasonId, limit, offset)
         } else {
-            repo.findByUserId(userId, limit, offset)
+            repo.findByOrgId(orgId, limit, offset)
         }
         return targets.map { it.toResponse() }
     }
 
-    fun getTarget(id: Long, userId: Long): ProductionTargetResponse {
+    fun getTarget(id: Long, orgId: Long): ProductionTargetResponse {
         val target = repo.findById(id) ?: throw NotFoundException("Production target not found")
-        if (target.userId != userId) throw ForbiddenException()
+        if (target.orgId != orgId) throw NotFoundException("Production target not found")
         return target.toResponse()
     }
 
-    fun createTarget(request: CreateProductionTargetRequest, userId: Long): ProductionTargetResponse {
+    fun createTarget(request: CreateProductionTargetRequest, orgId: Long): ProductionTargetResponse {
         val target = repo.persist(
             ProductionTarget(
-                userId = userId,
+                orgId = orgId,
                 seasonId = request.seasonId,
                 speciesId = request.speciesId,
                 stemsPerWeek = request.stemsPerWeek,
@@ -48,9 +47,9 @@ class ProductionTargetService(
         return target.toResponse()
     }
 
-    fun updateTarget(id: Long, request: UpdateProductionTargetRequest, userId: Long): ProductionTargetResponse {
+    fun updateTarget(id: Long, request: UpdateProductionTargetRequest, orgId: Long): ProductionTargetResponse {
         val target = repo.findById(id) ?: throw NotFoundException("Production target not found")
-        if (target.userId != userId) throw ForbiddenException()
+        if (target.orgId != orgId) throw NotFoundException("Production target not found")
         val updated = target.copy(
             seasonId = request.seasonId ?: target.seasonId,
             speciesId = request.speciesId ?: target.speciesId,
@@ -63,15 +62,15 @@ class ProductionTargetService(
         return updated.toResponse()
     }
 
-    fun deleteTarget(id: Long, userId: Long) {
+    fun deleteTarget(id: Long, orgId: Long) {
         val target = repo.findById(id) ?: throw NotFoundException("Production target not found")
-        if (target.userId != userId) throw ForbiddenException()
+        if (target.orgId != orgId) throw NotFoundException("Production target not found")
         repo.delete(id)
     }
 
-    fun calculateRequirements(id: Long, userId: Long): ProductionForecastResponse {
+    fun calculateRequirements(id: Long, orgId: Long): ProductionForecastResponse {
         val target = repo.findById(id) ?: throw NotFoundException("Production target not found")
-        if (target.userId != userId) throw ForbiddenException()
+        if (target.orgId != orgId) throw NotFoundException("Production target not found")
         val species = speciesRepo.findById(target.speciesId)
             ?: throw NotFoundException("Species not found")
 

@@ -19,13 +19,13 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long, limit: Int = 50, offset: Int = 0): List<ScheduledTask> =
+    fun findByOrgId(orgId: Long, limit: Int = 50, offset: Int = 0): List<ScheduledTask> =
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """SELECT * FROM scheduled_task WHERE user_id = ?
+                """SELECT * FROM scheduled_task WHERE org_id = ?
                    ORDER BY CASE status WHEN 'PENDING' THEN 0 ELSE 1 END, deadline LIMIT ? OFFSET ?"""
             ).use { ps ->
-                ps.setLong(1, userId)
+                ps.setLong(1, orgId)
                 ps.setInt(2, limit)
                 ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
@@ -34,13 +34,13 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findBySeasonId(userId: Long, seasonId: Long, limit: Int = 50, offset: Int = 0): List<ScheduledTask> =
+    fun findBySeasonId(orgId: Long, seasonId: Long, limit: Int = 50, offset: Int = 0): List<ScheduledTask> =
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """SELECT * FROM scheduled_task WHERE user_id = ? AND season_id = ?
+                """SELECT * FROM scheduled_task WHERE org_id = ? AND season_id = ?
                    ORDER BY CASE status WHEN 'PENDING' THEN 0 ELSE 1 END, deadline LIMIT ? OFFSET ?"""
             ).use { ps ->
-                ps.setLong(1, userId)
+                ps.setLong(1, orgId)
                 ps.setLong(2, seasonId)
                 ps.setInt(3, limit)
                 ps.setInt(4, offset)
@@ -53,11 +53,11 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
     fun persist(task: ScheduledTask): ScheduledTask {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO scheduled_task (user_id, species_id, activity_type, deadline, target_count, remaining_count, status, notes, season_id, succession_schedule_id, created_at, updated_at)
+                """INSERT INTO scheduled_task (org_id, species_id, activity_type, deadline, target_count, remaining_count, status, notes, season_id, succession_schedule_id, created_at, updated_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
-                ps.setLong(1, task.userId)
+                ps.setLong(1, task.orgId)
                 ps.setLong(2, task.speciesId)
                 ps.setString(3, task.activityType)
                 ps.setDate(4, Date.valueOf(task.deadline))
@@ -128,7 +128,7 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
 
     private fun ResultSet.toScheduledTask() = ScheduledTask(
         id = getLong("id"),
-        userId = getLong("user_id"),
+        orgId = getLong("org_id"),
         speciesId = getLong("species_id"),
         activityType = getString("activity_type"),
         deadline = getDate("deadline").toLocalDate(),

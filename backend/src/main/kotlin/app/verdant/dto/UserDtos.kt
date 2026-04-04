@@ -1,8 +1,16 @@
 package app.verdant.dto
 
+import app.verdant.entity.OrgRole
 import app.verdant.entity.Role
 import jakarta.validation.constraints.Size
 import java.time.Instant
+
+data class UserOrgMembership(
+    val orgId: Long,
+    val orgName: String,
+    val orgEmoji: String?,
+    val role: OrgRole,
+)
 
 data class UserResponse(
     val id: Long,
@@ -13,6 +21,7 @@ data class UserResponse(
     val language: String,
     val onboarding: String?,
     val advancedMode: Boolean,
+    val organizations: List<UserOrgMembership>,
     val createdAt: Instant
 )
 

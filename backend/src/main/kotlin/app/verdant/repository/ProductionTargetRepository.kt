@@ -18,10 +18,10 @@ class ProductionTargetRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long, limit: Int = 50, offset: Int = 0): List<ProductionTarget> =
+    fun findByOrgId(orgId: Long, limit: Int = 50, offset: Int = 0): List<ProductionTarget> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM production_target WHERE user_id = ? ORDER BY start_date, id LIMIT ? OFFSET ?").use { ps ->
-                ps.setLong(1, userId)
+            conn.prepareStatement("SELECT * FROM production_target WHERE org_id = ? ORDER BY start_date, id LIMIT ? OFFSET ?").use { ps ->
+                ps.setLong(1, orgId)
                 ps.setInt(2, limit)
                 ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
@@ -30,10 +30,10 @@ class ProductionTargetRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findBySeasonId(userId: Long, seasonId: Long, limit: Int = 50, offset: Int = 0): List<ProductionTarget> =
+    fun findBySeasonId(orgId: Long, seasonId: Long, limit: Int = 50, offset: Int = 0): List<ProductionTarget> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM production_target WHERE user_id = ? AND season_id = ? ORDER BY start_date, id LIMIT ? OFFSET ?").use { ps ->
-                ps.setLong(1, userId)
+            conn.prepareStatement("SELECT * FROM production_target WHERE org_id = ? AND season_id = ? ORDER BY start_date, id LIMIT ? OFFSET ?").use { ps ->
+                ps.setLong(1, orgId)
                 ps.setLong(2, seasonId)
                 ps.setInt(3, limit)
                 ps.setInt(4, offset)
@@ -46,12 +46,12 @@ class ProductionTargetRepository(private val ds: AgroalDataSource) {
     fun persist(target: ProductionTarget): ProductionTarget {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO production_target (user_id, season_id, species_id, stems_per_week,
+                """INSERT INTO production_target (org_id, season_id, species_id, stems_per_week,
                    start_date, end_date, notes, created_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
-                ps.setLong(1, target.userId)
+                ps.setLong(1, target.orgId)
                 ps.setLong(2, target.seasonId)
                 ps.setLong(3, target.speciesId)
                 ps.setInt(4, target.stemsPerWeek)
@@ -98,7 +98,7 @@ class ProductionTargetRepository(private val ds: AgroalDataSource) {
 
     private fun ResultSet.toProductionTarget() = ProductionTarget(
         id = getLong("id"),
-        userId = getLong("user_id"),
+        orgId = getLong("org_id"),
         seasonId = getLong("season_id"),
         speciesId = getLong("species_id"),
         stemsPerWeek = getInt("stems_per_week"),

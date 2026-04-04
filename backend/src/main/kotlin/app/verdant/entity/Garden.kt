@@ -7,7 +7,7 @@ data class Garden(
     val name: String,
     val description: String? = null,
     val emoji: String? = "\uD83C\uDF31",
-    val ownerId: Long,
+    val orgId: Long,
     val latitude: Double? = null,
     val longitude: Double? = null,
     val address: String? = null,

@@ -18,10 +18,10 @@ class MarketOrderRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByPurchaserId(userId: Long, limit: Int = 50, offset: Int = 0): List<MarketOrder> =
+    fun findByPurchaserOrgId(purchaserOrgId: Long, limit: Int = 50, offset: Int = 0): List<MarketOrder> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM market_order WHERE purchaser_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?").use { ps ->
-                ps.setLong(1, userId)
+            conn.prepareStatement("SELECT * FROM market_order WHERE purchaser_org_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?").use { ps ->
+                ps.setLong(1, purchaserOrgId)
                 ps.setInt(2, limit)
                 ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
@@ -30,10 +30,10 @@ class MarketOrderRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByProducerId(userId: Long, limit: Int = 50, offset: Int = 0): List<MarketOrder> =
+    fun findByProducerOrgId(producerOrgId: Long, limit: Int = 50, offset: Int = 0): List<MarketOrder> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM market_order WHERE producer_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?").use { ps ->
-                ps.setLong(1, userId)
+            conn.prepareStatement("SELECT * FROM market_order WHERE producer_org_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?").use { ps ->
+                ps.setLong(1, producerOrgId)
                 ps.setInt(2, limit)
                 ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
@@ -45,12 +45,12 @@ class MarketOrderRepository(private val ds: AgroalDataSource) {
     fun persist(order: MarketOrder): MarketOrder {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO market_order (purchaser_id, producer_id, status, delivery_date, total_sek, notes, created_at, updated_at)
+                """INSERT INTO market_order (purchaser_org_id, producer_org_id, status, delivery_date, total_sek, notes, created_at, updated_at)
                    VALUES (?, ?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
-                ps.setLong(1, order.purchaserId)
-                ps.setLong(2, order.producerId)
+                ps.setLong(1, order.purchaserOrgId)
+                ps.setLong(2, order.producerOrgId)
                 ps.setString(3, order.status.name)
                 ps.setObject(4, order.deliveryDate)
                 ps.setInt(5, order.totalSek)
@@ -86,8 +86,8 @@ class MarketOrderRepository(private val ds: AgroalDataSource) {
 
     private fun ResultSet.toMarketOrder() = MarketOrder(
         id = getLong("id"),
-        purchaserId = getLong("purchaser_id"),
-        producerId = getLong("producer_id"),
+        purchaserOrgId = getLong("purchaser_org_id"),
+        producerOrgId = getLong("producer_org_id"),
         status = OrderStatus.valueOf(getString("status")),
         deliveryDate = getObject("delivery_date", java.time.LocalDate::class.java),
         totalSek = getInt("total_sek"),

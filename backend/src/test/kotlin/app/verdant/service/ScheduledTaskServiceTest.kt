@@ -19,7 +19,7 @@ class ScheduledTaskServiceTest {
     private val speciesRepository: SpeciesRepository = mock()
     private val service = ScheduledTaskService(taskRepository, speciesRepository)
 
-    private val userId = 10L
+    private val orgId = 10L
     private val speciesId = 100L
     private val deadline = LocalDate.of(2025, 9, 1)
     private val speciesNames = mapOf(speciesId to "Zinnia")
@@ -31,7 +31,7 @@ class ScheduledTaskServiceTest {
         status: ScheduledTaskStatus = ScheduledTaskStatus.PENDING,
     ) = ScheduledTask(
         id = id,
-        userId = userId,
+        orgId = orgId,
         speciesId = speciesId,
         activityType = "SOW",
         deadline = deadline,
@@ -56,7 +56,7 @@ class ScheduledTaskServiceTest {
 
         // Raise target to 120 — 40 completed, so remaining = 120 - 40 = 80
         val request = UpdateScheduledTaskRequest(targetCount = 120)
-        val result = service.updateTask(taskId = 1L, request = request, userId = userId)
+        val result = service.updateTask(taskId = 1L, request = request, orgId = orgId)
 
         assertEquals(120, result.targetCount)
         assertEquals(80, result.remainingCount)
@@ -78,7 +78,7 @@ class ScheduledTaskServiceTest {
         whenever(taskRepository.update(any())).then { }
 
         val request = UpdateScheduledTaskRequest(activityType = "TRANSPLANT")
-        val result = service.updateTask(taskId = 1L, request = request, userId = userId)
+        val result = service.updateTask(taskId = 1L, request = request, orgId = orgId)
 
         assertEquals(40, result.remainingCount)
         assertEquals(100, result.targetCount)
@@ -98,7 +98,7 @@ class ScheduledTaskServiceTest {
         whenever(taskRepository.update(any())).then { }
 
         val request = UpdateScheduledTaskRequest(targetCount = 80)
-        val result = service.updateTask(taskId = 1L, request = request, userId = userId)
+        val result = service.updateTask(taskId = 1L, request = request, orgId = orgId)
 
         assertEquals(0, result.remainingCount)
         assertEquals(ScheduledTaskStatus.COMPLETED.name, result.status)
@@ -120,7 +120,7 @@ class ScheduledTaskServiceTest {
         whenever(taskRepository.update(any())).then { }
 
         val request = UpdateScheduledTaskRequest(targetCount = 50)
-        service.updateTask(taskId = 1L, request = request, userId = userId)
+        service.updateTask(taskId = 1L, request = request, orgId = orgId)
 
         verify(taskRepository).update(captor.capture())
         val saved = captor.firstValue
@@ -142,7 +142,7 @@ class ScheduledTaskServiceTest {
 
         whenever(speciesRepository.findNamesByIds(setOf(speciesId))).thenReturn(speciesNames)
 
-        val result = service.completePartially(taskId = 1L, processedCount = 20, userId = userId)
+        val result = service.completePartially(taskId = 1L, processedCount = 20, orgId = orgId)
 
         verify(taskRepository).decrementRemainingCount(1L, 20)
         assertEquals(30, result.remainingCount)
@@ -163,7 +163,7 @@ class ScheduledTaskServiceTest {
 
         whenever(speciesRepository.findNamesByIds(setOf(speciesId))).thenReturn(speciesNames)
 
-        val result = service.completePartially(taskId = 1L, processedCount = 999, userId = userId)
+        val result = service.completePartially(taskId = 1L, processedCount = 999, orgId = orgId)
 
         verify(taskRepository).decrementRemainingCount(1L, 999)
         assertEquals(0, result.remainingCount)
@@ -177,7 +177,7 @@ class ScheduledTaskServiceTest {
         whenever(taskRepository.findById(99L)).thenReturn(null)
 
         assertThrows<NotFoundException> {
-            service.updateTask(taskId = 99L, request = UpdateScheduledTaskRequest(), userId = userId)
+            service.updateTask(taskId = 99L, request = UpdateScheduledTaskRequest(), orgId = orgId)
         }
     }
 
@@ -186,7 +186,7 @@ class ScheduledTaskServiceTest {
         whenever(taskRepository.findById(99L)).thenReturn(null)
 
         assertThrows<NotFoundException> {
-            service.completePartially(taskId = 99L, processedCount = 1, userId = userId)
+            service.completePartially(taskId = 99L, processedCount = 1, orgId = orgId)
         }
     }
 }

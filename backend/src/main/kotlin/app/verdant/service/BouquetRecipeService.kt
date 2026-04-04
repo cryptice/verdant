@@ -7,7 +7,6 @@ import app.verdant.repository.BouquetRecipeRepository
 import app.verdant.repository.SpeciesRepository
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
-import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 
 @ApplicationScoped
@@ -16,20 +15,20 @@ class BouquetRecipeService(
     private val speciesRepo: SpeciesRepository,
     private val storageService: StorageService,
 ) {
-    fun getRecipesForUser(userId: Long, limit: Int = 50, offset: Int = 0): List<BouquetRecipeResponse> =
-        repo.findByUserId(userId, limit, offset).map { it.toResponseWithItems() }
+    fun getRecipesForUser(orgId: Long, limit: Int = 50, offset: Int = 0): List<BouquetRecipeResponse> =
+        repo.findByOrgId(orgId, limit, offset).map { it.toResponseWithItems() }
 
-    fun getRecipe(id: Long, userId: Long): BouquetRecipeResponse {
+    fun getRecipe(id: Long, orgId: Long): BouquetRecipeResponse {
         val recipe = repo.findById(id) ?: throw NotFoundException("Bouquet recipe not found")
-        if (recipe.userId != userId) throw ForbiddenException()
+        if (recipe.orgId != orgId) throw NotFoundException("Bouquet recipe not found")
         return recipe.toResponseWithItems()
     }
 
     @Transactional
-    fun createRecipe(request: CreateBouquetRecipeRequest, userId: Long): BouquetRecipeResponse {
+    fun createRecipe(request: CreateBouquetRecipeRequest, orgId: Long): BouquetRecipeResponse {
         var recipe = repo.persist(
             BouquetRecipe(
-                userId = userId,
+                orgId = orgId,
                 name = request.name,
                 description = request.description,
                 priceSek = request.priceSek,
@@ -38,7 +37,7 @@ class BouquetRecipeService(
         if (request.imageBase64 != null) {
             val imageUrl = storageService.uploadImage(
                 request.imageBase64,
-                "bouquet/$userId/${recipe.id}.jpg"
+                "bouquet/$orgId/${recipe.id}.jpg"
             )
             recipe = recipe.copy(imageUrl = imageUrl)
             repo.update(recipe)
@@ -58,14 +57,14 @@ class BouquetRecipeService(
     }
 
     @Transactional
-    fun updateRecipe(id: Long, request: UpdateBouquetRecipeRequest, userId: Long): BouquetRecipeResponse {
+    fun updateRecipe(id: Long, request: UpdateBouquetRecipeRequest, orgId: Long): BouquetRecipeResponse {
         val recipe = repo.findById(id) ?: throw NotFoundException("Bouquet recipe not found")
-        if (recipe.userId != userId) throw ForbiddenException()
+        if (recipe.orgId != orgId) throw NotFoundException("Bouquet recipe not found")
         var imageUrl = recipe.imageUrl
         if (request.imageBase64 != null) {
             imageUrl = storageService.uploadImage(
                 request.imageBase64,
-                "bouquet/$userId/$id.jpg"
+                "bouquet/$orgId/$id.jpg"
             )
         }
         val updated = recipe.copy(
@@ -92,9 +91,9 @@ class BouquetRecipeService(
         return updated.toResponseWithItems()
     }
 
-    fun deleteRecipe(id: Long, userId: Long) {
+    fun deleteRecipe(id: Long, orgId: Long) {
         val recipe = repo.findById(id) ?: throw NotFoundException("Bouquet recipe not found")
-        if (recipe.userId != userId) throw ForbiddenException()
+        if (recipe.orgId != orgId) throw NotFoundException("Bouquet recipe not found")
         repo.deleteItemsByRecipeId(id)
         repo.delete(id)
     }

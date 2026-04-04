@@ -4,7 +4,6 @@ import app.verdant.dto.*
 import app.verdant.entity.PestDiseaseLog
 import app.verdant.repository.PestDiseaseLogRepository
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 
 @ApplicationScoped
@@ -12,26 +11,26 @@ class PestDiseaseService(
     private val repo: PestDiseaseLogRepository,
     private val storageService: StorageService,
 ) {
-    fun getLogsForUser(userId: Long, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<PestDiseaseLogResponse> {
+    fun getLogsForUser(orgId: Long, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<PestDiseaseLogResponse> {
         val logs = if (seasonId != null) {
-            repo.findBySeasonId(userId, seasonId, limit, offset)
+            repo.findBySeasonId(orgId, seasonId, limit, offset)
         } else {
-            repo.findByUserId(userId, limit, offset)
+            repo.findByOrgId(orgId, limit, offset)
         }
         return logs.map { it.toResponse() }
     }
 
-    fun getLog(id: Long, userId: Long): PestDiseaseLogResponse {
+    fun getLog(id: Long, orgId: Long): PestDiseaseLogResponse {
         val log = repo.findById(id) ?: throw NotFoundException("Pest/disease log not found")
-        if (log.userId != userId) throw ForbiddenException()
+        if (log.orgId != orgId) throw NotFoundException("Pest/disease log not found")
         return log.toResponse()
     }
 
-    fun createLog(request: CreatePestDiseaseLogRequest, userId: Long): PestDiseaseLogResponse {
+    fun createLog(request: CreatePestDiseaseLogRequest, orgId: Long): PestDiseaseLogResponse {
         var imageUrl: String? = null
         val log = repo.persist(
             PestDiseaseLog(
-                userId = userId,
+                orgId = orgId,
                 seasonId = request.seasonId,
                 bedId = request.bedId,
                 speciesId = request.speciesId,
@@ -48,7 +47,7 @@ class PestDiseaseService(
         if (request.imageBase64 != null) {
             imageUrl = storageService.uploadImage(
                 request.imageBase64,
-                "pest-disease/$userId/${log.id}.jpg"
+                "pest-disease/$orgId/${log.id}.jpg"
             )
             val updated = log.copy(imageUrl = imageUrl)
             repo.update(updated)
@@ -57,14 +56,14 @@ class PestDiseaseService(
         return log.toResponse()
     }
 
-    fun updateLog(id: Long, request: UpdatePestDiseaseLogRequest, userId: Long): PestDiseaseLogResponse {
+    fun updateLog(id: Long, request: UpdatePestDiseaseLogRequest, orgId: Long): PestDiseaseLogResponse {
         val log = repo.findById(id) ?: throw NotFoundException("Pest/disease log not found")
-        if (log.userId != userId) throw ForbiddenException()
+        if (log.orgId != orgId) throw NotFoundException("Pest/disease log not found")
         var imageUrl = log.imageUrl
         if (request.imageBase64 != null) {
             imageUrl = storageService.uploadImage(
                 request.imageBase64,
-                "pest-disease/$userId/$id.jpg"
+                "pest-disease/$orgId/$id.jpg"
             )
         }
         val updated = log.copy(
@@ -84,9 +83,9 @@ class PestDiseaseService(
         return updated.toResponse()
     }
 
-    fun deleteLog(id: Long, userId: Long) {
+    fun deleteLog(id: Long, orgId: Long) {
         val log = repo.findById(id) ?: throw NotFoundException("Pest/disease log not found")
-        if (log.userId != userId) throw ForbiddenException()
+        if (log.orgId != orgId) throw NotFoundException("Pest/disease log not found")
         repo.delete(id)
     }
 

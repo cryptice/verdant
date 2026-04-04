@@ -21,14 +21,14 @@ class ProductionTargetServiceTest {
 
     private fun makeTarget(
         id: Long = 1L,
-        userId: Long = 10L,
+        orgId: Long = 10L,
         speciesId: Long = 100L,
         stemsPerWeek: Int = 50,
         startDate: LocalDate = LocalDate.of(2025, 6, 1),
         endDate: LocalDate = LocalDate.of(2025, 8, 31),
     ) = ProductionTarget(
         id = id,
-        userId = userId,
+        orgId = orgId,
         seasonId = 1L,
         speciesId = speciesId,
         stemsPerWeek = stemsPerWeek,
@@ -70,7 +70,7 @@ class ProductionTargetServiceTest {
         whenever(repo.findById(1L)).thenReturn(target)
         whenever(speciesRepo.findById(100L)).thenReturn(species)
 
-        val result = service.calculateRequirements(id = 1L, userId = 10L)
+        val result = service.calculateRequirements(id = 1L, orgId = 10L)
 
         // 13 weeks * 50 stems/week = 650 total stems
         assertEquals(13L, result.totalWeeks)
@@ -106,7 +106,7 @@ class ProductionTargetServiceTest {
         whenever(repo.findById(1L)).thenReturn(target)
         whenever(speciesRepo.findById(100L)).thenReturn(species)
 
-        val result = service.calculateRequirements(id = 1L, userId = 10L)
+        val result = service.calculateRequirements(id = 1L, orgId = 10L)
 
         // Default germination rate is 80%
         assertEquals(80, result.germinationRate)
@@ -129,7 +129,7 @@ class ProductionTargetServiceTest {
         whenever(repo.findById(1L)).thenReturn(target)
         whenever(speciesRepo.findById(100L)).thenReturn(species)
 
-        val result = service.calculateRequirements(id = 1L, userId = 10L)
+        val result = service.calculateRequirements(id = 1L, orgId = 10L)
 
         // Default days to harvest is 90
         assertEquals(90, result.daysToHarvest)
@@ -166,7 +166,7 @@ class ProductionTargetServiceTest {
         whenever(repo.findById(1L)).thenReturn(target)
         whenever(speciesRepo.findById(100L)).thenReturn(species)
 
-        val result = service.calculateRequirements(id = 1L, userId = 10L)
+        val result = service.calculateRequirements(id = 1L, orgId = 10L)
 
         // plantsNeeded = ceil(40 / 7) = 6
         assertEquals(6L, result.plantsNeeded)
@@ -182,7 +182,7 @@ class ProductionTargetServiceTest {
         whenever(repo.findById(99L)).thenReturn(null)
 
         assertThrows<NotFoundException> {
-            service.calculateRequirements(id = 99L, userId = 10L)
+            service.calculateRequirements(id = 99L, orgId = 10L)
         }
     }
 }

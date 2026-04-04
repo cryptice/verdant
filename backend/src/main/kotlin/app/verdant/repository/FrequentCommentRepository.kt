@@ -9,24 +9,24 @@ import java.sql.Statement
 @ApplicationScoped
 class FrequentCommentRepository(private val ds: AgroalDataSource) {
 
-    fun findByUserId(userId: Long): List<FrequentComment> =
+    fun findByOrgId(orgId: Long): List<FrequentComment> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM frequent_comment WHERE user_id = ? ORDER BY use_count DESC").use { ps ->
-                ps.setLong(1, userId)
+            conn.prepareStatement("SELECT * FROM frequent_comment WHERE org_id = ? ORDER BY use_count DESC").use { ps ->
+                ps.setLong(1, orgId)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toComment()) }
                 }
             }
         }
 
-    fun recordUsage(userId: Long, text: String): FrequentComment {
+    fun recordUsage(orgId: Long, text: String): FrequentComment {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO frequent_comment (user_id, text, use_count) VALUES (?, ?, 1)
-                   ON CONFLICT (user_id, text) DO UPDATE SET use_count = frequent_comment.use_count + 1
+                """INSERT INTO frequent_comment (org_id, text, use_count) VALUES (?, ?, 1)
+                   ON CONFLICT (org_id, text) DO UPDATE SET use_count = frequent_comment.use_count + 1
                    RETURNING *"""
             ).use { ps ->
-                ps.setLong(1, userId)
+                ps.setLong(1, orgId)
                 ps.setString(2, text)
                 ps.executeQuery().use { rs ->
                     rs.next()
@@ -48,7 +48,7 @@ class FrequentCommentRepository(private val ds: AgroalDataSource) {
 
     private fun ResultSet.toComment() = FrequentComment(
         id = getLong("id"),
-        userId = getLong("user_id"),
+        orgId = getLong("org_id"),
         text = getString("text"),
         useCount = getInt("use_count"),
     )

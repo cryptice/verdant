@@ -9,7 +9,6 @@ import app.verdant.repository.SpeciesProviderRepository
 import app.verdant.repository.SpeciesRepository
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.ws.rs.BadRequestException
-import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 
 @ApplicationScoped
@@ -19,13 +18,13 @@ class SeedInventoryService(
     private val speciesProviderRepo: SpeciesProviderRepository,
     private val providerRepo: ProviderRepository,
 ) {
-    fun getInventoryForUser(userId: Long, speciesId: Long? = null, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<SeedInventoryResponse> {
+    fun getInventoryForUser(orgId: Long, speciesId: Long? = null, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<SeedInventoryResponse> {
         val items = if (speciesId != null) {
-            repo.findByUserIdAndSpeciesId(userId, speciesId)
+            repo.findByOrgIdAndSpeciesId(orgId, speciesId)
         } else if (seasonId != null) {
-            repo.findBySeasonId(userId, seasonId, limit, offset)
+            repo.findBySeasonId(orgId, seasonId, limit, offset)
         } else {
-            repo.findByUserId(userId, limit, offset)
+            repo.findByOrgId(orgId, limit, offset)
         }
         val speciesNames = items.map { it.speciesId }.distinct().associateWith { id ->
             speciesRepo.findById(id)?.commonName ?: "Unknown"
@@ -34,12 +33,12 @@ class SeedInventoryService(
         return items.map { it.toResponse(speciesNames[it.speciesId] ?: "Unknown", providerNames) }
     }
 
-    fun createInventory(request: CreateSeedInventoryRequest, userId: Long): SeedInventoryResponse {
+    fun createInventory(request: CreateSeedInventoryRequest, orgId: Long): SeedInventoryResponse {
         val species = speciesRepo.findById(request.speciesId) ?: throw NotFoundException("Species not found")
-        if (species.userId != null && species.userId != userId) throw ForbiddenException()
+        if (species.orgId != null && species.orgId != orgId) throw NotFoundException("Species not found")
         val inventory = repo.persist(
             SeedInventory(
-                userId = userId,
+                orgId = orgId,
                 speciesId = request.speciesId,
                 quantity = request.quantity,
                 collectionDate = request.collectionDate,
@@ -54,9 +53,9 @@ class SeedInventoryService(
         return inventory.toResponse(species.commonName, providerNames)
     }
 
-    fun updateInventory(id: Long, request: UpdateSeedInventoryRequest, userId: Long): SeedInventoryResponse {
+    fun updateInventory(id: Long, request: UpdateSeedInventoryRequest, orgId: Long): SeedInventoryResponse {
         val inventory = repo.findById(id) ?: throw NotFoundException("Seed stock not found")
-        if (inventory.userId != userId) throw ForbiddenException()
+        if (inventory.orgId != orgId) throw NotFoundException("Seed stock not found")
         val updated = inventory.copy(
             quantity = request.quantity ?: inventory.quantity,
             collectionDate = request.collectionDate ?: inventory.collectionDate,
@@ -69,9 +68,9 @@ class SeedInventoryService(
         return updated.toResponse(speciesName, providerNames)
     }
 
-    fun decrementInventory(id: Long, request: DecrementSeedInventoryRequest, userId: Long): SeedInventoryResponse {
+    fun decrementInventory(id: Long, request: DecrementSeedInventoryRequest, orgId: Long): SeedInventoryResponse {
         val inventory = repo.findById(id) ?: throw NotFoundException("Seed stock not found")
-        if (inventory.userId != userId) throw ForbiddenException()
+        if (inventory.orgId != orgId) throw NotFoundException("Seed stock not found")
         if (!repo.decrementQuantity(id, request.quantity)) {
             throw BadRequestException("Insufficient seeds (have ${inventory.quantity}, need ${request.quantity})")
         }
@@ -81,9 +80,9 @@ class SeedInventoryService(
         return updated.toResponse(speciesName, providerNames)
     }
 
-    fun deleteInventory(id: Long, userId: Long) {
+    fun deleteInventory(id: Long, orgId: Long) {
         val inventory = repo.findById(id) ?: throw NotFoundException("Seed stock not found")
-        if (inventory.userId != userId) throw ForbiddenException()
+        if (inventory.orgId != orgId) throw NotFoundException("Seed stock not found")
         repo.delete(id)
     }
 

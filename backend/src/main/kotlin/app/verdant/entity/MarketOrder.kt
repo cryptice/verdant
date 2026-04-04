@@ -5,8 +5,8 @@ import java.time.LocalDate
 
 data class MarketOrder(
     val id: Long? = null,
-    val purchaserId: Long,
-    val producerId: Long,
+    val purchaserOrgId: Long,
+    val producerOrgId: Long,
     val status: OrderStatus = OrderStatus.PLACED,
     val deliveryDate: LocalDate? = null,
     val totalSek: Int = 0,

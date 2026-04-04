@@ -7,7 +7,6 @@ import app.verdant.repository.ScheduledTaskRepository
 import app.verdant.repository.SpeciesRepository
 import app.verdant.repository.SuccessionScheduleRepository
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 
 @ApplicationScoped
@@ -16,27 +15,27 @@ class SuccessionScheduleService(
     private val speciesRepo: SpeciesRepository,
     private val taskRepo: ScheduledTaskRepository,
 ) {
-    fun getSchedulesForUser(userId: Long, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<SuccessionScheduleResponse> {
+    fun getSchedulesForUser(orgId: Long, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<SuccessionScheduleResponse> {
         val schedules = if (seasonId != null) {
-            repo.findBySeasonId(userId, seasonId, limit, offset)
+            repo.findBySeasonId(orgId, seasonId, limit, offset)
         } else {
-            repo.findByUserId(userId, limit, offset)
+            repo.findByOrgId(orgId, limit, offset)
         }
         val speciesNames = speciesRepo.findNamesByIds(schedules.map { it.speciesId }.toSet())
         return schedules.map { it.toResponse(speciesNames) }
     }
 
-    fun getSchedule(id: Long, userId: Long): SuccessionScheduleResponse {
+    fun getSchedule(id: Long, orgId: Long): SuccessionScheduleResponse {
         val schedule = repo.findById(id) ?: throw NotFoundException("Succession schedule not found")
-        if (schedule.userId != userId) throw ForbiddenException()
+        if (schedule.orgId != orgId) throw NotFoundException("Succession schedule not found")
         val speciesNames = speciesRepo.findNamesByIds(setOf(schedule.speciesId))
         return schedule.toResponse(speciesNames)
     }
 
-    fun createSchedule(request: CreateSuccessionScheduleRequest, userId: Long): SuccessionScheduleResponse {
+    fun createSchedule(request: CreateSuccessionScheduleRequest, orgId: Long): SuccessionScheduleResponse {
         val schedule = repo.persist(
             SuccessionSchedule(
-                userId = userId,
+                orgId = orgId,
                 seasonId = request.seasonId,
                 speciesId = request.speciesId,
                 bedId = request.bedId,
@@ -51,9 +50,9 @@ class SuccessionScheduleService(
         return schedule.toResponse(speciesNames)
     }
 
-    fun updateSchedule(id: Long, request: UpdateSuccessionScheduleRequest, userId: Long): SuccessionScheduleResponse {
+    fun updateSchedule(id: Long, request: UpdateSuccessionScheduleRequest, orgId: Long): SuccessionScheduleResponse {
         val schedule = repo.findById(id) ?: throw NotFoundException("Succession schedule not found")
-        if (schedule.userId != userId) throw ForbiddenException()
+        if (schedule.orgId != orgId) throw NotFoundException("Succession schedule not found")
         val updated = schedule.copy(
             seasonId = request.seasonId ?: schedule.seasonId,
             speciesId = request.speciesId ?: schedule.speciesId,
@@ -69,21 +68,21 @@ class SuccessionScheduleService(
         return updated.toResponse(speciesNames)
     }
 
-    fun deleteSchedule(id: Long, userId: Long) {
+    fun deleteSchedule(id: Long, orgId: Long) {
         val schedule = repo.findById(id) ?: throw NotFoundException("Succession schedule not found")
-        if (schedule.userId != userId) throw ForbiddenException()
+        if (schedule.orgId != orgId) throw NotFoundException("Succession schedule not found")
         repo.delete(id)
     }
 
-    fun generateTasks(id: Long, userId: Long): List<Long> {
+    fun generateTasks(id: Long, orgId: Long): List<Long> {
         val schedule = repo.findById(id) ?: throw NotFoundException("Succession schedule not found")
-        if (schedule.userId != userId) throw ForbiddenException()
+        if (schedule.orgId != orgId) throw NotFoundException("Succession schedule not found")
         val taskIds = mutableListOf<Long>()
         for (i in 0 until schedule.totalSuccessions) {
             val deadline = schedule.firstSowDate.plusDays((i.toLong() * schedule.intervalDays))
             val task = taskRepo.persist(
                 ScheduledTask(
-                    userId = userId,
+                    orgId = orgId,
                     speciesId = schedule.speciesId,
                     activityType = "SOW",
                     deadline = deadline,

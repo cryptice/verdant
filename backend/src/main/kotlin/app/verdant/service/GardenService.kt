@@ -6,7 +6,6 @@ import app.verdant.entity.Garden
 import app.verdant.repository.BedRepository
 import app.verdant.repository.GardenRepository
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 import java.util.logging.Logger
 
@@ -17,30 +16,30 @@ class GardenService(
     private val aiService: AiService
 ) {
 
-    fun getGardensForUser(userId: Long): List<GardenResponse> =
-        gardenRepository.findByOwnerId(userId).map { it.toResponse() }
+    fun getGardensForUser(orgId: Long): List<GardenResponse> =
+        gardenRepository.findByOrgId(orgId).map { it.toResponse() }
 
     private val log = Logger.getLogger(GardenService::class.java.name)
 
-    fun getGarden(gardenId: Long, userId: Long): GardenResponse {
-        log.info("getGarden: gardenId=$gardenId, userId=$userId")
+    fun getGarden(gardenId: Long, orgId: Long): GardenResponse {
+        log.info("getGarden: gardenId=$gardenId, orgId=$orgId")
         val garden = gardenRepository.findById(gardenId)
         if (garden == null) {
             log.warning("Garden $gardenId not found in DB")
             throw NotFoundException("Garden not found")
         }
-        log.info("Found garden: id=${garden.id}, ownerId=${garden.ownerId}")
-        if (garden.ownerId != userId) throw ForbiddenException()
+        log.info("Found garden: id=${garden.id}, orgId=${garden.orgId}")
+        if (garden.orgId != orgId) throw NotFoundException("Garden not found")
         return garden.toResponse()
     }
 
-    fun createGarden(request: CreateGardenRequest, userId: Long): GardenResponse {
+    fun createGarden(request: CreateGardenRequest, orgId: Long): GardenResponse {
         val garden = gardenRepository.persist(
             Garden(
                 name = request.name,
                 description = request.description,
                 emoji = request.emoji,
-                ownerId = userId,
+                orgId = orgId,
                 latitude = request.latitude,
                 longitude = request.longitude,
                 address = request.address,
@@ -50,9 +49,9 @@ class GardenService(
         return garden.toResponse()
     }
 
-    fun updateGarden(gardenId: Long, request: UpdateGardenRequest, userId: Long): GardenResponse {
+    fun updateGarden(gardenId: Long, request: UpdateGardenRequest, orgId: Long): GardenResponse {
         val garden = gardenRepository.findById(gardenId) ?: throw NotFoundException("Garden not found")
-        if (garden.ownerId != userId) throw ForbiddenException()
+        if (garden.orgId != orgId) throw NotFoundException("Garden not found")
         val updated = garden.copy(
             name = request.name ?: garden.name,
             description = request.description ?: garden.description,
@@ -66,22 +65,22 @@ class GardenService(
         return updated.toResponse()
     }
 
-    fun deleteGarden(gardenId: Long, userId: Long) {
+    fun deleteGarden(gardenId: Long, orgId: Long) {
         val garden = gardenRepository.findById(gardenId) ?: throw NotFoundException("Garden not found")
-        if (garden.ownerId != userId) throw ForbiddenException()
+        if (garden.orgId != orgId) throw NotFoundException("Garden not found")
         gardenRepository.delete(gardenId)
     }
 
     fun suggestLayout(request: SuggestLayoutRequest): SuggestLayoutResponse =
         aiService.suggestLayout(request)
 
-    fun createGardenWithLayout(request: CreateGardenWithLayoutRequest, userId: Long): GardenWithBedsResponse {
+    fun createGardenWithLayout(request: CreateGardenWithLayoutRequest, orgId: Long): GardenWithBedsResponse {
         val garden = gardenRepository.persist(
             Garden(
                 name = request.name,
                 description = request.description,
                 emoji = request.emoji,
-                ownerId = userId,
+                orgId = orgId,
                 latitude = request.latitude,
                 longitude = request.longitude,
                 address = request.address,

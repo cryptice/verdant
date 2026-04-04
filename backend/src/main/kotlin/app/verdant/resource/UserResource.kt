@@ -2,8 +2,10 @@ package app.verdant.resource
 
 import app.verdant.dto.UpdateOnboardingRequest
 import app.verdant.dto.UpdateUserRequest
+import app.verdant.filter.OrgContext
 import com.fasterxml.jackson.databind.ObjectMapper
 import app.verdant.repository.UserRepository
+import app.verdant.service.AuthService
 import app.verdant.service.DataExportService
 import app.verdant.service.toResponse
 import io.quarkus.security.Authenticated
@@ -20,12 +22,16 @@ import org.eclipse.microprofile.jwt.JsonWebToken
 class UserResource(
     private val userRepository: UserRepository,
     private val dataExportService: DataExportService,
+    private val authService: AuthService,
+    private val orgContext: OrgContext,
     private val jwt: JsonWebToken
 ) {
     @GET
     @Path("/me")
-    fun getMe() = userRepository.findById(jwt.subject.toLong())?.toResponse()
-        ?: throw NotFoundException("User not found")
+    fun getMe(): Any {
+        val user = userRepository.findById(jwt.subject.toLong()) ?: throw NotFoundException("User not found")
+        return user.toResponse(authService.fetchMemberships(user.id!!))
+    }
 
     @PUT
     @Path("/me")
@@ -63,7 +69,7 @@ class UserResource(
     @Path("/me/export")
     fun exportData(): Response {
         val userId = jwt.subject.toLong()
-        val export = dataExportService.exportUserData(userId)
+        val export = dataExportService.exportUserData(orgContext.orgId, userId)
         return Response.ok(export)
             .header("Content-Disposition", "attachment; filename=\"verdant-data-export.json\"")
             .build()

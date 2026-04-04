@@ -12,9 +12,9 @@ class DashboardService(
     private val bedRepository: BedRepository,
     private val plantRepository: PlantRepository
 ) {
-    fun getDashboard(userId: Long): DashboardResponse {
+    fun getDashboard(orgId: Long, userId: Long): DashboardResponse {
         val user = userRepository.findById(userId) ?: throw NotFoundException("User not found")
-        val gardens = gardenRepository.findByOwnerId(userId)
+        val gardens = gardenRepository.findByOrgId(orgId)
 
         val gardenIds = gardens.mapNotNull { it.id }.toSet()
         val bedCounts = bedRepository.countByGardenIds(gardenIds)

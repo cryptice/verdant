@@ -4,7 +4,7 @@ import java.time.Instant
 
 data class VarietyTrial(
     val id: Long? = null,
-    val userId: Long,
+    val orgId: Long,
     val seasonId: Long,
     val speciesId: Long,
     val bedId: Long? = null,

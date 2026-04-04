@@ -5,7 +5,7 @@ import java.time.LocalDate
 
 data class Season(
     val id: Long? = null,
-    val userId: Long,
+    val orgId: Long,
     val name: String,
     val year: Int,
     val startDate: LocalDate? = null,

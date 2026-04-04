@@ -6,7 +6,6 @@ import app.verdant.repository.BedRepository
 import app.verdant.repository.GardenRepository
 import io.agroal.api.AgroalDataSource
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 
 @ApplicationScoped
@@ -15,8 +14,8 @@ class BedService(
     private val gardenRepository: GardenRepository,
     private val ds: AgroalDataSource,
 ) {
-    fun getAllBedsForUser(userId: Long): List<BedWithGardenResponse> {
-        return bedRepository.findByUserIdWithGardenName(userId).map {
+    fun getAllBedsForUser(orgId: Long): List<BedWithGardenResponse> {
+        return bedRepository.findByOrgIdWithGardenName(orgId).map {
             BedWithGardenResponse(
                 id = it.bed.id!!,
                 name = it.bed.name,
@@ -28,32 +27,32 @@ class BedService(
         }
     }
 
-    fun getBedsForGarden(gardenId: Long, userId: Long): List<BedResponse> {
+    fun getBedsForGarden(gardenId: Long, orgId: Long): List<BedResponse> {
         val garden = gardenRepository.findById(gardenId) ?: throw NotFoundException("Garden not found")
-        if (garden.ownerId != userId) throw ForbiddenException()
+        if (garden.orgId != orgId) throw NotFoundException("Garden not found")
         return bedRepository.findByGardenId(gardenId).map { it.toResponse() }
     }
 
-    fun getBed(bedId: Long, userId: Long): BedResponse {
+    fun getBed(bedId: Long, orgId: Long): BedResponse {
         val bed = bedRepository.findById(bedId) ?: throw NotFoundException("Bed not found")
         val garden = gardenRepository.findById(bed.gardenId) ?: throw NotFoundException("Garden not found")
-        if (garden.ownerId != userId) throw ForbiddenException()
+        if (garden.orgId != orgId) throw NotFoundException("Bed not found")
         return bed.toResponse()
     }
 
-    fun createBed(gardenId: Long, request: CreateBedRequest, userId: Long): BedResponse {
+    fun createBed(gardenId: Long, request: CreateBedRequest, orgId: Long): BedResponse {
         val garden = gardenRepository.findById(gardenId) ?: throw NotFoundException("Garden not found")
-        if (garden.ownerId != userId) throw ForbiddenException()
+        if (garden.orgId != orgId) throw NotFoundException("Garden not found")
         val bed = bedRepository.persist(
             Bed(name = request.name, description = request.description, gardenId = gardenId, boundaryJson = request.boundaryJson)
         )
         return bed.toResponse()
     }
 
-    fun updateBed(bedId: Long, request: UpdateBedRequest, userId: Long): BedResponse {
+    fun updateBed(bedId: Long, request: UpdateBedRequest, orgId: Long): BedResponse {
         val bed = bedRepository.findById(bedId) ?: throw NotFoundException("Bed not found")
         val garden = gardenRepository.findById(bed.gardenId) ?: throw NotFoundException("Garden not found")
-        if (garden.ownerId != userId) throw ForbiddenException()
+        if (garden.orgId != orgId) throw NotFoundException("Bed not found")
         val updated = bed.copy(
             name = request.name ?: bed.name,
             description = request.description ?: bed.description,
@@ -63,17 +62,17 @@ class BedService(
         return updated.toResponse()
     }
 
-    fun deleteBed(bedId: Long, userId: Long) {
+    fun deleteBed(bedId: Long, orgId: Long) {
         val bed = bedRepository.findById(bedId) ?: throw NotFoundException("Bed not found")
         val garden = gardenRepository.findById(bed.gardenId) ?: throw NotFoundException("Garden not found")
-        if (garden.ownerId != userId) throw ForbiddenException()
+        if (garden.orgId != orgId) throw NotFoundException("Bed not found")
         bedRepository.delete(bedId)
     }
 
-    fun getBedHistory(bedId: Long, userId: Long): List<BedHistoryEntry> {
+    fun getBedHistory(bedId: Long, orgId: Long): List<BedHistoryEntry> {
         val bed = bedRepository.findById(bedId) ?: throw NotFoundException("Bed not found")
         val garden = gardenRepository.findById(bed.gardenId) ?: throw NotFoundException("Garden not found")
-        if (garden.ownerId != userId) throw ForbiddenException()
+        if (garden.orgId != orgId) throw NotFoundException("Bed not found")
 
         data class Row(
             val seasonId: Long?,

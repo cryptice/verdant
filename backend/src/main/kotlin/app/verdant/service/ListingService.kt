@@ -7,7 +7,6 @@ import app.verdant.repository.SpeciesRepository
 import app.verdant.repository.UserRepository
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.ws.rs.BadRequestException
-import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 import java.util.UUID
 
@@ -24,18 +23,18 @@ class ListingService(
         return mapListings(listings)
     }
 
-    fun getListingsForUser(userId: Long, limit: Int = 50, offset: Int = 0): List<ListingResponse> {
-        val listings = repo.findByUserId(userId, limit, offset)
+    fun getListingsForUser(orgId: Long, limit: Int = 50, offset: Int = 0): List<ListingResponse> {
+        val listings = repo.findByOrgId(orgId, limit, offset)
         return mapListings(listings)
     }
 
-    fun getListing(id: Long, userId: Long): ListingResponse {
+    fun getListing(id: Long, orgId: Long): ListingResponse {
         val listing = repo.findById(id) ?: throw NotFoundException("Listing not found")
-        if (!listing.isActive && listing.userId != userId) throw ForbiddenException()
+        if (!listing.isActive && listing.orgId != orgId) throw NotFoundException("Listing not found")
         return mapListings(listOf(listing)).first()
     }
 
-    fun createListing(request: CreateListingRequest, userId: Long): ListingResponse {
+    fun createListing(request: CreateListingRequest, orgId: Long): ListingResponse {
         val species = speciesRepo.findById(request.speciesId)
             ?: throw BadRequestException("Species not found")
 
@@ -49,7 +48,7 @@ class ListingService(
 
         val listing = repo.persist(
             Listing(
-                userId = userId,
+                orgId = orgId,
                 speciesId = request.speciesId,
                 title = request.title,
                 description = request.description,
@@ -63,9 +62,9 @@ class ListingService(
         return mapListings(listOf(listing)).first()
     }
 
-    fun updateListing(id: Long, request: UpdateListingRequest, userId: Long): ListingResponse {
+    fun updateListing(id: Long, request: UpdateListingRequest, orgId: Long): ListingResponse {
         val listing = repo.findById(id) ?: throw NotFoundException("Listing not found")
-        if (listing.userId != userId) throw ForbiddenException()
+        if (listing.orgId != orgId) throw NotFoundException("Listing not found")
         val updated = listing.copy(
             title = request.title ?: listing.title,
             description = request.description ?: listing.description,
@@ -79,21 +78,21 @@ class ListingService(
         return mapListings(listOf(updated)).first()
     }
 
-    fun deleteListing(id: Long, userId: Long) {
+    fun deleteListing(id: Long, orgId: Long) {
         val listing = repo.findById(id) ?: throw NotFoundException("Listing not found")
-        if (listing.userId != userId) throw ForbiddenException()
+        if (listing.orgId != orgId) throw NotFoundException("Listing not found")
         repo.delete(id)
     }
 
     private fun mapListings(listings: List<Listing>): List<ListingResponse> {
         if (listings.isEmpty()) return emptyList()
         val speciesIds = listings.map { it.speciesId }.toSet()
-        val userIds = listings.map { it.userId }.toSet()
+        val orgIds = listings.map { it.orgId }.toSet()
         val speciesById = speciesRepo.findByIds(speciesIds)
-        val usersById = userRepo.findByIds(userIds)
+        val usersById = userRepo.findByIds(orgIds)
         return listings.map { listing ->
             val species = speciesById[listing.speciesId]
-            val user = usersById[listing.userId]
+            val user = usersById[listing.orgId]
             ListingResponse(
                 id = listing.id!!,
                 sellerName = user?.displayName ?: "Unknown",

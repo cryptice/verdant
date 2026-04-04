@@ -26,10 +26,10 @@ class SpeciesTagRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long): List<SpeciesTag> =
+    fun findByOrgId(orgId: Long): List<SpeciesTag> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM species_tag WHERE user_id = ? OR user_id IS NULL ORDER BY name").use { ps ->
-                ps.setLong(1, userId)
+            conn.prepareStatement("SELECT * FROM species_tag WHERE org_id = ? OR org_id IS NULL ORDER BY name").use { ps ->
+                ps.setLong(1, orgId)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toTag()) }
                 }
@@ -39,10 +39,10 @@ class SpeciesTagRepository(private val ds: AgroalDataSource) {
     fun persist(tag: SpeciesTag): SpeciesTag {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                "INSERT INTO species_tag (user_id, name) VALUES (?, ?)",
+                "INSERT INTO species_tag (org_id, name) VALUES (?, ?)",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
-                if (tag.userId != null) ps.setLong(1, tag.userId) else ps.setNull(1, java.sql.Types.BIGINT)
+                if (tag.orgId != null) ps.setLong(1, tag.orgId) else ps.setNull(1, java.sql.Types.BIGINT)
                 ps.setString(2, tag.name)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
@@ -65,7 +65,7 @@ class SpeciesTagRepository(private val ds: AgroalDataSource) {
 
     private fun ResultSet.toTag() = SpeciesTag(
         id = getLong("id"),
-        userId = getObject("user_id") as? Long,
+        orgId = getObject("org_id") as? Long,
         name = getString("name"),
     )
 }

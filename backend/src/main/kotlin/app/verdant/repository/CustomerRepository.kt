@@ -18,10 +18,10 @@ class CustomerRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long, limit: Int = 50, offset: Int = 0): List<Customer> =
+    fun findByOrgId(orgId: Long, limit: Int = 50, offset: Int = 0): List<Customer> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM customer WHERE user_id = ? ORDER BY name LIMIT ? OFFSET ?").use { ps ->
-                ps.setLong(1, userId)
+            conn.prepareStatement("SELECT * FROM customer WHERE org_id = ? ORDER BY name LIMIT ? OFFSET ?").use { ps ->
+                ps.setLong(1, orgId)
                 ps.setInt(2, limit)
                 ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
@@ -33,11 +33,11 @@ class CustomerRepository(private val ds: AgroalDataSource) {
     fun persist(customer: Customer): Customer {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO customer (user_id, name, channel, contact_info, notes, created_at)
+                """INSERT INTO customer (org_id, name, channel, contact_info, notes, created_at)
                    VALUES (?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
-                ps.setLong(1, customer.userId)
+                ps.setLong(1, customer.orgId)
                 ps.setString(2, customer.name)
                 ps.setString(3, customer.channel.name)
                 ps.setString(4, customer.contactInfo)
@@ -78,7 +78,7 @@ class CustomerRepository(private val ds: AgroalDataSource) {
 
     private fun ResultSet.toCustomer() = Customer(
         id = getLong("id"),
-        userId = getLong("user_id"),
+        orgId = getLong("org_id"),
         name = getString("name"),
         channel = Channel.valueOf(getString("channel")),
         contactInfo = getString("contact_info"),

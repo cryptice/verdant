@@ -19,10 +19,10 @@ class VarietyTrialRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long, limit: Int = 50, offset: Int = 0): List<VarietyTrial> =
+    fun findByOrgId(orgId: Long, limit: Int = 50, offset: Int = 0): List<VarietyTrial> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM variety_trial WHERE user_id = ? ORDER BY id DESC LIMIT ? OFFSET ?").use { ps ->
-                ps.setLong(1, userId)
+            conn.prepareStatement("SELECT * FROM variety_trial WHERE org_id = ? ORDER BY id DESC LIMIT ? OFFSET ?").use { ps ->
+                ps.setLong(1, orgId)
                 ps.setInt(2, limit)
                 ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
@@ -31,10 +31,10 @@ class VarietyTrialRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findBySeasonId(userId: Long, seasonId: Long, limit: Int = 50, offset: Int = 0): List<VarietyTrial> =
+    fun findBySeasonId(orgId: Long, seasonId: Long, limit: Int = 50, offset: Int = 0): List<VarietyTrial> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM variety_trial WHERE user_id = ? AND season_id = ? ORDER BY id DESC LIMIT ? OFFSET ?").use { ps ->
-                ps.setLong(1, userId)
+            conn.prepareStatement("SELECT * FROM variety_trial WHERE org_id = ? AND season_id = ? ORDER BY id DESC LIMIT ? OFFSET ?").use { ps ->
+                ps.setLong(1, orgId)
                 ps.setLong(2, seasonId)
                 ps.setInt(3, limit)
                 ps.setInt(4, offset)
@@ -44,10 +44,10 @@ class VarietyTrialRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findBySpeciesId(userId: Long, speciesId: Long): List<VarietyTrial> =
+    fun findBySpeciesId(orgId: Long, speciesId: Long): List<VarietyTrial> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM variety_trial WHERE user_id = ? AND species_id = ? ORDER BY id DESC").use { ps ->
-                ps.setLong(1, userId)
+            conn.prepareStatement("SELECT * FROM variety_trial WHERE org_id = ? AND species_id = ? ORDER BY id DESC").use { ps ->
+                ps.setLong(1, orgId)
                 ps.setLong(2, speciesId)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toVarietyTrial()) }
@@ -58,13 +58,13 @@ class VarietyTrialRepository(private val ds: AgroalDataSource) {
     fun persist(trial: VarietyTrial): VarietyTrial {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO variety_trial (user_id, season_id, species_id, bed_id, plant_count,
+                """INSERT INTO variety_trial (org_id, season_id, species_id, bed_id, plant_count,
                    stem_yield, avg_stem_length_cm, avg_vase_life_days, quality_score,
                    customer_reception, verdict, notes, created_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
-                ps.setLong(1, trial.userId)
+                ps.setLong(1, trial.orgId)
                 ps.setLong(2, trial.seasonId)
                 ps.setLong(3, trial.speciesId)
                 ps.setObject(4, trial.bedId)
@@ -122,7 +122,7 @@ class VarietyTrialRepository(private val ds: AgroalDataSource) {
 
     private fun ResultSet.toVarietyTrial() = VarietyTrial(
         id = getLong("id"),
-        userId = getLong("user_id"),
+        orgId = getLong("org_id"),
         seasonId = getLong("season_id"),
         speciesId = getLong("species_id"),
         bedId = getObject("bed_id") as? Long,

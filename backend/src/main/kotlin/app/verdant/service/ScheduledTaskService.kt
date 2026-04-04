@@ -6,7 +6,6 @@ import app.verdant.entity.ScheduledTaskStatus
 import app.verdant.repository.ScheduledTaskRepository
 import app.verdant.repository.SpeciesRepository
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 
 @ApplicationScoped
@@ -14,33 +13,33 @@ class ScheduledTaskService(
     private val taskRepository: ScheduledTaskRepository,
     private val speciesRepository: SpeciesRepository,
 ) {
-    private fun checkOwnership(taskId: Long, userId: Long): ScheduledTask {
+    private fun checkOwnership(taskId: Long, orgId: Long): ScheduledTask {
         val task = taskRepository.findById(taskId) ?: throw NotFoundException("Task not found")
-        if (task.userId != userId) throw ForbiddenException()
+        if (task.orgId != orgId) throw NotFoundException("Task not found")
         return task
     }
 
-    fun getTasksForUser(userId: Long, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<ScheduledTaskResponse> {
+    fun getTasksForUser(orgId: Long, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<ScheduledTaskResponse> {
         val tasks = if (seasonId != null) {
-            taskRepository.findBySeasonId(userId, seasonId, limit, offset)
+            taskRepository.findBySeasonId(orgId, seasonId, limit, offset)
         } else {
-            taskRepository.findByUserId(userId, limit, offset)
+            taskRepository.findByOrgId(orgId, limit, offset)
         }
         val speciesNames = speciesRepository.findNamesByIds(tasks.map { it.speciesId }.toSet())
         return tasks.map { it.toResponse(speciesNames) }
     }
 
-    fun getTask(taskId: Long, userId: Long): ScheduledTaskResponse {
-        val task = checkOwnership(taskId, userId)
+    fun getTask(taskId: Long, orgId: Long): ScheduledTaskResponse {
+        val task = checkOwnership(taskId, orgId)
         val speciesNames = speciesRepository.findNamesByIds(setOf(task.speciesId))
         return task.toResponse(speciesNames)
     }
 
-    fun createTask(request: CreateScheduledTaskRequest, userId: Long): ScheduledTaskResponse {
+    fun createTask(request: CreateScheduledTaskRequest, orgId: Long): ScheduledTaskResponse {
         speciesRepository.findById(request.speciesId) ?: throw NotFoundException("Species not found")
         val task = taskRepository.persist(
             ScheduledTask(
-                userId = userId,
+                orgId = orgId,
                 speciesId = request.speciesId,
                 activityType = request.activityType,
                 deadline = request.deadline,
@@ -53,8 +52,8 @@ class ScheduledTaskService(
         return task.toResponse(speciesNames)
     }
 
-    fun updateTask(taskId: Long, request: UpdateScheduledTaskRequest, userId: Long): ScheduledTaskResponse {
-        val task = checkOwnership(taskId, userId)
+    fun updateTask(taskId: Long, request: UpdateScheduledTaskRequest, orgId: Long): ScheduledTaskResponse {
+        val task = checkOwnership(taskId, orgId)
 
         val newTarget = request.targetCount ?: task.targetCount
         val newRemaining = if (request.targetCount != null) {
@@ -79,16 +78,16 @@ class ScheduledTaskService(
         return updated.toResponse(speciesNames)
     }
 
-    fun completePartially(taskId: Long, processedCount: Int, userId: Long): ScheduledTaskResponse {
-        checkOwnership(taskId, userId)
+    fun completePartially(taskId: Long, processedCount: Int, orgId: Long): ScheduledTaskResponse {
+        checkOwnership(taskId, orgId)
         taskRepository.decrementRemainingCount(taskId, processedCount)
         val task = taskRepository.findById(taskId)!!
         val speciesNames = speciesRepository.findNamesByIds(setOf(task.speciesId))
         return task.toResponse(speciesNames)
     }
 
-    fun deleteTask(taskId: Long, userId: Long) {
-        checkOwnership(taskId, userId)
+    fun deleteTask(taskId: Long, orgId: Long) {
+        checkOwnership(taskId, orgId)
         taskRepository.delete(taskId)
     }
 

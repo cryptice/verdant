@@ -1,5 +1,6 @@
 package app.verdant.resource
 
+import app.verdant.filter.OrgContext
 import app.verdant.service.DashboardService
 import io.quarkus.security.Authenticated
 import jakarta.ws.rs.*
@@ -11,8 +12,9 @@ import org.eclipse.microprofile.jwt.JsonWebToken
 @Authenticated
 class DashboardResource(
     private val dashboardService: DashboardService,
+    private val orgContext: OrgContext,
     private val jwt: JsonWebToken
 ) {
     @GET
-    fun getDashboard() = dashboardService.getDashboard(jwt.subject.toLong())
+    fun getDashboard() = dashboardService.getDashboard(orgContext.orgId, jwt.subject.toLong())
 }

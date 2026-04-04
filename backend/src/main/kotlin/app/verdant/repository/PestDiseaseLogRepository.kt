@@ -21,10 +21,10 @@ class PestDiseaseLogRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long, limit: Int = 50, offset: Int = 0): List<PestDiseaseLog> =
+    fun findByOrgId(orgId: Long, limit: Int = 50, offset: Int = 0): List<PestDiseaseLog> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM pest_disease_log WHERE user_id = ? ORDER BY observed_date DESC, id DESC LIMIT ? OFFSET ?").use { ps ->
-                ps.setLong(1, userId)
+            conn.prepareStatement("SELECT * FROM pest_disease_log WHERE org_id = ? ORDER BY observed_date DESC, id DESC LIMIT ? OFFSET ?").use { ps ->
+                ps.setLong(1, orgId)
                 ps.setInt(2, limit)
                 ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
@@ -33,10 +33,10 @@ class PestDiseaseLogRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findBySeasonId(userId: Long, seasonId: Long, limit: Int = 50, offset: Int = 0): List<PestDiseaseLog> =
+    fun findBySeasonId(orgId: Long, seasonId: Long, limit: Int = 50, offset: Int = 0): List<PestDiseaseLog> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM pest_disease_log WHERE user_id = ? AND season_id = ? ORDER BY observed_date DESC, id DESC LIMIT ? OFFSET ?").use { ps ->
-                ps.setLong(1, userId)
+            conn.prepareStatement("SELECT * FROM pest_disease_log WHERE org_id = ? AND season_id = ? ORDER BY observed_date DESC, id DESC LIMIT ? OFFSET ?").use { ps ->
+                ps.setLong(1, orgId)
                 ps.setLong(2, seasonId)
                 ps.setInt(3, limit)
                 ps.setInt(4, offset)
@@ -49,12 +49,12 @@ class PestDiseaseLogRepository(private val ds: AgroalDataSource) {
     fun persist(log: PestDiseaseLog): PestDiseaseLog {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO pest_disease_log (user_id, season_id, bed_id, species_id, observed_date,
+                """INSERT INTO pest_disease_log (org_id, season_id, bed_id, species_id, observed_date,
                    category, name, severity, treatment, outcome, notes, image_url, created_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
-                ps.setLong(1, log.userId)
+                ps.setLong(1, log.orgId)
                 ps.setObject(2, log.seasonId)
                 ps.setObject(3, log.bedId)
                 ps.setObject(4, log.speciesId)
@@ -111,7 +111,7 @@ class PestDiseaseLogRepository(private val ds: AgroalDataSource) {
 
     private fun ResultSet.toPestDiseaseLog() = PestDiseaseLog(
         id = getLong("id"),
-        userId = getLong("user_id"),
+        orgId = getLong("org_id"),
         seasonId = getObject("season_id") as? Long,
         bedId = getObject("bed_id") as? Long,
         speciesId = getObject("species_id") as? Long,

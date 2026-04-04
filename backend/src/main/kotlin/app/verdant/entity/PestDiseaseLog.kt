@@ -5,7 +5,7 @@ import java.time.LocalDate
 
 data class PestDiseaseLog(
     val id: Long? = null,
-    val userId: Long,
+    val orgId: Long,
     val seasonId: Long? = null,
     val bedId: Long? = null,
     val speciesId: Long? = null,

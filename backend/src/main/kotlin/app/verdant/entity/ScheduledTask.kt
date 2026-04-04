@@ -5,7 +5,7 @@ import java.time.LocalDate
 
 data class ScheduledTask(
     val id: Long? = null,
-    val userId: Long,
+    val orgId: Long,
     val speciesId: Long,
     val activityType: String,
     val deadline: LocalDate,

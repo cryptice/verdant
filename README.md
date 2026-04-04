@@ -92,22 +92,47 @@ Defaults to `erik@l2c.se`. Creates 16 cut flower species, 5 customers, 6 beds, ~
 
 ### Database
 
-The schema is managed by Flyway with a single migration (`V1__schema.sql`). This was consolidated from 9 earlier migrations. If your database has the old V1–V9 history, you need to clean it before running the new migration:
-
-```bash
-# Reset an existing database (destroys all data)
-cd backend
-PGPASSWORD=verdant psql -h localhost -p 5433 -U verdant -d verdant -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
-
-# Or in production, connect to Cloud SQL and run the same DROP/CREATE
-```
-
-Flyway runs automatically on startup (`quarkus.flyway.migrate-at-start=true`).
+The schema is managed by Flyway with a single migration (`V1__schema.sql`). Flyway runs automatically on startup (`quarkus.flyway.migrate-at-start=true`).
 
 ```bash
 cd backend
 ./gradlew dbBackup                # backup to db-backups/
 ./gradlew dbRestore               # restore latest backup
+```
+
+#### Connecting to the production database
+
+1. Start the Cloud SQL Auth Proxy:
+   ```bash
+   cloud-sql-proxy verdant-planner-staging:europe-north1:verdant-staging --port 5433
+   ```
+
+2. Fetch the password from Secret Manager:
+   ```bash
+   gcloud secrets versions access latest --secret=verdant-db-password --project=verdant-planner-staging
+   ```
+
+3. Connect with psql:
+   ```bash
+   PGPASSWORD=$(gcloud secrets versions access latest --secret=verdant-db-password --project=verdant-planner-staging) \
+     psql -h localhost -p 5433 -U verdant -d verdant
+   ```
+
+Install the proxy with `brew install cloud-sql-proxy` if needed.
+
+#### Resetting the schema
+
+Drop and recreate the public schema to force Flyway to re-run all migrations on next startup. This destroys all data.
+
+```bash
+# Local
+PGPASSWORD=verdant psql -h localhost -p 5433 -U verdant -d verdant \
+  -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+
+# Production (with proxy running)
+PGPASSWORD=$(gcloud secrets versions access latest --secret=verdant-db-password --project=verdant-planner-staging) \
+  psql -h localhost -p 5433 -U verdant -d verdant \
+  -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
 ```
 
 ## Deployment

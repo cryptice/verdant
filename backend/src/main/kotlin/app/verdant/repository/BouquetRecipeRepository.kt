@@ -19,10 +19,10 @@ class BouquetRecipeRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long, limit: Int = 50, offset: Int = 0): List<BouquetRecipe> =
+    fun findByOrgId(orgId: Long, limit: Int = 50, offset: Int = 0): List<BouquetRecipe> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM bouquet_recipe WHERE user_id = ? ORDER BY name LIMIT ? OFFSET ?").use { ps ->
-                ps.setLong(1, userId)
+            conn.prepareStatement("SELECT * FROM bouquet_recipe WHERE org_id = ? ORDER BY name LIMIT ? OFFSET ?").use { ps ->
+                ps.setLong(1, orgId)
                 ps.setInt(2, limit)
                 ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
@@ -34,11 +34,11 @@ class BouquetRecipeRepository(private val ds: AgroalDataSource) {
     fun persist(recipe: BouquetRecipe): BouquetRecipe {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO bouquet_recipe (user_id, name, description, image_url, price_sek, created_at, updated_at)
+                """INSERT INTO bouquet_recipe (org_id, name, description, image_url, price_sek, created_at, updated_at)
                    VALUES (?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
-                ps.setLong(1, recipe.userId)
+                ps.setLong(1, recipe.orgId)
                 ps.setString(2, recipe.name)
                 ps.setString(3, recipe.description)
                 ps.setString(4, recipe.imageUrl)
@@ -121,7 +121,7 @@ class BouquetRecipeRepository(private val ds: AgroalDataSource) {
 
     private fun ResultSet.toBouquetRecipe() = BouquetRecipe(
         id = getLong("id"),
-        userId = getLong("user_id"),
+        orgId = getLong("org_id"),
         name = getString("name"),
         description = getString("description"),
         imageUrl = getString("image_url"),

@@ -18,15 +18,15 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long, limit: Int = 50, offset: Int = 0): List<SeedInventory> =
+    fun findByOrgId(orgId: Long, limit: Int = 50, offset: Int = 0): List<SeedInventory> =
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """SELECT si.* FROM seed_inventory si
                    JOIN species s ON si.species_id = s.id
-                   WHERE si.user_id = ?
+                   WHERE si.org_id = ?
                    ORDER BY s.common_name, si.expiration_date NULLS LAST LIMIT ? OFFSET ?"""
             ).use { ps ->
-                ps.setLong(1, userId)
+                ps.setLong(1, orgId)
                 ps.setInt(2, limit)
                 ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
@@ -35,15 +35,15 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findBySeasonId(userId: Long, seasonId: Long, limit: Int = 50, offset: Int = 0): List<SeedInventory> =
+    fun findBySeasonId(orgId: Long, seasonId: Long, limit: Int = 50, offset: Int = 0): List<SeedInventory> =
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """SELECT si.* FROM seed_inventory si
                    JOIN species s ON si.species_id = s.id
-                   WHERE si.user_id = ? AND si.season_id = ?
+                   WHERE si.org_id = ? AND si.season_id = ?
                    ORDER BY s.common_name, si.expiration_date NULLS LAST LIMIT ? OFFSET ?"""
             ).use { ps ->
-                ps.setLong(1, userId)
+                ps.setLong(1, orgId)
                 ps.setLong(2, seasonId)
                 ps.setInt(3, limit)
                 ps.setInt(4, offset)
@@ -53,14 +53,14 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserIdAndSpeciesId(userId: Long, speciesId: Long): List<SeedInventory> =
+    fun findByOrgIdAndSpeciesId(orgId: Long, speciesId: Long): List<SeedInventory> =
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """SELECT * FROM seed_inventory
-                   WHERE user_id = ? AND species_id = ? AND quantity > 0
+                   WHERE org_id = ? AND species_id = ? AND quantity > 0
                    ORDER BY expiration_date NULLS LAST"""
             ).use { ps ->
-                ps.setLong(1, userId)
+                ps.setLong(1, orgId)
                 ps.setLong(2, speciesId)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toSeedInventory()) }
@@ -71,11 +71,11 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
     fun persist(inventory: SeedInventory): SeedInventory {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO seed_inventory (user_id, species_id, quantity, collection_date, expiration_date, cost_per_unit_sek, unit_type, season_id, species_provider_id, created_at)
+                """INSERT INTO seed_inventory (org_id, species_id, quantity, collection_date, expiration_date, cost_per_unit_sek, unit_type, season_id, species_provider_id, created_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
-                ps.setLong(1, inventory.userId)
+                ps.setLong(1, inventory.orgId)
                 ps.setLong(2, inventory.speciesId)
                 ps.setInt(3, inventory.quantity)
                 ps.setObject(4, inventory.collectionDate)
@@ -137,7 +137,7 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
 
     private fun ResultSet.toSeedInventory() = SeedInventory(
         id = getLong("id"),
-        userId = getLong("user_id"),
+        orgId = getLong("org_id"),
         speciesId = getLong("species_id"),
         quantity = getInt("quantity"),
         collectionDate = getObject("collection_date", java.time.LocalDate::class.java),

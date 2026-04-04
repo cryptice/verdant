@@ -5,7 +5,7 @@ import java.time.LocalDate
 
 data class SeedInventory(
     val id: Long? = null,
-    val userId: Long,
+    val orgId: Long,
     val speciesId: Long,
     val quantity: Int,
     val collectionDate: LocalDate? = null,

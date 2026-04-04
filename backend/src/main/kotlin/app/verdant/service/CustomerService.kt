@@ -4,26 +4,25 @@ import app.verdant.dto.*
 import app.verdant.entity.Customer
 import app.verdant.repository.CustomerRepository
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 
 @ApplicationScoped
 class CustomerService(
     private val repo: CustomerRepository,
 ) {
-    fun getCustomersForUser(userId: Long, limit: Int = 50, offset: Int = 0): List<CustomerResponse> =
-        repo.findByUserId(userId, limit, offset).map { it.toResponse() }
+    fun getCustomersForUser(orgId: Long, limit: Int = 50, offset: Int = 0): List<CustomerResponse> =
+        repo.findByOrgId(orgId, limit, offset).map { it.toResponse() }
 
-    fun getCustomer(id: Long, userId: Long): CustomerResponse {
+    fun getCustomer(id: Long, orgId: Long): CustomerResponse {
         val customer = repo.findById(id) ?: throw NotFoundException("Customer not found")
-        if (customer.userId != userId) throw ForbiddenException()
+        if (customer.orgId != orgId) throw NotFoundException("Customer not found")
         return customer.toResponse()
     }
 
-    fun createCustomer(request: CreateCustomerRequest, userId: Long): CustomerResponse {
+    fun createCustomer(request: CreateCustomerRequest, orgId: Long): CustomerResponse {
         val customer = repo.persist(
             Customer(
-                userId = userId,
+                orgId = orgId,
                 name = request.name,
                 channel = request.channel,
                 contactInfo = request.contactInfo,
@@ -33,9 +32,9 @@ class CustomerService(
         return customer.toResponse()
     }
 
-    fun updateCustomer(id: Long, request: UpdateCustomerRequest, userId: Long): CustomerResponse {
+    fun updateCustomer(id: Long, request: UpdateCustomerRequest, orgId: Long): CustomerResponse {
         val customer = repo.findById(id) ?: throw NotFoundException("Customer not found")
-        if (customer.userId != userId) throw ForbiddenException()
+        if (customer.orgId != orgId) throw NotFoundException("Customer not found")
         val updated = customer.copy(
             name = request.name ?: customer.name,
             channel = request.channel ?: customer.channel,
@@ -46,9 +45,9 @@ class CustomerService(
         return updated.toResponse()
     }
 
-    fun deleteCustomer(id: Long, userId: Long) {
+    fun deleteCustomer(id: Long, orgId: Long) {
         val customer = repo.findById(id) ?: throw NotFoundException("Customer not found")
-        if (customer.userId != userId) throw ForbiddenException()
+        if (customer.orgId != orgId) throw NotFoundException("Customer not found")
         repo.delete(id)
     }
 

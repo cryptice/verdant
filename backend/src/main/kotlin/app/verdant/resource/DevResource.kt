@@ -16,6 +16,8 @@ import java.time.LocalDate
 class DevResource(
     private val ds: io.agroal.api.AgroalDataSource,
     private val userRepository: UserRepository,
+    private val organizationRepository: OrganizationRepository,
+    private val orgMemberRepository: OrgMemberRepository,
     private val speciesRepository: SpeciesRepository,
     private val speciesGroupRepository: SpeciesGroupRepository,
     private val speciesTagRepository: SpeciesTagRepository,
@@ -58,7 +60,7 @@ class DevResource(
 
     private fun createPlant(
         counters: Counters,
-        userId: Long,
+        orgId: Long,
         name: String, speciesId: Long, bedId: Long, seasonId: Long,
         plantedDate: LocalDate, status: PlantStatus,
         seedCount: Int, surviving: Int,
@@ -67,7 +69,7 @@ class DevResource(
         customerIds: List<Long> = emptyList(),
     ): Long {
         val plant = plantRepository.persist(Plant(
-            name = name, speciesId = speciesId, bedId = bedId, userId = userId,
+            name = name, speciesId = speciesId, bedId = bedId, orgId = orgId,
             seasonId = seasonId, plantedDate = plantedDate, status = status,
             seedCount = seedCount, survivingCount = surviving,
         ))
@@ -137,6 +139,7 @@ class DevResource(
             "bed", "garden", "season",
             "species_tag_mapping",
             "species_photo", "species_provider",
+            "org_invite", "org_member", "organization",
         )
         ds.connection.use { conn ->
             conn.autoCommit = false
@@ -170,21 +173,26 @@ class DevResource(
         val userId = user.id!!
         val counters = Counters()
 
+        // ── Organization ──
+        val org = organizationRepository.persist(Organization(name = "Test Farm", emoji = "🌻"))
+        orgMemberRepository.persist(OrgMember(orgId = org.id!!, userId = userId, role = OrgRole.OWNER))
+        val orgId = org.id!!
+
         // ── Seasons ──
         val season2024 = seasonRepository.persist(Season(
-            userId = userId, name = "2024", year = 2024,
+            orgId = orgId, name = "2024", year = 2024,
             startDate = LocalDate.of(2024, 3, 1), endDate = LocalDate.of(2024, 11, 15),
             lastFrostDate = LocalDate.of(2024, 5, 12), firstFrostDate = LocalDate.of(2024, 10, 3),
             notes = "First season. Learning year with core varieties.", isActive = false,
         ))
         val season2025 = seasonRepository.persist(Season(
-            userId = userId, name = "2025", year = 2025,
+            orgId = orgId, name = "2025", year = 2025,
             startDate = LocalDate.of(2025, 3, 1), endDate = LocalDate.of(2025, 11, 15),
             lastFrostDate = LocalDate.of(2025, 5, 10), firstFrostDate = LocalDate.of(2025, 10, 1),
             notes = "Added lisianthus and cosmos. Better yields overall.", isActive = false,
         ))
         val season2026 = seasonRepository.persist(Season(
-            userId = userId, name = "2026", year = 2026,
+            orgId = orgId, name = "2026", year = 2026,
             startDate = LocalDate.of(2026, 3, 1), endDate = LocalDate.of(2026, 11, 15),
             lastFrostDate = LocalDate.of(2026, 5, 14), firstFrostDate = LocalDate.of(2026, 10, 5),
             notes = "Full production season. Trialing ranunculus.", isActive = true,
@@ -458,16 +466,16 @@ class DevResource(
         speciesRepository.setTagsForSpecies(ranunculus.id!!, listOf(cutFlowerId, coolSeasonId))
 
         // ── Customers ──
-        val cAndersson = customerRepository.persist(Customer(userId = userId, name = "Blomsterhandel Andersson", channel = Channel.FLORIST, contactInfo = "anna@andersson-blommor.se"))
-        val cStortorget = customerRepository.persist(Customer(userId = userId, name = "Stortorgets marknad", channel = Channel.FARMERS_MARKET, contactInfo = "Lördagar 08-14"))
-        val cCSA = customerRepository.persist(Customer(userId = userId, name = "Blomster-CSA", channel = Channel.CSA, contactInfo = "12 medlemmar, leverans torsdag"))
-        val cWedding = customerRepository.persist(Customer(userId = userId, name = "Weddingflowers.se", channel = Channel.WEDDING, contactInfo = "info@weddingflowers.se"))
-        val cICA = customerRepository.persist(Customer(userId = userId, name = "ICA Maxi Blommor", channel = Channel.WHOLESALE, contactInfo = "Beställning senast onsdag"))
+        val cAndersson = customerRepository.persist(Customer(orgId = orgId, name = "Blomsterhandel Andersson", channel = Channel.FLORIST, contactInfo = "anna@andersson-blommor.se"))
+        val cStortorget = customerRepository.persist(Customer(orgId = orgId, name = "Stortorgets marknad", channel = Channel.FARMERS_MARKET, contactInfo = "Lördagar 08-14"))
+        val cCSA = customerRepository.persist(Customer(orgId = orgId, name = "Blomster-CSA", channel = Channel.CSA, contactInfo = "12 medlemmar, leverans torsdag"))
+        val cWedding = customerRepository.persist(Customer(orgId = orgId, name = "Weddingflowers.se", channel = Channel.WEDDING, contactInfo = "info@weddingflowers.se"))
+        val cICA = customerRepository.persist(Customer(orgId = orgId, name = "ICA Maxi Blommor", channel = Channel.WHOLESALE, contactInfo = "Beställning senast onsdag"))
         val customerIds = listOf(cAndersson.id!!, cStortorget.id!!, cCSA.id!!, cWedding.id!!, cICA.id!!)
 
         // ── Garden & Beds ──
         val garden = gardenRepository.persist(Garden(
-            name = "Blomstergården", emoji = "\uD83C\uDF38", ownerId = userId,
+            name = "Blomstergården", emoji = "\uD83C\uDF38", orgId = orgId,
             description = "The Flower Farm — commercial cut flower production",
         ))
         val gId = garden.id!!
@@ -484,7 +492,7 @@ class DevResource(
         // ══════════════════════════════════════════
 
         // Dahlias 2024: 3 varieties, ~500 stems total
-        createPlant(counters, userId, "Cafe au Lait 2024", cafeAuLait.id!!, bedDahlia.id!!, s24,
+        createPlant(counters, orgId, "Cafe au Lait 2024", cafeAuLait.id!!, bedDahlia.id!!, s24,
             LocalDate.of(2024, 4, 15), PlantStatus.DORMANT, 20, 18,
             listOf(
                 PlantEventType.PLANTED_OUT to LocalDate.of(2024, 5, 20),
@@ -497,7 +505,7 @@ class DevResource(
             ),
             dahliaHarvests(LocalDate.of(2024, 7, 10), 200), customerIds,
         )
-        createPlant(counters, userId, "Labyrinth 2024", labyrinth.id!!, bedDahlia.id!!, s24,
+        createPlant(counters, orgId, "Labyrinth 2024", labyrinth.id!!, bedDahlia.id!!, s24,
             LocalDate.of(2024, 4, 15), PlantStatus.DORMANT, 15, 14,
             listOf(
                 PlantEventType.PLANTED_OUT to LocalDate.of(2024, 5, 20),
@@ -510,7 +518,7 @@ class DevResource(
             ),
             dahliaHarvests(LocalDate.of(2024, 7, 14), 170), customerIds,
         )
-        createPlant(counters, userId, "Cornel 2024", cornel.id!!, bedDahlia.id!!, s24,
+        createPlant(counters, orgId, "Cornel 2024", cornel.id!!, bedDahlia.id!!, s24,
             LocalDate.of(2024, 4, 15), PlantStatus.DORMANT, 12, 11,
             listOf(
                 PlantEventType.PLANTED_OUT to LocalDate.of(2024, 5, 20),
@@ -525,7 +533,7 @@ class DevResource(
         )
 
         // Zinnias 2024: 2 successions, ~300 stems
-        createPlant(counters, userId, "Benary's Giant Mix — sow 1", zinniaGiant.id!!, bedAnnualA.id!!, s24,
+        createPlant(counters, orgId, "Benary's Giant Mix — sow 1", zinniaGiant.id!!, bedAnnualA.id!!, s24,
             LocalDate.of(2024, 4, 10), PlantStatus.REMOVED, 50, 40,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2024, 4, 10),
@@ -537,7 +545,7 @@ class DevResource(
             ),
             annualHarvests(LocalDate.of(2024, 6, 28), LocalDate.of(2024, 9, 10), 180, 45..65), customerIds,
         )
-        createPlant(counters, userId, "Benary's Giant Mix — sow 2", zinniaGiant.id!!, bedAnnualA.id!!, s24,
+        createPlant(counters, orgId, "Benary's Giant Mix — sow 2", zinniaGiant.id!!, bedAnnualA.id!!, s24,
             LocalDate.of(2024, 5, 10), PlantStatus.REMOVED, 40, 35,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2024, 5, 10),
@@ -551,7 +559,7 @@ class DevResource(
         )
 
         // Snapdragons 2024: ~200 stems
-        createPlant(counters, userId, "Madame Butterfly 2024", snapMadame.id!!, bedAnnualA.id!!, s24,
+        createPlant(counters, orgId, "Madame Butterfly 2024", snapMadame.id!!, bedAnnualA.id!!, s24,
             LocalDate.of(2024, 3, 1), PlantStatus.REMOVED, 60, 50,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2024, 3, 1),
@@ -565,7 +573,7 @@ class DevResource(
         )
 
         // Sunflowers 2024: 3 successions, ~150 stems
-        createPlant(counters, userId, "ProCut Orange — sow 1", sunProCut.id!!, bedAnnualB.id!!, s24,
+        createPlant(counters, orgId, "ProCut Orange — sow 1", sunProCut.id!!, bedAnnualB.id!!, s24,
             LocalDate.of(2024, 5, 5), PlantStatus.REMOVED, 25, 22,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2024, 5, 5),
@@ -574,7 +582,7 @@ class DevResource(
             ),
             annualHarvests(LocalDate.of(2024, 7, 5), LocalDate.of(2024, 7, 20), 20, 60..80), customerIds,
         )
-        createPlant(counters, userId, "ProCut Orange — sow 2", sunProCut.id!!, bedAnnualB.id!!, s24,
+        createPlant(counters, orgId, "ProCut Orange — sow 2", sunProCut.id!!, bedAnnualB.id!!, s24,
             LocalDate.of(2024, 5, 25), PlantStatus.REMOVED, 30, 27,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2024, 5, 25),
@@ -583,7 +591,7 @@ class DevResource(
             ),
             annualHarvests(LocalDate.of(2024, 7, 25), LocalDate.of(2024, 8, 10), 25, 60..80), customerIds,
         )
-        createPlant(counters, userId, "Sunrich Gold — sow 1", sunSunrich.id!!, bedAnnualB.id!!, s24,
+        createPlant(counters, orgId, "Sunrich Gold — sow 1", sunSunrich.id!!, bedAnnualB.id!!, s24,
             LocalDate.of(2024, 6, 5), PlantStatus.REMOVED, 40, 35,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2024, 6, 5),
@@ -594,7 +602,7 @@ class DevResource(
         )
 
         // Sweet Peas 2024: ~250 stems
-        createPlant(counters, userId, "Spencer Mix 2024", sweetPea.id!!, bedSweet.id!!, s24,
+        createPlant(counters, orgId, "Spencer Mix 2024", sweetPea.id!!, bedSweet.id!!, s24,
             LocalDate.of(2024, 4, 1), PlantStatus.REMOVED, 80, 65,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2024, 4, 1),
@@ -608,7 +616,7 @@ class DevResource(
         )
 
         // Eucalyptus 2024 — established, foliage harvest
-        createPlant(counters, userId, "Silver Dollar 2024", eucalyptus.id!!, bedFoliage.id!!, s24,
+        createPlant(counters, orgId, "Silver Dollar 2024", eucalyptus.id!!, bedFoliage.id!!, s24,
             LocalDate.of(2024, 3, 15), PlantStatus.REMOVED, 10, 8,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2024, 3, 15),
@@ -623,7 +631,7 @@ class DevResource(
         // ══════════════════════════════════════════
 
         // Dahlias 2025: ~700 stems
-        createPlant(counters, userId, "Cafe au Lait 2025", cafeAuLait.id!!, bedDahlia.id!!, s25,
+        createPlant(counters, orgId, "Cafe au Lait 2025", cafeAuLait.id!!, bedDahlia.id!!, s25,
             LocalDate.of(2025, 4, 10), PlantStatus.DORMANT, 25, 24,
             listOf(
                 PlantEventType.PLANTED_OUT to LocalDate.of(2025, 5, 18),
@@ -638,7 +646,7 @@ class DevResource(
             ),
             dahliaHarvests(LocalDate.of(2025, 7, 7), 280), customerIds,
         )
-        createPlant(counters, userId, "Labyrinth 2025", labyrinth.id!!, bedDahlia.id!!, s25,
+        createPlant(counters, orgId, "Labyrinth 2025", labyrinth.id!!, bedDahlia.id!!, s25,
             LocalDate.of(2025, 4, 10), PlantStatus.DORMANT, 20, 19,
             listOf(
                 PlantEventType.PLANTED_OUT to LocalDate.of(2025, 5, 18),
@@ -652,7 +660,7 @@ class DevResource(
             ),
             dahliaHarvests(LocalDate.of(2025, 7, 12), 230), customerIds,
         )
-        createPlant(counters, userId, "Cornel 2025", cornel.id!!, bedDahlia.id!!, s25,
+        createPlant(counters, orgId, "Cornel 2025", cornel.id!!, bedDahlia.id!!, s25,
             LocalDate.of(2025, 4, 10), PlantStatus.DORMANT, 18, 17,
             listOf(
                 PlantEventType.PLANTED_OUT to LocalDate.of(2025, 5, 18),
@@ -667,7 +675,7 @@ class DevResource(
         )
 
         // Zinnias 2025: ~450 stems
-        createPlant(counters, userId, "Benary's Giant Mix 2025 sow 1", zinniaGiant.id!!, bedAnnualA.id!!, s25,
+        createPlant(counters, orgId, "Benary's Giant Mix 2025 sow 1", zinniaGiant.id!!, bedAnnualA.id!!, s25,
             LocalDate.of(2025, 4, 5), PlantStatus.REMOVED, 60, 52,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2025, 4, 5),
@@ -679,7 +687,7 @@ class DevResource(
             ),
             annualHarvests(LocalDate.of(2025, 6, 25), LocalDate.of(2025, 9, 5), 200, 50..70), customerIds,
         )
-        createPlant(counters, userId, "Queen Lime Orange 2025 sow 1", zinniaQLO.id!!, bedAnnualA.id!!, s25,
+        createPlant(counters, orgId, "Queen Lime Orange 2025 sow 1", zinniaQLO.id!!, bedAnnualA.id!!, s25,
             LocalDate.of(2025, 4, 20), PlantStatus.REMOVED, 40, 34,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2025, 4, 20),
@@ -691,7 +699,7 @@ class DevResource(
             ),
             annualHarvests(LocalDate.of(2025, 7, 8), LocalDate.of(2025, 9, 15), 150, 45..60), customerIds,
         )
-        createPlant(counters, userId, "Benary's Giant Mix 2025 sow 2", zinniaGiant.id!!, bedAnnualA.id!!, s25,
+        createPlant(counters, orgId, "Benary's Giant Mix 2025 sow 2", zinniaGiant.id!!, bedAnnualA.id!!, s25,
             LocalDate.of(2025, 5, 15), PlantStatus.REMOVED, 40, 36,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2025, 5, 15),
@@ -703,7 +711,7 @@ class DevResource(
         )
 
         // Snapdragons 2025: ~300 stems
-        createPlant(counters, userId, "Madame Butterfly 2025", snapMadame.id!!, bedAnnualA.id!!, s25,
+        createPlant(counters, orgId, "Madame Butterfly 2025", snapMadame.id!!, bedAnnualA.id!!, s25,
             LocalDate.of(2025, 2, 25), PlantStatus.REMOVED, 70, 60,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2025, 2, 25),
@@ -715,7 +723,7 @@ class DevResource(
             ),
             annualHarvests(LocalDate.of(2025, 6, 8), LocalDate.of(2025, 8, 25), 180, 55..75), customerIds,
         )
-        createPlant(counters, userId, "Chantilly 2025", snapChantilly.id!!, bedAnnualA.id!!, s25,
+        createPlant(counters, orgId, "Chantilly 2025", snapChantilly.id!!, bedAnnualA.id!!, s25,
             LocalDate.of(2025, 2, 25), PlantStatus.REMOVED, 50, 42,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2025, 2, 25),
@@ -729,7 +737,7 @@ class DevResource(
         )
 
         // Cosmos 2025 (new): ~200 stems
-        createPlant(counters, userId, "Double Click 2025", cosmosDC.id!!, bedAnnualB.id!!, s25,
+        createPlant(counters, orgId, "Double Click 2025", cosmosDC.id!!, bedAnnualB.id!!, s25,
             LocalDate.of(2025, 4, 15), PlantStatus.REMOVED, 50, 45,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2025, 4, 15),
@@ -740,7 +748,7 @@ class DevResource(
             ),
             annualHarvests(LocalDate.of(2025, 7, 8), LocalDate.of(2025, 9, 28), 130, 50..70), customerIds,
         )
-        createPlant(counters, userId, "Apricot Lemonade 2025", cosmosAL.id!!, bedAnnualB.id!!, s25,
+        createPlant(counters, orgId, "Apricot Lemonade 2025", cosmosAL.id!!, bedAnnualB.id!!, s25,
             LocalDate.of(2025, 4, 20), PlantStatus.REMOVED, 35, 30,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2025, 4, 20),
@@ -753,7 +761,7 @@ class DevResource(
         )
 
         // Lisianthus 2025 (new): ~100 stems
-        createPlant(counters, userId, "Echo Blue 2025", lisEcho.id!!, bedLis.id!!, s25,
+        createPlant(counters, orgId, "Echo Blue 2025", lisEcho.id!!, bedLis.id!!, s25,
             LocalDate.of(2025, 1, 15), PlantStatus.REMOVED, 40, 22,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2025, 1, 15),
@@ -765,7 +773,7 @@ class DevResource(
             ),
             annualHarvests(LocalDate.of(2025, 7, 18), LocalDate.of(2025, 9, 12), 60, 50..65), customerIds,
         )
-        createPlant(counters, userId, "Rosita Green 2025", lisRosita.id!!, bedLis.id!!, s25,
+        createPlant(counters, orgId, "Rosita Green 2025", lisRosita.id!!, bedLis.id!!, s25,
             LocalDate.of(2025, 1, 20), PlantStatus.REMOVED, 30, 15,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2025, 1, 20),
@@ -778,7 +786,7 @@ class DevResource(
         )
 
         // Sunflowers 2025
-        createPlant(counters, userId, "ProCut Orange 2025 sow 1", sunProCut.id!!, bedAnnualB.id!!, s25,
+        createPlant(counters, orgId, "ProCut Orange 2025 sow 1", sunProCut.id!!, bedAnnualB.id!!, s25,
             LocalDate.of(2025, 5, 1), PlantStatus.REMOVED, 30, 28,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2025, 5, 1),
@@ -787,7 +795,7 @@ class DevResource(
             ),
             annualHarvests(LocalDate.of(2025, 7, 1), LocalDate.of(2025, 7, 15), 26, 65..80), customerIds,
         )
-        createPlant(counters, userId, "Sunrich Gold 2025 sow 1", sunSunrich.id!!, bedAnnualB.id!!, s25,
+        createPlant(counters, orgId, "Sunrich Gold 2025 sow 1", sunSunrich.id!!, bedAnnualB.id!!, s25,
             LocalDate.of(2025, 5, 20), PlantStatus.REMOVED, 40, 36,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2025, 5, 20),
@@ -796,7 +804,7 @@ class DevResource(
             ),
             annualHarvests(LocalDate.of(2025, 7, 25), LocalDate.of(2025, 8, 10), 34, 65..80), customerIds,
         )
-        createPlant(counters, userId, "ProCut Orange 2025 sow 2", sunProCut.id!!, bedAnnualB.id!!, s25,
+        createPlant(counters, orgId, "ProCut Orange 2025 sow 2", sunProCut.id!!, bedAnnualB.id!!, s25,
             LocalDate.of(2025, 6, 10), PlantStatus.REMOVED, 35, 32,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2025, 6, 10),
@@ -807,7 +815,7 @@ class DevResource(
         )
 
         // Sweet Peas 2025
-        createPlant(counters, userId, "Spencer Mix 2025", sweetPea.id!!, bedSweet.id!!, s25,
+        createPlant(counters, orgId, "Spencer Mix 2025", sweetPea.id!!, bedSweet.id!!, s25,
             LocalDate.of(2025, 3, 20), PlantStatus.REMOVED, 100, 85,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2025, 3, 20),
@@ -821,7 +829,7 @@ class DevResource(
         )
 
         // Eucalyptus 2025 — continuing perennial
-        createPlant(counters, userId, "Silver Dollar 2025", eucalyptus.id!!, bedFoliage.id!!, s25,
+        createPlant(counters, orgId, "Silver Dollar 2025", eucalyptus.id!!, bedFoliage.id!!, s25,
             LocalDate.of(2025, 3, 1), PlantStatus.REMOVED, 8, 8,
             listOf(
                 PlantEventType.NOTE to LocalDate.of(2025, 4, 1),
@@ -834,21 +842,21 @@ class DevResource(
         // ══════════════════════════════════════════
 
         // Dahlias 2026: planted, growing (pinched, not yet blooming)
-        createPlant(counters, userId, "Cafe au Lait 2026", cafeAuLait.id!!, bedDahlia.id!!, s26,
+        createPlant(counters, orgId, "Cafe au Lait 2026", cafeAuLait.id!!, bedDahlia.id!!, s26,
             LocalDate.of(2026, 4, 8), PlantStatus.GROWING, 30, 28,
             listOf(
                 PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 16),
                 PlantEventType.PINCHED to LocalDate.of(2026, 6, 8),
             ),
         )
-        createPlant(counters, userId, "Labyrinth 2026", labyrinth.id!!, bedDahlia.id!!, s26,
+        createPlant(counters, orgId, "Labyrinth 2026", labyrinth.id!!, bedDahlia.id!!, s26,
             LocalDate.of(2026, 4, 8), PlantStatus.GROWING, 24, 23,
             listOf(
                 PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 16),
                 PlantEventType.PINCHED to LocalDate.of(2026, 6, 10),
             ),
         )
-        createPlant(counters, userId, "Cornel 2026", cornel.id!!, bedDahlia.id!!, s26,
+        createPlant(counters, orgId, "Cornel 2026", cornel.id!!, bedDahlia.id!!, s26,
             LocalDate.of(2026, 4, 8), PlantStatus.PLANTED_OUT, 20, 19,
             listOf(
                 PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 16),
@@ -856,7 +864,7 @@ class DevResource(
         )
 
         // Zinnias 2026: first succession planted out, second potted up
-        createPlant(counters, userId, "Benary's Giant Mix 2026 sow 1", zinniaGiant.id!!, bedAnnualA.id!!, s26,
+        createPlant(counters, orgId, "Benary's Giant Mix 2026 sow 1", zinniaGiant.id!!, bedAnnualA.id!!, s26,
             LocalDate.of(2026, 4, 1), PlantStatus.PLANTED_OUT, 60, 55,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2026, 4, 1),
@@ -864,7 +872,7 @@ class DevResource(
                 PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 12),
             ),
         )
-        createPlant(counters, userId, "Queen Lime Orange 2026 sow 1", zinniaQLO.id!!, bedAnnualA.id!!, s26,
+        createPlant(counters, orgId, "Queen Lime Orange 2026 sow 1", zinniaQLO.id!!, bedAnnualA.id!!, s26,
             LocalDate.of(2026, 4, 15), PlantStatus.PLANTED_OUT, 45, 40,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2026, 4, 15),
@@ -872,7 +880,7 @@ class DevResource(
                 PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 20),
             ),
         )
-        createPlant(counters, userId, "Benary's Giant Mix 2026 sow 2", zinniaGiant.id!!, bedAnnualA.id!!, s26,
+        createPlant(counters, orgId, "Benary's Giant Mix 2026 sow 2", zinniaGiant.id!!, bedAnnualA.id!!, s26,
             LocalDate.of(2026, 4, 29), PlantStatus.POTTED_UP, 50, 45,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2026, 4, 29),
@@ -881,7 +889,7 @@ class DevResource(
         )
 
         // Snapdragons 2026
-        createPlant(counters, userId, "Madame Butterfly 2026", snapMadame.id!!, bedAnnualA.id!!, s26,
+        createPlant(counters, orgId, "Madame Butterfly 2026", snapMadame.id!!, bedAnnualA.id!!, s26,
             LocalDate.of(2026, 2, 20), PlantStatus.PLANTED_OUT, 80, 68,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2026, 2, 20),
@@ -889,7 +897,7 @@ class DevResource(
                 PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 8),
             ),
         )
-        createPlant(counters, userId, "Chantilly 2026", snapChantilly.id!!, bedAnnualA.id!!, s26,
+        createPlant(counters, orgId, "Chantilly 2026", snapChantilly.id!!, bedAnnualA.id!!, s26,
             LocalDate.of(2026, 2, 20), PlantStatus.PLANTED_OUT, 60, 52,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2026, 2, 20),
@@ -899,14 +907,14 @@ class DevResource(
         )
 
         // Sunflowers 2026: first succession planted
-        createPlant(counters, userId, "ProCut Orange 2026 sow 1", sunProCut.id!!, bedAnnualB.id!!, s26,
+        createPlant(counters, orgId, "ProCut Orange 2026 sow 1", sunProCut.id!!, bedAnnualB.id!!, s26,
             LocalDate.of(2026, 5, 1), PlantStatus.PLANTED_OUT, 35, 33,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2026, 5, 1),
                 PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 15),
             ),
         )
-        createPlant(counters, userId, "Sunrich Gold 2026 sow 1", sunSunrich.id!!, bedAnnualB.id!!, s26,
+        createPlant(counters, orgId, "Sunrich Gold 2026 sow 1", sunSunrich.id!!, bedAnnualB.id!!, s26,
             LocalDate.of(2026, 5, 10), PlantStatus.SEEDED, 40, 38,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2026, 5, 10),
@@ -914,7 +922,7 @@ class DevResource(
         )
 
         // Lisianthus 2026: planted, growing
-        createPlant(counters, userId, "Echo Blue 2026", lisEcho.id!!, bedLis.id!!, s26,
+        createPlant(counters, orgId, "Echo Blue 2026", lisEcho.id!!, bedLis.id!!, s26,
             LocalDate.of(2026, 1, 10), PlantStatus.PLANTED_OUT, 50, 30,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2026, 1, 10),
@@ -922,7 +930,7 @@ class DevResource(
                 PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 10),
             ),
         )
-        createPlant(counters, userId, "Rosita Green 2026", lisRosita.id!!, bedLis.id!!, s26,
+        createPlant(counters, orgId, "Rosita Green 2026", lisRosita.id!!, bedLis.id!!, s26,
             LocalDate.of(2026, 1, 15), PlantStatus.PLANTED_OUT, 40, 22,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2026, 1, 15),
@@ -932,7 +940,7 @@ class DevResource(
         )
 
         // Sweet Peas 2026
-        createPlant(counters, userId, "Spencer Mix 2026", sweetPea.id!!, bedSweet.id!!, s26,
+        createPlant(counters, orgId, "Spencer Mix 2026", sweetPea.id!!, bedSweet.id!!, s26,
             LocalDate.of(2026, 3, 15), PlantStatus.PLANTED_OUT, 120, 100,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2026, 3, 15),
@@ -942,14 +950,14 @@ class DevResource(
         )
 
         // Cosmos 2026
-        createPlant(counters, userId, "Double Click 2026", cosmosDC.id!!, bedAnnualB.id!!, s26,
+        createPlant(counters, orgId, "Double Click 2026", cosmosDC.id!!, bedAnnualB.id!!, s26,
             LocalDate.of(2026, 4, 10), PlantStatus.PLANTED_OUT, 60, 55,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2026, 4, 10),
                 PlantEventType.PLANTED_OUT to LocalDate.of(2026, 5, 18),
             ),
         )
-        createPlant(counters, userId, "Apricot Lemonade 2026", cosmosAL.id!!, bedAnnualB.id!!, s26,
+        createPlant(counters, orgId, "Apricot Lemonade 2026", cosmosAL.id!!, bedAnnualB.id!!, s26,
             LocalDate.of(2026, 4, 15), PlantStatus.PLANTED_OUT, 40, 36,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2026, 4, 15),
@@ -958,7 +966,7 @@ class DevResource(
         )
 
         // Eucalyptus 2026 — perennial, continuing
-        createPlant(counters, userId, "Silver Dollar 2026", eucalyptus.id!!, bedFoliage.id!!, s26,
+        createPlant(counters, orgId, "Silver Dollar 2026", eucalyptus.id!!, bedFoliage.id!!, s26,
             LocalDate.of(2026, 3, 1), PlantStatus.GROWING, 8, 8,
             listOf(
                 PlantEventType.NOTE to LocalDate.of(2026, 3, 15),
@@ -966,7 +974,7 @@ class DevResource(
         )
 
         // Ranunculus 2026 — new trial variety
-        createPlant(counters, userId, "Elegance Mix 2026 (trial)", ranunculus.id!!, bedFoliage.id!!, s26,
+        createPlant(counters, orgId, "Elegance Mix 2026 (trial)", ranunculus.id!!, bedFoliage.id!!, s26,
             LocalDate.of(2026, 3, 1), PlantStatus.GROWING, 50, 35,
             listOf(
                 PlantEventType.SEEDED to LocalDate.of(2026, 3, 1),
@@ -980,7 +988,7 @@ class DevResource(
         var seedInvCount = 0
         fun inv(speciesId: Long, qty: Int, cost: Int, unit: UnitType = UnitType.SEED) {
             seedInventoryRepository.persist(SeedInventory(
-                userId = userId, speciesId = speciesId, quantity = qty, seasonId = s26,
+                orgId = orgId, speciesId = speciesId, quantity = qty, seasonId = s26,
                 collectionDate = LocalDate.of(2026, 1, 15),
                 expirationDate = LocalDate.of(2028, 12, 31),
                 costPerUnitSek = cost, unitType = unit,
@@ -1006,13 +1014,13 @@ class DevResource(
 
         // ── Succession Schedules (2026) ──
         val succZinnia = successionScheduleRepository.persist(SuccessionSchedule(
-            userId = userId, seasonId = s26, speciesId = zinniaGiant.id!!,
+            orgId = orgId, seasonId = s26, speciesId = zinniaGiant.id!!,
             bedId = bedAnnualA.id!!, firstSowDate = LocalDate.of(2026, 4, 15),
             intervalDays = 14, totalSuccessions = 4, seedsPerSuccession = 50,
             notes = "Benary's Giant Mix — 14 day intervals for continuous harvest",
         ))
         val succSunflower = successionScheduleRepository.persist(SuccessionSchedule(
-            userId = userId, seasonId = s26, speciesId = sunProCut.id!!,
+            orgId = orgId, seasonId = s26, speciesId = sunProCut.id!!,
             bedId = bedAnnualB.id!!, firstSowDate = LocalDate.of(2026, 5, 1),
             intervalDays = 10, totalSuccessions = 6, seedsPerSuccession = 30,
             notes = "ProCut Orange — tight succession for wedding season",
@@ -1020,53 +1028,53 @@ class DevResource(
 
         // ── Production Targets (2026) ──
         productionTargetRepository.persist(ProductionTarget(
-            userId = userId, seasonId = s26, speciesId = cafeAuLait.id!!,
+            orgId = orgId, seasonId = s26, speciesId = cafeAuLait.id!!,
             stemsPerWeek = 150, startDate = LocalDate.of(2026, 7, 1), endDate = LocalDate.of(2026, 9, 30),
             notes = "Combined dahlia target across all 3 varieties",
         ))
         productionTargetRepository.persist(ProductionTarget(
-            userId = userId, seasonId = s26, speciesId = zinniaGiant.id!!,
+            orgId = orgId, seasonId = s26, speciesId = zinniaGiant.id!!,
             stemsPerWeek = 100, startDate = LocalDate.of(2026, 6, 15), endDate = LocalDate.of(2026, 9, 15),
             notes = "Zinnia target — both varieties combined",
         ))
         productionTargetRepository.persist(ProductionTarget(
-            userId = userId, seasonId = s26, speciesId = snapMadame.id!!,
+            orgId = orgId, seasonId = s26, speciesId = snapMadame.id!!,
             stemsPerWeek = 50, startDate = LocalDate.of(2026, 6, 1), endDate = LocalDate.of(2026, 8, 31),
             notes = "Snapdragon target — both varieties",
         ))
 
         // ── Scheduled Tasks (2026) ──
         scheduledTaskRepository.persist(ScheduledTask(
-            userId = userId, speciesId = zinniaGiant.id!!, activityType = "SOW",
+            orgId = orgId, speciesId = zinniaGiant.id!!, activityType = "SOW",
             deadline = LocalDate.of(2026, 5, 13), targetCount = 50, remainingCount = 50,
             seasonId = s26, successionScheduleId = succZinnia.id,
             notes = "Succession 3 of 4",
         ))
         scheduledTaskRepository.persist(ScheduledTask(
-            userId = userId, speciesId = zinniaGiant.id!!, activityType = "SOW",
+            orgId = orgId, speciesId = zinniaGiant.id!!, activityType = "SOW",
             deadline = LocalDate.of(2026, 5, 27), targetCount = 50, remainingCount = 50,
             seasonId = s26, successionScheduleId = succZinnia.id,
             notes = "Succession 4 of 4",
         ))
         scheduledTaskRepository.persist(ScheduledTask(
-            userId = userId, speciesId = sunProCut.id!!, activityType = "SOW",
+            orgId = orgId, speciesId = sunProCut.id!!, activityType = "SOW",
             deadline = LocalDate.of(2026, 5, 11), targetCount = 30, remainingCount = 30,
             seasonId = s26, successionScheduleId = succSunflower.id,
             notes = "Sunflower succession 2 of 6",
         ))
         scheduledTaskRepository.persist(ScheduledTask(
-            userId = userId, speciesId = sunProCut.id!!, activityType = "SOW",
+            orgId = orgId, speciesId = sunProCut.id!!, activityType = "SOW",
             deadline = LocalDate.of(2026, 5, 21), targetCount = 30, remainingCount = 30,
             seasonId = s26, successionScheduleId = succSunflower.id,
             notes = "Sunflower succession 3 of 6",
         ))
         scheduledTaskRepository.persist(ScheduledTask(
-            userId = userId, speciesId = snapMadame.id!!, activityType = "PINCH",
+            orgId = orgId, speciesId = snapMadame.id!!, activityType = "PINCH",
             deadline = LocalDate.of(2026, 6, 5), targetCount = 68, remainingCount = 68,
             seasonId = s26, notes = "Pinch snapdragon main stems for branching",
         ))
         scheduledTaskRepository.persist(ScheduledTask(
-            userId = userId, speciesId = cafeAuLait.id!!, activityType = "DISBUD",
+            orgId = orgId, speciesId = cafeAuLait.id!!, activityType = "DISBUD",
             deadline = LocalDate.of(2026, 6, 15), targetCount = 28, remainingCount = 28,
             seasonId = s26, notes = "Disbud Cafe au Lait for larger blooms",
         ))
@@ -1074,21 +1082,21 @@ class DevResource(
         // ── Variety Trials ──
         // 2024: dahlia varieties
         varietyTrialRepository.persist(VarietyTrial(
-            userId = userId, seasonId = s24, speciesId = cafeAuLait.id!!,
+            orgId = orgId, seasonId = s24, speciesId = cafeAuLait.id!!,
             bedId = bedDahlia.id!!, plantCount = 20, stemYield = 200,
             avgStemLengthCm = 55, avgVaseLifeDays = 6, qualityScore = 9,
             customerReception = Reception.LOVED, verdict = Verdict.EXPAND,
             notes = "Huge demand, best seller. Expand significantly.",
         ))
         varietyTrialRepository.persist(VarietyTrial(
-            userId = userId, seasonId = s24, speciesId = labyrinth.id!!,
+            orgId = orgId, seasonId = s24, speciesId = labyrinth.id!!,
             bedId = bedDahlia.id!!, plantCount = 15, stemYield = 170,
             avgStemLengthCm = 50, avgVaseLifeDays = 5, qualityScore = 8,
             customerReception = Reception.LIKED, verdict = Verdict.KEEP,
             notes = "Good variety, reliable producer. Keep at current level.",
         ))
         varietyTrialRepository.persist(VarietyTrial(
-            userId = userId, seasonId = s24, speciesId = cornel.id!!,
+            orgId = orgId, seasonId = s24, speciesId = cornel.id!!,
             bedId = bedDahlia.id!!, plantCount = 12, stemYield = 130,
             avgStemLengthCm = 48, avgVaseLifeDays = 5, qualityScore = 7,
             customerReception = Reception.LIKED, verdict = Verdict.KEEP,
@@ -1096,28 +1104,28 @@ class DevResource(
         ))
         // 2025: zinnias and cosmos
         varietyTrialRepository.persist(VarietyTrial(
-            userId = userId, seasonId = s25, speciesId = zinniaGiant.id!!,
+            orgId = orgId, seasonId = s25, speciesId = zinniaGiant.id!!,
             bedId = bedAnnualA.id!!, plantCount = 100, stemYield = 300,
             avgStemLengthCm = 60, avgVaseLifeDays = 8, qualityScore = 9,
             customerReception = Reception.LOVED, verdict = Verdict.EXPAND,
             notes = "Workhorse variety. Big stems, great colors, long vase life.",
         ))
         varietyTrialRepository.persist(VarietyTrial(
-            userId = userId, seasonId = s25, speciesId = zinniaQLO.id!!,
+            orgId = orgId, seasonId = s25, speciesId = zinniaQLO.id!!,
             bedId = bedAnnualA.id!!, plantCount = 40, stemYield = 150,
             avgStemLengthCm = 52, avgVaseLifeDays = 8, qualityScore = 8,
             customerReception = Reception.LOVED, verdict = Verdict.EXPAND,
             notes = "Unique color, florists love it. Slightly shorter stems.",
         ))
         varietyTrialRepository.persist(VarietyTrial(
-            userId = userId, seasonId = s25, speciesId = cosmosDC.id!!,
+            orgId = orgId, seasonId = s25, speciesId = cosmosDC.id!!,
             bedId = bedAnnualB.id!!, plantCount = 50, stemYield = 130,
             avgStemLengthCm = 58, avgVaseLifeDays = 6, qualityScore = 7,
             customerReception = Reception.LIKED, verdict = Verdict.KEEP,
             notes = "Nice in bouquets, slightly floppy stems. Good filler.",
         ))
         varietyTrialRepository.persist(VarietyTrial(
-            userId = userId, seasonId = s25, speciesId = cosmosAL.id!!,
+            orgId = orgId, seasonId = s25, speciesId = cosmosAL.id!!,
             bedId = bedAnnualB.id!!, plantCount = 35, stemYield = 70,
             avgStemLengthCm = 50, avgVaseLifeDays = 5, qualityScore = 6,
             customerReception = Reception.NEUTRAL, verdict = Verdict.REDUCE,
@@ -1125,7 +1133,7 @@ class DevResource(
         ))
         // 2026: ranunculus trial
         varietyTrialRepository.persist(VarietyTrial(
-            userId = userId, seasonId = s26, speciesId = ranunculus.id!!,
+            orgId = orgId, seasonId = s26, speciesId = ranunculus.id!!,
             bedId = bedFoliage.id!!, plantCount = 50,
             verdict = Verdict.UNDECIDED,
             notes = "First trial. Planted from pre-sprouted corms. Monitoring establishment.",
@@ -1133,7 +1141,7 @@ class DevResource(
 
         // ── Bouquet Recipes ──
         val sommardrom = bouquetRecipeRepository.persist(BouquetRecipe(
-            userId = userId, name = "Sommardröm",
+            orgId = orgId, name = "Sommardröm",
             description = "Summer Dream — lush seasonal bouquet with dahlias as focal flower",
             priceSek = 15000,
         ))
@@ -1143,7 +1151,7 @@ class DevResource(
         bouquetRecipeRepository.persistItem(BouquetRecipeItem(recipeId = sommardrom.id!!, speciesId = eucalyptus.id!!, stemCount = 3, role = ItemRole.FOLIAGE))
 
         val solsken = bouquetRecipeRepository.persist(BouquetRecipe(
-            userId = userId, name = "Solsken",
+            orgId = orgId, name = "Solsken",
             description = "Sunshine — bright warm-toned bouquet for farmers market",
             priceSek = 12000,
         ))
@@ -1152,7 +1160,7 @@ class DevResource(
         bouquetRecipeRepository.persistItem(BouquetRecipeItem(recipeId = solsken.id!!, speciesId = snapMadame.id!!, stemCount = 3, role = ItemRole.ACCENT))
 
         val romantik = bouquetRecipeRepository.persist(BouquetRecipe(
-            userId = userId, name = "Romantik",
+            orgId = orgId, name = "Romantik",
             description = "Romance — elegant wedding bouquet with soft tones",
             priceSek = 18000,
         ))
@@ -1163,7 +1171,7 @@ class DevResource(
 
         // ── Pest/Disease Logs ──
         pestDiseaseLogRepository.persist(PestDiseaseLog(
-            userId = userId, seasonId = s24, bedId = bedSweet.id!!,
+            orgId = orgId, seasonId = s24, bedId = bedSweet.id!!,
             speciesId = sweetPea.id!!, observedDate = LocalDate.of(2024, 6, 20),
             category = PestCategory.PEST, name = "Aphids",
             severity = Severity.MODERATE, treatment = "Insecticidal soap spray, 3 applications",
@@ -1171,7 +1179,7 @@ class DevResource(
             notes = "Caught early. Concentrated on growing tips. Ladybugs helped after initial spray.",
         ))
         pestDiseaseLogRepository.persist(PestDiseaseLog(
-            userId = userId, seasonId = s25, bedId = bedAnnualA.id!!,
+            orgId = orgId, seasonId = s25, bedId = bedAnnualA.id!!,
             speciesId = zinniaGiant.id!!, observedDate = LocalDate.of(2025, 8, 5),
             category = PestCategory.DISEASE, name = "Powdery mildew",
             severity = Severity.HIGH, treatment = "Sulfur-based fungicide, improved air circulation",
@@ -1179,7 +1187,7 @@ class DevResource(
             notes = "Late summer humidity triggered outbreak. Removed worst-affected leaves. Sulfur treatment effective.",
         ))
         pestDiseaseLogRepository.persist(PestDiseaseLog(
-            userId = userId, seasonId = s25, bedId = bedLis.id!!,
+            orgId = orgId, seasonId = s25, bedId = bedLis.id!!,
             speciesId = lisEcho.id!!, observedDate = LocalDate.of(2025, 8, 20),
             category = PestCategory.DISEASE, name = "Botrytis (gray mold)",
             severity = Severity.MODERATE, treatment = "Improved ventilation, reduced watering frequency",
@@ -1187,7 +1195,7 @@ class DevResource(
             notes = "Tunnel humidity too high. Some bud drop. Need better ventilation system for 2026.",
         ))
         pestDiseaseLogRepository.persist(PestDiseaseLog(
-            userId = userId, seasonId = s26, bedId = bedDahlia.id!!,
+            orgId = orgId, seasonId = s26, bedId = bedDahlia.id!!,
             speciesId = cafeAuLait.id!!, observedDate = LocalDate.of(2026, 5, 28),
             category = PestCategory.PEST, name = "Thrips",
             severity = Severity.LOW, outcome = Outcome.MONITORING,

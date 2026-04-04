@@ -81,7 +81,7 @@ class PlantEventRepository(private val ds: AgroalDataSource) {
     }
 
     /** Harvest stats grouped by species. Only includes plants with a linked species. */
-    fun harvestStatsBySpecies(userId: Long): List<HarvestStatResult> =
+    fun harvestStatsBySpecies(orgId: Long): List<HarvestStatResult> =
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """SELECT s.common_name as species,
@@ -93,11 +93,11 @@ class PlantEventRepository(private val ds: AgroalDataSource) {
                    JOIN plant p ON pe.plant_id = p.id
                    JOIN species s ON p.species_id = s.id
                    WHERE pe.event_type = 'HARVESTED'
-                     AND p.user_id = ?
+                     AND p.org_id = ?
                    GROUP BY s.common_name
                    ORDER BY total_weight DESC"""
             ).use { ps ->
-                ps.setLong(1, userId)
+                ps.setLong(1, orgId)
                 ps.executeQuery().use { rs ->
                     buildList {
                         while (rs.next()) add(

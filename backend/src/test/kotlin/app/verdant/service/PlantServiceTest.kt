@@ -15,7 +15,6 @@ import app.verdant.repository.PlantEventRepository
 import app.verdant.repository.PlantRepository
 import app.verdant.repository.SpeciesRepository
 import jakarta.ws.rs.BadRequestException
-import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -34,7 +33,7 @@ class PlantServiceTest {
     private lateinit var storageService: StorageService
     private lateinit var service: PlantService
 
-    private val userId = 42L
+    private val orgId = 42L
     private val speciesId = 10L
 
     @BeforeEach
@@ -66,7 +65,7 @@ class PlantServiceTest {
             status = status,
             seedCount = 1,
             survivingCount = 1,
-            userId = userId,
+            orgId = orgId,
         )
 
     private fun makePersistedPlant(id: Long, request: BatchSowRequest, index: Int): Plant =
@@ -79,7 +78,7 @@ class PlantServiceTest {
             seedCount = 1,
             survivingCount = 1,
             bedId = request.bedId,
-            userId = userId,
+            orgId = orgId,
         )
 
     private fun makePersistedEvent(id: Long, plantId: Long, eventType: PlantEventType): PlantEvent =
@@ -113,7 +112,7 @@ class PlantServiceTest {
             event.copy(id = event.plantId * 10)
         }
 
-        val response = service.batchSow(request, userId)
+        val response = service.batchSow(request, orgId)
 
         assertEquals(seedCount, response.count)
         assertEquals(seedCount, response.plantIds.size)
@@ -139,7 +138,7 @@ class PlantServiceTest {
             inv.getArgument<PlantEvent>(0).copy(id = 99L)
         }
 
-        service.batchSow(request, userId)
+        service.batchSow(request, orgId)
 
         assertEquals("Dahlia #1", persisted[0].name)
         assertEquals("Dahlia #2", persisted[1].name)
@@ -160,7 +159,7 @@ class PlantServiceTest {
             inv.getArgument<PlantEvent>(0).copy(id = 99L)
         }
 
-        service.batchSow(request, userId)
+        service.batchSow(request, orgId)
 
         capturedPlants.forEach { assertEquals(PlantStatus.SEEDED, it.status) }
     }
@@ -181,7 +180,7 @@ class PlantServiceTest {
             event.copy(id = capturedEvents.size.toLong())
         }
 
-        service.batchSow(request, userId)
+        service.batchSow(request, orgId)
 
         verify(plantEventRepository, times(seedCount)).persist(any())
         capturedEvents.forEach { assertEquals(PlantEventType.SEEDED, it.eventType) }
@@ -207,7 +206,7 @@ class PlantServiceTest {
         }
         whenever(storageService.uploadImage(any(), any())).thenReturn("https://storage.example.com/plants/1/events/seeded.jpg")
 
-        service.batchSow(request, userId)
+        service.batchSow(request, orgId)
 
         verify(storageService, times(1)).uploadImage(eq(imageBase64), any())
     }
@@ -224,7 +223,7 @@ class PlantServiceTest {
             inv.getArgument<PlantEvent>(0).copy(id = 99L)
         }
 
-        service.batchSow(request, userId)
+        service.batchSow(request, orgId)
 
         verify(storageService, never()).uploadImage(any(), any())
     }
@@ -253,7 +252,7 @@ class PlantServiceTest {
         }
         whenever(storageService.uploadImage(any(), any())).thenReturn(expectedUrl)
 
-        service.batchSow(request, userId)
+        service.batchSow(request, orgId)
 
         // All events should have the same image URL
         capturedEvents.forEach { assertEquals(expectedUrl, it.imageUrl) }
@@ -262,25 +261,25 @@ class PlantServiceTest {
     @Test
     fun `batchSow throws BadRequestException when seedCount is zero`() {
         val request = BatchSowRequest(speciesId = speciesId, name = "Lily", seedCount = 0)
-        assertThrows<BadRequestException> { service.batchSow(request, userId) }
+        assertThrows<BadRequestException> { service.batchSow(request, orgId) }
     }
 
     @Test
     fun `batchSow throws BadRequestException when seedCount exceeds 10000`() {
         val request = BatchSowRequest(speciesId = speciesId, name = "Lily", seedCount = 10001)
-        assertThrows<BadRequestException> { service.batchSow(request, userId) }
+        assertThrows<BadRequestException> { service.batchSow(request, orgId) }
     }
 
     @Test
     fun `batchSow throws BadRequestException when name is blank`() {
         val request = BatchSowRequest(speciesId = speciesId, name = "   ", seedCount = 1)
-        assertThrows<BadRequestException> { service.batchSow(request, userId) }
+        assertThrows<BadRequestException> { service.batchSow(request, orgId) }
     }
 
     @Test
     fun `batchSow throws BadRequestException when name exceeds 255 characters`() {
         val request = BatchSowRequest(speciesId = speciesId, name = "A".repeat(256), seedCount = 1)
-        assertThrows<BadRequestException> { service.batchSow(request, userId) }
+        assertThrows<BadRequestException> { service.batchSow(request, orgId) }
     }
 
     @Test
@@ -291,7 +290,7 @@ class PlantServiceTest {
 
         whenever(bedRepository.findById(bedId)).thenReturn(Bed(id = bedId, name = "Bed A", gardenId = gardenId))
         whenever(gardenRepository.findById(gardenId)).thenReturn(
-            Garden(id = gardenId, name = "Garden A", ownerId = userId)
+            Garden(id = gardenId, name = "Garden A", orgId = orgId)
         )
         var idCounter = 1L
         whenever(plantRepository.persist(any())).thenAnswer { inv ->
@@ -301,25 +300,25 @@ class PlantServiceTest {
             inv.getArgument<PlantEvent>(0).copy(id = 99L)
         }
 
-        service.batchSow(request, userId)
+        service.batchSow(request, orgId)
 
         verify(bedRepository).findById(bedId)
         verify(gardenRepository).findById(gardenId)
     }
 
     @Test
-    fun `batchSow throws ForbiddenException when bed belongs to another user`() {
+    fun `batchSow throws NotFoundException when bed belongs to another org`() {
         val bedId = 7L
         val gardenId = 3L
-        val otherUserId = 999L
+        val otherOrgId = 999L
         val request = BatchSowRequest(speciesId = speciesId, name = "Marigold", seedCount = 1, bedId = bedId)
 
         whenever(bedRepository.findById(bedId)).thenReturn(Bed(id = bedId, name = "Bed A", gardenId = gardenId))
         whenever(gardenRepository.findById(gardenId)).thenReturn(
-            Garden(id = gardenId, name = "Garden A", ownerId = otherUserId)
+            Garden(id = gardenId, name = "Garden A", orgId = otherOrgId)
         )
 
-        assertThrows<ForbiddenException> { service.batchSow(request, userId) }
+        assertThrows<NotFoundException> { service.batchSow(request, orgId) }
         verify(plantRepository, never()).persist(any())
     }
 
@@ -337,7 +336,7 @@ class PlantServiceTest {
             eventDate = LocalDate.now(),
             plantCount = 5,
         )
-        service.addEvent(1L, request, userId)
+        service.addEvent(1L, request, orgId)
 
         val captor = argumentCaptor<Plant>()
         verify(plantRepository).update(captor.capture())
@@ -355,7 +354,7 @@ class PlantServiceTest {
             eventType = PlantEventType.POTTED_UP,
             eventDate = LocalDate.now(),
         )
-        service.addEvent(1L, request, userId)
+        service.addEvent(1L, request, orgId)
 
         val captor = argumentCaptor<Plant>()
         verify(plantRepository).update(captor.capture())
@@ -373,7 +372,7 @@ class PlantServiceTest {
             eventType = PlantEventType.PLANTED_OUT,
             eventDate = LocalDate.now(),
         )
-        service.addEvent(1L, request, userId)
+        service.addEvent(1L, request, orgId)
 
         val captor = argumentCaptor<Plant>()
         verify(plantRepository).update(captor.capture())
@@ -391,7 +390,7 @@ class PlantServiceTest {
             eventType = PlantEventType.HARVESTED,
             eventDate = LocalDate.now(),
         )
-        service.addEvent(1L, request, userId)
+        service.addEvent(1L, request, orgId)
 
         val captor = argumentCaptor<Plant>()
         verify(plantRepository).update(captor.capture())
@@ -410,7 +409,7 @@ class PlantServiceTest {
             eventDate = LocalDate.now(),
             plantCount = 3,
         )
-        service.addEvent(1L, request, userId)
+        service.addEvent(1L, request, orgId)
 
         val captor = argumentCaptor<Plant>()
         verify(plantRepository).update(captor.capture())
@@ -428,7 +427,7 @@ class PlantServiceTest {
             eventType = PlantEventType.REMOVED,
             eventDate = LocalDate.now(),
         )
-        service.addEvent(1L, request, userId)
+        service.addEvent(1L, request, orgId)
 
         val captor = argumentCaptor<Plant>()
         verify(plantRepository).update(captor.capture())
@@ -446,7 +445,7 @@ class PlantServiceTest {
             eventType = PlantEventType.LIFTED,
             eventDate = LocalDate.now(),
         )
-        service.addEvent(1L, request, userId)
+        service.addEvent(1L, request, orgId)
 
         val captor = argumentCaptor<Plant>()
         verify(plantRepository).update(captor.capture())
@@ -464,7 +463,7 @@ class PlantServiceTest {
             eventType = PlantEventType.STORED,
             eventDate = LocalDate.now(),
         )
-        service.addEvent(1L, request, userId)
+        service.addEvent(1L, request, orgId)
 
         val captor = argumentCaptor<Plant>()
         verify(plantRepository).update(captor.capture())
@@ -483,7 +482,7 @@ class PlantServiceTest {
             eventDate = LocalDate.now(),
             notes = "Looking healthy",
         )
-        service.addEvent(1L, request, userId)
+        service.addEvent(1L, request, orgId)
 
         verify(plantRepository, never()).update(any())
     }
@@ -498,7 +497,7 @@ class PlantServiceTest {
         service.addEvent(
             1L,
             CreatePlantEventRequest(eventType = PlantEventType.BUDDING, eventDate = LocalDate.now()),
-            userId,
+            orgId,
         )
 
         verify(plantRepository, never()).update(any())
@@ -516,7 +515,7 @@ class PlantServiceTest {
             eventDate = LocalDate.now(),
             plantCount = 7,
         )
-        service.addEvent(1L, request, userId)
+        service.addEvent(1L, request, orgId)
 
         val captor = argumentCaptor<Plant>()
         verify(plantRepository).update(captor.capture())
@@ -536,7 +535,7 @@ class PlantServiceTest {
             eventDate = LocalDate.now(),
             plantCount = 6,
         )
-        service.addEvent(1L, request, userId)
+        service.addEvent(1L, request, orgId)
 
         val captor = argumentCaptor<Plant>()
         verify(plantRepository).update(captor.capture())
@@ -557,7 +556,7 @@ class PlantServiceTest {
             eventDate = LocalDate.now(),
             imageBase64 = "base64img",
         )
-        val response = service.addEvent(1L, request, userId)
+        val response = service.addEvent(1L, request, orgId)
 
         verify(storageService).uploadEventPhoto(55L, "base64img")
         verify(plantEventRepository).updateImageUrl(55L, expectedUrl)
@@ -570,17 +569,17 @@ class PlantServiceTest {
 
         val request = CreatePlantEventRequest(eventType = PlantEventType.NOTE, eventDate = LocalDate.now())
 
-        assertThrows<NotFoundException> { service.addEvent(999L, request, userId) }
+        assertThrows<NotFoundException> { service.addEvent(999L, request, orgId) }
     }
 
     @Test
-    fun `addEvent throws ForbiddenException when plant belongs to another user`() {
-        val plant = makePlant(1L).copy(userId = 999L)
+    fun `addEvent throws NotFoundException when plant belongs to another org`() {
+        val plant = makePlant(1L).copy(orgId = 999L)
         whenever(plantRepository.findById(1L)).thenReturn(plant)
 
         val request = CreatePlantEventRequest(eventType = PlantEventType.NOTE, eventDate = LocalDate.now())
 
-        assertThrows<ForbiddenException> { service.addEvent(1L, request, userId) }
+        assertThrows<NotFoundException> { service.addEvent(1L, request, orgId) }
     }
 
     // ── batchEvent ──
@@ -598,13 +597,13 @@ class PlantServiceTest {
             eventType = "POTTED_UP",
             count = 3,
         )
-        whenever(plantRepository.findByGroup(userId, speciesId, null, null, PlantStatus.SEEDED, 3))
+        whenever(plantRepository.findByGroup(orgId, speciesId, null, null, PlantStatus.SEEDED, 3))
             .thenReturn(plants)
         whenever(plantEventRepository.persist(any())).thenAnswer { inv ->
             inv.getArgument<PlantEvent>(0).copy(id = 999L)
         }
 
-        val response = service.batchEvent(request, userId)
+        val response = service.batchEvent(request, orgId)
 
         assertEquals(3, response.updatedCount)
         verify(plantRepository, times(3)).update(any())
@@ -622,13 +621,13 @@ class PlantServiceTest {
             eventType = "POTTED_UP",
             count = 2,
         )
-        whenever(plantRepository.findByGroup(userId, speciesId, null, null, PlantStatus.SEEDED, 2))
+        whenever(plantRepository.findByGroup(orgId, speciesId, null, null, PlantStatus.SEEDED, 2))
             .thenReturn(plants)
         whenever(plantEventRepository.persist(any())).thenAnswer { inv ->
             inv.getArgument<PlantEvent>(0).copy(id = 999L)
         }
 
-        service.batchEvent(request, userId)
+        service.batchEvent(request, orgId)
 
         val captor = argumentCaptor<Plant>()
         verify(plantRepository, times(2)).update(captor.capture())
@@ -644,13 +643,13 @@ class PlantServiceTest {
             eventType = "PLANTED_OUT",
             count = 1,
         )
-        whenever(plantRepository.findByGroup(userId, speciesId, null, null, PlantStatus.POTTED_UP, 1))
+        whenever(plantRepository.findByGroup(orgId, speciesId, null, null, PlantStatus.POTTED_UP, 1))
             .thenReturn(plants)
         whenever(plantEventRepository.persist(any())).thenAnswer { inv ->
             inv.getArgument<PlantEvent>(0).copy(id = 999L)
         }
 
-        service.batchEvent(request, userId)
+        service.batchEvent(request, orgId)
 
         val captor = argumentCaptor<Plant>()
         verify(plantRepository).update(captor.capture())
@@ -669,7 +668,7 @@ class PlantServiceTest {
             eventType = "POTTED_UP",
             count = 2,
         )
-        whenever(plantRepository.findByGroup(userId, speciesId, null, null, PlantStatus.SEEDED, 2))
+        whenever(plantRepository.findByGroup(orgId, speciesId, null, null, PlantStatus.SEEDED, 2))
             .thenReturn(plants)
         val capturedEvents = mutableListOf<PlantEvent>()
         whenever(plantEventRepository.persist(any())).thenAnswer { inv ->
@@ -678,7 +677,7 @@ class PlantServiceTest {
             event.copy(id = capturedEvents.size.toLong())
         }
 
-        service.batchEvent(request, userId)
+        service.batchEvent(request, orgId)
 
         assertEquals(2, capturedEvents.size)
         capturedEvents.forEach { assertEquals(PlantEventType.POTTED_UP, it.eventType) }
@@ -699,14 +698,14 @@ class PlantServiceTest {
             count = 3,
             imageBase64 = imageBase64,
         )
-        whenever(plantRepository.findByGroup(userId, speciesId, null, null, PlantStatus.SEEDED, 3))
+        whenever(plantRepository.findByGroup(orgId, speciesId, null, null, PlantStatus.SEEDED, 3))
             .thenReturn(plants)
         whenever(plantEventRepository.persist(any())).thenAnswer { inv ->
             inv.getArgument<PlantEvent>(0).copy(id = 999L)
         }
         whenever(storageService.uploadImage(any(), any())).thenReturn("https://storage.example.com/img.jpg")
 
-        service.batchEvent(request, userId)
+        service.batchEvent(request, orgId)
 
         verify(storageService, times(1)).uploadImage(eq(imageBase64), any())
     }
@@ -722,13 +721,13 @@ class PlantServiceTest {
             count = 1,
             targetBedId = targetBedId,
         )
-        whenever(plantRepository.findByGroup(userId, speciesId, null, null, PlantStatus.SEEDED, 1))
+        whenever(plantRepository.findByGroup(orgId, speciesId, null, null, PlantStatus.SEEDED, 1))
             .thenReturn(plants)
         whenever(plantEventRepository.persist(any())).thenAnswer { inv ->
             inv.getArgument<PlantEvent>(0).copy(id = 999L)
         }
 
-        service.batchEvent(request, userId)
+        service.batchEvent(request, orgId)
 
         val captor = argumentCaptor<Plant>()
         verify(plantRepository).update(captor.capture())
@@ -743,10 +742,10 @@ class PlantServiceTest {
             eventType = "POTTED_UP",
             count = 5,
         )
-        whenever(plantRepository.findByGroup(userId, speciesId, null, null, PlantStatus.SEEDED, 5))
+        whenever(plantRepository.findByGroup(orgId, speciesId, null, null, PlantStatus.SEEDED, 5))
             .thenReturn(emptyList())
 
-        val response = service.batchEvent(request, userId)
+        val response = service.batchEvent(request, orgId)
 
         assertEquals(0, response.updatedCount)
         verify(plantRepository, never()).update(any())
@@ -767,7 +766,7 @@ class PlantServiceTest {
             inv.getArgument<PlantEvent>(0).copy(id = 999L)
         }
 
-        assertThrows<IllegalArgumentException> { service.batchEvent(request, userId) }
+        assertThrows<IllegalArgumentException> { service.batchEvent(request, orgId) }
     }
 
     @Test
@@ -779,7 +778,7 @@ class PlantServiceTest {
             count = 1,
         )
 
-        assertThrows<IllegalArgumentException> { service.batchEvent(request, userId) }
+        assertThrows<IllegalArgumentException> { service.batchEvent(request, orgId) }
     }
 
     @Test
@@ -793,11 +792,11 @@ class PlantServiceTest {
             count = 2,
             plantedDate = plantedDateStr,
         )
-        whenever(plantRepository.findByGroup(userId, speciesId, null, plantedDate, PlantStatus.SEEDED, 2))
+        whenever(plantRepository.findByGroup(orgId, speciesId, null, plantedDate, PlantStatus.SEEDED, 2))
             .thenReturn(emptyList())
 
-        service.batchEvent(request, userId)
+        service.batchEvent(request, orgId)
 
-        verify(plantRepository).findByGroup(userId, speciesId, null, plantedDate, PlantStatus.SEEDED, 2)
+        verify(plantRepository).findByGroup(orgId, speciesId, null, plantedDate, PlantStatus.SEEDED, 2)
     }
 }

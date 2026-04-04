@@ -4,29 +4,28 @@ import app.verdant.dto.*
 import app.verdant.entity.Season
 import app.verdant.repository.SeasonRepository
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 
 @ApplicationScoped
 class SeasonService(
     private val repo: SeasonRepository,
 ) {
-    fun getSeasonsForUser(userId: Long): List<SeasonResponse> =
-        repo.findByUserId(userId).map { it.toResponse() }
+    fun getSeasonsForUser(orgId: Long): List<SeasonResponse> =
+        repo.findByOrgId(orgId).map { it.toResponse() }
 
-    fun getSeason(id: Long, userId: Long): SeasonResponse {
+    fun getSeason(id: Long, orgId: Long): SeasonResponse {
         val season = repo.findById(id) ?: throw NotFoundException("Season not found")
-        if (season.userId != userId) throw ForbiddenException()
+        if (season.orgId != orgId) throw NotFoundException("Season not found")
         return season.toResponse()
     }
 
-    fun getActiveSeason(userId: Long): SeasonResponse? =
-        repo.findActiveByUserId(userId).firstOrNull()?.toResponse()
+    fun getActiveSeason(orgId: Long): SeasonResponse? =
+        repo.findActiveByOrgId(orgId).firstOrNull()?.toResponse()
 
-    fun createSeason(request: CreateSeasonRequest, userId: Long): SeasonResponse {
+    fun createSeason(request: CreateSeasonRequest, orgId: Long): SeasonResponse {
         val season = repo.persist(
             Season(
-                userId = userId,
+                orgId = orgId,
                 name = request.name,
                 year = request.year,
                 startDate = request.startDate,
@@ -41,9 +40,9 @@ class SeasonService(
         return season.toResponse()
     }
 
-    fun updateSeason(id: Long, request: UpdateSeasonRequest, userId: Long): SeasonResponse {
+    fun updateSeason(id: Long, request: UpdateSeasonRequest, orgId: Long): SeasonResponse {
         val season = repo.findById(id) ?: throw NotFoundException("Season not found")
-        if (season.userId != userId) throw ForbiddenException()
+        if (season.orgId != orgId) throw NotFoundException("Season not found")
         val updated = season.copy(
             name = request.name ?: season.name,
             year = request.year ?: season.year,
@@ -59,9 +58,9 @@ class SeasonService(
         return updated.toResponse()
     }
 
-    fun deleteSeason(id: Long, userId: Long) {
+    fun deleteSeason(id: Long, orgId: Long) {
         val season = repo.findById(id) ?: throw NotFoundException("Season not found")
-        if (season.userId != userId) throw ForbiddenException()
+        if (season.orgId != orgId) throw NotFoundException("Season not found")
         repo.delete(id)
     }
 

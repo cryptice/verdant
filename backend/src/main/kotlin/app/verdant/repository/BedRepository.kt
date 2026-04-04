@@ -17,14 +17,14 @@ class BedRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserIdWithGardenName(userId: Long): List<BedWithGarden> =
+    fun findByOrgIdWithGardenName(orgId: Long): List<BedWithGarden> =
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """SELECT b.*, g.name as garden_name FROM bed b
                    JOIN garden g ON b.garden_id = g.id
-                   WHERE g.owner_id = ? ORDER BY g.name, b.name"""
+                   WHERE g.org_id = ? ORDER BY g.name, b.name"""
             ).use { ps ->
-                ps.setLong(1, userId)
+                ps.setLong(1, orgId)
                 ps.executeQuery().use { rs ->
                     buildList {
                         while (rs.next()) add(

@@ -1,6 +1,7 @@
 package app.verdant.resource
 
 import app.verdant.dto.*
+import app.verdant.filter.OrgContext
 import app.verdant.repository.UserRepository
 import app.verdant.service.AiService
 import app.verdant.service.SpeciesService
@@ -19,33 +20,32 @@ class SpeciesResource(
     private val speciesService: SpeciesService,
     private val aiService: AiService,
     private val userRepository: UserRepository,
+    private val orgContext: OrgContext,
     private val jwt: JsonWebToken
 ) {
-    private fun userId() = jwt.subject.toLong()
-
     @GET
     fun list(
         @QueryParam("q") query: String?,
         @QueryParam("limit") @DefaultValue("50") limit: Int,
         @QueryParam("offset") @DefaultValue("0") offset: Int,
-    ) = if (query.isNullOrBlank()) speciesService.getSpeciesForUser(userId(), limit.coerceIn(1, 200), offset.coerceAtLeast(0))
-        else speciesService.searchSpeciesForUser(userId(), query.trim(), limit.coerceIn(1, 200))
+    ) = if (query.isNullOrBlank()) speciesService.getSpeciesForUser(orgContext.orgId, limit.coerceIn(1, 200), offset.coerceAtLeast(0))
+        else speciesService.searchSpeciesForUser(orgContext.orgId, query.trim(), limit.coerceIn(1, 200))
 
     @POST
     fun create(@Valid request: CreateSpeciesRequest): Response {
-        val species = speciesService.createSpecies(request, userId())
+        val species = speciesService.createSpecies(request, orgContext.orgId)
         return Response.status(Response.Status.CREATED).entity(species).build()
     }
 
     @PUT
     @Path("/{id}")
     fun update(@PathParam("id") id: Long, @Valid request: UpdateSpeciesRequest) =
-        speciesService.updateSpecies(id, request, userId())
+        speciesService.updateSpecies(id, request, orgContext.orgId)
 
     @DELETE
     @Path("/{id}")
     fun delete(@PathParam("id") id: Long): Response {
-        speciesService.deleteSpecies(id, userId())
+        speciesService.deleteSpecies(id, orgContext.orgId)
         return Response.noContent().build()
     }
 
@@ -54,7 +54,7 @@ class SpeciesResource(
     @POST
     @Path("/extract-info")
     fun extractInfo(@Valid request: ExtractSpeciesInfoRequest): Response {
-        val language = userRepository.findById(userId())?.language ?: "sv"
+        val language = userRepository.findById(jwt.subject.toLong())?.language ?: "sv"
         val info = aiService.extractSpeciesInfo(request.imageBase64, language)
             ?: return Response.status(Response.Status.BAD_REQUEST)
                 .entity(mapOf("error" to "Could not extract species info from image"))
@@ -66,19 +66,19 @@ class SpeciesResource(
 
     @GET
     @Path("/groups")
-    fun listGroups() = speciesService.getGroupsForUser(userId())
+    fun listGroups() = speciesService.getGroupsForUser(orgContext.orgId)
 
     @POST
     @Path("/groups")
     fun createGroup(@Valid request: CreateSpeciesGroupRequest): Response {
-        val group = speciesService.createGroup(request, userId())
+        val group = speciesService.createGroup(request, orgContext.orgId)
         return Response.status(Response.Status.CREATED).entity(group).build()
     }
 
     @DELETE
     @Path("/groups/{id}")
     fun deleteGroup(@PathParam("id") id: Long): Response {
-        speciesService.deleteGroup(id, userId())
+        speciesService.deleteGroup(id, orgContext.orgId)
         return Response.noContent().build()
     }
 
@@ -86,19 +86,19 @@ class SpeciesResource(
 
     @GET
     @Path("/tags")
-    fun listTags() = speciesService.getTagsForUser(userId())
+    fun listTags() = speciesService.getTagsForUser(orgContext.orgId)
 
     @POST
     @Path("/tags")
     fun createTag(@Valid request: CreateSpeciesTagRequest): Response {
-        val tag = speciesService.createTag(request, userId())
+        val tag = speciesService.createTag(request, orgContext.orgId)
         return Response.status(Response.Status.CREATED).entity(tag).build()
     }
 
     @DELETE
     @Path("/tags/{id}")
     fun deleteTag(@PathParam("id") id: Long): Response {
-        speciesService.deleteTag(id, userId())
+        speciesService.deleteTag(id, orgContext.orgId)
         return Response.noContent().build()
     }
 
@@ -107,12 +107,12 @@ class SpeciesResource(
     @GET
     @Path("/{speciesId}/providers")
     fun listProviders(@PathParam("speciesId") speciesId: Long) =
-        speciesService.getProvidersForSpecies(speciesId, userId())
+        speciesService.getProvidersForSpecies(speciesId, orgContext.orgId)
 
     @POST
     @Path("/{speciesId}/providers")
     fun addProvider(@PathParam("speciesId") speciesId: Long, @Valid request: AddSpeciesProviderRequest): Response {
-        val sp = speciesService.addProviderToSpecies(speciesId, request, userId())
+        val sp = speciesService.addProviderToSpecies(speciesId, request, orgContext.orgId)
         return Response.status(Response.Status.CREATED).entity(sp).build()
     }
 
@@ -122,12 +122,12 @@ class SpeciesResource(
         @PathParam("speciesId") speciesId: Long,
         @PathParam("spId") spId: Long,
         @Valid request: UpdateSpeciesProviderRequest,
-    ) = speciesService.updateSpeciesProvider(speciesId, spId, request, userId())
+    ) = speciesService.updateSpeciesProvider(speciesId, spId, request, orgContext.orgId)
 
     @DELETE
     @Path("/{speciesId}/providers/{spId}")
     fun removeProvider(@PathParam("speciesId") speciesId: Long, @PathParam("spId") spId: Long): Response {
-        speciesService.removeProviderFromSpecies(speciesId, spId, userId())
+        speciesService.removeProviderFromSpecies(speciesId, spId, orgContext.orgId)
         return Response.noContent().build()
     }
 }

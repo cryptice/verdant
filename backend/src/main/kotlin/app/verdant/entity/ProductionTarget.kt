@@ -5,7 +5,7 @@ import java.time.LocalDate
 
 data class ProductionTarget(
     val id: Long? = null,
-    val userId: Long,
+    val orgId: Long,
     val seasonId: Long,
     val speciesId: Long,
     val stemsPerWeek: Int,

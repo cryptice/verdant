@@ -19,32 +19,32 @@ class SpeciesService(
 ) {
     // ── Species CRUD ──
 
-    fun getSpeciesForUser(userId: Long, limit: Int = 50, offset: Int = 0): List<SpeciesResponse> {
-        val groups = groupRepository.findByUserId(userId).associateBy { it.id }
-        val tags = tagRepository.findByUserId(userId).associateBy { it.id }
-        val speciesList = speciesRepository.findByUserId(userId, limit, offset)
+    fun getSpeciesForUser(orgId: Long, limit: Int = 50, offset: Int = 0): List<SpeciesResponse> {
+        val groups = groupRepository.findByOrgId(orgId).associateBy { it.id }
+        val tags = tagRepository.findByOrgId(orgId).associateBy { it.id }
+        val speciesList = speciesRepository.findByOrgId(orgId, limit, offset)
         return mapSpeciesList(speciesList, groups, tags)
     }
 
-    fun searchSpeciesForUser(userId: Long, query: String, limit: Int = 20): List<SpeciesResponse> {
-        val groups = groupRepository.findByUserId(userId).associateBy { it.id }
-        val tags = tagRepository.findByUserId(userId).associateBy { it.id }
-        val speciesList = speciesRepository.searchByUserId(userId, query, limit)
+    fun searchSpeciesForUser(orgId: Long, query: String, limit: Int = 20): List<SpeciesResponse> {
+        val groups = groupRepository.findByOrgId(orgId).associateBy { it.id }
+        val tags = tagRepository.findByOrgId(orgId).associateBy { it.id }
+        val speciesList = speciesRepository.searchByOrgId(orgId, query, limit)
         return mapSpeciesList(speciesList, groups, tags)
     }
 
-    fun getSpecies(speciesId: Long, userId: Long): SpeciesResponse {
+    fun getSpecies(speciesId: Long, orgId: Long): SpeciesResponse {
         val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
-        if (species.userId != null && species.userId != userId) throw ForbiddenException()
+        if (species.orgId != null && species.orgId != orgId) throw NotFoundException("Species not found")
         val groups: Map<Long?, SpeciesGroup> = species.groupId?.let { groupRepository.findById(it) }?.let { mapOf(it.id to it) } ?: emptyMap()
-        val tags = tagRepository.findByUserId(userId).associateBy { it.id }
+        val tags = tagRepository.findByOrgId(orgId).associateBy { it.id }
         return species.toResponse(groups, tags)
     }
 
-    fun createSpecies(request: CreateSpeciesRequest, userId: Long): SpeciesResponse {
+    fun createSpecies(request: CreateSpeciesRequest, orgId: Long): SpeciesResponse {
         val species = speciesRepository.persist(
             Species(
-                userId = userId,
+                orgId = orgId,
                 commonName = request.commonName,
                 variantName = request.variantName,
                 commonNameSv = request.commonNameSv,
@@ -73,13 +73,13 @@ class SpeciesService(
         if (!request.tagIds.isNullOrEmpty()) {
             speciesRepository.setTagsForSpecies(sid, request.tagIds)
         }
-        return getSpecies(sid, userId)
+        return getSpecies(sid, orgId)
     }
 
-    fun updateSpecies(speciesId: Long, request: UpdateSpeciesRequest, userId: Long): SpeciesResponse {
+    fun updateSpecies(speciesId: Long, request: UpdateSpeciesRequest, orgId: Long): SpeciesResponse {
         val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
-        if (species.userId == null) throw ForbiddenException("Cannot modify system species")
-        if (species.userId != userId) throw ForbiddenException()
+        if (species.orgId == null) throw ForbiddenException("Cannot modify system species")
+        if (species.orgId != orgId) throw NotFoundException("Species not found")
         // Upload new images if provided
         val frontUrl = request.imageFrontBase64?.let { storageService.uploadSpeciesFront(speciesId, it) } ?: species.imageFrontUrl
         val backUrl = request.imageBackBase64?.let { storageService.uploadSpeciesBack(speciesId, it) } ?: species.imageBackUrl
@@ -107,13 +107,13 @@ class SpeciesService(
         if (request.tagIds != null) {
             speciesRepository.setTagsForSpecies(speciesId, request.tagIds)
         }
-        return getSpecies(speciesId, userId)
+        return getSpecies(speciesId, orgId)
     }
 
-    fun deleteSpecies(speciesId: Long, userId: Long) {
+    fun deleteSpecies(speciesId: Long, orgId: Long) {
         val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
-        if (species.userId == null) throw ForbiddenException("Cannot delete system species")
-        if (species.userId != userId) throw ForbiddenException()
+        if (species.orgId == null) throw ForbiddenException("Cannot delete system species")
+        if (species.orgId != orgId) throw NotFoundException("Species not found")
         speciesRepository.delete(speciesId)
     }
 
@@ -143,7 +143,7 @@ class SpeciesService(
     fun createSpeciesAdmin(request: CreateSpeciesRequest): SpeciesResponse {
         val species = speciesRepository.persist(
             Species(
-                userId = null,
+                orgId = null,
                 commonName = request.commonName,
                 variantName = request.variantName,
                 commonNameSv = request.commonNameSv,
@@ -228,35 +228,35 @@ class SpeciesService(
 
     // ── Groups ──
 
-    fun getGroupsForUser(userId: Long): List<SpeciesGroupResponse> =
-        groupRepository.findByUserId(userId).map { SpeciesGroupResponse(it.id!!, it.name) }
+    fun getGroupsForUser(orgId: Long): List<SpeciesGroupResponse> =
+        groupRepository.findByOrgId(orgId).map { SpeciesGroupResponse(it.id!!, it.name) }
 
-    fun createGroup(request: CreateSpeciesGroupRequest, userId: Long): SpeciesGroupResponse {
-        val group = groupRepository.persist(SpeciesGroup(userId = userId, name = request.name))
+    fun createGroup(request: CreateSpeciesGroupRequest, orgId: Long): SpeciesGroupResponse {
+        val group = groupRepository.persist(SpeciesGroup(orgId = orgId, name = request.name))
         return SpeciesGroupResponse(group.id!!, group.name)
     }
 
-    fun deleteGroup(groupId: Long, userId: Long) {
+    fun deleteGroup(groupId: Long, orgId: Long) {
         val group = groupRepository.findById(groupId) ?: throw NotFoundException("Group not found")
-        if (group.userId == null) throw ForbiddenException("Cannot delete system group")
-        if (group.userId != userId) throw ForbiddenException()
+        if (group.orgId == null) throw ForbiddenException("Cannot delete system group")
+        if (group.orgId != orgId) throw NotFoundException("Group not found")
         groupRepository.delete(groupId)
     }
 
     // ── Tags ──
 
-    fun getTagsForUser(userId: Long): List<SpeciesTagResponse> =
-        tagRepository.findByUserId(userId).map { SpeciesTagResponse(it.id!!, it.name) }
+    fun getTagsForUser(orgId: Long): List<SpeciesTagResponse> =
+        tagRepository.findByOrgId(orgId).map { SpeciesTagResponse(it.id!!, it.name) }
 
-    fun createTag(request: CreateSpeciesTagRequest, userId: Long): SpeciesTagResponse {
-        val tag = tagRepository.persist(SpeciesTag(userId = userId, name = request.name))
+    fun createTag(request: CreateSpeciesTagRequest, orgId: Long): SpeciesTagResponse {
+        val tag = tagRepository.persist(SpeciesTag(orgId = orgId, name = request.name))
         return SpeciesTagResponse(tag.id!!, tag.name)
     }
 
-    fun deleteTag(tagId: Long, userId: Long) {
+    fun deleteTag(tagId: Long, orgId: Long) {
         val tag = tagRepository.findById(tagId) ?: throw NotFoundException("Tag not found")
-        if (tag.userId == null) throw ForbiddenException("Cannot delete system tag")
-        if (tag.userId != userId) throw ForbiddenException()
+        if (tag.orgId == null) throw ForbiddenException("Cannot delete system tag")
+        if (tag.orgId != orgId) throw NotFoundException("Tag not found")
         tagRepository.delete(tagId)
     }
 
@@ -310,13 +310,13 @@ class SpeciesService(
         val existingSpecies = speciesRepository.findAll()
         val existingKeys = existingSpecies.map { (it.commonName to it.variantName) }.toSet()
 
-        // Build mutable lookup maps for groups and tags (system-level, userId = null)
+        // Build mutable lookup maps for groups and tags (system-level, orgId = null)
         val groupsByName = groupRepository.findAll()
-            .filter { it.userId == null }
+            .filter { it.orgId == null }
             .associateBy { it.name }
             .toMutableMap()
         val tagsByName = tagRepository.findAll()
-            .filter { it.userId == null }
+            .filter { it.orgId == null }
             .associateBy { it.name }
             .toMutableMap()
 
@@ -362,7 +362,7 @@ class SpeciesService(
             // Resolve group
             val groupId = entry.groupName?.let { name ->
                 val group = groupsByName.getOrPut(name) {
-                    groupRepository.persist(SpeciesGroup(userId = null, name = name))
+                    groupRepository.persist(SpeciesGroup(orgId = null, name = name))
                 }
                 group.id
             }
@@ -370,14 +370,14 @@ class SpeciesService(
             // Resolve tags
             val tagIds = entry.tagNames.map { name ->
                 val tag = tagsByName.getOrPut(name) {
-                    tagRepository.persist(SpeciesTag(userId = null, name = name))
+                    tagRepository.persist(SpeciesTag(orgId = null, name = name))
                 }
                 tag.id!!
             }
 
             val species = speciesRepository.persist(
                 Species(
-                    userId = null,
+                    orgId = null,
                     commonName = entry.commonName,
                     variantName = entry.variantName,
                     commonNameSv = entry.commonNameSv,
@@ -464,15 +464,15 @@ class SpeciesService(
 
     // ── Species Providers ──
 
-    fun getProvidersForSpecies(speciesId: Long, userId: Long): List<SpeciesProviderResponse> {
+    fun getProvidersForSpecies(speciesId: Long, orgId: Long): List<SpeciesProviderResponse> {
         val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
-        if (species.userId != null && species.userId != userId) throw ForbiddenException()
+        if (species.orgId != null && species.orgId != orgId) throw NotFoundException("Species not found")
         return speciesProviderRepository.findBySpeciesId(speciesId).map { it.toResponse() }
     }
 
-    fun addProviderToSpecies(speciesId: Long, request: AddSpeciesProviderRequest, userId: Long): SpeciesProviderResponse {
+    fun addProviderToSpecies(speciesId: Long, request: AddSpeciesProviderRequest, orgId: Long): SpeciesProviderResponse {
         val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
-        if (species.userId != null && species.userId != userId) throw ForbiddenException()
+        if (species.orgId != null && species.orgId != orgId) throw NotFoundException("Species not found")
         providerRepository.findById(request.providerId) ?: throw NotFoundException("Provider not found")
         var sp = speciesProviderRepository.persist(
             SpeciesProvider(
@@ -490,9 +490,9 @@ class SpeciesService(
         return sp.toResponse()
     }
 
-    fun updateSpeciesProvider(speciesId: Long, speciesProviderId: Long, request: UpdateSpeciesProviderRequest, userId: Long): SpeciesProviderResponse {
+    fun updateSpeciesProvider(speciesId: Long, speciesProviderId: Long, request: UpdateSpeciesProviderRequest, orgId: Long): SpeciesProviderResponse {
         val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
-        if (species.userId != null && species.userId != userId) throw ForbiddenException()
+        if (species.orgId != null && species.orgId != orgId) throw NotFoundException("Species not found")
         val sp = speciesProviderRepository.findById(speciesProviderId) ?: throw NotFoundException("Species provider not found")
         if (sp.speciesId != speciesId) throw NotFoundException("Species provider not found")
         val frontUrl = request.imageFrontBase64?.let { storageService.uploadImage(it, "species/$speciesId/providers/${sp.id}/front.jpg") } ?: sp.imageFrontUrl
@@ -506,9 +506,9 @@ class SpeciesService(
         return updated.toResponse()
     }
 
-    fun removeProviderFromSpecies(speciesId: Long, speciesProviderId: Long, userId: Long) {
+    fun removeProviderFromSpecies(speciesId: Long, speciesProviderId: Long, orgId: Long) {
         val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
-        if (species.userId != null && species.userId != userId) throw ForbiddenException()
+        if (species.orgId != null && species.orgId != orgId) throw NotFoundException("Species not found")
         val sp = speciesProviderRepository.findById(speciesProviderId) ?: throw NotFoundException("Species provider not found")
         if (sp.speciesId != speciesId) throw NotFoundException("Species provider not found")
         speciesProviderRepository.delete(speciesProviderId)
@@ -611,7 +611,7 @@ class SpeciesService(
             expectedStemsPerPlant = expectedStemsPerPlant,
             expectedVaseLifeDays = expectedVaseLifeDays,
             plantType = plantType.name,
-            isSystem = userId == null,
+            isSystem = orgId == null,
             createdAt = createdAt,
         )
     }

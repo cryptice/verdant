@@ -18,10 +18,10 @@ class SuccessionScheduleRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long, limit: Int = 50, offset: Int = 0): List<SuccessionSchedule> =
+    fun findByOrgId(orgId: Long, limit: Int = 50, offset: Int = 0): List<SuccessionSchedule> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM succession_schedule WHERE user_id = ? ORDER BY first_sow_date, id LIMIT ? OFFSET ?").use { ps ->
-                ps.setLong(1, userId)
+            conn.prepareStatement("SELECT * FROM succession_schedule WHERE org_id = ? ORDER BY first_sow_date, id LIMIT ? OFFSET ?").use { ps ->
+                ps.setLong(1, orgId)
                 ps.setInt(2, limit)
                 ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
@@ -30,10 +30,10 @@ class SuccessionScheduleRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findBySeasonId(userId: Long, seasonId: Long, limit: Int = 50, offset: Int = 0): List<SuccessionSchedule> =
+    fun findBySeasonId(orgId: Long, seasonId: Long, limit: Int = 50, offset: Int = 0): List<SuccessionSchedule> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM succession_schedule WHERE user_id = ? AND season_id = ? ORDER BY first_sow_date, id LIMIT ? OFFSET ?").use { ps ->
-                ps.setLong(1, userId)
+            conn.prepareStatement("SELECT * FROM succession_schedule WHERE org_id = ? AND season_id = ? ORDER BY first_sow_date, id LIMIT ? OFFSET ?").use { ps ->
+                ps.setLong(1, orgId)
                 ps.setLong(2, seasonId)
                 ps.setInt(3, limit)
                 ps.setInt(4, offset)
@@ -46,12 +46,12 @@ class SuccessionScheduleRepository(private val ds: AgroalDataSource) {
     fun persist(schedule: SuccessionSchedule): SuccessionSchedule {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO succession_schedule (user_id, season_id, species_id, bed_id,
+                """INSERT INTO succession_schedule (org_id, season_id, species_id, bed_id,
                    first_sow_date, interval_days, total_successions, seeds_per_succession, notes, created_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
-                ps.setLong(1, schedule.userId)
+                ps.setLong(1, schedule.orgId)
                 ps.setLong(2, schedule.seasonId)
                 ps.setLong(3, schedule.speciesId)
                 ps.setObject(4, schedule.bedId)
@@ -103,7 +103,7 @@ class SuccessionScheduleRepository(private val ds: AgroalDataSource) {
 
     private fun ResultSet.toSuccessionSchedule() = SuccessionSchedule(
         id = getLong("id"),
-        userId = getLong("user_id"),
+        orgId = getLong("org_id"),
         seasonId = getLong("season_id"),
         speciesId = getLong("species_id"),
         bedId = getObject("bed_id") as? Long,

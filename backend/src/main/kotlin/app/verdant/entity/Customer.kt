@@ -4,7 +4,7 @@ import java.time.Instant
 
 data class Customer(
     val id: Long? = null,
-    val userId: Long,
+    val orgId: Long,
     val name: String,
     val channel: Channel,
     val contactInfo: String? = null,

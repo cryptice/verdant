@@ -30,16 +30,16 @@ class DataExportService(
     private val speciesTagRepository: SpeciesTagRepository,
     private val orderItemRepository: OrderItemRepository,
 ) {
-    fun exportUserData(userId: Long): UserDataExport {
+    fun exportUserData(orgId: Long, userId: Long): UserDataExport {
         val user = userRepository.findById(userId) ?: throw NotFoundException("User not found")
 
-        val gardens = gardenRepository.findByOwnerId(userId)
+        val gardens = gardenRepository.findByOrgId(orgId)
         val gardenIds = gardens.mapNotNull { it.id }.toSet()
 
         val allBeds = gardenIds.flatMap { bedRepository.findByGardenId(it) }
 
         // Plants — fetch without pagination limit for export
-        val plants = plantRepository.findByUserId(userId, limit = Int.MAX_VALUE)
+        val plants = plantRepository.findByOrgId(orgId, limit = Int.MAX_VALUE)
         val plantIds = plants.mapNotNull { it.id }
         val speciesNamesForPlants = speciesRepository.findNamesByIds(plants.mapNotNull { it.speciesId }.toSet())
         val plantResponses = plants.map { plant ->
@@ -62,9 +62,9 @@ class DataExportService(
         val plantEvents = plantIds.flatMap { plantEventRepository.findByPlantId(it) }
             .map { it.toResponse() }
 
-        val species = speciesService.getSpeciesForUser(userId, limit = Int.MAX_VALUE)
+        val species = speciesService.getSpeciesForUser(orgId, limit = Int.MAX_VALUE)
 
-        val seedInventoryItems = seedInventoryRepository.findByUserId(userId, limit = Int.MAX_VALUE)
+        val seedInventoryItems = seedInventoryRepository.findByOrgId(orgId, limit = Int.MAX_VALUE)
         val speciesNamesForSeeds = speciesRepository.findNamesByIds(seedInventoryItems.map { it.speciesId }.toSet())
         val seedInventoryResponses = seedInventoryItems.map { item ->
             SeedInventoryResponse(
@@ -83,7 +83,7 @@ class DataExportService(
             )
         }
 
-        val scheduledTasks = scheduledTaskRepository.findByUserId(userId, limit = Int.MAX_VALUE)
+        val scheduledTasks = scheduledTaskRepository.findByOrgId(orgId, limit = Int.MAX_VALUE)
         val speciesNamesForTasks = speciesRepository.findNamesByIds(scheduledTasks.map { it.speciesId }.toSet())
         val scheduledTaskResponses = scheduledTasks.map { task ->
             ScheduledTaskResponse(
@@ -103,7 +103,7 @@ class DataExportService(
             )
         }
 
-        val seasons = seasonRepository.findByUserId(userId).map { season ->
+        val seasons = seasonRepository.findByOrgId(orgId).map { season ->
             SeasonResponse(
                 id = season.id!!,
                 name = season.name,
@@ -120,7 +120,7 @@ class DataExportService(
             )
         }
 
-        val customers = customerRepository.findByUserId(userId, limit = Int.MAX_VALUE).map { customer ->
+        val customers = customerRepository.findByOrgId(orgId, limit = Int.MAX_VALUE).map { customer ->
             CustomerResponse(
                 id = customer.id!!,
                 name = customer.name,
@@ -131,7 +131,7 @@ class DataExportService(
             )
         }
 
-        val pestDiseaseLogs = pestDiseaseLogRepository.findByUserId(userId, limit = Int.MAX_VALUE).map { log ->
+        val pestDiseaseLogs = pestDiseaseLogRepository.findByOrgId(orgId, limit = Int.MAX_VALUE).map { log ->
             PestDiseaseLogResponse(
                 id = log.id!!,
                 seasonId = log.seasonId,
@@ -149,7 +149,7 @@ class DataExportService(
             )
         }
 
-        val varietyTrials = varietyTrialRepository.findByUserId(userId, limit = Int.MAX_VALUE)
+        val varietyTrials = varietyTrialRepository.findByOrgId(orgId, limit = Int.MAX_VALUE)
         val speciesNamesForTrials = speciesRepository.findNamesByIds(varietyTrials.map { it.speciesId }.toSet())
         val varietyTrialResponses = varietyTrials.map { trial ->
             VarietyTrialResponse(
@@ -170,7 +170,7 @@ class DataExportService(
             )
         }
 
-        val bouquetRecipes = bouquetRecipeRepository.findByUserId(userId, limit = Int.MAX_VALUE)
+        val bouquetRecipes = bouquetRecipeRepository.findByOrgId(orgId, limit = Int.MAX_VALUE)
         val allRecipeItems = bouquetRecipes.mapNotNull { it.id }.flatMap { recipeId ->
             bouquetRecipeRepository.findItemsByRecipeId(recipeId)
         }
@@ -199,7 +199,7 @@ class DataExportService(
             )
         }
 
-        val successionSchedules = successionScheduleRepository.findByUserId(userId, limit = Int.MAX_VALUE)
+        val successionSchedules = successionScheduleRepository.findByOrgId(orgId, limit = Int.MAX_VALUE)
         val speciesNamesForSchedules = speciesRepository.findNamesByIds(successionSchedules.map { it.speciesId }.toSet())
         val successionScheduleResponses = successionSchedules.map { schedule ->
             SuccessionScheduleResponse(
@@ -217,7 +217,7 @@ class DataExportService(
             )
         }
 
-        val productionTargets = productionTargetRepository.findByUserId(userId, limit = Int.MAX_VALUE)
+        val productionTargets = productionTargetRepository.findByOrgId(orgId, limit = Int.MAX_VALUE)
         val speciesNamesForTargets = speciesRepository.findNamesByIds(productionTargets.map { it.speciesId }.toSet())
         val productionTargetResponses = productionTargets.map { target ->
             ProductionTargetResponse(
@@ -233,7 +233,7 @@ class DataExportService(
             )
         }
 
-        val listings = listingRepository.findByUserId(userId, limit = Int.MAX_VALUE)
+        val listings = listingRepository.findByOrgId(orgId, limit = Int.MAX_VALUE)
         val speciesNamesForListings = speciesRepository.findNamesByIds(listings.map { it.speciesId }.toSet())
         val sellerNames = userRepository.findByIds(setOf(userId))
         val sellerName = sellerNames[userId]?.displayName ?: "Unknown"
@@ -259,11 +259,11 @@ class DataExportService(
         }
 
         // Market orders: include both as purchaser and producer
-        val purchasedOrders = marketOrderRepository.findByPurchaserId(userId, limit = Int.MAX_VALUE)
-        val producedOrders = marketOrderRepository.findByProducerId(userId, limit = Int.MAX_VALUE)
+        val purchasedOrders = marketOrderRepository.findByPurchaserOrgId(orgId, limit = Int.MAX_VALUE)
+        val producedOrders = marketOrderRepository.findByProducerOrgId(orgId, limit = Int.MAX_VALUE)
         val allOrderIds = (purchasedOrders.mapNotNull { it.id } + producedOrders.mapNotNull { it.id }).toSet()
         val allOrders = (purchasedOrders + producedOrders).distinctBy { it.id }
-        val allParticipantIds = allOrders.flatMap { listOf(it.purchaserId, it.producerId) }.toSet()
+        val allParticipantIds = allOrders.flatMap { listOf(it.purchaserOrgId, it.producerOrgId) }.toSet()
         val participantUsers = userRepository.findByIds(allParticipantIds)
         val allOrderItems = allOrderIds.flatMap { orderId -> orderItemRepository.findByOrderId(orderId) }
         val itemsByOrder = allOrderItems.groupBy { it.orderId }
@@ -271,10 +271,10 @@ class DataExportService(
             val items = itemsByOrder[order.id] ?: emptyList()
             MarketOrderResponse(
                 id = order.id!!,
-                purchaserId = order.purchaserId,
-                purchaserName = participantUsers[order.purchaserId]?.displayName ?: "Unknown",
-                producerId = order.producerId,
-                producerName = participantUsers[order.producerId]?.displayName ?: "Unknown",
+                purchaserId = order.purchaserOrgId,
+                purchaserName = participantUsers[order.purchaserOrgId]?.displayName ?: "Unknown",
+                producerId = order.producerOrgId,
+                producerName = participantUsers[order.producerOrgId]?.displayName ?: "Unknown",
                 status = order.status.name,
                 deliveryDate = order.deliveryDate,
                 totalSek = order.totalSek,

@@ -24,7 +24,7 @@ class SuccessionScheduleServiceTest {
 
     private fun makeSchedule(
         id: Long = 1L,
-        userId: Long = 10L,
+        orgId: Long = 10L,
         speciesId: Long = 42L,
         firstSowDate: LocalDate = LocalDate.of(2025, 4, 1),
         intervalDays: Int = 14,
@@ -32,7 +32,7 @@ class SuccessionScheduleServiceTest {
         seedsPerSuccession: Int = 50,
     ) = SuccessionSchedule(
         id = id,
-        userId = userId,
+        orgId = orgId,
         seasonId = 1L,
         speciesId = speciesId,
         firstSowDate = firstSowDate,
@@ -53,7 +53,7 @@ class SuccessionScheduleServiceTest {
             arg.copy(id = 200L)
         }
 
-        val taskIds = service.generateTasks(1L, schedule.userId)
+        val taskIds = service.generateTasks(1L, schedule.orgId)
 
         assertEquals(5, taskIds.size)
         verify(taskRepo, times(5)).persist(any())
@@ -75,7 +75,7 @@ class SuccessionScheduleServiceTest {
             invocation.getArgument<ScheduledTask>(0).copy(id = 300L)
         }
 
-        service.generateTasks(1L, schedule.userId)
+        service.generateTasks(1L, schedule.orgId)
 
         val capturedTasks = captor.allValues
         assertEquals(3, capturedTasks.size)
@@ -95,7 +95,7 @@ class SuccessionScheduleServiceTest {
             invocation.getArgument<ScheduledTask>(0).copy(id = 400L)
         }
 
-        service.generateTasks(1L, schedule.userId)
+        service.generateTasks(1L, schedule.orgId)
 
         val capturedTasks = captor.allValues
         assertEquals(2, capturedTasks.size)

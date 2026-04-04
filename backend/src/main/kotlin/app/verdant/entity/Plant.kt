@@ -12,7 +12,7 @@ data class Plant(
     val seedCount: Int? = null,
     val survivingCount: Int? = null,
     val bedId: Long? = null,
-    val userId: Long,
+    val orgId: Long,
     val seasonId: Long? = null,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),

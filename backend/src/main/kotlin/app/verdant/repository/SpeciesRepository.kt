@@ -50,10 +50,10 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findByUserId(userId: Long, limit: Int = 50, offset: Int = 0): List<Species> =
+    fun findByOrgId(orgId: Long, limit: Int = 50, offset: Int = 0): List<Species> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM species WHERE user_id = ? OR user_id IS NULL ORDER BY common_name LIMIT ? OFFSET ?").use { ps ->
-                ps.setLong(1, userId)
+            conn.prepareStatement("SELECT * FROM species WHERE org_id = ? OR org_id IS NULL ORDER BY common_name LIMIT ? OFFSET ?").use { ps ->
+                ps.setLong(1, orgId)
                 ps.setInt(2, limit)
                 ps.setInt(3, offset)
                 ps.executeQuery().use { rs ->
@@ -62,17 +62,17 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun searchByUserId(userId: Long, query: String, limit: Int = 20): List<Species> =
+    fun searchByOrgId(orgId: Long, query: String, limit: Int = 20): List<Species> =
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """SELECT * FROM species
-                   WHERE (user_id = ? OR user_id IS NULL)
+                   WHERE (org_id = ? OR org_id IS NULL)
                      AND (common_name ILIKE ? OR common_name_sv ILIKE ? OR variant_name ILIKE ? OR variant_name_sv ILIKE ? OR scientific_name ILIKE ?)
                    ORDER BY common_name_sv, common_name
                    LIMIT ?"""
             ).use { ps ->
                 val pattern = "%$query%"
-                ps.setLong(1, userId)
+                ps.setLong(1, orgId)
                 ps.setString(2, pattern)
                 ps.setString(3, pattern)
                 ps.setString(4, pattern)
@@ -88,14 +88,14 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
     fun persist(species: Species): Species {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO species (user_id, common_name, variant_name, common_name_sv, variant_name_sv, scientific_name, image_front_url, image_back_url,
+                """INSERT INTO species (org_id, common_name, variant_name, common_name_sv, variant_name_sv, scientific_name, image_front_url, image_back_url,
                    days_to_sprout, days_to_harvest, germination_time_days, sowing_depth_mm,
                    growing_positions, soils, height_cm, bloom_months, sowing_months, germination_rate, group_id,
                    cost_per_seed_sek, expected_stems_per_plant, expected_vase_life_days, plant_type, created_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
-                if (species.userId != null) ps.setLong(1, species.userId) else ps.setNull(1, java.sql.Types.BIGINT)
+                if (species.orgId != null) ps.setLong(1, species.orgId) else ps.setNull(1, java.sql.Types.BIGINT)
                 ps.setString(2, species.commonName)
                 ps.setString(3, species.variantName)
                 ps.setString(4, species.commonNameSv)
@@ -250,7 +250,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
 
     private fun ResultSet.toSpecies() = Species(
         id = getLong("id"),
-        userId = getObject("user_id") as? Long,
+        orgId = getObject("org_id") as? Long,
         commonName = getString("common_name"),
         variantName = getString("variant_name"),
         commonNameSv = getString("common_name_sv"),
