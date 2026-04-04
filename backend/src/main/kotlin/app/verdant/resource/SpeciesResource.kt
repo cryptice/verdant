@@ -41,6 +41,10 @@ class SpeciesResource(
         return Response.status(Response.Status.CREATED).entity(species).build()
     }
 
+    @GET
+    @Path("/{id}")
+    fun get(@PathParam("id") id: Long) = speciesService.getSpecies(id, orgContext.orgId)
+
     @PUT
     @Path("/{id}")
     fun update(@PathParam("id") id: Long, @Valid request: UpdateSpeciesRequest) =
