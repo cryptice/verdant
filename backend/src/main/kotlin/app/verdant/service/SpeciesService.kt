@@ -226,6 +226,28 @@ class SpeciesService(
         photoRepository.delete(photoId)
     }
 
+    // ── Admin Groups ──
+
+    fun getAllGroups(): List<SpeciesGroupResponse> =
+        groupRepository.findAll().map { SpeciesGroupResponse(it.id!!, it.name) }
+
+    fun createGroupAdmin(request: CreateSpeciesGroupRequest): SpeciesGroupResponse {
+        val group = groupRepository.persist(SpeciesGroup(orgId = null, name = request.name))
+        return SpeciesGroupResponse(group.id!!, group.name)
+    }
+
+    fun updateGroupAdmin(id: Long, request: CreateSpeciesGroupRequest): SpeciesGroupResponse {
+        val group = groupRepository.findById(id) ?: throw NotFoundException("Group not found")
+        val updated = group.copy(name = request.name)
+        groupRepository.update(updated)
+        return SpeciesGroupResponse(updated.id!!, updated.name)
+    }
+
+    fun deleteGroupAdmin(id: Long) {
+        groupRepository.findById(id) ?: throw NotFoundException("Group not found")
+        groupRepository.delete(id)
+    }
+
     // ── Groups ──
 
     fun getGroupsForUser(orgId: Long): List<SpeciesGroupResponse> =

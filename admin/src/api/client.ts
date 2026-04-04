@@ -296,7 +296,13 @@ export const api = {
         body: JSON.stringify(entries)
       }),
 
-    getSpeciesGroups: () => apiRequest<SpeciesGroup[]>('/api/species/groups'),
+    getSpeciesGroups: () => apiRequest<SpeciesGroup[]>('/api/admin/species/groups'),
+    createSpeciesGroup: (name: string) =>
+      apiRequest<SpeciesGroup>('/api/admin/species/groups', { method: 'POST', body: JSON.stringify({ name }) }),
+    updateSpeciesGroup: (id: number, name: string) =>
+      apiRequest<SpeciesGroup>(`/api/admin/species/groups/${id}`, { method: 'PUT', body: JSON.stringify({ name }) }),
+    deleteSpeciesGroup: (id: number) =>
+      apiRequest<void>(`/api/admin/species/groups/${id}`, { method: 'DELETE' }),
     getSpeciesTags: () => apiRequest<SpeciesTag[]>('/api/species/tags'),
 
     // Providers

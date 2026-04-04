@@ -53,6 +53,16 @@ class SpeciesGroupRepository(private val ds: AgroalDataSource) {
         }
     }
 
+    fun update(group: SpeciesGroup) {
+        ds.connection.use { conn ->
+            conn.prepareStatement("UPDATE species_group SET name = ? WHERE id = ?").use { ps ->
+                ps.setString(1, group.name)
+                ps.setLong(2, group.id!!)
+                ps.executeUpdate()
+            }
+        }
+    }
+
     fun delete(id: Long) {
         ds.connection.use { conn ->
             conn.prepareStatement("DELETE FROM species_group WHERE id = ?").use { ps ->

@@ -101,6 +101,35 @@ class AdminResource(
         return Response.noContent().build()
     }
 
+    // ── Species Groups (system-level) ──
+
+    @GET
+    @Path("/species/groups")
+    fun listGroups() = speciesService.getAllGroups()
+
+    @POST
+    @Path("/species/groups")
+    @Consumes(MediaType.APPLICATION_JSON)
+    fun createGroup(@Valid request: CreateSpeciesGroupRequest): Response {
+        val group = speciesService.createGroupAdmin(request)
+        return Response.status(Response.Status.CREATED).entity(group).build()
+    }
+
+    @PUT
+    @Path("/species/groups/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    fun updateGroup(@PathParam("id") id: Long, @Valid request: CreateSpeciesGroupRequest): Response {
+        val group = speciesService.updateGroupAdmin(id, request)
+        return Response.ok(group).build()
+    }
+
+    @DELETE
+    @Path("/species/groups/{id}")
+    fun deleteGroup(@PathParam("id") id: Long): Response {
+        speciesService.deleteGroupAdmin(id)
+        return Response.noContent().build()
+    }
+
     // ── Species Photos ──
 
     @POST
