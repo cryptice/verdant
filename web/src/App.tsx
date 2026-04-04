@@ -18,6 +18,7 @@ import { SeedInventory } from './pages/SeedInventory'
 import { SowActivity } from './pages/SowActivity'
 import { SpeciesList } from './pages/SpeciesList'
 import { SpeciesDetail } from './pages/SpeciesDetail'
+import { SpeciesGroups } from './pages/SpeciesGroups'
 import { SeasonList } from './pages/SeasonList'
 import { CustomerList } from './pages/CustomerList'
 import { PestDiseaseLog } from './pages/PestDiseaseLog'
@@ -81,6 +82,7 @@ export function App() {
         <Route path="seed-stock" element={<SeedInventory />} />
         <Route path="sow" element={<SowActivity />} />
         <Route path="species" element={<SpeciesList />} />
+        <Route path="species-groups" element={<SpeciesGroups />} />
         <Route path="seasons" element={<SeasonList />} />
         <Route path="customers" element={<CustomerList />} />
         <Route path="pest-disease" element={<PestDiseaseLog />} />

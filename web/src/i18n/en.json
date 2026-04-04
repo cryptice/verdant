@@ -21,7 +21,8 @@
     "market": "Market",
     "myListings": "My Listings",
     "myOrders": "My Orders",
-    "incomingOrders": "Incoming Orders"
+    "incomingOrders": "Incoming Orders",
+    "speciesGroups": "Species Groups"
   },
   "common": {
     "cancel": "Cancel",
@@ -1020,6 +1021,7 @@
     "nav": "Organization"
   },
   "groups": {
+    "title": "Species Groups",
     "manageGroups": "Manage Groups",
     "newGroupPlaceholder": "New group name...",
     "create": "Create",

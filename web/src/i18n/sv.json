@@ -21,7 +21,8 @@
     "market": "Marknad",
     "myListings": "Mina annonser",
     "myOrders": "Mina ordrar",
-    "incomingOrders": "Inkommande ordrar"
+    "incomingOrders": "Inkommande ordrar",
+    "speciesGroups": "Artgrupper"
   },
   "common": {
     "cancel": "Avbryt",
@@ -1020,6 +1021,7 @@
     "nav": "Organisation"
   },
   "groups": {
+    "title": "Artgrupper",
     "manageGroups": "Hantera grupper",
     "newGroupPlaceholder": "Nytt gruppnamn...",
     "create": "Skapa",
