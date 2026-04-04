@@ -284,7 +284,7 @@ export function OnboardingDrawer() {
           <div className="px-4 py-3 border-t border-divider/50">
             <button
               onClick={dismissPermanently}
-              className="w-full flex items-center justify-center gap-2 text-xs text-text-muted hover:text-text-secondary transition-colors text-center py-1.5"
+              className="w-full flex items-center justify-center gap-2 text-xs text-text-secondary hover:text-text-primary transition-colors text-center py-1.5"
             >
               <span>🌿</span>
               <span>{t('onboarding.drawer.skipAll')}</span>
