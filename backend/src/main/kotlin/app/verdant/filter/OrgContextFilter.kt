@@ -18,19 +18,19 @@ class OrgContextFilter(
 ) : ContainerRequestFilter {
 
     private val exemptPrefixes = listOf(
-        "/api/auth/",
-        "/api/users/me",
-        "/api/organizations",
-        "/api/invites",
-        "/api/admin/",
-        "/api/dev/",
-        "/api/openapi",
-        "/api/swagger-ui",
-        "/q/",
+        "api/auth/",
+        "api/users/me",
+        "api/organizations",
+        "api/invites",
+        "api/admin/",
+        "api/dev/",
+        "api/openapi",
+        "api/swagger-ui",
+        "q/",
     )
 
     override fun filter(requestContext: ContainerRequestContext) {
-        val path = requestContext.uriInfo.path
+        val path = requestContext.uriInfo.path.removePrefix("/")
 
         if (exemptPrefixes.any { path.startsWith(it) }) return
 

@@ -42,7 +42,7 @@ async function apiRequest<T>(path: string, options?: RequestInit): Promise<T> {
     throw new ApiError('Network error — check your connection', undefined, true)
   }
 
-  if (res.status === 401 || res.status === 403) {
+  if (res.status === 401) {
     localStorage.removeItem('verdant_token')
     onUnauthorized?.()
     throw new ApiError('Unauthorized', res.status)
@@ -541,7 +541,7 @@ export async function downloadDataExport(): Promise<void> {
     throw new ApiError('Network error — check your connection', undefined, true)
   }
 
-  if (res.status === 401 || res.status === 403) {
+  if (res.status === 401) {
     localStorage.removeItem('verdant_token')
     onUnauthorized?.()
     throw new ApiError('Unauthorized', res.status)
