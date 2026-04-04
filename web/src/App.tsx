@@ -76,7 +76,7 @@ export function App() {
         <Route path="tasks" element={<TaskList />} />
         <Route path="task/new" element={<TaskForm />} />
         <Route path="task/:taskId/edit" element={<TaskForm />} />
-        <Route path="seeds" element={<SeedInventory />} />
+        <Route path="seed-stock" element={<SeedInventory />} />
         <Route path="sow" element={<SowActivity />} />
         <Route path="species" element={<SpeciesList />} />
         <Route path="seasons" element={<SeasonList />} />

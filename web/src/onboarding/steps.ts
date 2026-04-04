@@ -9,7 +9,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
 
   // Section 2: Growing
   { id: 'browse_species', section: 'growing', route: '/species', completionType: 'visit' },
-  { id: 'add_seeds', section: 'growing', route: '/seeds', completionType: 'explicit' },
+  { id: 'add_seeds', section: 'growing', route: '/seed-stock', completionType: 'explicit' },
   { id: 'sow_seeds', section: 'growing', route: '/sow', completionType: 'explicit' },
 
   // Section 3: Planning

@@ -100,7 +100,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
     { to: '/species', label: t('nav.species'), icon: '🌿' },
     { to: '/plants', label: t('nav.plants'), icon: '🌱' },
     { to: '/tasks', label: t('nav.tasks'), icon: '📋' },
-    { to: '/seeds', label: t('nav.seeds'), icon: '🫘' },
+    { to: '/seed-stock', label: t('nav.seeds'), icon: '🫘' },
     { to: '/successions', label: t('nav.successions'), icon: '🔄', advanced: true },
     { to: '/targets', label: t('nav.targets'), icon: '🎯', advanced: true },
     { to: '/calendar', label: t('nav.calendar'), icon: '📊', advanced: true },
