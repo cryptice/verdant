@@ -980,7 +980,8 @@
   "org": {
     "setup": {
       "title": "Välkommen till Verdant",
-      "subtitle": "Skapa din organisation eller acceptera en väntande inbjudan för att komma igång.",
+      "subtitle": "Skapa din organisation för att komma igång.",
+      "subtitleWithInvites": "Skapa din organisation eller acceptera en väntande inbjudan för att komma igång.",
       "createTitle": "Skapa din organisation",
       "createDescription": "Skapa din gård eller odlingsverksamhet.",
       "pendingInvites": "Väntande inbjudningar",

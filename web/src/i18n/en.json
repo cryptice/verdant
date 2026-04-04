@@ -980,7 +980,8 @@
   "org": {
     "setup": {
       "title": "Welcome to Verdant",
-      "subtitle": "Create your organization or accept a pending invite to get started.",
+      "subtitle": "Create your organization to get started.",
+      "subtitleWithInvites": "Create your organization or accept a pending invite to get started.",
       "createTitle": "Create your organization",
       "createDescription": "Set up your farm or growing operation.",
       "pendingInvites": "Pending invites",

@@ -46,7 +46,7 @@ export function OrgSetup() {
         <div className="text-center mb-10">
           <span className="text-5xl">🌱</span>
           <h1 className="text-2xl font-semibold mt-4">{t('org.setup.title')}</h1>
-          <p className="text-text-secondary text-sm mt-2">{t('org.setup.subtitle')}</p>
+          <p className="text-text-secondary text-sm mt-2">{t(hasInvites ? 'org.setup.subtitleWithInvites' : 'org.setup.subtitle')}</p>
         </div>
 
         <div className={`grid gap-6 ${hasInvites ? 'md:grid-cols-2' : ''}`}>
@@ -113,7 +113,7 @@ export function OrgSetup() {
                   value={orgName}
                   onChange={e => setOrgName(e.target.value)}
                   placeholder={t('org.setup.namePlaceholder')}
-                  className="input"
+                  className="input w-full"
                 />
               </div>
               {createMutation.error && (
