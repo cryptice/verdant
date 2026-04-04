@@ -45,7 +45,9 @@
     "searchSpecies": "Sök art...",
     "iconLabel": "Ikon",
     "close": "Stäng",
-    "image": "Bild"
+    "image": "Bild",
+    "group": "Grupp",
+    "clear": "Rensa"
   },
   "language": {
     "label": "Språk",
@@ -249,7 +251,8 @@
     "selectBed": "Välj bädd...",
     "seedCount": "Antal *",
     "sowing": "Sår...",
-    "sow": "Så"
+    "sow": "Så",
+    "selectSpecies": "Välj art"
   },
   "landing": {
     "signIn": "Logga in",
@@ -308,7 +311,8 @@
     "deadlineLabel": "Deadline *",
     "targetCountLabel": "Målantal *",
     "updateTask": "Uppdatera uppgift",
-    "createTask": "Skapa uppgift"
+    "createTask": "Skapa uppgift",
+    "loadingGroupSpecies": "Laddar arter..."
   },
   "seasons": {
     "title": "Säsonger",

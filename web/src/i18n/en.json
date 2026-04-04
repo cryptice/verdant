@@ -45,7 +45,9 @@
     "searchSpecies": "Search species...",
     "iconLabel": "Icon",
     "close": "Close",
-    "image": "Image"
+    "image": "Image",
+    "group": "Group",
+    "clear": "Clear"
   },
   "language": {
     "label": "Language",
@@ -249,7 +251,8 @@
     "selectBed": "Select bed...",
     "seedCount": "Number *",
     "sowing": "Sowing...",
-    "sow": "Sow"
+    "sow": "Sow",
+    "selectSpecies": "Select species"
   },
   "landing": {
     "signIn": "Sign in",
@@ -308,7 +311,8 @@
     "deadlineLabel": "Deadline *",
     "targetCountLabel": "Target count *",
     "updateTask": "Update Task",
-    "createTask": "Create Task"
+    "createTask": "Create Task",
+    "loadingGroupSpecies": "Loading species..."
   },
   "seasons": {
     "title": "Seasons",

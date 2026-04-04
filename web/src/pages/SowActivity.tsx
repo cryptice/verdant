@@ -27,6 +27,8 @@ export function SowActivity() {
     enabled: !!taskId,
   })
 
+  const isGroupTask = task ? task.acceptableSpecies.length > 1 : false
+
   const { data: sowBed } = useQuery({
     queryKey: ['bed', presetBedId],
     queryFn: () => api.beds.get(presetBedId!),
@@ -106,7 +108,7 @@ export function SowActivity() {
         await api.comments.record(notes)
       }
       if (taskId && count > 0) {
-        await api.tasks.complete(taskId, count)
+        await api.tasks.complete(taskId, Number(speciesId), count)
       }
     },
     onSuccess: () => {
@@ -135,10 +137,26 @@ export function SowActivity() {
 
         <div data-onboarding="sow-species">
           <label className="field-label">{t('common.speciesLabel')}</label>
-          <SpeciesAutocomplete
-            value={selectedSpecies}
-            onChange={s => { setSelectedSpecies(s); setSeedBatchId('') }}
-          />
+          {isGroupTask && task ? (
+            <select
+              value={speciesId}
+              onChange={e => {
+                const sp = allSpecies?.find(s => s.id === Number(e.target.value)) ?? null
+                setSelectedSpecies(sp)
+              }}
+              className="input w-full"
+            >
+              <option value="">{t('sow.selectSpecies')}</option>
+              {task.acceptableSpecies.map(entry => (
+                <option key={entry.speciesId} value={entry.speciesId}>{entry.speciesName}</option>
+              ))}
+            </select>
+          ) : (
+            <SpeciesAutocomplete
+              value={selectedSpecies}
+              onChange={s => { setSelectedSpecies(s); setSeedBatchId('') }}
+            />
+          )}
         </div>
 
         {speciesId && (

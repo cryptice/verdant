@@ -64,14 +64,27 @@ export function TaskList() {
                       {task.deadline}
                     </span>
                   </div>
-                  <p className="text-sm text-text-secondary">{task.speciesName}</p>
+                  <p className="text-sm text-text-secondary">
+                    {task.originGroupName ? (
+                      <span className="inline-flex items-center gap-1">
+                        <span className="text-xs bg-accent/15 text-accent px-1 py-0.5 rounded">{t('common.group')}</span>
+                        {task.originGroupName}
+                      </span>
+                    ) : (
+                      task.speciesName
+                    )}
+                  </p>
                   <p className="text-xs text-text-secondary">{t('tasks.remaining', { remaining: task.remainingCount, total: task.targetCount })}</p>
                 </div>
               </div>
               <div className="flex gap-2 mt-3">
                 {!isCompleted && (
                   <button
-                    onClick={() => navigate(`/sow?taskId=${task.id}&speciesId=${task.speciesId}`)}
+                    onClick={() => {
+                      const params = new URLSearchParams({ taskId: String(task.id) })
+                      if (task.speciesId) params.set('speciesId', String(task.speciesId))
+                      navigate(`/sow?${params}`)
+                    }}
                     className="btn-primary text-xs py-1.5 px-3 flex-1"
                   >
                     {t('tasks.perform')}

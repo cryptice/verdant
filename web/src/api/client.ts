@@ -145,10 +145,17 @@ export interface SeedInventoryResponse {
   createdAt: string
 }
 
+export interface AcceptableSpeciesEntry {
+  speciesId: number
+  speciesName: string
+}
+
 export interface ScheduledTaskResponse {
-  id: number; speciesId: number; speciesName: string; activityType: string
+  id: number; speciesId: number | null; speciesName: string | null; activityType: string
   deadline: string; targetCount: number; remainingCount: number
   status: string; notes?: string; seasonId?: number; successionScheduleId?: number
+  originGroupId?: number; originGroupName?: string
+  acceptableSpecies: AcceptableSpeciesEntry[]
   createdAt: string; updatedAt: string
 }
 
@@ -392,6 +399,11 @@ export const api = {
     update: (id: number, data: Record<string, unknown>) =>
       apiRequest<SpeciesResponse>(`/api/species/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: number) => apiRequest<void>(`/api/species/${id}`, { method: 'DELETE' }),
+    byGroup: (groupId: number) => apiRequest<SpeciesResponse[]>(`/api/species?groupId=${groupId}`),
+  },
+
+  speciesGroups: {
+    list: () => apiRequest<{ id: number; name: string }[]>('/api/species/groups'),
   },
 
   inventory: {
@@ -410,13 +422,14 @@ export const api = {
     list: () => apiRequest<ScheduledTaskResponse[]>('/api/tasks'),
     get: (id: number) => apiRequest<ScheduledTaskResponse>(`/api/tasks/${id}`),
     create: (data: {
-      speciesId: number; activityType: string; deadline: string; targetCount: number; notes?: string
+      speciesId?: number; speciesGroupId?: number; speciesIds?: number[]
+      activityType: string; deadline: string; targetCount: number; notes?: string
     }) => apiRequest<ScheduledTaskResponse>('/api/tasks', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: number, data: {
-      speciesId?: number; activityType?: string; deadline?: string; targetCount?: number; notes?: string
+      activityType?: string; deadline?: string; targetCount?: number; notes?: string
     }) => apiRequest<ScheduledTaskResponse>(`/api/tasks/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    complete: (id: number, processedCount: number) =>
-      apiRequest<void>(`/api/tasks/${id}/complete`, { method: 'POST', body: JSON.stringify({ processedCount }) }),
+    complete: (id: number, speciesId: number, processedCount: number) =>
+      apiRequest<void>(`/api/tasks/${id}/complete`, { method: 'POST', body: JSON.stringify({ speciesId, processedCount }) }),
     delete: (id: number) => apiRequest<void>(`/api/tasks/${id}`, { method: 'DELETE' }),
   },
 

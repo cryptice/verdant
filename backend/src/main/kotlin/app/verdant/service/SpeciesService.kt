@@ -26,6 +26,13 @@ class SpeciesService(
         return mapSpeciesList(speciesList, groups, tags)
     }
 
+    fun getSpeciesByGroup(groupId: Long, orgId: Long): List<SpeciesResponse> {
+        val groups = groupRepository.findByOrgId(orgId).associateBy { it.id }
+        val tags = tagRepository.findByOrgId(orgId).associateBy { it.id }
+        val speciesList = speciesRepository.findByGroupId(groupId).filter { it.orgId == null || it.orgId == orgId }
+        return mapSpeciesList(speciesList, groups, tags)
+    }
+
     fun searchSpeciesForUser(orgId: Long, query: String, limit: Int = 20): List<SpeciesResponse> {
         val groups = groupRepository.findByOrgId(orgId).associateBy { it.id }
         val tags = tagRepository.findByOrgId(orgId).associateBy { it.id }
