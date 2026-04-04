@@ -1,6 +1,8 @@
 {
   "nav": {
     "myWorld": "My world",
+    "dashboard": "Dashboard",
+    "gardens": "Gardens",
     "species": "Species",
     "plants": "Plants",
     "tasks": "Tasks",
@@ -110,6 +112,7 @@
     "quantity": "Quantity",
     "harvests": "Harvests",
     "noHarvests": "No harvests yet",
+    "viewAll": "View all",
     "onboardingWidget": {
       "title": "Get started with Verdant",
       "description": "Follow the setup guide to learn how to use all features.",

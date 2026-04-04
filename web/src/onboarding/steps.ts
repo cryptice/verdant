@@ -5,7 +5,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   // Section 1: Getting Started
   { id: 'create_org', section: 'getting_started', route: '/org/settings', completionType: 'visit' },
   { id: 'create_season', section: 'getting_started', route: '/seasons', completionType: 'mutation', queryKey: ['seasons'], mutationQueryKeys: [['seasons']] },
-  { id: 'create_garden', section: 'getting_started', route: '/', completionType: 'mutation', mutationQueryKeys: [['gardens']] },
+  { id: 'create_garden', section: 'getting_started', route: '/gardens', completionType: 'mutation', mutationQueryKeys: [['gardens']] },
   {
     id: 'create_bed', section: 'getting_started', route: '/', extraRoutePrefixes: ['/garden/'],
     resolveRoute: (qc) => {

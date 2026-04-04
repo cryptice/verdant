@@ -94,7 +94,8 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   const { t, i18n } = useTranslation()
 
   const allNavItems = [
-    { to: '/', label: t('nav.myWorld'), icon: '🌍' },
+    { to: '/', label: t('nav.dashboard'), icon: '🏠' },
+    { to: '/gardens', label: t('nav.gardens'), icon: '🏡' },
     { to: '/seasons', label: t('nav.seasons'), icon: '📅' },
     { to: '/species', label: t('nav.species'), icon: '🌿' },
     { to: '/plants', label: t('nav.plants'), icon: '🌱' },

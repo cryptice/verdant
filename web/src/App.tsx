@@ -5,6 +5,7 @@ import { LandingPage } from './pages/LandingPage'
 import { OrgSetup } from './pages/OrgSetup'
 import { Layout } from './components/Layout'
 import { Dashboard } from './pages/Dashboard'
+import { GardenList } from './pages/GardenList'
 import { GardenDetail } from './pages/GardenDetail'
 import { BedDetail } from './pages/BedDetail'
 import { BedForm } from './pages/BedForm'
@@ -64,6 +65,7 @@ export function App() {
       <Route path="/org/setup" element={<ProtectedRoute><OrgSetup /></ProtectedRoute>} />
       <Route element={<ProtectedRoute><RequireOrg><Layout /></RequireOrg></ProtectedRoute>}>
         <Route index element={<Dashboard />} />
+        <Route path="gardens" element={<GardenList />} />
         <Route path="garden/new" element={<Navigate to="/" replace />} />
         <Route path="garden/:id" element={<GardenDetail />} />
         <Route path="garden/:gardenId/bed/new" element={<BedForm />} />

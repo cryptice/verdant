@@ -1,6 +1,8 @@
 {
   "nav": {
     "myWorld": "Min värld",
+    "dashboard": "Översikt",
+    "gardens": "Trädgårdar",
     "species": "Arter",
     "plants": "Växter",
     "tasks": "Uppgifter",
@@ -110,6 +112,7 @@
     "quantity": "Antal",
     "harvests": "Skördar",
     "noHarvests": "Inga skördar ännu",
+    "viewAll": "Visa alla",
     "onboardingWidget": {
       "title": "Kom igång med Verdant",
       "description": "Följ guiden för att lära dig alla funktioner i Verdant. Du kan alltid öppna listan genom att klicka på cirkeln i nedre högra hörnet.",
