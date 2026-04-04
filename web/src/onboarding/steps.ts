@@ -14,16 +14,16 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   { id: 'pot_up', section: 'growing', route: '/plants', completionType: 'explicit' },
   { id: 'plant_out', section: 'growing', route: '/plants', completionType: 'explicit' },
 
-  // Section 3: Harvesting & Sales
-  { id: 'record_harvest', section: 'harvesting_sales', route: '/plants', completionType: 'explicit' },
-  { id: 'add_customer', section: 'harvesting_sales', route: '/customers', completionType: 'explicit' },
-  { id: 'create_bouquet', section: 'harvesting_sales', route: '/bouquets', completionType: 'explicit' },
-
-  // Section 4: Planning
+  // Section 3: Planning
   { id: 'create_task', section: 'planning', route: '/task/new', completionType: 'explicit' },
   { id: 'setup_succession', section: 'planning', route: '/successions', completionType: 'explicit' },
   { id: 'set_target', section: 'planning', route: '/targets', completionType: 'explicit' },
   { id: 'view_calendar', section: 'planning', route: '/calendar', completionType: 'visit' },
+
+  // Section 4: Harvesting & Sales
+  { id: 'record_harvest', section: 'harvesting_sales', route: '/plants', completionType: 'explicit' },
+  { id: 'add_customer', section: 'harvesting_sales', route: '/customers', completionType: 'explicit' },
+  { id: 'create_bouquet', section: 'harvesting_sales', route: '/bouquets', completionType: 'explicit' },
 
   // Section 5: Advanced
   { id: 'start_trial', section: 'advanced', route: '/trials', completionType: 'explicit' },
@@ -35,8 +35,8 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
 export const SECTIONS: { id: OnboardingSection; titleKey: string; icon: string }[] = [
   { id: 'getting_started', titleKey: 'onboarding.sections.gettingStarted', icon: '🚀' },
   { id: 'growing', titleKey: 'onboarding.sections.growing', icon: '🌱' },
-  { id: 'harvesting_sales', titleKey: 'onboarding.sections.harvestingSales', icon: '🌾' },
   { id: 'planning', titleKey: 'onboarding.sections.planning', icon: '📋' },
+  { id: 'harvesting_sales', titleKey: 'onboarding.sections.harvestingSales', icon: '🌾' },
   { id: 'advanced', titleKey: 'onboarding.sections.advanced', icon: '⚡' },
 ]
 
