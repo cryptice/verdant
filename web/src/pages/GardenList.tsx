@@ -135,11 +135,11 @@ export function GardenList() {
           </div>
           <div>
             <label className="field-label">{t('common.nameLabel')}</label>
-            <input value={gardenName} onChange={e => setGardenName(e.target.value)} placeholder={t('garden.gardenNamePlaceholder')} className="input" />
+            <input value={gardenName} onChange={e => setGardenName(e.target.value)} placeholder={t('garden.gardenNamePlaceholder')} className="input w-full" />
           </div>
           <div>
             <label className="field-label">{t('common.descriptionLabel')}</label>
-            <textarea value={gardenDescription} onChange={e => setGardenDescription(e.target.value)} placeholder={t('common.optional')} rows={3} className="input" />
+            <textarea value={gardenDescription} onChange={e => setGardenDescription(e.target.value)} placeholder={t('common.optional')} rows={3} className="input w-full" />
           </div>
           {gardenMutation.error && <p className="text-error text-sm">{gardenMutation.error instanceof Error ? gardenMutation.error.message : String(gardenMutation.error)}</p>}
         </div>
