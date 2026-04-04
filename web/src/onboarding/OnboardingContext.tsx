@@ -92,6 +92,14 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }
   }, [location.pathname, state.completedSteps, completeStep])
 
+  // Auto-complete create_org step when user has organizations
+  useEffect(() => {
+    if (!user) return
+    if (user.organizations.length > 0 && !state.completedSteps.includes('create_org')) {
+      completeStep('create_org')
+    }
+  }, [user, state.completedSteps, completeStep])
+
   // Check query cache for pre-existing data on mount
   useEffect(() => {
     if (!user) return
