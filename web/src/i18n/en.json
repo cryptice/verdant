@@ -93,6 +93,21 @@
     "RECOVER": "Recover",
     "DISCARD": "Discard"
   },
+  "org": {
+    "setup": {
+      "title": "Welcome to Verdant",
+      "subtitle": "Create your organization or accept a pending invite to get started.",
+      "pendingInvites": "Pending invites",
+      "invitedBy": "Invited by {{name}}",
+      "accept": "Accept",
+      "accepting": "Accepting…",
+      "decline": "Decline",
+      "createTitle": "Create your organization",
+      "namePlaceholder": "My Farm",
+      "create": "Create organization",
+      "creating": "Creating…"
+    }
+  },
   "dashboard": {
     "greeting": "Hello, {{name}}",
     "gardens_one": "{{count}} garden",
@@ -803,7 +818,8 @@
       "start_trial": "Start a variety trial",
       "log_pest": "Log a pest or disease",
       "view_analytics": "View analytics",
-      "create_listing": "Create a marketplace listing"
+      "create_listing": "Create a marketplace listing",
+      "create_org": "Create an organization"
     },
     "hint": {
       "showMe": "Show me"
@@ -827,7 +843,8 @@
       "start_trial": "Set up a trial to compare different varieties.",
       "log_pest": "Record a pest or disease observation.",
       "view_analytics": "Review your harvest trends and production stats.",
-      "create_listing": "List your produce on the marketplace."
+      "create_listing": "List your produce on the marketplace.",
+      "create_org": "Create your organization to start managing your farm."
     },
     "tooltip": {
       "stepOf": "Step {{current}} of {{total}}",
@@ -974,5 +991,34 @@
         "body": "The data controller for Verdant is Erik Lindblad. If you have questions about this privacy policy or wish to exercise your data rights, please contact us at: privacy@verdant.app"
       }
     }
+  },
+  "org": {
+    "setup": {
+      "title": "Get Started",
+      "createTitle": "Create an organization",
+      "createDescription": "Set up your farm or growing operation.",
+      "createButton": "Create organization",
+      "nameLabel": "Organization name *",
+      "namePlaceholder": "e.g. Lindblads Blommor",
+      "invitesTitle": "You've been invited",
+      "noInvites": "No pending invites",
+      "accept": "Accept",
+      "decline": "Decline",
+      "or": "or"
+    },
+    "settings": {
+      "title": "Organization",
+      "nameLabel": "Name",
+      "emojiLabel": "Icon",
+      "save": "Save changes",
+      "members": "Members",
+      "inviteTitle": "Invite member",
+      "inviteLabel": "Email address",
+      "inviteButton": "Send invite",
+      "pendingInvites": "Pending invites",
+      "removeMember": "Remove",
+      "role": { "OWNER": "Owner", "MEMBER": "Member" }
+    },
+    "nav": "Organization"
   }
 }

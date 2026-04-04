@@ -1,6 +1,8 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
+import { useOrg } from './auth/OrgContext'
 import { LandingPage } from './pages/LandingPage'
+import { OrgSetup } from './pages/OrgSetup'
 import { Layout } from './components/Layout'
 import { Dashboard } from './pages/Dashboard'
 import { GardenDetail } from './pages/GardenDetail'
@@ -24,6 +26,7 @@ import { SuccessionSchedules } from './pages/SuccessionSchedules'
 import { ProductionTargets } from './pages/ProductionTargets'
 import { Analytics } from './pages/Analytics'
 import { Account } from './pages/Account'
+import { OrgSettings } from './pages/OrgSettings'
 import { Guide } from './pages/Guide'
 import { MyListings } from './pages/MyListings'
 import { IncomingOrders } from './pages/IncomingOrders'
@@ -43,6 +46,14 @@ function PublicOnly({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function RequireOrg({ children }: { children: React.ReactNode }) {
+  const { needsOrg, loading } = useOrg()
+  const location = useLocation()
+  if (loading) return null
+  if (needsOrg && location.pathname !== '/org/setup') return <Navigate to="/org/setup" replace />
+  return <>{children}</>
+}
+
 export function App() {
   const { token, loading } = useAuth()
 
@@ -50,7 +61,8 @@ export function App() {
     <Routes>
       <Route path="/login" element={<PublicOnly><LandingPage /></PublicOnly>} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
-      <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+      <Route path="/org/setup" element={<ProtectedRoute><OrgSetup /></ProtectedRoute>} />
+      <Route element={<ProtectedRoute><RequireOrg><Layout /></RequireOrg></ProtectedRoute>}>
         <Route index element={<Dashboard />} />
         <Route path="garden/new" element={<Navigate to="/" replace />} />
         <Route path="garden/:id" element={<GardenDetail />} />
@@ -77,6 +89,7 @@ export function App() {
         <Route path="market/listings" element={<MyListings />} />
         <Route path="market/incoming" element={<IncomingOrders />} />
         <Route path="guide" element={<Guide />} />
+        <Route path="org/settings" element={<OrgSettings />} />
         <Route path="account" element={<Account />} />
       </Route>
       {/* Unauthenticated root shows landing page, authenticated shows dashboard via ProtectedRoute */}

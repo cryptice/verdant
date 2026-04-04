@@ -93,6 +93,21 @@
     "RECOVER": "Återhämta",
     "DISCARD": "Kasta"
   },
+  "org": {
+    "setup": {
+      "title": "Välkommen till Verdant",
+      "subtitle": "Skapa din organisation eller acceptera en väntande inbjudan för att komma igång.",
+      "pendingInvites": "Väntande inbjudningar",
+      "invitedBy": "Inbjuden av {{name}}",
+      "accept": "Acceptera",
+      "accepting": "Accepterar…",
+      "decline": "Avböj",
+      "createTitle": "Skapa din organisation",
+      "namePlaceholder": "Min gård",
+      "create": "Skapa organisation",
+      "creating": "Skapar…"
+    }
+  },
   "dashboard": {
     "greeting": "Hej, {{name}}",
     "gardens_one": "{{count}} trädgård",
@@ -803,7 +818,8 @@
       "start_trial": "Starta ett sortförsök",
       "log_pest": "Logga skadedjur eller sjukdom",
       "view_analytics": "Visa statistik",
-      "create_listing": "Skapa en marknadsannons"
+      "create_listing": "Skapa en marknadsannons",
+      "create_org": "Skapa en organisation"
     },
     "hint": {
       "showMe": "Visa"
@@ -827,7 +843,8 @@
       "start_trial": "Starta ett försök för att jämföra olika sorter.",
       "log_pest": "Registrera en observation av skadedjur eller sjukdom.",
       "view_analytics": "Se dina skördetrender och produktionsstatistik.",
-      "create_listing": "Annonsera dina produkter på marknadsplatsen."
+      "create_listing": "Annonsera dina produkter på marknadsplatsen.",
+      "create_org": "Skapa din organisation för att börja hantera din odling."
     },
     "tooltip": {
       "stepOf": "Steg {{current}} av {{total}}",
@@ -974,5 +991,34 @@
         "body": "Personuppgiftsansvarig för Verdant är Erik Lindblad. Om du har frågor om denna integritetspolicy eller vill utöva dina rättigheter, kontakta oss på: privacy@verdant.app"
       }
     }
+  },
+  "org": {
+    "setup": {
+      "title": "Kom igång",
+      "createTitle": "Skapa en organisation",
+      "createDescription": "Skapa din gård eller odlingsverksamhet.",
+      "createButton": "Skapa organisation",
+      "nameLabel": "Organisationsnamn *",
+      "namePlaceholder": "t.ex. Lindblads Blommor",
+      "invitesTitle": "Du har blivit inbjuden",
+      "noInvites": "Inga väntande inbjudningar",
+      "accept": "Acceptera",
+      "decline": "Avböj",
+      "or": "eller"
+    },
+    "settings": {
+      "title": "Organisation",
+      "nameLabel": "Namn",
+      "emojiLabel": "Ikon",
+      "save": "Spara ändringar",
+      "members": "Medlemmar",
+      "inviteTitle": "Bjud in medlem",
+      "inviteLabel": "E-postadress",
+      "inviteButton": "Skicka inbjudan",
+      "pendingInvites": "Väntande inbjudningar",
+      "removeMember": "Ta bort",
+      "role": { "OWNER": "Ägare", "MEMBER": "Medlem" }
+    },
+    "nav": "Organisation"
   }
 }

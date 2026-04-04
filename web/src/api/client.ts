@@ -4,6 +4,15 @@ function getToken(): string | null {
   return localStorage.getItem('verdant_token')
 }
 
+function getActiveOrgId(): string | null {
+  return localStorage.getItem('verdant_org_id')
+}
+
+export function setActiveOrgId(orgId: number | null) {
+  if (orgId) localStorage.setItem('verdant_org_id', String(orgId))
+  else localStorage.removeItem('verdant_org_id')
+}
+
 export class ApiError extends Error {
   status?: number
   isNetworkError: boolean
@@ -23,6 +32,8 @@ async function apiRequest<T>(path: string, options?: RequestInit): Promise<T> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   const token = getToken()
   if (token) headers['Authorization'] = `Bearer ${token}`
+  const orgId = getActiveOrgId()
+  if (orgId) headers['X-Organization-Id'] = orgId
 
   let res: Response
   try {
@@ -53,7 +64,27 @@ async function apiRequest<T>(path: string, options?: RequestInit): Promise<T> {
 export interface AuthResponse { token: string; user: UserResponse }
 export interface UserResponse {
   id: number; email: string; displayName: string; avatarUrl?: string
-  role: string; language?: string; onboarding?: string; advancedMode: boolean; createdAt: string
+  role: string; language?: string; onboarding?: string; advancedMode: boolean
+  organizations: UserOrgMembership[]
+  createdAt: string
+}
+
+export interface UserOrgMembership {
+  orgId: number; orgName: string; orgEmoji?: string; role: string
+}
+
+export interface OrganizationResponse {
+  id: number; name: string; emoji?: string; role: string; createdAt: string
+}
+
+export interface OrgMemberResponse {
+  id: number; userId: number; email: string; displayName: string
+  avatarUrl?: string; role: string; joinedAt: string
+}
+
+export interface OrgInviteResponse {
+  id: number; orgId: number; orgName: string; email: string
+  invitedByName: string; status: string; createdAt: string
 }
 
 export interface DashboardResponse {
@@ -475,6 +506,26 @@ export const api = {
     seasonSummaries: () => apiRequest<SeasonSummaryResponse[]>('/api/analytics/seasons'),
     speciesComparison: (speciesId: number) => apiRequest<SpeciesComparisonResponse>(`/api/analytics/species/${speciesId}/compare`),
     yieldPerBed: (seasonId?: number) => apiRequest<YieldPerBedResponse[]>(`/api/analytics/yield-per-bed${seasonId ? `?seasonId=${seasonId}` : ''}`),
+  },
+
+  organizations: {
+    list: () => apiRequest<OrganizationResponse[]>('/api/organizations'),
+    create: (data: { name: string; emoji?: string }) =>
+      apiRequest<OrganizationResponse>('/api/organizations', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: { name?: string; emoji?: string }) =>
+      apiRequest<OrganizationResponse>(`/api/organizations/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: number) => apiRequest<void>(`/api/organizations/${id}`, { method: 'DELETE' }),
+    members: (id: number) => apiRequest<OrgMemberResponse[]>(`/api/organizations/${id}/members`),
+    invite: (id: number, email: string) =>
+      apiRequest<OrgInviteResponse>(`/api/organizations/${id}/invite`, { method: 'POST', body: JSON.stringify({ email }) }),
+    removeMember: (orgId: number, userId: number) =>
+      apiRequest<void>(`/api/organizations/${orgId}/members/${userId}`, { method: 'DELETE' }),
+  },
+
+  invites: {
+    pending: () => apiRequest<OrgInviteResponse[]>('/api/invites'),
+    accept: (id: number) => apiRequest<OrganizationResponse>(`/api/invites/${id}/accept`, { method: 'POST' }),
+    decline: (id: number) => apiRequest<void>(`/api/invites/${id}/decline`, { method: 'POST' }),
   },
 }
 

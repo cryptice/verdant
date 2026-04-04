@@ -1,8 +1,93 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../auth/AuthContext'
+import { useOrg } from '../auth/OrgContext'
 import { OnboardingRoot } from '../onboarding/OnboardingRoot'
+
+function OrgSwitcher() {
+  const { activeOrg, organizations, switchOrg } = useOrg()
+  const queryClient = useQueryClient()
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [open])
+
+  const handleSwitch = (orgId: number) => {
+    switchOrg(orgId)
+    queryClient.clear()
+    setOpen(false)
+  }
+
+  const hasMultiple = organizations.length > 1
+  const displayEmoji = activeOrg?.orgEmoji ?? '🌿'
+  const displayName = activeOrg?.orgName ?? 'Verdant'
+
+  return (
+    <div className="px-4 py-4" ref={ref}>
+      {hasMultiple ? (
+        <div className="relative">
+          <button
+            onClick={() => setOpen(v => !v)}
+            className="w-full flex items-center gap-2 rounded-xl px-2 py-1.5 -mx-2 hover:bg-white/60 transition-all duration-150 text-left"
+          >
+            <span className="text-lg leading-none">{displayEmoji}</span>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-text-primary text-sm truncate leading-tight">{displayName}</p>
+              <p className="text-xs text-text-muted leading-tight">Verdant</p>
+            </div>
+            <svg
+              width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+              strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+              className={`text-text-muted flex-shrink-0 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+            >
+              <polyline points="2 5 7 10 12 5" />
+            </svg>
+          </button>
+          {open && (
+            <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-divider py-1 z-50">
+              {organizations.map(org => (
+                <button
+                  key={org.orgId}
+                  onClick={() => handleSwitch(org.orgId)}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-all duration-150 hover:bg-surface ${
+                    org.orgId === activeOrg?.orgId ? 'text-accent font-medium' : 'text-text-secondary'
+                  }`}
+                >
+                  <span className="text-base leading-none w-5 text-center">{org.orgEmoji ?? '🌿'}</span>
+                  <span className="flex-1 truncate">{org.orgName}</span>
+                  {org.orgId === activeOrg?.orgId && (
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                      <polyline points="2 7 6 11 12 3" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 px-2 py-1.5 -mx-2">
+          <span className="text-lg leading-none">{displayEmoji}</span>
+          <div className="min-w-0">
+            <p className="font-semibold text-text-primary text-sm truncate leading-tight">{displayName}</p>
+            <p className="text-xs text-text-muted leading-tight">Verdant</p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const { user } = useAuth()
@@ -26,6 +111,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
     { to: '/market/listings', label: t('nav.myListings'), icon: '📦', advanced: true },
     { to: '/market/incoming', label: t('nav.incomingOrders'), icon: '📥', advanced: true },
     { to: '/guide', label: t('nav.guide'), icon: '📖' },
+    { to: '/org/settings', label: t('org.nav'), icon: '🏢' },
     { to: '/account', label: t('nav.account'), icon: '👤' },
   ]
 
@@ -38,9 +124,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
   return (
     <div className="flex flex-col h-full bg-sidebar border-r border-divider">
-      <div className="px-4 py-5">
-        <span className="font-semibold text-accent text-base tracking-tight">🌿 Verdant</span>
-      </div>
+      <OrgSwitcher />
       <nav className="flex-1 py-1 px-2 overflow-y-auto">
         {navItems.map(({ to, label, icon }) => (
           <NavLink
