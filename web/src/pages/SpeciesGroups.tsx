@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api, type SpeciesResponse } from '../api/client'
@@ -57,6 +57,8 @@ export function SpeciesGroups() {
       qc.invalidateQueries({ queryKey: ['species'] })
     },
   })
+
+  const memberIds = useMemo(() => new Set(members?.map(s => s.id) ?? []), [members])
 
   const removeSpeciesMut = useMutation({
     mutationFn: ({ groupId, speciesId }: { groupId: number; speciesId: number }) =>
@@ -156,6 +158,8 @@ export function SpeciesGroups() {
                       if (s) addSpeciesMut.mutate({ groupId: group.id, speciesId: s.id })
                     }}
                     placeholder={t('groups.addSpeciesPlaceholder')}
+                    keepSearchOnSelect
+                    excludeIds={memberIds}
                   />
                 </div>
               </div>

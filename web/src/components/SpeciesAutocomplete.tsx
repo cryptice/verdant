@@ -9,6 +9,8 @@ interface Props {
   onGroupSelect?: (groupId: number, groupName: string) => void
   placeholder?: string
   showGroups?: boolean
+  keepSearchOnSelect?: boolean
+  excludeIds?: Set<number>
 }
 
 function speciesLabel(s: SpeciesResponse, lang: string) {
@@ -17,7 +19,7 @@ function speciesLabel(s: SpeciesResponse, lang: string) {
   return variant ? `${name} — ${variant}` : name
 }
 
-export function SpeciesAutocomplete({ value, onChange, onGroupSelect, placeholder, showGroups = false }: Props) {
+export function SpeciesAutocomplete({ value, onChange, onGroupSelect, placeholder, showGroups = false, keepSearchOnSelect = false, excludeIds }: Props) {
   const { t, i18n } = useTranslation()
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -52,6 +54,10 @@ export function SpeciesAutocomplete({ value, onChange, onGroupSelect, placeholde
     staleTime: 60_000,
   })
 
+  const filteredResults = excludeIds && results
+    ? results.filter(s => !excludeIds.has(s.id))
+    : results
+
   const filteredGroups = showGroups && debouncedSearch && groups
     ? groups.filter(g => g.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
     : []
@@ -69,7 +75,7 @@ export function SpeciesAutocomplete({ value, onChange, onGroupSelect, placeholde
       />
       {open && debouncedSearch && (
         <div className="absolute z-10 left-0 right-0 mt-1 border border-divider rounded-xl bg-bg shadow-md max-h-48 overflow-y-auto">
-          {isFetching && (!results || results.length === 0) && filteredGroups.length === 0 && (
+          {isFetching && (!filteredResults || filteredResults.length === 0) && filteredGroups.length === 0 && (
             <p className="px-3 py-2 text-sm text-text-secondary">...</p>
           )}
           {filteredGroups.map(g => (
@@ -86,19 +92,22 @@ export function SpeciesAutocomplete({ value, onChange, onGroupSelect, placeholde
               {g.name}
             </button>
           ))}
-          {filteredGroups.length > 0 && results && results.length > 0 && (
+          {filteredGroups.length > 0 && filteredResults && filteredResults.length > 0 && (
             <div className="border-t border-divider" />
           )}
-          {results?.map(s => (
+          {filteredResults?.map(s => (
             <button
               key={s.id}
-              onClick={() => { onChange(s); setSearch(''); setOpen(false) }}
+              onClick={() => {
+                onChange(s)
+                if (!keepSearchOnSelect) { setSearch(''); setOpen(false) }
+              }}
               className="w-full text-left px-3 py-2 text-sm hover:bg-surface transition-colors"
             >
               {speciesLabel(s, i18n.language)}
             </button>
           ))}
-          {results && results.length === 0 && filteredGroups.length === 0 && !isFetching && (
+          {filteredResults && filteredResults.length === 0 && filteredGroups.length === 0 && !isFetching && (
             <p className="px-3 py-2 text-sm text-text-secondary">{t('species.noSpeciesFoundDropdown')}</p>
           )}
         </div>
