@@ -459,9 +459,32 @@ export function Supplies() {
           return (
             <div key={cat} className="mb-6">
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">
-                  {t(`supplyCategory.${cat}`)}
-                </h2>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">
+                    {t(`supplyCategory.${cat}`)}
+                  </h2>
+                  {items.length > 1 && (() => {
+                    const allExpanded = items.every(item => expanded.has(item.type.id))
+                    return (
+                      <button
+                        onClick={() => {
+                          setExpanded(prev => {
+                            const next = new Set(prev)
+                            if (allExpanded) {
+                              items.forEach(item => next.delete(item.type.id))
+                            } else {
+                              items.forEach(item => next.add(item.type.id))
+                            }
+                            return next
+                          })
+                        }}
+                        className="text-xs text-text-secondary hover:text-text cursor-pointer"
+                      >
+                        {allExpanded ? t('supplies.collapseAll') : t('supplies.expandAll')}
+                      </button>
+                    )
+                  })()}
+                </div>
                 <button
                   onClick={() => { resetTypeForm(); setTypeCategory(cat); setTypeUnit(DEFAULT_UNIT[cat] ?? 'COUNT'); setMutError(null); setShowNewType(true) }}
                   className="text-xs text-accent hover:underline cursor-pointer"

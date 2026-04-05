@@ -1096,6 +1096,8 @@
     "purchaseDate": "Purchase date",
     "total": "Total",
     "addType": "Add supply type",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
     "addCategoryType": "Add {{category}} type",
     "showUsed": "Show used",
     "packageCost": "Package cost",

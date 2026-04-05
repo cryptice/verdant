@@ -1096,6 +1096,8 @@
     "purchaseDate": "Inköpsdatum",
     "total": "Totalt",
     "addType": "Lägg till typ",
+    "expandAll": "Expandera alla",
+    "collapseAll": "Minimera alla",
     "addCategoryType": "Lägg till {{category}}typ",
     "showUsed": "Visa förbrukade",
     "packageCost": "Paketkostnad",
