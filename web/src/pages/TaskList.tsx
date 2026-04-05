@@ -178,7 +178,7 @@ export function TaskList() {
           }
 
           return (
-            <div key={task.id} className={`card ${isCompleted ? 'opacity-60' : ''}`}>
+            <div key={task.id} className={`card flex flex-col ${isCompleted ? 'opacity-60' : ''}`}>
               <div className="flex items-start gap-3">
                 <span className="text-xl">{activityIcons[task.activityType] ?? '📋'}</span>
                 <div className="flex-1 min-w-0">
@@ -254,7 +254,7 @@ export function TaskList() {
                   <p className="text-xs text-text-secondary">{t('tasks.remaining', { remaining: task.remainingCount, total: task.targetCount })}</p>
                 </div>
               </div>
-              <div className="flex gap-2 mt-3">
+              <div className="flex gap-2 mt-auto pt-3">
                 {!isCompleted && (
                   <button
                     onClick={() => {
