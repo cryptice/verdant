@@ -290,9 +290,9 @@ export function Supplies() {
   const [batchSeasonId, setBatchSeasonId] = useState<number | ''>('')
   const [batchNotes, setBatchNotes] = useState('')
 
-  const activeSeason = seasons?.find(s => s.isActive)
+  const getActiveSeasonId = () => seasons?.find(s => s.isActive)?.id ?? ''
   const resetBatchForm = () => {
-    setBatchTypeId(''); setBatchQuantity(''); setBatchPackageSize(''); setBatchPackageCount(''); setBatchCost(''); setBatchSeasonId(activeSeason?.id ?? ''); setBatchNotes('')
+    setBatchTypeId(''); setBatchQuantity(''); setBatchPackageSize(''); setBatchPackageCount(''); setBatchCost(''); setBatchSeasonId(getActiveSeasonId()); setBatchNotes('')
   }
 
   const selectedBatchType = (types ?? []).find(ty => ty.id === batchTypeId)
