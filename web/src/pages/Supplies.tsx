@@ -648,11 +648,11 @@ export function Supplies() {
                       <input type="number" step="any" className="input w-full" value={batchCost} onChange={e => setBatchCost(e.target.value)} />
                     </div>
                   </div>
-                  <p className="text-xs text-text-secondary mt-1 min-h-[1.25rem]">
-                    {Number(batchPackageSize) > 0 && Number(batchPackageCount) > 0 && (() => {
-                      const totalQty = Number(batchPackageSize) * Number(batchPackageCount)
+                  <p className="text-xs text-text-secondary mt-1">
+                    {(() => {
+                      const totalQty = (Number(batchPackageSize) || 0) * (Number(batchPackageCount) || 0)
                       const unitLabel = t(`supplyUnit.${selectedBatchType!.unit}`)
-                      const totalCost = batchCost ? Number(batchCost) * Number(batchPackageCount) : 0
+                      const totalCost = (Number(batchCost) || 0) * (Number(batchPackageCount) || 0)
                       return (
                         <>
                           {t('supplies.totalSummary', { quantity: totalQty % 1 === 0 ? totalQty : totalQty.toFixed(1), unit: unitLabel })}
