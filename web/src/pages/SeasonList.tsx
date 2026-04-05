@@ -40,7 +40,7 @@ export function SeasonList() {
 
   const resetForm = () => {
     setFormName(''); setFormYear(''); setFormStartDate(''); setFormEndDate('')
-    setFormLastFrost(''); setFormFirstFrost(''); setFormNotes(''); setFormActive(true); setFormError(null)
+    setFormLastFrost(''); setFormFirstFrost(''); setFormNotes(''); setFormActive(false); setFormError(null)
   }
 
   const openAdd = () => {
@@ -59,6 +59,7 @@ export function SeasonList() {
     setFormLastFrost(lastFrost.toISOString().split('T')[0])
     // First frost: October 1
     setFormFirstFrost(`${year}-10-01`)
+    setFormActive(true)
     setShowAdd(true)
   }
 
@@ -129,6 +130,7 @@ export function SeasonList() {
             if (y.length === 4) {
               if (!formStartDate) setFormStartDate(`${y}-01-01`)
               if (!formEndDate) setFormEndDate(`${y}-12-31`)
+              setFormActive(Number(y) === new Date().getFullYear())
             }
           }} placeholder="e.g. 2026" className="input w-full" />
         </div>
