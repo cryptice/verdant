@@ -112,7 +112,7 @@ export function TaskList() {
   return (
     <div>
       <PageHeader title={t('tasks.title')} action={{ label: t('tasks.newTask'), onClick: () => navigate('/task/new') }} />
-      <div className="px-4 py-4 space-y-3">
+      <div className="px-4 py-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {data && data.length === 0 && (
           <p className="text-text-secondary text-sm text-center py-4">{t('tasks.noTasks')}</p>
         )}
