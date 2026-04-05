@@ -590,11 +590,10 @@ export function SpeciesDetailPage() {
           <section className="border border-[#E9E9E7] rounded-lg p-5">
             <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Growth Information</h3>
             <div className="grid grid-cols-2 gap-3">
-              <InfoField label="Days to Sprout" value={species.daysToSprout} />
-              <InfoField label="Days to Harvest" value={species.daysToHarvest} />
-              <InfoField label="Germination (days)" value={species.germinationTimeDays} />
+              <InfoField label="Germination (days)" value={species.germinationTimeDaysMin != null ? (species.germinationTimeDaysMax && species.germinationTimeDaysMax !== species.germinationTimeDaysMin ? `${species.germinationTimeDaysMin}–${species.germinationTimeDaysMax}` : species.germinationTimeDaysMin) : null} />
+              <InfoField label="Days to Harvest" value={species.daysToHarvestMin != null ? (species.daysToHarvestMax && species.daysToHarvestMax !== species.daysToHarvestMin ? `${species.daysToHarvestMin}–${species.daysToHarvestMax}` : species.daysToHarvestMin) : null} />
               <InfoField label="Sowing Depth (mm)" value={species.sowingDepthMm} />
-              <InfoField label="Height (cm)" value={species.heightCm} />
+              <InfoField label="Height (cm)" value={species.heightCmMin != null ? (species.heightCmMax && species.heightCmMax !== species.heightCmMin ? `${species.heightCmMin}–${species.heightCmMax}` : species.heightCmMin) : null} />
               <InfoField label="Germ. Rate (%)" value={species.germinationRate} />
             </div>
           </section>
@@ -942,11 +941,13 @@ function SpeciesForm({
   const [variantName, setVariantName] = useState(species?.variantName ?? '')
   const [variantNameSv, setVariantNameSv] = useState(species?.variantNameSv ?? '')
   const [scientificName, setScientificName] = useState(species?.scientificName ?? '')
-  const [daysToSprout, setDaysToSprout] = useState(species?.daysToSprout?.toString() ?? '')
-  const [daysToHarvest, setDaysToHarvest] = useState(species?.daysToHarvest?.toString() ?? '')
-  const [germinationTimeDays, setGerminationTimeDays] = useState(species?.germinationTimeDays?.toString() ?? '')
+  const [germinationTimeDaysMin, setGerminationTimeDaysMin] = useState(species?.germinationTimeDaysMin?.toString() ?? '')
+  const [germinationTimeDaysMax, setGerminationTimeDaysMax] = useState(species?.germinationTimeDaysMax?.toString() ?? '')
+  const [daysToHarvestMin, setDaysToHarvestMin] = useState(species?.daysToHarvestMin?.toString() ?? '')
+  const [daysToHarvestMax, setDaysToHarvestMax] = useState(species?.daysToHarvestMax?.toString() ?? '')
   const [sowingDepthMm, setSowingDepthMm] = useState(species?.sowingDepthMm?.toString() ?? '')
-  const [heightCm, setHeightCm] = useState(species?.heightCm?.toString() ?? '')
+  const [heightCmMin, setHeightCmMin] = useState(species?.heightCmMin?.toString() ?? '')
+  const [heightCmMax, setHeightCmMax] = useState(species?.heightCmMax?.toString() ?? '')
   const [bloomMonths, setBloomMonths] = useState<Set<number>>(new Set(species?.bloomMonths ?? []))
   const [sowingMonths, setSowingMonths] = useState<Set<number>>(new Set(species?.sowingMonths ?? []))
   const [germinationRate, setGerminationRate] = useState(species?.germinationRate?.toString() ?? '')
@@ -1014,11 +1015,13 @@ function SpeciesForm({
       const info = await api.admin.extractBack(base64)
       if (info.commonName && !commonName) setCommonName(info.commonName)
       if (info.scientificName && !scientificName) setScientificName(info.scientificName)
-      if (info.daysToSprout != null) setDaysToSprout(info.daysToSprout.toString())
-      if (info.daysToHarvest != null) setDaysToHarvest(info.daysToHarvest.toString())
-      if (info.germinationTimeDays != null) setGerminationTimeDays(info.germinationTimeDays.toString())
+      if (info.germinationTimeDaysMin != null) setGerminationTimeDaysMin(info.germinationTimeDaysMin.toString())
+      if (info.germinationTimeDaysMax != null) setGerminationTimeDaysMax(info.germinationTimeDaysMax.toString())
+      if (info.daysToHarvestMin != null) setDaysToHarvestMin(info.daysToHarvestMin.toString())
+      if (info.daysToHarvestMax != null) setDaysToHarvestMax(info.daysToHarvestMax.toString())
       if (info.sowingDepthMm != null) setSowingDepthMm(info.sowingDepthMm.toString())
-      if (info.heightCm != null) setHeightCm(info.heightCm.toString())
+      if (info.heightCmMin != null) setHeightCmMin(info.heightCmMin.toString())
+      if (info.heightCmMax != null) setHeightCmMax(info.heightCmMax.toString())
       if (info.bloomMonths) setBloomMonths(new Set(info.bloomMonths))
       if (info.sowingMonths) setSowingMonths(new Set(info.sowingMonths))
       if (info.germinationRate != null) setGerminationRate(info.germinationRate.toString())
@@ -1082,11 +1085,13 @@ function SpeciesForm({
       scientificName: scientificName || undefined,
       imageFrontBase64: imageFrontBase64 ?? undefined,
       imageBackBase64: imageBackBase64 ?? undefined,
-      daysToSprout: daysToSprout ? parseInt(daysToSprout) : undefined,
-      daysToHarvest: daysToHarvest ? parseInt(daysToHarvest) : undefined,
-      germinationTimeDays: germinationTimeDays ? parseInt(germinationTimeDays) : undefined,
+      germinationTimeDaysMin: germinationTimeDaysMin ? parseInt(germinationTimeDaysMin) : undefined,
+      germinationTimeDaysMax: germinationTimeDaysMax ? parseInt(germinationTimeDaysMax) : undefined,
+      daysToHarvestMin: daysToHarvestMin ? parseInt(daysToHarvestMin) : undefined,
+      daysToHarvestMax: daysToHarvestMax ? parseInt(daysToHarvestMax) : undefined,
       sowingDepthMm: sowingDepthMm ? parseInt(sowingDepthMm) : undefined,
-      heightCm: heightCm ? parseInt(heightCm) : undefined,
+      heightCmMin: heightCmMin ? parseInt(heightCmMin) : undefined,
+      heightCmMax: heightCmMax ? parseInt(heightCmMax) : undefined,
       bloomMonths: [...bloomMonths].sort((a, b) => a - b),
       sowingMonths: [...sowingMonths].sort((a, b) => a - b),
       germinationRate: germinationRate ? parseInt(germinationRate) : undefined,
@@ -1252,11 +1257,13 @@ function SpeciesForm({
         <section className="border border-[#E9E9E7] rounded-lg p-5">
           <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Growth Information</h3>
           <div className="grid grid-cols-3 gap-4">
-            <Field label="Days to Sprout" value={daysToSprout} onChange={v => setDaysToSprout(v.replace(/\D/g, ''))} type="text" />
-            <Field label="Days to Harvest" value={daysToHarvest} onChange={v => setDaysToHarvest(v.replace(/\D/g, ''))} type="text" />
-            <Field label="Germination Time (days)" value={germinationTimeDays} onChange={v => setGerminationTimeDays(v.replace(/\D/g, ''))} type="text" />
+            <Field label="Germination Time Min (days)" value={germinationTimeDaysMin} onChange={v => setGerminationTimeDaysMin(v.replace(/\D/g, ''))} type="text" />
+            <Field label="Germination Time Max (days)" value={germinationTimeDaysMax} onChange={v => setGerminationTimeDaysMax(v.replace(/\D/g, ''))} type="text" />
+            <Field label="Days to Harvest Min" value={daysToHarvestMin} onChange={v => setDaysToHarvestMin(v.replace(/\D/g, ''))} type="text" />
+            <Field label="Days to Harvest Max" value={daysToHarvestMax} onChange={v => setDaysToHarvestMax(v.replace(/\D/g, ''))} type="text" />
             <Field label="Sowing Depth (mm)" value={sowingDepthMm} onChange={v => setSowingDepthMm(v.replace(/\D/g, ''))} type="text" />
-            <Field label="Height (cm)" value={heightCm} onChange={v => setHeightCm(v.replace(/\D/g, ''))} type="text" />
+            <Field label="Height Min (cm)" value={heightCmMin} onChange={v => setHeightCmMin(v.replace(/\D/g, ''))} type="text" />
+            <Field label="Height Max (cm)" value={heightCmMax} onChange={v => setHeightCmMax(v.replace(/\D/g, ''))} type="text" />
             <Field label="Germination Rate (%)" value={germinationRate} onChange={v => setGerminationRate(v.replace(/\D/g, ''))} type="text" />
           </div>
         </section>

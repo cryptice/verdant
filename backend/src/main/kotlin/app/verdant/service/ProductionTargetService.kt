@@ -91,8 +91,8 @@ class ProductionTargetService(
         }
         val seedsNeeded = ceil(plantsNeeded / (germRate / 100.0)).toLong()
 
-        val daysToHarvest = species.daysToHarvest ?: run {
-            warnings.add("Species has no daysToHarvest set; defaulting to 90 days")
+        val daysToHarvest = species.daysToHarvestMin ?: run {
+            warnings.add("Species has no daysToHarvestMin set; defaulting to 90 days")
             90
         }
         val suggestedSowDate = target.startDate.minusDays(daysToHarvest.toLong())

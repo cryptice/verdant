@@ -68,8 +68,8 @@ export function SpeciesDetail() {
 
   const canDelete = species.custom || !species.isSystem
 
-  const hasGrowing = species.daysToSprout != null || species.daysToHarvest != null ||
-    species.sowingDepthMm != null || species.heightCm != null ||
+  const hasGrowing = species.germinationTimeDaysMin != null || species.daysToHarvestMin != null ||
+    species.sowingDepthMm != null || species.heightCmMin != null ||
     species.germinationRate != null || species.bloomMonths || species.sowingMonths
 
   const hasCommercial = species.costPerSeedSek != null || species.expectedStemsPerPlant != null ||
@@ -112,17 +112,29 @@ export function SpeciesDetail() {
         {/* Growing */}
         {hasGrowing && (
           <Section title={t('speciesDetail.growing')}>
-            {species.daysToSprout != null && (
-              <Field label={t('speciesDetail.daysToSprout')} value={`${species.daysToSprout} ${t('speciesDetail.days')}`} />
+            {species.germinationTimeDaysMin != null && (
+              <Field label={t('speciesDetail.germinationTime')} value={
+                species.germinationTimeDaysMax && species.germinationTimeDaysMax !== species.germinationTimeDaysMin
+                  ? `${species.germinationTimeDaysMin}–${species.germinationTimeDaysMax} ${t('speciesDetail.days')}`
+                  : `${species.germinationTimeDaysMin} ${t('speciesDetail.days')}`
+              } />
             )}
-            {species.daysToHarvest != null && (
-              <Field label={t('speciesDetail.daysToHarvest')} value={`${species.daysToHarvest} ${t('speciesDetail.days')}`} />
+            {species.daysToHarvestMin != null && (
+              <Field label={t('speciesDetail.daysToHarvest')} value={
+                species.daysToHarvestMax && species.daysToHarvestMax !== species.daysToHarvestMin
+                  ? `${species.daysToHarvestMin}–${species.daysToHarvestMax} ${t('speciesDetail.days')}`
+                  : `${species.daysToHarvestMin} ${t('speciesDetail.days')}`
+              } />
             )}
             {species.sowingDepthMm != null && (
               <Field label={t('speciesDetail.sowingDepth')} value={`${species.sowingDepthMm} mm`} />
             )}
-            {species.heightCm != null && (
-              <Field label={t('speciesDetail.height')} value={`${species.heightCm} cm`} />
+            {species.heightCmMin != null && (
+              <Field label={t('speciesDetail.height')} value={
+                species.heightCmMax && species.heightCmMax !== species.heightCmMin
+                  ? `${species.heightCmMin}–${species.heightCmMax} cm`
+                  : `${species.heightCmMin} cm`
+              } />
             )}
             {species.germinationRate != null && (
               <Field label={t('speciesDetail.germinationRate')} value={`${species.germinationRate}%`} />

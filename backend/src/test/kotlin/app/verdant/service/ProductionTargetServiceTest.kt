@@ -42,13 +42,13 @@ class ProductionTargetServiceTest {
         commonName: String = "Sunflower",
         germinationRate: Int? = 75,
         expectedStemsPerPlant: Int? = 5,
-        daysToHarvest: Int? = 60,
+        daysToHarvestMin: Int? = 60,
     ) = Species(
         id = id,
         commonName = commonName,
         germinationRate = germinationRate,
         expectedStemsPerPlant = expectedStemsPerPlant,
-        daysToHarvest = daysToHarvest,
+        daysToHarvestMin = daysToHarvestMin,
     )
 
     // ── calculateRequirements with complete species data ───────────────────────
@@ -64,7 +64,7 @@ class ProductionTargetServiceTest {
         val species = makeSpecies(
             germinationRate = 75,
             expectedStemsPerPlant = 5,
-            daysToHarvest = 60,
+            daysToHarvestMin = 60,
         )
 
         whenever(repo.findById(1L)).thenReturn(target)
@@ -100,7 +100,7 @@ class ProductionTargetServiceTest {
         val species = makeSpecies(
             germinationRate = null,    // missing
             expectedStemsPerPlant = 10,
-            daysToHarvest = 90,
+            daysToHarvestMin = 90,
         )
 
         whenever(repo.findById(1L)).thenReturn(target)
@@ -114,16 +114,16 @@ class ProductionTargetServiceTest {
             "Expected a warning about missing germinationRate, got: ${result.warnings}")
     }
 
-    // ── calculateRequirements with missing daysToHarvest ──────────────────────
+    // ── calculateRequirements with missing daysToHarvestMin ─────────────────────
 
     @Test
-    fun `calculateRequirements uses default daysToHarvest and adds warning when daysToHarvest is null`() {
+    fun `calculateRequirements uses default daysToHarvest and adds warning when daysToHarvestMin is null`() {
         val startDate = LocalDate.of(2025, 7, 1)
         val target = makeTarget(startDate = startDate)
         val species = makeSpecies(
             germinationRate = 80,
             expectedStemsPerPlant = 5,
-            daysToHarvest = null,   // missing
+            daysToHarvestMin = null,   // missing
         )
 
         whenever(repo.findById(1L)).thenReturn(target)
@@ -160,7 +160,7 @@ class ProductionTargetServiceTest {
         val species = makeSpecies(
             germinationRate = 70,
             expectedStemsPerPlant = 7,
-            daysToHarvest = 30,
+            daysToHarvestMin = 30,
         )
 
         whenever(repo.findById(1L)).thenReturn(target)

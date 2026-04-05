@@ -164,11 +164,13 @@ fun AddSpeciesScreen(
     var imageBackUrl by remember { mutableStateOf<String?>(null) }
     var frontBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
     var backBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
-    var daysToSprout by remember { mutableStateOf("") }
-    var daysToHarvest by remember { mutableStateOf("") }
-    var germinationTimeDays by remember { mutableStateOf("") }
+    var germinationTimeDaysMin by remember { mutableStateOf("") }
+    var germinationTimeDaysMax by remember { mutableStateOf("") }
+    var daysToHarvestMin by remember { mutableStateOf("") }
+    var daysToHarvestMax by remember { mutableStateOf("") }
     var sowingDepthMm by remember { mutableStateOf("") }
-    var heightCm by remember { mutableStateOf("") }
+    var heightCmMin by remember { mutableStateOf("") }
+    var heightCmMax by remember { mutableStateOf("") }
     var selectedBloomMonths by remember { mutableStateOf<Set<Int>>(emptySet()) }
     var selectedSowingMonths by remember { mutableStateOf<Set<Int>>(emptySet()) }
     var germinationRate by remember { mutableStateOf("") }
@@ -205,11 +207,13 @@ fun AddSpeciesScreen(
             scientificName = s.scientificName ?: ""
             imageFrontUrl = s.imageFrontUrl
             imageBackUrl = s.imageBackUrl
-            daysToSprout = s.daysToSprout?.toString() ?: ""
-            daysToHarvest = s.daysToHarvest?.toString() ?: ""
-            germinationTimeDays = s.germinationTimeDays?.toString() ?: ""
+            germinationTimeDaysMin = s.germinationTimeDaysMin?.toString() ?: ""
+            germinationTimeDaysMax = s.germinationTimeDaysMax?.toString() ?: ""
+            daysToHarvestMin = s.daysToHarvestMin?.toString() ?: ""
+            daysToHarvestMax = s.daysToHarvestMax?.toString() ?: ""
             sowingDepthMm = s.sowingDepthMm?.toString() ?: ""
-            heightCm = s.heightCm?.toString() ?: ""
+            heightCmMin = s.heightCmMin?.toString() ?: ""
+            heightCmMax = s.heightCmMax?.toString() ?: ""
             selectedBloomMonths = s.bloomMonths.toSet()
             selectedSowingMonths = s.sowingMonths.toSet()
             germinationRate = s.germinationRate?.toString() ?: ""
@@ -223,26 +227,25 @@ fun AddSpeciesScreen(
 
     val hasData = commonName.isNotBlank() || variantName.isNotBlank() || variantNameSv.isNotBlank() || scientificName.isNotBlank() ||
         imageFrontBase64 != null || imageBackBase64 != null || imageFrontUrl != null || imageBackUrl != null ||
-        daysToSprout.isNotBlank() || daysToHarvest.isNotBlank() ||
-        germinationTimeDays.isNotBlank() || sowingDepthMm.isNotBlank() ||
-        heightCm.isNotBlank() || selectedBloomMonths.isNotEmpty() || selectedSowingMonths.isNotEmpty() || germinationRate.isNotBlank()
+        germinationTimeDaysMin.isNotBlank() || germinationTimeDaysMax.isNotBlank() ||
+        daysToHarvestMin.isNotBlank() || daysToHarvestMax.isNotBlank() || sowingDepthMm.isNotBlank() ||
+        heightCmMin.isNotBlank() || heightCmMax.isNotBlank() || selectedBloomMonths.isNotEmpty() || selectedSowingMonths.isNotEmpty() || germinationRate.isNotBlank()
 
     // Validation: all fields mandatory except group and tags
     val isCommonNameValid = commonName.isNotBlank()
     val isScientificNameValid = scientificName.isNotBlank()
-    val isDaysToSproutValid = daysToSprout.toIntOrNull() != null
-    val isDaysToHarvestValid = daysToHarvest.toIntOrNull() != null
-    val isGerminationTimeDaysValid = germinationTimeDays.toIntOrNull() != null
+    val isGerminationTimeDaysMinValid = germinationTimeDaysMin.toIntOrNull() != null
+    val isDaysToHarvestMinValid = daysToHarvestMin.toIntOrNull() != null
     val isSowingDepthMmValid = sowingDepthMm.toIntOrNull() != null
-    val isHeightCmValid = heightCm.toIntOrNull() != null
+    val isHeightCmMinValid = heightCmMin.toIntOrNull() != null
     val isGerminationRateValid = germinationRate.toIntOrNull() != null
     val isPositionsValid = selectedPositions.isNotEmpty()
     val isSoilsValid = selectedSoils.isNotEmpty()
     val isFrontPhotoValid = imageFrontBase64 != null || imageFrontUrl != null
 
     val isFormValid = isCommonNameValid && isScientificNameValid &&
-        isDaysToSproutValid && isDaysToHarvestValid && isGerminationTimeDaysValid &&
-        isSowingDepthMmValid && isHeightCmValid &&
+        isGerminationTimeDaysMinValid && isDaysToHarvestMinValid &&
+        isSowingDepthMmValid && isHeightCmMinValid &&
         isGerminationRateValid && isPositionsValid && isSoilsValid && isFrontPhotoValid
 
     // In edit mode, check whether anything actually changed from the original
@@ -254,11 +257,13 @@ fun AddSpeciesScreen(
         (scientificName) != (existing.scientificName ?: "") ||
         imageFrontBase64 != null ||
         imageBackBase64 != null ||
-        daysToSprout != (existing.daysToSprout?.toString() ?: "") ||
-        daysToHarvest != (existing.daysToHarvest?.toString() ?: "") ||
-        germinationTimeDays != (existing.germinationTimeDays?.toString() ?: "") ||
+        germinationTimeDaysMin != (existing.germinationTimeDaysMin?.toString() ?: "") ||
+        germinationTimeDaysMax != (existing.germinationTimeDaysMax?.toString() ?: "") ||
+        daysToHarvestMin != (existing.daysToHarvestMin?.toString() ?: "") ||
+        daysToHarvestMax != (existing.daysToHarvestMax?.toString() ?: "") ||
         sowingDepthMm != (existing.sowingDepthMm?.toString() ?: "") ||
-        heightCm != (existing.heightCm?.toString() ?: "") ||
+        heightCmMin != (existing.heightCmMin?.toString() ?: "") ||
+        heightCmMax != (existing.heightCmMax?.toString() ?: "") ||
         selectedBloomMonths != existing.bloomMonths.toSet() ||
         selectedSowingMonths != existing.sowingMonths.toSet() ||
         germinationRate != (existing.germinationRate?.toString() ?: "") ||
@@ -299,11 +304,13 @@ fun AddSpeciesScreen(
         if (variantName.isBlank()) info.variantName?.let { variantName = it }
         if (variantNameSv.isBlank()) info.variantNameSv?.let { variantNameSv = it }
         if (scientificName.isBlank()) info.scientificName?.let { scientificName = it }
-        info.daysToSprout?.let { daysToSprout = it.toString() }
-        info.daysToHarvest?.let { daysToHarvest = it.toString() }
-        info.germinationTimeDays?.let { germinationTimeDays = it.toString() }
+        info.germinationTimeDaysMin?.let { germinationTimeDaysMin = it.toString() }
+        info.germinationTimeDaysMax?.let { germinationTimeDaysMax = it.toString() }
+        info.daysToHarvestMin?.let { daysToHarvestMin = it.toString() }
+        info.daysToHarvestMax?.let { daysToHarvestMax = it.toString() }
         info.sowingDepthMm?.let { sowingDepthMm = it.toString() }
-        info.heightCm?.let { heightCm = it.toString() }
+        info.heightCmMin?.let { heightCmMin = it.toString() }
+        info.heightCmMax?.let { heightCmMax = it.toString() }
         info.bloomMonths?.let { selectedBloomMonths = it.toSet() }
         info.sowingMonths?.let { selectedSowingMonths = it.toSet() }
         info.germinationRate?.let { germinationRate = it.toString() }
@@ -531,36 +538,47 @@ fun AddSpeciesScreen(
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
-                        value = daysToSprout,
-                        onValueChange = { daysToSprout = it.filter { c -> c.isDigit() } },
-                        label = { Text(stringResource(R.string.days_to_sprout) + " *") },
+                        value = germinationTimeDaysMin,
+                        onValueChange = { germinationTimeDaysMin = it.filter { c -> c.isDigit() } },
+                        label = { Text(stringResource(R.string.germination_time_days) + " min *") },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true,
-                        isError = showValidationErrors && !isDaysToSproutValid
+                        isError = showValidationErrors && !isGerminationTimeDaysMinValid
                     )
                     OutlinedTextField(
-                        value = daysToHarvest,
-                        onValueChange = { daysToHarvest = it.filter { c -> c.isDigit() } },
-                        label = { Text(stringResource(R.string.days_to_harvest) + " *") },
+                        value = germinationTimeDaysMax,
+                        onValueChange = { germinationTimeDaysMax = it.filter { c -> c.isDigit() } },
+                        label = { Text(stringResource(R.string.germination_time_days) + " max") },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true,
-                        isError = showValidationErrors && !isDaysToHarvestValid
                     )
                 }
             }
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
-                        value = germinationTimeDays,
-                        onValueChange = { germinationTimeDays = it.filter { c -> c.isDigit() } },
-                        label = { Text(stringResource(R.string.germination_time_days) + " *") },
+                        value = daysToHarvestMin,
+                        onValueChange = { daysToHarvestMin = it.filter { c -> c.isDigit() } },
+                        label = { Text(stringResource(R.string.days_to_harvest) + " min *") },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true,
-                        isError = showValidationErrors && !isGerminationTimeDaysValid
+                        isError = showValidationErrors && !isDaysToHarvestMinValid
                     )
+                    OutlinedTextField(
+                        value = daysToHarvestMax,
+                        onValueChange = { daysToHarvestMax = it.filter { c -> c.isDigit() } },
+                        label = { Text(stringResource(R.string.days_to_harvest) + " max") },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true,
+                    )
+                }
+            }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = sowingDepthMm,
                         onValueChange = { sowingDepthMm = it.filter { c -> c.isDigit() } },
@@ -573,15 +591,25 @@ fun AddSpeciesScreen(
                 }
             }
             item {
-                OutlinedTextField(
-                    value = heightCm,
-                    onValueChange = { heightCm = it.filter { c -> c.isDigit() } },
-                    label = { Text(stringResource(R.string.height_cm) + " *") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true,
-                    isError = showValidationErrors && !isHeightCmValid
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = heightCmMin,
+                        onValueChange = { heightCmMin = it.filter { c -> c.isDigit() } },
+                        label = { Text(stringResource(R.string.height_cm) + " min *") },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true,
+                        isError = showValidationErrors && !isHeightCmMinValid
+                    )
+                    OutlinedTextField(
+                        value = heightCmMax,
+                        onValueChange = { heightCmMax = it.filter { c -> c.isDigit() } },
+                        label = { Text(stringResource(R.string.height_cm) + " max") },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true,
+                    )
+                }
             }
 
             // Sowing months
@@ -840,13 +868,15 @@ fun AddSpeciesScreen(
                                     scientificName = scientificName,
                                     imageFrontBase64 = imageFrontBase64,
                                     imageBackBase64 = imageBackBase64,
-                                    daysToSprout = daysToSprout.toIntOrNull(),
-                                    daysToHarvest = daysToHarvest.toIntOrNull(),
-                                    germinationTimeDays = germinationTimeDays.toIntOrNull(),
+                                    germinationTimeDaysMin = germinationTimeDaysMin.toIntOrNull(),
+                                    germinationTimeDaysMax = germinationTimeDaysMax.toIntOrNull(),
+                                    daysToHarvestMin = daysToHarvestMin.toIntOrNull(),
+                                    daysToHarvestMax = daysToHarvestMax.toIntOrNull(),
                                     sowingDepthMm = sowingDepthMm.toIntOrNull(),
                                     growingPositions = selectedPositions.toList(),
                                     soils = selectedSoils.toList(),
-                                    heightCm = heightCm.toIntOrNull(),
+                                    heightCmMin = heightCmMin.toIntOrNull(),
+                                    heightCmMax = heightCmMax.toIntOrNull(),
                                     bloomMonths = selectedBloomMonths.sorted(),
                                     sowingMonths = selectedSowingMonths.sorted(),
                                     germinationRate = germinationRate.toIntOrNull(),
@@ -864,13 +894,15 @@ fun AddSpeciesScreen(
                                     scientificName = scientificName,
                                     imageFrontBase64 = imageFrontBase64,
                                     imageBackBase64 = imageBackBase64,
-                                    daysToSprout = daysToSprout.toIntOrNull(),
-                                    daysToHarvest = daysToHarvest.toIntOrNull(),
-                                    germinationTimeDays = germinationTimeDays.toIntOrNull(),
+                                    germinationTimeDaysMin = germinationTimeDaysMin.toIntOrNull(),
+                                    germinationTimeDaysMax = germinationTimeDaysMax.toIntOrNull(),
+                                    daysToHarvestMin = daysToHarvestMin.toIntOrNull(),
+                                    daysToHarvestMax = daysToHarvestMax.toIntOrNull(),
                                     sowingDepthMm = sowingDepthMm.toIntOrNull(),
                                     growingPositions = selectedPositions.toList(),
                                     soils = selectedSoils.toList(),
-                                    heightCm = heightCm.toIntOrNull(),
+                                    heightCmMin = heightCmMin.toIntOrNull(),
+                                    heightCmMax = heightCmMax.toIntOrNull(),
                                     bloomMonths = selectedBloomMonths.sorted(),
                                     sowingMonths = selectedSowingMonths.sorted(),
                                     germinationRate = germinationRate.toIntOrNull(),

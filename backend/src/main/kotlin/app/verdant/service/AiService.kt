@@ -255,32 +255,33 @@ Return ONLY valid JSON (no markdown, no explanation) with the following fields. 
 {
   "commonName": "Common name of the plant in $langName",
   "scientificName": "Scientific/Latin name if visible",
-  "germinationTimeDays": 14,
+  "germinationTimeDaysMin": 10,
+  "germinationTimeDaysMax": 14,
   "sowingDepthMm": 10,
-  "heightCm": 60,
+  "heightCmMin": 50,
+  "heightCmMax": 60,
   "bloomMonths": [6, 7, 8],
   "sowingMonths": [3, 4, 5],
   "germinationRate": 85,
   "growingPositions": ["SUNNY"],
   "soils": ["LOAMY", "SANDY"],
-  "daysToSprout": 10,
-  "daysToHarvest": 90,
+  "daysToHarvestMin": 80,
+  "daysToHarvestMax": 90,
   "cropBox": {"x": 0.1, "y": 0.05, "width": 0.8, "height": 0.9}
 }
 
 Field details:
 - commonName: the plant's common name in $langName
 - scientificName: Latin/botanical name if shown
-- germinationTimeDays: how many days for seeds to germinate
+- germinationTimeDaysMin/Max: range for how many days seeds take to germinate (use same value for both if only one number given)
 - sowingDepthMm: sowing depth in millimeters
-- heightCm: expected plant height in centimeters
+- heightCmMin/Max: expected plant height range in centimeters (use same value for both if only one number given)
 - bloomMonths: array of month numbers (1=Jan, 2=Feb, ..., 12=Dec) when the plant blooms
 - sowingMonths: array of month numbers when the plant should be sown
 - germinationRate: germination rate as a percentage integer (e.g. 85 for 85%)
 - growingPositions: array of one or more of SUNNY, PARTIALLY_SUNNY, SHADOWY
 - soils: array of one or more of CLAY, SANDY, LOAMY, CHALKY, PEATY, SILTY
-- daysToSprout: number of days until sprouting
-- daysToHarvest: number of days from sowing to harvest
+- daysToHarvestMin/Max: range for number of days from sowing to harvest (use same value for both if only one number given)
 - cropBox: if a seed package is visible, the bounding box as normalized coordinates (0.0-1.0 fractions of image width/height) — x, y are top-left corner. Omit if the entire image is the subject.
 
 Only use the exact enum values listed above for growingPositions and soils. If unsure, use empty arrays."""

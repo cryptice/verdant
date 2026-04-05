@@ -103,13 +103,15 @@ export interface Species {
   imageFrontUrl: string | null
   imageBackUrl: string | null
   photos: SpeciesPhoto[]
-  daysToSprout: number | null
-  daysToHarvest: number | null
-  germinationTimeDays: number | null
+  germinationTimeDaysMin: number | null
+  germinationTimeDaysMax: number | null
+  daysToHarvestMin: number | null
+  daysToHarvestMax: number | null
   sowingDepthMm: number | null
   growingPositions: string[]
   soils: string[]
-  heightCm: number | null
+  heightCmMin: number | null
+  heightCmMax: number | null
   bloomMonths: number[]
   sowingMonths: number[]
   germinationRate: number | null
@@ -138,13 +140,15 @@ export interface CreateSpeciesRequest {
   scientificName?: string | null
   imageFrontBase64?: string | null
   imageBackBase64?: string | null
-  daysToSprout?: number | null
-  daysToHarvest?: number | null
-  germinationTimeDays?: number | null
+  germinationTimeDaysMin?: number | null
+  germinationTimeDaysMax?: number | null
+  daysToHarvestMin?: number | null
+  daysToHarvestMax?: number | null
   sowingDepthMm?: number | null
   growingPositions?: string[]
   soils?: string[]
-  heightCm?: number | null
+  heightCmMin?: number | null
+  heightCmMax?: number | null
   bloomMonths?: number[]
   sowingMonths?: number[]
   germinationRate?: number | null
@@ -164,13 +168,15 @@ export interface UpdateSpeciesRequest {
   scientificName?: string | null
   imageFrontBase64?: string | null
   imageBackBase64?: string | null
-  daysToSprout?: number | null
-  daysToHarvest?: number | null
-  germinationTimeDays?: number | null
+  germinationTimeDaysMin?: number | null
+  germinationTimeDaysMax?: number | null
+  daysToHarvestMin?: number | null
+  daysToHarvestMax?: number | null
   sowingDepthMm?: number | null
   growingPositions?: string[] | null
   soils?: string[] | null
-  heightCm?: number | null
+  heightCmMin?: number | null
+  heightCmMax?: number | null
   bloomMonths?: number[]
   sowingMonths?: number[]
   germinationRate?: number | null
@@ -193,16 +199,18 @@ export interface ExtractedFrontInfo {
 export interface ExtractedSpeciesInfo {
   commonName: string | null
   scientificName: string | null
-  germinationTimeDays: number | null
+  germinationTimeDaysMin: number | null
+  germinationTimeDaysMax: number | null
   sowingDepthMm: number | null
-  heightCm: number | null
+  heightCmMin: number | null
+  heightCmMax: number | null
   bloomMonths: number[] | null
   sowingMonths: number[] | null
   germinationRate: number | null
   growingPositions: string[] | null
   soils: string[] | null
-  daysToSprout: number | null
-  daysToHarvest: number | null
+  daysToHarvestMin: number | null
+  daysToHarvestMax: number | null
 }
 
 export interface SpeciesExportProvider {
@@ -221,13 +229,15 @@ export interface SpeciesExportEntry {
   scientificName: string | null
   imageFrontUrl: string | null
   imageBackUrl: string | null
-  daysToSprout: number | null
-  daysToHarvest: number | null
-  germinationTimeDays: number | null
+  germinationTimeDaysMin: number | null
+  germinationTimeDaysMax: number | null
+  daysToHarvestMin: number | null
+  daysToHarvestMax: number | null
   sowingDepthMm: number | null
   growingPositions: string[]
   soils: string[]
-  heightCm: number | null
+  heightCmMin: number | null
+  heightCmMax: number | null
   bloomMonths: number[]
   sowingMonths: number[]
   germinationRate: number | null

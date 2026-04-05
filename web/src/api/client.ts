@@ -126,8 +126,9 @@ export interface PlantEventResponse {
 export interface SpeciesResponse {
   id: number; commonName: string; commonNameSv?: string
   variantName?: string; variantNameSv?: string; scientificName?: string
-  daysToSprout?: number; daysToHarvest?: number; sowingDepthMm?: number
-  heightCm?: number; germinationRate?: number
+  germinationTimeDaysMin?: number; germinationTimeDaysMax?: number
+  daysToHarvestMin?: number; daysToHarvestMax?: number; sowingDepthMm?: number
+  heightCmMin?: number; heightCmMax?: number; germinationRate?: number
   bloomMonths?: string; sowingMonths?: string
   costPerSeedSek?: number; expectedStemsPerPlant?: number
   expectedVaseLifeDays?: number; plantType?: string; defaultUnitType?: string

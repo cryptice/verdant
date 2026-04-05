@@ -105,10 +105,10 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """INSERT INTO species (org_id, common_name, variant_name, common_name_sv, variant_name_sv, scientific_name, image_front_url, image_back_url,
-                   days_to_sprout, days_to_harvest, germination_time_days, sowing_depth_mm,
-                   growing_positions, soils, height_cm, bloom_months, sowing_months, germination_rate,
+                   germination_time_days_min, germination_time_days_max, days_to_harvest_min, days_to_harvest_max, sowing_depth_mm,
+                   growing_positions, soils, height_cm_min, height_cm_max, bloom_months, sowing_months, germination_rate,
                    cost_per_seed_sek, expected_stems_per_plant, expected_vase_life_days, plant_type, default_unit_type, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 if (species.orgId != null) ps.setLong(1, species.orgId) else ps.setNull(1, java.sql.Types.BIGINT)
@@ -119,21 +119,23 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 ps.setString(6, species.scientificName)
                 ps.setString(7, species.imageFrontUrl)
                 ps.setString(8, species.imageBackUrl)
-                ps.setObject(9, species.daysToSprout)
-                ps.setObject(10, species.daysToHarvest)
-                ps.setObject(11, species.germinationTimeDays)
-                ps.setObject(12, species.sowingDepthMm)
-                ps.setString(13, species.growingPositions.takeIf { it.isNotEmpty() }?.joinToString(",") { it.name })
-                ps.setString(14, species.soils.takeIf { it.isNotEmpty() }?.joinToString(",") { it.name })
-                ps.setObject(15, species.heightCm)
-                ps.setString(16, species.bloomMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
-                ps.setString(17, species.sowingMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
-                ps.setObject(18, species.germinationRate)
-                ps.setObject(19, species.costPerSeedSek)
-                ps.setObject(20, species.expectedStemsPerPlant)
-                ps.setObject(21, species.expectedVaseLifeDays)
-                ps.setString(22, species.plantType.name)
-                ps.setString(23, species.defaultUnitType.name)
+                ps.setObject(9, species.germinationTimeDaysMin)
+                ps.setObject(10, species.germinationTimeDaysMax)
+                ps.setObject(11, species.daysToHarvestMin)
+                ps.setObject(12, species.daysToHarvestMax)
+                ps.setObject(13, species.sowingDepthMm)
+                ps.setString(14, species.growingPositions.takeIf { it.isNotEmpty() }?.joinToString(",") { it.name })
+                ps.setString(15, species.soils.takeIf { it.isNotEmpty() }?.joinToString(",") { it.name })
+                ps.setObject(16, species.heightCmMin)
+                ps.setObject(17, species.heightCmMax)
+                ps.setString(18, species.bloomMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
+                ps.setString(19, species.sowingMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
+                ps.setObject(20, species.germinationRate)
+                ps.setObject(21, species.costPerSeedSek)
+                ps.setObject(22, species.expectedStemsPerPlant)
+                ps.setObject(23, species.expectedVaseLifeDays)
+                ps.setString(24, species.plantType.name)
+                ps.setString(25, species.defaultUnitType.name)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -148,8 +150,8 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
             conn.prepareStatement(
                 """UPDATE species SET common_name = ?, variant_name = ?, common_name_sv = ?, variant_name_sv = ?, scientific_name = ?,
                    image_front_url = ?, image_back_url = ?,
-                   days_to_sprout = ?, days_to_harvest = ?, germination_time_days = ?,
-                   sowing_depth_mm = ?, growing_positions = ?, soils = ?, height_cm = ?,
+                   germination_time_days_min = ?, germination_time_days_max = ?, days_to_harvest_min = ?, days_to_harvest_max = ?,
+                   sowing_depth_mm = ?, growing_positions = ?, soils = ?, height_cm_min = ?, height_cm_max = ?,
                    bloom_months = ?, sowing_months = ?, germination_rate = ?,
                    cost_per_seed_sek = ?, expected_stems_per_plant = ?, expected_vase_life_days = ?, plant_type = ?, default_unit_type = ?
                    WHERE id = ?"""
@@ -161,22 +163,24 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 ps.setString(5, species.scientificName)
                 ps.setString(6, species.imageFrontUrl)
                 ps.setString(7, species.imageBackUrl)
-                ps.setObject(8, species.daysToSprout)
-                ps.setObject(9, species.daysToHarvest)
-                ps.setObject(10, species.germinationTimeDays)
-                ps.setObject(11, species.sowingDepthMm)
-                ps.setString(12, species.growingPositions.takeIf { it.isNotEmpty() }?.joinToString(",") { it.name })
-                ps.setString(13, species.soils.takeIf { it.isNotEmpty() }?.joinToString(",") { it.name })
-                ps.setObject(14, species.heightCm)
-                ps.setString(15, species.bloomMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
-                ps.setString(16, species.sowingMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
-                ps.setObject(17, species.germinationRate)
-                ps.setObject(18, species.costPerSeedSek)
-                ps.setObject(19, species.expectedStemsPerPlant)
-                ps.setObject(20, species.expectedVaseLifeDays)
-                ps.setString(21, species.plantType.name)
-                ps.setString(22, species.defaultUnitType.name)
-                ps.setLong(23, species.id!!)
+                ps.setObject(8, species.germinationTimeDaysMin)
+                ps.setObject(9, species.germinationTimeDaysMax)
+                ps.setObject(10, species.daysToHarvestMin)
+                ps.setObject(11, species.daysToHarvestMax)
+                ps.setObject(12, species.sowingDepthMm)
+                ps.setString(13, species.growingPositions.takeIf { it.isNotEmpty() }?.joinToString(",") { it.name })
+                ps.setString(14, species.soils.takeIf { it.isNotEmpty() }?.joinToString(",") { it.name })
+                ps.setObject(15, species.heightCmMin)
+                ps.setObject(16, species.heightCmMax)
+                ps.setString(17, species.bloomMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
+                ps.setString(18, species.sowingMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
+                ps.setObject(19, species.germinationRate)
+                ps.setObject(20, species.costPerSeedSek)
+                ps.setObject(21, species.expectedStemsPerPlant)
+                ps.setObject(22, species.expectedVaseLifeDays)
+                ps.setString(23, species.plantType.name)
+                ps.setString(24, species.defaultUnitType.name)
+                ps.setLong(25, species.id!!)
                 ps.executeUpdate()
             }
         }
@@ -280,13 +284,15 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
         scientificName = getString("scientific_name"),
         imageFrontUrl = getString("image_front_url"),
         imageBackUrl = getString("image_back_url"),
-        daysToSprout = getObject("days_to_sprout") as? Int,
-        daysToHarvest = getObject("days_to_harvest") as? Int,
-        germinationTimeDays = getObject("germination_time_days") as? Int,
+        germinationTimeDaysMin = getObject("germination_time_days_min") as? Int,
+        germinationTimeDaysMax = getObject("germination_time_days_max") as? Int,
+        daysToHarvestMin = getObject("days_to_harvest_min") as? Int,
+        daysToHarvestMax = getObject("days_to_harvest_max") as? Int,
         sowingDepthMm = getObject("sowing_depth_mm") as? Int,
         growingPositions = getString("growing_positions")?.split(",")?.map { GrowingPosition.valueOf(it) } ?: emptyList(),
         soils = getString("soils")?.split(",")?.map { SoilType.valueOf(it) } ?: emptyList(),
-        heightCm = getObject("height_cm") as? Int,
+        heightCmMin = getObject("height_cm_min") as? Int,
+        heightCmMax = getObject("height_cm_max") as? Int,
         bloomMonths = getString("bloom_months")?.split(",")?.map { it.toInt() } ?: emptyList(),
         sowingMonths = getString("sowing_months")?.split(",")?.map { it.toInt() } ?: emptyList(),
         germinationRate = getObject("germination_rate") as? Int,

@@ -25,13 +25,15 @@ data class SpeciesResponse(
     val imageFrontUrl: String?,
     val imageBackUrl: String?,
     val photos: List<SpeciesPhotoResponse>,
-    val daysToSprout: Int?,
-    val daysToHarvest: Int?,
-    val germinationTimeDays: Int?,
+    val germinationTimeDaysMin: Int?,
+    val germinationTimeDaysMax: Int?,
+    val daysToHarvestMin: Int?,
+    val daysToHarvestMax: Int?,
     val sowingDepthMm: Int?,
     val growingPositions: List<GrowingPosition>,
     val soils: List<SoilType>,
-    val heightCm: Int?,
+    val heightCmMin: Int?,
+    val heightCmMax: Int?,
     val bloomMonths: List<Int>,
     val sowingMonths: List<Int>,
     val germinationRate: Int?,
@@ -61,11 +63,13 @@ data class CreateSpeciesRequest(
     val imageFrontBase64: String? = null,
     val imageBackBase64: String? = null,
     @field:Min(0)
-    val daysToSprout: Int? = null,
+    val germinationTimeDaysMin: Int? = null,
     @field:Min(0)
-    val daysToHarvest: Int? = null,
+    val germinationTimeDaysMax: Int? = null,
     @field:Min(0)
-    val germinationTimeDays: Int? = null,
+    val daysToHarvestMin: Int? = null,
+    @field:Min(0)
+    val daysToHarvestMax: Int? = null,
     @field:Min(0)
     val sowingDepthMm: Int? = null,
     @field:Size(max = 100)
@@ -73,7 +77,9 @@ data class CreateSpeciesRequest(
     @field:Size(max = 100)
     val soils: List<SoilType>? = null,
     @field:Min(0)
-    val heightCm: Int? = null,
+    val heightCmMin: Int? = null,
+    @field:Min(0)
+    val heightCmMax: Int? = null,
     @field:Size(max = 12)
     val bloomMonths: List<Int>? = null,
     @field:Size(max = 12)
@@ -108,11 +114,13 @@ data class UpdateSpeciesRequest(
     val imageFrontBase64: String? = null,
     val imageBackBase64: String? = null,
     @field:Min(0)
-    val daysToSprout: Int? = null,
+    val germinationTimeDaysMin: Int? = null,
     @field:Min(0)
-    val daysToHarvest: Int? = null,
+    val germinationTimeDaysMax: Int? = null,
     @field:Min(0)
-    val germinationTimeDays: Int? = null,
+    val daysToHarvestMin: Int? = null,
+    @field:Min(0)
+    val daysToHarvestMax: Int? = null,
     @field:Min(0)
     val sowingDepthMm: Int? = null,
     @field:Size(max = 100)
@@ -120,7 +128,9 @@ data class UpdateSpeciesRequest(
     @field:Size(max = 100)
     val soils: List<SoilType>? = null,
     @field:Min(0)
-    val heightCm: Int? = null,
+    val heightCmMin: Int? = null,
+    @field:Min(0)
+    val heightCmMax: Int? = null,
     @field:Size(max = 12)
     val bloomMonths: List<Int>? = null,
     @field:Size(max = 12)
@@ -262,13 +272,15 @@ data class SpeciesExportEntry(
     val scientificName: String? = null,
     val imageFrontUrl: String? = null,
     val imageBackUrl: String? = null,
-    val daysToSprout: Int? = null,
-    val daysToHarvest: Int? = null,
-    val germinationTimeDays: Int? = null,
+    val germinationTimeDaysMin: Int? = null,
+    val germinationTimeDaysMax: Int? = null,
+    val daysToHarvestMin: Int? = null,
+    val daysToHarvestMax: Int? = null,
     val sowingDepthMm: Int? = null,
     val growingPositions: List<String> = emptyList(),
     val soils: List<String> = emptyList(),
-    val heightCm: Int? = null,
+    val heightCmMin: Int? = null,
+    val heightCmMax: Int? = null,
     val bloomMonths: List<Int> = emptyList(),
     val sowingMonths: List<Int> = emptyList(),
     val germinationRate: Int? = null,
@@ -301,15 +313,17 @@ data class ExtractedFrontInfo(
 data class ExtractedSpeciesInfo(
     val commonName: String? = null,
     val scientificName: String? = null,
-    val germinationTimeDays: Int? = null,
+    val germinationTimeDaysMin: Int? = null,
+    val germinationTimeDaysMax: Int? = null,
     val sowingDepthMm: Int? = null,
-    val heightCm: Int? = null,
+    val heightCmMin: Int? = null,
+    val heightCmMax: Int? = null,
     val bloomMonths: List<Int>? = null,
     val sowingMonths: List<Int>? = null,
     val germinationRate: Int? = null,
     val growingPositions: List<String>? = null,
     val soils: List<String>? = null,
-    val daysToSprout: Int? = null,
-    val daysToHarvest: Int? = null,
+    val daysToHarvestMin: Int? = null,
+    val daysToHarvestMax: Int? = null,
     val cropBox: CropBox? = null,
 )
