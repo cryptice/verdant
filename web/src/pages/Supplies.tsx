@@ -6,7 +6,7 @@ import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 
-const CATEGORIES = ['SOIL', 'POT', 'FERTILIZER', 'TRAY', 'LABEL', 'TOOL', 'OTHER'] as const
+const CATEGORIES = ['SOIL', 'POT', 'FERTILIZER', 'TRAY', 'LABEL', 'OTHER'] as const
 const UNITS = ['COUNT', 'LITERS', 'KILOGRAMS', 'GRAMS', 'METERS', 'PACKETS'] as const
 
 const UNITS_BY_CATEGORY: Record<string, string[]> = {
