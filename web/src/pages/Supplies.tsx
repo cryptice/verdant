@@ -428,8 +428,6 @@ export function Supplies() {
   if (error) return <ErrorDisplay error={error} onRetry={() => { refetchTypes(); refetchBatches() }} />
 
   const grouped = groupByCategory(types ?? [], batches ?? [], t)
-  const hasData = (types ?? []).length > 0
-
   return (
     <div>
       <PageHeader
@@ -439,23 +437,8 @@ export function Supplies() {
       />
 
       <div className="px-4 py-4">
-
-        {!hasData && (
-          <div className="bg-accent-light/50 border border-accent/15 rounded-2xl px-6 py-6 text-center">
-            <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3">
-              <span className="text-xl">📦</span>
-            </div>
-            <p className="font-semibold text-text-primary">{t('supplies.noSupplies')}</p>
-            <p className="text-sm text-text-secondary mt-1">{t('supplies.noTypes')}</p>
-            <button onClick={() => { setMutError(null); setShowNewType(true) }} className="btn-primary mt-4">
-              {t('supplies.newType')}
-            </button>
-          </div>
-        )}
-
-        {hasData && CATEGORIES.map(cat => {
-          const items = grouped.get(cat)
-          if (!items || items.length === 0) return null
+        {CATEGORIES.map(cat => {
+          const items = grouped.get(cat) ?? []
           return (
             <div key={cat} className="mb-6">
               <div className="flex items-center justify-between mb-2">
@@ -492,7 +475,10 @@ export function Supplies() {
                   {t('supplies.addCategoryType', { category: t(`supplyCategory.${cat}`).toLowerCase() })}
                 </button>
               </div>
-              <div className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">
+              {items.length === 0 && (
+                <p className="text-xs text-text-muted italic py-1">{t('supplies.noBatches')}</p>
+              )}
+              {items.length > 0 && <div className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">
                 {items.map((item, idx) => (
                   <div key={item.type.id}>
                     {idx > 0 && <div className="border-t border-divider" />}
@@ -622,7 +608,7 @@ export function Supplies() {
                       )})()}
                   </div>
                 ))}
-              </div>
+              </div>}
             </div>
           )
         })}
