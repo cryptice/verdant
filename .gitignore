@@ -6,6 +6,9 @@
 .gradle/
 build/
 
+# Kotlin
+backend/.kotlin/
+
 # Node
 node_modules/
 dist/
