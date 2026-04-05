@@ -452,10 +452,10 @@ export function Supplies() {
                   {t(`supplyCategory.${cat}`)}
                 </h2>
                 <button
-                  onClick={() => { resetBatchForm(); setMutError(null); setAddBatchCategoryFilter(cat); setShowAddBatch(true) }}
+                  onClick={() => { resetTypeForm(); setTypeCategory(cat); setTypeUnit(DEFAULT_UNIT[cat] ?? 'COUNT'); setMutError(null); setShowNewType(true) }}
                   className="text-xs text-accent hover:underline cursor-pointer"
                 >
-                  {t('common.add')}
+                  {t('supplies.addType')}
                 </button>
               </div>
               <div className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">

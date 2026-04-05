@@ -1095,6 +1095,7 @@
     "type": "Typ",
     "purchaseDate": "Inköpsdatum",
     "total": "Totalt",
+    "addType": "Lägg till typ",
     "showUsed": "Visa förbrukade",
     "packageCost": "Paketkostnad",
     "packageSize": "Paketstorlek",

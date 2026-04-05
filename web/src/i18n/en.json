@@ -1095,6 +1095,7 @@
     "type": "Type",
     "purchaseDate": "Purchase date",
     "total": "Total",
+    "addType": "Add supply type",
     "showUsed": "Show used",
     "packageCost": "Package cost",
     "packageSize": "Package size",
