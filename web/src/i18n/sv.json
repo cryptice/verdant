@@ -1095,6 +1095,7 @@
     "type": "Typ",
     "purchaseDate": "Inköpsdatum",
     "total": "Totalt",
+    "showUsed": "Visa förbrukade",
     "packageCost": "Paketkostnad",
     "packageSize": "Paketstorlek",
     "packageCount": "Antal paket",

@@ -270,6 +270,7 @@ export function Supplies() {
 
   // Expanded type rows
   const [expanded, setExpanded] = useState<Set<number>>(new Set())
+  const [showUsed, setShowUsed] = useState(false)
   const toggleExpand = (typeId: number) => {
     setExpanded(prev => {
       const next = new Set(prev)
@@ -513,12 +514,21 @@ export function Supplies() {
                         </button>
                       </div>
                     </button>
-                    {expanded.has(item.type.id) && (
+                    {expanded.has(item.type.id) && (() => {
+                      const visibleBatches = showUsed ? item.batches : item.batches.filter(b => b.quantity > 0)
+                      const hasUsed = item.batches.some(b => b.quantity === 0)
+                      return (
                       <div className="border-t border-divider bg-surface">
-                        {item.batches.length === 0 && (
+                        {hasUsed && (
+                          <label className="flex items-center gap-2 px-4 py-2 text-xs text-text-secondary cursor-pointer">
+                            <input type="checkbox" checked={showUsed} onChange={e => setShowUsed(e.target.checked)} className="rounded" />
+                            {t('supplies.showUsed')}
+                          </label>
+                        )}
+                        {visibleBatches.length === 0 && (
                           <p className="px-4 py-3 text-sm text-text-muted italic">{t('supplies.noBatches')}</p>
                         )}
-                        {item.batches.map(batch => {
+                        {visibleBatches.map(batch => {
                           const seasonName = seasons?.find(s => s.id === batch.seasonId)?.name
                           return (
                             <div key={batch.id} className="flex items-center justify-between px-4 py-2.5 border-t border-divider first:border-0">
@@ -574,7 +584,7 @@ export function Supplies() {
                           )
                         })}
                       </div>
-                    )}
+                      )})()}
                   </div>
                 ))}
               </div>
