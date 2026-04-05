@@ -198,6 +198,7 @@ function CategoryPropertyFields({
   const set = (key: string, value: unknown) => onChange({ ...props, [key]: value })
   const numVal = (key: string) => (props[key] != null ? String(props[key]) : '')
   const onBlur = (key: string) => setBlurred(prev => new Set(prev).add(key))
+  const onFocus = (key: string) => setBlurred(prev => { const next = new Set(prev); next.delete(key); return next })
   const showWarn = (key: string) => blurred.has(key)
 
   switch (category) {
@@ -229,17 +230,17 @@ function CategoryPropertyFields({
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="field-label">{t('supplies.heightMm')} *</label>
-              <input type="number" className="input w-full" value={numVal('heightMm')} onChange={e => set('heightMm', e.target.value ? Number(e.target.value) : undefined)} onBlur={() => onBlur('heightMm')} />
+              <input type="number" className="input w-full" value={numVal('heightMm')} onChange={e => set('heightMm', e.target.value ? Number(e.target.value) : undefined)} onFocus={() => onFocus('heightMm')} onBlur={() => onBlur('heightMm')} />
               {showWarn('heightMm') && <Warning message={mmWarning(props.heightMm, t('supplies.height'), 20, 1000, t)} />}
             </div>
             <div>
               <label className="field-label">{t('supplies.widthMm')} *</label>
-              <input type="number" className="input w-full" value={numVal('widthMm')} onChange={e => set('widthMm', e.target.value ? Number(e.target.value) : undefined)} onBlur={() => onBlur('widthMm')} />
+              <input type="number" className="input w-full" value={numVal('widthMm')} onChange={e => set('widthMm', e.target.value ? Number(e.target.value) : undefined)} onFocus={() => onFocus('widthMm')} onBlur={() => onBlur('widthMm')} />
               {showWarn('widthMm') && <Warning message={mmWarning(props.widthMm, t('supplies.width'), 20, 1000, t)} />}
             </div>
             <div>
               <label className="field-label">{t('supplies.depthMm')} *</label>
-              <input type="number" className="input w-full" value={numVal('depthMm')} onChange={e => set('depthMm', e.target.value ? Number(e.target.value) : undefined)} onBlur={() => onBlur('depthMm')} />
+              <input type="number" className="input w-full" value={numVal('depthMm')} onChange={e => set('depthMm', e.target.value ? Number(e.target.value) : undefined)} onFocus={() => onFocus('depthMm')} onBlur={() => onBlur('depthMm')} />
               {showWarn('depthMm') && <Warning message={mmWarning(props.depthMm, t('supplies.depth'), 20, 1000, t)} />}
             </div>
           </div>
@@ -272,17 +273,17 @@ function CategoryPropertyFields({
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="field-label">{t('supplies.lengthMm')}</label>
-              <input type="number" className="input w-full" value={numVal('lengthMm')} onChange={e => set('lengthMm', e.target.value ? Number(e.target.value) : undefined)} onBlur={() => onBlur('lengthMm')} />
+              <input type="number" className="input w-full" value={numVal('lengthMm')} onChange={e => set('lengthMm', e.target.value ? Number(e.target.value) : undefined)} onFocus={() => onFocus('lengthMm')} onBlur={() => onBlur('lengthMm')} />
               {showWarn('lengthMm') && <Warning message={mmWarning(props.lengthMm, t('supplies.length'), 50, 2000, t)} />}
             </div>
             <div>
               <label className="field-label">{t('supplies.widthMm')}</label>
-              <input type="number" className="input w-full" value={numVal('widthMm')} onChange={e => set('widthMm', e.target.value ? Number(e.target.value) : undefined)} onBlur={() => onBlur('widthMm')} />
+              <input type="number" className="input w-full" value={numVal('widthMm')} onChange={e => set('widthMm', e.target.value ? Number(e.target.value) : undefined)} onFocus={() => onFocus('widthMm')} onBlur={() => onBlur('widthMm')} />
               {showWarn('widthMm') && <Warning message={mmWarning(props.widthMm, t('supplies.width'), 50, 2000, t)} />}
             </div>
             <div>
               <label className="field-label">{t('supplies.volumePerPlugMl')}</label>
-              <input type="number" className="input w-full" value={numVal('volumePerPlugMl')} onChange={e => set('volumePerPlugMl', e.target.value ? Number(e.target.value) : undefined)} onBlur={() => onBlur('volumePerPlugMl')} />
+              <input type="number" className="input w-full" value={numVal('volumePerPlugMl')} onChange={e => set('volumePerPlugMl', e.target.value ? Number(e.target.value) : undefined)} onFocus={() => onFocus('volumePerPlugMl')} onBlur={() => onBlur('volumePerPlugMl')} />
               {showWarn('volumePerPlugMl') && <Warning message={mlWarning(props.volumePerPlugMl, 1, 500, t)} />}
             </div>
           </div>
@@ -298,12 +299,12 @@ function CategoryPropertyFields({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="field-label">{t('supplies.heightMm')}</label>
-              <input type="number" className="input w-full" value={numVal('heightMm')} onChange={e => set('heightMm', e.target.value ? Number(e.target.value) : undefined)} onBlur={() => onBlur('heightMm')} />
+              <input type="number" className="input w-full" value={numVal('heightMm')} onChange={e => set('heightMm', e.target.value ? Number(e.target.value) : undefined)} onFocus={() => onFocus('heightMm')} onBlur={() => onBlur('heightMm')} />
               {showWarn('heightMm') && <Warning message={mmWarning(props.heightMm, t('supplies.height'), 5, 300, t)} />}
             </div>
             <div>
               <label className="field-label">{t('supplies.widthMm')}</label>
-              <input type="number" className="input w-full" value={numVal('widthMm')} onChange={e => set('widthMm', e.target.value ? Number(e.target.value) : undefined)} onBlur={() => onBlur('widthMm')} />
+              <input type="number" className="input w-full" value={numVal('widthMm')} onChange={e => set('widthMm', e.target.value ? Number(e.target.value) : undefined)} onFocus={() => onFocus('widthMm')} onBlur={() => onBlur('widthMm')} />
               {showWarn('widthMm') && <Warning message={mmWarning(props.widthMm, t('supplies.width'), 5, 300, t)} />}
             </div>
           </div>
