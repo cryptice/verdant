@@ -102,6 +102,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
     { to: '/plants', label: t('nav.plants'), icon: '🌱' },
     { to: '/tasks', label: t('nav.tasks'), icon: '📋' },
     { to: '/seed-stock', label: t('nav.seeds'), icon: '🫘' },
+    { to: '/supplies', label: t('nav.supplies'), icon: '📦' },
     { to: '/successions', label: t('nav.successions'), icon: '🔄', advanced: true },
     { to: '/targets', label: t('nav.targets'), icon: '🎯', advanced: true },
     { to: '/calendar', label: t('nav.calendar'), icon: '📊', advanced: true },

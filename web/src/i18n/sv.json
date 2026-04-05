@@ -22,7 +22,8 @@
     "myListings": "Mina annonser",
     "myOrders": "Mina ordrar",
     "incomingOrders": "Inkommande ordrar",
-    "speciesGroups": "Artgrupper"
+    "speciesGroups": "Artgrupper",
+    "supplies": "Förnödenheter"
   },
   "common": {
     "cancel": "Avbryt",
@@ -1059,5 +1060,57 @@
     "groups": "Grupper",
     "tags": "Taggar",
     "providers": "Leverantörer"
+  },
+  "supplies": {
+    "title": "Förnödenheter",
+    "addBatch": "+ Lägg till parti",
+    "newType": "Ny förnödenhetstyp",
+    "editType": "Redigera typ",
+    "typeName": "Namn",
+    "category": "Kategori",
+    "unit": "Enhet",
+    "quantity": "Antal",
+    "cost": "Kostnad",
+    "season": "Säsong",
+    "notes": "Anteckningar",
+    "noBatches": "Inga partier",
+    "noTypes": "Inga typer skapade",
+    "noSupplies": "Inga förnödenheter ännu",
+    "selectType": "Välj förnödenhetstyp...",
+    "decrement": "Använd",
+    "decrementTitle": "Registrera användning",
+    "amount": "Använd mängd",
+    "properties": "Detaljer",
+    "shape": "Form",
+    "round": "Rund",
+    "square": "Fyrkantig",
+    "heightMm": "Höjd (mm)",
+    "widthMm": "Bredd (mm)",
+    "depthMm": "Djup (mm)",
+    "npk": "NPK",
+    "rows": "Rader",
+    "columns": "Kolumner",
+    "volumePerPlugMl": "Volym/plugg (ml)",
+    "material": "Material",
+    "type": "Typ",
+    "purchaseDate": "Inköpsdatum",
+    "total": "Totalt"
+  },
+  "supplyCategory": {
+    "SOIL": "Jord",
+    "POT": "Krukor",
+    "FERTILIZER": "Gödsel",
+    "TOOL": "Verktyg",
+    "LABEL": "Etiketter",
+    "TRAY": "Brätten",
+    "OTHER": "Övrigt"
+  },
+  "supplyUnit": {
+    "COUNT": "st",
+    "LITERS": "L",
+    "KILOGRAMS": "kg",
+    "GRAMS": "g",
+    "METERS": "m",
+    "PACKETS": "pkt"
   }
 }

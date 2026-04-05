@@ -34,6 +34,7 @@ import { OrgSettings } from './pages/OrgSettings'
 import { Guide } from './pages/Guide'
 import { MyListings } from './pages/MyListings'
 import { IncomingOrders } from './pages/IncomingOrders'
+import { Supplies } from './pages/Supplies'
 import { PrivacyPolicy } from './pages/PrivacyPolicy'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -81,6 +82,7 @@ export function App() {
         <Route path="task/new" element={<TaskForm />} />
         <Route path="task/:taskId/edit" element={<TaskForm />} />
         <Route path="seed-stock" element={<SeedInventory />} />
+        <Route path="supplies" element={<Supplies />} />
         <Route path="sow" element={<SowActivity />} />
         <Route path="species" element={<SpeciesList />} />
         <Route path="species-groups" element={<SpeciesGroups />} />

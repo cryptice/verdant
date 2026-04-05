@@ -320,6 +320,18 @@ export interface BedHistorySpecies {
   plantCount: number; totalStemsHarvested: number; status: string
 }
 
+export interface SupplyTypeResponse {
+  id: number; name: string; category: string; unit: string
+  properties: Record<string, unknown>; createdAt: string
+}
+
+export interface SupplyInventoryResponse {
+  id: number; supplyTypeId: number; supplyTypeName: string
+  category: string; unit: string; properties: Record<string, unknown>
+  quantity: number; costSek?: number; seasonId?: number
+  notes?: string; createdAt: string
+}
+
 // ── API ──
 
 export const api = {
@@ -533,6 +545,23 @@ export const api = {
     incomingOrders: () => apiRequest<MarketOrderResponse[]>('/api/market/orders/incoming'),
     getOrder: (id: number) => apiRequest<MarketOrderResponse>(`/api/market/orders/${id}`),
     updateOrderStatus: (id: number, status: string) => apiRequest<MarketOrderResponse>(`/api/market/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
+  },
+
+  supplies: {
+    types: () => apiRequest<SupplyTypeResponse[]>('/api/supplies/types'),
+    createType: (data: { name: string; category: string; unit: string; properties?: Record<string, unknown> }) =>
+      apiRequest<SupplyTypeResponse>('/api/supplies/types', { method: 'POST', body: JSON.stringify(data) }),
+    updateType: (id: number, data: Record<string, unknown>) =>
+      apiRequest<SupplyTypeResponse>(`/api/supplies/types/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteType: (id: number) => apiRequest<void>(`/api/supplies/types/${id}`, { method: 'DELETE' }),
+    list: () => apiRequest<SupplyInventoryResponse[]>('/api/supplies'),
+    create: (data: { supplyTypeId: number; quantity: number; costSek?: number; seasonId?: number; notes?: string }) =>
+      apiRequest<SupplyInventoryResponse>('/api/supplies', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: Record<string, unknown>) =>
+      apiRequest<SupplyInventoryResponse>(`/api/supplies/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    decrement: (id: number, quantity: number) =>
+      apiRequest<void>(`/api/supplies/${id}/decrement`, { method: 'POST', body: JSON.stringify({ quantity }) }),
+    delete: (id: number) => apiRequest<void>(`/api/supplies/${id}`, { method: 'DELETE' }),
   },
 
   analytics: {

@@ -22,7 +22,8 @@
     "myListings": "My Listings",
     "myOrders": "My Orders",
     "incomingOrders": "Incoming Orders",
-    "speciesGroups": "Species Groups"
+    "speciesGroups": "Species Groups",
+    "supplies": "Supplies"
   },
   "common": {
     "cancel": "Cancel",
@@ -1059,5 +1060,57 @@
     "groups": "Groups",
     "tags": "Tags",
     "providers": "Providers"
+  },
+  "supplies": {
+    "title": "Supplies",
+    "addBatch": "+ Add batch",
+    "newType": "New supply type",
+    "editType": "Edit supply type",
+    "typeName": "Name",
+    "category": "Category",
+    "unit": "Unit",
+    "quantity": "Quantity",
+    "cost": "Cost",
+    "season": "Season",
+    "notes": "Notes",
+    "noBatches": "No batches",
+    "noTypes": "No supply types yet",
+    "noSupplies": "No supplies yet",
+    "selectType": "Select supply type...",
+    "decrement": "Use",
+    "decrementTitle": "Record usage",
+    "amount": "Amount used",
+    "properties": "Details",
+    "shape": "Shape",
+    "round": "Round",
+    "square": "Square",
+    "heightMm": "Height (mm)",
+    "widthMm": "Width (mm)",
+    "depthMm": "Depth (mm)",
+    "npk": "NPK",
+    "rows": "Rows",
+    "columns": "Columns",
+    "volumePerPlugMl": "Volume/plug (ml)",
+    "material": "Material",
+    "type": "Type",
+    "purchaseDate": "Purchase date",
+    "total": "Total"
+  },
+  "supplyCategory": {
+    "SOIL": "Soil",
+    "POT": "Pots",
+    "FERTILIZER": "Fertilizer",
+    "TOOL": "Tools",
+    "LABEL": "Labels",
+    "TRAY": "Trays",
+    "OTHER": "Other"
+  },
+  "supplyUnit": {
+    "COUNT": "pcs",
+    "LITERS": "L",
+    "KILOGRAMS": "kg",
+    "GRAMS": "g",
+    "METERS": "m",
+    "PACKETS": "pkt"
   }
 }
