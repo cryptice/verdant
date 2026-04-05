@@ -358,7 +358,11 @@ export function Supplies() {
   }
 
   const selectedBatchType = (types ?? []).find(ty => ty.id === batchTypeId)
-  const isPackageMode = selectedBatchType && ['LITERS', 'KILOGRAMS', 'GRAMS'].includes(selectedBatchType.unit)
+  const PACKAGE_MODE_UNITS = ['LITERS', 'KILOGRAMS', 'GRAMS']
+  const PACKAGE_MODE_CATEGORIES = ['LABEL']
+  const isPackageMode = selectedBatchType && (
+    PACKAGE_MODE_UNITS.includes(selectedBatchType.unit) || PACKAGE_MODE_CATEGORIES.includes(selectedBatchType.category)
+  )
 
   // New type dialog
   const [showNewType, setShowNewType] = useState(false)
