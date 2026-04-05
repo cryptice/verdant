@@ -6,9 +6,10 @@ interface Props {
   breadcrumbs?: BreadcrumbItem[]
   editAction?: () => void
   action?: { label: string; onClick: () => void; 'data-onboarding'?: string }
+  secondaryAction?: { label: string; onClick: () => void }
 }
 
-export function PageHeader({ title, icon, breadcrumbs, editAction, action }: Props) {
+export function PageHeader({ title, icon, breadcrumbs, editAction, action, secondaryAction }: Props) {
   return (
     <div className="mb-6">
       {breadcrumbs && breadcrumbs.length > 0 && (
@@ -29,10 +30,19 @@ export function PageHeader({ title, icon, breadcrumbs, editAction, action }: Pro
             </svg>
           </button>
         )}
-        {action && (
-          <button onClick={action.onClick} className="btn-primary ml-auto" data-onboarding={action['data-onboarding']}>
-            {action.label}
-          </button>
+        {(secondaryAction || action) && (
+          <div className="flex gap-2 ml-auto">
+            {secondaryAction && (
+              <button onClick={secondaryAction.onClick} className="btn-secondary">
+                {secondaryAction.label}
+              </button>
+            )}
+            {action && (
+              <button onClick={action.onClick} className="btn-primary" data-onboarding={action['data-onboarding']}>
+                {action.label}
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>

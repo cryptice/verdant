@@ -405,14 +405,13 @@ export function Supplies() {
 
   return (
     <div>
-      <PageHeader title={t('supplies.title')} action={{ label: t('supplies.addBatch'), onClick: () => { setMutError(null); setShowAddBatch(true) } }} />
+      <PageHeader
+        title={t('supplies.title')}
+        secondaryAction={{ label: t('supplies.newType'), onClick: () => { setMutError(null); setShowNewType(true) } }}
+        action={{ label: t('common.add'), onClick: () => { setMutError(null); setShowAddBatch(true) } }}
+      />
 
       <div className="px-4 py-4">
-        <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => { setMutError(null); setShowNewType(true) }} className="text-sm text-accent hover:underline">
-            {t('supplies.newType')}
-          </button>
-        </div>
 
         {!hasData && (
           <div className="bg-accent-light/50 border border-accent/15 rounded-2xl px-6 py-6 text-center">
