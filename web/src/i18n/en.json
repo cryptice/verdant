@@ -1028,7 +1028,10 @@
     "remove": "Remove",
     "empty": "No species in this group",
     "noGroups": "No groups yet",
-    "addSpeciesPlaceholder": "Search to add species..."
+    "addSpeciesPlaceholder": "Search to add species...",
+    "nameLabel": "Group name",
+    "speciesLabel": "Species in group",
+    "deleteGroup": "Delete group"
   },
   "speciesDetail": {
     "basicInfo": "Basic Info",

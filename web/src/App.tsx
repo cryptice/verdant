@@ -19,6 +19,7 @@ import { SowActivity } from './pages/SowActivity'
 import { SpeciesList } from './pages/SpeciesList'
 import { SpeciesDetail } from './pages/SpeciesDetail'
 import { SpeciesGroups } from './pages/SpeciesGroups'
+import { SpeciesGroupEdit } from './pages/SpeciesGroupEdit'
 import { SeasonList } from './pages/SeasonList'
 import { CustomerList } from './pages/CustomerList'
 import { PestDiseaseLog } from './pages/PestDiseaseLog'
@@ -83,6 +84,7 @@ export function App() {
         <Route path="sow" element={<SowActivity />} />
         <Route path="species" element={<SpeciesList />} />
         <Route path="species-groups" element={<SpeciesGroups />} />
+        <Route path="species-groups/:id/edit" element={<SpeciesGroupEdit />} />
         <Route path="seasons" element={<SeasonList />} />
         <Route path="customers" element={<CustomerList />} />
         <Route path="pest-disease" element={<PestDiseaseLog />} />
