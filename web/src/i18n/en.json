@@ -1094,7 +1094,8 @@
     "material": "Material",
     "type": "Type",
     "purchaseDate": "Purchase date",
-    "total": "Total"
+    "total": "Total",
+    "pureTray": "Pure tray"
   },
   "supplyCategory": {
     "SOIL": "Soil",

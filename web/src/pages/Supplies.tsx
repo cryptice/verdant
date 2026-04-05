@@ -33,12 +33,56 @@ function formatUnit(quantity: number, unit: string, t: (key: string) => string):
   return `${quantity} ${t(`supplyUnit.${unit}`)}`
 }
 
+function deriveTypeName(category: string, properties: Record<string, unknown>, t: (key: string) => string): string {
+  const cat = t(`supplyCategory.${category}`)
+  const parts: string[] = []
+  switch (category) {
+    case 'SOIL':
+      if (properties.type) parts.push(String(properties.type))
+      break
+    case 'POT': {
+      const shape = properties.shape ? t(`supplies.${properties.shape}`) : ''
+      const dims = [properties.widthMm, properties.depthMm, properties.heightMm].filter(Boolean).join('x')
+      if (shape) parts.push(shape.toLowerCase())
+      if (dims) parts.push(`${dims} mm`)
+      break
+    }
+    case 'FERTILIZER':
+      if (properties.npk) parts.push(`NPK ${properties.npk}`)
+      break
+    case 'TRAY': {
+      const rows = properties.rows as number | undefined
+      const cols = properties.columns as number | undefined
+      if (rows != null && cols != null) {
+        parts.push(rows === 0 && cols === 0 ? t('supplies.pureTray') : `${rows}x${cols}`)
+      }
+      if (properties.volumePerPlugMl) parts.push(`${properties.volumePerPlugMl} ml`)
+      break
+    }
+    case 'LABEL': {
+      if (properties.material) parts.push(String(properties.material))
+      const dims = [properties.widthMm, properties.heightMm].filter(Boolean).join('x')
+      if (dims) parts.push(`${dims} mm`)
+      break
+    }
+    case 'TOOL':
+      if (properties.type) parts.push(String(properties.type))
+      break
+  }
+  return parts.length > 0 ? `${cat}, ${parts.join(' ')}` : cat
+}
+
+function displayTypeName(type: { name: string; category: string; properties: Record<string, unknown> }, t: (key: string) => string): string {
+  return type.name || deriveTypeName(type.category, type.properties, t)
+}
+
 function formatCost(costSek?: number): string {
   if (costSek == null) return ''
   return `${(costSek / 100).toFixed(2)} kr`
 }
 
 function formatTypeLabel(type: SupplyTypeResponse, t: (key: string) => string): string {
+  if (!type.name) return displayTypeName(type, t)
   const props = type.properties ?? {}
   switch (type.category) {
     case 'POT': {
@@ -301,7 +345,7 @@ export function Supplies() {
 
   const createTypeMut = useMutation({
     mutationFn: () => api.supplies.createType({
-      name: typeName,
+      name: typeName || undefined,
       category: typeCategory,
       unit: typeUnit,
       properties: Object.keys(typeProps).length > 0 ? typeProps : undefined,
@@ -579,7 +623,7 @@ export function Supplies() {
             <button onClick={() => { setShowNewType(false); resetTypeForm(); setMutError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
             <button
               onClick={() => createTypeMut.mutate()}
-              disabled={!typeName || !typeCategory || !typeUnit || createTypeMut.isPending}
+              disabled={!typeCategory || !typeUnit || createTypeMut.isPending}
               className="btn-primary text-sm"
             >
               {createTypeMut.isPending ? t('common.creating') : t('common.add')}
@@ -601,8 +645,13 @@ export function Supplies() {
             </select>
           </div>
           <div>
-            <label className="field-label">{t('supplies.typeName')} *</label>
-            <input className="input w-full" value={typeName} onChange={e => setTypeName(e.target.value)} />
+            <label className="field-label">{t('supplies.typeName')}</label>
+            <input
+              className="input w-full"
+              value={typeName}
+              onChange={e => setTypeName(e.target.value)}
+              placeholder={typeCategory ? deriveTypeName(typeCategory, typeProps, t) : t('common.optional')}
+            />
           </div>
           <div>
             <label className="field-label">{t('supplies.unit')} *</label>
@@ -631,7 +680,7 @@ export function Supplies() {
             <button onClick={() => { setEditType(null); setMutError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
             <button
               onClick={() => updateTypeMut.mutate()}
-              disabled={!editTypeName || !editTypeUnit || updateTypeMut.isPending}
+              disabled={!editTypeUnit || updateTypeMut.isPending}
               className="btn-primary text-sm"
             >
               {updateTypeMut.isPending ? t('common.saving') : t('common.save')}
@@ -641,8 +690,13 @@ export function Supplies() {
       >
         <div className="space-y-4">
           <div>
-            <label className="field-label">{t('supplies.typeName')} *</label>
-            <input className="input w-full" value={editTypeName} onChange={e => setEditTypeName(e.target.value)} />
+            <label className="field-label">{t('supplies.typeName')}</label>
+            <input
+              className="input w-full"
+              value={editTypeName}
+              onChange={e => setEditTypeName(e.target.value)}
+              placeholder={editType ? deriveTypeName(editType.category, editTypeProps, t) : t('common.optional')}
+            />
           </div>
           <div>
             <label className="field-label">{t('supplies.unit')} *</label>

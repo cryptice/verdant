@@ -1094,7 +1094,8 @@
     "material": "Material",
     "type": "Typ",
     "purchaseDate": "Inköpsdatum",
-    "total": "Totalt"
+    "total": "Totalt",
+    "pureTray": "Rent brätte"
   },
   "supplyCategory": {
     "SOIL": "Jord",

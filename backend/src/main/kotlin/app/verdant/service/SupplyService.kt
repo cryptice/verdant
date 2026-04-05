@@ -26,7 +26,7 @@ class SupplyService(
         val type = typeRepository.persist(
             SupplyType(
                 orgId = orgId,
-                name = request.name,
+                name = request.name ?: "",
                 category = request.category,
                 unit = request.unit,
                 properties = objectMapper.writeValueAsString(request.properties),
