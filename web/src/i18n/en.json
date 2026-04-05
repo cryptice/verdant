@@ -1107,6 +1107,13 @@
     "lengthMm": "Length (mm)",
     "nameHint": "Auto-filled from details if left unchanged"
   },
+  "soilTypes": {
+    "planting": "Planting Soil",
+    "sowing": "Sowing Soil",
+    "rhododendron": "Rhododendron Soil",
+    "rose": "Rose Soil",
+    "mediterranean": "Mediterranean Soil"
+  },
   "supplyCategory": {
     "SOIL": "Soil",
     "POT": "Pots",

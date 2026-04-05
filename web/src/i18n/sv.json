@@ -1107,6 +1107,13 @@
     "lengthMm": "Längd (mm)",
     "nameHint": "Fylls i automatiskt från detaljer om du inte ändrar"
   },
+  "soilTypes": {
+    "planting": "Plantjord",
+    "sowing": "Såjord",
+    "rhododendron": "Rhododendronjord",
+    "rose": "Rosjord",
+    "mediterranean": "Medelhavsjord"
+  },
   "supplyCategory": {
     "SOIL": "Jord",
     "POT": "Krukor",

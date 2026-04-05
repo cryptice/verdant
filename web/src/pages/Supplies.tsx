@@ -157,7 +157,14 @@ function CategoryPropertyFields({
       return (
         <div>
           <label className="field-label">{t('supplies.type')} *</label>
-          <input className="input w-full" value={(props.type as string) ?? ''} onChange={e => set('type', e.target.value)} />
+          <input className="input w-full" list="soil-types" value={(props.type as string) ?? ''} onChange={e => set('type', e.target.value)} />
+          <datalist id="soil-types">
+            <option value={t('soilTypes.planting')} />
+            <option value={t('soilTypes.sowing')} />
+            <option value={t('soilTypes.rhododendron')} />
+            <option value={t('soilTypes.rose')} />
+            <option value={t('soilTypes.mediterranean')} />
+          </datalist>
         </div>
       )
     case 'POT':
