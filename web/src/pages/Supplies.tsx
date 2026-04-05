@@ -83,9 +83,14 @@ function formatTypeLabel(type: SupplyTypeResponse, t: (key: string) => string): 
   const props = type.properties ?? {}
   switch (type.category) {
     case 'POT': {
+      const nameNorm = type.name.toLowerCase().replace(/\s/g, '')
       const shape = props.shape ? t(`supplies.${props.shape as string}`) : ''
       const dims = [props.widthMm, props.heightMm].filter(Boolean).join('x')
-      return `${type.name}${shape ? ` (${shape}` : ''}${dims ? `${shape ? ' ' : ' ('}${dims} mm` : ''}${shape || dims ? ')' : ''}`
+      const parts = [
+        shape && !nameNorm.includes(shape.toLowerCase()) ? shape : '',
+        dims && !nameNorm.includes(dims.replace(/\s/g, '')) ? `${dims} mm` : '',
+      ].filter(Boolean)
+      return parts.length > 0 ? `${type.name} (${parts.join(' ')})` : type.name
     }
     case 'TRAY': {
       const grid = props.rows && props.columns ? `${props.rows}x${props.columns}` : ''
