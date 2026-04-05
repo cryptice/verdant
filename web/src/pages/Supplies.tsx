@@ -288,8 +288,9 @@ export function Supplies() {
   const [batchSeasonId, setBatchSeasonId] = useState<number | ''>('')
   const [batchNotes, setBatchNotes] = useState('')
 
+  const activeSeason = seasons?.find(s => s.isActive)
   const resetBatchForm = () => {
-    setBatchTypeId(''); setBatchQuantity(''); setBatchCost(''); setBatchSeasonId(''); setBatchNotes('')
+    setBatchTypeId(''); setBatchQuantity(''); setBatchCost(''); setBatchSeasonId(activeSeason?.id ?? ''); setBatchNotes('')
   }
 
   // New type dialog
@@ -409,7 +410,7 @@ export function Supplies() {
       <PageHeader
         title={t('supplies.title')}
         secondaryAction={{ label: t('supplies.newType'), onClick: () => { setMutError(null); setShowNewType(true) } }}
-        action={{ label: t('common.add'), onClick: () => { setMutError(null); setAddBatchCategoryFilter(null); setShowAddBatch(true) } }}
+        action={{ label: t('common.add'), onClick: () => { resetBatchForm(); setMutError(null); setAddBatchCategoryFilter(null); setShowAddBatch(true) } }}
       />
 
       <div className="px-4 py-4">
@@ -437,7 +438,7 @@ export function Supplies() {
                   {t(`supplyCategory.${cat}`)}
                 </h2>
                 <button
-                  onClick={() => { setMutError(null); setAddBatchCategoryFilter(cat); setShowAddBatch(true) }}
+                  onClick={() => { resetBatchForm(); setMutError(null); setAddBatchCategoryFilter(cat); setShowAddBatch(true) }}
                   className="text-xs text-accent hover:underline cursor-pointer"
                 >
                   {t('common.add')}
@@ -464,6 +465,7 @@ export function Supplies() {
                           role="button"
                           onClick={e => {
                             e.stopPropagation()
+                            resetBatchForm()
                             setMutError(null)
                             setBatchTypeId(item.type.id)
                             setAddBatchCategoryFilter(null)
