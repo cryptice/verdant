@@ -1107,6 +1107,7 @@
       "OTHER": "Lägg till typ"
     },
     "showUsed": "Visa förbrukade",
+    "pricePerUnit": "Pris per st",
     "packageCost": "Paketkostnad",
     "packageSize": "Paketstorlek",
     "packageCount": "Antal paket",

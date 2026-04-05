@@ -750,7 +750,7 @@ export function Supplies() {
                     <input type="number" step="any" className="input w-full" value={batchQuantity} onChange={e => setBatchQuantity(e.target.value)} />
                   </div>
                   <div>
-                    <label className="field-label">{t('supplies.packageCost')} (kr)</label>
+                    <label className="field-label">{selectedBatchType?.unit === 'COUNT' ? t('supplies.pricePerUnit') : t('supplies.packageCost')} (kr)</label>
                     <input type="number" step="any" className="input w-full" value={batchCost} onChange={e => setBatchCost(e.target.value)} />
                   </div>
                 </div>

@@ -1107,6 +1107,7 @@
       "OTHER": "Add type"
     },
     "showUsed": "Show used",
+    "pricePerUnit": "Price per unit",
     "packageCost": "Package cost",
     "packageSize": "Package size",
     "packageCount": "Packages",
