@@ -162,6 +162,29 @@ function Warning({ message }: { message: string | null }) {
   return <p className="text-xs text-orange-600 mt-0.5">{message}</p>
 }
 
+function getRequiredFields(category: string): string[] {
+  switch (category) {
+    case 'SOIL': return ['type']
+    case 'POT': return ['shape', 'heightMm', 'widthMm', 'depthMm']
+    case 'FERTILIZER': return []
+    case 'TRAY': return ['rows', 'columns']
+    case 'LABEL': return []
+    default: return []
+  }
+}
+
+function arePropertiesValid(category: string, props: Record<string, unknown>): boolean {
+  const required = getRequiredFields(category)
+  for (const field of required) {
+    const val = props[field]
+    if (val == null || val === '') return false
+  }
+  if (category === 'FERTILIZER' && props.npk) {
+    if (!/^\d+-\d+-\d+$/.test(String(props.npk).trim())) return false
+  }
+  return true
+}
+
 function CategoryPropertyFields({
   category, props, onChange,
   t,
@@ -171,8 +194,11 @@ function CategoryPropertyFields({
   onChange: (p: Record<string, unknown>) => void
   t: (key: string) => string
 }) {
+  const [blurred, setBlurred] = useState<Set<string>>(new Set())
   const set = (key: string, value: unknown) => onChange({ ...props, [key]: value })
   const numVal = (key: string) => (props[key] != null ? String(props[key]) : '')
+  const onBlur = (key: string) => setBlurred(prev => new Set(prev).add(key))
+  const showWarn = (key: string) => blurred.has(key)
 
   switch (category) {
     case 'SOIL':
@@ -193,7 +219,7 @@ function CategoryPropertyFields({
       return (
         <>
           <div>
-            <label className="field-label">{t('supplies.shape')}</label>
+            <label className="field-label">{t('supplies.shape')} *</label>
             <select className="input w-full" value={(props.shape as string) ?? ''} onChange={e => set('shape', e.target.value)}>
               <option value="">{t('common.select')}</option>
               <option value="round">{t('supplies.round')}</option>
@@ -202,19 +228,19 @@ function CategoryPropertyFields({
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="field-label">{t('supplies.heightMm')}</label>
-              <input type="number" className="input w-full" value={numVal('heightMm')} onChange={e => set('heightMm', e.target.value ? Number(e.target.value) : undefined)} />
-              <Warning message={mmWarning(props.heightMm, t('supplies.height'), 20, 1000, t)} />
+              <label className="field-label">{t('supplies.heightMm')} *</label>
+              <input type="number" className="input w-full" value={numVal('heightMm')} onChange={e => set('heightMm', e.target.value ? Number(e.target.value) : undefined)} onBlur={() => onBlur('heightMm')} />
+              {showWarn('heightMm') && <Warning message={mmWarning(props.heightMm, t('supplies.height'), 20, 1000, t)} />}
             </div>
             <div>
-              <label className="field-label">{t('supplies.widthMm')}</label>
-              <input type="number" className="input w-full" value={numVal('widthMm')} onChange={e => set('widthMm', e.target.value ? Number(e.target.value) : undefined)} />
-              <Warning message={mmWarning(props.widthMm, t('supplies.width'), 20, 1000, t)} />
+              <label className="field-label">{t('supplies.widthMm')} *</label>
+              <input type="number" className="input w-full" value={numVal('widthMm')} onChange={e => set('widthMm', e.target.value ? Number(e.target.value) : undefined)} onBlur={() => onBlur('widthMm')} />
+              {showWarn('widthMm') && <Warning message={mmWarning(props.widthMm, t('supplies.width'), 20, 1000, t)} />}
             </div>
             <div>
-              <label className="field-label">{t('supplies.depthMm')}</label>
-              <input type="number" className="input w-full" value={numVal('depthMm')} onChange={e => set('depthMm', e.target.value ? Number(e.target.value) : undefined)} />
-              <Warning message={mmWarning(props.depthMm, t('supplies.depth'), 20, 1000, t)} />
+              <label className="field-label">{t('supplies.depthMm')} *</label>
+              <input type="number" className="input w-full" value={numVal('depthMm')} onChange={e => set('depthMm', e.target.value ? Number(e.target.value) : undefined)} onBlur={() => onBlur('depthMm')} />
+              {showWarn('depthMm') && <Warning message={mmWarning(props.depthMm, t('supplies.depth'), 20, 1000, t)} />}
             </div>
           </div>
         </>
@@ -235,29 +261,29 @@ function CategoryPropertyFields({
         <>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="field-label">{t('supplies.rows')}</label>
+              <label className="field-label">{t('supplies.rows')} *</label>
               <input type="number" className="input w-full" value={numVal('rows')} onChange={e => set('rows', e.target.value ? Number(e.target.value) : undefined)} />
             </div>
             <div>
-              <label className="field-label">{t('supplies.columns')}</label>
+              <label className="field-label">{t('supplies.columns')} *</label>
               <input type="number" className="input w-full" value={numVal('columns')} onChange={e => set('columns', e.target.value ? Number(e.target.value) : undefined)} />
             </div>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="field-label">{t('supplies.lengthMm')}</label>
-              <input type="number" className="input w-full" value={numVal('lengthMm')} onChange={e => set('lengthMm', e.target.value ? Number(e.target.value) : undefined)} />
-              <Warning message={mmWarning(props.lengthMm, t('supplies.length'), 50, 2000, t)} />
+              <input type="number" className="input w-full" value={numVal('lengthMm')} onChange={e => set('lengthMm', e.target.value ? Number(e.target.value) : undefined)} onBlur={() => onBlur('lengthMm')} />
+              {showWarn('lengthMm') && <Warning message={mmWarning(props.lengthMm, t('supplies.length'), 50, 2000, t)} />}
             </div>
             <div>
               <label className="field-label">{t('supplies.widthMm')}</label>
-              <input type="number" className="input w-full" value={numVal('widthMm')} onChange={e => set('widthMm', e.target.value ? Number(e.target.value) : undefined)} />
-              <Warning message={mmWarning(props.widthMm, t('supplies.width'), 50, 2000, t)} />
+              <input type="number" className="input w-full" value={numVal('widthMm')} onChange={e => set('widthMm', e.target.value ? Number(e.target.value) : undefined)} onBlur={() => onBlur('widthMm')} />
+              {showWarn('widthMm') && <Warning message={mmWarning(props.widthMm, t('supplies.width'), 50, 2000, t)} />}
             </div>
             <div>
               <label className="field-label">{t('supplies.volumePerPlugMl')}</label>
-              <input type="number" className="input w-full" value={numVal('volumePerPlugMl')} onChange={e => set('volumePerPlugMl', e.target.value ? Number(e.target.value) : undefined)} />
-              <Warning message={mlWarning(props.volumePerPlugMl, 1, 500, t)} />
+              <input type="number" className="input w-full" value={numVal('volumePerPlugMl')} onChange={e => set('volumePerPlugMl', e.target.value ? Number(e.target.value) : undefined)} onBlur={() => onBlur('volumePerPlugMl')} />
+              {showWarn('volumePerPlugMl') && <Warning message={mlWarning(props.volumePerPlugMl, 1, 500, t)} />}
             </div>
           </div>
         </>
@@ -272,13 +298,13 @@ function CategoryPropertyFields({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="field-label">{t('supplies.heightMm')}</label>
-              <input type="number" className="input w-full" value={numVal('heightMm')} onChange={e => set('heightMm', e.target.value ? Number(e.target.value) : undefined)} />
-              <Warning message={mmWarning(props.heightMm, t('supplies.height'), 5, 300, t)} />
+              <input type="number" className="input w-full" value={numVal('heightMm')} onChange={e => set('heightMm', e.target.value ? Number(e.target.value) : undefined)} onBlur={() => onBlur('heightMm')} />
+              {showWarn('heightMm') && <Warning message={mmWarning(props.heightMm, t('supplies.height'), 5, 300, t)} />}
             </div>
             <div>
               <label className="field-label">{t('supplies.widthMm')}</label>
-              <input type="number" className="input w-full" value={numVal('widthMm')} onChange={e => set('widthMm', e.target.value ? Number(e.target.value) : undefined)} />
-              <Warning message={mmWarning(props.widthMm, t('supplies.width'), 5, 300, t)} />
+              <input type="number" className="input w-full" value={numVal('widthMm')} onChange={e => set('widthMm', e.target.value ? Number(e.target.value) : undefined)} onBlur={() => onBlur('widthMm')} />
+              {showWarn('widthMm') && <Warning message={mmWarning(props.widthMm, t('supplies.width'), 5, 300, t)} />}
             </div>
           </div>
         </>
@@ -755,7 +781,7 @@ export function Supplies() {
             <button onClick={() => { setShowNewType(false); resetTypeForm(); setMutError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
             <button
               onClick={() => createTypeMut.mutate()}
-              disabled={!typeCategory || !typeUnit || createTypeMut.isPending}
+              disabled={!typeCategory || !typeUnit || !arePropertiesValid(typeCategory, typeProps) || createTypeMut.isPending}
               className="btn-primary text-sm"
             >
               {createTypeMut.isPending ? t('common.creating') : t('common.add')}
@@ -816,7 +842,7 @@ export function Supplies() {
             <button onClick={() => { setEditType(null); setMutError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
             <button
               onClick={() => updateTypeMut.mutate()}
-              disabled={!editTypeUnit || updateTypeMut.isPending}
+              disabled={!editTypeUnit || (editType ? !arePropertiesValid(editType.category, editTypeProps) : false) || updateTypeMut.isPending}
               className="btn-primary text-sm"
             >
               {updateTypeMut.isPending ? t('common.saving') : t('common.save')}
