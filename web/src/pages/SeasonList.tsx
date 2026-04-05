@@ -114,38 +114,44 @@ export function SeasonList() {
     <div data-onboarding="season-form" className="space-y-4">
       <div>
         <label className="field-label">{t('seasons.name')} *</label>
-        <input type="text" value={formName} onChange={e => setFormName(e.target.value)} placeholder="e.g. Spring 2026" className="input" />
+        <input type="text" value={formName} onChange={e => setFormName(e.target.value)} placeholder="e.g. Spring 2026" className="input w-full" />
       </div>
-      <div>
-        <label className="field-label">{t('seasons.year')} *</label>
-        <input type="number" value={formYear} onChange={e => {
-          const y = e.target.value
-          setFormYear(y)
-          if (y.length === 4) {
-            if (!formStartDate) setFormStartDate(`${y}-01-01`)
-            if (!formEndDate) setFormEndDate(`${y}-12-31`)
-          }
-        }} placeholder="e.g. 2026" className="input" />
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="field-label">{t('seasons.year')} *</label>
+          <input type="number" value={formYear} onChange={e => {
+            const y = e.target.value
+            setFormYear(y)
+            if (y.length === 4) {
+              if (!formStartDate) setFormStartDate(`${y}-01-01`)
+              if (!formEndDate) setFormEndDate(`${y}-12-31`)
+            }
+          }} placeholder="e.g. 2026" className="input w-full" />
+        </div>
       </div>
-      <div>
-        <label className="field-label">{t('seasons.startDate')}</label>
-        <input type="date" value={formStartDate} onChange={e => setFormStartDate(e.target.value)} className="input" />
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="field-label">{t('seasons.startDate')}</label>
+          <input type="date" value={formStartDate} onChange={e => setFormStartDate(e.target.value)} className="input w-full" />
+        </div>
+        <div>
+          <label className="field-label">{t('seasons.endDate')}</label>
+          <input type="date" value={formEndDate} onChange={e => setFormEndDate(e.target.value)} className="input w-full" />
+        </div>
       </div>
-      <div>
-        <label className="field-label">{t('seasons.endDate')}</label>
-        <input type="date" value={formEndDate} onChange={e => setFormEndDate(e.target.value)} className="input" />
-      </div>
-      <div>
-        <label className="field-label">{t('seasons.lastFrost')}</label>
-        <input type="date" value={formLastFrost} onChange={e => setFormLastFrost(e.target.value)} className="input" />
-      </div>
-      <div>
-        <label className="field-label">{t('seasons.firstFrost')}</label>
-        <input type="date" value={formFirstFrost} onChange={e => setFormFirstFrost(e.target.value)} className="input" />
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="field-label">{t('seasons.lastFrost')}</label>
+          <input type="date" value={formLastFrost} onChange={e => setFormLastFrost(e.target.value)} className="input w-full" />
+        </div>
+        <div>
+          <label className="field-label">{t('seasons.firstFrost')}</label>
+          <input type="date" value={formFirstFrost} onChange={e => setFormFirstFrost(e.target.value)} className="input w-full" />
+        </div>
       </div>
       <div>
         <label className="field-label">{t('seasons.notes')}</label>
-        <textarea value={formNotes} onChange={e => setFormNotes(e.target.value)} placeholder={t('common.optional')} rows={2} className="input" />
+        <textarea value={formNotes} onChange={e => setFormNotes(e.target.value)} placeholder={t('common.optional')} rows={2} className="input w-full" />
       </div>
       {formError && <p className="text-error text-sm">{formError}</p>}
     </div>
