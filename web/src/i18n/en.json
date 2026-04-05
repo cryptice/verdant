@@ -316,6 +316,7 @@
     "loadingGroupSpecies": "Loading species...",
     "newInGroup": "New in group:",
     "addFromGroup": "Add to task",
+    "addAllFromGroup": "Add all to task",
     "removedFromGroup": "No longer in group:"
   },
   "seasons": {

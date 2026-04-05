@@ -47,6 +47,11 @@ class ScheduledTaskResource(
         taskService.completePartially(id, request.speciesId, request.processedCount, orgContext.orgId)
 
     @POST
+    @Path("/{id}/species/{speciesId}")
+    fun addSpeciesToTask(@PathParam("id") id: Long, @PathParam("speciesId") speciesId: Long) =
+        taskService.addSpeciesToTask(id, speciesId, orgContext.orgId)
+
+    @POST
     @Path("/{id}/sync-group")
     fun syncWithGroup(@PathParam("id") id: Long) =
         taskService.syncTaskWithGroup(id, orgContext.orgId)

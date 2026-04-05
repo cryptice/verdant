@@ -45,6 +45,40 @@ function GroupedSpeciesLines({ grouped }: { grouped: Map<string, string[]> }) {
   )
 }
 
+function ClickableGroupedSpecies({ species, lang, onClickSpecies }: {
+  species: SpeciesResponse[]
+  lang: string
+  onClickSpecies: (speciesId: number) => void
+}) {
+  const grouped = new Map<string, { id: number; variant: string | undefined }[]>()
+  for (const s of species) {
+    const main = lang === 'sv' ? (s.commonNameSv ?? s.commonName) : s.commonName
+    const variant = lang === 'sv' ? (s.variantNameSv ?? s.variantName) : s.variantName
+    const list = grouped.get(main) ?? []
+    list.push({ id: s.id, variant: variant ?? undefined })
+    grouped.set(main, list)
+  }
+  return (
+    <div className="text-xs text-text-secondary mt-0.5 space-y-0.5">
+      {Array.from(grouped.entries()).map(([main, entries]) => (
+        <p key={main}>
+          {entries.some(e => !e.variant) ? (
+            <button onClick={() => entries.forEach(e => onClickSpecies(e.id))} className="cursor-pointer underline text-accent">{main}</button>
+          ) : (
+            <>{main}: </>
+          )}
+          {entries.filter(e => e.variant).map((e, i) => (
+            <span key={e.id}>
+              {i > 0 && ', '}
+              <button onClick={() => onClickSpecies(e.id)} className="cursor-pointer underline text-accent">{e.variant}</button>
+            </span>
+          ))}
+        </p>
+      ))}
+    </div>
+  )
+}
+
 export function TaskList() {
   const navigate = useNavigate()
   const qc = useQueryClient()
@@ -100,6 +134,12 @@ export function TaskList() {
 
   const syncMut = useMutation({
     mutationFn: (id: number) => api.tasks.syncGroup(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['tasks'] }) },
+  })
+
+  const addSpeciesMut = useMutation({
+    mutationFn: ({ taskId, speciesId }: { taskId: number; speciesId: number }) =>
+      api.tasks.addSpecies(taskId, speciesId),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['tasks'] }) },
   })
 
@@ -170,23 +210,33 @@ export function TaskList() {
                   {hasGroupDiff && addedToGroup.length > 0 && (
                     <div className="mt-1.5 border border-accent/30 rounded-lg px-2 py-1.5 bg-accent/5">
                       <p className="text-xs text-accent font-medium mb-0.5">{t('tasks.newInGroup')}</p>
-                      <GroupedSpeciesLines grouped={groupByMainName(
-                        addedToGroup.map(s => ({
-                          commonName: s.commonName,
-                          variantName: s.variantName ?? undefined,
-                          commonNameSv: s.commonNameSv ?? undefined,
-                          variantNameSv: s.variantNameSv ?? undefined,
-                        })),
-                        lang,
-                      )} />
-                      {!isCompleted && (
-                        <button
-                          onClick={() => syncMut.mutate(task.id)}
-                          disabled={syncMut.isPending}
-                          className="text-xs text-accent font-medium mt-1 cursor-pointer underline"
-                        >
-                          {syncMut.isPending ? t('common.saving') : t('tasks.addFromGroup')}
-                        </button>
+                      {!isCompleted ? (
+                        <>
+                          <ClickableGroupedSpecies
+                            species={addedToGroup}
+                            lang={lang}
+                            onClickSpecies={speciesId => addSpeciesMut.mutate({ taskId: task.id, speciesId })}
+                          />
+                          {addedToGroup.length > 1 && (
+                            <button
+                              onClick={() => syncMut.mutate(task.id)}
+                              disabled={syncMut.isPending}
+                              className="text-xs text-accent font-medium mt-1 cursor-pointer underline"
+                            >
+                              {syncMut.isPending ? t('common.saving') : t('tasks.addAllFromGroup')}
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <GroupedSpeciesLines grouped={groupByMainName(
+                          addedToGroup.map(s => ({
+                            commonName: s.commonName,
+                            variantName: s.variantName ?? undefined,
+                            commonNameSv: s.commonNameSv ?? undefined,
+                            variantNameSv: s.variantNameSv ?? undefined,
+                          })),
+                          lang,
+                        )} />
                       )}
                     </div>
                   )}

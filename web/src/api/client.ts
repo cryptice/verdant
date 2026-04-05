@@ -448,6 +448,8 @@ export const api = {
     complete: (id: number, speciesId: number, processedCount: number) =>
       apiRequest<void>(`/api/tasks/${id}/complete`, { method: 'POST', body: JSON.stringify({ speciesId, processedCount }) }),
     delete: (id: number) => apiRequest<void>(`/api/tasks/${id}`, { method: 'DELETE' }),
+    addSpecies: (id: number, speciesId: number) =>
+      apiRequest<ScheduledTaskResponse>(`/api/tasks/${id}/species/${speciesId}`, { method: 'POST' }),
     syncGroup: (id: number) => apiRequest<ScheduledTaskResponse>(`/api/tasks/${id}/sync-group`, { method: 'POST' }),
   },
 

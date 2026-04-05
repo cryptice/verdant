@@ -119,6 +119,13 @@ class ScheduledTaskService(
         return buildResponses(listOf(task)).first()
     }
 
+    fun addSpeciesToTask(taskId: Long, speciesId: Long, orgId: Long): ScheduledTaskResponse {
+        val task = checkOwnership(taskId, orgId)
+        speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
+        taskRepository.addAcceptableSpecies(taskId, speciesId)
+        return buildResponses(listOf(taskRepository.findById(taskId)!!)).first()
+    }
+
     fun syncTaskWithGroup(taskId: Long, orgId: Long): ScheduledTaskResponse {
         val task = checkOwnership(taskId, orgId)
         val groupId = task.originGroupId
