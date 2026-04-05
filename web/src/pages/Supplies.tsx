@@ -515,7 +515,8 @@ export function Supplies() {
                       </div>
                     </button>
                     {expanded.has(item.type.id) && (() => {
-                      const visibleBatches = showUsed ? item.batches : item.batches.filter(b => b.quantity > 0)
+                      const visibleBatches = (showUsed ? item.batches : item.batches.filter(b => b.quantity > 0))
+                        .slice().sort((a, b) => (a.quantity === 0 ? 1 : 0) - (b.quantity === 0 ? 1 : 0))
                       const hasUsed = item.batches.some(b => b.quantity === 0)
                       return (
                       <div className="border-t border-divider bg-surface">
