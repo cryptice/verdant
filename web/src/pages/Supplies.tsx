@@ -93,7 +93,8 @@ function formatTypeLabel(type: SupplyTypeResponse, t: (key: string) => string): 
     case 'TRAY': {
       const grid = props.rows && props.columns ? `${props.rows}x${props.columns}` : ''
       const vol = props.volumePerPlugMl ? `${props.volumePerPlugMl}ml` : ''
-      const extra = [grid, vol].filter(Boolean).join(' ')
+      const parts = [grid, vol].filter(p => p && !type.name.includes(p))
+      const extra = parts.join(' ')
       return extra ? `${type.name} (${extra})` : type.name
     }
     case 'FERTILIZER': {
