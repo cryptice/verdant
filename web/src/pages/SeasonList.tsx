@@ -33,13 +33,14 @@ export function SeasonList() {
   const [formLastFrost, setFormLastFrost] = useState('')
   const [formFirstFrost, setFormFirstFrost] = useState('')
   const [formNotes, setFormNotes] = useState('')
+  const [formActive, setFormActive] = useState(true)
 
   const [formError, setFormError] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const resetForm = () => {
     setFormName(''); setFormYear(''); setFormStartDate(''); setFormEndDate('')
-    setFormLastFrost(''); setFormFirstFrost(''); setFormNotes(''); setFormError(null)
+    setFormLastFrost(''); setFormFirstFrost(''); setFormNotes(''); setFormActive(true); setFormError(null)
   }
 
   const openAdd = () => {
@@ -69,6 +70,7 @@ export function SeasonList() {
     setFormLastFrost(s.lastFrostDate ?? '')
     setFormFirstFrost(s.firstFrostDate ?? '')
     setFormNotes(s.notes ?? '')
+    setFormActive(s.isActive)
     setFormError(null)
     setEditItem(s)
   }
@@ -82,6 +84,7 @@ export function SeasonList() {
       lastFrostDate: formLastFrost || undefined,
       firstFrostDate: formFirstFrost || undefined,
       notes: formNotes || undefined,
+      isActive: formActive,
     }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['seasons'] }); setShowAdd(false); resetForm(); completeStep('create_season') },
     onError: (err) => { setFormError(err instanceof Error ? err.message : String(err)) },
@@ -96,6 +99,7 @@ export function SeasonList() {
       lastFrostDate: formLastFrost || undefined,
       firstFrostDate: formFirstFrost || undefined,
       notes: formNotes || undefined,
+      isActive: formActive,
     }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['seasons'] }); setEditItem(null); resetForm() },
     onError: (err) => { setFormError(err instanceof Error ? err.message : String(err)) },
@@ -127,6 +131,12 @@ export function SeasonList() {
               if (!formEndDate) setFormEndDate(`${y}-12-31`)
             }
           }} placeholder="e.g. 2026" className="input w-full" />
+        </div>
+        <div className="flex items-end pb-1.5">
+          <label className="flex items-center gap-2 cursor-pointer text-sm">
+            <input type="checkbox" checked={formActive} onChange={e => setFormActive(e.target.checked)} className="rounded" />
+            {t('seasons.active')}
+          </label>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
