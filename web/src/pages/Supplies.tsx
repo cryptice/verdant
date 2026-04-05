@@ -209,8 +209,8 @@ function CategoryPropertyFields({
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="field-label">{t('supplies.heightMm')}</label>
-              <input type="number" className="input w-full" value={numVal('heightMm')} onChange={e => set('heightMm', e.target.value ? Number(e.target.value) : undefined)} />
+              <label className="field-label">{t('supplies.lengthMm')}</label>
+              <input type="number" className="input w-full" value={numVal('lengthMm')} onChange={e => set('lengthMm', e.target.value ? Number(e.target.value) : undefined)} />
             </div>
             <div>
               <label className="field-label">{t('supplies.widthMm')}</label>

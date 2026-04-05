@@ -1096,6 +1096,7 @@
     "purchaseDate": "Inköpsdatum",
     "total": "Totalt",
     "pureTray": "Rent brätte",
+    "lengthMm": "Längd (mm)",
     "nameHint": "Fylls i automatiskt från detaljer om du inte ändrar"
   },
   "supplyCategory": {

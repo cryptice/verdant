@@ -1096,6 +1096,7 @@
     "purchaseDate": "Purchase date",
     "total": "Total",
     "pureTray": "Pure tray",
+    "lengthMm": "Length (mm)",
     "nameHint": "Auto-filled from details if left unchanged"
   },
   "supplyCategory": {
