@@ -1096,6 +1096,10 @@
     "purchaseDate": "Purchase date",
     "total": "Total",
     "packageCost": "Package cost",
+    "packageSize": "Package size",
+    "packageCount": "Packages",
+    "pricePerPackage": "Price/package",
+    "totalSummary": "Total: {{quantity}} {{unit}}",
     "pureTray": "Pure tray",
     "lengthMm": "Length (mm)",
     "nameHint": "Auto-filled from details if left unchanged"

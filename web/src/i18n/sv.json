@@ -1096,6 +1096,10 @@
     "purchaseDate": "Inköpsdatum",
     "total": "Totalt",
     "packageCost": "Paketkostnad",
+    "packageSize": "Paketstorlek",
+    "packageCount": "Antal paket",
+    "pricePerPackage": "Pris/paket",
+    "totalSummary": "Totalt: {{quantity}} {{unit}}",
     "pureTray": "Rent brätte",
     "lengthMm": "Längd (mm)",
     "nameHint": "Fylls i automatiskt från detaljer om du inte ändrar"

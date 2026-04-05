@@ -284,14 +284,19 @@ export function Supplies() {
   const [addBatchCategoryFilter, setAddBatchCategoryFilter] = useState<string | null>(null)
   const [batchTypeId, setBatchTypeId] = useState<number | ''>('')
   const [batchQuantity, setBatchQuantity] = useState('')
+  const [batchPackageSize, setBatchPackageSize] = useState('')
+  const [batchPackageCount, setBatchPackageCount] = useState('')
   const [batchCost, setBatchCost] = useState('')
   const [batchSeasonId, setBatchSeasonId] = useState<number | ''>('')
   const [batchNotes, setBatchNotes] = useState('')
 
   const activeSeason = seasons?.find(s => s.isActive)
   const resetBatchForm = () => {
-    setBatchTypeId(''); setBatchQuantity(''); setBatchCost(''); setBatchSeasonId(activeSeason?.id ?? ''); setBatchNotes('')
+    setBatchTypeId(''); setBatchQuantity(''); setBatchPackageSize(''); setBatchPackageCount(''); setBatchCost(''); setBatchSeasonId(activeSeason?.id ?? ''); setBatchNotes('')
   }
+
+  const selectedBatchType = (types ?? []).find(ty => ty.id === batchTypeId)
+  const isPackageMode = selectedBatchType && ['LITERS', 'KILOGRAMS', 'GRAMS'].includes(selectedBatchType.unit)
 
   // New type dialog
   const [showNewType, setShowNewType] = useState(false)
@@ -335,13 +340,21 @@ export function Supplies() {
   }
 
   const createBatchMut = useMutation({
-    mutationFn: () => api.supplies.create({
-      supplyTypeId: batchTypeId as number,
-      quantity: Number(batchQuantity),
-      costSek: batchCost ? Math.round(Number(batchCost) * 100) : undefined,
-      seasonId: batchSeasonId !== '' ? batchSeasonId as number : undefined,
-      notes: batchNotes || undefined,
-    }),
+    mutationFn: () => {
+      const totalQuantity = isPackageMode
+        ? Number(batchPackageSize) * Number(batchPackageCount)
+        : Number(batchQuantity)
+      const totalCostSek = isPackageMode && batchCost
+        ? Math.round(Number(batchCost) * 100 * Number(batchPackageCount))
+        : batchCost ? Math.round(Number(batchCost) * 100) : undefined
+      return api.supplies.create({
+        supplyTypeId: batchTypeId as number,
+        quantity: totalQuantity,
+        costSek: totalCostSek,
+        seasonId: batchSeasonId !== '' ? batchSeasonId as number : undefined,
+        notes: batchNotes || undefined,
+      })
+    },
     onSuccess: () => { invalidate(); setShowAddBatch(false); resetBatchForm(); setMutError(null) },
     onError: (err) => setMutError(err instanceof Error ? err.message : String(err)),
   })
@@ -580,7 +593,7 @@ export function Supplies() {
             <button onClick={() => { setShowAddBatch(false); resetBatchForm(); setMutError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
             <button
               onClick={() => createBatchMut.mutate()}
-              disabled={!batchTypeId || !batchQuantity || createBatchMut.isPending}
+              disabled={!batchTypeId || (isPackageMode ? (!batchPackageSize || !batchPackageCount) : !batchQuantity) || createBatchMut.isPending}
               className="btn-primary text-sm"
             >
               {createBatchMut.isPending ? t('common.creating') : t('common.add')}
@@ -619,16 +632,46 @@ export function Supplies() {
                   })}
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="field-label">{t('supplies.quantity')} *</label>
-                  <input type="number" step="any" className="input w-full" value={batchQuantity} onChange={e => setBatchQuantity(e.target.value)} />
+              {isPackageMode ? (
+                <>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="field-label">{t('supplies.packageSize')} ({t(`supplyUnit.${selectedBatchType!.unit}`)})</label>
+                      <input type="number" step="any" className="input w-full" value={batchPackageSize} onChange={e => setBatchPackageSize(e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="field-label">{t('supplies.packageCount')} *</label>
+                      <input type="number" className="input w-full" value={batchPackageCount} onChange={e => setBatchPackageCount(e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="field-label">{t('supplies.pricePerPackage')} (kr)</label>
+                      <input type="number" step="any" className="input w-full" value={batchCost} onChange={e => setBatchCost(e.target.value)} />
+                    </div>
+                  </div>
+                  {Number(batchPackageSize) > 0 && Number(batchPackageCount) > 0 && (() => {
+                    const totalQty = Number(batchPackageSize) * Number(batchPackageCount)
+                    const unitLabel = t(`supplyUnit.${selectedBatchType!.unit}`)
+                    const totalCost = batchCost ? Number(batchCost) * Number(batchPackageCount) : 0
+                    return (
+                      <p className="text-xs text-text-secondary mt-1">
+                        {t('supplies.totalSummary', { quantity: totalQty % 1 === 0 ? totalQty : totalQty.toFixed(1), unit: unitLabel })}
+                        {totalCost > 0 && ` — ${totalCost.toFixed(2)} kr`}
+                      </p>
+                    )
+                  })()}
+                </>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="field-label">{t('supplies.quantity')} *</label>
+                    <input type="number" step="any" className="input w-full" value={batchQuantity} onChange={e => setBatchQuantity(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="field-label">{t('supplies.packageCost')} (kr)</label>
+                    <input type="number" step="any" className="input w-full" value={batchCost} onChange={e => setBatchCost(e.target.value)} />
+                  </div>
                 </div>
-                <div>
-                  <label className="field-label">{t('supplies.packageCost')} (kr)</label>
-                  <input type="number" step="any" className="input w-full" value={batchCost} onChange={e => setBatchCost(e.target.value)} />
-                </div>
-              </div>
+              )}
               <div>
                 <label className="field-label">{t('supplies.season')}</label>
                 <select className="input w-full" value={batchSeasonId} onChange={e => setBatchSeasonId(e.target.value ? Number(e.target.value) : '')}>
