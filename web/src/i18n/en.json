@@ -1114,6 +1114,14 @@
     "totalSummary": "Total: {{quantity}} {{unit}}",
     "pureTray": "Pure tray",
     "lengthMm": "Length (mm)",
+    "height": "Height",
+    "width": "Width",
+    "depth": "Depth",
+    "length": "Length",
+    "warnTooSmall": "{{value}} mm seems low for {{field}} — did you mean {{hint}}?",
+    "warnTooLarge": "{{value}} mm seems very large for {{field}}",
+    "warnVolumeTooSmall": "{{value}} ml seems very small for a plug",
+    "warnVolumeTooLarge": "{{value}} ml seems very large for a plug",
     "nameHint": "Auto-filled from details if left unchanged"
   },
   "soilTypes": {

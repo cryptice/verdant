@@ -141,6 +141,27 @@ function groupByCategory(
   return groups
 }
 
+function mmWarning(value: unknown, label: string, minMm: number, maxMm: number, t: (key: string, opts?: Record<string, unknown>) => string): string | null {
+  const v = Number(value)
+  if (!v || v <= 0) return null
+  if (v < minMm) return t('supplies.warnTooSmall', { field: label, value: v, hint: `${v * 10} mm` })
+  if (v > maxMm) return t('supplies.warnTooLarge', { field: label, value: v })
+  return null
+}
+
+function mlWarning(value: unknown, minMl: number, maxMl: number, t: (key: string, opts?: Record<string, unknown>) => string): string | null {
+  const v = Number(value)
+  if (!v || v <= 0) return null
+  if (v < minMl) return t('supplies.warnVolumeTooSmall', { value: v })
+  if (v > maxMl) return t('supplies.warnVolumeTooLarge', { value: v })
+  return null
+}
+
+function Warning({ message }: { message: string | null }) {
+  if (!message) return null
+  return <p className="text-xs text-orange-600 mt-0.5">{message}</p>
+}
+
 function CategoryPropertyFields({
   category, props, onChange,
   t,
@@ -183,14 +204,17 @@ function CategoryPropertyFields({
             <div>
               <label className="field-label">{t('supplies.heightMm')}</label>
               <input type="number" className="input w-full" value={numVal('heightMm')} onChange={e => set('heightMm', e.target.value ? Number(e.target.value) : undefined)} />
+              <Warning message={mmWarning(props.heightMm, t('supplies.height'), 20, 1000, t)} />
             </div>
             <div>
               <label className="field-label">{t('supplies.widthMm')}</label>
               <input type="number" className="input w-full" value={numVal('widthMm')} onChange={e => set('widthMm', e.target.value ? Number(e.target.value) : undefined)} />
+              <Warning message={mmWarning(props.widthMm, t('supplies.width'), 20, 1000, t)} />
             </div>
             <div>
               <label className="field-label">{t('supplies.depthMm')}</label>
               <input type="number" className="input w-full" value={numVal('depthMm')} onChange={e => set('depthMm', e.target.value ? Number(e.target.value) : undefined)} />
+              <Warning message={mmWarning(props.depthMm, t('supplies.depth'), 20, 1000, t)} />
             </div>
           </div>
         </>
@@ -219,14 +243,17 @@ function CategoryPropertyFields({
             <div>
               <label className="field-label">{t('supplies.lengthMm')}</label>
               <input type="number" className="input w-full" value={numVal('lengthMm')} onChange={e => set('lengthMm', e.target.value ? Number(e.target.value) : undefined)} />
+              <Warning message={mmWarning(props.lengthMm, t('supplies.length'), 50, 2000, t)} />
             </div>
             <div>
               <label className="field-label">{t('supplies.widthMm')}</label>
               <input type="number" className="input w-full" value={numVal('widthMm')} onChange={e => set('widthMm', e.target.value ? Number(e.target.value) : undefined)} />
+              <Warning message={mmWarning(props.widthMm, t('supplies.width'), 50, 2000, t)} />
             </div>
             <div>
               <label className="field-label">{t('supplies.volumePerPlugMl')}</label>
               <input type="number" className="input w-full" value={numVal('volumePerPlugMl')} onChange={e => set('volumePerPlugMl', e.target.value ? Number(e.target.value) : undefined)} />
+              <Warning message={mlWarning(props.volumePerPlugMl, 1, 500, t)} />
             </div>
           </div>
         </>
@@ -242,10 +269,12 @@ function CategoryPropertyFields({
             <div>
               <label className="field-label">{t('supplies.heightMm')}</label>
               <input type="number" className="input w-full" value={numVal('heightMm')} onChange={e => set('heightMm', e.target.value ? Number(e.target.value) : undefined)} />
+              <Warning message={mmWarning(props.heightMm, t('supplies.height'), 5, 300, t)} />
             </div>
             <div>
               <label className="field-label">{t('supplies.widthMm')}</label>
               <input type="number" className="input w-full" value={numVal('widthMm')} onChange={e => set('widthMm', e.target.value ? Number(e.target.value) : undefined)} />
+              <Warning message={mmWarning(props.widthMm, t('supplies.width'), 5, 300, t)} />
             </div>
           </div>
         </>
