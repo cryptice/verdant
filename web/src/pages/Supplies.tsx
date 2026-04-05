@@ -294,12 +294,13 @@ export function Supplies() {
   // New type dialog
   const [showNewType, setShowNewType] = useState(false)
   const [typeName, setTypeName] = useState('')
+  const [typeNameEdited, setTypeNameEdited] = useState(false)
   const [typeCategory, setTypeCategory] = useState('')
   const [typeUnit, setTypeUnit] = useState('')
   const [typeProps, setTypeProps] = useState<Record<string, unknown>>({})
 
   const resetTypeForm = () => {
-    setTypeName(''); setTypeCategory(''); setTypeUnit(''); setTypeProps({})
+    setTypeName(''); setTypeCategory(''); setTypeUnit(''); setTypeProps({}); setTypeNameEdited(false)
   }
 
   // Edit type dialog
@@ -345,7 +346,7 @@ export function Supplies() {
 
   const createTypeMut = useMutation({
     mutationFn: () => api.supplies.createType({
-      name: typeName || undefined,
+      name: typeName || deriveTypeName(typeCategory, typeProps, t),
       category: typeCategory,
       unit: typeUnit,
       properties: Object.keys(typeProps).length > 0 ? typeProps : undefined,
@@ -639,6 +640,7 @@ export function Supplies() {
               setTypeCategory(cat)
               setTypeProps({})
               setTypeUnit(cat ? (DEFAULT_UNIT[cat] ?? 'COUNT') : '')
+              if (!typeNameEdited) setTypeName(cat ? deriveTypeName(cat, {}, t) : '')
             }}>
               <option value="">{t('common.select')}</option>
               {CATEGORIES.map(c => <option key={c} value={c}>{t(`supplyCategory.${c}`)}</option>)}
@@ -649,9 +651,9 @@ export function Supplies() {
             <input
               className="input w-full"
               value={typeName}
-              onChange={e => setTypeName(e.target.value)}
-              placeholder={typeCategory ? deriveTypeName(typeCategory, typeProps, t) : t('common.optional')}
+              onChange={e => { setTypeName(e.target.value); setTypeNameEdited(true) }}
             />
+            <p className="text-xs text-text-secondary mt-1">{t('supplies.nameHint')}</p>
           </div>
           <div>
             <label className="field-label">{t('supplies.unit')} *</label>
@@ -663,7 +665,10 @@ export function Supplies() {
           {typeCategory && typeCategory !== 'OTHER' && (
             <>
               <p className="text-xs font-medium text-text-secondary uppercase tracking-wide">{t('supplies.properties')}</p>
-              <CategoryPropertyFields category={typeCategory} props={typeProps} onChange={setTypeProps} t={t} />
+              <CategoryPropertyFields category={typeCategory} props={typeProps} onChange={newProps => {
+                setTypeProps(newProps)
+                if (!typeNameEdited) setTypeName(deriveTypeName(typeCategory, newProps, t))
+              }} t={t} />
             </>
           )}
           {mutError && <p className="text-error text-sm">{mutError}</p>}

@@ -1095,7 +1095,8 @@
     "type": "Typ",
     "purchaseDate": "Inköpsdatum",
     "total": "Totalt",
-    "pureTray": "Rent brätte"
+    "pureTray": "Rent brätte",
+    "nameHint": "Fylls i automatiskt från detaljer om du inte ändrar"
   },
   "supplyCategory": {
     "SOIL": "Jord",

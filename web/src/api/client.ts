@@ -549,7 +549,7 @@ export const api = {
 
   supplies: {
     types: () => apiRequest<SupplyTypeResponse[]>('/api/supplies/types'),
-    createType: (data: { name?: string; category: string; unit: string; properties?: Record<string, unknown> }) =>
+    createType: (data: { name: string; category: string; unit: string; properties?: Record<string, unknown> }) =>
       apiRequest<SupplyTypeResponse>('/api/supplies/types', { method: 'POST', body: JSON.stringify(data) }),
     updateType: (id: number, data: Record<string, unknown>) =>
       apiRequest<SupplyTypeResponse>(`/api/supplies/types/${id}`, { method: 'PUT', body: JSON.stringify(data) }),

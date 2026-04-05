@@ -19,8 +19,8 @@ data class SupplyTypeResponse(
 )
 
 data class CreateSupplyTypeRequest(
-    @field:Size(max = 255)
-    val name: String? = null,
+    @field:NotBlank @field:Size(max = 255)
+    val name: String,
     @field:NotNull
     val category: SupplyCategory,
     @field:NotNull

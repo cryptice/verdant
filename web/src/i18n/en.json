@@ -1095,7 +1095,8 @@
     "type": "Type",
     "purchaseDate": "Purchase date",
     "total": "Total",
-    "pureTray": "Pure tray"
+    "pureTray": "Pure tray",
+    "nameHint": "Auto-filled from details if left unchanged"
   },
   "supplyCategory": {
     "SOIL": "Soil",
