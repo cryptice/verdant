@@ -1,5 +1,6 @@
 package app.verdant.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
@@ -16,7 +17,7 @@ data class SeasonResponse(
     val firstFrostDate: LocalDate?,
     val growingDegreeBaseC: Double?,
     val notes: String?,
-    val isActive: Boolean,
+    @get:JsonProperty("isActive") val isActive: Boolean,
     val createdAt: Instant,
     val updatedAt: Instant,
 )
@@ -33,7 +34,7 @@ data class CreateSeasonRequest(
     val growingDegreeBaseC: Double? = 10.0,
     @field:Size(max = 2000)
     val notes: String? = null,
-    val isActive: Boolean = true,
+    @JsonProperty("isActive") val isActive: Boolean = true,
 )
 
 data class UpdateSeasonRequest(
@@ -47,5 +48,5 @@ data class UpdateSeasonRequest(
     val growingDegreeBaseC: Double? = null,
     @field:Size(max = 2000)
     val notes: String? = null,
-    val isActive: Boolean? = null,
+    @JsonProperty("isActive") val isActive: Boolean? = null,
 )
