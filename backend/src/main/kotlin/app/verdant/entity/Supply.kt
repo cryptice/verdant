@@ -3,7 +3,7 @@ package app.verdant.entity
 import java.math.BigDecimal
 import java.time.Instant
 
-enum class SupplyCategory { SOIL, POT, FERTILIZER, TOOL, LABEL, TRAY, OTHER }
+enum class SupplyCategory { SOIL, POT, FERTILIZER, LABEL, TRAY, OTHER }
 
 enum class SupplyUnit { COUNT, LITERS, KILOGRAMS, GRAMS, METERS, PACKETS }
 

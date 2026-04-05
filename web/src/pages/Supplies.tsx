@@ -15,7 +15,7 @@ const UNITS_BY_CATEGORY: Record<string, string[]> = {
   FERTILIZER: ['KILOGRAMS', 'GRAMS', 'LITERS', 'PACKETS'],
   TRAY: ['COUNT'],
   LABEL: ['COUNT', 'PACKETS'],
-  TOOL: ['COUNT'],
+
   OTHER: [...UNITS],
 }
 
@@ -25,7 +25,7 @@ const DEFAULT_UNIT: Record<string, string> = {
   FERTILIZER: 'KILOGRAMS',
   TRAY: 'COUNT',
   LABEL: 'COUNT',
-  TOOL: 'COUNT',
+
   OTHER: 'COUNT',
 }
 
@@ -65,9 +65,6 @@ function deriveTypeName(category: string, properties: Record<string, unknown>, t
       if (dims) parts.push(`${dims} mm`)
       break
     }
-    case 'TOOL':
-      if (properties.type) parts.push(String(properties.type))
-      break
   }
   return parts.length > 0 ? `${cat}, ${parts.join(' ')}` : cat
 }
@@ -252,13 +249,6 @@ function CategoryPropertyFields({
             </div>
           </div>
         </>
-      )
-    case 'TOOL':
-      return (
-        <div>
-          <label className="field-label">{t('supplies.type')}</label>
-          <input className="input w-full" value={(props.type as string) ?? ''} onChange={e => set('type', e.target.value)} />
-        </div>
       )
     default:
       return null
