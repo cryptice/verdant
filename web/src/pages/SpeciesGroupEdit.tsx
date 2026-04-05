@@ -8,10 +8,23 @@ import { ErrorDisplay } from '../components/ErrorDisplay'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import type { BreadcrumbItem } from '../components/Breadcrumb'
 
-function speciesLabel(s: SpeciesResponse, lang: string) {
-  const name = lang === 'sv' ? (s.commonNameSv ?? s.commonName) : s.commonName
-  const variant = lang === 'sv' ? (s.variantNameSv ?? s.variantName) : s.variantName
-  return variant ? `${name} — ${variant}` : name
+function speciesMainName(s: SpeciesResponse, lang: string) {
+  return lang === 'sv' ? (s.commonNameSv ?? s.commonName) : s.commonName
+}
+
+function speciesVariant(s: SpeciesResponse, lang: string) {
+  return lang === 'sv' ? (s.variantNameSv ?? s.variantName) : s.variantName
+}
+
+function groupByMainName(species: SpeciesResponse[], lang: string) {
+  const grouped = new Map<string, SpeciesResponse[]>()
+  for (const s of species) {
+    const main = speciesMainName(s, lang)
+    const list = grouped.get(main) ?? []
+    list.push(s)
+    grouped.set(main, list)
+  }
+  return grouped
 }
 
 export function SpeciesGroupEdit() {
@@ -104,16 +117,26 @@ export function SpeciesGroupEdit() {
         {/* Members */}
         <section className="form-card">
           <label className="field-label">{t('groups.speciesLabel')}</label>
-          <div className="space-y-1 mb-3">
-            {members?.map(s => (
-              <div key={s.id} className="flex items-center justify-between text-sm py-1.5 px-2 rounded-lg hover:bg-surface">
-                <span>{speciesLabel(s, i18n.language)}</span>
-                <button
-                  onClick={() => removeSpeciesMut.mutate(s.id)}
-                  className="text-xs text-error"
-                >
-                  {t('groups.remove')}
-                </button>
+          <div className="space-y-2 mb-3">
+            {members && members.length > 0 && Array.from(groupByMainName(members, i18n.language).entries()).map(([main, species]) => (
+              <div key={main}>
+                <p className="text-sm font-medium px-2">{main}</p>
+                <div className="space-y-0.5 mt-0.5">
+                  {species.map(s => {
+                    const variant = speciesVariant(s, i18n.language)
+                    return (
+                      <div key={s.id} className="flex items-center justify-between text-sm py-1 px-2 rounded-lg hover:bg-surface">
+                        <span className="text-text-secondary">{variant ?? '—'}</span>
+                        <button
+                          onClick={() => removeSpeciesMut.mutate(s.id)}
+                          className="text-xs text-error"
+                        >
+                          {t('groups.remove')}
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             ))}
             {members?.length === 0 && (
