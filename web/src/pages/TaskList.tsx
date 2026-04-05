@@ -155,8 +155,8 @@ export function TaskList() {
                   <p className="text-sm text-text-secondary">
                     {task.originGroupName ? (
                       <span className="inline-flex items-center gap-1">
-                        <span className="text-xs bg-accent/15 text-accent px-1 py-0.5 rounded">{t('common.group')}</span>
                         {task.originGroupName}
+                        <span className="text-xs bg-accent/15 text-accent px-1 py-0.5 rounded">{t('common.group')}</span>
                       </span>
                     ) : (
                       task.speciesName
