@@ -1098,7 +1098,14 @@
     "addType": "Add supply type",
     "expandAll": "Expand all",
     "collapseAll": "Collapse all",
-    "addCategoryType": "Add {{category}} type",
+    "addCategoryType": {
+      "SOIL": "Add soil type",
+      "POT": "Add pot type",
+      "FERTILIZER": "Add fertilizer type",
+      "TRAY": "Add tray type",
+      "LABEL": "Add label type",
+      "OTHER": "Add type"
+    },
     "showUsed": "Show used",
     "packageCost": "Package cost",
     "packageSize": "Package size",

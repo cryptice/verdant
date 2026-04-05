@@ -462,7 +462,7 @@ export function Supplies() {
                   onClick={() => { resetTypeForm(); setTypeCategory(cat); setTypeUnit(DEFAULT_UNIT[cat] ?? 'COUNT'); setMutError(null); setShowNewType(true) }}
                   className="text-xs text-accent hover:underline cursor-pointer"
                 >
-                  {t('supplies.addCategoryType', { category: t(`supplyCategory.${cat}`).toLowerCase() })}
+                  {t(`supplies.addCategoryType.${cat}`)}
                 </button>
               </div>
               {items.length === 0 && (

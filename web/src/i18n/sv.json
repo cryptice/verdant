@@ -1098,7 +1098,14 @@
     "addType": "Lägg till typ",
     "expandAll": "Expandera alla",
     "collapseAll": "Minimera alla",
-    "addCategoryType": "Lägg till {{category}}typ",
+    "addCategoryType": {
+      "SOIL": "Lägg till jordtyp",
+      "POT": "Lägg till kruktyp",
+      "FERTILIZER": "Lägg till gödseltyp",
+      "TRAY": "Lägg till brättyp",
+      "LABEL": "Lägg till etiketttyp",
+      "OTHER": "Lägg till typ"
+    },
     "showUsed": "Visa förbrukade",
     "packageCost": "Paketkostnad",
     "packageSize": "Paketstorlek",
