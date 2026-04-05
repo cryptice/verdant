@@ -313,7 +313,10 @@
     "targetCountLabel": "Target count *",
     "updateTask": "Update Task",
     "createTask": "Create Task",
-    "loadingGroupSpecies": "Loading species..."
+    "loadingGroupSpecies": "Loading species...",
+    "newInGroup": "New in group:",
+    "addFromGroup": "Add to task",
+    "removedFromGroup": "No longer in group:"
   },
   "seasons": {
     "title": "Seasons",

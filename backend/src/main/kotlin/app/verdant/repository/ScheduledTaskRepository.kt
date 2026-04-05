@@ -118,6 +118,18 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
         }
     }
 
+    fun addAcceptableSpecies(taskId: Long, speciesId: Long) {
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                "INSERT INTO scheduled_task_species (scheduled_task_id, species_id) VALUES (?, ?) ON CONFLICT DO NOTHING"
+            ).use { ps ->
+                ps.setLong(1, taskId)
+                ps.setLong(2, speciesId)
+                ps.executeUpdate()
+            }
+        }
+    }
+
     fun setAcceptableSpecies(taskId: Long, speciesIds: List<Long>) {
         ds.connection.use { conn ->
             conn.prepareStatement("DELETE FROM scheduled_task_species WHERE scheduled_task_id = ?").use { ps ->

@@ -313,7 +313,10 @@
     "targetCountLabel": "Målantal *",
     "updateTask": "Uppdatera uppgift",
     "createTask": "Skapa uppgift",
-    "loadingGroupSpecies": "Laddar arter..."
+    "loadingGroupSpecies": "Laddar arter...",
+    "newInGroup": "Nya i gruppen:",
+    "addFromGroup": "Lägg till i uppgiften",
+    "removedFromGroup": "Inte längre i gruppen:"
   },
   "seasons": {
     "title": "Säsonger",

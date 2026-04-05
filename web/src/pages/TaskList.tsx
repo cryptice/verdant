@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { api, type ScheduledTaskResponse } from '../api/client'
+import { api, type ScheduledTaskResponse, type SpeciesResponse } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
@@ -14,6 +14,37 @@ const activityIcons: Record<string, string> = {
   SOW: '🌰', POT_UP: '🪴', PLANT: '🌳', HARVEST: '🌾', RECOVER: '💚', DISCARD: '🗑️',
 }
 
+function speciesDisplayName(s: { commonName: string; variantName?: string; commonNameSv?: string; variantNameSv?: string }, lang: string) {
+  const main = lang === 'sv' ? (s.commonNameSv ?? s.commonName) : s.commonName
+  const variant = lang === 'sv' ? (s.variantNameSv ?? s.variantName) : s.variantName
+  return variant ? `${main} — ${variant}` : main
+}
+
+function groupByMainName(
+  items: { commonName: string; variantName?: string; commonNameSv?: string; variantNameSv?: string }[],
+  lang: string,
+) {
+  const grouped = new Map<string, string[]>()
+  for (const s of items) {
+    const main = lang === 'sv' ? (s.commonNameSv ?? s.commonName) : s.commonName
+    const variant = lang === 'sv' ? (s.variantNameSv ?? s.variantName) : s.variantName
+    const variants = grouped.get(main) ?? []
+    if (variant) variants.push(variant)
+    grouped.set(main, variants)
+  }
+  return grouped
+}
+
+function GroupedSpeciesLines({ grouped }: { grouped: Map<string, string[]> }) {
+  return (
+    <div className="text-xs text-text-secondary mt-0.5 space-y-0.5">
+      {Array.from(grouped.entries()).map(([main, variants]) => (
+        <p key={main}>{main}{variants.length > 0 ? `: ${variants.join(', ')}` : ''}</p>
+      ))}
+    </div>
+  )
+}
+
 export function TaskList() {
   const navigate = useNavigate()
   const qc = useQueryClient()
@@ -23,6 +54,42 @@ export function TaskList() {
     queryFn: api.tasks.list,
   })
 
+  // Fetch species to resolve current group memberships
+  const { data: allSpecies } = useQuery({
+    queryKey: ['species'],
+    queryFn: api.species.list,
+  })
+
+  // Build map: groupId -> set of speciesIds currently in that group
+  const currentGroupMembers = useMemo(() => {
+    const map = new Map<number, Set<number>>()
+    if (allSpecies) {
+      for (const s of allSpecies) {
+        for (const g of s.groups) {
+          const set = map.get(g.id) ?? new Set()
+          set.add(s.id)
+          map.set(g.id, set)
+        }
+      }
+    }
+    return map
+  }, [allSpecies])
+
+  // Build map: groupId -> full species objects for display of new species
+  const currentGroupSpecies = useMemo(() => {
+    const map = new Map<number, SpeciesResponse[]>()
+    if (allSpecies) {
+      for (const s of allSpecies) {
+        for (const g of s.groups) {
+          const list = map.get(g.id) ?? []
+          list.push(s)
+          map.set(g.id, list)
+        }
+      }
+    }
+    return map
+  }, [allSpecies])
+
   const [deleteTask, setDeleteTask] = useState<ScheduledTaskResponse | null>(null)
   const [page, setPage] = useState(0)
 
@@ -31,10 +98,16 @@ export function TaskList() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['tasks'] }); setDeleteTask(null) },
   })
 
+  const syncMut = useMutation({
+    mutationFn: (id: number) => api.tasks.syncGroup(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['tasks'] }) },
+  })
+
   if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
 
   const today = new Date().toISOString().split('T')[0]
+  const lang = i18n.language
 
   return (
     <div>
@@ -48,6 +121,21 @@ export function TaskList() {
           const isOverdue = task.deadline < today
           const isDueToday = task.deadline === today
           const isCompleted = task.status === 'COMPLETED'
+
+          // Compute group sync diff for group tasks
+          let addedToGroup: SpeciesResponse[] = []
+          let removedFromGroup: typeof task.acceptableSpecies = []
+          const hasGroupDiff = !!(task.originGroupId && allSpecies)
+          if (task.originGroupId && allSpecies) {
+            const currentIds = currentGroupMembers.get(task.originGroupId) ?? new Set()
+            const taskIds = new Set(task.acceptableSpecies.map(s => s.speciesId))
+            // Species in group but not in task
+            addedToGroup = (currentGroupSpecies.get(task.originGroupId) ?? [])
+              .filter(s => !taskIds.has(s.id))
+            // Species in task but not in group
+            removedFromGroup = task.acceptableSpecies
+              .filter(s => !currentIds.has(s.speciesId))
+          }
 
           return (
             <div key={task.id} className={`card ${isCompleted ? 'opacity-60' : ''}`}>
@@ -74,22 +162,45 @@ export function TaskList() {
                       task.speciesName
                     )}
                   </p>
-                  {task.acceptableSpecies.length > 1 && (() => {
-                    const lang = i18n.language
-                    const grouped = new Map<string, string[]>()
-                    for (const s of task.acceptableSpecies) {
-                      const main = lang === 'sv' ? (s.commonNameSv ?? s.commonName) : s.commonName
-                      const variant = lang === 'sv' ? (s.variantNameSv ?? s.variantName) : s.variantName
-                      const variants = grouped.get(main) ?? []
-                      if (variant) variants.push(variant)
-                      grouped.set(main, variants)
-                    }
-                    return <div className="text-xs text-text-secondary mt-0.5 space-y-0.5">
-                      {Array.from(grouped.entries()).map(([main, variants]) => (
-                        <p key={main}>{main}{variants.length > 0 ? `: ${variants.join(', ')}` : ''}</p>
-                      ))}
+                  {task.acceptableSpecies.length > 1 && (
+                    <GroupedSpeciesLines grouped={groupByMainName(task.acceptableSpecies, lang)} />
+                  )}
+
+                  {/* Group sync diff */}
+                  {hasGroupDiff && addedToGroup.length > 0 && (
+                    <div className="mt-1.5 border border-accent/30 rounded-lg px-2 py-1.5 bg-accent/5">
+                      <p className="text-xs text-accent font-medium mb-0.5">{t('tasks.newInGroup')}</p>
+                      <GroupedSpeciesLines grouped={groupByMainName(
+                        addedToGroup.map(s => ({
+                          commonName: s.commonName,
+                          variantName: s.variantName ?? undefined,
+                          commonNameSv: s.commonNameSv ?? undefined,
+                          variantNameSv: s.variantNameSv ?? undefined,
+                        })),
+                        lang,
+                      )} />
+                      {!isCompleted && (
+                        <button
+                          onClick={() => syncMut.mutate(task.id)}
+                          disabled={syncMut.isPending}
+                          className="text-xs text-accent font-medium mt-1"
+                        >
+                          {syncMut.isPending ? t('common.saving') : t('tasks.addFromGroup')}
+                        </button>
+                      )}
                     </div>
-                  })()}
+                  )}
+                  {hasGroupDiff && removedFromGroup.length > 0 && (
+                    <div className="mt-1.5 border border-orange-300/50 rounded-lg px-2 py-1.5 bg-orange-50">
+                      <p className="text-xs text-orange-700 font-medium mb-0.5">{t('tasks.removedFromGroup')}</p>
+                      <div className="text-xs text-orange-600 space-y-0.5">
+                        {removedFromGroup.map(s => (
+                          <p key={s.speciesId}>{speciesDisplayName(s, lang)}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <p className="text-xs text-text-secondary">{t('tasks.remaining', { remaining: task.remainingCount, total: task.targetCount })}</p>
                 </div>
               </div>

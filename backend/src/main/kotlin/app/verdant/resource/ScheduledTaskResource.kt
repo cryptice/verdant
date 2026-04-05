@@ -46,6 +46,11 @@ class ScheduledTaskResource(
     fun completePartially(@PathParam("id") id: Long, @Valid request: CompleteTaskPartiallyRequest) =
         taskService.completePartially(id, request.speciesId, request.processedCount, orgContext.orgId)
 
+    @POST
+    @Path("/{id}/sync-group")
+    fun syncWithGroup(@PathParam("id") id: Long) =
+        taskService.syncTaskWithGroup(id, orgContext.orgId)
+
     @DELETE
     @Path("/{id}")
     fun delete(@PathParam("id") id: Long): Response {

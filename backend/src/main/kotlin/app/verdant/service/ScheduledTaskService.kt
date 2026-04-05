@@ -119,6 +119,20 @@ class ScheduledTaskService(
         return buildResponses(listOf(task)).first()
     }
 
+    fun syncTaskWithGroup(taskId: Long, orgId: Long): ScheduledTaskResponse {
+        val task = checkOwnership(taskId, orgId)
+        val groupId = task.originGroupId
+            ?: throw BadRequestException("Task is not associated with a group")
+        val currentGroupSpeciesIds = speciesRepository.findByGroupId(groupId).map { it.id!! }.toSet()
+        val currentTaskSpeciesIds = taskRepository.findAcceptableSpeciesIds(taskId).toSet()
+        val toAdd = currentGroupSpeciesIds - currentTaskSpeciesIds
+        if (toAdd.isEmpty()) throw BadRequestException("No new species to add from group")
+        for (speciesId in toAdd) {
+            taskRepository.addAcceptableSpecies(taskId, speciesId)
+        }
+        return buildResponses(listOf(taskRepository.findById(taskId)!!)).first()
+    }
+
     fun deleteTask(taskId: Long, orgId: Long) {
         checkOwnership(taskId, orgId)
         taskRepository.delete(taskId)
