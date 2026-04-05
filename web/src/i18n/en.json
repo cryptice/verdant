@@ -1095,6 +1095,7 @@
     "type": "Type",
     "purchaseDate": "Purchase date",
     "total": "Total",
+    "costPerUnit": "Cost per unit",
     "pureTray": "Pure tray",
     "lengthMm": "Length (mm)",
     "nameHint": "Auto-filled from details if left unchanged"

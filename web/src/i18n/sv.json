@@ -1095,6 +1095,7 @@
     "type": "Typ",
     "purchaseDate": "Inköpsdatum",
     "total": "Totalt",
+    "costPerUnit": "Kostnad per enhet",
     "pureTray": "Rent brätte",
     "lengthMm": "Längd (mm)",
     "nameHint": "Fylls i automatiskt från detaljer om du inte ändrar"

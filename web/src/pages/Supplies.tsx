@@ -509,7 +509,7 @@ export function Supplies() {
                             <div key={batch.id} className="flex items-center justify-between px-4 py-2.5 border-t border-divider first:border-0">
                               <div className="text-sm space-x-3">
                                 <span className="tabular-nums font-medium">{formatUnit(batch.quantity, batch.unit, t)}</span>
-                                {batch.costSek != null && <span className="text-text-secondary">{formatCost(batch.costSek)}</span>}
+                                {batch.costSek != null && <span className="text-text-secondary">{formatCost(batch.costSek)}/{t(`supplyUnit.${batch.unit}`)}</span>}
                                 {seasonName && <span className="text-text-muted">{seasonName}</span>}
                                 {batch.notes && <span className="text-text-muted italic">{batch.notes}</span>}
                               </div>
@@ -618,7 +618,11 @@ export function Supplies() {
                   <input type="number" step="any" className="input w-full" value={batchQuantity} onChange={e => setBatchQuantity(e.target.value)} />
                 </div>
                 <div>
-                  <label className="field-label">{t('supplies.cost')} (kr)</label>
+                  {(() => {
+                    const selectedType = (types ?? []).find(ty => ty.id === batchTypeId)
+                    const unitLabel = selectedType ? t(`supplyUnit.${selectedType.unit}`) : ''
+                    return <label className="field-label">{t('supplies.costPerUnit')}{unitLabel ? ` (kr/${unitLabel})` : ' (kr)'}</label>
+                  })()}
                   <input type="number" step="any" className="input w-full" value={batchCost} onChange={e => setBatchCost(e.target.value)} />
                 </div>
               </div>
@@ -775,7 +779,11 @@ export function Supplies() {
               <input type="number" step="any" className="input w-full" value={editBatchQuantity} onChange={e => setEditBatchQuantity(e.target.value)} />
             </div>
             <div>
-              <label className="field-label">{t('supplies.cost')} (kr)</label>
+              {(() => {
+                const batchUnit = editBatch?.unit
+                const unitLabel = batchUnit ? t(`supplyUnit.${batchUnit}`) : ''
+                return <label className="field-label">{t('supplies.costPerUnit')}{unitLabel ? ` (kr/${unitLabel})` : ' (kr)'}</label>
+              })()}
               <input type="number" step="any" className="input w-full" value={editBatchCost} onChange={e => setEditBatchCost(e.target.value)} />
             </div>
           </div>
