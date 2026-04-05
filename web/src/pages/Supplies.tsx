@@ -98,11 +98,13 @@ function formatTypeLabel(type: SupplyTypeResponse, t: (key: string) => string): 
     }
     case 'FERTILIZER': {
       const npk = props.npk as string | undefined
-      return npk ? `${type.name} (${npk})` : type.name
+      if (!npk || type.name.toLowerCase().includes(npk.toLowerCase())) return type.name
+      return `${type.name} (${npk})`
     }
     case 'SOIL': {
       const soilType = props.type as string | undefined
-      return soilType ? `${type.name} — ${soilType}` : type.name
+      if (!soilType || type.name.toLowerCase().includes(soilType.toLowerCase())) return type.name
+      return `${type.name} — ${soilType}`
     }
     default:
       return type.name
