@@ -219,13 +219,17 @@ function CategoryPropertyFields({
           </div>
         </>
       )
-    case 'FERTILIZER':
+    case 'FERTILIZER': {
+      const npkVal = (props.npk as string) ?? ''
+      const npkValid = !npkVal || /^\d+-\d+-\d+$/.test(npkVal.trim())
       return (
         <div>
           <label className="field-label">{t('supplies.npk')}</label>
-          <input className="input w-full" value={(props.npk as string) ?? ''} onChange={e => set('npk', e.target.value)} placeholder="e.g. 10-5-10" />
+          <input className="input w-full" value={npkVal} onChange={e => set('npk', e.target.value)} placeholder="e.g. 10-5-10" />
+          {npkVal && !npkValid && <p className="text-xs text-orange-600 mt-0.5">{t('supplies.warnNpkFormat')}</p>}
         </div>
       )
+    }
     case 'TRAY':
       return (
         <>

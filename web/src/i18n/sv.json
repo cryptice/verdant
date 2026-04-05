@@ -1122,6 +1122,7 @@
     "warnTooLarge": "{{value}} mm verkar väldigt stort för {{field}}",
     "warnVolumeTooSmall": "{{value}} ml verkar väldigt litet för en plugg",
     "warnVolumeTooLarge": "{{value}} ml verkar väldigt stort för en plugg",
+    "warnNpkFormat": "NPK ska anges i formatet N-N-N, t.ex. 10-5-10",
     "nameHint": "Fylls i automatiskt från detaljer om du inte ändrar"
   },
   "soilTypes": {

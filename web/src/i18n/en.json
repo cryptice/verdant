@@ -1122,6 +1122,7 @@
     "warnTooLarge": "{{value}} mm seems very large for {{field}}",
     "warnVolumeTooSmall": "{{value}} ml seems very small for a plug",
     "warnVolumeTooLarge": "{{value}} ml seems very large for a plug",
+    "warnNpkFormat": "NPK should be in N-N-N format, e.g. 10-5-10",
     "nameHint": "Auto-filled from details if left unchanged"
   },
   "soilTypes": {
