@@ -281,6 +281,7 @@ export function Supplies() {
 
   // Add batch dialog
   const [showAddBatch, setShowAddBatch] = useState(false)
+  const [addBatchCategoryFilter, setAddBatchCategoryFilter] = useState<string | null>(null)
   const [batchTypeId, setBatchTypeId] = useState<number | ''>('')
   const [batchQuantity, setBatchQuantity] = useState('')
   const [batchCost, setBatchCost] = useState('')
@@ -408,7 +409,7 @@ export function Supplies() {
       <PageHeader
         title={t('supplies.title')}
         secondaryAction={{ label: t('supplies.newType'), onClick: () => { setMutError(null); setShowNewType(true) } }}
-        action={{ label: t('common.add'), onClick: () => { setMutError(null); setShowAddBatch(true) } }}
+        action={{ label: t('common.add'), onClick: () => { setMutError(null); setAddBatchCategoryFilter(null); setShowAddBatch(true) } }}
       />
 
       <div className="px-4 py-4">
@@ -431,9 +432,17 @@ export function Supplies() {
           if (!items || items.length === 0) return null
           return (
             <div key={cat} className="mb-6">
-              <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wide mb-2">
-                {t(`supplyCategory.${cat}`)}
-              </h2>
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">
+                  {t(`supplyCategory.${cat}`)}
+                </h2>
+                <button
+                  onClick={() => { setMutError(null); setAddBatchCategoryFilter(cat); setShowAddBatch(true) }}
+                  className="text-xs text-accent hover:underline cursor-pointer"
+                >
+                  {t('common.add')}
+                </button>
+              </div>
               <div className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">
                 {items.map((item, idx) => (
                   <div key={item.type.id}>
@@ -573,10 +582,14 @@ export function Supplies() {
                 <label className="field-label">{t('supplies.selectType')}</label>
                 <select className="input w-full" value={batchTypeId} onChange={e => setBatchTypeId(e.target.value ? Number(e.target.value) : '')}>
                   <option value="">{t('supplies.selectType')}</option>
-                  {CATEGORIES.map(cat => {
+                  {CATEGORIES.filter(cat => !addBatchCategoryFilter || cat === addBatchCategoryFilter).map(cat => {
                     const catTypes = (types ?? []).filter(ty => ty.category === cat)
                     if (catTypes.length === 0) return null
-                    return (
+                    return addBatchCategoryFilter ? (
+                      catTypes.map(ty => (
+                        <option key={ty.id} value={ty.id}>{formatTypeLabel(ty, t)}</option>
+                      ))
+                    ) : (
                       <optgroup key={cat} label={t(`supplyCategory.${cat}`)}>
                         {catTypes.map(ty => (
                           <option key={ty.id} value={ty.id}>{formatTypeLabel(ty, t)}</option>
