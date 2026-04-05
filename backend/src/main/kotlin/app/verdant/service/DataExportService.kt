@@ -89,6 +89,7 @@ class DataExportService(
         val allSpeciesIdsForTasks = acceptableByTask.values.flatten().toSet() +
             scheduledTasks.mapNotNull { it.speciesId }.toSet()
         val speciesNamesForTasks = speciesRepository.findNamesByIds(allSpeciesIdsForTasks)
+        val speciesByIdForTasks = speciesRepository.findByIds(allSpeciesIdsForTasks)
 
         val groupIds = scheduledTasks.mapNotNull { it.originGroupId }.toSet()
         val groupNames = speciesGroupRepository.findNamesByIds(groupIds)
@@ -110,7 +111,15 @@ class DataExportService(
                 originGroupId = task.originGroupId,
                 originGroupName = task.originGroupId?.let { groupNames[it] },
                 acceptableSpecies = myAcceptable.map { sid ->
-                    AcceptableSpeciesEntry(sid, speciesNamesForTasks[sid] ?: "Unknown")
+                    val sp = speciesByIdForTasks[sid]
+                    AcceptableSpeciesEntry(
+                        speciesId = sid,
+                        speciesName = speciesNamesForTasks[sid] ?: "Unknown",
+                        commonName = sp?.commonName ?: "Unknown",
+                        variantName = sp?.variantName,
+                        commonNameSv = sp?.commonNameSv,
+                        variantNameSv = sp?.variantNameSv,
+                    )
                 },
                 createdAt = task.createdAt,
                 updatedAt = task.updatedAt,

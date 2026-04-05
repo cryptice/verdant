@@ -131,6 +131,7 @@ class ScheduledTaskService(
         val allSpeciesIds = acceptableByTask.values.flatten().toSet() +
             tasks.mapNotNull { it.speciesId }.toSet()
         val speciesNames = speciesRepository.findNamesByIds(allSpeciesIds)
+        val speciesById = speciesRepository.findByIds(allSpeciesIds)
 
         val groupIds = tasks.mapNotNull { it.originGroupId }.toSet()
         val groupNames = speciesGroupRepository.findNamesByIds(groupIds)
@@ -152,7 +153,15 @@ class ScheduledTaskService(
                 originGroupId = task.originGroupId,
                 originGroupName = task.originGroupId?.let { groupNames[it] },
                 acceptableSpecies = myAcceptable.map { sid ->
-                    AcceptableSpeciesEntry(sid, speciesNames[sid] ?: "Unknown")
+                    val sp = speciesById[sid]
+                    AcceptableSpeciesEntry(
+                        speciesId = sid,
+                        speciesName = speciesNames[sid] ?: "Unknown",
+                        commonName = sp?.commonName ?: "Unknown",
+                        variantName = sp?.variantName,
+                        commonNameSv = sp?.commonNameSv,
+                        variantNameSv = sp?.variantNameSv,
+                    )
                 },
                 createdAt = task.createdAt,
                 updatedAt = task.updatedAt,

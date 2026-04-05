@@ -150,6 +150,10 @@ export interface SeedInventoryResponse {
 export interface AcceptableSpeciesEntry {
   speciesId: number
   speciesName: string
+  commonName: string
+  variantName?: string
+  commonNameSv?: string
+  variantNameSv?: string
 }
 
 export interface ScheduledTaskResponse {

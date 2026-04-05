@@ -29,6 +29,10 @@ data class ScheduledTaskResponse(
 data class AcceptableSpeciesEntry(
     val speciesId: Long,
     val speciesName: String,
+    val commonName: String,
+    val variantName: String? = null,
+    val commonNameSv: String? = null,
+    val variantNameSv: String? = null,
 )
 
 data class CreateScheduledTaskRequest(

@@ -17,7 +17,7 @@ const activityIcons: Record<string, string> = {
 export function TaskList() {
   const navigate = useNavigate()
   const qc = useQueryClient()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['tasks'],
     queryFn: api.tasks.list,
@@ -75,11 +75,11 @@ export function TaskList() {
                     )}
                   </p>
                   {task.acceptableSpecies.length > 1 && (() => {
+                    const lang = i18n.language
                     const grouped = new Map<string, string[]>()
                     for (const s of task.acceptableSpecies) {
-                      const idx = s.speciesName.indexOf(' — ')
-                      const main = idx >= 0 ? s.speciesName.substring(0, idx) : s.speciesName
-                      const variant = idx >= 0 ? s.speciesName.substring(idx + 3) : null
+                      const main = lang === 'sv' ? (s.commonNameSv ?? s.commonName) : s.commonName
+                      const variant = lang === 'sv' ? (s.variantNameSv ?? s.variantName) : s.variantName
                       const variants = grouped.get(main) ?? []
                       if (variant) variants.push(variant)
                       grouped.set(main, variants)
