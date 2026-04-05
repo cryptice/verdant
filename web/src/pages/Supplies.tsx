@@ -535,7 +535,7 @@ export function Supplies() {
                               </div>
                               <div className="flex items-center gap-1.5">
                                 <button
-                                  onClick={() => { setDecrementBatch(batch); setDecrementAmount(''); setMutError(null) }}
+                                  onClick={() => { setDecrementBatch(batch); setDecrementAmount(String(batch.quantity)); setMutError(null) }}
                                   className="text-xs px-2 py-1 rounded-lg bg-accent-light text-accent hover:bg-accent/20 transition-colors"
                                   title={t('supplies.decrement')}
                                 >
