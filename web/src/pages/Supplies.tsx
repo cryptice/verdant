@@ -156,7 +156,7 @@ function CategoryPropertyFields({
     case 'SOIL':
       return (
         <div>
-          <label className="field-label">{t('supplies.type')}</label>
+          <label className="field-label">{t('supplies.type')} *</label>
           <input className="input w-full" value={(props.type as string) ?? ''} onChange={e => set('type', e.target.value)} />
         </div>
       )
