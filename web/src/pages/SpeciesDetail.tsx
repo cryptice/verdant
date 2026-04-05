@@ -76,7 +76,7 @@ export function SpeciesDetail() {
     species.expectedVaseLifeDays != null
 
   return (
-    <div>
+    <div className="max-w-md">
       <PageHeader
         title={displayName}
         breadcrumbs={[
