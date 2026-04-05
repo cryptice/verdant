@@ -183,7 +183,7 @@ export function TaskList() {
                         <button
                           onClick={() => syncMut.mutate(task.id)}
                           disabled={syncMut.isPending}
-                          className="text-xs text-accent font-medium mt-1"
+                          className="text-xs text-accent font-medium mt-1 cursor-pointer underline"
                         >
                           {syncMut.isPending ? t('common.saving') : t('tasks.addFromGroup')}
                         </button>
