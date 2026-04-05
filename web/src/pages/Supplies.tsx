@@ -460,6 +460,19 @@ export function Supplies() {
                           <polyline points="5 2 10 7 5 12" />
                         </svg>
                         <span className="text-sm font-medium text-text-primary truncate">{item.label}</span>
+                        <span
+                          role="button"
+                          onClick={e => {
+                            e.stopPropagation()
+                            setMutError(null)
+                            setBatchTypeId(item.type.id)
+                            setAddBatchCategoryFilter(null)
+                            setShowAddBatch(true)
+                          }}
+                          className="text-xs text-accent hover:underline cursor-pointer shrink-0"
+                        >
+                          {t('common.add')}
+                        </span>
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-sm tabular-nums text-text-secondary">
