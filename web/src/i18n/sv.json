@@ -23,7 +23,7 @@
     "myOrders": "Mina ordrar",
     "incomingOrders": "Inkommande ordrar",
     "speciesGroups": "Artgrupper",
-    "supplies": "Förnödenheter"
+    "supplies": "Utrustning & förbrukning"
   },
   "common": {
     "cancel": "Avbryt",
@@ -1062,7 +1062,7 @@
     "providers": "Leverantörer"
   },
   "supplies": {
-    "title": "Förnödenheter",
+    "title": "Utrustning & förbrukning",
     "addBatch": "+ Lägg till parti",
     "newType": "Ny förnödenhetstyp",
     "editType": "Redigera typ",
