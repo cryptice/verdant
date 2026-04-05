@@ -150,7 +150,19 @@ export function TaskForm() {
 
         <div>
           <label className="field-label">{t('common.speciesLabel')}</label>
-          {isGroupMode ? (
+          {isEdit && existing ? (
+            <div>
+              {existing.originGroupName && (
+                <div className="flex items-center gap-1 mb-1">
+                  <span className="text-xs bg-accent/15 text-accent px-1.5 py-0.5 rounded">{t('common.group')}</span>
+                  <span className="text-sm font-medium">{existing.originGroupName}</span>
+                </div>
+              )}
+              <div className="text-sm text-text-secondary">
+                {existing.acceptableSpecies.map(s => s.speciesName).join(', ')}
+              </div>
+            </div>
+          ) : isGroupMode ? (
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xs bg-accent/15 text-accent px-1.5 py-0.5 rounded">{t('common.group')}</span>
