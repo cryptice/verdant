@@ -42,7 +42,7 @@ function deriveTypeName(category: string, properties: Record<string, unknown>, t
       break
     case 'POT': {
       const shape = properties.shape ? t(`supplies.${properties.shape}`) : ''
-      const dims = [properties.widthMm, properties.depthMm, properties.heightMm].filter(Boolean).join('x')
+      const dims = [properties.widthMm, properties.heightMm].filter(Boolean).join('x')
       if (shape) parts.push(shape.toLowerCase())
       if (dims) parts.push(`${dims} mm`)
       break
@@ -84,7 +84,7 @@ function formatTypeLabel(type: SupplyTypeResponse, t: (key: string) => string): 
   switch (type.category) {
     case 'POT': {
       const shape = props.shape ? t(`supplies.${props.shape as string}`) : ''
-      const dims = [props.heightMm, props.widthMm, props.depthMm].filter(Boolean).join('x')
+      const dims = [props.widthMm, props.heightMm].filter(Boolean).join('x')
       return `${type.name}${shape ? ` (${shape}` : ''}${dims ? `${shape ? ' ' : ' ('}${dims} mm` : ''}${shape || dims ? ')' : ''}`
     }
     case 'TRAY': {
@@ -165,7 +165,7 @@ function Warning({ message }: { message: string | null }) {
 function getRequiredFields(category: string): string[] {
   switch (category) {
     case 'SOIL': return ['type']
-    case 'POT': return ['shape', 'heightMm', 'widthMm', 'depthMm']
+    case 'POT': return ['shape', 'widthMm', 'heightMm']
     case 'FERTILIZER': return []
     case 'TRAY': return ['rows', 'columns']
     case 'LABEL': return []
@@ -227,21 +227,16 @@ function CategoryPropertyFields({
               <option value="square">{t('supplies.square')}</option>
             </select>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="field-label">{props.shape === 'round' ? t('supplies.diameterMm') : t('supplies.widthMm')} *</label>
+              <input type="number" className="input w-full" value={numVal('widthMm')} onChange={e => set('widthMm', e.target.value ? Number(e.target.value) : undefined)} onFocus={() => onFocus('widthMm')} onBlur={() => onBlur('widthMm')} />
+              {showWarn('widthMm') && <Warning message={mmWarning(props.widthMm, props.shape === 'round' ? t('supplies.diameter') : t('supplies.width'), 20, 1000, t)} />}
+            </div>
             <div>
               <label className="field-label">{t('supplies.heightMm')} *</label>
               <input type="number" className="input w-full" value={numVal('heightMm')} onChange={e => set('heightMm', e.target.value ? Number(e.target.value) : undefined)} onFocus={() => onFocus('heightMm')} onBlur={() => onBlur('heightMm')} />
               {showWarn('heightMm') && <Warning message={mmWarning(props.heightMm, t('supplies.height'), 20, 1000, t)} />}
-            </div>
-            <div>
-              <label className="field-label">{t('supplies.widthMm')} *</label>
-              <input type="number" className="input w-full" value={numVal('widthMm')} onChange={e => set('widthMm', e.target.value ? Number(e.target.value) : undefined)} onFocus={() => onFocus('widthMm')} onBlur={() => onBlur('widthMm')} />
-              {showWarn('widthMm') && <Warning message={mmWarning(props.widthMm, t('supplies.width'), 20, 1000, t)} />}
-            </div>
-            <div>
-              <label className="field-label">{t('supplies.depthMm')} *</label>
-              <input type="number" className="input w-full" value={numVal('depthMm')} onChange={e => set('depthMm', e.target.value ? Number(e.target.value) : undefined)} onFocus={() => onFocus('depthMm')} onBlur={() => onBlur('depthMm')} />
-              {showWarn('depthMm') && <Warning message={mmWarning(props.depthMm, t('supplies.depth'), 20, 1000, t)} />}
             </div>
           </div>
         </>

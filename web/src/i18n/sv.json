@@ -1116,6 +1116,8 @@
     "lengthMm": "Längd (mm)",
     "height": "Höjd",
     "width": "Bredd",
+    "diameter": "Diameter",
+    "diameterMm": "Diameter (mm)",
     "depth": "Djup",
     "length": "Längd",
     "warnTooSmall": "{{value}} mm verkar lågt för {{field}} — menade du {{hint}}?",
