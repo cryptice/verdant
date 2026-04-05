@@ -455,7 +455,7 @@ export function Supplies() {
                   onClick={() => { resetTypeForm(); setTypeCategory(cat); setTypeUnit(DEFAULT_UNIT[cat] ?? 'COUNT'); setMutError(null); setShowNewType(true) }}
                   className="text-xs text-accent hover:underline cursor-pointer"
                 >
-                  {t('supplies.addType')}
+                  {t('supplies.addCategoryType', { category: t(`supplyCategory.${cat}`).toLowerCase() })}
                 </button>
               </div>
               <div className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">
