@@ -305,6 +305,9 @@ class SpeciesService(
 
     // ── Tags ──
 
+    fun getAllTags(): List<SpeciesTagResponse> =
+        tagRepository.findAll().map { SpeciesTagResponse(it.id!!, it.name) }
+
     fun getTagsForUser(orgId: Long): List<SpeciesTagResponse> =
         tagRepository.findByOrgId(orgId).map { SpeciesTagResponse(it.id!!, it.name) }
 

@@ -116,6 +116,12 @@ class AdminResource(
         return Response.noContent().build()
     }
 
+    // ── Tags ──
+
+    @GET
+    @Path("/species/tags")
+    fun listTags() = speciesService.getAllTags()
+
     // ── Providers ──
 
     @GET

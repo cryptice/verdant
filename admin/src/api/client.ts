@@ -308,7 +308,7 @@ export const api = {
         body: JSON.stringify(entries)
       }),
 
-    getSpeciesTags: () => apiRequest<SpeciesTag[]>('/api/species/tags'),
+    getSpeciesTags: () => apiRequest<SpeciesTag[]>('/api/admin/species/tags'),
 
     // Providers
     getProviders: () => apiRequest<Provider[]>('/api/admin/providers'),
