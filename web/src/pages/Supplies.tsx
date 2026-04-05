@@ -9,6 +9,26 @@ import { Dialog } from '../components/Dialog'
 const CATEGORIES = ['SOIL', 'POT', 'FERTILIZER', 'TRAY', 'LABEL', 'TOOL', 'OTHER'] as const
 const UNITS = ['COUNT', 'LITERS', 'KILOGRAMS', 'GRAMS', 'METERS', 'PACKETS'] as const
 
+const UNITS_BY_CATEGORY: Record<string, string[]> = {
+  SOIL: ['LITERS', 'KILOGRAMS', 'PACKETS'],
+  POT: ['COUNT'],
+  FERTILIZER: ['KILOGRAMS', 'GRAMS', 'LITERS', 'PACKETS'],
+  TRAY: ['COUNT'],
+  LABEL: ['COUNT', 'PACKETS'],
+  TOOL: ['COUNT'],
+  OTHER: [...UNITS],
+}
+
+const DEFAULT_UNIT: Record<string, string> = {
+  SOIL: 'LITERS',
+  POT: 'COUNT',
+  FERTILIZER: 'KILOGRAMS',
+  TRAY: 'COUNT',
+  LABEL: 'COUNT',
+  TOOL: 'COUNT',
+  OTHER: 'COUNT',
+}
+
 function formatUnit(quantity: number, unit: string, t: (key: string) => string): string {
   return `${quantity} ${t(`supplyUnit.${unit}`)}`
 }
@@ -570,7 +590,12 @@ export function Supplies() {
         <div className="space-y-4">
           <div>
             <label className="field-label">{t('supplies.category')} *</label>
-            <select className="input w-full" value={typeCategory} onChange={e => { setTypeCategory(e.target.value); setTypeProps({}) }}>
+            <select className="input w-full" value={typeCategory} onChange={e => {
+              const cat = e.target.value
+              setTypeCategory(cat)
+              setTypeProps({})
+              setTypeUnit(cat ? (DEFAULT_UNIT[cat] ?? 'COUNT') : '')
+            }}>
               <option value="">{t('common.select')}</option>
               {CATEGORIES.map(c => <option key={c} value={c}>{t(`supplyCategory.${c}`)}</option>)}
             </select>
@@ -583,7 +608,7 @@ export function Supplies() {
             <label className="field-label">{t('supplies.unit')} *</label>
             <select className="input w-full" value={typeUnit} onChange={e => setTypeUnit(e.target.value)}>
               <option value="">{t('common.select')}</option>
-              {UNITS.map(u => <option key={u} value={u}>{t(`supplyUnit.${u}`)}</option>)}
+              {(typeCategory ? UNITS_BY_CATEGORY[typeCategory] ?? UNITS : UNITS).map(u => <option key={u} value={u}>{t(`supplyUnit.${u}`)}</option>)}
             </select>
           </div>
           {typeCategory && typeCategory !== 'OTHER' && (
@@ -622,7 +647,7 @@ export function Supplies() {
           <div>
             <label className="field-label">{t('supplies.unit')} *</label>
             <select className="input w-full" value={editTypeUnit} onChange={e => setEditTypeUnit(e.target.value)}>
-              {UNITS.map(u => <option key={u} value={u}>{t(`supplyUnit.${u}`)}</option>)}
+              {(editType ? UNITS_BY_CATEGORY[editType.category] ?? UNITS : UNITS).map(u => <option key={u} value={u}>{t(`supplyUnit.${u}`)}</option>)}
             </select>
           </div>
           {editType && editType.category !== 'OTHER' && (
