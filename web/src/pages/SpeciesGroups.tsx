@@ -98,17 +98,30 @@ export function SpeciesGroups() {
             {/* Group header */}
             <div className="flex items-center gap-2 px-3 py-2 bg-surface">
               {editingId === group.id ? (
-                <input
-                  autoFocus
-                  value={editingName}
-                  onChange={e => setEditingName(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' && editingName.trim()) renameMut.mutate({ id: group.id, name: editingName.trim() })
-                    if (e.key === 'Escape') setEditingId(null)
-                  }}
-                  onBlur={() => setEditingId(null)}
-                  className="input text-sm flex-1"
-                />
+                <div className="flex items-center gap-2 flex-1">
+                  <input
+                    autoFocus
+                    value={editingName}
+                    onChange={e => setEditingName(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && editingName.trim()) renameMut.mutate({ id: group.id, name: editingName.trim() })
+                      if (e.key === 'Escape') { setEditingId(null); setExpandedGroupId(null) }
+                    }}
+                    className="input text-sm flex-1"
+                  />
+                  <button
+                    onClick={() => { if (editingName.trim()) renameMut.mutate({ id: group.id, name: editingName.trim() }) }}
+                    className="text-xs text-accent px-1"
+                  >
+                    {t('common.save')}
+                  </button>
+                  <button
+                    onClick={() => { setEditingId(null); setExpandedGroupId(null) }}
+                    className="text-xs text-text-secondary px-1"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                </div>
               ) : (
                 <>
                   <button
@@ -119,7 +132,7 @@ export function SpeciesGroups() {
                     {group.name}
                   </button>
                   <button
-                    onClick={() => { setEditingId(group.id); setEditingName(group.name) }}
+                    onClick={() => { setEditingId(group.id); setEditingName(group.name); setExpandedGroupId(group.id) }}
                     className="text-xs text-text-secondary hover:text-text px-1"
                   >
                     {t('common.edit')}
