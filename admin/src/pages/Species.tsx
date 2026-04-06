@@ -1256,15 +1256,14 @@ function SpeciesForm({
         {/* Growth Info */}
         <section className="border border-[#E9E9E7] rounded-lg p-5">
           <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Growth Information</h3>
-          <div className="grid grid-cols-3 gap-4">
-            <Field label="Germination Time Min (days)" value={germinationTimeDaysMin} onChange={v => setGerminationTimeDaysMin(v.replace(/\D/g, ''))} type="text" />
-            <Field label="Germination Time Max (days)" value={germinationTimeDaysMax} onChange={v => setGerminationTimeDaysMax(v.replace(/\D/g, ''))} type="text" />
-            <Field label="Days to Harvest Min" value={daysToHarvestMin} onChange={v => setDaysToHarvestMin(v.replace(/\D/g, ''))} type="text" />
-            <Field label="Days to Harvest Max" value={daysToHarvestMax} onChange={v => setDaysToHarvestMax(v.replace(/\D/g, ''))} type="text" />
-            <Field label="Sowing Depth (mm)" value={sowingDepthMm} onChange={v => setSowingDepthMm(v.replace(/\D/g, ''))} type="text" />
-            <Field label="Height Min (cm)" value={heightCmMin} onChange={v => setHeightCmMin(v.replace(/\D/g, ''))} type="text" />
-            <Field label="Height Max (cm)" value={heightCmMax} onChange={v => setHeightCmMax(v.replace(/\D/g, ''))} type="text" />
-            <Field label="Germination Rate (%)" value={germinationRate} onChange={v => setGerminationRate(v.replace(/\D/g, ''))} type="text" />
+          <div className="space-y-3">
+            <RangeField label="Germination Time (days)" min={germinationTimeDaysMin} max={germinationTimeDaysMax} onMinChange={v => setGerminationTimeDaysMin(v.replace(/\D/g, ''))} onMaxChange={v => setGerminationTimeDaysMax(v.replace(/\D/g, ''))} />
+            <RangeField label="Days to Harvest" min={daysToHarvestMin} max={daysToHarvestMax} onMinChange={v => setDaysToHarvestMin(v.replace(/\D/g, ''))} onMaxChange={v => setDaysToHarvestMax(v.replace(/\D/g, ''))} />
+            <RangeField label="Height (cm)" min={heightCmMin} max={heightCmMax} onMinChange={v => setHeightCmMin(v.replace(/\D/g, ''))} onMaxChange={v => setHeightCmMax(v.replace(/\D/g, ''))} />
+            <div className="grid grid-cols-3 gap-4">
+              <Field label="Sowing Depth (mm)" value={sowingDepthMm} onChange={v => setSowingDepthMm(v.replace(/\D/g, ''))} type="text" />
+              <Field label="Germination Rate (%)" value={germinationRate} onChange={v => setGerminationRate(v.replace(/\D/g, ''))} type="text" />
+            </div>
           </div>
         </section>
 
@@ -1562,6 +1561,20 @@ function SpeciesForm({
 }
 
 // ── Text Field ──
+
+function RangeField({ label, min, max, onMinChange, onMaxChange }: {
+  label: string; min: string; max: string; onMinChange: (v: string) => void; onMaxChange: (v: string) => void
+}) {
+  const inputClass = "w-full px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA]"
+  return (
+    <div className="flex items-center gap-3">
+      <label className="text-xs font-medium text-[#787774] w-40 shrink-0">{label}</label>
+      <input type="text" value={min} onChange={e => onMinChange(e.target.value)} placeholder="Min" className={inputClass} />
+      <span className="text-xs text-[#787774]">–</span>
+      <input type="text" value={max} onChange={e => onMaxChange(e.target.value)} placeholder="Max" className={inputClass} />
+    </div>
+  )
+}
 
 function Field({ label, value, onChange, type = 'text', className = '' }: {
   label: string; value: string; onChange: (v: string) => void; type?: string; className?: string
