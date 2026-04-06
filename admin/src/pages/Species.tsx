@@ -1130,7 +1130,7 @@ function SpeciesForm({
             src={species.providers[0].imageBackUrl}
             alt="Seed packet back"
             className="rounded-lg border border-[#E9E9E7] shadow-md cursor-pointer transition-all duration-200"
-            style={{ width: backImageSmall ? '46px' : '460px' }}
+            style={{ width: backImageSmall ? '92px' : '460px' }}
             onClick={() => setBackImageSmall(!backImageSmall)}
           />
           <button
