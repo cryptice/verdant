@@ -35,6 +35,7 @@ import app.verdant.android.ui.bed.CreateBedScreen
 import app.verdant.android.ui.garden.CreateGardenScreen
 import app.verdant.android.ui.garden.GardenDetailScreen
 import app.verdant.android.ui.inventory.SeedInventoryScreen
+import app.verdant.android.ui.supplies.SupplyInventoryScreen
 import app.verdant.android.ui.plant.AddPlantEventScreen
 import app.verdant.android.ui.plant.CreatePlantScreen
 import app.verdant.android.ui.plant.PlantDetailScreen
@@ -71,6 +72,7 @@ sealed class Screen(val route: String) {
     }
     data object Account : Screen("account")
     data object SeedInventory : Screen("seed-inventory")
+    data object Supplies : Screen("supplies")
     data object SpeciesList : Screen("species")
     data object PlantedSpeciesList : Screen("planted-species")
     data object PlantedSpeciesDetail : Screen("planted-species/{speciesId}") {
@@ -198,6 +200,18 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                     onClick = {
                         scope.launch { drawerState.close() }
                         navController.navigate(Screen.SeedInventory.route) {
+                            popUpTo(Screen.MyWorld.route)
+                        }
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.supplies)) },
+                    icon = { Icon(Icons.Default.Inventory2, contentDescription = null) },
+                    selected = currentRoute == Screen.Supplies.route,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(Screen.Supplies.route) {
                             popUpTo(Screen.MyWorld.route)
                         }
                     },
@@ -395,6 +409,12 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                     onBack = { navController.popBackStack() },
                     onAddSeeds = { navController.navigate(Screen.AddSeeds.route) }
                 )
+            }
+
+            // ── Supplies ──
+
+            composable(Screen.Supplies.route) {
+                SupplyInventoryScreen(onBack = { navController.popBackStack() })
             }
 
             // ── Seasons ──

@@ -90,6 +90,11 @@ class GardenRepository @Inject constructor(private val api: VerdantApi) {
     suspend fun updateSeason(id: Long, request: Map<String, Any?>) = api.updateSeason(id, request)
     suspend fun deleteSeason(id: Long) = api.deleteSeason(id)
 
+    // Supplies
+    suspend fun getSupplyTypes() = api.getSupplyTypes()
+    suspend fun getSupplyInventory() = api.getSupplyInventory()
+    suspend fun decrementSupply(id: Long, quantity: Double) = api.decrementSupply(id, DecrementSupplyRequest(quantity))
+
     // Customers
     suspend fun getCustomers() = api.getCustomers()
 

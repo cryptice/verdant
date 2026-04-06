@@ -20,6 +20,7 @@ import app.verdant.android.R
 import app.verdant.android.data.model.*
 import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.ui.supplies.SupplyUsageBottomSheet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -45,7 +46,7 @@ data class SowActivityState(
 @HiltViewModel
 class SowActivityViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val repo: GardenRepository
+    val repo: GardenRepository
 ) : ViewModel() {
     val taskId: Long? = savedStateHandle.get<Long>("taskId")?.takeIf { it > 0 }
     val preselectedSpeciesId: Long? = savedStateHandle.get<Long>("speciesId")?.takeIf { it > 0 }
@@ -154,7 +155,36 @@ fun SowActivityScreen(
         }
     }
 
-    LaunchedEffect(uiState.created) { if (uiState.created) onSowComplete() }
+    var showSupplySheet by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState.created) {
+        // Don't auto-navigate; we show the supply usage option first
+    }
+
+    if (showSupplySheet) {
+        SupplyUsageBottomSheet(
+            repo = viewModel.repo,
+            onDismiss = { showSupplySheet = false },
+        )
+    }
+
+    if (uiState.created) {
+        AlertDialog(
+            onDismissRequest = { onSowComplete() },
+            title = { Text(stringResource(R.string.sow)) },
+            text = { Text(stringResource(R.string.record_supply_usage) + "?") },
+            confirmButton = {
+                TextButton(onClick = { showSupplySheet = true }) {
+                    Text(stringResource(R.string.record_usage))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { onSowComplete() }) {
+                    Text(stringResource(R.string.skip))
+                }
+            },
+        )
+    }
 
     Scaffold(
         topBar = {

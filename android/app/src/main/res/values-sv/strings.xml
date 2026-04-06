@@ -315,6 +315,19 @@
     <string name="quality_grade">Kvalitet</string>
     <string name="destination">Destination</string>
 
+    <!-- Supplies -->
+    <string name="supplies">F\u00f6rn\u00f6denheter</string>
+    <string name="no_supplies">Inga f\u00f6rn\u00f6denheter i lager</string>
+    <string name="record_usage">Registrera anv\u00e4ndning</string>
+    <string name="record_supply_usage">Registrera f\u00f6rbrukning</string>
+    <string name="amount_to_use">M\u00e4ngd att anv\u00e4nda</string>
+    <string name="use">Anv\u00e4nd</string>
+    <string name="available_format">Tillg\u00e4ngligt: %s</string>
+    <string name="select_supply">V\u00e4lj f\u00f6rn\u00f6denhet\u2026</string>
+    <string name="no_supplies_available">Inga f\u00f6rn\u00f6denheter med kvarvarande lager</string>
+    <string name="supply_usage_recorded">Anv\u00e4ndning registrerad!</string>
+    <string name="record_another">Registrera en till</string>
+
     <!-- Additional Event Types -->
     <string name="budding">Knoppning</string>
     <string name="first_bloom">F\u00F6rsta blomning</string>
