@@ -1075,8 +1075,8 @@ function SpeciesForm({
 
   const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault()
     const req: CreateSpeciesRequest & UpdateSpeciesRequest = {
       commonName: commonName,
       commonNameSv: commonNameSv || undefined,
@@ -1122,7 +1122,16 @@ function SpeciesForm({
 
       <h2 className="text-2xl font-semibold text-[#37352F] mb-6">{title}</h2>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Provider back image floating right */}
+      {isEdit && species?.providers?.[0]?.imageBackUrl && (
+        <img
+          src={species.providers[0].imageBackUrl}
+          alt="Seed packet back"
+          className="float-right ml-4 mb-4 w-48 rounded-lg border border-[#E9E9E7] shadow-sm"
+        />
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-6 pb-20">
         {/* Provider & Images — create mode */}
         {!isEdit && (
           <section className="border border-[#E9E9E7] rounded-lg p-5">
@@ -1539,23 +1548,27 @@ function SpeciesForm({
           <div className="bg-[#FBE4E4] text-[#E03E3E] px-3 py-2.5 rounded-md text-sm">{error}</div>
         )}
 
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            disabled={isSubmitting || (!commonNameSv.trim() && !commonName.trim())}
-            className="px-4 py-2 bg-[#2EAADC] text-white rounded-md hover:bg-[#2898C4] disabled:opacity-50 transition-colors text-sm font-medium"
-          >
-            {isSubmitting ? 'Saving...' : submitLabel}
-          </button>
-          <button
-            type="button"
-            onClick={onBack}
-            className="px-4 py-2 text-[#787774] hover:bg-[#F0F0EE] rounded-md transition-colors text-sm"
-          >
-            Cancel
-          </button>
-        </div>
       </form>
+
+      {/* Floating save bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E9E9E7] px-6 py-3 flex gap-3 shadow-lg z-10">
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={isSubmitting || (!commonNameSv.trim() && !commonName.trim())}
+          className="px-6 py-2 bg-[#2EAADC] text-white rounded-md hover:bg-[#2898C4] disabled:opacity-50 transition-colors text-sm font-medium"
+        >
+          {isSubmitting ? 'Saving...' : submitLabel}
+        </button>
+        <button
+          type="button"
+          onClick={onBack}
+          className="px-4 py-2 text-[#787774] hover:bg-[#F0F0EE] rounded-md transition-colors text-sm"
+        >
+          Cancel
+        </button>
+        {error && <span className="text-red-600 text-sm self-center ml-2">{error}</span>}
+      </div>
     </div>
   )
 }
