@@ -1136,10 +1136,20 @@ function SpeciesForm({
           <button
             type="button"
             onClick={() => setBackImageSmall(!backImageSmall)}
-            className="absolute top-2 left-2 w-7 h-7 rounded-full bg-white/80 hover:bg-white border border-[#E9E9E7] shadow flex items-center justify-center text-xs text-[#787774] transition-colors"
+            className="absolute top-2 left-2 w-8 h-8 rounded-full bg-white/80 hover:bg-white border border-[#E9E9E7] shadow flex items-center justify-center text-[#787774] transition-colors"
             title={backImageSmall ? 'Enlarge' : 'Minimize'}
           >
-            {backImageSmall ? '⤢' : '⤡'}
+            {backImageSmall ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 3 21 3 21 9" /><line x1="21" y1="3" x2="14" y2="10" />
+                <polyline points="9 21 3 21 3 15" /><line x1="3" y1="21" x2="10" y2="14" />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="4 14 4 20 10 20" /><line x1="4" y1="20" x2="11" y2="13" />
+                <polyline points="20 10 20 4 14 4" /><line x1="20" y1="4" x2="13" y2="11" />
+              </svg>
+            )}
           </button>
         </div>
       )}
