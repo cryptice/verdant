@@ -123,6 +123,7 @@ export interface Species {
   expectedVaseLifeDays: number | null
   plantType: string | null
   defaultUnitType: string | null
+  workflowTemplateId: number | null
   isSystem: boolean
   createdAt: string
 }
@@ -158,6 +159,7 @@ export interface CreateSpeciesRequest {
   expectedVaseLifeDays?: number | null
   plantType?: string | null
   defaultUnitType?: string | null
+  workflowTemplateId?: number | null
 }
 
 export interface UpdateSpeciesRequest {
@@ -186,6 +188,7 @@ export interface UpdateSpeciesRequest {
   expectedVaseLifeDays?: number | null
   plantType?: string | null
   defaultUnitType?: string | null
+  workflowTemplateId?: number | null
 }
 
 export interface ExtractedFrontInfo {
@@ -244,6 +247,7 @@ export interface SpeciesExportEntry {
   groupNames: string[]
   tagNames: string[]
   providers: SpeciesExportProvider[]
+  workflowTemplateId: number | null
 }
 
 export interface ImportResult {

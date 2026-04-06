@@ -295,6 +295,7 @@ data class SpeciesExportEntry(
     val expectedVaseLifeDays: Int? = null,
     val plantType: String? = null,
     val defaultUnitType: String? = null,
+    val workflowTemplateId: Long? = null,
 )
 
 data class ImportResult(val created: Int, val updated: Int, val skipped: Int)

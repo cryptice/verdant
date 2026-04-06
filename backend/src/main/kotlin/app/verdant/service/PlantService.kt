@@ -19,6 +19,7 @@ class PlantService(
     private val gardenRepository: GardenRepository,
     private val speciesRepository: SpeciesRepository,
     private val storageService: StorageService,
+    private val workflowRepository: WorkflowRepository,
 ) {
     private fun checkBedOwnership(bedId: Long, orgId: Long) {
         val bed = bedRepository.findById(bedId) ?: throw NotFoundException("Bed not found")
@@ -154,6 +155,12 @@ class PlantService(
         })
         val plantedDate = request.plantedDate?.let { java.time.LocalDate.parse(it) }
         val plants = plantRepository.findByGroup(orgId, request.speciesId, request.bedId, plantedDate, plantStatus, request.count)
+        // Pre-fetch workflow steps for the species (all plants in a batch share the same species)
+        val matchingStepIds = request.speciesId?.let { speciesId ->
+            workflowRepository.findStepsBySpeciesId(speciesId)
+                .filter { it.eventType == request.eventType }
+                .mapNotNull { it.id }
+        } ?: emptyList()
         var imageUrl: String? = null
         for ((i, plant) in plants.withIndex()) {
             if (i == 0 && request.imageBase64 != null) {
@@ -174,6 +181,11 @@ class PlantService(
                 bedId = request.targetBedId ?: plant.bedId,
             )
             plantRepository.update(updated)
+
+            // Auto-record workflow progress if a matching step exists
+            for (stepId in matchingStepIds) {
+                workflowRepository.recordProgress(plant.id!!, stepId)
+            }
         }
         return BatchEventResponse(updatedCount = plants.size)
     }
@@ -263,6 +275,15 @@ class PlantService(
 
         if (updatedPlant !== plant) {
             plantRepository.update(updatedPlant)
+        }
+
+        // Auto-record workflow progress if a matching step exists
+        plant.speciesId?.let { speciesId ->
+            val steps = workflowRepository.findStepsBySpeciesId(speciesId)
+            val eventTypeName = request.eventType.name
+            steps.filter { it.eventType == eventTypeName }.forEach { step ->
+                workflowRepository.recordProgress(plantId, step.id!!)
+            }
         }
 
         return event.toResponse()

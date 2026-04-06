@@ -77,6 +77,7 @@ class SpeciesService(
                 expectedVaseLifeDays = request.expectedVaseLifeDays,
                 plantType = request.plantType?.let { PlantType.valueOf(it) } ?: PlantType.ANNUAL,
                 defaultUnitType = request.defaultUnitType?.let { UnitType.valueOf(it) } ?: UnitType.SEED,
+                workflowTemplateId = request.workflowTemplateId,
             )
         )
         val sid = species.id!!
@@ -124,6 +125,7 @@ class SpeciesService(
             expectedVaseLifeDays = request.expectedVaseLifeDays ?: species.expectedVaseLifeDays,
             plantType = request.plantType?.let { PlantType.valueOf(it) } ?: species.plantType,
             defaultUnitType = request.defaultUnitType?.let { UnitType.valueOf(it) } ?: species.defaultUnitType,
+            workflowTemplateId = request.workflowTemplateId ?: species.workflowTemplateId,
         )
         speciesRepository.update(updated)
         if (request.tagIds != null) {
@@ -191,6 +193,7 @@ class SpeciesService(
                 expectedVaseLifeDays = request.expectedVaseLifeDays,
                 plantType = request.plantType?.let { PlantType.valueOf(it) } ?: PlantType.ANNUAL,
                 defaultUnitType = request.defaultUnitType?.let { UnitType.valueOf(it) } ?: UnitType.SEED,
+                workflowTemplateId = request.workflowTemplateId,
             )
         )
         val sid = species.id!!
@@ -234,6 +237,7 @@ class SpeciesService(
             expectedVaseLifeDays = request.expectedVaseLifeDays ?: species.expectedVaseLifeDays,
             plantType = request.plantType?.let { PlantType.valueOf(it) } ?: species.plantType,
             defaultUnitType = request.defaultUnitType?.let { UnitType.valueOf(it) } ?: species.defaultUnitType,
+            workflowTemplateId = request.workflowTemplateId ?: species.workflowTemplateId,
         )
         speciesRepository.update(updated)
         if (request.tagIds != null) {
@@ -379,6 +383,7 @@ class SpeciesService(
                 expectedVaseLifeDays = species.expectedVaseLifeDays,
                 plantType = species.plantType.name,
                 defaultUnitType = species.defaultUnitType.name,
+                workflowTemplateId = species.workflowTemplateId,
             )
         }
     }
@@ -480,6 +485,7 @@ class SpeciesService(
                     expectedVaseLifeDays = entry.expectedVaseLifeDays,
                     plantType = entry.plantType?.let { PlantType.valueOf(it) } ?: PlantType.ANNUAL,
                     defaultUnitType = entry.defaultUnitType?.let { UnitType.valueOf(it) } ?: UnitType.SEED,
+                    workflowTemplateId = entry.workflowTemplateId,
                 )
             )
 
