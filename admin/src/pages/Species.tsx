@@ -1130,7 +1130,7 @@ function SpeciesForm({
             src={species.providers[0].imageBackUrl}
             alt="Seed packet back"
             className="rounded-lg border border-[#E9E9E7] shadow-md cursor-pointer transition-all duration-200"
-            style={{ width: backImageSmall ? '92px' : '460px' }}
+            style={{ width: backImageSmall ? '92px' : '506px' }}
             onClick={() => setBackImageSmall(!backImageSmall)}
           />
           <button
@@ -1601,13 +1601,13 @@ function SpeciesForm({
 function RangeField({ label, min, max, onMinChange, onMaxChange }: {
   label: string; min: string; max: string; onMinChange: (v: string) => void; onMaxChange: (v: string) => void
 }) {
-  const inputClass = "w-full px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA]"
+  const inputClass = "px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA] w-20"
   return (
     <div className="flex items-center gap-3">
       <label className="text-xs font-medium text-[#787774] w-40 shrink-0">{label}</label>
-      <input type="text" value={min} onChange={e => onMinChange(e.target.value)} placeholder="Min" className={inputClass} />
+      <input type="text" maxLength={4} value={min} onChange={e => onMinChange(e.target.value)} placeholder="Min" className={inputClass} />
       <span className="text-xs text-[#787774]">–</span>
-      <input type="text" value={max} onChange={e => onMaxChange(e.target.value)} placeholder="Max" className={inputClass} />
+      <input type="text" maxLength={4} value={max} onChange={e => onMaxChange(e.target.value)} placeholder="Max" className={inputClass} />
     </div>
   )
 }
