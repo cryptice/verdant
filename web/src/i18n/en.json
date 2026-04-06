@@ -93,6 +93,7 @@
   },
   "activityType": {
     "SOW": "Sow",
+    "SOAK": "Soak",
     "POT_UP": "Pot up",
     "PLANT": "Plant out",
     "HARVEST": "Harvest",

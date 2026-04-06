@@ -93,6 +93,7 @@
   },
   "activityType": {
     "SOW": "Så",
+    "SOAK": "Blötlägg",
     "POT_UP": "Omplantera",
     "PLANT": "Plantera ut",
     "HARVEST": "Skörda",

@@ -11,7 +11,7 @@ import { Pagination } from '../components/Pagination'
 const PAGE_SIZE = 50
 
 const activityIcons: Record<string, string> = {
-  SOW: '🌰', POT_UP: '🪴', PLANT: '🌳', HARVEST: '🌾', RECOVER: '💚', DISCARD: '🗑️',
+  SOW: '🌰', SOAK: '💧', POT_UP: '🪴', PLANT: '🌳', HARVEST: '🌾', RECOVER: '💚', DISCARD: '🗑️',
 }
 
 function speciesDisplayName(s: { commonName: string; variantName?: string; commonNameSv?: string; variantNameSv?: string }, lang: string) {

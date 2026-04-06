@@ -9,7 +9,7 @@ import type { BreadcrumbItem } from '../components/Breadcrumb'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
-const activityTypes = ['SOW', 'POT_UP', 'PLANT', 'HARVEST', 'RECOVER', 'DISCARD']
+const activityTypes = ['SOW', 'SOAK', 'POT_UP', 'PLANT', 'HARVEST', 'RECOVER', 'DISCARD']
 
 function speciesLabel(s: SpeciesResponse, lang: string) {
   const name = lang === 'sv' ? (s.commonNameSv ?? s.commonName) : s.commonName
