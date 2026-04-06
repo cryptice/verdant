@@ -1124,11 +1124,13 @@ function SpeciesForm({
 
       {/* Provider back image floating right */}
       {isEdit && species?.providers?.[0]?.imageBackUrl && (
-        <img
-          src={species.providers[0].imageBackUrl}
-          alt="Seed packet back"
-          className="float-right ml-4 mb-4 w-48 rounded-lg border border-[#E9E9E7] shadow-sm"
-        />
+        <div className="fixed right-6 top-24 z-10">
+          <img
+            src={species.providers[0].imageBackUrl}
+            alt="Seed packet back"
+            className="w-96 rounded-lg border border-[#E9E9E7] shadow-md"
+          />
+        </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6 pb-20">
