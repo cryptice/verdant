@@ -31,15 +31,19 @@ COPY backend/build.gradle.kts backend/settings.gradle.kts backend/gradle.propert
 COPY backend/gradle/ gradle/
 RUN gradle dependencies --no-daemon -q
 
-# Stage 4: Build backend
-FROM deps AS build
+# Stage 4: Run backend tests (reuses cached dependencies)
+FROM deps AS test
 COPY backend/src/ src/
+RUN gradle test --no-daemon
+
+# Stage 5: Build backend
+FROM test AS build
 COPY --from=web /web/dist/ src/main/resources/META-INF/resources/
 COPY --from=admin /admin/dist/ src/main/resources/META-INF/resources/admin/
 COPY --from=market /market/dist/ src/main/resources/META-INF/resources/market/
 RUN gradle quarkusBuild --no-daemon -Dquarkus.profile=prod && rm -rf /root/.kotlin /tmp/kotlin-daemon*
 
-# Stage 5: Run
+# Stage 6: Run
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
