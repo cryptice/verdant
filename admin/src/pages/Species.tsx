@@ -961,6 +961,7 @@ function SpeciesForm({
   const [defaultUnitType, setDefaultUnitType] = useState(species?.defaultUnitType ?? '')
   const [imageFrontBase64, setImageFrontBase64] = useState<string | null>(null)
   const [imageBackBase64, setImageBackBase64] = useState<string | null>(null)
+  const [backImageSmall, setBackImageSmall] = useState(false)
   const [deletingPhotoId, setDeletingPhotoId] = useState<number | null>(null)
   const [extractingFront, setExtractingFront] = useState(false)
   const [extractingBack, setExtractingBack] = useState(false)
@@ -1128,8 +1129,18 @@ function SpeciesForm({
           <img
             src={species.providers[0].imageBackUrl}
             alt="Seed packet back"
-            className="rounded-lg border border-[#E9E9E7] shadow-md" style={{ width: '460px' }}
+            className="rounded-lg border border-[#E9E9E7] shadow-md cursor-pointer transition-all duration-200"
+            style={{ width: backImageSmall ? '46px' : '460px' }}
+            onClick={() => setBackImageSmall(!backImageSmall)}
           />
+          <button
+            type="button"
+            onClick={() => setBackImageSmall(!backImageSmall)}
+            className="absolute top-2 left-2 w-7 h-7 rounded-full bg-white/80 hover:bg-white border border-[#E9E9E7] shadow flex items-center justify-center text-xs text-[#787774] transition-colors"
+            title={backImageSmall ? 'Enlarge' : 'Minimize'}
+          >
+            {backImageSmall ? '⤢' : '⤡'}
+          </button>
         </div>
       )}
 
