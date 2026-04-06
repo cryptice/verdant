@@ -87,7 +87,7 @@ class BatchPotUpViewModel @Inject constructor(
                     repo.recordComment(RecordCommentRequest(notes))
                 }
                 if (taskId != null && count > 0) {
-                    repo.completeTaskPartially(taskId, CompleteTaskPartiallyRequest(count))
+                    repo.completeTaskPartially(taskId, CompleteTaskPartiallyRequest(count, group.speciesId))
                 }
                 _uiState.value = _uiState.value.copy(submitting = false, created = true)
             } catch (e: Exception) {

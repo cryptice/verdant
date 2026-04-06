@@ -94,8 +94,9 @@ class GenericActivityViewModel @Inject constructor(
                     repo.recordComment(RecordCommentRequest(notes))
                 }
                 // Complete task partially if performing from a scheduled task
-                if (taskId != null && plantCount != null && plantCount > 0) {
-                    repo.completeTaskPartially(taskId, CompleteTaskPartiallyRequest(plantCount))
+                val speciesId = _uiState.value.plant?.speciesId
+                if (taskId != null && plantCount != null && plantCount > 0 && speciesId != null) {
+                    repo.completeTaskPartially(taskId, CompleteTaskPartiallyRequest(plantCount, speciesId))
                 }
                 _uiState.value = _uiState.value.copy(isLoading = false, created = true)
             } catch (e: Exception) {

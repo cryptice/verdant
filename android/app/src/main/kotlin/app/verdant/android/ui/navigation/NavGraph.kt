@@ -419,13 +419,14 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                     onCreateTask = { navController.navigate(Screen.CreateTask.route) },
                     onEditTask = { taskId -> navController.navigate(Screen.EditTask.create(taskId)) },
                     onPerformTask = { task ->
+                        val speciesParam = task.speciesId?.let { "&speciesId=$it" } ?: ""
                         when (task.activityType) {
-                            "SOW" -> navController.navigate("activity/sow?taskId=${task.id}&speciesId=${task.speciesId}")
+                            "SOW" -> navController.navigate("activity/sow?taskId=${task.id}$speciesParam")
                             "POT_UP" -> navController.navigate(Screen.BatchPotUp.create(taskId = task.id, speciesId = task.speciesId))
-                            "PLANT" -> navController.navigate("activity/plant-picker/SEEDED,POTTED_UP/plant-out?taskId=${task.id}&speciesId=${task.speciesId}")
-                            "HARVEST" -> navController.navigate("activity/plant-picker/GROWING/harvest?taskId=${task.id}&speciesId=${task.speciesId}")
-                            "RECOVER" -> navController.navigate("activity/plant-picker/GROWING/recover?taskId=${task.id}&speciesId=${task.speciesId}")
-                            "DISCARD" -> navController.navigate("activity/plant-picker/SEEDED,POTTED_UP,PLANTED_OUT,GROWING,HARVESTED,RECOVERED/discard?taskId=${task.id}&speciesId=${task.speciesId}")
+                            "PLANT" -> navController.navigate("activity/plant-picker/SEEDED,POTTED_UP/plant-out?taskId=${task.id}$speciesParam")
+                            "HARVEST" -> navController.navigate("activity/plant-picker/GROWING/harvest?taskId=${task.id}$speciesParam")
+                            "RECOVER" -> navController.navigate("activity/plant-picker/GROWING/recover?taskId=${task.id}$speciesParam")
+                            "DISCARD" -> navController.navigate("activity/plant-picker/SEEDED,POTTED_UP,PLANTED_OUT,GROWING,HARVESTED,RECOVERED/discard?taskId=${task.id}$speciesParam")
                         }
                     }
                 )

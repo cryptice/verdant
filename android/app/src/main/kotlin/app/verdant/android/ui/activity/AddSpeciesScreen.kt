@@ -174,11 +174,8 @@ fun AddSpeciesScreen(
     var selectedBloomMonths by remember { mutableStateOf<Set<Int>>(emptySet()) }
     var selectedSowingMonths by remember { mutableStateOf<Set<Int>>(emptySet()) }
     var germinationRate by remember { mutableStateOf("") }
-    var selectedGroupId by remember { mutableStateOf<Long?>(null) }
     var selectedTagIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
-    var showNewGroupDialog by remember { mutableStateOf(false) }
     var showNewTagDialog by remember { mutableStateOf(false) }
-    var groupExpanded by remember { mutableStateOf(false) }
     var showDiscardDialog by remember { mutableStateOf(false) }
     var showValidationErrors by remember { mutableStateOf(false) }
 
@@ -217,7 +214,6 @@ fun AddSpeciesScreen(
             selectedBloomMonths = s.bloomMonths.toSet()
             selectedSowingMonths = s.sowingMonths.toSet()
             germinationRate = s.germinationRate?.toString() ?: ""
-            selectedGroupId = s.groupId
             selectedTagIds = s.tags.map { it.id }.toSet()
             selectedPositions = s.growingPositions.toSet()
             selectedSoils = s.soils.toSet()
@@ -269,7 +265,6 @@ fun AddSpeciesScreen(
         germinationRate != (existing.germinationRate?.toString() ?: "") ||
         selectedPositions != existing.growingPositions.toSet() ||
         selectedSoils != existing.soils.toSet() ||
-        selectedGroupId != existing.groupId ||
         selectedTagIds != existing.tags.map { it.id }.toSet()
 
     fun tryBack() {
@@ -342,33 +337,6 @@ fun AddSpeciesScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDiscardDialog = false }) { Text(stringResource(R.string.cancel)) }
-            }
-        )
-    }
-
-    if (showNewGroupDialog) {
-        var newName by remember { mutableStateOf("") }
-        AlertDialog(
-            onDismissRequest = { showNewGroupDialog = false },
-            title = { Text(stringResource(R.string.new_group)) },
-            text = {
-                OutlinedTextField(
-                    value = newName,
-                    onValueChange = { newName = it },
-                    label = { Text(stringResource(R.string.group_name)) },
-                    shape = RoundedCornerShape(12.dp)
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    if (newName.isNotBlank()) {
-                        viewModel.createGroup(newName)
-                        showNewGroupDialog = false
-                    }
-                }) { Text(stringResource(R.string.create)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showNewGroupDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -705,43 +673,6 @@ fun AddSpeciesScreen(
                 }
             }
 
-            // Group picker
-            item { Text(stringResource(R.string.group), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
-            item {
-                ExposedDropdownMenuBox(
-                    expanded = groupExpanded,
-                    onExpandedChange = { groupExpanded = it }
-                ) {
-                    OutlinedTextField(
-                        value = uiState.groups.find { it.id == selectedGroupId }?.name ?: stringResource(R.string.none),
-                        onValueChange = {},
-                        readOnly = true,
-                        modifier = Modifier.fillMaxWidth().menuAnchor(),
-                        shape = RoundedCornerShape(12.dp),
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(groupExpanded) }
-                    )
-                    ExposedDropdownMenu(
-                        expanded = groupExpanded,
-                        onDismissRequest = { groupExpanded = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.none)) },
-                            onClick = { selectedGroupId = null; groupExpanded = false }
-                        )
-                        uiState.groups.forEach { group ->
-                            DropdownMenuItem(
-                                text = { Text(group.name) },
-                                onClick = { selectedGroupId = group.id; groupExpanded = false }
-                            )
-                        }
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.create_new_group), color = MaterialTheme.colorScheme.primary) },
-                            onClick = { showNewGroupDialog = true; groupExpanded = false }
-                        )
-                    }
-                }
-            }
-
             // Tag picker
             item { Text(stringResource(R.string.tags), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
             item {
@@ -880,7 +811,6 @@ fun AddSpeciesScreen(
                                     bloomMonths = selectedBloomMonths.sorted(),
                                     sowingMonths = selectedSowingMonths.sorted(),
                                     germinationRate = germinationRate.toIntOrNull(),
-                                    groupId = selectedGroupId,
                                     tagIds = selectedTagIds.toList(),
                                 )
                             )
@@ -906,7 +836,6 @@ fun AddSpeciesScreen(
                                     bloomMonths = selectedBloomMonths.sorted(),
                                     sowingMonths = selectedSowingMonths.sorted(),
                                     germinationRate = germinationRate.toIntOrNull(),
-                                    groupId = selectedGroupId,
                                     tagIds = selectedTagIds.toList(),
                                 )
                             )

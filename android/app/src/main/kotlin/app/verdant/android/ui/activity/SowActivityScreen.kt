@@ -105,7 +105,7 @@ class SowActivityViewModel @Inject constructor(
                 }
                 // Complete task partially if performing from a scheduled task
                 if (taskId != null && count > 0) {
-                    repo.completeTaskPartially(taskId, CompleteTaskPartiallyRequest(count))
+                    repo.completeTaskPartially(taskId, CompleteTaskPartiallyRequest(count, speciesId))
                 }
                 _uiState.value = _uiState.value.copy(isLoading = false, created = true)
             } catch (e: Exception) {

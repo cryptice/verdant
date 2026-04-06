@@ -253,7 +253,7 @@ private fun TaskCard(
             Spacer(Modifier.height(8.dp))
 
             Text(
-                task.speciesName,
+                task.originGroupName ?: task.speciesName ?: "",
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
                 maxLines = 1,

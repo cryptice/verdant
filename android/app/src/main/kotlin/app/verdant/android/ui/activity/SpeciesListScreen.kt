@@ -96,7 +96,7 @@ private fun SpeciesResponse.matchesQuery(query: String): Boolean {
         (variantName?.lowercase()?.contains(q) == true) ||
         (variantNameSv?.lowercase()?.contains(q) == true) ||
         (scientificName?.lowercase()?.contains(q) == true) ||
-        (groupName?.lowercase()?.contains(q) == true)
+        groups.any { it.name.lowercase().contains(q) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
