@@ -36,6 +36,9 @@ import { MyListings } from './pages/MyListings'
 import { IncomingOrders } from './pages/IncomingOrders'
 import { Supplies } from './pages/Supplies'
 import { PrivacyPolicy } from './pages/PrivacyPolicy'
+import { WorkflowTemplates } from './pages/WorkflowTemplates'
+import { WorkflowTemplateEdit } from './pages/WorkflowTemplateEdit'
+import { WorkflowProgress } from './pages/WorkflowProgress'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token, loading } = useAuth()
@@ -87,6 +90,9 @@ export function App() {
         <Route path="species" element={<SpeciesList />} />
         <Route path="species-groups" element={<SpeciesGroups />} />
         <Route path="species-groups/:id/edit" element={<SpeciesGroupEdit />} />
+        <Route path="workflows" element={<WorkflowTemplates />} />
+        <Route path="workflows/:id/edit" element={<WorkflowTemplateEdit />} />
+        <Route path="workflows/progress/:speciesId" element={<WorkflowProgress />} />
         <Route path="seasons" element={<SeasonList />} />
         <Route path="customers" element={<CustomerList />} />
         <Route path="pest-disease" element={<PestDiseaseLog />} />

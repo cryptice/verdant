@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { api } from '../api/client'
+import { api, type SpeciesWorkflowStepResponse } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
@@ -190,6 +190,9 @@ export function SpeciesDetail() {
           </Section>
         )}
 
+        {/* Workflow */}
+        <WorkflowSection speciesId={Number(id)} />
+
         {/* Delete */}
         {canDelete && (
           <div className="pt-4">
@@ -219,5 +222,163 @@ export function SpeciesDetail() {
         </Dialog>
       )}
     </div>
+  )
+}
+
+function WorkflowStepItem({ step }: { step: SpeciesWorkflowStepResponse }) {
+  const { t } = useTranslation()
+  return (
+    <div className={`flex items-center gap-2 py-1.5 ${step.isSideBranch ? 'ml-4' : ''}`}>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm truncate">{step.name}</p>
+        <div className="flex flex-wrap gap-1 mt-0.5">
+          {step.eventType && (
+            <span className="text-xs bg-accent/15 text-accent px-1.5 py-0.5 rounded">{step.eventType}</span>
+          )}
+          {step.daysAfterPrevious != null && step.daysAfterPrevious > 0 && (
+            <span className="text-xs text-text-secondary">+{step.daysAfterPrevious}d</span>
+          )}
+          {step.isOptional && (
+            <span className="text-xs bg-warning/15 text-warning px-1.5 py-0.5 rounded">{t('workflows.optional')}</span>
+          )}
+          {step.isSideBranch && (
+            <span className="text-xs bg-info/15 text-info px-1.5 py-0.5 rounded">{step.sideBranchName}</span>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function WorkflowSection({ speciesId }: { speciesId: number }) {
+  const { t } = useTranslation()
+  const qc = useQueryClient()
+  const navigate = useNavigate()
+  const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null)
+  const [showAddStep, setShowAddStep] = useState(false)
+  const [newStepName, setNewStepName] = useState('')
+
+  const { data: workflow, isLoading } = useQuery({
+    queryKey: ['species-workflow', speciesId],
+    queryFn: () => api.workflows.getSpeciesWorkflow(speciesId),
+  })
+
+  const { data: templates } = useQuery({
+    queryKey: ['workflow-templates'],
+    queryFn: api.workflows.templates,
+  })
+
+  const assignMut = useMutation({
+    mutationFn: (templateId: number) => api.workflows.assignToSpecies(speciesId, templateId),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['species-workflow', speciesId] }) },
+  })
+
+  const syncMut = useMutation({
+    mutationFn: () => api.workflows.syncSpeciesWorkflow(speciesId),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['species-workflow', speciesId] }) },
+  })
+
+  const addStepMut = useMutation({
+    mutationFn: (data: Record<string, unknown>) => api.workflows.addSpeciesStep(speciesId, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['species-workflow', speciesId] })
+      setShowAddStep(false)
+      setNewStepName('')
+    },
+  })
+
+  if (isLoading) return null
+
+  const hasWorkflow = workflow && workflow.steps.length > 0
+  const sortedSteps = hasWorkflow ? [...workflow.steps].sort((a, b) => a.sortOrder - b.sortOrder) : []
+
+  return (
+    <>
+      <Section title={t('workflows.title')}>
+        {!hasWorkflow && (
+          <div className="space-y-2">
+            <select
+              value={selectedTemplateId ?? ''}
+              onChange={e => setSelectedTemplateId(e.target.value ? Number(e.target.value) : null)}
+              className="input w-full text-sm"
+            >
+              <option value="">{t('workflows.selectTemplate')}</option>
+              {templates?.map(tmpl => (
+                <option key={tmpl.id} value={tmpl.id}>{tmpl.name}</option>
+              ))}
+            </select>
+            <button
+              className="btn-primary text-sm w-full"
+              disabled={!selectedTemplateId || assignMut.isPending}
+              onClick={() => selectedTemplateId && assignMut.mutate(selectedTemplateId)}
+            >
+              {assignMut.isPending ? t('common.saving') : t('workflows.assignTemplate')}
+            </button>
+          </div>
+        )}
+
+        {hasWorkflow && (
+          <div className="space-y-2">
+            {workflow.templateName && (
+              <p className="text-xs text-text-secondary">{t('workflows.assigned')}: {workflow.templateName}</p>
+            )}
+            <div className="space-y-0.5">
+              {sortedSteps.map(step => (
+                <WorkflowStepItem key={step.id} step={step} />
+              ))}
+            </div>
+            <div className="flex gap-2 pt-1">
+              {workflow.templateId && (
+                <button
+                  className="btn-secondary text-xs flex-1"
+                  disabled={syncMut.isPending}
+                  onClick={() => syncMut.mutate()}
+                >
+                  {syncMut.isPending ? t('common.saving') : t('workflows.syncFromTemplate')}
+                </button>
+              )}
+              <button
+                className="btn-secondary text-xs flex-1"
+                onClick={() => setShowAddStep(true)}
+              >
+                {t('workflows.addStep')}
+              </button>
+              <button
+                className="btn-secondary text-xs flex-1"
+                onClick={() => navigate(`/workflows/progress/${speciesId}`)}
+              >
+                {t('workflows.progress')}
+              </button>
+            </div>
+          </div>
+        )}
+      </Section>
+
+      {showAddStep && (
+        <Dialog open={showAddStep} title={t('workflows.addStep')} onClose={() => setShowAddStep(false)}>
+          <div className="space-y-3">
+            <div>
+              <label className="field-label">{t('workflows.stepName')}</label>
+              <input
+                value={newStepName}
+                onChange={e => setNewStepName(e.target.value)}
+                className="input w-full"
+                autoFocus
+              />
+            </div>
+            <div className="flex gap-2">
+              <button className="btn-secondary flex-1" onClick={() => setShowAddStep(false)}>{t('common.cancel')}</button>
+              <button
+                className="btn-primary flex-1"
+                disabled={!newStepName.trim() || addStepMut.isPending}
+                onClick={() => addStepMut.mutate({ name: newStepName.trim(), sortOrder: sortedSteps.length })}
+              >
+                {addStepMut.isPending ? t('common.creating') : t('common.add')}
+              </button>
+            </div>
+          </div>
+        </Dialog>
+      )}
+    </>
   )
 }

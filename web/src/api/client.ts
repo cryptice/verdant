@@ -333,6 +333,31 @@ export interface SupplyInventoryResponse {
   notes?: string; createdAt: string
 }
 
+// Workflow
+export interface WorkflowTemplateResponse {
+  id: number; name: string; description?: string
+  steps: WorkflowStepResponse[]; createdAt: string
+}
+export interface WorkflowStepResponse {
+  id: number; name: string; description?: string; eventType?: string
+  daysAfterPrevious?: number; isOptional: boolean; isSideBranch: boolean
+  sideBranchName?: string; sortOrder: number
+}
+export interface SpeciesWorkflowResponse {
+  templateId?: number; templateName?: string
+  steps: SpeciesWorkflowStepResponse[]
+}
+export interface SpeciesWorkflowStepResponse {
+  id: number; templateStepId?: number; name: string; description?: string
+  eventType?: string; daysAfterPrevious?: number; isOptional: boolean
+  isSideBranch: boolean; sideBranchName?: string; sortOrder: number
+}
+export interface PlantWorkflowProgressResponse {
+  steps: SpeciesWorkflowStepResponse[]
+  completedStepIds: number[]; currentStepId?: number
+  activeSideBranches: string[]
+}
+
 // ── API ──
 
 export const api = {
@@ -563,6 +588,39 @@ export const api = {
     decrement: (id: number, quantity: number) =>
       apiRequest<void>(`/api/supplies/${id}/decrement`, { method: 'POST', body: JSON.stringify({ quantity }) }),
     delete: (id: number) => apiRequest<void>(`/api/supplies/${id}`, { method: 'DELETE' }),
+  },
+
+  workflows: {
+    templates: () => apiRequest<WorkflowTemplateResponse[]>('/api/workflows/templates'),
+    getTemplate: (id: number) => apiRequest<WorkflowTemplateResponse>(`/api/workflows/templates/${id}`),
+    createTemplate: (data: { name: string; description?: string }) =>
+      apiRequest<WorkflowTemplateResponse>('/api/workflows/templates', { method: 'POST', body: JSON.stringify(data) }),
+    updateTemplate: (id: number, data: Record<string, unknown>) =>
+      apiRequest<WorkflowTemplateResponse>(`/api/workflows/templates/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteTemplate: (id: number) => apiRequest<void>(`/api/workflows/templates/${id}`, { method: 'DELETE' }),
+    addTemplateStep: (templateId: number, data: Record<string, unknown>) =>
+      apiRequest<WorkflowStepResponse>(`/api/workflows/templates/${templateId}/steps`, { method: 'POST', body: JSON.stringify(data) }),
+    updateStep: (stepId: number, data: Record<string, unknown>) =>
+      apiRequest<WorkflowStepResponse>(`/api/workflows/steps/${stepId}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteStep: (stepId: number) => apiRequest<void>(`/api/workflows/steps/${stepId}`, { method: 'DELETE' }),
+    assignToSpecies: (speciesId: number, templateId: number) =>
+      apiRequest<SpeciesWorkflowResponse>(`/api/workflows/species/${speciesId}/assign`, { method: 'POST', body: JSON.stringify({ templateId }) }),
+    getSpeciesWorkflow: (speciesId: number) => apiRequest<SpeciesWorkflowResponse>(`/api/workflows/species/${speciesId}`),
+    addSpeciesStep: (speciesId: number, data: Record<string, unknown>) =>
+      apiRequest<SpeciesWorkflowStepResponse>(`/api/workflows/species/${speciesId}/steps`, { method: 'POST', body: JSON.stringify(data) }),
+    updateSpeciesStep: (speciesId: number, stepId: number, data: Record<string, unknown>) =>
+      apiRequest<SpeciesWorkflowStepResponse>(`/api/workflows/species/${speciesId}/steps/${stepId}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteSpeciesStep: (speciesId: number, stepId: number) =>
+      apiRequest<void>(`/api/workflows/species/${speciesId}/steps/${stepId}`, { method: 'DELETE' }),
+    syncSpeciesWorkflow: (speciesId: number) =>
+      apiRequest<SpeciesWorkflowResponse>(`/api/workflows/species/${speciesId}/sync`, { method: 'POST' }),
+    getPlantProgress: (plantId: number) => apiRequest<PlantWorkflowProgressResponse>(`/api/workflows/plants/${plantId}`),
+    completeStep: (stepId: number, data: { plantIds: number[]; notes?: string }) =>
+      apiRequest<void>(`/api/workflows/species-steps/${stepId}/complete`, { method: 'POST', body: JSON.stringify(data) }),
+    getPlantsAtStep: (stepId: number, speciesId: number) =>
+      apiRequest<number[]>(`/api/workflows/species-steps/${stepId}/plants?speciesId=${speciesId}`),
+    startSideBranch: (data: { plantIds: number[]; sideBranchName: string }) =>
+      apiRequest<void>('/api/workflows/side-branches/start', { method: 'POST', body: JSON.stringify(data) }),
   },
 
   analytics: {

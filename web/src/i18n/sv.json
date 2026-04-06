@@ -23,7 +23,8 @@
     "myOrders": "Mina ordrar",
     "incomingOrders": "Inkommande ordrar",
     "speciesGroups": "Artgrupper",
-    "supplies": "Utrustning & förbrukning"
+    "supplies": "Utrustning & förbrukning",
+    "workflows": "Arbetsflöden"
   },
   "common": {
     "cancel": "Avbryt",
@@ -1151,5 +1152,36 @@
     "GRAMS": "g",
     "METERS": "m",
     "PACKETS": "pkt"
+  },
+  "workflows": {
+    "title": "Arbetsflöden",
+    "newTemplate": "+ Nytt arbetsflöde",
+    "editTemplate": "Redigera arbetsflöde",
+    "templateName": "Namn",
+    "description": "Beskrivning",
+    "steps": "Steg",
+    "addStep": "Lägg till steg",
+    "stepName": "Stegnamn",
+    "eventType": "Händelsetyp",
+    "daysAfterPrevious": "Dagar efter föregående",
+    "optional": "Valfritt",
+    "sideBranch": "Sidoflöde",
+    "sideBranchName": "Sidoflödesnamn",
+    "noTemplates": "Inga arbetsflöden ännu",
+    "noSteps": "Inga steg tillagda",
+    "assignTemplate": "Tilldela arbetsflöde",
+    "selectTemplate": "Välj arbetsflöde...",
+    "syncFromTemplate": "Synka från mall",
+    "assigned": "Tilldelat arbetsflöde",
+    "mainFlow": "Huvudflöde",
+    "progress": "Framsteg",
+    "complete": "Slutför",
+    "completedSteps": "{{count}} slutförda",
+    "plantsAtStep": "{{count}} växter",
+    "completeForPlants": "Slutför för {{count}} växter",
+    "noneEvent": "Manuell åtgärd",
+    "startSideBranch": "Starta sidoflöde",
+    "stepCount": "{{count}} steg",
+    "deleteTemplate": "Radera arbetsflöde"
   }
 }

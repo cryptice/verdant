@@ -99,6 +99,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
     { to: '/seasons', label: t('nav.seasons'), icon: '📅' },
     { to: '/species', label: t('nav.species'), icon: '🌿' },
     { to: '/species-groups', label: t('nav.speciesGroups'), icon: '🗂️' },
+    { to: '/workflows', label: t('nav.workflows'), icon: '⚙️' },
     { to: '/plants', label: t('nav.plants'), icon: '🌱' },
     { to: '/tasks', label: t('nav.tasks'), icon: '📋' },
     { to: '/seed-stock', label: t('nav.seeds'), icon: '🫘' },

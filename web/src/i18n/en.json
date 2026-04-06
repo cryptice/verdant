@@ -23,7 +23,8 @@
     "myOrders": "My Orders",
     "incomingOrders": "Incoming Orders",
     "speciesGroups": "Species Groups",
-    "supplies": "Supplies"
+    "supplies": "Supplies",
+    "workflows": "Workflows"
   },
   "common": {
     "cancel": "Cancel",
@@ -1151,5 +1152,36 @@
     "GRAMS": "g",
     "METERS": "m",
     "PACKETS": "pkt"
+  },
+  "workflows": {
+    "title": "Workflows",
+    "newTemplate": "+ New template",
+    "editTemplate": "Edit Workflow",
+    "templateName": "Name",
+    "description": "Description",
+    "steps": "Steps",
+    "addStep": "Add step",
+    "stepName": "Step name",
+    "eventType": "Event type",
+    "daysAfterPrevious": "Days after previous",
+    "optional": "Optional",
+    "sideBranch": "Side branch",
+    "sideBranchName": "Branch name",
+    "noTemplates": "No workflow templates yet",
+    "noSteps": "No steps added",
+    "assignTemplate": "Assign workflow",
+    "selectTemplate": "Select workflow...",
+    "syncFromTemplate": "Sync from template",
+    "assigned": "Assigned workflow",
+    "mainFlow": "Main flow",
+    "progress": "Progress",
+    "complete": "Complete",
+    "completedSteps": "{{count}} completed",
+    "plantsAtStep": "{{count}} plants",
+    "completeForPlants": "Complete for {{count}} plants",
+    "noneEvent": "Manual action",
+    "startSideBranch": "Start side branch",
+    "stepCount": "{{count}} steps",
+    "deleteTemplate": "Delete workflow"
   }
 }
