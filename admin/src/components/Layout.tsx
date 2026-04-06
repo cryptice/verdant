@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 export default function Layout() {
   const { logout } = useAuth()
   const navigate = useNavigate()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   const handleLogout = () => {
     logout()
@@ -36,7 +36,21 @@ export default function Layout() {
             <NavLink to="/dev" className={linkClass}>{t('nav.devTools')}</NavLink>
           )}
         </nav>
-        <div className="px-3 py-3 border-t border-[#E9E9E7]">
+        <div className="px-3 py-3 border-t border-[#E9E9E7] space-y-1">
+          <div className="flex gap-1 px-3 py-1">
+            <button
+              onClick={() => i18n.changeLanguage('sv')}
+              className={`text-xs px-2 py-0.5 rounded transition-colors ${i18n.language === 'sv' ? 'bg-[#E9E9E7] text-[#37352F] font-medium' : 'text-[#A5A29C] hover:text-[#787774]'}`}
+            >
+              SV
+            </button>
+            <button
+              onClick={() => i18n.changeLanguage('en')}
+              className={`text-xs px-2 py-0.5 rounded transition-colors ${i18n.language === 'en' ? 'bg-[#E9E9E7] text-[#37352F] font-medium' : 'text-[#A5A29C] hover:text-[#787774]'}`}
+            >
+              EN
+            </button>
+          </div>
           <button
             onClick={handleLogout}
             className="w-full px-3 py-1 text-sm text-[#787774] hover:bg-[#F0F0EE] rounded-md transition-colors text-left"
