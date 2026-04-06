@@ -258,6 +258,16 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
         }
     }
 
+    fun updateWorkflowTemplateId(speciesId: Long, templateId: Long?) {
+        ds.connection.use { conn ->
+            conn.prepareStatement("UPDATE species SET workflow_template_id = ? WHERE id = ?").use { ps ->
+                ps.setObject(1, templateId)
+                ps.setLong(2, speciesId)
+                ps.executeUpdate()
+            }
+        }
+    }
+
     fun setTagsForSpecies(speciesId: Long, tagIds: List<Long>) {
         ds.connection.use { conn ->
             conn.prepareStatement("DELETE FROM species_tag_mapping WHERE species_id = ?").use { ps ->
