@@ -347,8 +347,7 @@ data class SpeciesResponse(
     @SerializedName("bloomMonths") val bloomMonths: List<Int> = emptyList(),
     @SerializedName("sowingMonths") val sowingMonths: List<Int> = emptyList(),
     @SerializedName("germinationRate") val germinationRate: Int?,
-    @SerializedName("groupId") val groupId: Long?,
-    @SerializedName("groupName") val groupName: String?,
+    @SerializedName("groups") val groups: List<SpeciesGroupRef> = emptyList(),
     @SerializedName("tags") val tags: List<SpeciesTagResponse>,
     @SerializedName("providers") val providers: List<SpeciesProviderResponse> = emptyList(),
     @SerializedName("isSystem") val isSystem: Boolean = false,
@@ -356,6 +355,8 @@ data class SpeciesResponse(
     @SerializedName("expectedStemsPerPlant") val expectedStemsPerPlant: Int? = null,
     @SerializedName("expectedVaseLifeDays") val expectedVaseLifeDays: Int? = null,
     @SerializedName("plantType") val plantType: String? = null,
+    @SerializedName("workflowTemplateId") val workflowTemplateId: Long? = null,
+    @SerializedName("defaultUnitType") val defaultUnitType: String? = null,
     @SerializedName("createdAt") val createdAt: String,
 )
 
@@ -379,8 +380,8 @@ data class CreateSpeciesRequest(
     @SerializedName("bloomMonths") val bloomMonths: List<Int> = emptyList(),
     @SerializedName("sowingMonths") val sowingMonths: List<Int> = emptyList(),
     @SerializedName("germinationRate") val germinationRate: Int? = null,
-    @SerializedName("groupId") val groupId: Long? = null,
     @SerializedName("tagIds") val tagIds: List<Long> = emptyList(),
+    @SerializedName("workflowTemplateId") val workflowTemplateId: Long? = null,
 )
 
 data class UpdateSpeciesRequest(
@@ -403,8 +404,13 @@ data class UpdateSpeciesRequest(
     @SerializedName("bloomMonths") val bloomMonths: List<Int>? = null,
     @SerializedName("sowingMonths") val sowingMonths: List<Int>? = null,
     @SerializedName("germinationRate") val germinationRate: Int? = null,
-    @SerializedName("groupId") val groupId: Long? = null,
     @SerializedName("tagIds") val tagIds: List<Long>? = null,
+    @SerializedName("workflowTemplateId") val workflowTemplateId: Long? = null,
+)
+
+data class SpeciesGroupRef(
+    @SerializedName("id") val id: Long,
+    @SerializedName("name") val name: String,
 )
 
 data class SpeciesGroupResponse(
@@ -514,8 +520,8 @@ data class PlantLocationGroup(
 
 data class ScheduledTaskResponse(
     @SerializedName("id") val id: Long,
-    @SerializedName("speciesId") val speciesId: Long,
-    @SerializedName("speciesName") val speciesName: String,
+    @SerializedName("speciesId") val speciesId: Long?,
+    @SerializedName("speciesName") val speciesName: String?,
     @SerializedName("activityType") val activityType: String,
     @SerializedName("deadline") val deadline: String,
     @SerializedName("targetCount") val targetCount: Int,
@@ -524,12 +530,26 @@ data class ScheduledTaskResponse(
     @SerializedName("notes") val notes: String?,
     @SerializedName("seasonId") val seasonId: Long? = null,
     @SerializedName("successionScheduleId") val successionScheduleId: Long? = null,
+    @SerializedName("originGroupId") val originGroupId: Long? = null,
+    @SerializedName("originGroupName") val originGroupName: String? = null,
+    @SerializedName("acceptableSpecies") val acceptableSpecies: List<AcceptableSpeciesEntry> = emptyList(),
     @SerializedName("createdAt") val createdAt: String,
     @SerializedName("updatedAt") val updatedAt: String,
 )
 
-data class CreateScheduledTaskRequest(
+data class AcceptableSpeciesEntry(
     @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("speciesName") val speciesName: String,
+    @SerializedName("commonName") val commonName: String,
+    @SerializedName("variantName") val variantName: String?,
+    @SerializedName("commonNameSv") val commonNameSv: String?,
+    @SerializedName("variantNameSv") val variantNameSv: String?,
+)
+
+data class CreateScheduledTaskRequest(
+    @SerializedName("speciesId") val speciesId: Long? = null,
+    @SerializedName("speciesGroupId") val speciesGroupId: Long? = null,
+    @SerializedName("speciesIds") val speciesIds: List<Long>? = null,
     @SerializedName("activityType") val activityType: String,
     @SerializedName("deadline") val deadline: String,
     @SerializedName("targetCount") val targetCount: Int,
@@ -549,6 +569,7 @@ data class UpdateScheduledTaskRequest(
 
 data class CompleteTaskPartiallyRequest(
     @SerializedName("processedCount") val processedCount: Int,
+    @SerializedName("speciesId") val speciesId: Long,
 )
 
 // ── Seasons ──
@@ -630,4 +651,66 @@ data class SuccessionScheduleResponse(
     @SerializedName("seedsPerSuccession") val seedsPerSuccession: Int,
     @SerializedName("notes") val notes: String?,
     @SerializedName("createdAt") val createdAt: String,
+)
+
+// ── Supplies ──
+
+data class SupplyTypeResponse(
+    @SerializedName("id") val id: Long,
+    @SerializedName("name") val name: String,
+    @SerializedName("category") val category: String,
+    @SerializedName("unit") val unit: String,
+    @SerializedName("properties") val properties: Map<String, Any?>,
+    @SerializedName("createdAt") val createdAt: String,
+)
+
+data class SupplyInventoryResponse(
+    @SerializedName("id") val id: Long,
+    @SerializedName("supplyTypeId") val supplyTypeId: Long,
+    @SerializedName("supplyTypeName") val supplyTypeName: String,
+    @SerializedName("category") val category: String,
+    @SerializedName("unit") val unit: String,
+    @SerializedName("properties") val properties: Map<String, Any?>,
+    @SerializedName("quantity") val quantity: Double,
+    @SerializedName("costSek") val costSek: Int?,
+    @SerializedName("seasonId") val seasonId: Long?,
+    @SerializedName("notes") val notes: String?,
+    @SerializedName("createdAt") val createdAt: String,
+)
+
+data class DecrementSupplyRequest(
+    @SerializedName("quantity") val quantity: Double,
+)
+
+// ── Workflows ──
+
+data class SpeciesWorkflowResponse(
+    @SerializedName("templateId") val templateId: Long?,
+    @SerializedName("templateName") val templateName: String?,
+    @SerializedName("steps") val steps: List<SpeciesWorkflowStepResponse>,
+)
+
+data class SpeciesWorkflowStepResponse(
+    @SerializedName("id") val id: Long,
+    @SerializedName("templateStepId") val templateStepId: Long?,
+    @SerializedName("name") val name: String,
+    @SerializedName("description") val description: String?,
+    @SerializedName("eventType") val eventType: String?,
+    @SerializedName("daysAfterPrevious") val daysAfterPrevious: Int?,
+    @SerializedName("isOptional") val isOptional: Boolean,
+    @SerializedName("isSideBranch") val isSideBranch: Boolean,
+    @SerializedName("sideBranchName") val sideBranchName: String?,
+    @SerializedName("sortOrder") val sortOrder: Int,
+)
+
+data class PlantWorkflowProgressResponse(
+    @SerializedName("steps") val steps: List<SpeciesWorkflowStepResponse>,
+    @SerializedName("completedStepIds") val completedStepIds: List<Long>,
+    @SerializedName("currentStepId") val currentStepId: Long?,
+    @SerializedName("activeSideBranches") val activeSideBranches: List<String>,
+)
+
+data class CompleteWorkflowStepRequest(
+    @SerializedName("plantIds") val plantIds: List<Long>,
+    @SerializedName("notes") val notes: String? = null,
 )

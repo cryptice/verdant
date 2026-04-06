@@ -1,6 +1,7 @@
 package app.verdant.android.data.api
 
 import app.verdant.android.data.model.*
+import retrofit2.Response
 import retrofit2.http.*
 
 interface VerdantApi {
@@ -249,4 +250,29 @@ interface VerdantApi {
 
     @DELETE("api/succession-schedules/{id}")
     suspend fun deleteSuccessionSchedule(@Path("id") id: Long)
+
+    // ── Supplies ──
+
+    @GET("api/supplies/types")
+    suspend fun getSupplyTypes(): List<SupplyTypeResponse>
+
+    @GET("api/supplies")
+    suspend fun getSupplyInventory(): List<SupplyInventoryResponse>
+
+    @POST("api/supplies/{id}/decrement")
+    suspend fun decrementSupply(@Path("id") id: Long, @Body request: DecrementSupplyRequest): Response<Unit>
+
+    // ── Workflows ──
+
+    @GET("api/workflows/species/{speciesId}")
+    suspend fun getSpeciesWorkflow(@Path("speciesId") speciesId: Long): SpeciesWorkflowResponse
+
+    @GET("api/workflows/plants/{plantId}")
+    suspend fun getPlantWorkflowProgress(@Path("plantId") plantId: Long): PlantWorkflowProgressResponse
+
+    @POST("api/workflows/species-steps/{stepId}/complete")
+    suspend fun completeWorkflowStep(@Path("stepId") stepId: Long, @Body request: CompleteWorkflowStepRequest): Response<Unit>
+
+    @GET("api/workflows/species-steps/{stepId}/plants")
+    suspend fun getPlantsAtStep(@Path("stepId") stepId: Long, @Query("speciesId") speciesId: Long): List<Long>
 }
