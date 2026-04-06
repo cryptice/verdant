@@ -1553,8 +1553,8 @@ function SpeciesForm({
       </form>
 
       {/* Floating save bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E9E9E7] px-6 py-3 flex gap-3 justify-end shadow-lg z-10">
-        {error && <span className="text-red-600 text-sm self-center mr-auto">{error}</span>}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E9E9E7] px-6 py-3 flex gap-3 justify-center shadow-lg z-10">
+        {error && <span className="text-red-600 text-sm self-center absolute left-6">{error}</span>}
         <button
           type="button"
           onClick={onBack}
