@@ -24,6 +24,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
 import app.verdant.android.data.model.PlantEventResponse
+import app.verdant.android.data.model.PlantWorkflowProgressResponse
 import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.model.PlantResponse
 import app.verdant.android.data.repository.GardenRepository
@@ -37,6 +38,7 @@ data class PlantDetailState(
     val isLoading: Boolean = true,
     val plant: PlantResponse? = null,
     val events: List<PlantEventResponse> = emptyList(),
+    val workflowProgress: PlantWorkflowProgressResponse? = null,
     val error: String? = null,
     val deleted: Boolean = false
 )
@@ -58,7 +60,17 @@ class PlantDetailViewModel @Inject constructor(
             try {
                 val plant = gardenRepository.getPlant(plantId)
                 val events = gardenRepository.getPlantEvents(plantId)
-                _uiState.value = PlantDetailState(isLoading = false, plant = plant, events = events)
+                val workflowProgress = try {
+                    gardenRepository.getPlantWorkflowProgress(plantId)
+                } catch (_: Exception) {
+                    null
+                }
+                _uiState.value = PlantDetailState(
+                    isLoading = false,
+                    plant = plant,
+                    events = events,
+                    workflowProgress = workflowProgress,
+                )
             } catch (e: Exception) {
                 _uiState.value = PlantDetailState(isLoading = false, error = e.message)
             }
@@ -93,6 +105,7 @@ class PlantDetailViewModel @Inject constructor(
 fun PlantDetailScreen(
     onBack: () -> Unit,
     onAddEvent: (Long) -> Unit,
+    onWorkflowProgress: ((Long) -> Unit)? = null,
     refreshKey: Boolean? = null,
     viewModel: PlantDetailViewModel = hiltViewModel()
 ) {
@@ -187,6 +200,69 @@ fun PlantDetailScreen(
                                     plant.survivingCount?.let {
                                         AssistChip(onClick = {}, label = { Text(stringResource(R.string.alive_count, it)) })
                                     }
+                                }
+                            }
+                        }
+                    }
+
+                    // Workflow progress section
+                    uiState.workflowProgress?.let { progress ->
+                        item {
+                            Card(
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                                )
+                            ) {
+                                Column(Modifier.padding(16.dp)) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text(
+                                            "Workflow Progress",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 16.sp,
+                                        )
+                                        if (onWorkflowProgress != null && plant.speciesId != null) {
+                                            TextButton(
+                                                onClick = { onWorkflowProgress(plant.speciesId) }
+                                            ) {
+                                                Text("View All")
+                                                Icon(
+                                                    Icons.Default.ChevronRight,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                    Spacer(Modifier.height(8.dp))
+                                    val currentStepName = progress.steps
+                                        .firstOrNull { it.id == progress.currentStepId }?.name
+                                    val completedCount = progress.completedStepIds.size
+                                    val totalCount = progress.steps.size
+                                    if (currentStepName != null) {
+                                        Text(
+                                            "Current step: $currentStepName",
+                                            fontSize = 14.sp,
+                                        )
+                                    }
+                                    Spacer(Modifier.height(4.dp))
+                                    LinearProgressIndicator(
+                                        progress = {
+                                            if (totalCount > 0) completedCount.toFloat() / totalCount else 0f
+                                        },
+                                        modifier = Modifier.fillMaxWidth().height(6.dp),
+                                    )
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(
+                                        "$completedCount / $totalCount steps completed",
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                                    )
                                 }
                             }
                         }

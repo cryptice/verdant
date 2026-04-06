@@ -40,6 +40,7 @@ import app.verdant.android.ui.plant.CreatePlantScreen
 import app.verdant.android.ui.plant.PlantDetailScreen
 import app.verdant.android.ui.season.SeasonSelectorScreen
 import app.verdant.android.ui.splash.SplashScreen
+import app.verdant.android.ui.workflow.WorkflowProgressScreen
 import app.verdant.android.ui.world.MyVerdantWorldScreen
 
 sealed class Screen(val route: String) {
@@ -81,6 +82,11 @@ sealed class Screen(val route: String) {
     data object CreateTask : Screen("tasks/create")
     data object EditTask : Screen("tasks/{taskId}/edit") {
         fun create(taskId: Long) = "tasks/$taskId/edit"
+    }
+
+    // Workflows
+    data object WorkflowProgress : Screen("workflow-progress/{speciesId}") {
+        fun create(speciesId: Long) = "workflow-progress/$speciesId"
     }
 
     // Seasons
@@ -364,6 +370,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                 PlantDetailScreen(
                     onBack = { navController.popBackStack() },
                     onAddEvent = { plantId -> navController.navigate(Screen.AddPlantEvent.create(plantId)) },
+                    onWorkflowProgress = { speciesId -> navController.navigate(Screen.WorkflowProgress.create(speciesId)) },
                     refreshKey = refreshKey
                 )
             }
@@ -394,6 +401,15 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
 
             composable(Screen.Seasons.route) {
                 SeasonSelectorScreen(onBack = { navController.popBackStack() })
+            }
+
+            // ── Workflows ──
+
+            composable(
+                Screen.WorkflowProgress.route,
+                arguments = listOf(navArgument("speciesId") { type = NavType.LongType })
+            ) {
+                WorkflowProgressScreen(onBack = { navController.popBackStack() })
             }
 
             // ── Planted Species ──

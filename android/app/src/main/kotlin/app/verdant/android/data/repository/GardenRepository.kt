@@ -92,4 +92,10 @@ class GardenRepository @Inject constructor(private val api: VerdantApi) {
 
     // Customers
     suspend fun getCustomers() = api.getCustomers()
+
+    // Workflows
+    suspend fun getSpeciesWorkflow(speciesId: Long) = api.getSpeciesWorkflow(speciesId)
+    suspend fun getPlantWorkflowProgress(plantId: Long) = api.getPlantWorkflowProgress(plantId)
+    suspend fun completeWorkflowStep(stepId: Long, request: CompleteWorkflowStepRequest) = api.completeWorkflowStep(stepId, request)
+    suspend fun getPlantsAtStep(stepId: Long, speciesId: Long) = api.getPlantsAtStep(stepId, speciesId)
 }
