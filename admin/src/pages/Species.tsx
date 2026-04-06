@@ -455,6 +455,9 @@ export function SpeciesDetailPage() {
           <h2 className="text-2xl font-semibold text-[#37352F]">
             {species.commonNameSv || species.commonName}
             {(species.variantNameSv || species.variantName) && <span className="text-[#787774] font-normal"> — {species.variantNameSv || species.variantName}</span>}
+            {' '}<span className={`inline-block align-middle px-2 py-0.5 rounded text-xs font-medium ${species.isSystem ? 'bg-[#D3E5EF] text-[#2B6CB0]' : 'bg-[#E9E9E7] text-[#787774]'}`}>
+              {species.isSystem ? t('species.system') : t('species.user')}
+            </span>
           </h2>
           {species.commonNameSv && species.commonName !== species.commonNameSv && (
             <p className="text-sm text-[#787774]">
@@ -465,9 +468,6 @@ export function SpeciesDetailPage() {
           {species.scientificName && <p className="text-sm text-[#A5A29C] italic">{species.scientificName}</p>}
         </div>
         <div className="flex items-center gap-3">
-          <span className={`px-2 py-0.5 rounded text-xs font-medium ${species.isSystem ? 'bg-[#D3E5EF] text-[#2B6CB0]' : 'bg-[#E9E9E7] text-[#787774]'}`}>
-            {species.isSystem ? t('species.system') : t('species.user')}
-          </span>
           <button
             onClick={() => navigate(`/species/${speciesId}/edit`)}
             className="px-3 py-1.5 bg-[#2EAADC] text-white rounded-md hover:bg-[#2898C4] transition-colors text-sm font-medium"
