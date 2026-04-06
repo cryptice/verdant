@@ -107,8 +107,8 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 """INSERT INTO species (org_id, common_name, variant_name, common_name_sv, variant_name_sv, scientific_name, image_front_url, image_back_url,
                    germination_time_days_min, germination_time_days_max, days_to_harvest_min, days_to_harvest_max, sowing_depth_mm,
                    growing_positions, soils, height_cm_min, height_cm_max, bloom_months, sowing_months, germination_rate,
-                   cost_per_seed_sek, expected_stems_per_plant, expected_vase_life_days, plant_type, default_unit_type, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
+                   cost_per_seed_sek, expected_stems_per_plant, expected_vase_life_days, plant_type, default_unit_type, workflow_template_id, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 if (species.orgId != null) ps.setLong(1, species.orgId) else ps.setNull(1, java.sql.Types.BIGINT)
@@ -136,6 +136,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 ps.setObject(23, species.expectedVaseLifeDays)
                 ps.setString(24, species.plantType.name)
                 ps.setString(25, species.defaultUnitType.name)
+                ps.setObject(26, species.workflowTemplateId)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -153,7 +154,8 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                    germination_time_days_min = ?, germination_time_days_max = ?, days_to_harvest_min = ?, days_to_harvest_max = ?,
                    sowing_depth_mm = ?, growing_positions = ?, soils = ?, height_cm_min = ?, height_cm_max = ?,
                    bloom_months = ?, sowing_months = ?, germination_rate = ?,
-                   cost_per_seed_sek = ?, expected_stems_per_plant = ?, expected_vase_life_days = ?, plant_type = ?, default_unit_type = ?
+                   cost_per_seed_sek = ?, expected_stems_per_plant = ?, expected_vase_life_days = ?, plant_type = ?, default_unit_type = ?,
+                   workflow_template_id = ?
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setString(1, species.commonName)
@@ -180,7 +182,8 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 ps.setObject(22, species.expectedVaseLifeDays)
                 ps.setString(23, species.plantType.name)
                 ps.setString(24, species.defaultUnitType.name)
-                ps.setLong(25, species.id!!)
+                ps.setObject(25, species.workflowTemplateId)
+                ps.setLong(26, species.id!!)
                 ps.executeUpdate()
             }
         }
@@ -301,6 +304,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
         expectedVaseLifeDays = getObject("expected_vase_life_days") as? Int,
         plantType = getString("plant_type")?.let { PlantType.valueOf(it) } ?: PlantType.ANNUAL,
         defaultUnitType = getString("default_unit_type")?.let { UnitType.valueOf(it) } ?: UnitType.SEED,
+        workflowTemplateId = getObject("workflow_template_id") as? Long,
         createdAt = getTimestamp("created_at").toInstant(),
     )
 }

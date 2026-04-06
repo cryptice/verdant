@@ -706,6 +706,7 @@ class SpeciesService(
             plantType = plantType.name,
             defaultUnitType = defaultUnitType.name,
             isSystem = orgId == null,
+            workflowTemplateId = workflowTemplateId,
             createdAt = createdAt,
         )
     }

@@ -29,6 +29,7 @@ data class Species(
     val expectedVaseLifeDays: Int? = null,
     val plantType: PlantType = PlantType.ANNUAL,
     val defaultUnitType: UnitType = UnitType.SEED,
+    val workflowTemplateId: Long? = null,
     val createdAt: Instant = Instant.now(),
 )
 

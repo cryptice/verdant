@@ -46,6 +46,7 @@ data class SpeciesResponse(
     val plantType: String?,
     val defaultUnitType: String?,
     @get:JsonProperty("isSystem") val isSystem: Boolean,
+    val workflowTemplateId: Long?,
     val createdAt: Instant,
 )
 
@@ -98,6 +99,7 @@ data class CreateSpeciesRequest(
     val plantType: String? = null,
     @field:Size(max = 20)
     val defaultUnitType: String? = null,
+    val workflowTemplateId: Long? = null,
 )
 
 data class UpdateSpeciesRequest(
@@ -149,6 +151,7 @@ data class UpdateSpeciesRequest(
     val plantType: String? = null,
     @field:Size(max = 20)
     val defaultUnitType: String? = null,
+    val workflowTemplateId: Long? = null,
 )
 
 data class SpeciesGroupResponse(
