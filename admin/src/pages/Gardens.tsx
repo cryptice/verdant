@@ -1,31 +1,33 @@
 import { useQuery } from '@tanstack/react-query'
 import { api, type Garden } from '../api/client'
 import ErrorDisplay from '../components/ErrorDisplay'
+import { useTranslation } from 'react-i18next'
 
 export default function Gardens() {
   const { data: gardens, isLoading, error } = useQuery({
     queryKey: ['admin', 'gardens'],
     queryFn: api.admin.getGardens
   })
+  const { t } = useTranslation()
 
-  if (isLoading) return <div className="flex justify-center py-12"><div className="text-[#787774] text-sm">Loading...</div></div>
+  if (isLoading) return <div className="flex justify-center py-12"><div className="text-[#787774] text-sm">{t('common.loading')}</div></div>
   if (error) return <ErrorDisplay error={error} onRetry={() => window.location.reload()} />
 
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-[#37352F]">Gardens</h2>
-        <p className="text-sm text-[#787774] mt-1">{gardens?.length || 0} gardens</p>
+        <h2 className="text-2xl font-semibold text-[#37352F]">{t('gardens.title')}</h2>
+        <p className="text-sm text-[#787774] mt-1">{t('gardens.count', { count: gardens?.length || 0 })}</p>
       </div>
 
       <div className="border border-[#E9E9E7] rounded-lg overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="border-b border-[#E9E9E7] bg-[#FBFBFA]">
-              <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">Garden</th>
-              <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">Description</th>
-              <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">Created</th>
-              <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">Updated</th>
+              <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">{t('gardens.garden')}</th>
+              <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">{t('gardens.description')}</th>
+              <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">{t('gardens.created')}</th>
+              <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">{t('gardens.updated')}</th>
             </tr>
           </thead>
           <tbody>

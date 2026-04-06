@@ -3,15 +3,23 @@ import { api, type Species, type UpdateSpeciesRequest, type CreateSpeciesRequest
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import ErrorDisplay from '../components/ErrorDisplay'
+import { useTranslation } from 'react-i18next'
 
 const GROWING_POSITIONS = ['SUNNY', 'PARTIALLY_SUNNY', 'SHADOWY'] as const
 const SOIL_TYPES = ['CLAY', 'SANDY', 'LOAMY', 'CHALKY', 'PEATY', 'SILTY'] as const
 
-const positionLabel: Record<string, string> = {
-  SUNNY: 'Sunny', PARTIALLY_SUNNY: 'Partial sun', SHADOWY: 'Shadowy'
+function usePositionLabel() {
+  const { t } = useTranslation()
+  return {
+    SUNNY: t('species.positionSunny'), PARTIALLY_SUNNY: t('species.positionPartialSun'), SHADOWY: t('species.positionShadowy')
+  } as Record<string, string>
 }
-const soilLabel: Record<string, string> = {
-  CLAY: 'Clay', SANDY: 'Sandy', LOAMY: 'Loamy', CHALKY: 'Chalky', PEATY: 'Peaty', SILTY: 'Silty'
+
+function useSoilLabel() {
+  const { t } = useTranslation()
+  return {
+    CLAY: t('species.soilCite'), SANDY: t('species.soilSandy'), LOAMY: t('species.soilLoamy'), CHALKY: t('species.soilChalky'), PEATY: t('species.soilPeaty'), SILTY: t('species.soilSilty')
+  } as Record<string, string>
 }
 
 function fileToBase64(file: File): Promise<string> {
@@ -40,6 +48,7 @@ export function SpeciesListPage() {
   const [page, setPage] = useState(0)
   const importInputRef = useRef<HTMLInputElement>(null)
   const pageSize = 50
+  const { t } = useTranslation()
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 250)
@@ -65,7 +74,7 @@ export function SpeciesListPage() {
       a.click()
       URL.revokeObjectURL(url)
     } catch (e) {
-      setImportStatus(`Export failed: ${e instanceof Error ? e.message : 'Unknown error'}`)
+      setImportStatus(t('species.exportFailed', { error: e instanceof Error ? e.message : 'Unknown error' }))
     } finally {
       setExporting(false)
     }
@@ -81,10 +90,10 @@ export function SpeciesListPage() {
       const entries: SpeciesExportEntry[] = JSON.parse(text)
       if (!Array.isArray(entries)) throw new Error('JSON must be an array')
       const result = await api.admin.importSpecies(entries)
-      setImportStatus(`Imported ${result.created} species, skipped ${result.skipped} duplicates`)
+      setImportStatus(t('species.importResult', { created: result.created, skipped: result.skipped }))
       queryClient.invalidateQueries({ queryKey: ['admin', 'species'] })
     } catch (err) {
-      setImportStatus(`Import failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      setImportStatus(t('species.importFailed', { error: err instanceof Error ? err.message : 'Unknown error' }))
     } finally {
       setImporting(false)
       e.target.value = ''
@@ -102,15 +111,15 @@ export function SpeciesListPage() {
       return varA.localeCompare(varB, 'sv')
     })
 
-  if (isLoading) return <div className="flex justify-center py-12"><div className="text-[#787774] text-sm">Loading...</div></div>
+  if (isLoading) return <div className="flex justify-center py-12"><div className="text-[#787774] text-sm">{t('common.loading')}</div></div>
   if (error) return <ErrorDisplay error={error} onRetry={() => queryClient.invalidateQueries({ queryKey: ['admin', 'species'] })} />
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-semibold text-[#37352F]">Species</h2>
-          <p className="text-sm text-[#787774] mt-1">{species?.length || 0} species</p>
+          <h2 className="text-2xl font-semibold text-[#37352F]">{t('species.title')}</h2>
+          <p className="text-sm text-[#787774] mt-1">{t('species.count', { count: species?.length || 0 })}</p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -118,28 +127,28 @@ export function SpeciesListPage() {
             disabled={exporting}
             className="px-3 py-1.5 border border-[#E9E9E7] text-[#37352F] rounded-md hover:bg-[#F0F0EE] transition-colors text-sm disabled:opacity-50"
           >
-            {exporting ? 'Exporting...' : 'Export'}
+            {exporting ? t('species.exporting') : t('species.export')}
           </button>
           <button
             onClick={() => importInputRef.current?.click()}
             disabled={importing}
             className="px-3 py-1.5 border border-[#E9E9E7] text-[#37352F] rounded-md hover:bg-[#F0F0EE] transition-colors text-sm disabled:opacity-50"
           >
-            {importing ? 'Importing...' : 'Import'}
+            {importing ? t('species.importing') : t('species.import')}
           </button>
           <input ref={importInputRef} type="file" accept=".json" className="hidden" onChange={handleImportFile} />
           <button
             onClick={() => navigate('/species/new')}
             className="px-3 py-1.5 bg-[#2EAADC] text-white rounded-md hover:bg-[#2898C4] transition-colors text-sm font-medium"
           >
-            New
+            {t('common.new')}
           </button>
         </div>
       </div>
 
       {importStatus && (
         <div className={`mb-4 px-3 py-2.5 rounded-md text-sm ${
-          importStatus.startsWith('Import failed') || importStatus.startsWith('Export failed')
+          importStatus.startsWith(t('species.importFailed', { error: '' }).split(':')[0]) || importStatus.startsWith(t('species.exportFailed', { error: '' }).split(':')[0])
             ? 'bg-[#FBE4E4] text-[#E03E3E]'
             : 'bg-[#DBEDDB] text-[#0F7B0F]'
         }`}>
@@ -151,7 +160,7 @@ export function SpeciesListPage() {
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Search by name, scientific name, or group..."
+          placeholder={t('species.searchPlaceholder')}
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(0) }}
           className="w-full max-w-md px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA]"
@@ -162,11 +171,11 @@ export function SpeciesListPage() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-[#E9E9E7] bg-[#FBFBFA]">
-              <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">Name</th>
-              <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">Scientific Name</th>
-              <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">Group</th>
-              <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">Type</th>
-              <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">Providers</th>
+              <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">{t('users.name')}</th>
+              <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">{t('species.scientificName')}</th>
+              <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">{t('species.group')}</th>
+              <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">{t('species.type')}</th>
+              <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">{t('species.providersCol')}</th>
             </tr>
           </thead>
           <tbody>
@@ -184,7 +193,7 @@ export function SpeciesListPage() {
                   <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                     s.isSystem ? 'bg-[#D3E5EF] text-[#2B6CB0]' : 'bg-[#E9E9E7] text-[#787774]'
                   }`}>
-                    {s.isSystem ? 'System' : 'User'}
+                    {s.isSystem ? t('species.system') : t('species.user')}
                   </span>
                 </td>
                 <td className="px-4 py-2.5 text-sm" onClick={e => e.stopPropagation()}>
@@ -208,7 +217,7 @@ export function SpeciesListPage() {
       {filtered && Math.ceil(filtered.length / pageSize) > 1 && (
         <div className="flex items-center justify-between mt-3">
           <p className="text-xs text-[#787774]">
-            {page * pageSize + 1}–{Math.min((page + 1) * pageSize, filtered.length)} of {filtered.length}
+            {page * pageSize + 1}–{Math.min((page + 1) * pageSize, filtered.length)} {t('common.of')} {filtered.length}
           </p>
           <div className="flex items-center gap-1">
             <button
@@ -248,20 +257,20 @@ export function SpeciesListPage() {
                     <span className="text-xs text-[#787774]">{sp.providerIdentifier}</span>
                     {sp.productUrl && (
                       <a href={sp.productUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[#2EAADC] hover:underline ml-auto">
-                        Product page &rarr;
+                        {t('species.productPage')} &rarr;
                       </a>
                     )}
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     {sp.imageFrontUrl ? (
-                      <img src={sp.imageFrontUrl} alt="Front" className="w-full rounded-md object-contain max-h-[500px]" />
+                      <img src={sp.imageFrontUrl} alt={t('species.front')} className="w-full rounded-md object-contain max-h-[500px]" />
                     ) : (
-                      <div className="h-48 bg-[#FBFBFA] border border-[#E9E9E7] rounded-md flex items-center justify-center text-[#A5A29C] text-sm">No front image</div>
+                      <div className="h-48 bg-[#FBFBFA] border border-[#E9E9E7] rounded-md flex items-center justify-center text-[#A5A29C] text-sm">{t('species.noFrontImage')}</div>
                     )}
                     {sp.imageBackUrl ? (
-                      <img src={sp.imageBackUrl} alt="Back" className="w-full rounded-md object-contain max-h-[500px]" />
+                      <img src={sp.imageBackUrl} alt={t('species.back')} className="w-full rounded-md object-contain max-h-[500px]" />
                     ) : (
-                      <div className="h-48 bg-[#FBFBFA] border border-[#E9E9E7] rounded-md flex items-center justify-center text-[#A5A29C] text-sm">No back image</div>
+                      <div className="h-48 bg-[#FBFBFA] border border-[#E9E9E7] rounded-md flex items-center justify-center text-[#A5A29C] text-sm">{t('species.noBackImage')}</div>
                     )}
                   </div>
                 </div>
@@ -284,6 +293,7 @@ function ImageUpload({ label, currentUrl, onUpload, onClear }: {
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
+  const { t } = useTranslation()
 
   const handleFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -308,7 +318,7 @@ function ImageUpload({ label, currentUrl, onUpload, onClear }: {
                 onClick={() => inputRef.current?.click()}
                 className="text-sm text-[#2EAADC] hover:underline"
               >
-                Replace
+                {t('common.replace')}
               </button>
               {onClear && (
                 <button
@@ -316,7 +326,7 @@ function ImageUpload({ label, currentUrl, onUpload, onClear }: {
                   onClick={() => { setPreview(null); onClear() }}
                   className="text-sm text-[#E03E3E] hover:underline"
                 >
-                  Remove
+                  {t('common.remove')}
                 </button>
               )}
             </div>
@@ -327,7 +337,7 @@ function ImageUpload({ label, currentUrl, onUpload, onClear }: {
             onClick={() => inputRef.current?.click()}
             className="py-6 w-full text-sm text-[#A5A29C] hover:text-[#2EAADC]"
           >
-            Click to upload
+            {t('common.clickToUpload')}
           </button>
         )}
         <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
@@ -345,14 +355,16 @@ function ExtractStatus({ extractingFront, extractingBack, extractedFront, extrac
   extractedBack: boolean
   extractError: string | null
 }) {
+  const { t } = useTranslation()
+
   if (!extractingFront && !extractingBack && !extractedFront && !extractedBack && !extractError) return null
 
   return (
     <div className="mt-3 flex flex-col gap-1 text-sm">
-      {extractingFront && <span className="text-[#787774]">Extracting front with Gemini...</span>}
-      {!extractingFront && extractedFront && <span className="text-[#0F7B0F]">Front data extracted</span>}
-      {extractingBack && <span className="text-[#787774]">Extracting back with Gemini...</span>}
-      {!extractingBack && extractedBack && <span className="text-[#0F7B0F]">Back data extracted</span>}
+      {extractingFront && <span className="text-[#787774]">{t('species.extractingFront')}</span>}
+      {!extractingFront && extractedFront && <span className="text-[#0F7B0F]">{t('species.frontDataExtracted')}</span>}
+      {extractingBack && <span className="text-[#787774]">{t('species.extractingBack')}</span>}
+      {!extractingBack && extractedBack && <span className="text-[#0F7B0F]">{t('species.backDataExtracted')}</span>}
       {extractError && <span className="text-[#E03E3E]">{extractError}</span>}
     </div>
   )
@@ -389,6 +401,9 @@ export function SpeciesDetailPage() {
   const [newFrontBase64, setNewFrontBase64] = useState<string | null>(null)
   const [newBackBase64, setNewBackBase64] = useState<string | null>(null)
   const [newProductUrl, setNewProductUrl] = useState('')
+  const { t } = useTranslation()
+  const positionLabel = usePositionLabel()
+  const soilLabel = useSoilLabel()
 
   const { data: species, isLoading, error } = useQuery({
     queryKey: ['admin', 'species', speciesId],
@@ -425,14 +440,14 @@ export function SpeciesDetailPage() {
     setNewProductUrl('')
   }
 
-  if (isLoading) return <div className="flex justify-center py-12"><div className="text-[#787774] text-sm">Loading...</div></div>
-  if (error || !species) return <ErrorDisplay error={error ?? new Error('Species not found')} onRetry={() => navigate(0)} />
+  if (isLoading) return <div className="flex justify-center py-12"><div className="text-[#787774] text-sm">{t('common.loading')}</div></div>
+  if (error || !species) return <ErrorDisplay error={error ?? new Error(t('errors.speciesNotFound'))} onRetry={() => navigate(0)} />
 
   return (
     <div>
       <button onClick={() => navigate('/species')} className="flex items-center gap-1 text-sm text-[#787774] hover:text-[#37352F] mb-4 transition-colors">
         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-        Back to list
+        {t('species.backToList')}
       </button>
 
       <div className="flex items-center justify-between mb-6">
@@ -451,13 +466,13 @@ export function SpeciesDetailPage() {
         </div>
         <div className="flex items-center gap-3">
           <span className={`px-2 py-0.5 rounded text-xs font-medium ${species.isSystem ? 'bg-[#D3E5EF] text-[#2B6CB0]' : 'bg-[#E9E9E7] text-[#787774]'}`}>
-            {species.isSystem ? 'System' : 'User'}
+            {species.isSystem ? t('species.system') : t('species.user')}
           </span>
           <button
             onClick={() => navigate(`/species/${speciesId}/edit`)}
             className="px-3 py-1.5 bg-[#2EAADC] text-white rounded-md hover:bg-[#2898C4] transition-colors text-sm font-medium"
           >
-            Edit
+            {t('common.edit')}
           </button>
         </div>
       </div>
@@ -467,7 +482,7 @@ export function SpeciesDetailPage() {
         <section className="border border-[#E9E9E7] rounded-lg p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider">
-              Seed Providers
+              {t('species.seedProviders')}
               {species.providers.length > 0 && <span className="ml-1 text-xs font-normal text-[#787774] normal-case">({species.providers.length})</span>}
             </h3>
             {!addingProvider && (
@@ -475,7 +490,7 @@ export function SpeciesDetailPage() {
                 onClick={() => setAddingProvider(true)}
                 className="text-sm text-[#2EAADC] hover:underline cursor-pointer"
               >
-                Add provider
+                {t('species.addProvider')}
               </button>
             )}
           </div>
@@ -489,40 +504,40 @@ export function SpeciesDetailPage() {
                     <span className="text-xs text-[#787774]">{sp.providerIdentifier}</span>
                     {sp.productUrl && (
                       <a href={sp.productUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[#2EAADC] hover:underline ml-auto">
-                        Product page &rarr;
+                        {t('species.productPage')} &rarr;
                       </a>
                     )}
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     {sp.imageFrontUrl ? (
-                      <img src={sp.imageFrontUrl} alt="Front" className="w-full rounded-md object-contain max-h-[500px]" />
+                      <img src={sp.imageFrontUrl} alt={t('species.front')} className="w-full rounded-md object-contain max-h-[500px]" />
                     ) : (
-                      <div className="h-48 bg-[#FBFBFA] border border-[#E9E9E7] rounded-md flex items-center justify-center text-[#A5A29C] text-sm">No front image</div>
+                      <div className="h-48 bg-[#FBFBFA] border border-[#E9E9E7] rounded-md flex items-center justify-center text-[#A5A29C] text-sm">{t('species.noFrontImage')}</div>
                     )}
                     {sp.imageBackUrl ? (
-                      <img src={sp.imageBackUrl} alt="Back" className="w-full rounded-md object-contain max-h-[500px]" />
+                      <img src={sp.imageBackUrl} alt={t('species.back')} className="w-full rounded-md object-contain max-h-[500px]" />
                     ) : (
-                      <div className="h-48 bg-[#FBFBFA] border border-[#E9E9E7] rounded-md flex items-center justify-center text-[#A5A29C] text-sm">No back image</div>
+                      <div className="h-48 bg-[#FBFBFA] border border-[#E9E9E7] rounded-md flex items-center justify-center text-[#A5A29C] text-sm">{t('species.noBackImage')}</div>
                     )}
                   </div>
                 </div>
               ))}
             </div>
           ) : !addingProvider ? (
-            <p className="text-sm text-[#A5A29C]">No providers linked yet</p>
+            <p className="text-sm text-[#A5A29C]">{t('species.noProvidersYet')}</p>
           ) : null}
 
           {addingProvider && (
             <div className={`${species.providers.length > 0 ? 'mt-6 pt-6 border-t border-[#E9E9E7]' : ''}`}>
-              <h4 className="text-xs font-semibold text-[#37352F] uppercase tracking-wider mb-3">Add Provider</h4>
+              <h4 className="text-xs font-semibold text-[#37352F] uppercase tracking-wider mb-3">{t('species.addProvider')}</h4>
               <div className="mb-3">
-                <label className="block text-xs font-medium text-[#787774] mb-1.5">Provider</label>
+                <label className="block text-xs font-medium text-[#787774] mb-1.5">{t('species.provider')}</label>
                 <select
                   value={newProviderId ?? ''}
                   onChange={e => setNewProviderId(e.target.value ? Number(e.target.value) : null)}
                   className="w-full max-w-xs px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA]"
                 >
-                  <option value="">Select a provider...</option>
+                  <option value="">{t('species.selectProvider')}</option>
                   {availableProviders
                     ?.filter(ap => !species.providers.some(sp => sp.providerId === ap.id))
                     .map(p => (
@@ -534,18 +549,18 @@ export function SpeciesDetailPage() {
                 <>
                   <div className="grid grid-cols-2 gap-4 mb-3">
                     <ImageUpload
-                      label="Front"
+                      label={t('species.front')}
                       currentUrl={newFrontBase64 ? `data:image/jpeg;base64,${newFrontBase64}` : null}
                       onUpload={setNewFrontBase64}
                     />
                     <ImageUpload
-                      label="Back"
+                      label={t('species.back')}
                       currentUrl={newBackBase64 ? `data:image/jpeg;base64,${newBackBase64}` : null}
                       onUpload={setNewBackBase64}
                     />
                   </div>
                   <div className="mb-3">
-                    <label className="block text-xs font-medium text-[#787774] mb-1.5">Product URL</label>
+                    <label className="block text-xs font-medium text-[#787774] mb-1.5">{t('species.productUrl')}</label>
                     <input
                       type="text"
                       value={newProductUrl}
@@ -569,13 +584,13 @@ export function SpeciesDetailPage() {
                   }}
                   className="px-3 py-1.5 bg-[#2EAADC] text-white rounded-md hover:bg-[#2898C4] disabled:opacity-50 transition-colors text-sm font-medium"
                 >
-                  {addProviderMutation.isPending ? 'Adding...' : 'Add'}
+                  {addProviderMutation.isPending ? t('species.adding') : t('common.add')}
                 </button>
                 <button
                   onClick={resetAddProvider}
                   className="px-3 py-1.5 text-[#787774] hover:bg-[#F0F0EE] rounded-md transition-colors text-sm"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
               </div>
               {addProviderMutation.error && (
@@ -588,23 +603,23 @@ export function SpeciesDetailPage() {
         {/* Growth Info, Months & Growing Conditions */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <section className="border border-[#E9E9E7] rounded-lg p-5">
-            <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Growth Information</h3>
+            <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.growthInfo')}</h3>
             <div className="grid grid-cols-2 gap-3">
-              <InfoField label="Germination (days)" value={species.germinationTimeDaysMin != null ? (species.germinationTimeDaysMax && species.germinationTimeDaysMax !== species.germinationTimeDaysMin ? `${species.germinationTimeDaysMin}–${species.germinationTimeDaysMax}` : species.germinationTimeDaysMin) : null} />
-              <InfoField label="Days to Harvest" value={species.daysToHarvestMin != null ? (species.daysToHarvestMax && species.daysToHarvestMax !== species.daysToHarvestMin ? `${species.daysToHarvestMin}–${species.daysToHarvestMax}` : species.daysToHarvestMin) : null} />
-              <InfoField label="Sowing Depth (mm)" value={species.sowingDepthMm} />
-              <InfoField label="Height (cm)" value={species.heightCmMin != null ? (species.heightCmMax && species.heightCmMax !== species.heightCmMin ? `${species.heightCmMin}–${species.heightCmMax}` : species.heightCmMin) : null} />
-              <InfoField label="Germ. Rate (%)" value={species.germinationRate} />
+              <InfoField label={t('species.germinationDays')} value={species.germinationTimeDaysMin != null ? (species.germinationTimeDaysMax && species.germinationTimeDaysMax !== species.germinationTimeDaysMin ? `${species.germinationTimeDaysMin}–${species.germinationTimeDaysMax}` : species.germinationTimeDaysMin) : null} />
+              <InfoField label={t('species.daysToHarvest')} value={species.daysToHarvestMin != null ? (species.daysToHarvestMax && species.daysToHarvestMax !== species.daysToHarvestMin ? `${species.daysToHarvestMin}–${species.daysToHarvestMax}` : species.daysToHarvestMin) : null} />
+              <InfoField label={t('species.sowingDepthMm')} value={species.sowingDepthMm} />
+              <InfoField label={t('species.heightCm')} value={species.heightCmMin != null ? (species.heightCmMax && species.heightCmMax !== species.heightCmMin ? `${species.heightCmMin}–${species.heightCmMax}` : species.heightCmMin) : null} />
+              <InfoField label={t('species.germinationRate')} value={species.germinationRate} />
             </div>
           </section>
 
           {(species.sowingMonths.length > 0 || species.bloomMonths.length > 0) && (
             <section className="border border-[#E9E9E7] rounded-lg p-5">
-              <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Sowing & Bloom Months</h3>
+              <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.sowingBloomMonths')}</h3>
               <div className="space-y-3">
                 {species.sowingMonths.length > 0 && (
                   <div>
-                    <label className="block text-xs font-medium text-[#787774] mb-1">Sowing</label>
+                    <label className="block text-xs font-medium text-[#787774] mb-1">{t('species.sowing')}</label>
                     <div className="flex gap-1 flex-wrap">
                       {species.sowingMonths.map(m => (
                         <span key={m} className="px-2 py-0.5 bg-[#DBEDDB] text-[#0F7B0F] rounded text-xs font-medium">{MONTH_LABELS_SHORT[m - 1]}</span>
@@ -614,7 +629,7 @@ export function SpeciesDetailPage() {
                 )}
                 {species.bloomMonths.length > 0 && (
                   <div>
-                    <label className="block text-xs font-medium text-[#787774] mb-1">Bloom</label>
+                    <label className="block text-xs font-medium text-[#787774] mb-1">{t('species.bloom')}</label>
                     <div className="flex gap-1 flex-wrap">
                       {species.bloomMonths.map(m => (
                         <span key={m} className="px-2 py-0.5 bg-[#F0E5FF] text-[#6940A5] rounded text-xs font-medium">{MONTH_LABELS_SHORT[m - 1]}</span>
@@ -628,11 +643,11 @@ export function SpeciesDetailPage() {
 
           {(species.growingPositions.length > 0 || species.soils.length > 0) && (
             <section className="border border-[#E9E9E7] rounded-lg p-5">
-              <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Growing Conditions</h3>
+              <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.growingConditions')}</h3>
               <div className="space-y-3">
                 {species.growingPositions.length > 0 && (
                   <div>
-                    <label className="block text-xs font-medium text-[#787774] mb-1">Position</label>
+                    <label className="block text-xs font-medium text-[#787774] mb-1">{t('species.position')}</label>
                     <div className="flex gap-1 flex-wrap">
                       {species.growingPositions.map(p => (
                         <span key={p} className="px-2 py-0.5 bg-[#FBF3DB] text-[#73641C] rounded text-xs font-medium">{positionLabel[p] ?? p}</span>
@@ -642,7 +657,7 @@ export function SpeciesDetailPage() {
                 )}
                 {species.soils.length > 0 && (
                   <div>
-                    <label className="block text-xs font-medium text-[#787774] mb-1">Soil</label>
+                    <label className="block text-xs font-medium text-[#787774] mb-1">{t('species.soil')}</label>
                     <div className="flex gap-1 flex-wrap">
                       {species.soils.map(s => (
                         <span key={s} className="px-2 py-0.5 bg-[#FADEC9] text-[#93592F] rounded text-xs font-medium">{soilLabel[s] ?? s}</span>
@@ -658,19 +673,19 @@ export function SpeciesDetailPage() {
         {/* Group & Tags */}
         {(species.groups.length > 0 || species.tags.length > 0) && (
           <section className="border border-[#E9E9E7] rounded-lg p-5">
-            <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Groups & Tags</h3>
+            <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.groupsAndTags')}</h3>
             {species.groups.length > 0 && (
               <div className="mb-3">
-                <label className="block text-xs font-medium text-[#787774] mb-1">Groups</label>
+                <label className="block text-xs font-medium text-[#787774] mb-1">{t('species.groups')}</label>
                 <span className="text-sm text-[#37352F]">{species.groups.map(g => g.name).join(', ')}</span>
               </div>
             )}
             {species.tags.length > 0 && (
               <div>
-                <label className="block text-xs font-medium text-[#787774] mb-1">Tags</label>
+                <label className="block text-xs font-medium text-[#787774] mb-1">{t('species.tags')}</label>
                 <div className="flex gap-1.5 flex-wrap">
-                  {species.tags.map(t => (
-                    <span key={t.id} className="px-2 py-0.5 bg-[#D3E5EF] text-[#2B6CB0] rounded text-xs font-medium">{t.name}</span>
+                  {species.tags.map(tg => (
+                    <span key={tg.id} className="px-2 py-0.5 bg-[#D3E5EF] text-[#2B6CB0] rounded text-xs font-medium">{tg.name}</span>
                   ))}
                 </div>
               </div>
@@ -681,13 +696,13 @@ export function SpeciesDetailPage() {
         {/* Commercial & Classification */}
         {(species.costPerSeedSek != null || species.expectedStemsPerPlant != null || species.expectedVaseLifeDays != null || species.plantType || species.defaultUnitType) && (
           <section className="border border-[#E9E9E7] rounded-lg p-5">
-            <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Commercial & Classification</h3>
+            <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.commercialClassification')}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              <InfoField label="Cost per seed" value={species.costPerSeedSek != null ? `${(species.costPerSeedSek / 100).toFixed(2)} kr` : undefined} />
-              <InfoField label="Stems per plant" value={species.expectedStemsPerPlant} />
-              <InfoField label="Vase life (days)" value={species.expectedVaseLifeDays} />
-              <InfoField label="Plant type" value={species.plantType} />
-              <InfoField label="Default unit type" value={species.defaultUnitType} />
+              <InfoField label={t('species.costPerSeed')} value={species.costPerSeedSek != null ? `${(species.costPerSeedSek / 100).toFixed(2)} kr` : undefined} />
+              <InfoField label={t('species.stemsPerPlant')} value={species.expectedStemsPerPlant} />
+              <InfoField label={t('species.vaseLifeDays')} value={species.expectedVaseLifeDays} />
+              <InfoField label={t('species.plantType')} value={species.plantType} />
+              <InfoField label={t('species.defaultUnitType')} value={species.defaultUnitType} />
             </div>
           </section>
         )}
@@ -695,7 +710,7 @@ export function SpeciesDetailPage() {
         {/* Additional Photos */}
         {species.photos.length > 0 && (
           <section className="border border-[#E9E9E7] rounded-lg p-5">
-            <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Additional Photos ({species.photos.length})</h3>
+            <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.additionalPhotos')} ({species.photos.length})</h3>
             <div className="grid grid-cols-4 gap-4">
               {species.photos.map(photo => (
                 <img key={photo.id} src={photo.imageUrl} alt="" className="w-full h-32 object-cover rounded-md" />
@@ -706,48 +721,48 @@ export function SpeciesDetailPage() {
 
         {/* Delete */}
         <section className="border border-[#E9E9E7] rounded-lg p-5 mt-2">
-          <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-2">Danger Zone</h3>
-          <p className="text-sm text-[#787774] mb-4">Permanently delete this species and all associated data.</p>
+          <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-2">{t('species.dangerZone')}</h3>
+          <p className="text-sm text-[#787774] mb-4">{t('species.dangerDescription')}</p>
           {deleteStep === 0 && (
             <button
               onClick={() => setDeleteStep(1)}
               className="px-3 py-1.5 border border-[#E03E3E] text-[#E03E3E] rounded-md hover:bg-[#FBE4E4] transition-colors text-sm font-medium"
             >
-              Delete Species
+              {t('species.deleteSpecies')}
             </button>
           )}
           {deleteStep === 1 && (
             <div className="flex items-center gap-3">
-              <span className="text-sm text-[#E03E3E]">Are you sure?</span>
+              <span className="text-sm text-[#E03E3E]">{t('species.areYouSure')}</span>
               <button
                 onClick={() => setDeleteStep(2)}
                 className="px-3 py-1.5 bg-[#E03E3E] text-white rounded-md hover:bg-[#C73535] transition-colors text-sm font-medium"
               >
-                Yes, delete
+                {t('species.yesDelete')}
               </button>
               <button
                 onClick={() => setDeleteStep(0)}
                 className="px-3 py-1.5 text-[#787774] hover:bg-[#F0F0EE] rounded-md transition-colors text-sm"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
             </div>
           )}
           {deleteStep === 2 && (
             <div className="flex items-center gap-3">
-              <span className="text-sm text-[#E03E3E] font-medium">This cannot be undone.</span>
+              <span className="text-sm text-[#E03E3E] font-medium">{t('species.cannotBeUndone')}</span>
               <button
                 onClick={() => deleteMutation.mutate()}
                 disabled={deleteMutation.isPending}
                 className="px-3 py-1.5 bg-[#E03E3E] text-white rounded-md hover:bg-[#C73535] disabled:opacity-50 transition-colors text-sm font-medium"
               >
-                {deleteMutation.isPending ? 'Deleting...' : 'Permanently delete'}
+                {deleteMutation.isPending ? t('species.deleting') : t('species.permanentlyDelete')}
               </button>
               <button
                 onClick={() => setDeleteStep(0)}
                 className="px-3 py-1.5 text-[#787774] hover:bg-[#F0F0EE] rounded-md transition-colors text-sm"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
             </div>
           )}
@@ -776,6 +791,7 @@ export function SpeciesEditPage() {
   const speciesId = Number(id)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { t } = useTranslation()
 
   const { data: species, isLoading, error: loadError } = useQuery({
     queryKey: ['admin', 'species', speciesId],
@@ -826,14 +842,14 @@ export function SpeciesEditPage() {
     }
   })
 
-  if (isLoading) return <div className="flex justify-center py-12"><div className="text-[#787774] text-sm">Loading...</div></div>
-  if (loadError || !species) return <ErrorDisplay error={loadError ?? new Error('Species not found')} onRetry={() => navigate(0)} />
+  if (isLoading) return <div className="flex justify-center py-12"><div className="text-[#787774] text-sm">{t('common.loading')}</div></div>
+  if (loadError || !species) return <ErrorDisplay error={loadError ?? new Error(t('errors.speciesNotFound'))} onRetry={() => navigate(0)} />
 
   return (
     <SpeciesForm
       species={species}
-      title={`Edit: ${species.commonNameSv || species.commonName}`}
-      submitLabel="Save Changes"
+      title={t('species.editTitle', { name: species.commonNameSv || species.commonName })}
+      submitLabel={t('species.saveChanges')}
       isSubmitting={updateMutation.isPending}
       error={updateMutation.error?.message ?? null}
       onBack={() => navigate(`/species/${speciesId}`)}
@@ -862,6 +878,7 @@ interface PendingProvider {
 export function SpeciesCreatePage() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const createMutation = useMutation({
     mutationFn: async ({ req, provider }: { req: CreateSpeciesRequest; provider?: PendingProvider }) => {
@@ -885,8 +902,8 @@ export function SpeciesCreatePage() {
   return (
     <SpeciesForm
       species={null}
-      title="Add Species"
-      submitLabel="Create Species"
+      title={t('species.addSpecies')}
+      submitLabel={t('species.createSpecies')}
       isSubmitting={createMutation.isPending}
       error={createMutation.error?.message ?? null}
       onBack={() => navigate('/species')}
@@ -935,6 +952,9 @@ function SpeciesForm({
   isAddingProvider?: boolean
 }) {
   const isEdit = species !== null
+  const { t } = useTranslation()
+  const positionLabel = usePositionLabel()
+  const soilLabel = useSoilLabel()
 
   const [commonName, setCommonName] = useState(species?.commonName ?? '')
   const [commonNameSv, setCommonNameSv] = useState(species?.commonNameSv ?? '')
@@ -953,7 +973,7 @@ function SpeciesForm({
   const [germinationRate, setGerminationRate] = useState(species?.germinationRate?.toString() ?? '')
   const [positions, setPositions] = useState<Set<string>>(new Set(species?.growingPositions ?? []))
   const [soils, setSoils] = useState<Set<string>>(new Set(species?.soils ?? []))
-  const [tagIds, setTagIds] = useState<Set<number>>(new Set(species?.tags.map(t => t.id) ?? []))
+  const [tagIds, setTagIds] = useState<Set<number>>(new Set(species?.tags.map(tg => tg.id) ?? []))
   const [costPerSeedSek, setCostPerSeedSek] = useState(species?.costPerSeedSek != null ? (species.costPerSeedSek / 100).toString() : '')
   const [expectedStemsPerPlant, setExpectedStemsPerPlant] = useState(species?.expectedStemsPerPlant?.toString() ?? '')
   const [expectedVaseLifeDays, setExpectedVaseLifeDays] = useState(species?.expectedVaseLifeDays?.toString() ?? '')
@@ -1118,7 +1138,7 @@ function SpeciesForm({
     <div>
       <button onClick={onBack} className="flex items-center gap-1 text-sm text-[#787774] hover:text-[#37352F] mb-4 transition-colors">
         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-        Back
+        {t('common.back')}
       </button>
 
       <h2 className="text-2xl font-semibold text-[#37352F] mb-6">{title}</h2>
@@ -1128,7 +1148,7 @@ function SpeciesForm({
         <div className="fixed right-6 top-24 z-10">
           <img
             src={species.providers[0].imageBackUrl}
-            alt="Seed packet back"
+            alt={t('species.seedPacketBack')}
             className="rounded-lg border border-[#E9E9E7] shadow-md cursor-pointer transition-all duration-200"
             style={{ width: backImageSmall ? '92px' : '506px' }}
             onClick={() => setBackImageSmall(!backImageSmall)}
@@ -1137,7 +1157,7 @@ function SpeciesForm({
             type="button"
             onClick={() => setBackImageSmall(!backImageSmall)}
             className="absolute top-2 left-2 w-8 h-8 rounded-full bg-white/80 hover:bg-white border border-[#E9E9E7] shadow flex items-center justify-center text-[#787774] transition-colors"
-            title={backImageSmall ? 'Enlarge' : 'Minimize'}
+            title={backImageSmall ? t('species.enlarge') : t('species.minimize')}
           >
             {backImageSmall ? (
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1158,15 +1178,15 @@ function SpeciesForm({
         {/* Provider & Images — create mode */}
         {!isEdit && (
           <section className="border border-[#E9E9E7] rounded-lg p-5">
-            <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Seed Provider & Images</h3>
+            <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.seedProviderImages')}</h3>
             <div className="mb-4">
-              <label className="block text-xs font-medium text-[#787774] mb-1.5">Provider</label>
+              <label className="block text-xs font-medium text-[#787774] mb-1.5">{t('species.provider')}</label>
               <select
                 value={selectedProviderId ?? ''}
                 onChange={e => setSelectedProviderId(e.target.value ? Number(e.target.value) : null)}
                 className="w-full max-w-xs px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA]"
               >
-                <option value="">Select a provider...</option>
+                <option value="">{t('species.selectProvider')}</option>
                 {availableProviders?.map(p => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
@@ -1176,18 +1196,18 @@ function SpeciesForm({
               <>
                 <div className="grid grid-cols-2 gap-6">
                   <ImageUpload
-                    label="Front"
+                    label={t('species.front')}
                     currentUrl={imageFrontBase64 ? `data:image/jpeg;base64,${imageFrontBase64}` : null}
                     onUpload={(b64) => { setImageFrontBase64(b64); handleExtractFront(b64) }}
                   />
                   <ImageUpload
-                    label="Back"
+                    label={t('species.back')}
                     currentUrl={imageBackBase64 ? `data:image/jpeg;base64,${imageBackBase64}` : null}
                     onUpload={(b64) => { setImageBackBase64(b64); handleExtractBack(b64) }}
                   />
                 </div>
                 <div className="mt-4">
-                  <Field label="Product URL" value={providerProductUrl} onChange={setProviderProductUrl} />
+                  <Field label={t('species.productUrl')} value={providerProductUrl} onChange={setProviderProductUrl} />
                 </div>
                 <ExtractStatus
                   extractingFront={extractingFront}
@@ -1206,7 +1226,7 @@ function SpeciesForm({
           <section className="border border-[#E9E9E7] rounded-lg p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider">
-                Additional Photos
+                {t('species.additionalPhotos')}
                 <span className="ml-2 text-xs font-normal text-[#787774] normal-case">({photos.length})</span>
               </h3>
               <button
@@ -1215,12 +1235,12 @@ function SpeciesForm({
                 disabled={isUploadingPhoto}
                 className="px-3 py-1.5 bg-[#2EAADC] text-white text-sm rounded-md hover:bg-[#2898C4] disabled:opacity-50 transition-colors"
               >
-                {isUploadingPhoto ? 'Uploading...' : 'Upload'}
+                {isUploadingPhoto ? t('common.uploading') : t('common.upload')}
               </button>
               <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
             </div>
             {photos.length === 0 ? (
-              <p className="text-[#A5A29C] text-sm">No additional photos yet</p>
+              <p className="text-[#A5A29C] text-sm">{t('species.noAdditionalPhotos')}</p>
             ) : (
               <div className="grid grid-cols-4 gap-4">
                 {photos.map(photo => (
@@ -1234,14 +1254,14 @@ function SpeciesForm({
                             onClick={() => { onDeletePhoto(photo.id); setDeletingPhotoId(null) }}
                             className="px-2 py-1 bg-[#E03E3E] text-white text-xs rounded font-medium"
                           >
-                            Confirm
+                            {t('common.confirm')}
                           </button>
                           <button
                             type="button"
                             onClick={() => setDeletingPhotoId(null)}
                             className="px-2 py-1 bg-white text-[#37352F] text-xs rounded font-medium"
                           >
-                            Cancel
+                            {t('common.cancel')}
                           </button>
                         </div>
                       ) : (
@@ -1250,7 +1270,7 @@ function SpeciesForm({
                           onClick={() => setDeletingPhotoId(photo.id)}
                           className="opacity-0 group-hover:opacity-100 px-2 py-1 bg-[#E03E3E] text-white text-xs rounded font-medium transition-opacity"
                         >
-                          Delete
+                          {t('common.delete')}
                         </button>
                       )}
                     </div>
@@ -1264,7 +1284,7 @@ function SpeciesForm({
         {/* Basic Info */}
         <section className="border border-[#E9E9E7] rounded-lg p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider">Basic Information</h3>
+            <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider">{t('species.basicInfo')}</h3>
             <button
               type="button"
               onClick={() => {
@@ -1273,38 +1293,38 @@ function SpeciesForm({
               }}
               className="text-xs text-[#2EAADC] hover:underline font-medium"
             >
-              Copy to English
+              {t('species.copyToEnglish')}
             </button>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Common Name (Swedish) *" value={commonNameSv} onChange={setCommonNameSv} />
-            <Field label="Common Name (English)" value={commonName} onChange={setCommonName} />
-            <Field label="Variant Name (Swedish)" value={variantNameSv} onChange={setVariantNameSv} />
-            <Field label="Variant Name (English)" value={variantName} onChange={setVariantName} />
-            <Field label="Scientific Name" value={scientificName} onChange={setScientificName} className="col-span-2" />
+            <Field label={t('species.commonNameSv')} value={commonNameSv} onChange={setCommonNameSv} />
+            <Field label={t('species.commonNameEn')} value={commonName} onChange={setCommonName} />
+            <Field label={t('species.variantNameSv')} value={variantNameSv} onChange={setVariantNameSv} />
+            <Field label={t('species.variantNameEn')} value={variantName} onChange={setVariantName} />
+            <Field label={t('species.scientificName')} value={scientificName} onChange={setScientificName} className="col-span-2" />
           </div>
         </section>
 
         {/* Growth Info */}
         <section className="border border-[#E9E9E7] rounded-lg p-5">
-          <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Growth Information</h3>
+          <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.growthInfo')}</h3>
           <div className="space-y-3">
-            <RangeField label="Germination Time (days)" min={germinationTimeDaysMin} max={germinationTimeDaysMax} onMinChange={v => setGerminationTimeDaysMin(v.replace(/\D/g, ''))} onMaxChange={v => setGerminationTimeDaysMax(v.replace(/\D/g, ''))} />
-            <RangeField label="Days to Harvest" min={daysToHarvestMin} max={daysToHarvestMax} onMinChange={v => setDaysToHarvestMin(v.replace(/\D/g, ''))} onMaxChange={v => setDaysToHarvestMax(v.replace(/\D/g, ''))} />
-            <RangeField label="Height (cm)" min={heightCmMin} max={heightCmMax} onMinChange={v => setHeightCmMin(v.replace(/\D/g, ''))} onMaxChange={v => setHeightCmMax(v.replace(/\D/g, ''))} />
+            <RangeField label={t('species.germinationTimeDays')} min={germinationTimeDaysMin} max={germinationTimeDaysMax} onMinChange={v => setGerminationTimeDaysMin(v.replace(/\D/g, ''))} onMaxChange={v => setGerminationTimeDaysMax(v.replace(/\D/g, ''))} />
+            <RangeField label={t('species.daysToHarvest')} min={daysToHarvestMin} max={daysToHarvestMax} onMinChange={v => setDaysToHarvestMin(v.replace(/\D/g, ''))} onMaxChange={v => setDaysToHarvestMax(v.replace(/\D/g, ''))} />
+            <RangeField label={t('species.heightCm')} min={heightCmMin} max={heightCmMax} onMinChange={v => setHeightCmMin(v.replace(/\D/g, ''))} onMaxChange={v => setHeightCmMax(v.replace(/\D/g, ''))} />
             <div className="grid grid-cols-6 gap-4">
-              <Field label="Sowing Depth (mm)" value={sowingDepthMm} onChange={v => setSowingDepthMm(v.replace(/\D/g, ''))} type="text" className="col-span-1" />
-              <Field label="Germination Rate (%)" value={germinationRate} onChange={v => setGerminationRate(v.replace(/\D/g, ''))} type="text" className="col-span-1" />
+              <Field label={t('species.sowingDepthMm')} value={sowingDepthMm} onChange={v => setSowingDepthMm(v.replace(/\D/g, ''))} type="text" className="col-span-1" />
+              <Field label={t('species.germinationRatePercent')} value={germinationRate} onChange={v => setGerminationRate(v.replace(/\D/g, ''))} type="text" className="col-span-1" />
             </div>
           </div>
         </section>
 
         {/* Sowing & Bloom Months */}
         <section className="border border-[#E9E9E7] rounded-lg p-5">
-          <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Sowing & Bloom Months</h3>
+          <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.sowingBloomMonths')}</h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-[#787774] mb-2">Sowing Months</label>
+              <label className="block text-xs font-medium text-[#787774] mb-2">{t('species.sowingMonths')}</label>
               <div className="flex gap-1.5 flex-wrap">
                 {MONTH_LABELS.map((label, i) => (
                   <ChipToggle key={i} label={label} selected={sowingMonths.has(i + 1)} onClick={() => toggleSowingMonth(i + 1)} />
@@ -1312,7 +1332,7 @@ function SpeciesForm({
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#787774] mb-2">Bloom Months</label>
+              <label className="block text-xs font-medium text-[#787774] mb-2">{t('species.bloomMonths')}</label>
               <div className="flex gap-1.5 flex-wrap">
                 {MONTH_LABELS.map((label, i) => (
                   <ChipToggle key={i} label={label} selected={bloomMonths.has(i + 1)} onClick={() => toggleBloomMonth(i + 1)} />
@@ -1324,10 +1344,10 @@ function SpeciesForm({
 
         {/* Growing Conditions */}
         <section className="border border-[#E9E9E7] rounded-lg p-5">
-          <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Growing Conditions</h3>
+          <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.growingConditions')}</h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-[#787774] mb-2">Growing Position</label>
+              <label className="block text-xs font-medium text-[#787774] mb-2">{t('species.growingPosition')}</label>
               <div className="flex gap-1.5 flex-wrap">
                 {GROWING_POSITIONS.map(p => (
                   <ChipToggle key={p} label={positionLabel[p]} selected={positions.has(p)} onClick={() => togglePosition(p)} />
@@ -1335,7 +1355,7 @@ function SpeciesForm({
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#787774] mb-2">Soil Type</label>
+              <label className="block text-xs font-medium text-[#787774] mb-2">{t('species.soilType')}</label>
               <div className="flex gap-1.5 flex-wrap">
                 {SOIL_TYPES.map(s => (
                   <ChipToggle key={s} label={soilLabel[s]} selected={soils.has(s)} onClick={() => toggleSoil(s)} />
@@ -1350,7 +1370,7 @@ function SpeciesForm({
           <section className="border border-[#E9E9E7] rounded-lg p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider">
-                Seed Providers
+                {t('species.seedProviders')}
                 <span className="ml-2 text-xs font-normal text-[#787774] normal-case">({species!.providers.length})</span>
               </h3>
               {!addingNewProvider && (
@@ -1359,7 +1379,7 @@ function SpeciesForm({
                   onClick={() => setAddingNewProvider(true)}
                   className="px-3 py-1.5 bg-[#2EAADC] text-white text-sm rounded-md hover:bg-[#2898C4] transition-colors"
                 >
-                  Add Provider
+                  {t('species.addProvider')}
                 </button>
               )}
             </div>
@@ -1376,7 +1396,7 @@ function SpeciesForm({
                     <div className="flex items-center gap-2">
                       {sp.productUrl && (
                         <a href={sp.productUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[#2EAADC] hover:underline">
-                          Product page &rarr;
+                          {t('species.productPage')} &rarr;
                         </a>
                       )}
                       {deletingProviderId === sp.id ? (
@@ -1386,14 +1406,14 @@ function SpeciesForm({
                             onClick={() => { onDeleteProvider?.(sp.id); setDeletingProviderId(null) }}
                             className="text-[#E03E3E] text-sm font-medium hover:underline"
                           >
-                            Confirm
+                            {t('common.confirm')}
                           </button>
                           <button
                             type="button"
                             onClick={() => setDeletingProviderId(null)}
                             className="text-[#787774] text-sm hover:underline"
                           >
-                            Cancel
+                            {t('common.cancel')}
                           </button>
                         </>
                       ) : (
@@ -1402,19 +1422,19 @@ function SpeciesForm({
                           onClick={() => setDeletingProviderId(sp.id)}
                           className="text-[#787774] text-sm hover:text-[#E03E3E] transition-colors"
                         >
-                          Remove
+                          {t('common.remove')}
                         </button>
                       )}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <ImageUpload
-                      label="Front"
+                      label={t('species.front')}
                       currentUrl={sp.imageFrontUrl}
                       onUpload={(b64) => { onUpdateProvider?.(sp.id, { imageFrontBase64: b64 }); handleExtractFront(b64) }}
                     />
                     <ImageUpload
-                      label="Back"
+                      label={t('species.back')}
                       currentUrl={sp.imageBackUrl}
                       onUpload={(b64) => { onUpdateProvider?.(sp.id, { imageBackBase64: b64 }); handleExtractBack(b64) }}
                     />
@@ -1433,15 +1453,15 @@ function SpeciesForm({
             {/* Add new provider form */}
             {addingNewProvider && (
               <div className="mt-4 p-4 border border-dashed border-[#2EAADC] rounded-md bg-[#FBFBFA]">
-                <h4 className="text-xs font-semibold text-[#37352F] uppercase tracking-wider mb-3">Add Provider</h4>
+                <h4 className="text-xs font-semibold text-[#37352F] uppercase tracking-wider mb-3">{t('species.addProvider')}</h4>
                 <div className="mb-3">
-                  <label className="block text-xs font-medium text-[#787774] mb-1.5">Provider</label>
+                  <label className="block text-xs font-medium text-[#787774] mb-1.5">{t('species.provider')}</label>
                   <select
                     value={newProviderProviderId ?? ''}
                     onChange={e => setNewProviderProviderId(e.target.value ? Number(e.target.value) : null)}
                     className="w-full max-w-xs px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-white"
                   >
-                    <option value="">Select a provider...</option>
+                    <option value="">{t('species.selectProvider')}</option>
                     {availableProviders
                       ?.filter(ap => !species!.providers.some(sp => sp.providerId === ap.id))
                       .map(p => (
@@ -1453,18 +1473,18 @@ function SpeciesForm({
                   <>
                     <div className="grid grid-cols-2 gap-4 mb-3">
                       <ImageUpload
-                        label="Front"
+                        label={t('species.front')}
                         currentUrl={newProviderFrontBase64 ? `data:image/jpeg;base64,${newProviderFrontBase64}` : null}
                         onUpload={setNewProviderFrontBase64}
                       />
                       <ImageUpload
-                        label="Back"
+                        label={t('species.back')}
                         currentUrl={newProviderBackBase64 ? `data:image/jpeg;base64,${newProviderBackBase64}` : null}
                         onUpload={setNewProviderBackBase64}
                       />
                     </div>
                     <div className="mb-3">
-                      <Field label="Product URL" value={newProviderProductUrl} onChange={setNewProviderProductUrl} />
+                      <Field label={t('species.productUrl')} value={newProviderProductUrl} onChange={setNewProviderProductUrl} />
                     </div>
                   </>
                 )}
@@ -1488,7 +1508,7 @@ function SpeciesForm({
                     }}
                     className="px-3 py-1.5 bg-[#2EAADC] text-white text-sm rounded-md hover:bg-[#2898C4] disabled:opacity-50 transition-colors font-medium"
                   >
-                    {isAddingProvider ? 'Adding...' : 'Add'}
+                    {isAddingProvider ? t('species.adding') : t('common.add')}
                   </button>
                   <button
                     type="button"
@@ -1501,14 +1521,14 @@ function SpeciesForm({
                     }}
                     className="px-3 py-1.5 text-[#787774] hover:bg-[#F0F0EE] rounded-md transition-colors text-sm"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                 </div>
               </div>
             )}
 
             {species!.providers.length === 0 && !addingNewProvider && (
-              <p className="text-[#A5A29C] text-sm">No providers linked yet</p>
+              <p className="text-[#A5A29C] text-sm">{t('species.noProvidersYet')}</p>
             )}
           </section>
         )}
@@ -1516,10 +1536,10 @@ function SpeciesForm({
         {/* Tags */}
         {availableTags && availableTags.length > 0 && (
           <section className="border border-[#E9E9E7] rounded-lg p-5">
-            <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Tags</h3>
+            <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.tags')}</h3>
             <div className="flex gap-1.5 flex-wrap">
-              {availableTags.map((t: SpeciesTag) => (
-                <ChipToggle key={t.id} label={t.name} selected={tagIds.has(t.id)} onClick={() => toggleTag(t.id)} />
+              {availableTags.map((tg: SpeciesTag) => (
+                <ChipToggle key={tg.id} label={tg.name} selected={tagIds.has(tg.id)} onClick={() => toggleTag(tg.id)} />
               ))}
             </div>
           </section>
@@ -1527,40 +1547,40 @@ function SpeciesForm({
 
         {/* Commercial & Classification */}
         <section className="border border-[#E9E9E7] rounded-lg p-5">
-          <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">Commercial & Classification</h3>
+          <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.commercialClassification')}</h3>
           <div className="grid grid-cols-3 gap-4 mb-4">
-            <Field label="Cost per seed (SEK)" value={costPerSeedSek} onChange={setCostPerSeedSek} type="text" />
-            <Field label="Expected stems per plant" value={expectedStemsPerPlant} onChange={v => setExpectedStemsPerPlant(v.replace(/\D/g, ''))} type="text" />
-            <Field label="Expected vase life (days)" value={expectedVaseLifeDays} onChange={v => setExpectedVaseLifeDays(v.replace(/\D/g, ''))} type="text" />
+            <Field label={t('species.costPerSeedSek')} value={costPerSeedSek} onChange={setCostPerSeedSek} type="text" />
+            <Field label={t('species.expectedStemsPerPlant')} value={expectedStemsPerPlant} onChange={v => setExpectedStemsPerPlant(v.replace(/\D/g, ''))} type="text" />
+            <Field label={t('species.expectedVaseLifeDays')} value={expectedVaseLifeDays} onChange={v => setExpectedVaseLifeDays(v.replace(/\D/g, ''))} type="text" />
           </div>
           <div className="grid grid-cols-2 gap-4 max-w-sm">
             <div>
-              <label className="block text-xs font-medium text-[#787774] mb-1.5">Plant type</label>
+              <label className="block text-xs font-medium text-[#787774] mb-1.5">{t('species.plantType')}</label>
               <select
                 value={plantType}
                 onChange={e => setPlantType(e.target.value)}
                 className="w-full px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA]"
               >
                 <option value="">—</option>
-                <option value="ANNUAL">Annual</option>
-                <option value="PERENNIAL">Perennial</option>
-                <option value="BULB">Bulb</option>
-                <option value="TUBER">Tuber</option>
+                <option value="ANNUAL">{t('species.plantTypeAnnual')}</option>
+                <option value="PERENNIAL">{t('species.plantTypePerennial')}</option>
+                <option value="BULB">{t('species.plantTypeBulb')}</option>
+                <option value="TUBER">{t('species.plantTypeTuber')}</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#787774] mb-1.5">Default unit type</label>
+              <label className="block text-xs font-medium text-[#787774] mb-1.5">{t('species.defaultUnitType')}</label>
               <select
                 value={defaultUnitType}
                 onChange={e => setDefaultUnitType(e.target.value)}
                 className="w-full px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA]"
               >
                 <option value="">—</option>
-                <option value="SEED">Seed</option>
-                <option value="PLUG">Plug</option>
-                <option value="BULB">Bulb</option>
-                <option value="TUBER">Tuber</option>
-                <option value="PLANT">Plant</option>
+                <option value="SEED">{t('species.unitTypeSeed')}</option>
+                <option value="PLUG">{t('species.unitTypePlug')}</option>
+                <option value="BULB">{t('species.unitTypeBulb')}</option>
+                <option value="TUBER">{t('species.unitTypeTuber')}</option>
+                <option value="PLANT">{t('species.unitTypePlant')}</option>
               </select>
             </div>
           </div>
@@ -1581,7 +1601,7 @@ function SpeciesForm({
           onClick={onBack}
           className="px-4 py-2 text-[#787774] hover:bg-[#F0F0EE] rounded-md transition-colors text-sm"
         >
-          Cancel
+          {t('common.cancel')}
         </button>
         <button
           type="button"
@@ -1589,7 +1609,7 @@ function SpeciesForm({
           disabled={isSubmitting || (!commonNameSv.trim() && !commonName.trim())}
           className="px-6 py-2 bg-[#2EAADC] text-white rounded-md hover:bg-[#2898C4] disabled:opacity-50 transition-colors text-sm font-medium"
         >
-          {isSubmitting ? 'Saving...' : submitLabel}
+          {isSubmitting ? t('species.saving') : submitLabel}
         </button>
       </div>
     </div>
@@ -1601,13 +1621,14 @@ function SpeciesForm({
 function RangeField({ label, min, max, onMinChange, onMaxChange }: {
   label: string; min: string; max: string; onMinChange: (v: string) => void; onMaxChange: (v: string) => void
 }) {
+  const { t } = useTranslation()
   const inputClass = "px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA] w-20"
   return (
     <div className="flex items-center gap-3">
       <label className="text-xs font-medium text-[#787774] w-40 shrink-0">{label}</label>
-      <input type="text" maxLength={4} value={min} onChange={e => onMinChange(e.target.value)} placeholder="Min" className={inputClass} />
+      <input type="text" maxLength={4} value={min} onChange={e => onMinChange(e.target.value)} placeholder={t('species.min')} className={inputClass} />
       <span className="text-xs text-[#787774]">–</span>
-      <input type="text" maxLength={4} value={max} onChange={e => onMaxChange(e.target.value)} placeholder="Max" className={inputClass} />
+      <input type="text" maxLength={4} value={max} onChange={e => onMaxChange(e.target.value)} placeholder={t('species.max')} className={inputClass} />
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { ApiError } from '../api/client'
+import { useTranslation } from 'react-i18next'
 
 type ErrorKind = 'network' | 'client' | 'server'
 
@@ -31,18 +32,21 @@ const styles: Record<ErrorKind, { bg: string; text: string; heading: string; but
   },
 }
 
-const titles: Record<ErrorKind, string> = {
-  network: 'Connection Error',
-  client: 'Invalid Request',
-  server: 'Something went wrong',
-}
-
 export default function ErrorDisplay({ error, onRetry }: { error: Error | null; onRetry?: () => void }) {
+  const { t } = useTranslation()
+
   if (!error) return null
 
   const kind = classifyError(error)
   const s = styles[kind]
-  const message = kind === 'server' ? 'An unexpected error occurred. Please try again later.' : error.message
+
+  const titles: Record<ErrorKind, string> = {
+    network: t('errors.connectionError'),
+    client: t('errors.invalidRequest'),
+    server: t('errors.somethingWentWrong'),
+  }
+
+  const message = kind === 'server' ? t('errors.unexpectedError') : error.message
 
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4">
@@ -58,7 +62,7 @@ export default function ErrorDisplay({ error, onRetry }: { error: Error | null; 
             onClick={onRetry}
             className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${s.button}`}
           >
-            Try again
+            {t('errors.tryAgain')}
           </button>
         )}
       </div>
