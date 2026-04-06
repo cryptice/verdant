@@ -17,8 +17,13 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.data.model.BatchEventRequest
+import app.verdant.android.data.model.BatchSowRequest
 import app.verdant.android.data.model.DashboardResponse
+import app.verdant.android.data.model.SpeciesResponse
+import app.verdant.android.data.model.SupplyInventoryResponse
 import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.voice.VoiceCommandOverlay
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,7 +35,9 @@ import javax.inject.Inject
 data class DashboardUiState(
     val isLoading: Boolean = true,
     val dashboard: DashboardResponse? = null,
-    val error: String? = null
+    val error: String? = null,
+    val speciesList: List<SpeciesResponse> = emptyList(),
+    val supplyList: List<SupplyInventoryResponse> = emptyList(),
 )
 
 @HiltViewModel
@@ -52,6 +59,60 @@ class DashboardViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
             }
         }
+        // Load voice-related data in parallel
+        viewModelScope.launch {
+            try {
+                val species = gardenRepository.getSpecies()
+                _uiState.value = _uiState.value.copy(speciesList = species)
+            } catch (_: Exception) { }
+        }
+        viewModelScope.launch {
+            try {
+                val supplies = gardenRepository.getSupplyInventory()
+                _uiState.value = _uiState.value.copy(supplyList = supplies)
+            } catch (_: Exception) { }
+        }
+    }
+
+    suspend fun executePlantActivity(action: String, quantity: Int, species: SpeciesResponse) {
+        if (action == "SOW") {
+            val name = species.variantName?.let { "${species.commonName} $it" } ?: species.commonName
+            gardenRepository.batchSow(
+                BatchSowRequest(
+                    speciesId = species.id,
+                    name = name,
+                    seedCount = quantity,
+                )
+            )
+        } else {
+            val statusForAction = when (action) {
+                "SOAK" -> "SEEDED"
+                "POT_UP" -> "SEEDED"
+                "PLANT" -> "POTTED_UP"
+                "HARVEST" -> "PLANTED"
+                else -> "SEEDED"
+            }
+            val eventType = when (action) {
+                "SOAK" -> "NOTE"
+                "POT_UP" -> "POTTED_UP"
+                "PLANT" -> "PLANTED_OUT"
+                "HARVEST" -> "HARVESTED"
+                else -> "NOTE"
+            }
+            gardenRepository.batchEvent(
+                BatchEventRequest(
+                    speciesId = species.id,
+                    status = statusForAction,
+                    eventType = eventType,
+                    count = quantity,
+                    notes = if (action == "SOAK") "Soaked" else null,
+                )
+            )
+        }
+    }
+
+    suspend fun executeSupplyUsage(supply: SupplyInventoryResponse, quantity: Double) {
+        gardenRepository.decrementSupply(supply.id, quantity)
     }
 }
 
@@ -69,6 +130,17 @@ fun DashboardScreen(
         onPauseOrDispose { }
     }
 
+    VoiceCommandOverlay(
+        speciesList = uiState.speciesList,
+        supplyList = uiState.supplyList,
+        onPlantActivity = { action, quantity, species ->
+            viewModel.executePlantActivity(action, quantity, species)
+        },
+        onSupplyUsage = { supply, quantity ->
+            viewModel.executeSupplyUsage(supply, quantity)
+        },
+        fabModifier = Modifier.padding(bottom = 72.dp),
+    ) {
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
@@ -178,4 +250,5 @@ fun DashboardScreen(
             }
         }
     }
+    } // VoiceCommandOverlay
 }

@@ -330,6 +330,23 @@
     <string name="supply_usage_recorded">Usage recorded!</string>
     <string name="record_another">Record another</string>
 
+    <!-- Voice -->
+    <string name="voice_action_sow">Sow</string>
+    <string name="voice_action_soak">Soak</string>
+    <string name="voice_action_pot_up">Pot up</string>
+    <string name="voice_action_plant">Plant out</string>
+    <string name="voice_action_harvest">Harvest</string>
+    <string name="voice_use">Use</string>
+    <string name="voice_confirm">Confirm</string>
+    <string name="voice_cancel">Cancel</string>
+    <string name="voice_not_understood">Could not understand command</string>
+    <string name="voice_try_again">Try again</string>
+    <string name="voice_listening">Listening\u2026</string>
+    <string name="voice_success">Done!</string>
+    <string name="voice_error">Something went wrong</string>
+    <string name="voice_no_species_match">Could not find a matching species</string>
+    <string name="voice_no_supply_match">Could not find a matching supply</string>
+
     <!-- Additional Event Types -->
     <string name="budding">Budding</string>
     <string name="first_bloom">First bloom</string>

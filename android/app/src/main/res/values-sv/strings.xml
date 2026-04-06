@@ -328,6 +328,23 @@
     <string name="supply_usage_recorded">Anv\u00e4ndning registrerad!</string>
     <string name="record_another">Registrera en till</string>
 
+    <!-- Voice -->
+    <string name="voice_action_sow">S\u00E5</string>
+    <string name="voice_action_soak">Bl\u00F6tl\u00E4gg</string>
+    <string name="voice_action_pot_up">Omplantera</string>
+    <string name="voice_action_plant">Plantera ut</string>
+    <string name="voice_action_harvest">Sk\u00F6rda</string>
+    <string name="voice_use">Anv\u00E4nd</string>
+    <string name="voice_confirm">Bekr\u00E4fta</string>
+    <string name="voice_cancel">Avbryt</string>
+    <string name="voice_not_understood">Kunde inte f\u00F6rst\u00E5 kommandot</string>
+    <string name="voice_try_again">F\u00F6rs\u00F6k igen</string>
+    <string name="voice_listening">Lyssnar\u2026</string>
+    <string name="voice_success">Klart!</string>
+    <string name="voice_error">N\u00e5got gick fel</string>
+    <string name="voice_no_species_match">Kunde inte hitta matchande art</string>
+    <string name="voice_no_supply_match">Kunde inte hitta matchande f\u00f6rn\u00f6denhet</string>
+
     <!-- Additional Event Types -->
     <string name="budding">Knoppning</string>
     <string name="first_bloom">F\u00F6rsta blomning</string>

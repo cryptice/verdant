@@ -22,9 +22,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
+import app.verdant.android.data.model.BatchEventRequest
+import app.verdant.android.data.model.BatchSowRequest
 import app.verdant.android.data.model.SpeciesPlantSummary
+import app.verdant.android.data.model.SpeciesResponse
+import app.verdant.android.data.model.SupplyInventoryResponse
 import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.voice.VoiceCommandOverlay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,6 +40,8 @@ data class PlantedSpeciesListState(
     val isLoading: Boolean = true,
     val species: List<SpeciesPlantSummary> = emptyList(),
     val error: String? = null,
+    val speciesList: List<SpeciesResponse> = emptyList(),
+    val supplyList: List<SupplyInventoryResponse> = emptyList(),
 )
 
 @HiltViewModel
@@ -52,11 +59,62 @@ class PlantedSpeciesListViewModel @Inject constructor(
             if (showLoading) _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
                 val species = repo.getSpeciesPlantSummary()
-                _uiState.value = PlantedSpeciesListState(isLoading = false, species = species)
+                _uiState.value = _uiState.value.copy(isLoading = false, species = species, error = null)
             } catch (e: Exception) {
-                if (showLoading) _uiState.value = PlantedSpeciesListState(isLoading = false, error = e.message)
+                if (showLoading) _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
             }
         }
+        viewModelScope.launch {
+            try {
+                _uiState.value = _uiState.value.copy(speciesList = repo.getSpecies())
+            } catch (_: Exception) { }
+        }
+        viewModelScope.launch {
+            try {
+                _uiState.value = _uiState.value.copy(supplyList = repo.getSupplyInventory())
+            } catch (_: Exception) { }
+        }
+    }
+
+    suspend fun executePlantActivity(action: String, quantity: Int, species: SpeciesResponse) {
+        if (action == "SOW") {
+            val name = species.variantName?.let { "${species.commonName} $it" } ?: species.commonName
+            repo.batchSow(
+                BatchSowRequest(
+                    speciesId = species.id,
+                    name = name,
+                    seedCount = quantity,
+                )
+            )
+        } else {
+            val statusForAction = when (action) {
+                "SOAK" -> "SEEDED"
+                "POT_UP" -> "SEEDED"
+                "PLANT" -> "POTTED_UP"
+                "HARVEST" -> "PLANTED"
+                else -> "SEEDED"
+            }
+            val eventType = when (action) {
+                "SOAK" -> "NOTE"
+                "POT_UP" -> "POTTED_UP"
+                "PLANT" -> "PLANTED_OUT"
+                "HARVEST" -> "HARVESTED"
+                else -> "NOTE"
+            }
+            repo.batchEvent(
+                BatchEventRequest(
+                    speciesId = species.id,
+                    status = statusForAction,
+                    eventType = eventType,
+                    count = quantity,
+                    notes = if (action == "SOAK") "Soaked" else null,
+                )
+            )
+        }
+    }
+
+    suspend fun executeSupplyUsage(supply: SupplyInventoryResponse, quantity: Double) {
+        repo.decrementSupply(supply.id, quantity)
     }
 }
 
@@ -71,6 +129,17 @@ fun PlantedSpeciesListScreen(
     var searchQuery by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) { viewModel.load() }
+
+    VoiceCommandOverlay(
+        speciesList = uiState.speciesList,
+        supplyList = uiState.supplyList,
+        onPlantActivity = { action, quantity, species ->
+            viewModel.executePlantActivity(action, quantity, species)
+        },
+        onSupplyUsage = { supply, quantity ->
+            viewModel.executeSupplyUsage(supply, quantity)
+        },
+    ) {
 
     val filtered = remember(uiState.species, searchQuery) {
         if (searchQuery.isBlank()) uiState.species
@@ -172,9 +241,10 @@ fun PlantedSpeciesListScreen(
                             }
                         }
                     }
-                    item { Spacer(Modifier.height(16.dp)) }
+                    item { Spacer(Modifier.height(80.dp)) }
                 }
             }
         }
     }
+    } // VoiceCommandOverlay
 }
