@@ -1128,7 +1128,7 @@ function SpeciesForm({
           <img
             src={species.providers[0].imageBackUrl}
             alt="Seed packet back"
-            className="w-96 rounded-lg border border-[#E9E9E7] shadow-md"
+            className="rounded-lg border border-[#E9E9E7] shadow-md" style={{ width: '460px' }}
           />
         </div>
       )}
@@ -1553,7 +1553,15 @@ function SpeciesForm({
       </form>
 
       {/* Floating save bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E9E9E7] px-6 py-3 flex gap-3 shadow-lg z-10">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E9E9E7] px-6 py-3 flex gap-3 justify-end shadow-lg z-10">
+        {error && <span className="text-red-600 text-sm self-center mr-auto">{error}</span>}
+        <button
+          type="button"
+          onClick={onBack}
+          className="px-4 py-2 text-[#787774] hover:bg-[#F0F0EE] rounded-md transition-colors text-sm"
+        >
+          Cancel
+        </button>
         <button
           type="button"
           onClick={handleSubmit}
@@ -1562,14 +1570,6 @@ function SpeciesForm({
         >
           {isSubmitting ? 'Saving...' : submitLabel}
         </button>
-        <button
-          type="button"
-          onClick={onBack}
-          className="px-4 py-2 text-[#787774] hover:bg-[#F0F0EE] rounded-md transition-colors text-sm"
-        >
-          Cancel
-        </button>
-        {error && <span className="text-red-600 text-sm self-center ml-2">{error}</span>}
       </div>
     </div>
   )
