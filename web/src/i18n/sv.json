@@ -18,10 +18,6 @@
     "calendar": "Kalender",
     "analytics": "Analys",
     "guide": "Guide",
-    "market": "Marknad",
-    "myListings": "Mina annonser",
-    "myOrders": "Mina ordrar",
-    "incomingOrders": "Inkommande ordrar",
     "speciesGroups": "Artgrupper",
     "supplies": "Utrustning & förbrukning",
     "workflows": "Arbetsflöden"
@@ -499,63 +495,6 @@
     "stemsPerM2": "Stjälkar/m\u00B2",
     "noData": "Ingen analysdata ännu"
   },
-  "market": {
-    "title": "Blomstermarknad",
-    "browse": "Bl\u00e4ddra bland tillg\u00e4ngliga blommor",
-    "noListings": "Inga blommor tillg\u00e4ngliga just nu",
-    "perStem": "kr/stj\u00e4lk",
-    "available": "Tillg\u00e4nglig",
-    "lowStock": "L\u00e5gt lager",
-    "addToOrder": "L\u00e4gg till",
-    "cart": "Varukorg",
-    "cartEmpty": "Din varukorg \u00e4r tom",
-    "placeOrder": "L\u00e4gg best\u00e4llning",
-    "orderPlaced": "Best\u00e4llning lagd!",
-    "deliveryDate": "Leveransdatum",
-    "orderNotes": "Anteckningar",
-    "total": "Totalt",
-    "items": "artiklar",
-    "stems": "stj\u00e4lkar"
-  },
-  "listings": {
-    "title": "Mina annonser",
-    "new": "+ Ny annons",
-    "edit": "Redigera annons",
-    "speciesLabel": "Art",
-    "listingTitle": "Titel",
-    "description": "Beskrivning",
-    "quantity": "Tillg\u00e4ngligt antal",
-    "price": "Pris per stj\u00e4lk (\u00f6re)",
-    "availableFrom": "Tillg\u00e4nglig fr\u00e5n",
-    "availableUntil": "Tillg\u00e4nglig till",
-    "active": "Aktiv",
-    "noListings": "Inga annonser \u00e4nnu",
-    "deleteListing": "Radera annons",
-    "deleteConfirm": "Radera denna annons?"
-  },
-  "orders": {
-    "myTitle": "Mina ordrar",
-    "incomingTitle": "Inkommande ordrar",
-    "noOrders": "Inga ordrar",
-    "orderDate": "Datum",
-    "producer": "Producent",
-    "purchaser": "K\u00f6pare",
-    "status": "Status",
-    "deliveryDate": "Leverans",
-    "total": "Totalt",
-    "cancel": "Avbryt best\u00e4llning",
-    "accept": "Acceptera",
-    "fulfill": "Markera leveransklar",
-    "deliver": "Markera levererad",
-    "cancelConfirm": "Avbryt denna best\u00e4llning?"
-  },
-  "orderStatus": {
-    "PLACED": "Lagd",
-    "ACCEPTED": "Accepterad",
-    "FULFILLED": "Leveransklar",
-    "DELIVERED": "Levererad",
-    "CANCELLED": "Avbruten"
-  },
   "guide": {
     "title": "Guide",
     "advanced": "Avancerade funktioner",
@@ -822,7 +761,6 @@
       "start_trial": "Starta ett sortförsök",
       "log_pest": "Logga skadedjur eller sjukdom",
       "view_analytics": "Visa statistik",
-      "create_listing": "Skapa en marknadsannons",
       "create_org": "Skapa en organisation"
     },
     "hint": {
@@ -847,7 +785,6 @@
       "start_trial": "Starta ett försök för att jämföra olika sorter.",
       "log_pest": "Registrera en observation av skadedjur eller sjukdom.",
       "view_analytics": "Se dina skördetrender och produktionsstatistik.",
-      "create_listing": "Annonsera dina produkter på marknadsplatsen.",
       "create_org": "Skapa din organisation för att börja hantera din odling."
     },
     "tooltip": {
@@ -951,10 +888,6 @@
       "viewAnalytics": {
         "title": "Din statistik",
         "description": "Denna instrumentpanel visar skördetrender, produktionsstatistik och insikter från din odlingsdata."
-      },
-      "createListing": {
-        "title": "Annonsera på marknadsplatsen",
-        "description": "Klicka här för att skapa en annons och sälja dina produkter till andra odlare och köpare."
       }
     }
   },

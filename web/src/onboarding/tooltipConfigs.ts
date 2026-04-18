@@ -86,12 +86,6 @@ const configs: PageTooltipConfig[] = [
       { targetSelector: '[data-onboarding="analytics-view"]', titleKey: 'onboarding.tooltips.viewAnalytics.title', descriptionKey: 'onboarding.tooltips.viewAnalytics.description' },
     ],
   },
-  {
-    stepId: 'create_listing',
-    tooltips: [
-      { targetSelector: '[data-onboarding="add-listing-btn"]', titleKey: 'onboarding.tooltips.createListing.title', descriptionKey: 'onboarding.tooltips.createListing.description' },
-    ],
-  },
 ]
 
 export function getTooltipConfig(stepId: string): PageTooltipConfig | null {

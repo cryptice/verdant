@@ -6,8 +6,6 @@ web/node_modules/
 web/dist/
 admin/node_modules/
 admin/dist/
-market/node_modules/
-market/dist/
 android/
 db-backups/
 secrets/

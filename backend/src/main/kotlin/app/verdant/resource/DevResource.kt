@@ -130,7 +130,6 @@ class DevResource(
     @Path("/wipe")
     fun wipeUserData(): Response {
         val tables = listOf(
-            "order_item", "market_order", "listing",
             "plant_event", "plant",
             "bouquet_recipe_item", "bouquet_recipe",
             "succession_schedule", "production_target", "scheduled_task",

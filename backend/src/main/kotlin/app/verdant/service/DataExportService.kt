@@ -23,12 +23,9 @@ class DataExportService(
     private val bouquetRecipeRepository: BouquetRecipeRepository,
     private val successionScheduleRepository: SuccessionScheduleRepository,
     private val productionTargetRepository: ProductionTargetRepository,
-    private val listingRepository: ListingRepository,
-    private val marketOrderRepository: MarketOrderRepository,
     private val speciesRepository: SpeciesRepository,
     private val speciesGroupRepository: SpeciesGroupRepository,
     private val speciesTagRepository: SpeciesTagRepository,
-    private val orderItemRepository: OrderItemRepository,
 ) {
     fun exportUserData(orgId: Long, userId: Long): UserDataExport {
         val user = userRepository.findById(userId) ?: throw NotFoundException("User not found")
@@ -256,67 +253,6 @@ class DataExportService(
             )
         }
 
-        val listings = listingRepository.findByOrgId(orgId, limit = Int.MAX_VALUE)
-        val speciesNamesForListings = speciesRepository.findNamesByIds(listings.map { it.speciesId }.toSet())
-        val sellerNames = userRepository.findByIds(setOf(userId))
-        val sellerName = sellerNames[userId]?.displayName ?: "Unknown"
-        val listingResponses = listings.map { listing ->
-            val species = speciesRepository.findById(listing.speciesId)
-            ListingResponse(
-                id = listing.id!!,
-                sellerName = sellerName,
-                producerName = sellerName,
-                speciesId = listing.speciesId,
-                speciesName = speciesNamesForListings[listing.speciesId] ?: "Unknown",
-                speciesNameSv = species?.commonNameSv,
-                title = listing.title,
-                description = listing.description,
-                quantityAvailable = listing.quantityAvailable,
-                pricePerStemSek = listing.pricePerStemSek,
-                availableFrom = listing.availableFrom,
-                availableUntil = listing.availableUntil,
-                imageUrl = listing.imageUrl,
-                isActive = listing.isActive,
-                createdAt = listing.createdAt,
-            )
-        }
-
-        // Market orders: include both as purchaser and producer
-        val purchasedOrders = marketOrderRepository.findByPurchaserOrgId(orgId, limit = Int.MAX_VALUE)
-        val producedOrders = marketOrderRepository.findByProducerOrgId(orgId, limit = Int.MAX_VALUE)
-        val allOrderIds = (purchasedOrders.mapNotNull { it.id } + producedOrders.mapNotNull { it.id }).toSet()
-        val allOrders = (purchasedOrders + producedOrders).distinctBy { it.id }
-        val allParticipantIds = allOrders.flatMap { listOf(it.purchaserOrgId, it.producerOrgId) }.toSet()
-        val participantUsers = userRepository.findByIds(allParticipantIds)
-        val allOrderItems = allOrderIds.flatMap { orderId -> orderItemRepository.findByOrderId(orderId) }
-        val itemsByOrder = allOrderItems.groupBy { it.orderId }
-        val marketOrderResponses = allOrders.map { order ->
-            val items = itemsByOrder[order.id] ?: emptyList()
-            MarketOrderResponse(
-                id = order.id!!,
-                purchaserId = order.purchaserOrgId,
-                purchaserName = participantUsers[order.purchaserOrgId]?.displayName ?: "Unknown",
-                producerId = order.producerOrgId,
-                producerName = participantUsers[order.producerOrgId]?.displayName ?: "Unknown",
-                status = order.status.name,
-                deliveryDate = order.deliveryDate,
-                totalSek = order.totalSek,
-                notes = order.notes,
-                items = items.map { item ->
-                    OrderItemResponse(
-                        id = item.id!!,
-                        listingId = item.listingId,
-                        speciesId = item.speciesId,
-                        speciesName = item.speciesName,
-                        quantity = item.quantity,
-                        pricePerStemSek = item.pricePerStemSek,
-                    )
-                },
-                createdAt = order.createdAt,
-                updatedAt = order.updatedAt,
-            )
-        }
-
         return UserDataExport(
             user = user.toResponse(),
             gardens = gardens.map { garden ->
@@ -358,8 +294,6 @@ class DataExportService(
             bouquetRecipes = bouquetRecipeResponses,
             successionSchedules = successionScheduleResponses,
             productionTargets = productionTargetResponses,
-            marketListings = listingResponses,
-            marketOrders = marketOrderResponses,
             exportedAt = Instant.now(),
         )
     }

@@ -286,31 +286,6 @@ export interface BedSeasonYield {
   stemsHarvested: number; stemsPerM2?: number
 }
 
-// Market
-export interface ListingResponse {
-  id: number; sellerName: string; producerName: string;
-  speciesId: number; speciesName: string; speciesNameSv?: string;
-  title: string; description?: string;
-  quantityAvailable: number; pricePerStemSek: number;
-  availableFrom: string; availableUntil: string;
-  imageUrl?: string; isActive: boolean; createdAt: string;
-}
-
-export interface MarketOrderResponse {
-  id: number; purchaserId: number; purchaserName: string;
-  producerId: number; producerName: string;
-  status: string; deliveryDate?: string;
-  totalSek: number; notes?: string;
-  items: OrderItemResponse[];
-  createdAt: string; updatedAt: string;
-}
-
-export interface OrderItemResponse {
-  id: number; listingId: number;
-  speciesId: number; speciesName: string;
-  quantity: number; pricePerStemSek: number;
-}
-
 // Bed History
 export interface BedHistoryEntry {
   seasonId?: number; seasonName?: string; year?: number
@@ -557,20 +532,6 @@ export const api = {
     update: (id: number, data: Record<string, unknown>) => apiRequest<ProductionTargetResponse>(`/api/production-targets/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: number) => apiRequest<void>(`/api/production-targets/${id}`, { method: 'DELETE' }),
     forecast: (id: number) => apiRequest<ProductionForecastResponse>(`/api/production-targets/${id}/forecast`),
-  },
-
-  market: {
-    listings: () => apiRequest<ListingResponse[]>('/api/market/listings'),
-    myListings: () => apiRequest<ListingResponse[]>('/api/market/listings/mine'),
-    getListing: (id: number) => apiRequest<ListingResponse>(`/api/market/listings/${id}`),
-    createListing: (data: Record<string, unknown>) => apiRequest<ListingResponse>('/api/market/listings', { method: 'POST', body: JSON.stringify(data) }),
-    updateListing: (id: number, data: Record<string, unknown>) => apiRequest<ListingResponse>(`/api/market/listings/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    deleteListing: (id: number) => apiRequest<void>(`/api/market/listings/${id}`, { method: 'DELETE' }),
-    placeOrder: (data: Record<string, unknown>) => apiRequest<MarketOrderResponse>('/api/market/orders', { method: 'POST', body: JSON.stringify(data) }),
-    myOrders: () => apiRequest<MarketOrderResponse[]>('/api/market/orders/mine'),
-    incomingOrders: () => apiRequest<MarketOrderResponse[]>('/api/market/orders/incoming'),
-    getOrder: (id: number) => apiRequest<MarketOrderResponse>(`/api/market/orders/${id}`),
-    updateOrderStatus: (id: number, status: string) => apiRequest<MarketOrderResponse>(`/api/market/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
   },
 
   supplies: {

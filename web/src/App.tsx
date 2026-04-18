@@ -32,8 +32,6 @@ import { Analytics } from './pages/Analytics'
 import { Account } from './pages/Account'
 import { OrgSettings } from './pages/OrgSettings'
 import { Guide } from './pages/Guide'
-import { MyListings } from './pages/MyListings'
-import { IncomingOrders } from './pages/IncomingOrders'
 import { Supplies } from './pages/Supplies'
 import { PrivacyPolicy } from './pages/PrivacyPolicy'
 import { WorkflowTemplates } from './pages/WorkflowTemplates'
@@ -102,8 +100,6 @@ export function App() {
         <Route path="successions" element={<SuccessionSchedules />} />
         <Route path="targets" element={<ProductionTargets />} />
         <Route path="analytics" element={<Analytics />} />
-        <Route path="market/listings" element={<MyListings />} />
-        <Route path="market/incoming" element={<IncomingOrders />} />
         <Route path="guide" element={<Guide />} />
         <Route path="org/settings" element={<OrgSettings />} />
         <Route path="account" element={<Account />} />

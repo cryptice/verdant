@@ -33,7 +33,6 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   { id: 'start_trial', section: 'advanced', route: '/trials', completionType: 'explicit' },
   { id: 'log_pest', section: 'advanced', route: '/pest-disease', completionType: 'explicit' },
   { id: 'view_analytics', section: 'advanced', route: '/analytics', completionType: 'visit' },
-  { id: 'create_listing', section: 'advanced', route: '/market/listings', completionType: 'explicit' },
 ]
 
 export const SECTIONS: { id: OnboardingSection; titleKey: string; icon: string }[] = [

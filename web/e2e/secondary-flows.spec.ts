@@ -300,7 +300,6 @@ test.describe('Sidebar navigation', () => {
     { path: '/customers', heading: 'Customers' },
     { path: '/calendar', heading: 'Calendar' },
     { path: '/analytics', heading: 'Analytics' },
-    { path: '/market/listings', heading: 'My Listings' },
     { path: '/successions', heading: 'Successions' },
     { path: '/targets', heading: 'Targets' },
   ]
