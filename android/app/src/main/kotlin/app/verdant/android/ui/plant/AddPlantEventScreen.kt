@@ -146,6 +146,7 @@ fun AddPlantEventScreen(
     var quantity by remember { mutableStateOf("") }
     var stemCount by remember { mutableStateOf("") }
     var stemLengthCm by remember { mutableStateOf("") }
+    var vaseLifeDays by remember { mutableStateOf("") }
     var qualityGrade by remember { mutableStateOf<String?>(null) }
     var selectedCustomerId by remember { mutableStateOf<Long?>(null) }
     var customerDropdownExpanded by remember { mutableStateOf(false) }
@@ -291,6 +292,14 @@ fun AddPlantEventScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 )
+                OutlinedTextField(
+                    value = vaseLifeDays,
+                    onValueChange = { vaseLifeDays = it.filter { c -> c.isDigit() } },
+                    label = { Text(stringResource(R.string.vase_life_days)) },
+                    placeholder = { Text(stringResource(R.string.vase_life_days_hint)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
                 // Quality grade
                 Text(stringResource(R.string.quality_grade), fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -422,6 +431,7 @@ fun AddPlantEventScreen(
                             aiSuggestions = suggestionsJson,
                             stemCount = stemCount.toIntOrNull(),
                             stemLengthCm = stemLengthCm.toIntOrNull(),
+                            vaseLifeDays = vaseLifeDays.toIntOrNull(),
                             qualityGrade = qualityGrade,
                             harvestDestinationId = selectedCustomerId,
                         )

@@ -358,4 +358,125 @@
     <string name="pinched">Pinched</string>
     <string name="disbudded">Disbudded</string>
     <string name="dormant">Dormant</string>
+
+    <!-- Harvest dialog: vase life -->
+    <string name="vase_life_days">Vase life (days)</string>
+    <string name="vase_life_days_hint">Days stems last in a vase</string>
+
+    <!-- Customers -->
+    <string name="customers">Customers</string>
+    <string name="customer_name">Name</string>
+    <string name="customer_channel">Channel</string>
+    <string name="contact_info">Contact</string>
+    <string name="notes">Notes</string>
+    <string name="no_customers">No customers yet</string>
+    <string name="new_customer">New customer</string>
+    <string name="edit_customer">Edit customer</string>
+    <string name="delete_customer">Delete customer</string>
+    <string name="delete_customer_confirm">Are you sure you want to delete this customer?</string>
+    <string name="channel_florist">Florist</string>
+    <string name="channel_farmers_market">Farmers\' market</string>
+    <string name="channel_csa">CSA</string>
+    <string name="channel_wedding">Wedding</string>
+    <string name="channel_wholesale">Wholesale</string>
+    <string name="channel_direct">Direct</string>
+    <string name="channel_other">Other</string>
+
+    <!-- Pest / Disease -->
+    <string name="pest_disease">Pest &amp; disease</string>
+    <string name="pest_disease_log">Pest / disease log</string>
+    <string name="observed_date">Observed</string>
+    <string name="affected_plant">Affected plant</string>
+    <string name="treatment">Treatment</string>
+    <string name="outcome">Outcome</string>
+    <string name="no_pest_disease">No observations yet</string>
+    <string name="new_pest_disease">New observation</string>
+    <string name="edit_pest_disease">Edit observation</string>
+    <string name="pest_category_pest">Pest</string>
+    <string name="pest_category_disease">Disease</string>
+    <string name="pest_category_deficiency">Deficiency</string>
+    <string name="pest_category_other">Other</string>
+    <string name="severity_low">Low</string>
+    <string name="severity_moderate">Moderate</string>
+    <string name="severity_high">High</string>
+    <string name="severity_critical">Critical</string>
+    <string name="outcome_resolved">Resolved</string>
+    <string name="outcome_ongoing">Ongoing</string>
+    <string name="outcome_crop_loss">Crop loss</string>
+    <string name="outcome_monitoring">Monitoring</string>
+
+    <!-- Variety Trials -->
+    <string name="variety_trials">Variety trials</string>
+    <string name="quality_score">Quality score</string>
+    <string name="customer_reception">Customer reception</string>
+    <string name="verdict">Verdict</string>
+    <string name="trial_year">Year</string>
+    <string name="no_trials">No trials yet</string>
+    <string name="new_trial">New trial</string>
+    <string name="edit_trial">Edit trial</string>
+    <string name="verdict_keep">Keep</string>
+    <string name="verdict_expand">Expand</string>
+    <string name="verdict_reduce">Reduce</string>
+    <string name="verdict_drop">Drop</string>
+    <string name="verdict_undecided">Undecided</string>
+    <string name="reception_loved">Loved</string>
+    <string name="reception_liked">Liked</string>
+    <string name="reception_neutral">Neutral</string>
+    <string name="reception_disliked">Disliked</string>
+
+    <!-- Bouquet Recipes -->
+    <string name="bouquets">Bouquets</string>
+    <string name="bouquet_recipes">Bouquet recipes</string>
+    <string name="recipe_name">Name</string>
+    <string name="recipe_price">Price (SEK)</string>
+    <string name="items">Items</string>
+    <string name="item_quantity">Stems</string>
+    <string name="no_bouquets">No bouquet recipes yet</string>
+    <string name="new_bouquet">New recipe</string>
+    <string name="edit_bouquet">Edit recipe</string>
+    <string name="item_role_flower">Flower</string>
+    <string name="item_role_foliage">Foliage</string>
+    <string name="item_role_filler">Filler</string>
+    <string name="item_role_accent">Accent</string>
+
+    <!-- Succession Schedules -->
+    <string name="successions">Successions</string>
+    <string name="succession_schedules">Succession schedules</string>
+    <string name="first_sow_date">First sow date</string>
+    <string name="interval_days">Interval (days)</string>
+    <string name="total_successions">Number of successions</string>
+    <string name="seeds_per_succession">Seeds per succession</string>
+    <string name="generate_tasks">Generate tasks</string>
+    <string name="tasks_generated">Tasks generated</string>
+    <string name="no_successions">No successions yet</string>
+    <string name="new_succession">New succession</string>
+    <string name="edit_succession">Edit succession</string>
+
+    <!-- Production Targets -->
+    <string name="targets">Targets</string>
+    <string name="production_targets">Production targets</string>
+    <string name="stems_per_week">Stems per week</string>
+    <string name="delivery_window_start">Delivery start</string>
+    <string name="delivery_window_end">Delivery end</string>
+    <string name="forecast">Forecast</string>
+    <string name="plants_needed">Plants needed</string>
+    <string name="seeds_needed">Seeds needed</string>
+    <string name="suggested_sow_date">Suggested sow date</string>
+    <string name="total_stems_needed">Total stems needed</string>
+    <string name="warnings">Warnings</string>
+    <string name="no_targets">No production targets yet</string>
+    <string name="new_target">New target</string>
+    <string name="edit_target">Edit target</string>
+
+    <!-- Analytics -->
+    <string name="analytics">Analytics</string>
+    <string name="season_summary">Season summary</string>
+    <string name="species_comparison">Species comparison</string>
+    <string name="yield_per_bed">Yield per bed</string>
+    <string name="stems_per_m2">Stems per m\u00B2</string>
+    <string name="total_harvested">Total harvested</string>
+    <string name="compare_seasons">Compare seasons</string>
+    <string name="no_analytics_data">No data yet</string>
+    <string name="no_season_data">No seasons to summarise</string>
+    <string name="no_bed_data">No bed yields yet</string>
 </resources>

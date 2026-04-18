@@ -356,4 +356,125 @@
     <string name="pinched">Toppad</string>
     <string name="disbudded">Avknoppad</string>
     <string name="dormant">Vilande</string>
+
+    <!-- Harvest dialog: vase life -->
+    <string name="vase_life_days">Vashållbarhet (dagar)</string>
+    <string name="vase_life_days_hint">Dagar stjälkarna håller i vas</string>
+
+    <!-- Customers -->
+    <string name="customers">Kunder</string>
+    <string name="customer_name">Namn</string>
+    <string name="customer_channel">Kanal</string>
+    <string name="contact_info">Kontakt</string>
+    <string name="notes">Anteckningar</string>
+    <string name="no_customers">Inga kunder \u00E4nnu</string>
+    <string name="new_customer">Ny kund</string>
+    <string name="edit_customer">Redigera kund</string>
+    <string name="delete_customer">Ta bort kund</string>
+    <string name="delete_customer_confirm">\u00C4r du s\u00E4ker p\u00E5 att du vill ta bort denna kund?</string>
+    <string name="channel_florist">Blomsterhandlare</string>
+    <string name="channel_farmers_market">Bondens marknad</string>
+    <string name="channel_csa">Andelsodling</string>
+    <string name="channel_wedding">Br\u00F6llop</string>
+    <string name="channel_wholesale">Grossist</string>
+    <string name="channel_direct">Direktf\u00F6rs\u00E4ljning</string>
+    <string name="channel_other">Annat</string>
+
+    <!-- Pest / Disease -->
+    <string name="pest_disease">Skadedjur &amp; sjukdomar</string>
+    <string name="pest_disease_log">Skadedjurs- / sjukdomslogg</string>
+    <string name="observed_date">Observerad</string>
+    <string name="affected_plant">Drabbad planta</string>
+    <string name="treatment">Behandling</string>
+    <string name="outcome">Utfall</string>
+    <string name="no_pest_disease">Inga observationer \u00E4nnu</string>
+    <string name="new_pest_disease">Ny observation</string>
+    <string name="edit_pest_disease">Redigera observation</string>
+    <string name="pest_category_pest">Skadedjur</string>
+    <string name="pest_category_disease">Sjukdom</string>
+    <string name="pest_category_deficiency">N\u00E4ringsbrist</string>
+    <string name="pest_category_other">Annat</string>
+    <string name="severity_low">L\u00E5g</string>
+    <string name="severity_moderate">M\u00E5ttlig</string>
+    <string name="severity_high">H\u00F6g</string>
+    <string name="severity_critical">Kritisk</string>
+    <string name="outcome_resolved">L\u00F6st</string>
+    <string name="outcome_ongoing">P\u00E5g\u00E5ende</string>
+    <string name="outcome_crop_loss">Sk\u00F6rdef\u00F6rlust</string>
+    <string name="outcome_monitoring">Bevakas</string>
+
+    <!-- Variety Trials -->
+    <string name="variety_trials">Sortprov</string>
+    <string name="quality_score">Kvalitetspo\u00E4ng</string>
+    <string name="customer_reception">Kundmottagande</string>
+    <string name="verdict">Omd\u00F6me</string>
+    <string name="trial_year">\u00C5r</string>
+    <string name="no_trials">Inga sortprov \u00E4nnu</string>
+    <string name="new_trial">Nytt sortprov</string>
+    <string name="edit_trial">Redigera sortprov</string>
+    <string name="verdict_keep">Beh\u00E5ll</string>
+    <string name="verdict_expand">Utvidga</string>
+    <string name="verdict_reduce">Minska</string>
+    <string name="verdict_drop">Sluta odla</string>
+    <string name="verdict_undecided">Obest\u00E4md</string>
+    <string name="reception_loved">\u00C4lskad</string>
+    <string name="reception_liked">Uppskattad</string>
+    <string name="reception_neutral">Neutral</string>
+    <string name="reception_disliked">Ogillad</string>
+
+    <!-- Bouquet Recipes -->
+    <string name="bouquets">Buketter</string>
+    <string name="bouquet_recipes">Bukettrecept</string>
+    <string name="recipe_name">Namn</string>
+    <string name="recipe_price">Pris (SEK)</string>
+    <string name="items">Inneh\u00E5ll</string>
+    <string name="item_quantity">Stj\u00E4lkar</string>
+    <string name="no_bouquets">Inga bukettrecept \u00E4nnu</string>
+    <string name="new_bouquet">Nytt recept</string>
+    <string name="edit_bouquet">Redigera recept</string>
+    <string name="item_role_flower">Blomma</string>
+    <string name="item_role_foliage">Gr\u00F6nt</string>
+    <string name="item_role_filler">Fyllnad</string>
+    <string name="item_role_accent">Accent</string>
+
+    <!-- Succession Schedules -->
+    <string name="successions">S\u00E5ningsomg\u00E5ngar</string>
+    <string name="succession_schedules">S\u00E5ningsscheman</string>
+    <string name="first_sow_date">F\u00F6rsta s\u00E5datum</string>
+    <string name="interval_days">Intervall (dagar)</string>
+    <string name="total_successions">Antal omg\u00E5ngar</string>
+    <string name="seeds_per_succession">Fr\u00F6n per omg\u00E5ng</string>
+    <string name="generate_tasks">Generera uppgifter</string>
+    <string name="tasks_generated">Uppgifter skapade</string>
+    <string name="no_successions">Inga s\u00E5ningsomg\u00E5ngar \u00E4nnu</string>
+    <string name="new_succession">Ny s\u00E5ningsomg\u00E5ng</string>
+    <string name="edit_succession">Redigera s\u00E5ningsomg\u00E5ng</string>
+
+    <!-- Production Targets -->
+    <string name="targets">M\u00E5l</string>
+    <string name="production_targets">Produktionsm\u00E5l</string>
+    <string name="stems_per_week">Stj\u00E4lkar per vecka</string>
+    <string name="delivery_window_start">Leverans start</string>
+    <string name="delivery_window_end">Leverans slut</string>
+    <string name="forecast">Prognos</string>
+    <string name="plants_needed">Plantor som beh\u00F6vs</string>
+    <string name="seeds_needed">Fr\u00F6n som beh\u00F6vs</string>
+    <string name="suggested_sow_date">F\u00F6reslaget s\u00E5datum</string>
+    <string name="total_stems_needed">Totalt antal stj\u00E4lkar</string>
+    <string name="warnings">Varningar</string>
+    <string name="no_targets">Inga produktionsm\u00E5l \u00E4nnu</string>
+    <string name="new_target">Nytt m\u00E5l</string>
+    <string name="edit_target">Redigera m\u00E5l</string>
+
+    <!-- Analytics -->
+    <string name="analytics">Statistik</string>
+    <string name="season_summary">S\u00E4songs\u00F6versikt</string>
+    <string name="species_comparison">Artj\u00E4mf\u00F6relse</string>
+    <string name="yield_per_bed">Avkastning per b\u00E4dd</string>
+    <string name="stems_per_m2">Stj\u00E4lkar per m\u00B2</string>
+    <string name="total_harvested">Totalt sk\u00F6rdat</string>
+    <string name="compare_seasons">J\u00E4mf\u00F6r s\u00E4songer</string>
+    <string name="no_analytics_data">Ingen data \u00E4nnu</string>
+    <string name="no_season_data">Inga s\u00E4songer att sammanfatta</string>
+    <string name="no_bed_data">Inga b\u00E4ddresultat \u00E4nnu</string>
 </resources>

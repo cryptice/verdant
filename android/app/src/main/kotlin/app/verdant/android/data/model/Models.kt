@@ -608,6 +608,274 @@ data class CustomerResponse(
     @SerializedName("createdAt") val createdAt: String,
 )
 
+data class CreateCustomerRequest(
+    @SerializedName("name") val name: String,
+    @SerializedName("channel") val channel: String,
+    @SerializedName("contactInfo") val contactInfo: String? = null,
+    @SerializedName("notes") val notes: String? = null,
+)
+
+data class UpdateCustomerRequest(
+    @SerializedName("name") val name: String? = null,
+    @SerializedName("channel") val channel: String? = null,
+    @SerializedName("contactInfo") val contactInfo: String? = null,
+    @SerializedName("notes") val notes: String? = null,
+)
+
+// Customer channel values (matches backend Channel enum): FLORIST, FARMERS_MARKET, CSA, WEDDING, WHOLESALE, DIRECT, OTHER
+object CustomerChannel {
+    const val FLORIST = "FLORIST"
+    const val FARMERS_MARKET = "FARMERS_MARKET"
+    const val CSA = "CSA"
+    const val WEDDING = "WEDDING"
+    const val WHOLESALE = "WHOLESALE"
+    const val DIRECT = "DIRECT"
+    const val OTHER = "OTHER"
+    val values = listOf(FLORIST, FARMERS_MARKET, CSA, WEDDING, WHOLESALE, DIRECT, OTHER)
+}
+
+// ── Pest/Disease Logs ──
+
+data class PestDiseaseLogResponse(
+    @SerializedName("id") val id: Long,
+    @SerializedName("seasonId") val seasonId: Long?,
+    @SerializedName("bedId") val bedId: Long?,
+    @SerializedName("speciesId") val speciesId: Long?,
+    @SerializedName("observedDate") val observedDate: String,
+    @SerializedName("category") val category: String,
+    @SerializedName("name") val name: String,
+    @SerializedName("severity") val severity: String,
+    @SerializedName("treatment") val treatment: String?,
+    @SerializedName("outcome") val outcome: String?,
+    @SerializedName("notes") val notes: String?,
+    @SerializedName("imageUrl") val imageUrl: String?,
+    @SerializedName("createdAt") val createdAt: String,
+)
+
+data class CreatePestDiseaseLogRequest(
+    @SerializedName("category") val category: String,
+    @SerializedName("name") val name: String,
+    @SerializedName("seasonId") val seasonId: Long? = null,
+    @SerializedName("bedId") val bedId: Long? = null,
+    @SerializedName("speciesId") val speciesId: Long? = null,
+    @SerializedName("observedDate") val observedDate: String? = null,
+    @SerializedName("severity") val severity: String = "MODERATE",
+    @SerializedName("treatment") val treatment: String? = null,
+    @SerializedName("outcome") val outcome: String? = null,
+    @SerializedName("notes") val notes: String? = null,
+    @SerializedName("imageBase64") val imageBase64: String? = null,
+)
+
+data class UpdatePestDiseaseLogRequest(
+    @SerializedName("category") val category: String? = null,
+    @SerializedName("name") val name: String? = null,
+    @SerializedName("seasonId") val seasonId: Long? = null,
+    @SerializedName("bedId") val bedId: Long? = null,
+    @SerializedName("speciesId") val speciesId: Long? = null,
+    @SerializedName("observedDate") val observedDate: String? = null,
+    @SerializedName("severity") val severity: String? = null,
+    @SerializedName("treatment") val treatment: String? = null,
+    @SerializedName("outcome") val outcome: String? = null,
+    @SerializedName("notes") val notes: String? = null,
+    @SerializedName("imageBase64") val imageBase64: String? = null,
+)
+
+object PestCategory {
+    const val PEST = "PEST"
+    const val DISEASE = "DISEASE"
+    const val DEFICIENCY = "DEFICIENCY"
+    const val OTHER = "OTHER"
+    val values = listOf(PEST, DISEASE, DEFICIENCY, OTHER)
+}
+
+object Severity {
+    const val LOW = "LOW"
+    const val MODERATE = "MODERATE"
+    const val HIGH = "HIGH"
+    const val CRITICAL = "CRITICAL"
+    val values = listOf(LOW, MODERATE, HIGH, CRITICAL)
+}
+
+object Outcome {
+    const val RESOLVED = "RESOLVED"
+    const val ONGOING = "ONGOING"
+    const val CROP_LOSS = "CROP_LOSS"
+    const val MONITORING = "MONITORING"
+    val values = listOf(RESOLVED, ONGOING, CROP_LOSS, MONITORING)
+}
+
+// ── Variety Trials ──
+
+data class VarietyTrialResponse(
+    @SerializedName("id") val id: Long,
+    @SerializedName("seasonId") val seasonId: Long,
+    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("speciesName") val speciesName: String?,
+    @SerializedName("bedId") val bedId: Long?,
+    @SerializedName("plantCount") val plantCount: Int?,
+    @SerializedName("stemYield") val stemYield: Int?,
+    @SerializedName("avgStemLengthCm") val avgStemLengthCm: Int?,
+    @SerializedName("avgVaseLifeDays") val avgVaseLifeDays: Int?,
+    @SerializedName("qualityScore") val qualityScore: Int?,
+    @SerializedName("customerReception") val customerReception: String?,
+    @SerializedName("verdict") val verdict: String,
+    @SerializedName("notes") val notes: String?,
+    @SerializedName("createdAt") val createdAt: String,
+)
+
+data class CreateVarietyTrialRequest(
+    @SerializedName("seasonId") val seasonId: Long,
+    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("bedId") val bedId: Long? = null,
+    @SerializedName("plantCount") val plantCount: Int? = null,
+    @SerializedName("stemYield") val stemYield: Int? = null,
+    @SerializedName("avgStemLengthCm") val avgStemLengthCm: Int? = null,
+    @SerializedName("avgVaseLifeDays") val avgVaseLifeDays: Int? = null,
+    @SerializedName("qualityScore") val qualityScore: Int? = null,
+    @SerializedName("customerReception") val customerReception: String? = null,
+    @SerializedName("verdict") val verdict: String = "UNDECIDED",
+    @SerializedName("notes") val notes: String? = null,
+)
+
+data class UpdateVarietyTrialRequest(
+    @SerializedName("seasonId") val seasonId: Long? = null,
+    @SerializedName("speciesId") val speciesId: Long? = null,
+    @SerializedName("bedId") val bedId: Long? = null,
+    @SerializedName("plantCount") val plantCount: Int? = null,
+    @SerializedName("stemYield") val stemYield: Int? = null,
+    @SerializedName("avgStemLengthCm") val avgStemLengthCm: Int? = null,
+    @SerializedName("avgVaseLifeDays") val avgVaseLifeDays: Int? = null,
+    @SerializedName("qualityScore") val qualityScore: Int? = null,
+    @SerializedName("customerReception") val customerReception: String? = null,
+    @SerializedName("verdict") val verdict: String? = null,
+    @SerializedName("notes") val notes: String? = null,
+)
+
+object Verdict {
+    const val KEEP = "KEEP"
+    const val EXPAND = "EXPAND"
+    const val REDUCE = "REDUCE"
+    const val DROP = "DROP"
+    const val UNDECIDED = "UNDECIDED"
+    val values = listOf(KEEP, EXPAND, REDUCE, DROP, UNDECIDED)
+}
+
+object Reception {
+    const val LOVED = "LOVED"
+    const val LIKED = "LIKED"
+    const val NEUTRAL = "NEUTRAL"
+    const val DISLIKED = "DISLIKED"
+    val values = listOf(LOVED, LIKED, NEUTRAL, DISLIKED)
+}
+
+// ── Bouquet Recipes ──
+
+data class BouquetRecipeResponse(
+    @SerializedName("id") val id: Long,
+    @SerializedName("name") val name: String,
+    @SerializedName("description") val description: String?,
+    @SerializedName("imageUrl") val imageUrl: String?,
+    @SerializedName("priceSek") val priceSek: Int?,
+    @SerializedName("items") val items: List<BouquetRecipeItemResponse>,
+    @SerializedName("createdAt") val createdAt: String,
+    @SerializedName("updatedAt") val updatedAt: String,
+)
+
+data class BouquetRecipeItemResponse(
+    @SerializedName("id") val id: Long,
+    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("speciesName") val speciesName: String?,
+    @SerializedName("stemCount") val stemCount: Int,
+    @SerializedName("role") val role: String,
+    @SerializedName("notes") val notes: String?,
+)
+
+data class CreateBouquetRecipeRequest(
+    @SerializedName("name") val name: String,
+    @SerializedName("description") val description: String? = null,
+    @SerializedName("imageBase64") val imageBase64: String? = null,
+    @SerializedName("priceSek") val priceSek: Int? = null,
+    @SerializedName("items") val items: List<CreateBouquetRecipeItemRequest> = emptyList(),
+)
+
+data class CreateBouquetRecipeItemRequest(
+    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("stemCount") val stemCount: Int,
+    @SerializedName("role") val role: String = "FLOWER",
+    @SerializedName("notes") val notes: String? = null,
+)
+
+data class UpdateBouquetRecipeRequest(
+    @SerializedName("name") val name: String? = null,
+    @SerializedName("description") val description: String? = null,
+    @SerializedName("imageBase64") val imageBase64: String? = null,
+    @SerializedName("priceSek") val priceSek: Int? = null,
+    @SerializedName("items") val items: List<CreateBouquetRecipeItemRequest>? = null,
+)
+
+object ItemRole {
+    const val FLOWER = "FLOWER"
+    const val FOLIAGE = "FOLIAGE"
+    const val FILLER = "FILLER"
+    const val ACCENT = "ACCENT"
+    val values = listOf(FLOWER, FOLIAGE, FILLER, ACCENT)
+}
+
+// ── Analytics ──
+
+data class SeasonSummaryResponse(
+    @SerializedName("seasonId") val seasonId: Long,
+    @SerializedName("seasonName") val seasonName: String,
+    @SerializedName("year") val year: Int,
+    @SerializedName("totalPlants") val totalPlants: Int,
+    @SerializedName("totalStemsHarvested") val totalStemsHarvested: Int,
+    @SerializedName("totalHarvestWeightGrams") val totalHarvestWeightGrams: Double,
+    @SerializedName("speciesCount") val speciesCount: Int,
+    @SerializedName("topSpecies") val topSpecies: List<SpeciesYieldSummary>,
+)
+
+data class SpeciesYieldSummary(
+    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("speciesName") val speciesName: String,
+    @SerializedName("plantCount") val plantCount: Int,
+    @SerializedName("stemsHarvested") val stemsHarvested: Int,
+    @SerializedName("avgStemLength") val avgStemLength: Double?,
+    @SerializedName("avgVaseLife") val avgVaseLife: Double?,
+    @SerializedName("qualityBreakdown") val qualityBreakdown: Map<String, Int>,
+)
+
+data class SpeciesComparisonResponse(
+    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("speciesName") val speciesName: String,
+    @SerializedName("seasons") val seasons: List<SpeciesSeasonData>,
+)
+
+data class SpeciesSeasonData(
+    @SerializedName("seasonId") val seasonId: Long,
+    @SerializedName("seasonName") val seasonName: String,
+    @SerializedName("year") val year: Int,
+    @SerializedName("plantCount") val plantCount: Int,
+    @SerializedName("stemsHarvested") val stemsHarvested: Int,
+    @SerializedName("stemsPerPlant") val stemsPerPlant: Double?,
+    @SerializedName("avgStemLength") val avgStemLength: Double?,
+    @SerializedName("avgVaseLife") val avgVaseLife: Double?,
+)
+
+data class YieldPerBedResponse(
+    @SerializedName("bedId") val bedId: Long,
+    @SerializedName("bedName") val bedName: String,
+    @SerializedName("gardenName") val gardenName: String,
+    @SerializedName("areaM2") val areaM2: Double?,
+    @SerializedName("seasons") val seasons: List<BedSeasonYield>,
+)
+
+data class BedSeasonYield(
+    @SerializedName("seasonId") val seasonId: Long,
+    @SerializedName("seasonName") val seasonName: String,
+    @SerializedName("stemsHarvested") val stemsHarvested: Int,
+    @SerializedName("stemsPerM2") val stemsPerM2: Double?,
+)
+
 // ── Production Targets ──
 
 data class ProductionTargetResponse(

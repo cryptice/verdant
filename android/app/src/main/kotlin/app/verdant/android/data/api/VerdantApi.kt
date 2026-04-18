@@ -223,6 +223,77 @@ interface VerdantApi {
     @GET("api/customers")
     suspend fun getCustomers(): List<CustomerResponse>
 
+    @POST("api/customers")
+    suspend fun createCustomer(@Body request: CreateCustomerRequest): CustomerResponse
+
+    @PUT("api/customers/{id}")
+    suspend fun updateCustomer(@Path("id") id: Long, @Body request: UpdateCustomerRequest): CustomerResponse
+
+    @DELETE("api/customers/{id}")
+    suspend fun deleteCustomer(@Path("id") id: Long)
+
+    // ── Pest/Disease Logs ──
+
+    @GET("api/pest-disease-logs")
+    suspend fun getPestDiseaseLogs(@Query("seasonId") seasonId: Long? = null): List<PestDiseaseLogResponse>
+
+    @GET("api/pest-disease-logs/{id}")
+    suspend fun getPestDiseaseLog(@Path("id") id: Long): PestDiseaseLogResponse
+
+    @POST("api/pest-disease-logs")
+    suspend fun createPestDiseaseLog(@Body request: CreatePestDiseaseLogRequest): PestDiseaseLogResponse
+
+    @PUT("api/pest-disease-logs/{id}")
+    suspend fun updatePestDiseaseLog(@Path("id") id: Long, @Body request: UpdatePestDiseaseLogRequest): PestDiseaseLogResponse
+
+    @DELETE("api/pest-disease-logs/{id}")
+    suspend fun deletePestDiseaseLog(@Path("id") id: Long)
+
+    // ── Variety Trials ──
+
+    @GET("api/variety-trials")
+    suspend fun getVarietyTrials(@Query("seasonId") seasonId: Long? = null): List<VarietyTrialResponse>
+
+    @GET("api/variety-trials/{id}")
+    suspend fun getVarietyTrial(@Path("id") id: Long): VarietyTrialResponse
+
+    @POST("api/variety-trials")
+    suspend fun createVarietyTrial(@Body request: CreateVarietyTrialRequest): VarietyTrialResponse
+
+    @PUT("api/variety-trials/{id}")
+    suspend fun updateVarietyTrial(@Path("id") id: Long, @Body request: UpdateVarietyTrialRequest): VarietyTrialResponse
+
+    @DELETE("api/variety-trials/{id}")
+    suspend fun deleteVarietyTrial(@Path("id") id: Long)
+
+    // ── Bouquet Recipes ──
+
+    @GET("api/bouquet-recipes")
+    suspend fun getBouquetRecipes(): List<BouquetRecipeResponse>
+
+    @GET("api/bouquet-recipes/{id}")
+    suspend fun getBouquetRecipe(@Path("id") id: Long): BouquetRecipeResponse
+
+    @POST("api/bouquet-recipes")
+    suspend fun createBouquetRecipe(@Body request: CreateBouquetRecipeRequest): BouquetRecipeResponse
+
+    @PUT("api/bouquet-recipes/{id}")
+    suspend fun updateBouquetRecipe(@Path("id") id: Long, @Body request: UpdateBouquetRecipeRequest): BouquetRecipeResponse
+
+    @DELETE("api/bouquet-recipes/{id}")
+    suspend fun deleteBouquetRecipe(@Path("id") id: Long)
+
+    // ── Analytics ──
+
+    @GET("api/analytics/seasons")
+    suspend fun getSeasonSummaries(): List<SeasonSummaryResponse>
+
+    @GET("api/analytics/species/{speciesId}/compare")
+    suspend fun getSpeciesComparison(@Path("speciesId") speciesId: Long): SpeciesComparisonResponse
+
+    @GET("api/analytics/yield-per-bed")
+    suspend fun getYieldPerBed(@Query("seasonId") seasonId: Long? = null): List<YieldPerBedResponse>
+
     // ── Production Targets ──
 
     @GET("api/production-targets")
