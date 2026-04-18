@@ -43,6 +43,13 @@ import app.verdant.android.ui.season.SeasonSelectorScreen
 import app.verdant.android.ui.splash.SplashScreen
 import app.verdant.android.ui.workflow.WorkflowProgressScreen
 import app.verdant.android.ui.world.MyVerdantWorldScreen
+import app.verdant.android.ui.pest.PestDiseaseLogScreen
+import app.verdant.android.ui.customer.CustomerListScreen
+import app.verdant.android.ui.succession.SuccessionSchedulesScreen
+import app.verdant.android.ui.targets.ProductionTargetsScreen
+import app.verdant.android.ui.trials.VarietyTrialsScreen
+import app.verdant.android.ui.bouquet.BouquetRecipesScreen
+import app.verdant.android.ui.analytics.AnalyticsScreen
 
 sealed class Screen(val route: String) {
     data object Splash : Screen("splash")
@@ -93,6 +100,15 @@ sealed class Screen(val route: String) {
 
     // Seasons
     data object Seasons : Screen("seasons")
+
+    // Parity screens
+    data object PestDiseaseLog : Screen("pest-disease")
+    data object Customers : Screen("customers")
+    data object Successions : Screen("successions")
+    data object Targets : Screen("targets")
+    data object Trials : Screen("trials")
+    data object Bouquets : Screen("bouquets")
+    data object Analytics : Screen("analytics")
 
     // Activity screens
     data object AddSpecies : Screen("activity/add-species")
@@ -224,6 +240,90 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                     onClick = {
                         scope.launch { drawerState.close() }
                         navController.navigate(Screen.Seasons.route) {
+                            popUpTo(Screen.MyWorld.route)
+                        }
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.successions)) },
+                    icon = { Icon(Icons.Default.Autorenew, contentDescription = null) },
+                    selected = currentRoute == Screen.Successions.route,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(Screen.Successions.route) {
+                            popUpTo(Screen.MyWorld.route)
+                        }
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.targets)) },
+                    icon = { Icon(Icons.Default.TrackChanges, contentDescription = null) },
+                    selected = currentRoute == Screen.Targets.route,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(Screen.Targets.route) {
+                            popUpTo(Screen.MyWorld.route)
+                        }
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.pest_disease)) },
+                    icon = { Icon(Icons.Default.BugReport, contentDescription = null) },
+                    selected = currentRoute == Screen.PestDiseaseLog.route,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(Screen.PestDiseaseLog.route) {
+                            popUpTo(Screen.MyWorld.route)
+                        }
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.variety_trials)) },
+                    icon = { Icon(Icons.Default.Science, contentDescription = null) },
+                    selected = currentRoute == Screen.Trials.route,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(Screen.Trials.route) {
+                            popUpTo(Screen.MyWorld.route)
+                        }
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.bouquets)) },
+                    icon = { Icon(Icons.Default.LocalFlorist, contentDescription = null) },
+                    selected = currentRoute == Screen.Bouquets.route,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(Screen.Bouquets.route) {
+                            popUpTo(Screen.MyWorld.route)
+                        }
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.customers)) },
+                    icon = { Icon(Icons.Default.People, contentDescription = null) },
+                    selected = currentRoute == Screen.Customers.route,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(Screen.Customers.route) {
+                            popUpTo(Screen.MyWorld.route)
+                        }
+                    },
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+                NavigationDrawerItem(
+                    label = { Text(stringResource(R.string.analytics)) },
+                    icon = { Icon(Icons.Default.Analytics, contentDescription = null) },
+                    selected = currentRoute == Screen.Analytics.route,
+                    onClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(Screen.Analytics.route) {
                             popUpTo(Screen.MyWorld.route)
                         }
                     },
@@ -421,6 +521,30 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
 
             composable(Screen.Seasons.route) {
                 SeasonSelectorScreen(onBack = { navController.popBackStack() })
+            }
+
+            // ── Parity screens ──
+
+            composable(Screen.PestDiseaseLog.route) {
+                PestDiseaseLogScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Screen.Customers.route) {
+                CustomerListScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Screen.Successions.route) {
+                SuccessionSchedulesScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Screen.Targets.route) {
+                ProductionTargetsScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Screen.Trials.route) {
+                VarietyTrialsScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Screen.Bouquets.route) {
+                BouquetRecipesScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Screen.Analytics.route) {
+                AnalyticsScreen(onBack = { navController.popBackStack() })
             }
 
             // ── Workflows ──

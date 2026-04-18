@@ -387,6 +387,8 @@
     <string name="affected_plant">Drabbad planta</string>
     <string name="treatment">Behandling</string>
     <string name="outcome">Utfall</string>
+    <string name="category">Kategori</string>
+    <string name="severity">Allvarlighet</string>
     <string name="no_pest_disease">Inga observationer \u00E4nnu</string>
     <string name="new_pest_disease">Ny observation</string>
     <string name="edit_pest_disease">Redigera observation</string>
@@ -477,4 +479,5 @@
     <string name="no_analytics_data">Ingen data \u00E4nnu</string>
     <string name="no_season_data">Inga s\u00E4songer att sammanfatta</string>
     <string name="no_bed_data">Inga b\u00E4ddresultat \u00E4nnu</string>
+    <string name="stems_per_plant_label">Stj\u00E4lkar per planta</string>
 </resources>

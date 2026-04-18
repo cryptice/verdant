@@ -97,6 +97,47 @@ class GardenRepository @Inject constructor(private val api: VerdantApi) {
 
     // Customers
     suspend fun getCustomers() = api.getCustomers()
+    suspend fun createCustomer(request: CreateCustomerRequest) = api.createCustomer(request)
+    suspend fun updateCustomer(id: Long, request: UpdateCustomerRequest) = api.updateCustomer(id, request)
+    suspend fun deleteCustomer(id: Long) = api.deleteCustomer(id)
+
+    // Pest / Disease Logs
+    suspend fun getPestDiseaseLogs(seasonId: Long? = null) = api.getPestDiseaseLogs(seasonId)
+    suspend fun getPestDiseaseLog(id: Long) = api.getPestDiseaseLog(id)
+    suspend fun createPestDiseaseLog(request: CreatePestDiseaseLogRequest) = api.createPestDiseaseLog(request)
+    suspend fun updatePestDiseaseLog(id: Long, request: UpdatePestDiseaseLogRequest) = api.updatePestDiseaseLog(id, request)
+    suspend fun deletePestDiseaseLog(id: Long) = api.deletePestDiseaseLog(id)
+
+    // Variety Trials
+    suspend fun getVarietyTrials(seasonId: Long? = null) = api.getVarietyTrials(seasonId)
+    suspend fun getVarietyTrial(id: Long) = api.getVarietyTrial(id)
+    suspend fun createVarietyTrial(request: CreateVarietyTrialRequest) = api.createVarietyTrial(request)
+    suspend fun updateVarietyTrial(id: Long, request: UpdateVarietyTrialRequest) = api.updateVarietyTrial(id, request)
+    suspend fun deleteVarietyTrial(id: Long) = api.deleteVarietyTrial(id)
+
+    // Bouquet Recipes
+    suspend fun getBouquetRecipes() = api.getBouquetRecipes()
+    suspend fun getBouquetRecipe(id: Long) = api.getBouquetRecipe(id)
+    suspend fun createBouquetRecipe(request: CreateBouquetRecipeRequest) = api.createBouquetRecipe(request)
+    suspend fun updateBouquetRecipe(id: Long, request: UpdateBouquetRecipeRequest) = api.updateBouquetRecipe(id, request)
+    suspend fun deleteBouquetRecipe(id: Long) = api.deleteBouquetRecipe(id)
+
+    // Analytics
+    suspend fun getSeasonSummaries() = api.getSeasonSummaries()
+    suspend fun getSpeciesComparison(speciesId: Long) = api.getSpeciesComparison(speciesId)
+    suspend fun getYieldPerBed(seasonId: Long? = null) = api.getYieldPerBed(seasonId)
+
+    // Production Targets
+    suspend fun getProductionTargets(seasonId: Long? = null) = api.getProductionTargets(seasonId)
+    suspend fun createProductionTarget(request: Map<String, Any?>) = api.createProductionTarget(request)
+    suspend fun getProductionForecast(id: Long) = api.getProductionForecast(id)
+    suspend fun deleteProductionTarget(id: Long) = api.deleteProductionTarget(id)
+
+    // Succession Schedules
+    suspend fun getSuccessionSchedules(seasonId: Long? = null) = api.getSuccessionSchedules(seasonId)
+    suspend fun createSuccessionSchedule(request: Map<String, Any?>) = api.createSuccessionSchedule(request)
+    suspend fun generateSuccessionTasks(id: Long) = api.generateSuccessionTasks(id)
+    suspend fun deleteSuccessionSchedule(id: Long) = api.deleteSuccessionSchedule(id)
 
     // Workflows
     suspend fun getSpeciesWorkflow(speciesId: Long) = api.getSpeciesWorkflow(speciesId)

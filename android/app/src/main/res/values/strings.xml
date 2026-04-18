@@ -389,6 +389,8 @@
     <string name="affected_plant">Affected plant</string>
     <string name="treatment">Treatment</string>
     <string name="outcome">Outcome</string>
+    <string name="category">Category</string>
+    <string name="severity">Severity</string>
     <string name="no_pest_disease">No observations yet</string>
     <string name="new_pest_disease">New observation</string>
     <string name="edit_pest_disease">Edit observation</string>
@@ -479,4 +481,5 @@
     <string name="no_analytics_data">No data yet</string>
     <string name="no_season_data">No seasons to summarise</string>
     <string name="no_bed_data">No bed yields yet</string>
+    <string name="stems_per_plant_label">Stems per plant</string>
 </resources>
