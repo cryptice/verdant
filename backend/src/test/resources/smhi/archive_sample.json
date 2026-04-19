@@ -1,0 +1,66 @@
+{
+  "value": [
+    {
+      "station": {
+        "key": "98210",
+        "name": "Stockholm",
+        "owner": "SMHI",
+        "ownerCategory": "CLIMATE",
+        "measuringStations": "CORE",
+        "id": 98210,
+        "height": 44.0,
+        "latitude": 59.3500,
+        "longitude": 18.0500,
+        "active": true,
+        "from": 1756425600000,
+        "to": null
+      },
+      "period": {
+        "key": "latest-day",
+        "from": 1745020800000,
+        "to": 1745107200000,
+        "summary": "2026-04-19T00:00:00Z — 2026-04-20T00:00:00Z"
+      },
+      "parameter": {
+        "key": "2",
+        "name": "Lufttemperatur",
+        "summary": "momentanvärde, 1 gång/tim",
+        "unit": "°C"
+      },
+      "value": [
+        { "date": 1745020800000, "value": "8.2", "quality": "G" },
+        { "date": 1745024400000, "value": "7.5", "quality": "G" },
+        { "date": 1745028000000, "value": "6.9", "quality": "G" },
+        { "date": 1745031600000, "value": "6.2", "quality": "G" },
+        { "date": 1745035200000, "value": "5.8", "quality": "G" },
+        { "date": 1745038800000, "value": "5.5", "quality": "G" },
+        { "date": 1745042400000, "value": "5.3", "quality": "G" },
+        { "date": 1745046000000, "value": "5.8", "quality": "G" },
+        { "date": 1745049600000, "value": "8.1", "quality": "G" },
+        { "date": 1745053200000, "value": "10.4", "quality": "G" },
+        { "date": 1745056800000, "value": "12.0", "quality": "G" },
+        { "date": 1745060400000, "value": "13.5", "quality": "G" },
+        { "date": 1745064000000, "value": "14.2", "quality": "G" },
+        { "date": 1745067600000, "value": "14.8", "quality": "G" },
+        { "date": 1745071200000, "value": "14.9", "quality": "G" },
+        { "date": 1745074800000, "value": "14.5", "quality": "G" },
+        { "date": 1745078400000, "value": "13.2", "quality": "G" },
+        { "date": 1745082000000, "value": "11.8", "quality": "G" },
+        { "date": 1745085600000, "value": "10.5", "quality": "G" },
+        { "date": 1745089200000, "value": "9.5", "quality": "G" },
+        { "date": 1745092800000, "value": "8.8", "quality": "G" },
+        { "date": 1745096400000, "value": "8.2", "quality": "G" },
+        { "date": 1745100000000, "value": "7.8", "quality": "G" },
+        { "date": 1745103600000, "value": "7.2", "quality": "G" }
+      ],
+      "link": [
+        {
+          "rel": "self",
+          "type": "application/json",
+          "href": "https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/2/station/98210/period/latest-day/data.json"
+        }
+      ]
+    }
+  ],
+  "updated": 1745107200000
+}

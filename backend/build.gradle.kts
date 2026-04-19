@@ -59,6 +59,7 @@ dependencies {
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
     testImplementation("org.mockito:mockito-core:5.14.2")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
 }
 
 java {
