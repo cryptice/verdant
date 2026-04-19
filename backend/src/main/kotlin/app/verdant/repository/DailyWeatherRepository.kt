@@ -6,6 +6,7 @@ import io.agroal.api.AgroalDataSource
 import jakarta.enterprise.context.ApplicationScoped
 import java.sql.Date
 import java.sql.ResultSet
+import java.time.LocalDate
 
 @ApplicationScoped
 class DailyWeatherRepository(private val ds: AgroalDataSource) {
@@ -48,7 +49,7 @@ class DailyWeatherRepository(private val ds: AgroalDataSource) {
         }
     }
 
-    fun findByGarden(gardenId: Long, fromDate: java.time.LocalDate, toDate: java.time.LocalDate): List<DailyWeather> =
+    fun findByGarden(gardenId: Long, fromDate: LocalDate, toDate: LocalDate): List<DailyWeather> =
         ds.connection.use { conn ->
             conn.prepareStatement(
                 "SELECT * FROM daily_weather WHERE garden_id = ? AND date >= ? AND date <= ? ORDER BY date ASC, observation_type ASC"
@@ -62,10 +63,10 @@ class DailyWeatherRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun findActualsByGarden(gardenId: Long, fromDate: java.time.LocalDate, toDate: java.time.LocalDate): List<DailyWeather> =
+    fun findActualsByGarden(gardenId: Long, fromDate: LocalDate, toDate: LocalDate): List<DailyWeather> =
         ds.connection.use { conn ->
             conn.prepareStatement(
-                "SELECT * FROM daily_weather WHERE garden_id = ? AND date >= ? AND date <= ? AND observation_type = 'ACTUAL' ORDER BY date ASC, observation_type ASC"
+                "SELECT * FROM daily_weather WHERE garden_id = ? AND date >= ? AND date <= ? AND observation_type = 'ACTUAL' ORDER BY date ASC"
             ).use { ps ->
                 ps.setLong(1, gardenId)
                 ps.setDate(2, Date.valueOf(fromDate))

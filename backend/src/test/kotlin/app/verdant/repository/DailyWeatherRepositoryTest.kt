@@ -10,9 +10,13 @@ import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.Instant
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
+import kotlin.math.abs
 
 @QuarkusTest
 class DailyWeatherRepositoryTest {
@@ -49,6 +53,7 @@ class DailyWeatherRepositoryTest {
     @Test
     fun `upsert inserts new row`() {
         val date = LocalDate.of(2024, 6, 1)
+        val expectedFetchedAt = Instant.now()
         val row = DailyWeather(
             gardenId = gardenId,
             date = date,
@@ -59,6 +64,7 @@ class DailyWeatherRepositoryTest {
             precipitationMm = 2.5,
             windMaxMs = 5.0,
             humidityPct = 70.0,
+            fetchedAt = expectedFetchedAt,
         )
 
         repo.upsert(listOf(row))
@@ -76,6 +82,7 @@ class DailyWeatherRepositoryTest {
         assertEquals(2.5, saved.precipitationMm)
         assertEquals(5.0, saved.windMaxMs)
         assertEquals(70.0, saved.humidityPct)
+        assertTrue(abs(ChronoUnit.MILLIS.between(expectedFetchedAt, saved.fetchedAt)) < 1000)
     }
 
     @Test
