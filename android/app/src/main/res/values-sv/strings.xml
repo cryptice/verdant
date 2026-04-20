@@ -468,6 +468,52 @@
     <string name="new_target">Nytt m\u00E5l</string>
     <string name="edit_target">Redigera m\u00E5l</string>
 
+    <!-- Bed Conditions -->
+    <string name="bed_conditions_section_title">F\u00F6rh\u00E5llanden (valfritt)</string>
+    <string name="bed_soil_type">Jordtyp</string>
+    <string name="bed_soil_ph">pH</string>
+    <string name="bed_soil_ph_error">pH m\u00E5ste vara mellan 3,0 och 9,0</string>
+    <string name="bed_sun_exposure">Soll\u00E4ge</string>
+    <string name="bed_drainage">Dr\u00E4nering</string>
+    <string name="bed_aspect">V\u00E4derstreck</string>
+    <string name="bed_irrigation">Bevattning</string>
+    <string name="bed_protection">Skydd</string>
+    <string name="bed_raised_bed">Uph\u00F6jd b\u00E4dd</string>
+    <string name="bed_soil_sandy">Sandjord</string>
+    <string name="bed_soil_loamy">Mulljord</string>
+    <string name="bed_soil_clay">Lerjord</string>
+    <string name="bed_soil_silty">Siltjord</string>
+    <string name="bed_soil_peaty">Torvjord</string>
+    <string name="bed_soil_chalky">Kalkjord</string>
+    <string name="bed_sun_full_sun">Full sol</string>
+    <string name="bed_sun_partial_sun">Mest sol</string>
+    <string name="bed_sun_partial_shade">Halvskugga</string>
+    <string name="bed_sun_full_shade">Full skugga</string>
+    <string name="bed_drainage_poor">D\u00E5lig</string>
+    <string name="bed_drainage_moderate">M\u00E5ttlig</string>
+    <string name="bed_drainage_good">Bra</string>
+    <string name="bed_drainage_sharp">Snabbdr\u00E4nerad</string>
+    <string name="bed_aspect_flat">Plant</string>
+    <string name="bed_aspect_n">Norr</string>
+    <string name="bed_aspect_ne">Nord\u00F6st</string>
+    <string name="bed_aspect_e">\u00D6ster</string>
+    <string name="bed_aspect_se">Syd\u00F6st</string>
+    <string name="bed_aspect_s">Söder</string>
+    <string name="bed_aspect_sw">Sydv\u00E4st</string>
+    <string name="bed_aspect_w">V\u00E4ster</string>
+    <string name="bed_aspect_nw">Nordv\u00E4st</string>
+    <string name="bed_irrigation_drip">Droppbevattning</string>
+    <string name="bed_irrigation_sprinkler">Spridare</string>
+    <string name="bed_irrigation_soaker_hose">Droppslang</string>
+    <string name="bed_irrigation_manual">Manuell</string>
+    <string name="bed_irrigation_none">Ingen</string>
+    <string name="bed_protection_open_field">Friland</string>
+    <string name="bed_protection_row_cover">Fiberduk</string>
+    <string name="bed_protection_low_tunnel">L\u00E5g tunnel</string>
+    <string name="bed_protection_high_tunnel">H\u00F6g tunnel</string>
+    <string name="bed_protection_greenhouse">V\u00E4xthus</string>
+    <string name="bed_protection_coldframe">Kallb\u00E4nk</string>
+
     <!-- Analytics -->
     <string name="analytics">Statistik</string>
     <string name="season_summary">S\u00E4songs\u00F6versikt</string>

@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -71,10 +73,35 @@ class BedDetailViewModel @Inject constructor(
         }
     }
 
-    fun update(name: String, description: String?) {
+    fun update(
+        name: String,
+        description: String?,
+        soilType: String?,
+        soilPh: Double?,
+        sunExposure: String?,
+        drainage: String?,
+        aspect: String?,
+        irrigationType: String?,
+        protection: String?,
+        raisedBed: Boolean?
+    ) {
         viewModelScope.launch {
             try {
-                gardenRepository.updateBed(bedId, UpdateBedRequest(name = name, description = description))
+                gardenRepository.updateBed(
+                    bedId,
+                    UpdateBedRequest(
+                        name = name,
+                        description = description,
+                        soilType = soilType,
+                        soilPh = soilPh,
+                        sunExposure = sunExposure,
+                        drainage = drainage,
+                        aspect = aspect,
+                        irrigationType = irrigationType,
+                        protection = protection,
+                        raisedBed = raisedBed
+                    )
+                )
                 refresh()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)
@@ -127,6 +154,20 @@ fun BedDetailScreen(
     var editName by remember { mutableStateOf("") }
     var editDescription by remember { mutableStateOf("") }
 
+    // Edit conditions state
+    var editSoilType by remember { mutableStateOf<String?>(null) }
+    var editSoilPhText by remember { mutableStateOf("") }
+    var editSunExposure by remember { mutableStateOf<String?>(null) }
+    var editAspect by remember { mutableStateOf<String?>(null) }
+    var editDrainage by remember { mutableStateOf<String?>(null) }
+    var editIrrigationType by remember { mutableStateOf<String?>(null) }
+    var editProtection by remember { mutableStateOf<String?>(null) }
+    var editRaisedBed by remember { mutableStateOf<Boolean?>(null) }
+    var editConditionsExpanded by remember { mutableStateOf(false) }
+
+    val editSoilPhError = editSoilPhText.isNotBlank() &&
+        editSoilPhText.toDoubleOrNull().let { it == null || it < 3.0 || it > 9.0 }
+
     LaunchedEffect(uiState.deleted) {
         if (uiState.deleted) onBack()
     }
@@ -136,7 +177,10 @@ fun BedDetailScreen(
             onDismissRequest = { editing = false },
             title = { Text(stringResource(R.string.edit)) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     OutlinedTextField(
                         value = editName,
                         onValueChange = { editName = it },
@@ -153,12 +197,78 @@ fun BedDetailScreen(
                         shape = RoundedCornerShape(12.dp),
                         minLines = 2
                     )
+
+                    // Conditions section in edit dialog
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    ) {
+                        Column {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    stringResource(R.string.bed_conditions_section_title),
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 14.sp,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                IconButton(onClick = { editConditionsExpanded = !editConditionsExpanded }) {
+                                    Icon(
+                                        if (editConditionsExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                            AnimatedVisibility(visible = editConditionsExpanded) {
+                                Column(
+                                    modifier = Modifier.padding(horizontal = 12.dp).padding(bottom = 12.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    BedConditionsFields(
+                                        soilType = editSoilType,
+                                        onSoilTypeChange = { editSoilType = it },
+                                        soilPhText = editSoilPhText,
+                                        onSoilPhTextChange = { editSoilPhText = it },
+                                        soilPhError = editSoilPhError,
+                                        sunExposure = editSunExposure,
+                                        onSunExposureChange = { editSunExposure = it },
+                                        aspect = editAspect,
+                                        onAspectChange = { editAspect = it },
+                                        drainage = editDrainage,
+                                        onDrainageChange = { editDrainage = it },
+                                        irrigationType = editIrrigationType,
+                                        onIrrigationTypeChange = { editIrrigationType = it },
+                                        protection = editProtection,
+                                        onProtectionChange = { editProtection = it },
+                                        raisedBed = editRaisedBed,
+                                        onRaisedBedChange = { editRaisedBed = it }
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.update(editName, editDescription.ifBlank { null })
+                        viewModel.update(
+                            name = editName,
+                            description = editDescription.ifBlank { null },
+                            soilType = editSoilType,
+                            soilPh = editSoilPhText.toDoubleOrNull(),
+                            sunExposure = editSunExposure,
+                            drainage = editDrainage,
+                            aspect = editAspect,
+                            irrigationType = editIrrigationType,
+                            protection = editProtection,
+                            raisedBed = editRaisedBed
+                        )
                         editing = false
                     },
                     enabled = editName.isNotBlank()
@@ -228,6 +338,19 @@ fun BedDetailScreen(
                         uiState.bed?.let { bed ->
                             editName = bed.name
                             editDescription = bed.description ?: ""
+                            editSoilType = bed.soilType
+                            editSoilPhText = bed.soilPh?.toString() ?: ""
+                            editSunExposure = bed.sunExposure
+                            editAspect = bed.aspect
+                            editDrainage = bed.drainage
+                            editIrrigationType = bed.irrigationType
+                            editProtection = bed.protection
+                            editRaisedBed = bed.raisedBed
+                            editConditionsExpanded = listOf(
+                                bed.soilType, bed.soilPh?.toString(), bed.sunExposure,
+                                bed.aspect, bed.drainage, bed.irrigationType, bed.protection,
+                                bed.raisedBed?.toString()
+                            ).any { it != null }
                             editing = true
                         }
                     }) {

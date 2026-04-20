@@ -27,6 +27,9 @@ import app.verdant.android.data.model.UpdateGardenRequest
 import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.model.GardenResponse
 import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.ui.bed.bedDrainageLabel
+import app.verdant.android.ui.bed.bedProtectionLabel
+import app.verdant.android.ui.bed.bedSunExposureLabel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,6 +37,37 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 private const val TAG = "GardenDetail"
+
+@Composable
+private fun BedConditionChips(bed: BedResponse) {
+    val sunLabel = bed.sunExposure?.let { bedSunExposureLabel(it) }
+    val drainageLabel = bed.drainage?.let { bedDrainageLabel(it) }
+    val protectionLabel = bed.protection?.let { bedProtectionLabel(it) }
+
+    if (sunLabel == null && drainageLabel == null && protectionLabel == null) return
+
+    Spacer(Modifier.height(6.dp))
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        sunLabel?.let {
+            AssistChip(
+                onClick = {},
+                label = { Text("\u2600\uFE0F $it", fontSize = 11.sp) }
+            )
+        }
+        drainageLabel?.let {
+            AssistChip(
+                onClick = {},
+                label = { Text("\uD83D\uDCA7 $it", fontSize = 11.sp) }
+            )
+        }
+        protectionLabel?.let {
+            AssistChip(
+                onClick = {},
+                label = { Text("\uD83C\uDFE0 $it", fontSize = 11.sp) }
+            )
+        }
+    }
+}
 
 data class GardenDetailState(
     val isLoading: Boolean = true,
@@ -271,6 +305,7 @@ fun GardenDetailScreen(
                                 bed.description?.let {
                                     Text(it, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                                 }
+                                BedConditionChips(bed)
                             }
                         }
                     }

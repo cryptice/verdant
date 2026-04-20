@@ -470,6 +470,52 @@
     <string name="new_target">New target</string>
     <string name="edit_target">Edit target</string>
 
+    <!-- Bed Conditions -->
+    <string name="bed_conditions_section_title">Conditions (optional)</string>
+    <string name="bed_soil_type">Soil type</string>
+    <string name="bed_soil_ph">pH</string>
+    <string name="bed_soil_ph_error">pH must be between 3.0 and 9.0</string>
+    <string name="bed_sun_exposure">Sun exposure</string>
+    <string name="bed_drainage">Drainage</string>
+    <string name="bed_aspect">Aspect</string>
+    <string name="bed_irrigation">Irrigation</string>
+    <string name="bed_protection">Protection</string>
+    <string name="bed_raised_bed">Raised bed</string>
+    <string name="bed_soil_sandy">Sandy</string>
+    <string name="bed_soil_loamy">Loamy</string>
+    <string name="bed_soil_clay">Clay</string>
+    <string name="bed_soil_silty">Silty</string>
+    <string name="bed_soil_peaty">Peaty</string>
+    <string name="bed_soil_chalky">Chalky</string>
+    <string name="bed_sun_full_sun">Full sun</string>
+    <string name="bed_sun_partial_sun">Partial sun</string>
+    <string name="bed_sun_partial_shade">Partial shade</string>
+    <string name="bed_sun_full_shade">Full shade</string>
+    <string name="bed_drainage_poor">Poor</string>
+    <string name="bed_drainage_moderate">Moderate</string>
+    <string name="bed_drainage_good">Good</string>
+    <string name="bed_drainage_sharp">Sharp</string>
+    <string name="bed_aspect_flat">Flat</string>
+    <string name="bed_aspect_n">N</string>
+    <string name="bed_aspect_ne">NE</string>
+    <string name="bed_aspect_e">E</string>
+    <string name="bed_aspect_se">SE</string>
+    <string name="bed_aspect_s">S</string>
+    <string name="bed_aspect_sw">SW</string>
+    <string name="bed_aspect_w">W</string>
+    <string name="bed_aspect_nw">NW</string>
+    <string name="bed_irrigation_drip">Drip</string>
+    <string name="bed_irrigation_sprinkler">Sprinkler</string>
+    <string name="bed_irrigation_soaker_hose">Soaker hose</string>
+    <string name="bed_irrigation_manual">Manual</string>
+    <string name="bed_irrigation_none">None</string>
+    <string name="bed_protection_open_field">Open field</string>
+    <string name="bed_protection_row_cover">Row cover</string>
+    <string name="bed_protection_low_tunnel">Low tunnel</string>
+    <string name="bed_protection_high_tunnel">High tunnel</string>
+    <string name="bed_protection_greenhouse">Greenhouse</string>
+    <string name="bed_protection_coldframe">Cold frame</string>
+
     <!-- Analytics -->
     <string name="analytics">Analytics</string>
     <string name="season_summary">Season summary</string>
