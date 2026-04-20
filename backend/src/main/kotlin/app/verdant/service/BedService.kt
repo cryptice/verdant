@@ -1,7 +1,7 @@
 package app.verdant.service
 
 import app.verdant.dto.*
-import app.verdant.entity.Bed
+import app.verdant.entity.*
 import app.verdant.repository.BedRepository
 import app.verdant.repository.GardenRepository
 import io.agroal.api.AgroalDataSource
@@ -44,7 +44,22 @@ class BedService(
         val garden = gardenRepository.findById(gardenId) ?: throw NotFoundException("Garden not found")
         if (garden.orgId != orgId) throw NotFoundException("Garden not found")
         val bed = bedRepository.persist(
-            Bed(name = request.name, description = request.description, gardenId = gardenId, boundaryJson = request.boundaryJson)
+            Bed(
+                name = request.name,
+                description = request.description,
+                gardenId = gardenId,
+                boundaryJson = request.boundaryJson,
+                lengthMeters = request.lengthMeters,
+                widthMeters = request.widthMeters,
+                soilType = request.soilType?.let { SoilType.valueOf(it) },
+                soilPh = request.soilPh,
+                sunExposure = request.sunExposure?.let { SunExposure.valueOf(it) },
+                drainage = request.drainage?.let { Drainage.valueOf(it) },
+                aspect = request.aspect?.let { Aspect.valueOf(it) },
+                irrigationType = request.irrigationType?.let { IrrigationType.valueOf(it) },
+                protection = request.protection?.let { Protection.valueOf(it) },
+                raisedBed = request.raisedBed,
+            )
         )
         return bed.toResponse()
     }
@@ -57,6 +72,16 @@ class BedService(
             name = request.name ?: bed.name,
             description = request.description ?: bed.description,
             boundaryJson = request.boundaryJson ?: bed.boundaryJson,
+            lengthMeters = request.lengthMeters ?: bed.lengthMeters,
+            widthMeters = request.widthMeters ?: bed.widthMeters,
+            soilType = request.soilType?.let { SoilType.valueOf(it) } ?: bed.soilType,
+            soilPh = request.soilPh ?: bed.soilPh,
+            sunExposure = request.sunExposure?.let { SunExposure.valueOf(it) } ?: bed.sunExposure,
+            drainage = request.drainage?.let { Drainage.valueOf(it) } ?: bed.drainage,
+            aspect = request.aspect?.let { Aspect.valueOf(it) } ?: bed.aspect,
+            irrigationType = request.irrigationType?.let { IrrigationType.valueOf(it) } ?: bed.irrigationType,
+            protection = request.protection?.let { Protection.valueOf(it) } ?: bed.protection,
+            raisedBed = request.raisedBed ?: bed.raisedBed,
         )
         bedRepository.update(updated)
         return updated.toResponse()
@@ -150,5 +175,13 @@ fun Bed.toResponse() = BedResponse(
     id = id!!, name = name, description = description,
     gardenId = gardenId, boundaryJson = boundaryJson,
     lengthMeters = lengthMeters, widthMeters = widthMeters,
+    soilType = soilType?.name,
+    soilPh = soilPh,
+    sunExposure = sunExposure?.name,
+    drainage = drainage?.name,
+    aspect = aspect?.name,
+    irrigationType = irrigationType?.name,
+    protection = protection?.name,
+    raisedBed = raisedBed,
     createdAt = createdAt, updatedAt = updatedAt
 )
