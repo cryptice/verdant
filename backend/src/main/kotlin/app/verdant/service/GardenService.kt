@@ -127,5 +127,6 @@ fun Garden.toResponse() = GardenResponse(
     id = id!!, name = name, description = description,
     emoji = emoji, latitude = latitude, longitude = longitude,
     address = address, boundaryJson = boundaryJson,
+    weatherBackfillStatus = weatherBackfillStatus,
     createdAt = createdAt, updatedAt = updatedAt
 )

@@ -15,6 +15,7 @@ data class GardenResponse(
     val longitude: Double?,
     val address: String?,
     val boundaryJson: String?,
+    val weatherBackfillStatus: String? = null,
     val createdAt: Instant,
     val updatedAt: Instant
 )
