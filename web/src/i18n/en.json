@@ -162,7 +162,69 @@
     "sowSeedsInBed": "Sow seeds in bed",
     "newBedTitle": "New Bed",
     "createBed": "Create Bed",
-    "creatingBed": "Creating..."
+    "creatingBed": "Creating...",
+    "conditions": {
+      "sectionTitle": "Conditions (optional)",
+      "soilType": "Soil type",
+      "soilPh": "pH",
+      "sunExposure": "Sun exposure",
+      "drainage": "Drainage",
+      "aspect": "Aspect",
+      "irrigationType": "Irrigation",
+      "protection": "Protection",
+      "raisedBed": "Raised bed",
+      "lengthMeters": "Length (m)",
+      "widthMeters": "Width (m)",
+      "phHint": "Must be between 3.0 and 9.0",
+      "filterAny": "Any",
+      "filterClear": "Clear",
+      "soilTypes": {
+        "SANDY": "Sandy",
+        "LOAMY": "Loamy",
+        "CLAY": "Clay",
+        "SILTY": "Silty",
+        "PEATY": "Peaty",
+        "CHALKY": "Chalky"
+      },
+      "sunExposures": {
+        "FULL_SUN": "Full sun",
+        "PARTIAL_SUN": "Partial sun",
+        "PARTIAL_SHADE": "Partial shade",
+        "FULL_SHADE": "Full shade"
+      },
+      "drainages": {
+        "POOR": "Poor",
+        "MODERATE": "Moderate",
+        "GOOD": "Good",
+        "SHARP": "Sharp"
+      },
+      "aspects": {
+        "FLAT": "Flat",
+        "N": "North",
+        "NE": "Northeast",
+        "E": "East",
+        "SE": "Southeast",
+        "S": "South",
+        "SW": "Southwest",
+        "W": "West",
+        "NW": "Northwest"
+      },
+      "irrigationTypes": {
+        "DRIP": "Drip",
+        "SPRINKLER": "Sprinkler",
+        "SOAKER_HOSE": "Soaker hose",
+        "MANUAL": "Manual",
+        "NONE": "None"
+      },
+      "protections": {
+        "OPEN_FIELD": "Open field",
+        "ROW_COVER": "Row cover",
+        "LOW_TUNNEL": "Low tunnel",
+        "HIGH_TUNNEL": "High tunnel",
+        "GREENHOUSE": "Greenhouse",
+        "COLDFRAME": "Cold frame"
+      }
+    }
   },
   "plant": {
     "timeline": "Timeline",

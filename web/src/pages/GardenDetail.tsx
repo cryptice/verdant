@@ -17,6 +17,13 @@ const GARDEN_ICONS = [
   '🍓', '🫐', '🍇', '🍎', '🍋', '🍊', '🫒', '🌰',
 ]
 
+const SOIL_TYPES = ['SANDY', 'LOAMY', 'CLAY', 'SILTY', 'PEATY', 'CHALKY'] as const
+const SUN_EXPOSURES = ['FULL_SUN', 'PARTIAL_SUN', 'PARTIAL_SHADE', 'FULL_SHADE'] as const
+const DRAINAGES = ['POOR', 'MODERATE', 'GOOD', 'SHARP'] as const
+const ASPECTS = ['FLAT', 'N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const
+const IRRIGATION_TYPES = ['DRIP', 'SPRINKLER', 'SOAKER_HOSE', 'MANUAL', 'NONE'] as const
+const PROTECTIONS = ['OPEN_FIELD', 'ROW_COVER', 'LOW_TUNNEL', 'HIGH_TUNNEL', 'GREENHOUSE', 'COLDFRAME'] as const
+
 export function GardenDetail() {
   const { id } = useParams<{ id: string }>()
   const gardenId = Number(id)
@@ -35,23 +42,74 @@ export function GardenDetail() {
     queryFn: () => api.gardens.beds(gardenId),
   })
 
+  // New bed dialog state
   const [showNewBed, setShowNewBed] = useState(false)
   const [bedName, setBedName] = useState('')
   const [bedDescription, setBedDescription] = useState('')
+  const [bedLength, setBedLength] = useState('')
+  const [bedWidth, setBedWidth] = useState('')
+  const [newBedConditionsOpen, setNewBedConditionsOpen] = useState(false)
+  const [newSoilType, setNewSoilType] = useState('')
+  const [newSoilPh, setNewSoilPh] = useState('')
+  const [newSunExposure, setNewSunExposure] = useState('')
+  const [newAspect, setNewAspect] = useState('')
+  const [newDrainage, setNewDrainage] = useState('')
+  const [newIrrigationType, setNewIrrigationType] = useState('')
+  const [newProtection, setNewProtection] = useState('')
+  const [newRaisedBed, setNewRaisedBed] = useState(false)
 
+  const newPhNum = newSoilPh !== '' ? parseFloat(newSoilPh) : undefined
+  const newPhOutOfRange = newPhNum !== undefined && (newPhNum < 3.0 || newPhNum > 9.0)
+
+  // Garden edit state
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState('')
   const [editDesc, setEditDesc] = useState('')
   const [editEmoji, setEditEmoji] = useState('')
   const [showDelete, setShowDelete] = useState(false)
 
+  // Filter state
+  const [filterSun, setFilterSun] = useState('')
+  const [filterDrainage, setFilterDrainage] = useState('')
+  const [filterProtection, setFilterProtection] = useState('')
+
+  const anyFilterSet = !!(filterSun || filterDrainage || filterProtection)
+
+  function resetNewBed() {
+    setBedName('')
+    setBedDescription('')
+    setBedLength('')
+    setBedWidth('')
+    setNewBedConditionsOpen(false)
+    setNewSoilType('')
+    setNewSoilPh('')
+    setNewSunExposure('')
+    setNewAspect('')
+    setNewDrainage('')
+    setNewIrrigationType('')
+    setNewProtection('')
+    setNewRaisedBed(false)
+  }
+
   const createBedMut = useMutation({
-    mutationFn: () => api.beds.create(gardenId, { name: bedName, description: bedDescription || undefined }),
+    mutationFn: () => api.beds.create(gardenId, {
+      name: bedName,
+      description: bedDescription || undefined,
+      lengthMeters: bedLength !== '' ? parseFloat(bedLength) : undefined,
+      widthMeters: bedWidth !== '' ? parseFloat(bedWidth) : undefined,
+      soilType: newSoilType || undefined,
+      soilPh: newPhNum,
+      sunExposure: newSunExposure || undefined,
+      drainage: newDrainage || undefined,
+      aspect: newAspect || undefined,
+      irrigationType: newIrrigationType || undefined,
+      protection: newProtection || undefined,
+      raisedBed: newRaisedBed,
+    }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['garden-beds', gardenId] })
       setShowNewBed(false)
-      setBedName('')
-      setBedDescription('')
+      resetNewBed()
       completeStep('create_bed')
     },
   })
@@ -73,6 +131,15 @@ export function GardenDetail() {
     beds?.slice().sort((a, b) => a.name.localeCompare(b.name)) ?? [],
     [beds]
   )
+
+  const filteredBeds = useMemo(() => {
+    return sortedBeds.filter(bed => {
+      if (filterSun && bed.sunExposure !== filterSun) return false
+      if (filterDrainage && bed.drainage !== filterDrainage) return false
+      if (filterProtection && bed.protection !== filterProtection) return false
+      return true
+    })
+  }, [sortedBeds, filterSun, filterDrainage, filterProtection])
 
   if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
@@ -98,16 +165,79 @@ export function GardenDetail() {
           <button data-onboarding="add-bed-btn" onClick={() => setShowNewBed(true)} className="btn-primary text-sm">{t('garden.newBed')}</button>
         </div>
 
+        {beds && beds.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={filterSun}
+              onChange={e => setFilterSun(e.target.value)}
+              className="text-sm border border-divider rounded-full px-3 py-1 bg-surface"
+            >
+              <option value="">☀️ {t('bed.conditions.sunExposure')}</option>
+              {SUN_EXPOSURES.map(v => <option key={v} value={v}>{t(`bed.conditions.sunExposures.${v}`)}</option>)}
+            </select>
+            <select
+              value={filterDrainage}
+              onChange={e => setFilterDrainage(e.target.value)}
+              className="text-sm border border-divider rounded-full px-3 py-1 bg-surface"
+            >
+              <option value="">💧 {t('bed.conditions.drainage')}</option>
+              {DRAINAGES.map(v => <option key={v} value={v}>{t(`bed.conditions.drainages.${v}`)}</option>)}
+            </select>
+            <select
+              value={filterProtection}
+              onChange={e => setFilterProtection(e.target.value)}
+              className="text-sm border border-divider rounded-full px-3 py-1 bg-surface"
+            >
+              <option value="">🏠 {t('bed.conditions.protection')}</option>
+              {PROTECTIONS.map(v => <option key={v} value={v}>{t(`bed.conditions.protections.${v}`)}</option>)}
+            </select>
+            {anyFilterSet && (
+              <button
+                onClick={() => { setFilterSun(''); setFilterDrainage(''); setFilterProtection('') }}
+                className="text-sm text-accent hover:underline"
+              >
+                {t('bed.conditions.filterClear')}
+              </button>
+            )}
+          </div>
+        )}
+
         {beds && beds.length === 0 && (
           <p className="text-text-secondary text-sm">{t('garden.noBedsYet')}</p>
         )}
 
-        {sortedBeds.map(bed => (
-          <Link key={bed.id} to={`/bed/${bed.id}`} className="card block no-underline text-inherit">
-            <p className="font-semibold">{bed.name}</p>
-            {bed.description && <p className="text-sm text-text-secondary mt-1">{bed.description}</p>}
-          </Link>
-        ))}
+        {filteredBeds.map(bed => {
+          const hasChips = !!(bed.sunExposure || bed.drainage || bed.protection)
+          return (
+            <Link key={bed.id} to={`/bed/${bed.id}`} className="card block no-underline text-inherit">
+              <p className="font-semibold">{bed.name}</p>
+              {bed.description && <p className="text-sm text-text-secondary mt-1">{bed.description}</p>}
+              {hasChips && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {bed.sunExposure && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-surface border border-divider">
+                      ☀️ {t(`bed.conditions.sunExposures.${bed.sunExposure}`)}
+                    </span>
+                  )}
+                  {bed.drainage && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-surface border border-divider">
+                      💧 {t(`bed.conditions.drainages.${bed.drainage}`)}
+                    </span>
+                  )}
+                  {bed.protection && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-surface border border-divider">
+                      🏠 {t(`bed.conditions.protections.${bed.protection}`)}
+                    </span>
+                  )}
+                </div>
+              )}
+            </Link>
+          )
+        })}
+
+        {beds && beds.length > 0 && filteredBeds.length === 0 && anyFilterSet && (
+          <p className="text-text-secondary text-sm">{t('garden.noBedsYet')}</p>
+        )}
       </div>
 
       <div className="mt-auto px-4 pb-4 pt-6">
@@ -171,14 +301,19 @@ export function GardenDetail() {
         {deleteError && <p className="text-error text-sm mt-2">{deleteError}</p>}
       </Dialog>
 
-      <Dialog open={showNewBed} onClose={() => { setShowNewBed(false); setBedName(''); setBedDescription('') }} title={t('bed.newBedTitle')} actions={
-        <>
-          <button onClick={() => { setShowNewBed(false); setBedName(''); setBedDescription('') }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
-          <button onClick={() => createBedMut.mutate()} disabled={!bedName.trim() || createBedMut.isPending} className="btn-primary text-sm">
-            {createBedMut.isPending ? t('bed.creatingBed') : t('bed.createBed')}
-          </button>
-        </>
-      }>
+      <Dialog
+        open={showNewBed}
+        onClose={() => { setShowNewBed(false); resetNewBed() }}
+        title={t('bed.newBedTitle')}
+        actions={
+          <>
+            <button onClick={() => { setShowNewBed(false); resetNewBed() }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+            <button onClick={() => createBedMut.mutate()} disabled={!bedName.trim() || createBedMut.isPending} className="btn-primary text-sm">
+              {createBedMut.isPending ? t('bed.creatingBed') : t('bed.createBed')}
+            </button>
+          </>
+        }
+      >
         <div className="space-y-4">
           <div>
             <label className="field-label">{t('common.nameLabel')}</label>
@@ -188,6 +323,90 @@ export function GardenDetail() {
           <div>
             <label className="field-label">{t('common.descriptionLabel')}</label>
             <textarea value={bedDescription} onChange={e => setBedDescription(e.target.value)} placeholder={t('common.optional')} rows={2} className="input w-full" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="field-label">{t('bed.conditions.lengthMeters')}</label>
+              <input type="number" step="0.1" min="0" value={bedLength} onChange={e => setBedLength(e.target.value)} placeholder="—" className="input" />
+            </div>
+            <div>
+              <label className="field-label">{t('bed.conditions.widthMeters')}</label>
+              <input type="number" step="0.1" min="0" value={bedWidth} onChange={e => setBedWidth(e.target.value)} placeholder="—" className="input" />
+            </div>
+          </div>
+
+          <div className="border border-divider rounded-lg overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setNewBedConditionsOpen(o => !o)}
+              className="w-full flex items-center justify-between px-4 py-3 text-left bg-surface hover:bg-divider transition-colors"
+            >
+              <span className="text-sm font-medium">{t('bed.conditions.sectionTitle')}</span>
+              <span className="text-text-secondary text-sm">{newBedConditionsOpen ? '▲' : '▼'}</span>
+            </button>
+            {newBedConditionsOpen && (
+              <div className="px-4 py-3 space-y-3 border-t border-divider">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div>
+                    <label className="field-label">{t('bed.conditions.soilType')}</label>
+                    <select value={newSoilType} onChange={e => setNewSoilType(e.target.value)} className="input">
+                      <option value="">{t('common.select')}</option>
+                      {SOIL_TYPES.map(v => <option key={v} value={v}>{t(`bed.conditions.soilTypes.${v}`)}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="field-label">{t('bed.conditions.soilPh')}</label>
+                    <input type="number" step="0.1" min="0" max="14" value={newSoilPh} onChange={e => setNewSoilPh(e.target.value)} placeholder="—" className="input" />
+                    {newPhOutOfRange && <p className="text-error text-xs mt-1">{t('bed.conditions.phHint')}</p>}
+                  </div>
+                  <div>
+                    <label className="field-label">{t('bed.conditions.sunExposure')}</label>
+                    <select value={newSunExposure} onChange={e => setNewSunExposure(e.target.value)} className="input">
+                      <option value="">{t('common.select')}</option>
+                      {SUN_EXPOSURES.map(v => <option key={v} value={v}>{t(`bed.conditions.sunExposures.${v}`)}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="field-label">{t('bed.conditions.aspect')}</label>
+                    <select value={newAspect} onChange={e => setNewAspect(e.target.value)} className="input">
+                      <option value="">{t('common.select')}</option>
+                      {ASPECTS.map(v => <option key={v} value={v}>{t(`bed.conditions.aspects.${v}`)}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="field-label">{t('bed.conditions.drainage')}</label>
+                    <select value={newDrainage} onChange={e => setNewDrainage(e.target.value)} className="input">
+                      <option value="">{t('common.select')}</option>
+                      {DRAINAGES.map(v => <option key={v} value={v}>{t(`bed.conditions.drainages.${v}`)}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="field-label">{t('bed.conditions.irrigationType')}</label>
+                    <select value={newIrrigationType} onChange={e => setNewIrrigationType(e.target.value)} className="input">
+                      <option value="">{t('common.select')}</option>
+                      {IRRIGATION_TYPES.map(v => <option key={v} value={v}>{t(`bed.conditions.irrigationTypes.${v}`)}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="field-label">{t('bed.conditions.protection')}</label>
+                    <select value={newProtection} onChange={e => setNewProtection(e.target.value)} className="input">
+                      <option value="">{t('common.select')}</option>
+                      {PROTECTIONS.map(v => <option key={v} value={v}>{t(`bed.conditions.protections.${v}`)}</option>)}
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      id="raisedBed-new"
+                      type="checkbox"
+                      checked={newRaisedBed}
+                      onChange={e => setNewRaisedBed(e.target.checked)}
+                      className="h-4 w-4 rounded border-divider accent-accent"
+                    />
+                    <label htmlFor="raisedBed-new" className="text-sm">{t('bed.conditions.raisedBed')}</label>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </Dialog>

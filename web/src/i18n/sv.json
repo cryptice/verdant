@@ -162,7 +162,69 @@
     "sowSeedsInBed": "Så frön i bädd",
     "newBedTitle": "Ny bädd",
     "createBed": "Skapa bädd",
-    "creatingBed": "Skapar..."
+    "creatingBed": "Skapar...",
+    "conditions": {
+      "sectionTitle": "Förhållanden (valfritt)",
+      "soilType": "Jordtyp",
+      "soilPh": "pH",
+      "sunExposure": "Solläge",
+      "drainage": "Dränering",
+      "aspect": "Väderstreck",
+      "irrigationType": "Bevattning",
+      "protection": "Skydd",
+      "raisedBed": "Upphöjd bädd",
+      "lengthMeters": "Längd (m)",
+      "widthMeters": "Bredd (m)",
+      "phHint": "Måste vara mellan 3,0 och 9,0",
+      "filterAny": "Alla",
+      "filterClear": "Rensa",
+      "soilTypes": {
+        "SANDY": "Sandjord",
+        "LOAMY": "Mulljord",
+        "CLAY": "Lerjord",
+        "SILTY": "Siltjord",
+        "PEATY": "Torvjord",
+        "CHALKY": "Kalkjord"
+      },
+      "sunExposures": {
+        "FULL_SUN": "Full sol",
+        "PARTIAL_SUN": "Mest sol",
+        "PARTIAL_SHADE": "Halvskugga",
+        "FULL_SHADE": "Full skugga"
+      },
+      "drainages": {
+        "POOR": "Dålig",
+        "MODERATE": "Måttlig",
+        "GOOD": "Bra",
+        "SHARP": "Snabbdränerad"
+      },
+      "aspects": {
+        "FLAT": "Plant",
+        "N": "Norr",
+        "NE": "Nordöst",
+        "E": "Öster",
+        "SE": "Sydöst",
+        "S": "Söder",
+        "SW": "Sydväst",
+        "W": "Väster",
+        "NW": "Nordväst"
+      },
+      "irrigationTypes": {
+        "DRIP": "Droppbevattning",
+        "SPRINKLER": "Spridare",
+        "SOAKER_HOSE": "Droppslang",
+        "MANUAL": "Manuell",
+        "NONE": "Ingen"
+      },
+      "protections": {
+        "OPEN_FIELD": "Friland",
+        "ROW_COVER": "Fiberduk",
+        "LOW_TUNNEL": "Låg tunnel",
+        "HIGH_TUNNEL": "Hög tunnel",
+        "GREENHOUSE": "Växthus",
+        "COLDFRAME": "Kallbänk"
+      }
+    }
   },
   "plant": {
     "timeline": "Tidslinje",

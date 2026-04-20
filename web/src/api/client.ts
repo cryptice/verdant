@@ -105,6 +105,8 @@ export interface GardenResponse {
 export interface BedResponse {
   id: number; name: string; description?: string; gardenId: number
   lengthMeters?: number; widthMeters?: number
+  soilType?: string; soilPh?: number; sunExposure?: string; drainage?: string
+  aspect?: string; irrigationType?: string; protection?: string; raisedBed?: boolean
   createdAt: string; updatedAt: string
 }
 export interface BedWithGardenResponse extends BedResponse { gardenName: string }
@@ -366,9 +368,9 @@ export const api = {
   beds: {
     list: () => apiRequest<BedWithGardenResponse[]>('/api/beds'),
     get: (id: number) => apiRequest<BedResponse>(`/api/beds/${id}`),
-    create: (gardenId: number, data: { name: string; description?: string }) =>
+    create: (gardenId: number, data: { name: string; description?: string; lengthMeters?: number; widthMeters?: number; soilType?: string; soilPh?: number; sunExposure?: string; drainage?: string; aspect?: string; irrigationType?: string; protection?: string; raisedBed?: boolean }) =>
       apiRequest<BedResponse>(`/api/gardens/${gardenId}/beds`, { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: number, data: { name: string; description?: string }) =>
+    update: (id: number, data: { name: string; description?: string; lengthMeters?: number; widthMeters?: number; soilType?: string; soilPh?: number; sunExposure?: string; drainage?: string; aspect?: string; irrigationType?: string; protection?: string; raisedBed?: boolean }) =>
       apiRequest<BedResponse>(`/api/beds/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: number) => apiRequest<void>(`/api/beds/${id}`, { method: 'DELETE' }),
     plants: (bedId: number) => apiRequest<PlantResponse[]>(`/api/beds/${bedId}/plants`),

@@ -3,11 +3,26 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
+import type { BedResponse } from '../api/client'
 import type { BreadcrumbItem } from '../components/Breadcrumb'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { StatusBadge } from '../components/StatusBadge'
 import { Dialog } from '../components/Dialog'
+
+const SOIL_TYPES = ['SANDY', 'LOAMY', 'CLAY', 'SILTY', 'PEATY', 'CHALKY'] as const
+const SUN_EXPOSURES = ['FULL_SUN', 'PARTIAL_SUN', 'PARTIAL_SHADE', 'FULL_SHADE'] as const
+const DRAINAGES = ['POOR', 'MODERATE', 'GOOD', 'SHARP'] as const
+const ASPECTS = ['FLAT', 'N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const
+const IRRIGATION_TYPES = ['DRIP', 'SPRINKLER', 'SOAKER_HOSE', 'MANUAL', 'NONE'] as const
+const PROTECTIONS = ['OPEN_FIELD', 'ROW_COVER', 'LOW_TUNNEL', 'HIGH_TUNNEL', 'GREENHOUSE', 'COLDFRAME'] as const
+
+function hasAnyCondition(bed: BedResponse): boolean {
+  return !!(
+    bed.soilType || bed.soilPh != null || bed.sunExposure || bed.drainage ||
+    bed.aspect || bed.irrigationType || bed.protection || bed.raisedBed != null
+  )
+}
 
 export function BedDetail() {
   const { id } = useParams<{ id: string }>()
@@ -40,12 +55,57 @@ export function BedDetail() {
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState('')
   const [editDesc, setEditDesc] = useState('')
+  const [editLength, setEditLength] = useState('')
+  const [editWidth, setEditWidth] = useState('')
+  const [editConditionsOpen, setEditConditionsOpen] = useState(false)
+  const [editSoilType, setEditSoilType] = useState('')
+  const [editSoilPh, setEditSoilPh] = useState('')
+  const [editSunExposure, setEditSunExposure] = useState('')
+  const [editAspect, setEditAspect] = useState('')
+  const [editDrainage, setEditDrainage] = useState('')
+  const [editIrrigationType, setEditIrrigationType] = useState('')
+  const [editProtection, setEditProtection] = useState('')
+  const [editRaisedBed, setEditRaisedBed] = useState(false)
+
   const [showDelete, setShowDelete] = useState(false)
   const [showAdd, setShowAdd] = useState(false)
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
 
+  const editPhNum = editSoilPh !== '' ? parseFloat(editSoilPh) : undefined
+  const editPhOutOfRange = editPhNum !== undefined && (editPhNum < 3.0 || editPhNum > 9.0)
+
+  function openEdit(b: BedResponse) {
+    setEditName(b.name)
+    setEditDesc(b.description ?? '')
+    setEditLength(b.lengthMeters != null ? String(b.lengthMeters) : '')
+    setEditWidth(b.widthMeters != null ? String(b.widthMeters) : '')
+    setEditSoilType(b.soilType ?? '')
+    setEditSoilPh(b.soilPh != null ? String(b.soilPh) : '')
+    setEditSunExposure(b.sunExposure ?? '')
+    setEditAspect(b.aspect ?? '')
+    setEditDrainage(b.drainage ?? '')
+    setEditIrrigationType(b.irrigationType ?? '')
+    setEditProtection(b.protection ?? '')
+    setEditRaisedBed(b.raisedBed ?? false)
+    setEditConditionsOpen(hasAnyCondition(b))
+    setEditing(true)
+  }
+
   const updateMut = useMutation({
-    mutationFn: () => api.beds.update(bedId, { name: editName, description: editDesc || undefined }),
+    mutationFn: () => api.beds.update(bedId, {
+      name: editName,
+      description: editDesc || undefined,
+      lengthMeters: editLength !== '' ? parseFloat(editLength) : undefined,
+      widthMeters: editWidth !== '' ? parseFloat(editWidth) : undefined,
+      soilType: editSoilType || undefined,
+      soilPh: editPhNum,
+      sunExposure: editSunExposure || undefined,
+      drainage: editDrainage || undefined,
+      aspect: editAspect || undefined,
+      irrigationType: editIrrigationType || undefined,
+      protection: editProtection || undefined,
+      raisedBed: editRaisedBed,
+    }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['bed', bedId] }); setEditing(false) },
   })
 
@@ -98,7 +158,7 @@ export function BedDetail() {
       <PageHeader
         title={bed.name}
         breadcrumbs={breadcrumbs}
-        editAction={() => { setEditName(bed.name); setEditDesc(bed.description ?? ''); setEditing(true) }}
+        editAction={() => openEdit(bed)}
       />
 
       <div className="px-4 py-4 space-y-3">
@@ -165,6 +225,90 @@ export function BedDetail() {
         <div className="space-y-3">
           <input value={editName} onChange={e => setEditName(e.target.value)} placeholder={t('bed.bedNamePlaceholder')} className="input" />
           <textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} placeholder={t('bed.descriptionOptionalPlaceholder')} rows={2} className="input" />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="field-label">{t('bed.conditions.lengthMeters')}</label>
+              <input type="number" step="0.1" min="0" value={editLength} onChange={e => setEditLength(e.target.value)} placeholder="—" className="input" />
+            </div>
+            <div>
+              <label className="field-label">{t('bed.conditions.widthMeters')}</label>
+              <input type="number" step="0.1" min="0" value={editWidth} onChange={e => setEditWidth(e.target.value)} placeholder="—" className="input" />
+            </div>
+          </div>
+
+          <div className="border border-divider rounded-lg overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setEditConditionsOpen(o => !o)}
+              className="w-full flex items-center justify-between px-4 py-3 text-left bg-surface hover:bg-divider transition-colors"
+            >
+              <span className="text-sm font-medium">{t('bed.conditions.sectionTitle')}</span>
+              <span className="text-text-secondary text-sm">{editConditionsOpen ? '▲' : '▼'}</span>
+            </button>
+            {editConditionsOpen && (
+              <div className="px-4 py-3 space-y-3 border-t border-divider">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div>
+                    <label className="field-label">{t('bed.conditions.soilType')}</label>
+                    <select value={editSoilType} onChange={e => setEditSoilType(e.target.value)} className="input">
+                      <option value="">{t('common.select')}</option>
+                      {SOIL_TYPES.map(v => <option key={v} value={v}>{t(`bed.conditions.soilTypes.${v}`)}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="field-label">{t('bed.conditions.soilPh')}</label>
+                    <input type="number" step="0.1" min="0" max="14" value={editSoilPh} onChange={e => setEditSoilPh(e.target.value)} placeholder="—" className="input" />
+                    {editPhOutOfRange && <p className="text-error text-xs mt-1">{t('bed.conditions.phHint')}</p>}
+                  </div>
+                  <div>
+                    <label className="field-label">{t('bed.conditions.sunExposure')}</label>
+                    <select value={editSunExposure} onChange={e => setEditSunExposure(e.target.value)} className="input">
+                      <option value="">{t('common.select')}</option>
+                      {SUN_EXPOSURES.map(v => <option key={v} value={v}>{t(`bed.conditions.sunExposures.${v}`)}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="field-label">{t('bed.conditions.aspect')}</label>
+                    <select value={editAspect} onChange={e => setEditAspect(e.target.value)} className="input">
+                      <option value="">{t('common.select')}</option>
+                      {ASPECTS.map(v => <option key={v} value={v}>{t(`bed.conditions.aspects.${v}`)}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="field-label">{t('bed.conditions.drainage')}</label>
+                    <select value={editDrainage} onChange={e => setEditDrainage(e.target.value)} className="input">
+                      <option value="">{t('common.select')}</option>
+                      {DRAINAGES.map(v => <option key={v} value={v}>{t(`bed.conditions.drainages.${v}`)}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="field-label">{t('bed.conditions.irrigationType')}</label>
+                    <select value={editIrrigationType} onChange={e => setEditIrrigationType(e.target.value)} className="input">
+                      <option value="">{t('common.select')}</option>
+                      {IRRIGATION_TYPES.map(v => <option key={v} value={v}>{t(`bed.conditions.irrigationTypes.${v}`)}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="field-label">{t('bed.conditions.protection')}</label>
+                    <select value={editProtection} onChange={e => setEditProtection(e.target.value)} className="input">
+                      <option value="">{t('common.select')}</option>
+                      {PROTECTIONS.map(v => <option key={v} value={v}>{t(`bed.conditions.protections.${v}`)}</option>)}
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      id="raisedBed-edit"
+                      type="checkbox"
+                      checked={editRaisedBed}
+                      onChange={e => setEditRaisedBed(e.target.checked)}
+                      className="h-4 w-4 rounded border-divider accent-accent"
+                    />
+                    <label htmlFor="raisedBed-edit" className="text-sm">{t('bed.conditions.raisedBed')}</label>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </Dialog>
 
