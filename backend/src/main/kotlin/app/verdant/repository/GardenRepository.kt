@@ -88,6 +88,29 @@ class GardenRepository(private val ds: AgroalDataSource) {
         }
     }
 
+    fun findAllWithCoordinates(): List<Garden> =
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                "SELECT * FROM garden WHERE latitude IS NOT NULL AND longitude IS NOT NULL ORDER BY id"
+            ).use { ps ->
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.toGarden()) }
+                }
+            }
+        }
+
+    fun setBackfillStatus(gardenId: Long, status: String?) {
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                "UPDATE garden SET weather_backfill_status = ?, updated_at = now() WHERE id = ?"
+            ).use { ps ->
+                if (status != null) ps.setString(1, status) else ps.setNull(1, java.sql.Types.VARCHAR)
+                ps.setLong(2, gardenId)
+                ps.executeUpdate()
+            }
+        }
+    }
+
     private fun ResultSet.toGarden() = Garden(
         id = getLong("id"),
         name = getString("name"),
@@ -98,6 +121,7 @@ class GardenRepository(private val ds: AgroalDataSource) {
         longitude = getDouble("longitude").takeIf { !wasNull() },
         address = getString("address"),
         boundaryJson = getString("boundary_json"),
+        weatherBackfillStatus = getString("weather_backfill_status"),
         createdAt = getTimestamp("created_at").toInstant(),
         updatedAt = getTimestamp("updated_at").toInstant(),
     )

@@ -12,6 +12,7 @@ data class Garden(
     val longitude: Double? = null,
     val address: String? = null,
     val boundaryJson: String? = null,
+    val weatherBackfillStatus: String? = null,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),
 )

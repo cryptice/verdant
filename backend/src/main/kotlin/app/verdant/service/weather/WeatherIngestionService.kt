@@ -1,0 +1,84 @@
+package app.verdant.service.weather
+
+import app.verdant.repository.DailyWeatherRepository
+import app.verdant.repository.GardenRepository
+import io.quarkus.scheduler.Scheduled
+import jakarta.enterprise.context.ApplicationScoped
+import org.slf4j.LoggerFactory
+import java.time.LocalDate
+import java.util.concurrent.Executors
+
+@ApplicationScoped
+class WeatherIngestionService(
+    private val gardens: GardenRepository,
+    private val weather: DailyWeatherRepository,
+    private val smhi: SmhiClient,
+) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
+    // Single-threaded executor for async backfill. ManagedExecutor (microprofile-context-propagation)
+    // is not on the classpath in M1; revisit if context propagation is needed.
+    private val backfillExecutor = Executors.newSingleThreadExecutor()
+
+    @Scheduled(cron = "0 0 */6 * * ?")
+    fun refreshForecasts() {
+        val all = gardens.findAllWithCoordinates()
+        log.info("Weather forecast refresh starting for ${all.size} gardens")
+        for (g in all) {
+            runCatching {
+                val rows = smhi.fetchForecast(g.latitude!!, g.longitude!!, g.id!!)
+                if (rows.isNotEmpty()) {
+                    weather.upsert(rows)
+                }
+                evaluateAlerts(g.id)
+                Thread.sleep(250)
+            }.onFailure { log.warn("Forecast refresh failed for garden ${g.id}", it) }
+        }
+    }
+
+    @Scheduled(cron = "0 0 2 * * ?")
+    fun refreshActuals() {
+        val yesterday = LocalDate.now().minusDays(1)
+        val all = gardens.findAllWithCoordinates()
+        log.info("Weather actuals refresh starting for ${all.size} gardens (date=$yesterday)")
+        for (g in all) {
+            runCatching {
+                val row = smhi.fetchActual(g.latitude!!, g.longitude!!, g.id!!, yesterday) ?: return@runCatching
+                weather.upsert(listOf(row))
+                Thread.sleep(250)
+            }.onFailure { log.warn("Actuals refresh failed for garden ${g.id}", it) }
+        }
+    }
+
+    fun backfillForGarden(gardenId: Long) {
+        val g = gardens.findById(gardenId) ?: return
+        val lat = g.latitude ?: return
+        val lon = g.longitude ?: return
+        gardens.setBackfillStatus(gardenId, "RUNNING")
+        runCatching {
+            val start = LocalDate.now().minusYears(3)
+            val end = LocalDate.now().minusDays(1)
+            val rows = mutableListOf<app.verdant.entity.DailyWeather>()
+            var d = start
+            while (!d.isAfter(end)) {
+                val row = smhi.fetchActual(lat, lon, gardenId, d)
+                if (row != null) rows += row
+                if (rows.size >= 500) { weather.upsert(rows); rows.clear() }
+                d = d.plusDays(1)
+                Thread.sleep(25)
+            }
+            if (rows.isNotEmpty()) weather.upsert(rows)
+            gardens.setBackfillStatus(gardenId, "DONE")
+        }.onFailure {
+            log.error("Backfill failed for garden $gardenId", it)
+            gardens.setBackfillStatus(gardenId, "FAILED")
+        }
+    }
+
+    fun submitBackfill(gardenId: Long) {
+        backfillExecutor.submit { backfillForGarden(gardenId) }
+    }
+
+    // TODO(M3): wire AlertEvaluator bean and call evaluate(gardenId) here.
+    private fun evaluateAlerts(gardenId: Long) { /* wired in M3 */ }
+}

@@ -51,6 +51,7 @@ dependencies {
     implementation("io.quarkus:quarkus-rest-client-jackson")
     implementation("io.quarkus:quarkus-kotlin")
     implementation("io.quarkus:quarkus-arc")
+    implementation("io.quarkus:quarkus-scheduler")
     implementation("io.quarkus:quarkus-elytron-security-common")
     implementation("io.quarkus:quarkus-hibernate-validator")
     implementation("org.jetbrains.kotlin:kotlin-stdlib")

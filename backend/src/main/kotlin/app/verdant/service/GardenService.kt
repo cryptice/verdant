@@ -4,7 +4,9 @@ import app.verdant.dto.*
 import app.verdant.entity.Bed
 import app.verdant.entity.Garden
 import app.verdant.repository.BedRepository
+import app.verdant.repository.DailyWeatherRepository
 import app.verdant.repository.GardenRepository
+import app.verdant.service.weather.WeatherIngestionService
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.ws.rs.NotFoundException
 import java.util.logging.Logger
@@ -13,7 +15,9 @@ import java.util.logging.Logger
 class GardenService(
     private val gardenRepository: GardenRepository,
     private val bedRepository: BedRepository,
-    private val aiService: AiService
+    private val aiService: AiService,
+    private val weatherIngestion: WeatherIngestionService,
+    private val dailyWeather: DailyWeatherRepository,
 ) {
 
     fun getGardensForUser(orgId: Long): List<GardenResponse> =
@@ -46,22 +50,32 @@ class GardenService(
                 boundaryJson = request.boundaryJson
             )
         )
+        if (garden.latitude != null && garden.longitude != null) {
+            weatherIngestion.submitBackfill(garden.id!!)
+        }
         return garden.toResponse()
     }
 
     fun updateGarden(gardenId: Long, request: UpdateGardenRequest, orgId: Long): GardenResponse {
         val garden = gardenRepository.findById(gardenId) ?: throw NotFoundException("Garden not found")
         if (garden.orgId != orgId) throw NotFoundException("Garden not found")
+        val newLat = request.latitude ?: garden.latitude
+        val newLon = request.longitude ?: garden.longitude
+        val coordinatesChanged = newLat != garden.latitude || newLon != garden.longitude
         val updated = garden.copy(
             name = request.name ?: garden.name,
             description = request.description ?: garden.description,
             emoji = request.emoji ?: garden.emoji,
-            latitude = request.latitude ?: garden.latitude,
-            longitude = request.longitude ?: garden.longitude,
+            latitude = newLat,
+            longitude = newLon,
             address = request.address ?: garden.address,
             boundaryJson = request.boundaryJson ?: garden.boundaryJson,
         )
         gardenRepository.update(updated)
+        if (coordinatesChanged && newLat != null && newLon != null) {
+            dailyWeather.deleteByGarden(gardenId)
+            weatherIngestion.submitBackfill(gardenId)
+        }
         return updated.toResponse()
     }
 
@@ -87,6 +101,9 @@ class GardenService(
                 boundaryJson = request.boundaryJson
             )
         )
+        if (garden.latitude != null && garden.longitude != null) {
+            weatherIngestion.submitBackfill(garden.id!!)
+        }
 
         val beds = request.beds.map { bedLayout ->
             bedRepository.persist(
