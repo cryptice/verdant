@@ -37,7 +37,7 @@ class SmhiClientTest {
         val body = javaClass.getResource("/smhi/forecast_sample.json")!!.readText()
         val rows = SmhiForecastParser.parse(body, gardenId = 7L)
 
-        assertTrue(rows.size >= 3, "Expected at least 3 daily rows, got ${rows.size}")
+        assertEquals(3, rows.size, "Expected exactly 3 daily rows, got ${rows.size}")
         rows.forEach { row ->
             assertEquals(ObservationType.FORECAST, row.observationType)
             assertEquals(7L, row.gardenId)
@@ -120,6 +120,25 @@ class SmhiClientTest {
             lat = 59.33, lon = 18.07, gardenId = 1L, date = java.time.LocalDate.of(2026, 4, 19)
         )
         assertNull(result, "Expected null on 429 for fetchActual")
+    }
+
+    @Test
+    fun `fetchActual returns null on 500`() {
+        server.enqueue(MockResponse().setResponseCode(500))
+        val result = client.fetchActual(
+            lat = 59.33, lon = 18.07, gardenId = 1L, date = java.time.LocalDate.of(2026, 4, 19)
+        )
+        assertNull(result, "Expected null on 500 for fetchActual")
+    }
+
+    @Test
+    fun `fetchActual throws on unexpected 4xx (404)`() {
+        server.enqueue(MockResponse().setResponseCode(404))
+        assertThrows<IllegalStateException> {
+            client.fetchActual(
+                lat = 59.33, lon = 18.07, gardenId = 1L, date = java.time.LocalDate.of(2026, 4, 19)
+            )
+        }
     }
 
     // ── Archive parser tests ───────────────────────────────────────────────────

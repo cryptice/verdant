@@ -695,26 +695,6 @@
         { "name": "pmin", "levelType": "hl", "level": 0,  "unit": "kg/m2/h", "values": [0.0] },
         { "name": "pmax", "levelType": "hl", "level": 0,  "unit": "kg/m2/h", "values": [0.0] }
       ]
-    },
-    {
-      "validTime": "2026-04-20T22:00:00Z",
-      "parameters": [
-        { "name": "t",    "levelType": "hl", "level": 2,  "unit": "Cel",     "values": [6.3] },
-        { "name": "ws",   "levelType": "hl", "level": 10, "unit": "m/s",     "values": [2.9] },
-        { "name": "r",    "levelType": "hl", "level": 2,  "unit": "percent", "values": [74] },
-        { "name": "pmin", "levelType": "hl", "level": 0,  "unit": "kg/m2/h", "values": [0.0] },
-        { "name": "pmax", "levelType": "hl", "level": 0,  "unit": "kg/m2/h", "values": [0.0] }
-      ]
-    },
-    {
-      "validTime": "2026-04-20T23:00:00Z",
-      "parameters": [
-        { "name": "t",    "levelType": "hl", "level": 2,  "unit": "Cel",     "values": [5.5] },
-        { "name": "ws",   "levelType": "hl", "level": 10, "unit": "m/s",     "values": [2.5] },
-        { "name": "r",    "levelType": "hl", "level": 2,  "unit": "percent", "values": [76] },
-        { "name": "pmin", "levelType": "hl", "level": 0,  "unit": "kg/m2/h", "values": [0.0] },
-        { "name": "pmax", "levelType": "hl", "level": 0,  "unit": "kg/m2/h", "values": [0.0] }
-      ]
     }
   ]
 }

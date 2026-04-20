@@ -85,7 +85,7 @@ object SmhiForecastParser {
                 windMaxMs       = acc.winds.maxOrNull(),
                 humidityPct     = if (acc.humidities.isEmpty()) null else acc.humidities.average(),
             )
-        }
+        }.sortedBy { it.date }
     }
 }
 

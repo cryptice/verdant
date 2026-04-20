@@ -16,6 +16,8 @@ The system is treated as a single product with multiple clients. Changes should 
 
 ## General working principles
 
+- I am a single person working on this project, always commit to main without worktrees
+- No data is in production yet, not need for backwards compatibility.
 - Prefer **small, targeted changes** over large speculative refactors.
 - Preserve existing architecture and conventions unless explicitly asked to change them.
 - Favor **readability, maintainability, and correctness** over cleverness.
