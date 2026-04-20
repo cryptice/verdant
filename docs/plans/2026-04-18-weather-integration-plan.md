@@ -508,7 +508,7 @@ git commit --allow-empty -m "milestone: weather M1 complete — ingestion founda
 ### Task 2.1: Migration V16 — `user_device`
 
 **Files:**
-- Create: `backend/src/main/resources/db/migration/V16__user_device.sql`
+- Create: `backend/src/main/resources/db/migration/V17__user_device.sql`
 
 - [ ] **Step 1: Migration SQL**
 
@@ -526,7 +526,7 @@ CREATE INDEX idx_user_device_user ON user_device(user_id);
 - [ ] **Step 2: Apply, verify, commit**
 
 ```bash
-git add backend/src/main/resources/db/migration/V16__user_device.sql
+git add backend/src/main/resources/db/migration/V17__user_device.sql
 git commit -m "feat: user_device table"
 ```
 
@@ -972,7 +972,7 @@ git commit --allow-empty -m "milestone: weather M2 complete — FCM infrastructu
 ### Task 3.1: Migration V17 — alerts + preferences
 
 **Files:**
-- Create: `backend/src/main/resources/db/migration/V17__weather_alerts.sql`
+- Create: `backend/src/main/resources/db/migration/V18__weather_alerts.sql`
 
 - [ ] **Step 1: Migration**
 
@@ -1002,7 +1002,7 @@ CREATE TABLE user_alert_preference (
 - [ ] **Step 2: Commit**
 
 ```bash
-git add backend/src/main/resources/db/migration/V17__weather_alerts.sql
+git add backend/src/main/resources/db/migration/V18__weather_alerts.sql
 git commit -m "feat: weather_alert + user_alert_preference tables"
 ```
 
@@ -1456,7 +1456,7 @@ git commit -am "test: heat/wind/rain threshold coverage"
 ### Task 4.2: Migration V18 — GDD
 
 **Files:**
-- Create: `backend/src/main/resources/db/migration/V18__gdd.sql`
+- Create: `backend/src/main/resources/db/migration/V19__gdd.sql`
 
 - [ ] **Step 1: Migration**
 
@@ -1480,7 +1480,7 @@ CREATE TABLE gdd_accumulation (
 - [ ] **Step 2: Commit**
 
 ```bash
-git add backend/src/main/resources/db/migration/V18__gdd.sql
+git add backend/src/main/resources/db/migration/V19__gdd.sql
 git commit -m "feat: GDD columns on species + gdd_accumulation table"
 ```
 
@@ -1897,7 +1897,7 @@ git commit --allow-empty -m "milestone: weather M6 complete — irrigation signa
 
 After M6, the repo should contain:
 
-- 4 new migrations: `V15__weather.sql`, `V16__user_device.sql`, `V17__weather_alerts.sql`, `V18__gdd.sql`.
+- 4 new migrations: `V15__weather.sql`, `V17__user_device.sql`, `V18__weather_alerts.sql`, `V19__gdd.sql`. (V16 is reserved for bed conditions, landed separately before M2.)
 - New backend packages: `service/weather/`, resources `WeatherResource`, `UserDeviceResource`, `AlertPreferenceResource`, `GddResource`, analytics endpoint additions.
 - Firebase Admin SDK dependency in backend. Firebase Messaging SDK in Android.
 - Web: `Weather.tsx`, `AlertPreferences.tsx`, `WeatherWidget.tsx`, Analytics tab extension, i18n additions.
