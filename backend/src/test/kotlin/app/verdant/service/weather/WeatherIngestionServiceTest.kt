@@ -95,10 +95,6 @@ class WeatherIngestionServiceTest {
         val gardenId = 11L
         val g = makeGarden(id = gardenId)
         whenever(gardens.findById(gardenId)).thenReturn(g)
-        // Cause an exception during upsert by making weather.upsert throw
-        whenever(weather.upsert(any())).thenThrow(RuntimeException("db error"))
-        // SmhiClient.fetchActual returns null by default from stub, so upsert is never called.
-        // Instead we cause the failure by having smhi.fetchActual throw.
         whenever(smhi.fetchActual(any(), any(), any(), any())).thenThrow(RuntimeException("smhi error"))
 
         service.backfillForGarden(gardenId)

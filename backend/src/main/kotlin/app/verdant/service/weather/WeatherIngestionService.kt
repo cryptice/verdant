@@ -3,10 +3,12 @@ package app.verdant.service.weather
 import app.verdant.repository.DailyWeatherRepository
 import app.verdant.repository.GardenRepository
 import io.quarkus.scheduler.Scheduled
+import jakarta.annotation.PreDestroy
 import jakarta.enterprise.context.ApplicationScoped
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 @ApplicationScoped
 class WeatherIngestionService(
@@ -60,12 +62,17 @@ class WeatherIngestionService(
             val end = LocalDate.now().minusDays(1)
             val rows = mutableListOf<app.verdant.entity.DailyWeather>()
             var d = start
-            while (!d.isAfter(end)) {
+            while (!d.isAfter(end) && !Thread.currentThread().isInterrupted) {
                 val row = smhi.fetchActual(lat, lon, gardenId, d)
                 if (row != null) rows += row
                 if (rows.size >= 500) { weather.upsert(rows); rows.clear() }
                 d = d.plusDays(1)
-                Thread.sleep(25)
+                try {
+                    Thread.sleep(25)
+                } catch (e: InterruptedException) {
+                    Thread.currentThread().interrupt()
+                    throw e
+                }
             }
             if (rows.isNotEmpty()) weather.upsert(rows)
             gardens.setBackfillStatus(gardenId, "DONE")
@@ -81,4 +88,13 @@ class WeatherIngestionService(
 
     // TODO(M3): wire AlertEvaluator bean and call evaluate(gardenId) here.
     private fun evaluateAlerts(gardenId: Long) { /* wired in M3 */ }
+
+    @PreDestroy
+    fun shutdown() {
+        backfillExecutor.shutdown()
+        if (!backfillExecutor.awaitTermination(30, TimeUnit.SECONDS)) {
+            log.warn("Backfill executor did not terminate in 30s; forcing shutdown")
+            backfillExecutor.shutdownNow()
+        }
+    }
 }
