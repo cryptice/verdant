@@ -618,7 +618,12 @@
     "noRecipes": "No recipes",
     "deleteRecipe": "Delete recipe",
     "deleteConfirm": "Delete this recipe?",
-    "stems": "{{count}} stems"
+    "stems": "{{count}} stems",
+    "col": {
+      "name": "Name",
+      "price": "Price",
+      "items": "Ingredients"
+    }
   },
   "roles": {
     "FLOWER": "Flower",
@@ -651,7 +656,14 @@
     "totalSeeds": "Total seeds",
     "generateTasks": "Generate tasks",
     "tasksGenerated": "{{count}} tasks created",
-    "noSchedules": "No schedules"
+    "noSchedules": "No schedules",
+    "col": {
+      "species": "Species",
+      "firstSow": "First sow",
+      "interval": "Interval",
+      "total": "Rounds",
+      "generate": "Generate"
+    }
   },
   "targets": {
     "title": "Production Targets",
@@ -667,7 +679,19 @@
     "plantsNeeded": "Plants needed",
     "seedsNeeded": "Seeds needed",
     "suggestedSow": "Suggested sow date",
-    "selectTarget": "Select a target to see forecast"
+    "selectTarget": "Select a target to see forecast",
+    "col": {
+      "species": "Species",
+      "stemsPerWeek": "Stems/wk",
+      "window": "Delivery window"
+    },
+    "forecastPanel": {
+      "totalStems": "Total stems",
+      "plants": "Plants",
+      "seeds": "Seeds",
+      "sowDate": "Sow date",
+      "loading": "Loading forecast…"
+    }
   },
   "analytics": {
     "title": "Analytics",

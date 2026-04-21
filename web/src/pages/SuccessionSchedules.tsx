@@ -2,15 +2,31 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type SuccessionScheduleResponse, type SpeciesResponse, type BedWithGardenResponse } from '../api/client'
-import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
-import { Pagination } from '../components/Pagination'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
+import { Masthead } from '../components/faltet'
 
 const PAGE_SIZE = 50
+
+const TEMPLATE = '60px 1.5fr 120px 100px 80px 160px 40px'
+
+const headerStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: TEMPLATE,
+  gap: 18,
+  padding: '10px 0',
+  borderBottom: '1px solid var(--color-ink)',
+  fontFamily: 'var(--font-mono)',
+  fontSize: 9,
+  letterSpacing: 1.4,
+  textTransform: 'uppercase',
+  color: 'var(--color-forest)',
+  opacity: 0.7,
+  alignItems: 'center',
+}
 
 export function SuccessionSchedules() {
   const qc = useQueryClient()
@@ -122,6 +138,9 @@ export function SuccessionSchedules() {
   const canSubmitCreate = formSeasonId && formSpecies && formFirstSowDate && formIntervalDays && formTotalSuccessions && formSeedsPerSuccession
   const canSubmitEdit = formSeasonId && (formSpecies || editItem?.speciesId) && formFirstSowDate && formIntervalDays && formTotalSuccessions && formSeedsPerSuccession
 
+  const schedules = data ?? []
+  const paged = schedules.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+
   const formFields = (
     <div className="space-y-4">
       <div>
@@ -172,11 +191,20 @@ export function SuccessionSchedules() {
 
   return (
     <div>
-      <PageHeader title={t('successions.title')} action={{ label: t('successions.new'), onClick: openAdd, 'data-onboarding': 'add-succession-btn' }} />
+      <Masthead
+        left={t('nav.successions')}
+        center="— Successionsliggaren —"
+        right={
+          <button onClick={openAdd} className="btn-primary" data-onboarding="add-succession-btn">
+            {t('successions.new')}
+          </button>
+        }
+      />
       <OnboardingHint />
-      <div className="px-4 py-4">
+
+      <div style={{ padding: '28px 40px' }}>
         {/* Season filter */}
-        <div className="mb-4">
+        <div style={{ marginBottom: 22 }}>
           <select
             value={seasonFilter ?? ''}
             onChange={e => { setSeasonFilter(e.target.value ? Number(e.target.value) : undefined); setPage(0) }}
@@ -191,58 +219,90 @@ export function SuccessionSchedules() {
 
         {/* Task generation toast */}
         {taskMessage && (
-          <div className="mb-4 px-4 py-2 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm">
+          <div style={{ marginBottom: 16, padding: '8px 16px', background: 'color-mix(in srgb, var(--color-sage) 15%, transparent)', border: '1px solid color-mix(in srgb, var(--color-sage) 40%, transparent)', fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--color-forest)' }}>
             {taskMessage}
           </div>
         )}
 
-        {data && data.length === 0 && (
-          <p className="text-text-secondary text-sm text-center py-4">{t('successions.noSchedules')}</p>
+        {schedules.length === 0 && (
+          <div style={{ padding: '40px 0', textAlign: 'center', borderBottom: '1px solid var(--color-ink)', borderTop: '1px solid var(--color-ink)' }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7 }}>
+              {t('successions.noSchedules')}
+            </div>
+          </div>
         )}
 
-        {data && data.length > 0 && (<>
-          <div className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-divider bg-surface">
-                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('common.speciesLabel')}</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('successions.firstSow')}</th>
-                  <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('successions.interval')}</th>
-                  <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('successions.totalSuccessions')}</th>
-                  <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('successions.seedsPerRound')}</th>
-                  <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('successions.totalSeeds')}</th>
-                  <th className="text-center px-4 py-2 text-xs font-medium text-text-secondary"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map(item => (
-                  <tr
-                    key={item.id}
-                    className="border-b border-divider last:border-0 hover:bg-surface cursor-pointer transition-colors"
-                    onClick={() => openEdit(item)}
-                  >
-                    <td className="px-4 py-2.5 text-sm">{item.speciesName}</td>
-                    <td className="px-4 py-2.5 text-sm text-text-secondary">{item.firstSowDate}</td>
-                    <td className="px-4 py-2.5 text-sm text-right tabular-nums">{item.intervalDays}d</td>
-                    <td className="px-4 py-2.5 text-sm text-right tabular-nums">{item.totalSuccessions}</td>
-                    <td className="px-4 py-2.5 text-sm text-right tabular-nums">{item.seedsPerSuccession}</td>
-                    <td className="px-4 py-2.5 text-sm text-right tabular-nums font-medium">{item.totalSuccessions * item.seedsPerSuccession}</td>
-                    <td className="px-4 py-2.5 text-sm text-center">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); generateTasksMut.mutate(item.id) }}
-                        disabled={generateTasksMut.isPending}
-                        className="text-xs px-2 py-1 rounded-lg bg-accent-light text-accent hover:bg-accent hover:text-white transition-colors"
-                      >
-                        {t('successions.generateTasks')}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <Pagination page={page} pageSize={PAGE_SIZE} total={data.length} onPageChange={setPage} />
-        </>)}
+        {schedules.length > 0 && (
+          <>
+            {/* Header row */}
+            <div style={headerStyle}>
+              <span>№</span>
+              <span>{t('successions.col.species')}</span>
+              <span>{t('successions.col.firstSow')}</span>
+              <span>{t('successions.col.interval')}</span>
+              <span>{t('successions.col.total')}</span>
+              <span>{t('successions.col.generate')}</span>
+              <span />
+            </div>
+
+            {/* Body rows */}
+            {paged.map((s, i) => (
+              <div
+                key={s.id}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: TEMPLATE,
+                  gap: 18,
+                  padding: '14px 0',
+                  borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                  alignItems: 'center',
+                }}
+              >
+                <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-clay)' }}>
+                  {String(page * PAGE_SIZE + i + 1).padStart(2, '0')}
+                </span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>{s.speciesName}</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>{s.firstSowDate}</span>
+                <span style={{ fontVariantNumeric: 'tabular-nums', fontFamily: 'var(--font-display)', fontSize: 16 }}>{s.intervalDays} d</span>
+                <span style={{ fontVariantNumeric: 'tabular-nums', fontFamily: 'var(--font-display)', fontSize: 16 }}>{s.totalSuccessions}</span>
+                <button
+                  onClick={() => generateTasksMut.mutate(s.id)}
+                  disabled={generateTasksMut.isPending}
+                  style={{ background: 'transparent', border: 'none', fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-clay)', cursor: 'pointer', textAlign: 'left' }}
+                >
+                  {t('successions.generateTasks')} →
+                </button>
+                <button
+                  onClick={() => openEdit(s)}
+                  style={{ background: 'transparent', border: 'none', color: 'var(--color-clay)', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}
+                >
+                  →
+                </button>
+              </div>
+            ))}
+
+            {/* Pagination (simple) */}
+            {schedules.length > PAGE_SIZE && (
+              <div style={{ display: 'flex', gap: 8, marginTop: 16, fontFamily: 'var(--font-mono)', fontSize: 10 }}>
+                <button
+                  onClick={() => setPage(p => Math.max(0, p - 1))}
+                  disabled={page === 0}
+                  style={{ background: 'transparent', border: 'none', cursor: page === 0 ? 'default' : 'pointer', opacity: page === 0 ? 0.3 : 1 }}
+                >
+                  ←
+                </button>
+                <span>{page + 1} / {Math.ceil(schedules.length / PAGE_SIZE)}</span>
+                <button
+                  onClick={() => setPage(p => Math.min(Math.ceil(schedules.length / PAGE_SIZE) - 1, p + 1))}
+                  disabled={(page + 1) * PAGE_SIZE >= schedules.length}
+                  style={{ background: 'transparent', border: 'none', cursor: (page + 1) * PAGE_SIZE >= schedules.length ? 'default' : 'pointer', opacity: (page + 1) * PAGE_SIZE >= schedules.length ? 0.3 : 1 }}
+                >
+                  →
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       <Dialog open={showAdd} onClose={() => { setShowAdd(false); resetForm() }} title={t('successions.new')} actions={

@@ -2,11 +2,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type BouquetRecipeResponse, type SpeciesResponse } from '../api/client'
-import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { useOnboarding } from '../onboarding/OnboardingContext'
+import { Masthead, Chip } from '../components/faltet'
 
 const ROLES = ['FLOWER', 'FOLIAGE', 'FILLER', 'ACCENT'] as const
 
@@ -16,6 +16,23 @@ interface FormItem {
   role: string
 }
 
+const TEMPLATE = '60px 1.5fr 140px 120px 40px'
+
+const headerStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: TEMPLATE,
+  gap: 18,
+  padding: '10px 0',
+  borderBottom: '1px solid var(--color-ink)',
+  fontFamily: 'var(--font-mono)',
+  fontSize: 9,
+  letterSpacing: 1.4,
+  textTransform: 'uppercase',
+  color: 'var(--color-forest)',
+  opacity: 0.7,
+  alignItems: 'center',
+}
+
 export function BouquetRecipes() {
   const qc = useQueryClient()
   const { t } = useTranslation()
@@ -23,6 +40,13 @@ export function BouquetRecipes() {
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['bouquet-recipes'],
     queryFn: () => api.bouquetRecipes.list(),
+  })
+
+  const [expanded, setExpanded] = useState<Set<number>>(new Set())
+  const toggle = (id: number) => setExpanded(prev => {
+    const next = new Set(prev)
+    next.has(id) ? next.delete(id) : next.add(id)
+    return next
   })
 
   const [showAdd, setShowAdd] = useState(false)
@@ -108,8 +132,7 @@ export function BouquetRecipes() {
     return `${(cents / 100).toFixed(2)} kr`
   }
 
-  const totalStems = (recipe: BouquetRecipeResponse) =>
-    recipe.items.reduce((sum, item) => sum + item.stemCount, 0)
+  const recipes = data ?? []
 
   const formFields = (
     <div className="space-y-4">
@@ -170,9 +193,18 @@ export function BouquetRecipes() {
 
   return (
     <div>
-      <PageHeader title={t('bouquets.title')} action={{ label: t('bouquets.new'), onClick: openAdd, 'data-onboarding': 'add-bouquet-btn' }} />
-      <div className="px-4 py-4">
-        {data && data.length === 0 && (
+      <Masthead
+        left={t('nav.bouquets')}
+        center="— Bukettliggaren —"
+        right={
+          <button onClick={openAdd} className="btn-primary" data-onboarding="add-bouquet-btn">
+            {t('bouquets.new')}
+          </button>
+        }
+      />
+
+      <div style={{ padding: '28px 40px' }}>
+        {recipes.length === 0 && (
           isActive && !isStepComplete('create_bouquet') ? (
             <div className="bg-accent-light/50 border border-accent/15 rounded-2xl px-6 py-6 text-center">
               <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3">
@@ -185,31 +217,110 @@ export function BouquetRecipes() {
               </button>
             </div>
           ) : (
-            <p className="text-text-secondary text-sm text-center py-4">{t('bouquets.noRecipes')}</p>
+            <div style={{ padding: '40px 0', textAlign: 'center', borderBottom: '1px solid var(--color-ink)', borderTop: '1px solid var(--color-ink)' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7 }}>
+                {t('bouquets.noRecipes')}
+              </div>
+            </div>
           )
         )}
 
-        {data && data.length > 0 && (
-          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
-            {data.map(recipe => (
-              <button
-                key={recipe.id}
-                onClick={() => openEdit(recipe)}
-                className="text-left border border-divider rounded-xl p-4 bg-bg shadow-sm hover:bg-surface transition-colors cursor-pointer"
-              >
-                <h3 className="font-medium text-sm text-text-primary">{recipe.name}</h3>
-                {recipe.description && (
-                  <p className="text-xs text-text-secondary mt-1 line-clamp-2">{recipe.description}</p>
-                )}
-                <div className="flex items-center gap-3 mt-2">
-                  <span className="text-xs text-text-secondary">
-                    {t('bouquets.stems', { count: totalStems(recipe) })}
+        {recipes.length > 0 && (
+          <>
+            {/* Header row */}
+            <div style={headerStyle}>
+              <span>№</span>
+              <span>{t('bouquets.col.name')}</span>
+              <span>{t('bouquets.col.price')}</span>
+              <span>{t('bouquets.col.items')}</span>
+              <span />
+            </div>
+
+            {/* Body rows */}
+            {recipes.map((recipe, i) => (
+              <div key={recipe.id}>
+                <button
+                  onClick={() => toggle(recipe.id)}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: TEMPLATE,
+                    gap: 18,
+                    padding: '14px 0',
+                    borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                    width: '100%',
+                    background: 'transparent',
+                    border: 'none',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    alignItems: 'center',
+                  }}
+                  className="ledger-row"
+                >
+                  <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-clay)' }}>
+                    {String(i + 1).padStart(2, '0')}
                   </span>
-                  <span className="text-xs font-medium text-accent">{formatPrice(recipe.priceSek)}</span>
-                </div>
-              </button>
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>{recipe.name}</div>
+                    {recipe.description && (
+                      <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13, color: 'var(--color-forest)', marginTop: 2 }}>
+                        {recipe.description}
+                      </div>
+                    )}
+                  </div>
+                  <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--color-clay)' }}>
+                    {formatPrice(recipe.priceSek)}
+                  </span>
+                  <span style={{ fontVariantNumeric: 'tabular-nums' }}>{recipe.items.length}</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>
+                    {expanded.has(recipe.id) ? '▼' : '▶'}
+                  </span>
+                </button>
+
+                {expanded.has(recipe.id) && (
+                  <div style={{
+                    padding: '10px 0 10px 78px',
+                    borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                    background: 'color-mix(in srgb, var(--color-ink) 3%, transparent)',
+                  }}>
+                    {/* Mini-ledger header */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 80px 100px 40px', gap: 12, padding: '4px 0 8px', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7 }}>
+                      <span>{t('common.speciesLabel')}</span>
+                      <span>{t('bouquets.stemCount')}</span>
+                      <span>{t('bouquets.role')}</span>
+                      <span />
+                    </div>
+                    {recipe.items.map((item) => (
+                      <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '1.5fr 80px 100px 40px', gap: 12, padding: '6px 0', borderTop: '1px solid color-mix(in srgb, var(--color-ink) 10%, transparent)', alignItems: 'center' }}>
+                        <span style={{ fontFamily: 'var(--font-display)', fontSize: 15 }}>{item.speciesName}</span>
+                        <span style={{ fontVariantNumeric: 'tabular-nums', fontFamily: 'var(--font-display)', fontSize: 15 }}>{item.stemCount}</span>
+                        <Chip tone={
+                          item.role === 'FLOWER' ? 'clay' :
+                          item.role === 'FOLIAGE' ? 'sage' :
+                          item.role === 'FILLER' ? 'mustard' : 'berry'
+                        }>
+                          {t(`roles.${item.role}`)}
+                        </Chip>
+                        <span />
+                      </div>
+                    ))}
+                    {recipe.items.length === 0 && (
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-forest)', opacity: 0.5, padding: '6px 0' }}>
+                        —
+                      </div>
+                    )}
+                    <div style={{ marginTop: 10 }}>
+                      <button
+                        onClick={() => openEdit(recipe)}
+                        style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-clay)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                      >
+                        {t('bouquets.edit')} →
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             ))}
-          </div>
+          </>
         )}
       </div>
 

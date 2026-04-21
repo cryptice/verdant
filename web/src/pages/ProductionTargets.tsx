@@ -2,15 +2,83 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type ProductionTargetResponse, type SpeciesResponse } from '../api/client'
-import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
-import { Pagination } from '../components/Pagination'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
+import { Masthead, Chip } from '../components/faltet'
 
 const PAGE_SIZE = 50
+
+const TEMPLATE = '60px 1.5fr 120px 1fr 40px'
+
+const headerStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: TEMPLATE,
+  gap: 18,
+  padding: '10px 0',
+  borderBottom: '1px solid var(--color-ink)',
+  fontFamily: 'var(--font-mono)',
+  fontSize: 9,
+  letterSpacing: 1.4,
+  textTransform: 'uppercase',
+  color: 'var(--color-forest)',
+  opacity: 0.7,
+  alignItems: 'center',
+}
+
+function ForecastPanel({ targetId }: { targetId: number }) {
+  const { t } = useTranslation()
+  const { data } = useQuery({
+    queryKey: ['production-target-forecast', targetId],
+    queryFn: () => api.productionTargets.forecast(targetId),
+  })
+
+  if (!data) {
+    return (
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.2, color: 'var(--color-forest)', opacity: 0.6 }}>
+        {t('targets.forecastPanel.loading')}
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 18 }}>
+      <div>
+        <div className="field-label">{t('targets.forecastPanel.totalStems')}</div>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 300, fontVariantNumeric: 'tabular-nums' }}>
+          {data.totalStemsNeeded.toLocaleString()}
+        </div>
+      </div>
+      <div>
+        <div className="field-label">{t('targets.forecastPanel.plants')}</div>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 300, fontVariantNumeric: 'tabular-nums' }}>
+          {data.plantsNeeded.toLocaleString()}
+        </div>
+      </div>
+      <div>
+        <div className="field-label">{t('targets.forecastPanel.seeds')}</div>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 300, fontVariantNumeric: 'tabular-nums' }}>
+          {data.seedsNeeded.toLocaleString()}
+        </div>
+      </div>
+      <div>
+        <div className="field-label">{t('targets.forecastPanel.sowDate')}</div>
+        <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 16, color: 'var(--color-mustard)' }}>
+          {data.suggestedSowDate ?? '—'}
+        </div>
+      </div>
+      {data.warnings.length > 0 && (
+        <div style={{ gridColumn: '1 / -1', display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+          {data.warnings.map((w, i) => (
+            <Chip key={i} tone="berry">{w}</Chip>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export function ProductionTargets() {
   const qc = useQueryClient()
@@ -18,7 +86,13 @@ export function ProductionTargets() {
   const { completeStep } = useOnboarding()
 
   const [seasonFilter, setSeasonFilter] = useState<number | undefined>(undefined)
-  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [expanded, setExpanded] = useState<Set<number>>(new Set())
+
+  const toggle = (id: number) => setExpanded(prev => {
+    const next = new Set(prev)
+    next.has(id) ? next.delete(id) : next.add(id)
+    return next
+  })
 
   const { data: seasons } = useQuery({
     queryKey: ['seasons'],
@@ -28,12 +102,6 @@ export function ProductionTargets() {
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['production-targets', seasonFilter],
     queryFn: () => api.productionTargets.list(seasonFilter),
-  })
-
-  const { data: forecast, isLoading: forecastLoading } = useQuery({
-    queryKey: ['production-target-forecast', selectedId],
-    queryFn: () => api.productionTargets.forecast(selectedId!),
-    enabled: selectedId !== null,
   })
 
   const [page, setPage] = useState(0)
@@ -97,7 +165,7 @@ export function ProductionTargets() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['production-targets'] })
       setDeleteItem(null); setDeleteError(null)
-      if (deleteItem && selectedId === deleteItem.id) setSelectedId(null)
+      if (deleteItem) setExpanded(prev => { const next = new Set(prev); next.delete(deleteItem.id); return next })
     },
     onError: (err) => { setDeleteError(err instanceof Error ? err.message : String(err)) },
   })
@@ -107,6 +175,9 @@ export function ProductionTargets() {
 
   const canSubmitCreate = formSeasonId && formSpecies && formStemsPerWeek && formStartDate && formEndDate
   const canSubmitEdit = formSeasonId && (formSpecies || editItem?.speciesId) && formStemsPerWeek && formStartDate && formEndDate
+
+  const targets = data ?? []
+  const paged = targets.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   const formFields = (
     <div className="space-y-4">
@@ -145,14 +216,23 @@ export function ProductionTargets() {
 
   return (
     <div>
-      <PageHeader title={t('targets.title')} action={{ label: t('targets.new'), onClick: openAdd, 'data-onboarding': 'add-target-btn' }} />
+      <Masthead
+        left={t('nav.targets')}
+        center="— Målliggaren —"
+        right={
+          <button onClick={openAdd} className="btn-primary" data-onboarding="add-target-btn">
+            {t('targets.new')}
+          </button>
+        }
+      />
       <OnboardingHint />
-      <div className="px-4 py-4">
+
+      <div style={{ padding: '28px 40px' }}>
         {/* Season filter */}
-        <div className="mb-4">
+        <div style={{ marginBottom: 22 }}>
           <select
             value={seasonFilter ?? ''}
-            onChange={e => { setSeasonFilter(e.target.value ? Number(e.target.value) : undefined); setPage(0); setSelectedId(null) }}
+            onChange={e => { setSeasonFilter(e.target.value ? Number(e.target.value) : undefined); setPage(0); setExpanded(new Set()) }}
             className="input w-auto"
           >
             <option value="">{t('pestDisease.allSeasons')}</option>
@@ -162,94 +242,107 @@ export function ProductionTargets() {
           </select>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* Left: Table */}
-          <div className="flex-1 min-w-0">
-            {data && data.length === 0 && (
-              <p className="text-text-secondary text-sm text-center py-4">{t('targets.noTargets')}</p>
-            )}
-
-            {data && data.length > 0 && (<>
-              <div className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-divider bg-surface">
-                      <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('common.speciesLabel')}</th>
-                      <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('targets.stemsPerWeek')}</th>
-                      <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('targets.deliveryWindow')}</th>
-                      <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('common.notesLabel')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map(item => (
-                      <tr
-                        key={item.id}
-                        className={`border-b border-divider last:border-0 hover:bg-surface cursor-pointer transition-colors ${selectedId === item.id ? 'bg-accent-light/30' : ''}`}
-                        onClick={() => setSelectedId(item.id)}
-                        onDoubleClick={() => openEdit(item)}
-                      >
-                        <td className="px-4 py-2.5 text-sm">{item.speciesName}</td>
-                        <td className="px-4 py-2.5 text-sm text-right tabular-nums">{item.stemsPerWeek}</td>
-                        <td className="px-4 py-2.5 text-sm text-text-secondary">{item.startDate} — {item.endDate}</td>
-                        <td className="px-4 py-2.5 text-sm text-text-secondary truncate max-w-[120px]">{item.notes ?? '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <Pagination page={page} pageSize={PAGE_SIZE} total={data.length} onPageChange={setPage} />
-            </>)}
-          </div>
-
-          {/* Right: Forecast panel */}
-          <div className="lg:w-72 shrink-0">
-            <div className="border border-divider rounded-xl bg-bg shadow-sm p-4">
-              <h3 className="text-sm font-medium text-text-primary mb-3">{t('targets.forecast')}</h3>
-
-              {!selectedId && (
-                <p className="text-text-secondary text-sm">{t('targets.selectTarget')}</p>
-              )}
-
-              {selectedId && forecastLoading && (
-                <div className="flex justify-center py-4">
-                  <div className="animate-spin h-5 w-5 border-2 border-accent border-t-transparent rounded-full" />
-                </div>
-              )}
-
-              {selectedId && forecast && !forecastLoading && (
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-xs text-text-secondary">{t('targets.totalStems')}</p>
-                    <p className="text-lg font-semibold tabular-nums">{forecast.totalStemsNeeded.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-text-secondary">{t('targets.plantsNeeded')}</p>
-                    <p className="text-lg font-semibold tabular-nums">{forecast.plantsNeeded.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-text-secondary">{t('targets.seedsNeeded')}</p>
-                    <p className="text-lg font-semibold tabular-nums">{forecast.seedsNeeded.toLocaleString()}</p>
-                  </div>
-                  {forecast.suggestedSowDate && (
-                    <div>
-                      <p className="text-xs text-text-secondary">{t('targets.suggestedSow')}</p>
-                      <p className="text-sm font-medium">{forecast.suggestedSowDate}</p>
-                    </div>
-                  )}
-                  {forecast.warnings.length > 0 && (
-                    <div className="space-y-1">
-                      {forecast.warnings.map((w, i) => (
-                        <div key={i} className="px-3 py-2 rounded-lg bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs">
-                          {w}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+        {targets.length === 0 && (
+          <div style={{ padding: '40px 0', textAlign: 'center', borderBottom: '1px solid var(--color-ink)', borderTop: '1px solid var(--color-ink)' }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7 }}>
+              {t('targets.noTargets')}
             </div>
           </div>
-        </div>
+        )}
+
+        {targets.length > 0 && (
+          <>
+            {/* Header row */}
+            <div style={headerStyle}>
+              <span>№</span>
+              <span>{t('targets.col.species')}</span>
+              <span>{t('targets.col.stemsPerWeek')}</span>
+              <span>{t('targets.col.window')}</span>
+              <span />
+            </div>
+
+            {/* Body rows */}
+            {paged.map((target, i) => (
+              <div key={target.id}>
+                <button
+                  onClick={() => toggle(target.id)}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: TEMPLATE,
+                    gap: 18,
+                    padding: '14px 0',
+                    borderBottom: expanded.has(target.id)
+                      ? 'none'
+                      : '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                    width: '100%',
+                    background: 'transparent',
+                    border: 'none',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    alignItems: 'center',
+                  }}
+                  className="ledger-row"
+                >
+                  <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-mustard)' }}>
+                    {String(page * PAGE_SIZE + i + 1).padStart(2, '0')}
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>{target.speciesName}</span>
+                  <span style={{ fontVariantNumeric: 'tabular-nums', fontFamily: 'var(--font-display)', fontSize: 20 }}>
+                    {target.stemsPerWeek}
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>
+                    {target.startDate} — {target.endDate}
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>
+                    {expanded.has(target.id) ? '▼' : '▶'}
+                  </span>
+                </button>
+
+                {expanded.has(target.id) && (
+                  <div style={{
+                    padding: '16px 78px',
+                    background: 'color-mix(in srgb, var(--color-ink) 3%, transparent)',
+                    borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7 }}>
+                        {t('targets.forecast')}
+                      </div>
+                      <button
+                        onClick={() => openEdit(target)}
+                        style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-clay)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                      >
+                        {t('targets.edit')} →
+                      </button>
+                    </div>
+                    <ForecastPanel targetId={target.id} />
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {/* Pagination (simple) */}
+            {targets.length > PAGE_SIZE && (
+              <div style={{ display: 'flex', gap: 8, marginTop: 16, fontFamily: 'var(--font-mono)', fontSize: 10 }}>
+                <button
+                  onClick={() => setPage(p => Math.max(0, p - 1))}
+                  disabled={page === 0}
+                  style={{ background: 'transparent', border: 'none', cursor: page === 0 ? 'default' : 'pointer', opacity: page === 0 ? 0.3 : 1 }}
+                >
+                  ←
+                </button>
+                <span>{page + 1} / {Math.ceil(targets.length / PAGE_SIZE)}</span>
+                <button
+                  onClick={() => setPage(p => Math.min(Math.ceil(targets.length / PAGE_SIZE) - 1, p + 1))}
+                  disabled={(page + 1) * PAGE_SIZE >= targets.length}
+                  style={{ background: 'transparent', border: 'none', cursor: (page + 1) * PAGE_SIZE >= targets.length ? 'default' : 'pointer', opacity: (page + 1) * PAGE_SIZE >= targets.length ? 0.3 : 1 }}
+                >
+                  →
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       <Dialog open={showAdd} onClose={() => { setShowAdd(false); resetForm() }} title={t('targets.new')} actions={

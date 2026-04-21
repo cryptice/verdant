@@ -618,7 +618,12 @@
     "noRecipes": "Inga recept",
     "deleteRecipe": "Radera recept",
     "deleteConfirm": "Radera detta recept?",
-    "stems": "{{count}} stjälkar"
+    "stems": "{{count}} stjälkar",
+    "col": {
+      "name": "Namn",
+      "price": "Pris",
+      "items": "Ingredienser"
+    }
   },
   "roles": {
     "FLOWER": "Blomma",
@@ -651,7 +656,14 @@
     "totalSeeds": "Totalt frön",
     "generateTasks": "Skapa uppgifter",
     "tasksGenerated": "{{count}} uppgifter skapade",
-    "noSchedules": "Inga scheman"
+    "noSchedules": "Inga scheman",
+    "col": {
+      "species": "Art",
+      "firstSow": "Första sådd",
+      "interval": "Intervall",
+      "total": "Omgångar",
+      "generate": "Generera"
+    }
   },
   "targets": {
     "title": "Produktionsmål",
@@ -667,7 +679,19 @@
     "plantsNeeded": "Plantor behövs",
     "seedsNeeded": "Frön behövs",
     "suggestedSow": "Föreslaget sådatum",
-    "selectTarget": "Välj ett mål för att se prognos"
+    "selectTarget": "Välj ett mål för att se prognos",
+    "col": {
+      "species": "Art",
+      "stemsPerWeek": "Stjälkar/v",
+      "window": "Leveransperiod"
+    },
+    "forecastPanel": {
+      "totalStems": "Totalt stjälkar",
+      "plants": "Plantor",
+      "seeds": "Frön",
+      "sowDate": "Sådatum",
+      "loading": "Laddar prognos…"
+    }
   },
   "analytics": {
     "title": "Analys",
