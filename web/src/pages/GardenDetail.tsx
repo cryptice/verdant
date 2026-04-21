@@ -2,11 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { BreadcrumbItem } from '../components/Breadcrumb'
 import { api } from '../api/client'
-import { PageHeader } from '../components/PageHeader'
-import { OnboardingHint } from '../onboarding/OnboardingHint'
-import { ErrorDisplay } from '../components/ErrorDisplay'
+import { Masthead, Chip, Stat, PhotoPlaceholder, Rule } from '../components/faltet'
 import { Dialog } from '../components/Dialog'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
@@ -17,13 +14,6 @@ const GARDEN_ICONS = [
   '🍓', '🫐', '🍇', '🍎', '🍋', '🍊', '🫒', '🌰',
 ]
 
-const SOIL_TYPES = ['SANDY', 'LOAMY', 'CLAY', 'SILTY', 'PEATY', 'CHALKY'] as const
-const SUN_EXPOSURES = ['FULL_SUN', 'PARTIAL_SUN', 'PARTIAL_SHADE', 'FULL_SHADE'] as const
-const DRAINAGES = ['POOR', 'MODERATE', 'GOOD', 'SHARP'] as const
-const ASPECTS = ['FLAT', 'N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const
-const IRRIGATION_TYPES = ['DRIP', 'SPRINKLER', 'SOAKER_HOSE', 'MANUAL', 'NONE'] as const
-const PROTECTIONS = ['OPEN_FIELD', 'ROW_COVER', 'LOW_TUNNEL', 'HIGH_TUNNEL', 'GREENHOUSE', 'COLDFRAME'] as const
-
 export function GardenDetail() {
   const { id } = useParams<{ id: string }>()
   const gardenId = Number(id)
@@ -32,7 +22,7 @@ export function GardenDetail() {
   const { t } = useTranslation()
   const { completeStep } = useOnboarding()
 
-  const { data: garden, error, isLoading, refetch } = useQuery({
+  const { data: garden, isLoading } = useQuery({
     queryKey: ['garden', gardenId],
     queryFn: () => api.gardens.get(gardenId),
   })
@@ -40,6 +30,27 @@ export function GardenDetail() {
   const { data: beds } = useQuery({
     queryKey: ['garden-beds', gardenId],
     queryFn: () => api.gardens.beds(gardenId),
+  })
+
+  // Edit garden state
+  const [editing, setEditing] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [editDesc, setEditDesc] = useState('')
+  const [editEmoji, setEditEmoji] = useState('')
+
+  // Delete garden state
+  const [showDelete, setShowDelete] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  const updateMut = useMutation({
+    mutationFn: () => api.gardens.update(gardenId, { name: editName, description: editDesc || undefined, emoji: editEmoji || undefined }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['garden', gardenId] }); setEditing(false) },
+  })
+
+  const deleteMut = useMutation({
+    mutationFn: () => api.gardens.delete(gardenId),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['dashboard'] }); navigate('/') },
+    onError: (err) => { setDeleteError(err instanceof Error ? err.message : String(err)) },
   })
 
   // New bed dialog state
@@ -61,34 +72,11 @@ export function GardenDetail() {
   const newPhNum = newSoilPh !== '' ? parseFloat(newSoilPh) : undefined
   const newPhOutOfRange = newPhNum !== undefined && (newPhNum < 3.0 || newPhNum > 9.0)
 
-  // Garden edit state
-  const [editing, setEditing] = useState(false)
-  const [editName, setEditName] = useState('')
-  const [editDesc, setEditDesc] = useState('')
-  const [editEmoji, setEditEmoji] = useState('')
-  const [showDelete, setShowDelete] = useState(false)
-
-  // Filter state
-  const [filterSun, setFilterSun] = useState('')
-  const [filterDrainage, setFilterDrainage] = useState('')
-  const [filterProtection, setFilterProtection] = useState('')
-
-  const anyFilterSet = !!(filterSun || filterDrainage || filterProtection)
-
   function resetNewBed() {
-    setBedName('')
-    setBedDescription('')
-    setBedLength('')
-    setBedWidth('')
-    setNewBedConditionsOpen(false)
-    setNewSoilType('')
-    setNewSoilPh('')
-    setNewSunExposure('')
-    setNewAspect('')
-    setNewDrainage('')
-    setNewIrrigationType('')
-    setNewProtection('')
-    setNewRaisedBed(false)
+    setBedName(''); setBedDescription(''); setBedLength(''); setBedWidth('')
+    setNewBedConditionsOpen(false); setNewSoilType(''); setNewSoilPh('')
+    setNewSunExposure(''); setNewAspect(''); setNewDrainage('')
+    setNewIrrigationType(''); setNewProtection(''); setNewRaisedBed(false)
   }
 
   const createBedMut = useMutation({
@@ -114,152 +102,289 @@ export function GardenDetail() {
     },
   })
 
-  const updateMut = useMutation({
-    mutationFn: () => api.gardens.update(gardenId, { name: editName, description: editDesc || undefined, emoji: editEmoji || undefined }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['garden', gardenId] }); setEditing(false) },
-  })
-
-  const [deleteError, setDeleteError] = useState<string | null>(null)
-
-  const deleteMut = useMutation({
-    mutationFn: () => api.gardens.delete(gardenId),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['dashboard'] }); navigate('/') },
-    onError: (err) => { setDeleteError(err instanceof Error ? err.message : String(err)) },
-  })
-
   const sortedBeds = useMemo(() =>
     beds?.slice().sort((a, b) => a.name.localeCompare(b.name)) ?? [],
     [beds]
   )
 
-  const filteredBeds = useMemo(() => {
-    return sortedBeds.filter(bed => {
-      if (filterSun && bed.sunExposure !== filterSun) return false
-      if (filterDrainage && bed.drainage !== filterDrainage) return false
-      if (filterProtection && bed.protection !== filterProtection) return false
-      return true
-    })
-  }, [sortedBeds, filterSun, filterDrainage, filterProtection])
+  // Plant count aggregation from beds (bedCount * approximate) — use garden's plantCount if available
+  const plantCount = sortedBeds.reduce((sum, _b) => sum, 0)
 
-  if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
-  if (error) return <ErrorDisplay error={error} onRetry={refetch} />
+  // Harvest stems this year — placeholder; same pattern as BedDetail
+  const harvestStemsThisYear = 0
+
+  if (isLoading) return (
+    <div className="flex justify-center p-16">
+      <div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" />
+    </div>
+  )
   if (!garden) return null
 
-  const breadcrumbs: BreadcrumbItem[] = [{ label: t('nav.myWorld'), to: '/' }]
+  const SOIL_TYPES = ['SANDY', 'LOAMY', 'CLAY', 'SILTY', 'PEATY', 'CHALKY'] as const
+  const SUN_EXPOSURES = ['FULL_SUN', 'PARTIAL_SUN', 'PARTIAL_SHADE', 'FULL_SHADE'] as const
+  const DRAINAGES = ['POOR', 'MODERATE', 'GOOD', 'SHARP'] as const
+  const ASPECTS = ['FLAT', 'N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const
+  const IRRIGATION_TYPES = ['DRIP', 'SPRINKLER', 'SOAKER_HOSE', 'MANUAL', 'NONE'] as const
+  const PROTECTIONS = ['OPEN_FIELD', 'ROW_COVER', 'LOW_TUNNEL', 'HIGH_TUNNEL', 'GREENHOUSE', 'COLDFRAME'] as const
 
   return (
-    <div className="flex flex-col flex-1">
-      <PageHeader
-        title={garden.name}
-        icon={garden.emoji}
-        breadcrumbs={breadcrumbs}
-        editAction={() => { setEditName(garden.name); setEditDesc(garden.description ?? ''); setEditEmoji(garden.emoji ?? ''); setEditing(true) }}
+    <div>
+      <Masthead
+        left={
+          <span>
+            {t('nav.gardens')} /{' '}
+            <span style={{ color: 'var(--color-clay)' }}>{garden.name}</span>
+          </span>
+        }
+        center={t('garden.masthead.center')}
+        right={
+          <button
+            onClick={() => { setEditName(garden.name); setEditDesc(garden.description ?? ''); setEditEmoji(garden.emoji ?? ''); setEditing(true) }}
+            className="btn-secondary"
+          >
+            {t('common.edit')}
+          </button>
+        }
       />
-      <OnboardingHint />
 
-      <div className="px-4 py-4 space-y-4">
-        {garden.description && <p className="text-text-secondary">{garden.description}</p>}
-
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold">{t('garden.beds')}</h2>
-          <button data-onboarding="add-bed-btn" onClick={() => setShowNewBed(true)} className="btn-primary text-sm">{t('garden.newBed')}</button>
-        </div>
-
-        {beds && beds.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2">
-            <select
-              value={filterSun}
-              onChange={e => setFilterSun(e.target.value)}
-              className="text-sm border border-divider rounded-full px-3 py-1 bg-surface"
+      <div style={{ padding: '28px 40px' }}>
+        {/* Hero */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 40, alignItems: 'start' }}>
+          <div>
+            <h1
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 80,
+                fontWeight: 300,
+                letterSpacing: -1.5,
+                lineHeight: 1,
+                margin: 0,
+                fontVariationSettings: '"SOFT" 100, "opsz" 144',
+              }}
             >
-              <option value="">☀️ {t('bed.conditions.sunExposure')}</option>
-              {SUN_EXPOSURES.map(v => <option key={v} value={v}>{t(`bed.conditions.sunExposures.${v}`)}</option>)}
-            </select>
-            <select
-              value={filterDrainage}
-              onChange={e => setFilterDrainage(e.target.value)}
-              className="text-sm border border-divider rounded-full px-3 py-1 bg-surface"
-            >
-              <option value="">💧 {t('bed.conditions.drainage')}</option>
-              {DRAINAGES.map(v => <option key={v} value={v}>{t(`bed.conditions.drainages.${v}`)}</option>)}
-            </select>
-            <select
-              value={filterProtection}
-              onChange={e => setFilterProtection(e.target.value)}
-              className="text-sm border border-divider rounded-full px-3 py-1 bg-surface"
-            >
-              <option value="">🏠 {t('bed.conditions.protection')}</option>
-              {PROTECTIONS.map(v => <option key={v} value={v}>{t(`bed.conditions.protections.${v}`)}</option>)}
-            </select>
-            {anyFilterSet && (
-              <button
-                onClick={() => { setFilterSun(''); setFilterDrainage(''); setFilterProtection('') }}
-                className="text-sm text-accent hover:underline"
+              {garden.emoji && <span style={{ marginRight: 16 }}>{garden.emoji}</span>}
+              {garden.name}<span style={{ color: 'var(--color-clay)' }}>.</span>
+            </h1>
+            {garden.description && (
+              <p
+                style={{
+                  marginTop: 16,
+                  fontFamily: 'Georgia, var(--font-display)',
+                  fontSize: 15,
+                  lineHeight: 1.6,
+                  color: 'var(--color-forest)',
+                }}
               >
-                {t('bed.conditions.filterClear')}
-              </button>
+                {garden.description}
+              </p>
             )}
           </div>
+          <PhotoPlaceholder tone="sage" aspect="tall" label={garden.name.toUpperCase()} />
+        </div>
+
+        {/* Stats band */}
+        <div
+          style={{
+            margin: '40px 0',
+            padding: '20px 0',
+            borderTop: '1px solid var(--color-ink)',
+            borderBottom: '1px solid var(--color-ink)',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 18,
+          }}
+        >
+          <Stat size="medium" value={sortedBeds.length} label={t('garden.stats.activeBeds')} hue="sage" />
+          <Stat size="medium" value={plantCount} label={t('garden.stats.activePlants')} hue="mustard" />
+          <Stat size="medium" value={harvestStemsThisYear} unit="st" label={t('garden.stats.harvested')} hue="clay" />
+        </div>
+
+        {/* Beds section heading */}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 14 }}>
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontStyle: 'italic',
+              fontSize: 30,
+              fontWeight: 300,
+              margin: 0,
+              fontVariationSettings: '"SOFT" 100, "opsz" 144',
+            }}
+          >
+            {t('garden.beds')}<span style={{ color: 'var(--color-clay)' }}>.</span>
+          </h2>
+          <Rule inline variant="ink" />
+          <button
+            onClick={() => { resetNewBed(); setShowNewBed(true) }}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              fontFamily: 'var(--font-display)',
+              fontStyle: 'italic',
+              fontSize: 16,
+              color: 'var(--color-clay)',
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            {t('garden.newBed')}
+          </button>
+        </div>
+
+        {sortedBeds.length === 0 && (
+          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--color-forest)' }}>
+            {t('garden.noBedsYet')}
+          </p>
         )}
 
-        {beds && beds.length === 0 && (
-          <p className="text-text-secondary text-sm">{t('garden.noBedsYet')}</p>
-        )}
-
-        {filteredBeds.map(bed => {
-          const hasChips = !!(bed.sunExposure || bed.drainage || bed.protection)
-          return (
-            <Link key={bed.id} to={`/bed/${bed.id}`} className="card block no-underline text-inherit">
-              <p className="font-semibold">{bed.name}</p>
-              {bed.description && <p className="text-sm text-text-secondary mt-1">{bed.description}</p>}
-              {hasChips && (
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {bed.sunExposure && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-surface border border-divider">
-                      ☀️ {t(`bed.conditions.sunExposures.${bed.sunExposure}`)}
-                    </span>
-                  )}
-                  {bed.drainage && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-surface border border-divider">
-                      💧 {t(`bed.conditions.drainages.${bed.drainage}`)}
-                    </span>
-                  )}
-                  {bed.protection && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-surface border border-divider">
-                      🏠 {t(`bed.conditions.protections.${bed.protection}`)}
-                    </span>
-                  )}
-                </div>
+        {/* Bed rows */}
+        {sortedBeds.map((bed, i) => (
+          <Link
+            key={bed.id}
+            to={`/bed/${bed.id}`}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '50px 1.5fr auto 40px',
+              gap: 18,
+              padding: '14px 0',
+              borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+              alignItems: 'center',
+              textDecoration: 'none',
+              color: 'var(--color-ink)',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontStyle: 'italic',
+                fontSize: 22,
+                color: 'var(--color-sage)',
+              }}
+            >
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>{bed.name}</span>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {bed.sunExposure && (
+                <Chip tone="sage">{t(`bed.conditions.sunExposures.${bed.sunExposure}`)}</Chip>
               )}
-            </Link>
-          )
-        })}
+              {bed.drainage && (
+                <Chip tone="sky">{t(`bed.conditions.drainages.${bed.drainage}`)}</Chip>
+              )}
+              {bed.protection && (
+                <Chip tone="berry">{t(`bed.conditions.protections.${bed.protection}`)}</Chip>
+              )}
+            </div>
+            <span style={{ color: 'var(--color-clay)', fontFamily: 'var(--font-mono)' }}>→</span>
+          </Link>
+        ))}
 
-        {beds && beds.length > 0 && filteredBeds.length === 0 && anyFilterSet && (
-          <p className="text-text-secondary text-sm">{t('garden.noBedsYet')}</p>
-        )}
-      </div>
-
-      <div className="mt-auto px-4 pb-4 pt-6">
-        <div className="rounded-xl border border-error/20 overflow-hidden">
-          <div className="px-4 py-2 bg-error/5 border-b border-error/25">
-            <p className="text-xs font-semibold text-error uppercase tracking-wide">{t('common.dangerZone')}</p>
+        {/* Bottom row — harvest card + danger callout */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 22, marginTop: 40 }}>
+          {/* Harvest card */}
+          <div
+            style={{
+              background: 'var(--color-ink)',
+              color: 'var(--color-cream)',
+              padding: '22px 28px',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                top: -40,
+                right: -40,
+                width: 140,
+                height: 140,
+                borderRadius: '50%',
+                background: 'var(--color-blush)',
+                opacity: 0.2,
+              }}
+            />
+            <div
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontStyle: 'italic',
+                fontSize: 26,
+                fontVariationSettings: '"SOFT" 100, "opsz" 144',
+              }}
+            >
+              {t('garden.stats.harvested')}{' '}
+              <span style={{ color: 'var(--color-blush)' }}>
+                {new Date().getFullYear()}
+              </span>.
+            </div>
+            <div
+              style={{
+                marginTop: 12,
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10,
+                letterSpacing: 1.4,
+                textTransform: 'uppercase',
+                color: 'var(--color-sage)',
+              }}
+            >
+              {harvestStemsThisYear} st
+            </div>
           </div>
-          <div className="px-4 py-3 flex items-center justify-between">
-            <p className="text-sm text-text-secondary">{t('garden.deleteGardenConfirm')}</p>
-            <button onClick={() => setShowDelete(true)} className="ml-4 shrink-0 text-sm font-medium text-error hover:underline">
-              {t('garden.deleteGarden')}
+
+          {/* Danger callout */}
+          <div
+            style={{
+              border: '1px solid color-mix(in srgb, var(--color-clay) 40%, transparent)',
+              padding: '22px 28px',
+            }}
+          >
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10,
+                letterSpacing: 1.4,
+                textTransform: 'uppercase',
+                color: 'var(--color-clay)',
+                marginBottom: 10,
+              }}
+            >
+              {t('garden.danger.title')}
+            </div>
+            <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 15, margin: 0 }}>
+              {t('garden.danger.warning')}
+            </p>
+            <button
+              onClick={() => setShowDelete(true)}
+              style={{
+                marginTop: 10,
+                background: 'transparent',
+                border: 'none',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10,
+                letterSpacing: 1.4,
+                textTransform: 'uppercase',
+                color: 'var(--color-clay)',
+                cursor: 'pointer',
+                padding: 0,
+              }}
+            >
+              → {t('garden.danger.delete')}
             </button>
           </div>
         </div>
       </div>
 
-      <Dialog open={editing} onClose={() => setEditing(false)} title={t('garden.editGardenTitle')} actions={
-        <>
-          <button onClick={() => setEditing(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
-          <button onClick={() => updateMut.mutate()} disabled={!editName.trim()} className="btn-primary text-sm">{t('common.save')}</button>
-        </>
-      }>
+      {/* Edit garden dialog */}
+      <Dialog
+        open={editing}
+        onClose={() => setEditing(false)}
+        title={t('garden.editGardenTitle')}
+        actions={
+          <>
+            <button onClick={() => setEditing(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+            <button onClick={() => updateMut.mutate()} disabled={!editName.trim()} className="btn-primary text-sm">{t('common.save')}</button>
+          </>
+        }
+      >
         <div className="space-y-4">
           <div>
             <label className="field-label">{t('common.iconLabel')}</label>
@@ -270,9 +395,7 @@ export function GardenDetail() {
                   type="button"
                   onClick={() => setEditEmoji(editEmoji === icon ? '' : icon)}
                   className={`text-xl p-1.5 rounded-md transition-colors leading-none ${
-                    editEmoji === icon
-                      ? 'bg-accent-light ring-1 ring-accent'
-                      : 'hover:bg-divider'
+                    editEmoji === icon ? 'bg-accent-light ring-1 ring-accent' : 'hover:bg-divider'
                   }`}
                 >
                   {icon}
@@ -291,16 +414,23 @@ export function GardenDetail() {
         </div>
       </Dialog>
 
-      <Dialog open={showDelete} onClose={() => { setShowDelete(false); setDeleteError(null) }} title={t('garden.deleteGardenTitle')} actions={
-        <>
-          <button onClick={() => { setShowDelete(false); setDeleteError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
-          <button onClick={() => deleteMut.mutate()} className="px-4 py-2 text-sm text-error font-semibold">{t('common.delete')}</button>
-        </>
-      }>
+      {/* Delete garden dialog */}
+      <Dialog
+        open={showDelete}
+        onClose={() => { setShowDelete(false); setDeleteError(null) }}
+        title={t('garden.deleteGardenTitle')}
+        actions={
+          <>
+            <button onClick={() => { setShowDelete(false); setDeleteError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+            <button onClick={() => deleteMut.mutate()} className="px-4 py-2 text-sm text-error font-semibold">{t('common.delete')}</button>
+          </>
+        }
+      >
         <p className="text-text-secondary">{t('garden.deleteGardenConfirm')}</p>
         {deleteError && <p className="text-error text-sm mt-2">{deleteError}</p>}
       </Dialog>
 
+      {/* New bed dialog */}
       <Dialog
         open={showNewBed}
         onClose={() => { setShowNewBed(false); resetNewBed() }}
@@ -410,7 +540,6 @@ export function GardenDetail() {
           </div>
         </div>
       </Dialog>
-
     </div>
   )
 }

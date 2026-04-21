@@ -3,10 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
-import type { BreadcrumbItem } from '../components/Breadcrumb'
-import { PageHeader } from '../components/PageHeader'
+import { Masthead, Chip, Rule } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
-import { StatusBadge } from '../components/StatusBadge'
 import { Dialog } from '../components/Dialog'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
@@ -40,12 +38,6 @@ export function PlantDetail() {
     queryKey: ['bed', plant?.bedId],
     queryFn: () => api.beds.get(plant!.bedId!),
     enabled: !!plant?.bedId,
-  })
-
-  const { data: garden } = useQuery({
-    queryKey: ['garden', bed?.gardenId],
-    queryFn: () => api.gardens.get(bed!.gardenId),
-    enabled: !!bed,
   })
 
   const { data: customers } = useQuery({
@@ -88,7 +80,8 @@ export function PlantDetail() {
       if (eventType === 'POTTED_UP') completeStep('pot_up')
       else if (eventType === 'PLANTED_OUT') completeStep('plant_out')
       else if (eventType === 'HARVESTED') completeStep('record_harvest')
-      setShowAddEvent(false); setEventNotes(''); setEventCount(''); setEventWeight('')
+      setShowAddEvent(false)
+      setEventNotes(''); setEventCount(''); setEventWeight('')
       setEventStemCount(''); setEventStemLength(''); setEventQuality(''); setEventDestination('')
     },
   })
@@ -102,17 +95,13 @@ export function PlantDetail() {
     },
   })
 
-  if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
+  if (isLoading) return (
+    <div className="flex justify-center p-16">
+      <div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" />
+    </div>
+  )
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
   if (!plant) return null
-
-  const breadcrumbs: BreadcrumbItem[] = [{ label: t('nav.myWorld'), to: '/' }]
-  if (garden && bed) {
-    breadcrumbs.push({ label: garden.name, to: `/garden/${garden.id}` })
-    breadcrumbs.push({ label: bed.name, to: `/bed/${bed.id}` })
-  } else if (garden) {
-    breadcrumbs.push({ label: garden.name, to: `/garden/${garden.id}` })
-  }
 
   const eventTypes = [
     'SEEDED', 'POTTED_UP', 'PLANTED_OUT', 'HARVESTED', 'RECOVERED', 'REMOVED', 'NOTE',
@@ -123,77 +112,244 @@ export function PlantDetail() {
   const showWeight = eventType === 'HARVESTED'
   const showHarvestFields = eventType === 'HARVESTED'
 
+  const plantDisplayName = plant.name ?? plant.speciesName ?? t('plant.untitled')
+  const speciesLabel = plant.speciesName ?? ''
+  const bedLabel = bed?.name
+
   return (
     <div>
-      <PageHeader title={plant.name} breadcrumbs={breadcrumbs} />
-
-      <div className="px-4 py-4 space-y-4">
-        <div className="card">
-          <p className="font-bold text-xl">{plant.name}</p>
-          {plant.speciesName && <p className="text-text-secondary mt-1">{plant.speciesName}</p>}
-          <div className="flex gap-2 mt-3 flex-wrap">
-            <StatusBadge status={plant.status} />
-            {plant.seedCount != null && (
-              <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface text-text-secondary">
-                {t('plant.seedCount', { count: plant.seedCount })}
-              </span>
+      <Masthead
+        left={
+          <span>
+            {t('nav.plants')}
+            {speciesLabel && (
+              <> / {speciesLabel}</>
             )}
-            {plant.survivingCount != null && (
-              <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface text-text-secondary">
-                {t('plant.aliveCount', { count: plant.survivingCount })}
-              </span>
+            {' '}/ <span style={{ color: 'var(--color-clay)' }}>{plantDisplayName}</span>
+          </span>
+        }
+      />
+
+      <div style={{ padding: '28px 40px' }}>
+        {/* Hero */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 40, alignItems: 'start' }}>
+          <div>
+            {/* Status + bed chips */}
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+              {plant.status && (
+                <Chip tone="sage">{t(`status.${plant.status}`, { defaultValue: plant.status })}</Chip>
+              )}
+              {bedLabel && <Chip tone="mustard">{bedLabel}</Chip>}
+            </div>
+
+            <h1
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 60,
+                fontWeight: 300,
+                letterSpacing: -1,
+                margin: 0,
+                fontVariationSettings: '"SOFT" 100, "opsz" 144',
+              }}
+            >
+              {plantDisplayName}<span style={{ color: 'var(--color-clay)' }}>.</span>
+            </h1>
+
+            {plant.speciesName && plant.name && plant.name !== plant.speciesName && (
+              <p
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontStyle: 'italic',
+                  fontSize: 18,
+                  color: 'var(--color-clay)',
+                  marginTop: 6,
+                }}
+              >
+                {plant.speciesName}
+              </p>
             )}
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
-          <h2 className="font-bold text-lg">{t('plant.timeline')}</h2>
-          <button onClick={() => setShowDelete(true)} className="text-error text-sm font-medium">{t('plant.deletePlant')}</button>
+        {/* Event timeline section */}
+        <div style={{ marginTop: 40, display: 'flex', alignItems: 'baseline', gap: 12 }}>
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontStyle: 'italic',
+              fontSize: 30,
+              fontWeight: 300,
+              margin: 0,
+              fontVariationSettings: '"SOFT" 100, "opsz" 144',
+            }}
+          >
+            {t('plant.events')}<span style={{ color: 'var(--color-clay)' }}>.</span>
+          </h2>
+          <Rule inline variant="ink" />
+          <button onClick={() => setShowAddEvent(true)} className="btn-secondary">
+            + {t('plant.addEvent')}
+          </button>
+          <button
+            onClick={() => setShowDelete(true)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+              color: 'var(--color-clay)',
+              cursor: 'pointer',
+              marginLeft: 'auto',
+            }}
+          >
+            → {t('plant.deletePlant')}
+          </button>
         </div>
 
         {events && events.length === 0 && (
-          <div className="card text-center py-4">
-            <p className="text-text-secondary text-sm">{t('plant.noEventsYet')}</p>
-          </div>
+          <p
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontStyle: 'italic',
+              color: 'var(--color-forest)',
+              marginTop: 14,
+            }}
+          >
+            {t('plant.noEventsYet')}
+          </p>
         )}
 
-        {[...(events ?? [])].reverse().map(ev => (
-          <div key={ev.id} className="card">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-2">
-                <span>{eventIcons[ev.eventType] ?? '📌'}</span>
-                <span className="font-medium text-sm">{t(`eventType.${ev.eventType}`, { defaultValue: ev.eventType.replace(/_/g, ' ') })}</span>
+        <div style={{ marginTop: 14 }}>
+          {[...(events ?? [])].reverse().map((ev) => (
+            <div
+              key={ev.id}
+              style={{
+                padding: '14px 0',
+                borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 20 }}>{eventIcons[ev.eventType] ?? '📌'}</span>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: 18,
+                      fontWeight: 300,
+                    }}
+                  >
+                    {t(`eventType.${ev.eventType}`, { defaultValue: ev.eventType.replace(/_/g, ' ') })}
+                  </span>
+                  {ev.eventType === 'APPLIED_SUPPLY' && ev.notes && (
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 10,
+                        letterSpacing: 1.4,
+                        textTransform: 'uppercase',
+                        color: 'var(--color-forest)',
+                        opacity: 0.7,
+                      }}
+                    >
+                      {ev.notes}
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 10,
+                      letterSpacing: 1.4,
+                      color: 'var(--color-forest)',
+                      opacity: 0.7,
+                    }}
+                  >
+                    {ev.eventDate}
+                  </span>
+                  <button
+                    onClick={() => setDeleteEventId(ev.id)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 10,
+                      letterSpacing: 1.4,
+                      textTransform: 'uppercase',
+                      color: 'var(--color-clay)',
+                      cursor: 'pointer',
+                      padding: 0,
+                    }}
+                  >
+                    {t('common.delete')}
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-text-secondary">{ev.eventDate}</span>
-                <button onClick={() => setDeleteEventId(ev.id)} className="text-error text-xs">{t('common.delete')}</button>
-              </div>
-            </div>
-            <div className="mt-2 text-sm space-y-1">
-              {ev.plantCount != null && <p>{t('plant.countField')} {ev.plantCount}</p>}
-              {ev.weightGrams != null && <p>{t('plant.weightField')} {ev.weightGrams}g</p>}
-              {ev.quantity != null && <p>{t('plant.quantityField')} {ev.quantity}</p>}
-              {ev.stemCount != null && <p>{t('plant.stemCount')}: {ev.stemCount}</p>}
-              {ev.stemLengthCm != null && <p>{t('plant.stemLength')}: {ev.stemLengthCm} cm</p>}
-              {ev.qualityGrade && <p>{t('plant.qualityGrade')}: {ev.qualityGrade}</p>}
-              {ev.customerName && <p>{t('plant.destination')}: {ev.customerName}</p>}
-              {ev.notes && <p className="text-text-secondary">{ev.notes}</p>}
-              {ev.imageUrl && <img src={ev.imageUrl} alt={t('common.image')} className="rounded-lg mt-2 max-h-40 object-cover" />}
-            </div>
-          </div>
-        ))}
 
-        <button onClick={() => setShowAddEvent(true)} className="btn-primary w-full">{t('plant.addEvent')}</button>
+              <div
+                style={{
+                  marginTop: 6,
+                  paddingLeft: 30,
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 15,
+                  color: 'var(--color-forest)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                }}
+              >
+                {ev.plantCount != null && (
+                  <span>{t('plant.countField')} {ev.plantCount}</span>
+                )}
+                {ev.weightGrams != null && (
+                  <span>{t('plant.weightField')} {ev.weightGrams}g</span>
+                )}
+                {ev.quantity != null && ev.eventType === 'APPLIED_SUPPLY' && (
+                  <span>{t('plant.quantityField')} {ev.quantity}</span>
+                )}
+                {ev.stemCount != null && (
+                  <span>{t('plant.stemCount')}: {ev.stemCount}</span>
+                )}
+                {ev.stemLengthCm != null && (
+                  <span>{t('plant.stemLength')}: {ev.stemLengthCm} cm</span>
+                )}
+                {ev.qualityGrade && (
+                  <span>{t('plant.qualityGrade')}: {ev.qualityGrade}</span>
+                )}
+                {ev.customerName && (
+                  <span>{t('plant.destination')}: {ev.customerName}</span>
+                )}
+                {ev.notes && ev.eventType !== 'APPLIED_SUPPLY' && (
+                  <span style={{ fontStyle: 'italic', opacity: 0.8 }}>{ev.notes}</span>
+                )}
+                {ev.imageUrl && (
+                  <img
+                    src={ev.imageUrl}
+                    alt={t('common.image')}
+                    style={{ borderRadius: 6, marginTop: 6, maxHeight: 160, objectFit: 'cover' }}
+                  />
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <Dialog open={showAddEvent} onClose={() => setShowAddEvent(false)} title={t('plant.addEventTitle')} actions={
-        <>
-          <button onClick={() => setShowAddEvent(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
-          <button onClick={() => addEventMut.mutate()} disabled={addEventMut.isPending} className="btn-primary text-sm">
-            {addEventMut.isPending ? t('common.saving') : t('common.save')}
-          </button>
-        </>
-      }>
+      {/* Add event dialog */}
+      <Dialog
+        open={showAddEvent}
+        onClose={() => setShowAddEvent(false)}
+        title={t('plant.addEventTitle')}
+        actions={
+          <>
+            <button onClick={() => setShowAddEvent(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+            <button onClick={() => addEventMut.mutate()} disabled={addEventMut.isPending} className="btn-primary text-sm">
+              {addEventMut.isPending ? t('common.saving') : t('common.save')}
+            </button>
+          </>
+        }
+      >
         <div className="space-y-4">
           <div>
             <label className="field-label">{t('plant.eventTypeLabel')}</label>
@@ -262,21 +418,38 @@ export function PlantDetail() {
         </div>
       </Dialog>
 
-      <Dialog open={showDelete} onClose={() => setShowDelete(false)} title={t('plant.deletePlantTitle')} actions={
-        <>
-          <button onClick={() => setShowDelete(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
-          <button onClick={() => deletePlantMut.mutate()} className="px-4 py-2 text-sm text-error font-semibold">{t('common.delete')}</button>
-        </>
-      }>
+      {/* Delete plant dialog */}
+      <Dialog
+        open={showDelete}
+        onClose={() => setShowDelete(false)}
+        title={t('plant.deletePlantTitle')}
+        actions={
+          <>
+            <button onClick={() => setShowDelete(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+            <button onClick={() => deletePlantMut.mutate()} className="px-4 py-2 text-sm text-error font-semibold">{t('common.delete')}</button>
+          </>
+        }
+      >
         <p className="text-text-secondary">{t('plant.deletePlantConfirm')}</p>
       </Dialog>
 
-      <Dialog open={deleteEventId !== null} onClose={() => setDeleteEventId(null)} title={t('plant.deleteEventTitle')} actions={
-        <>
-          <button onClick={() => setDeleteEventId(null)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
-          <button onClick={() => deleteEventId && deleteEventMut.mutate(deleteEventId)} className="px-4 py-2 text-sm text-error font-semibold">{t('common.delete')}</button>
-        </>
-      }>
+      {/* Delete event dialog */}
+      <Dialog
+        open={deleteEventId !== null}
+        onClose={() => setDeleteEventId(null)}
+        title={t('plant.deleteEventTitle')}
+        actions={
+          <>
+            <button onClick={() => setDeleteEventId(null)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+            <button
+              onClick={() => deleteEventId && deleteEventMut.mutate(deleteEventId)}
+              className="px-4 py-2 text-sm text-error font-semibold"
+            >
+              {t('common.delete')}
+            </button>
+          </>
+        }
+      >
         <p className="text-text-secondary">{t('plant.deleteEventConfirm')}</p>
       </Dialog>
     </div>

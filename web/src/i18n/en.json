@@ -183,7 +183,20 @@
     "newGardenTitle": "New Garden",
     "createGarden": "Create Garden",
     "creatingGarden": "Creating...",
-    "addBed": "Add a bed"
+    "addBed": "Add a bed",
+    "masthead": {
+      "center": "— The Garden Ledger —"
+    },
+    "stats": {
+      "activeBeds": "active beds",
+      "activePlants": "active plants",
+      "harvested": "harvested this year"
+    },
+    "danger": {
+      "title": "Danger zone",
+      "warning": "Permanent deletion. All beds and plants are removed.",
+      "delete": "Delete garden"
+    }
   },
   "bed": {
     "plants": {
@@ -329,7 +342,7 @@
     "countField": "Count:",
     "weightField": "Weight:",
     "quantityField": "Quantity:",
-    "addEvent": "Add Event",
+    "addEvent": "New event",
     "addEventTitle": "Add Event",
     "eventTypeLabel": "Event type",
     "countLabel": "Count",
@@ -342,7 +355,13 @@
     "stemLength": "Stem length (cm)",
     "qualityGrade": "Quality",
     "destination": "Destination",
-    "noneSelected": "None"
+    "noneSelected": "None",
+    "untitled": "Untitled",
+    "events": "Events",
+    "col": {
+      "bed": "Bed",
+      "status": "Status"
+    }
   },
   "species": {
     "title": "Species",

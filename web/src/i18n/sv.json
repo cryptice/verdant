@@ -183,7 +183,20 @@
     "newGardenTitle": "Ny trädgård",
     "createGarden": "Skapa trädgård",
     "creatingGarden": "Skapar...",
-    "addBed": "Lägg till en bädd"
+    "addBed": "Lägg till en bädd",
+    "masthead": {
+      "center": "— Trädgårdsliggaren —"
+    },
+    "stats": {
+      "activeBeds": "aktiva bäddar",
+      "activePlants": "aktiva plantor",
+      "harvested": "årets skörd"
+    },
+    "danger": {
+      "title": "Farozon",
+      "warning": "Permanent radering. Alla bäddar och plantor raderas.",
+      "delete": "Radera trädgård"
+    }
   },
   "bed": {
     "plants": {
@@ -329,7 +342,7 @@
     "countField": "Antal:",
     "weightField": "Vikt:",
     "quantityField": "Kvantitet:",
-    "addEvent": "Lägg till händelse",
+    "addEvent": "Ny händelse",
     "addEventTitle": "Lägg till händelse",
     "eventTypeLabel": "Händelsetyp",
     "countLabel": "Antal",
@@ -342,7 +355,13 @@
     "stemLength": "Stjälklängd (cm)",
     "qualityGrade": "Kvalitet",
     "destination": "Destination",
-    "noneSelected": "Ingen"
+    "noneSelected": "Ingen",
+    "untitled": "Utan namn",
+    "events": "Händelser",
+    "col": {
+      "bed": "Bädd",
+      "status": "Status"
+    }
   },
   "species": {
     "title": "Arter",
