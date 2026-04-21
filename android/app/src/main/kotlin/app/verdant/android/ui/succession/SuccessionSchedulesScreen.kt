@@ -1,7 +1,12 @@
 package app.verdant.android.ui.succession
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -9,17 +14,39 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Autorenew
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -31,7 +58,18 @@ import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.SuccessionScheduleResponse
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
-import app.verdant.android.ui.theme.verdantTopAppBarColors
+import app.verdant.android.ui.faltet.FaltetEmptyState
+import app.verdant.android.ui.faltet.FaltetFab
+import app.verdant.android.ui.faltet.FaltetListRow
+import app.verdant.android.ui.faltet.FaltetLoadingState
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.FaltetSectionHeader
+import app.verdant.android.ui.theme.FaltetForest
+import app.verdant.android.ui.theme.FaltetInk
+import app.verdant.android.ui.theme.FaltetInkLine40
+import app.verdant.android.ui.theme.FaltetMustard
+import app.verdant.android.ui.theme.FaltetSage
+import app.verdant.android.ui.theme.FaltetSky
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,6 +77,7 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.temporal.WeekFields
 import javax.inject.Inject
 
 data class SuccessionState(
@@ -124,6 +163,34 @@ class SuccessionViewModel @Inject constructor(
     }
 }
 
+// Derive a status bucket from firstSowDate relative to today.
+// Planerad  — first sow is still in the future
+// Sådd      — first sow was within the last 14 days (active sowing window)
+// Utplanterad — first sow was 15–60 days ago
+// Avslutad  — first sow was more than 60 days ago
+private enum class SuccessionBucket(val label: String) {
+    PLANNED("Planerad"),
+    SOWN("Sådd"),
+    PLANTED("Utplanterad"),
+    COMPLETED("Avslutad"),
+}
+
+private fun SuccessionScheduleResponse.bucket(today: LocalDate): SuccessionBucket {
+    val sowDate = runCatching { LocalDate.parse(firstSowDate) }.getOrNull() ?: return SuccessionBucket.PLANNED
+    val daysAgo = today.toEpochDay() - sowDate.toEpochDay()
+    return when {
+        daysAgo < 0 -> SuccessionBucket.PLANNED
+        daysAgo <= 14 -> SuccessionBucket.SOWN
+        daysAgo <= 60 -> SuccessionBucket.PLANTED
+        else -> SuccessionBucket.COMPLETED
+    }
+}
+
+private fun SuccessionScheduleResponse.weekNumber(): Int {
+    val date = runCatching { LocalDate.parse(firstSowDate) }.getOrElse { LocalDate.now() }
+    return date.get(WeekFields.ISO.weekOfWeekBasedYear())
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SuccessionSchedulesScreen(
@@ -142,67 +209,6 @@ fun SuccessionSchedulesScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.succession_schedules)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                colors = verdantTopAppBarColors(),
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { showDialog = true }) {
-                Icon(Icons.Default.Add, stringResource(R.string.new_succession))
-            }
-        },
-    ) { padding ->
-        when {
-            uiState.isLoading -> Box(
-                Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center,
-            ) { CircularProgressIndicator() }
-
-            uiState.error != null && uiState.items.isEmpty() -> {
-                ConnectionErrorState(
-                    onRetry = { viewModel.refresh() },
-                    modifier = Modifier.padding(padding),
-                )
-            }
-
-            uiState.items.isEmpty() -> {
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    Text(
-                        stringResource(R.string.no_successions),
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    )
-                }
-            }
-
-            else -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    items(uiState.items, key = { it.id }) { s ->
-                        SuccessionCard(
-                            schedule = s,
-                            isGenerating = uiState.generatingId == s.id,
-                            onDelete = { viewModel.delete(s.id) },
-                            onGenerate = { viewModel.generate(s.id) },
-                        )
-                    }
-                }
-            }
-        }
-    }
-
     if (showDialog) {
         SuccessionDialog(
             species = uiState.species,
@@ -215,68 +221,114 @@ fun SuccessionSchedulesScreen(
             },
         )
     }
-}
 
-@Composable
-private fun SuccessionCard(
-    schedule: SuccessionScheduleResponse,
-    isGenerating: Boolean,
-    onDelete: () -> Unit,
-    onGenerate: () -> Unit,
-) {
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Text(schedule.speciesName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "${stringResource(R.string.first_sow_date)}: ${schedule.firstSowDate}",
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Plan",
+        mastheadCenter = "Successioner",
+        fab = {
+            FaltetFab(
+                onClick = { showDialog = true },
+                contentDescription = stringResource(R.string.new_succession),
             )
-            Text(
-                "${stringResource(R.string.interval_days)}: ${schedule.intervalDays}",
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            )
-            Text(
-                "${stringResource(R.string.total_successions)}: ${schedule.totalSuccessions}",
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            )
-            Text(
-                "${stringResource(R.string.seeds_per_succession)}: ${schedule.seedsPerSuccession}",
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            )
-            Spacer(Modifier.height(10.dp))
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+        },
+    ) { padding ->
+        when {
+            uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
+
+            uiState.error != null && uiState.items.isEmpty() -> Box(
+                Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center,
             ) {
-                TextButton(
-                    onClick = onDelete,
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                ) { Text(stringResource(R.string.delete)) }
+                ConnectionErrorState(onRetry = { viewModel.refresh() })
+            }
 
-                FilledTonalButton(
-                    onClick = onGenerate,
-                    enabled = !isGenerating,
-                ) {
-                    if (isGenerating) {
-                        CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                    } else {
-                        Icon(Icons.Default.Autorenew, null, Modifier.size(18.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.generate_tasks))
+            uiState.items.isEmpty() -> FaltetEmptyState(
+                headline = "Inga successioner",
+                subtitle = "Planera din första succession.",
+                modifier = Modifier.padding(padding),
+            )
+
+            else -> {
+                val today = LocalDate.now()
+                val grouped = remember(uiState.items) {
+                    val bucketOrder = SuccessionBucket.entries
+                    uiState.items
+                        .groupBy { it.bucket(today) }
+                        .toSortedMap(compareBy { bucketOrder.indexOf(it) })
+                }
+
+                LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+                    grouped.forEach { (bucket, schedules) ->
+                        item(key = "header_${bucket.name}") {
+                            FaltetSectionHeader(label = bucket.label)
+                        }
+                        items(schedules, key = { it.id }) { schedule ->
+                            SuccessionFaltetRow(
+                                schedule = schedule,
+                                bucket = bucket,
+                                isGenerating = uiState.generatingId == schedule.id,
+                                onDelete = { viewModel.delete(schedule.id) },
+                                onGenerate = { viewModel.generate(schedule.id) },
+                            )
+                        }
                     }
+                    item { Spacer(Modifier.height(80.dp)) }
                 }
             }
         }
     }
+
+    // Snackbar rendered outside scaffold to float above FAB
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+        SnackbarHost(snackbarHostState)
+    }
+}
+
+@Composable
+private fun SuccessionFaltetRow(
+    schedule: SuccessionScheduleResponse,
+    bucket: SuccessionBucket,
+    isGenerating: Boolean,
+    onDelete: () -> Unit,
+    onGenerate: () -> Unit,
+) {
+    val dotColor = when (bucket) {
+        SuccessionBucket.PLANNED -> FaltetSky
+        SuccessionBucket.SOWN -> FaltetMustard
+        SuccessionBucket.PLANTED -> FaltetSage
+        SuccessionBucket.COMPLETED -> FaltetInkLine40
+    }
+
+    FaltetListRow(
+        title = schedule.speciesName,
+        meta = "Vecka ${schedule.weekNumber()} · ${bucket.label}",
+        leading = {
+            Box(
+                Modifier
+                    .size(10.dp)
+                    .drawBehind { drawCircle(dotColor) }
+            )
+        },
+        stat = {
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    text = schedule.seedsPerSuccession.toString(),
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 16.sp,
+                    color = FaltetInk,
+                )
+                Text(
+                    text = " ST",
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 9.sp,
+                    letterSpacing = 1.2.sp,
+                    color = FaltetForest,
+                )
+            }
+        },
+        actions = null,
+        onClick = {},
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -324,9 +376,9 @@ private fun SuccessionDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.new_succession)) },
         text = {
-            Column(
+            androidx.compose.foundation.layout.Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
             ) {
                 ExposedDropdownMenuBox(
                     expanded = speciesExpanded,
@@ -337,7 +389,7 @@ private fun SuccessionDialog(
                         onValueChange = {},
                         readOnly = true,
                         label = { Text(stringResource(R.string.species)) },
-                        modifier = Modifier.fillMaxWidth().menuAnchor(),
+                        modifier = Modifier.fillMaxSize().menuAnchor(),
                         shape = RoundedCornerShape(12.dp),
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(speciesExpanded) },
                     )
@@ -359,12 +411,12 @@ private fun SuccessionDialog(
                     onValueChange = { firstSow = it },
                     label = { Text(stringResource(R.string.first_sow_date)) },
                     readOnly = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxSize(),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true,
                     trailingIcon = {
                         IconButton(onClick = { showDatePicker = true }) {
-                            Icon(Icons.Default.CalendarMonth, null)
+                            androidx.compose.material3.Icon(Icons.Default.CalendarMonth, null)
                         }
                     },
                 )
@@ -373,7 +425,7 @@ private fun SuccessionDialog(
                     value = interval,
                     onValueChange = { interval = it.filter { c -> c.isDigit() } },
                     label = { Text(stringResource(R.string.interval_days)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxSize(),
                     shape = RoundedCornerShape(12.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
@@ -382,7 +434,7 @@ private fun SuccessionDialog(
                     value = total,
                     onValueChange = { total = it.filter { c -> c.isDigit() } },
                     label = { Text(stringResource(R.string.total_successions)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxSize(),
                     shape = RoundedCornerShape(12.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
@@ -391,7 +443,7 @@ private fun SuccessionDialog(
                     value = seedsPer,
                     onValueChange = { seedsPer = it.filter { c -> c.isDigit() } },
                     label = { Text(stringResource(R.string.seeds_per_succession)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxSize(),
                     shape = RoundedCornerShape(12.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
@@ -418,7 +470,7 @@ private fun SuccessionDialog(
                 },
             ) {
                 if (saving) {
-                    CircularProgressIndicator(Modifier.size(18.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    CircularProgressIndicator(Modifier.size(18.dp), color = androidx.compose.material3.MaterialTheme.colorScheme.onPrimary)
                 } else {
                     Text(stringResource(R.string.save))
                 }
@@ -428,4 +480,19 @@ private fun SuccessionDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
         },
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SuccessionSchedulesScreenPreview() {
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Plan",
+        mastheadCenter = "Successioner",
+    ) { padding ->
+        FaltetEmptyState(
+            headline = "Inga successioner",
+            subtitle = "Planera din första succession.",
+            modifier = Modifier.padding(padding),
+        )
+    }
 }
