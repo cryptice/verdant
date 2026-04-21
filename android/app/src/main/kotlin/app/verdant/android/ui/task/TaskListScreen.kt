@@ -1,46 +1,52 @@
 package app.verdant.android.ui.task
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Grain
-import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.Park
-import androidx.compose.material.icons.filled.Agriculture
-import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material.icons.filled.Task
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.verdant.android.R
 import app.verdant.android.data.model.ScheduledTaskResponse
-import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.ui.common.ConnectionErrorState
+import app.verdant.android.ui.faltet.FaltetEmptyState
+import app.verdant.android.ui.faltet.FaltetFab
+import app.verdant.android.ui.faltet.FaltetListRow
+import app.verdant.android.ui.faltet.FaltetLoadingState
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.FaltetSectionHeader
+import app.verdant.android.ui.theme.FaltetBerry
+import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetMustard
+import app.verdant.android.ui.theme.FaltetSage
+import app.verdant.android.ui.theme.FaltetSky
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import android.util.Log
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import javax.inject.Inject
 
 private const val TAG = "TaskListScreen"
@@ -87,24 +93,52 @@ class TaskListViewModel @Inject constructor(
     }
 }
 
-private fun activityIcon(type: String): ImageVector = when (type) {
-    "SOW" -> Icons.Default.Grain
-    "POT_UP" -> Icons.Default.Inventory2
-    "PLANT" -> Icons.Default.Park
-    "HARVEST" -> Icons.Default.Agriculture
-    "RECOVER" -> Icons.Default.Shield
-    "DISCARD" -> Icons.Default.Delete
-    else -> Icons.Default.Task
+private fun taskDotColor(activityType: String): Color = when (activityType) {
+    "SOW" -> FaltetMustard
+    "PLANT" -> FaltetSage
+    "HARVEST" -> FaltetClay
+    "FERTILIZE" -> FaltetBerry
+    else -> FaltetSky
 }
 
-private fun activityLabel(type: String): Int = when (type) {
-    "SOW" -> R.string.activity_sow
-    "POT_UP" -> R.string.activity_pot_up
-    "PLANT" -> R.string.activity_plant
-    "HARVEST" -> R.string.activity_harvest
-    "RECOVER" -> R.string.activity_recover
-    "DISCARD" -> R.string.activity_discard
-    else -> R.string.task_activity_type
+private val svDateFormatter = DateTimeFormatter.ofPattern("d MMM", Locale("sv"))
+
+private fun formatDeadline(deadline: String): String = runCatching {
+    LocalDate.parse(deadline).format(svDateFormatter)
+}.getOrElse { deadline }
+
+private data class TaskGroup(val label: String, val tasks: List<ScheduledTaskResponse>)
+
+private fun groupTasks(tasks: List<ScheduledTaskResponse>): List<TaskGroup> {
+    val today = LocalDate.now()
+    val tomorrow = today.plusDays(1)
+    val inSevenDays = today.plusDays(7)
+
+    val overdue = mutableListOf<ScheduledTaskResponse>()
+    val todayList = mutableListOf<ScheduledTaskResponse>()
+    val tomorrowList = mutableListOf<ScheduledTaskResponse>()
+    val thisWeek = mutableListOf<ScheduledTaskResponse>()
+    val later = mutableListOf<ScheduledTaskResponse>()
+
+    for (task in tasks) {
+        val date = runCatching { LocalDate.parse(task.deadline) }.getOrNull()
+        when {
+            date == null -> later.add(task)
+            date.isBefore(today) -> overdue.add(task)
+            date.isEqual(today) -> todayList.add(task)
+            date.isEqual(tomorrow) -> tomorrowList.add(task)
+            date.isBefore(inSevenDays) -> thisWeek.add(task)
+            else -> later.add(task)
+        }
+    }
+
+    return listOf(
+        TaskGroup("Förfallna", overdue),
+        TaskGroup("Idag", todayList),
+        TaskGroup("I morgon", tomorrowList),
+        TaskGroup("Denna vecka", thisWeek),
+        TaskGroup("Senare", later),
+    ).filter { it.tasks.isNotEmpty() }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -117,75 +151,60 @@ fun TaskListScreen(
     viewModel: TaskListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var taskToDelete by remember { mutableStateOf<ScheduledTaskResponse?>(null) }
 
-    // Refresh when returning from create/edit
     LaunchedEffect(Unit) { viewModel.loadTasks() }
 
-    if (taskToDelete != null) {
-        AlertDialog(
-            onDismissRequest = { taskToDelete = null },
-            title = { Text(stringResource(R.string.delete_task)) },
-            text = { Text(stringResource(R.string.delete_task_confirm)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.deleteTask(taskToDelete!!.id)
-                    taskToDelete = null
-                }) { Text(stringResource(R.string.delete)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { taskToDelete = null }) { Text(stringResource(R.string.cancel)) }
-            }
-        )
-    }
+    val groups = remember(uiState.tasks) { groupTasks(uiState.tasks) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.scheduled_tasks)) },
-                colors = verdantTopAppBarColors()
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onCreateTask) {
-                Icon(Icons.Default.Add, stringResource(R.string.create_task))
-            }
-        }
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Arbete",
+        mastheadCenter = "Uppgifter",
+        fab = { FaltetFab(onClick = onCreateTask, contentDescription = "Lägg till uppgift") },
     ) { padding ->
         when {
-            uiState.isLoading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-            uiState.error != null -> {
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    app.verdant.android.ui.common.ConnectionErrorState(onRetry = { viewModel.loadTasks() })
-                }
-            }
-            uiState.tasks.isEmpty() -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        Icons.Default.CalendarMonth,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                    )
-                    Spacer(Modifier.height(16.dp))
-                    Text(stringResource(R.string.no_tasks_yet), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                    Text(stringResource(R.string.tap_plus_to_create_task), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
-                }
-            }
-            else -> LazyColumn(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxSize().padding(padding)
+            uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
+            uiState.error != null -> Box(
+                Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center,
             ) {
-                items(uiState.tasks, key = { it.id }) { task ->
-                    TaskCard(
-                        task = task,
-                        onClick = { onEditTask(task.id) },
-                        onPerform = { onPerformTask(task) },
-                        onDelete = { taskToDelete = task },
-                    )
+                ConnectionErrorState(onRetry = { viewModel.loadTasks() })
+            }
+            uiState.tasks.isEmpty() -> FaltetEmptyState(
+                headline = "Inga uppgifter",
+                subtitle = "Skapa din första uppgift för säsongen.",
+                modifier = Modifier.padding(padding),
+            )
+            else -> LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+                for (group in groups) {
+                    item(key = "header_${group.label}") {
+                        FaltetSectionHeader(label = group.label)
+                    }
+                    items(group.tasks, key = { it.id }) { task ->
+                        val dotColor = taskDotColor(task.activityType)
+                        val title = task.originGroupName ?: task.speciesName ?: "Uppgift"
+                        val meta = buildString {
+                            append(formatDeadline(task.deadline))
+                            val species = task.speciesName
+                            if (species != null && species != title) {
+                                append(" · ")
+                                append(species)
+                            }
+                        }
+                        FaltetListRow(
+                            title = title,
+                            meta = meta,
+                            leading = {
+                                androidx.compose.foundation.layout.Box(
+                                    Modifier
+                                        .size(10.dp)
+                                        .drawBehind { drawCircle(dotColor) }
+                                )
+                            },
+                            stat = null,
+                            actions = null,
+                            onClick = { onEditTask(task.id) },
+                        )
+                    }
                 }
                 item { Spacer(Modifier.height(80.dp)) }
             }
@@ -193,104 +212,49 @@ fun TaskListScreen(
     }
 }
 
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
 @Composable
-private fun TaskCard(
-    task: ScheduledTaskResponse,
-    onClick: () -> Unit,
-    onPerform: () -> Unit,
-    onDelete: () -> Unit,
-) {
-    val today = remember { LocalDate.now() }
-    val deadline = remember(task.deadline) { LocalDate.parse(task.deadline) }
-    val isOverdue = task.status == "PENDING" && deadline.isBefore(today)
-    val isDueToday = task.status == "PENDING" && deadline.isEqual(today)
-    val isCompleted = task.status == "COMPLETED"
-
-    val cardAlpha = if (isCompleted) 0.6f else 1f
-
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isCompleted)
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            else MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    activityIcon(task.activityType),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.primary.copy(alpha = cardAlpha)
+private fun TaskListScreenPreview() {
+    val today = LocalDate.now()
+    val tasks = listOf(
+        FaltetListRow(
+            title = "Ringblomma 'Indian Prince'",
+            meta = "${today.minusDays(2).format(svDateFormatter)} · Calendula",
+            leading = {
+                androidx.compose.foundation.layout.Box(
+                    Modifier.size(10.dp).drawBehind { drawCircle(FaltetMustard) }
                 )
-                Text(
-                    stringResource(activityLabel(task.activityType)),
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = cardAlpha)
+            },
+            onClick = {},
+        ),
+        FaltetListRow(
+            title = "Solros 'Vanilla Ice'",
+            meta = "${today.format(svDateFormatter)} · Helianthus",
+            leading = {
+                androidx.compose.foundation.layout.Box(
+                    Modifier.size(10.dp).drawBehind { drawCircle(FaltetSage) }
                 )
-                Spacer(Modifier.weight(1f))
-                // Deadline badge
-                val deadlineColor = when {
-                    isCompleted -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                    isOverdue -> MaterialTheme.colorScheme.error
-                    isDueToday -> Color(0xFFFF9800)
-                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                }
-                val deadlineText = when {
-                    isOverdue -> stringResource(R.string.task_overdue)
-                    isDueToday -> stringResource(R.string.task_due_today)
-                    else -> task.deadline
-                }
-                Text(deadlineText, fontSize = 12.sp, color = deadlineColor, fontWeight = FontWeight.Medium)
-            }
+            },
+            onClick = {},
+        ),
+        FaltetListRow(
+            title = "Dahlia 'Bishop of Llandaff'",
+            meta = "${today.plusDays(3).format(svDateFormatter)} · Dahlia",
+            leading = {
+                androidx.compose.foundation.layout.Box(
+                    Modifier.size(10.dp).drawBehind { drawCircle(FaltetClay) }
+                )
+            },
+            onClick = {},
+        ),
+    )
 
-            Spacer(Modifier.height(8.dp))
-
-            Text(
-                task.originGroupName ?: task.speciesName ?: "",
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = cardAlpha)
-            )
-
-            Spacer(Modifier.height(4.dp))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                // Progress
-                val statusText = if (isCompleted) {
-                    stringResource(R.string.task_completed)
-                } else {
-                    stringResource(R.string.task_remaining, task.remainingCount, task.targetCount)
-                }
-                Text(statusText, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    if (!isCompleted) {
-                        FilledTonalButton(
-                            onClick = onPerform,
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-                            modifier = Modifier.height(32.dp)
-                        ) {
-                            Text(stringResource(R.string.perform), fontSize = 13.sp)
-                        }
-                    }
-                    IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.Delete, stringResource(R.string.delete), modifier = Modifier.size(18.dp))
-                    }
-                }
-            }
-        }
+    LazyColumn {
+        item { FaltetSectionHeader(label = "Förfallna") }
+        item { tasks[0] }
+        item { FaltetSectionHeader(label = "Idag") }
+        item { tasks[1] }
+        item { FaltetSectionHeader(label = "Denna vecka") }
+        item { tasks[2] }
     }
 }
