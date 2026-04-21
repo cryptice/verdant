@@ -333,6 +333,20 @@ interface VerdantApi {
     @POST("api/supplies/{id}/decrement")
     suspend fun decrementSupply(@Path("id") id: Long, @Body request: DecrementSupplyRequest): Response<Unit>
 
+    // ── Supply Applications ──
+
+    @POST("api/supply-applications")
+    suspend fun createSupplyApplication(@Body req: CreateSupplyApplicationRequest): SupplyApplicationResponse
+
+    @GET("api/supply-applications/bed/{bedId}")
+    suspend fun listSupplyApplicationsByBed(@Path("bedId") bedId: Long, @Query("limit") limit: Int = 20): List<SupplyApplicationResponse>
+
+    @GET("api/supply-applications/garden/{gardenId}")
+    suspend fun listSupplyApplicationsByGarden(@Path("gardenId") gardenId: Long, @Query("limit") limit: Int = 20): List<SupplyApplicationResponse>
+
+    @GET("api/supply-applications/{id}")
+    suspend fun getSupplyApplication(@Path("id") id: Long): SupplyApplicationResponse
+
     // ── Workflows ──
 
     @GET("api/workflows/species/{speciesId}")

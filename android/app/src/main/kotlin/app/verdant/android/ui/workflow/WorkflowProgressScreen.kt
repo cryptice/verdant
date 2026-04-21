@@ -116,6 +116,7 @@ class WorkflowProgressViewModel @Inject constructor(
 @Composable
 fun WorkflowProgressScreen(
     onBack: () -> Unit,
+    onApplySupplyStep: ((stepId: Long, plantIds: List<Long>, supplyTypeId: Long?, quantity: Double?) -> Unit)? = null,
     viewModel: WorkflowProgressViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -222,11 +223,18 @@ fun WorkflowProgressScreen(
                     }
 
                     items(mainSteps, key = { it.id }) { step ->
+                        val plantIds = uiState.plantCountsByStep[step.id] ?: emptyList()
                         WorkflowStepCard(
                             step = step,
-                            plantIds = uiState.plantCountsByStep[step.id] ?: emptyList(),
+                            plantIds = plantIds,
                             isCompleting = uiState.completingStepId == step.id,
-                            onComplete = { confirmStep = step },
+                            onComplete = {
+                                if (step.eventType == "APPLIED_SUPPLY" && onApplySupplyStep != null) {
+                                    onApplySupplyStep(step.id, plantIds, step.suggestedSupplyTypeId, step.suggestedQuantity)
+                                } else {
+                                    confirmStep = step
+                                }
+                            },
                         )
                     }
 
@@ -243,11 +251,18 @@ fun WorkflowProgressScreen(
                         }
 
                         items(steps.sortedBy { it.sortOrder }, key = { it.id }) { step ->
+                            val plantIds = uiState.plantCountsByStep[step.id] ?: emptyList()
                             WorkflowStepCard(
                                 step = step,
-                                plantIds = uiState.plantCountsByStep[step.id] ?: emptyList(),
+                                plantIds = plantIds,
                                 isCompleting = uiState.completingStepId == step.id,
-                                onComplete = { confirmStep = step },
+                                onComplete = {
+                                    if (step.eventType == "APPLIED_SUPPLY" && onApplySupplyStep != null) {
+                                        onApplySupplyStep(step.id, plantIds, step.suggestedSupplyTypeId, step.suggestedQuantity)
+                                    } else {
+                                        confirmStep = step
+                                    }
+                                },
                             )
                         }
                     }

@@ -331,6 +331,7 @@ data class PlantEventResponse(
     @SerializedName("vaseLifeDays") val vaseLifeDays: Int? = null,
     @SerializedName("harvestDestinationId") val harvestDestinationId: Long? = null,
     @SerializedName("customerName") val customerName: String? = null,
+    @SerializedName("supplyApplicationId") val supplyApplicationId: Long? = null,
     @SerializedName("createdAt") val createdAt: String,
 )
 
@@ -1033,6 +1034,38 @@ data class DecrementSupplyRequest(
     @SerializedName("quantity") val quantity: Double,
 )
 
+data class SupplyApplicationResponse(
+    @SerializedName("id") val id: Long,
+    @SerializedName("bedId") val bedId: Long,
+    @SerializedName("supplyInventoryId") val supplyInventoryId: Long,
+    @SerializedName("supplyTypeId") val supplyTypeId: Long,
+    @SerializedName("supplyTypeName") val supplyTypeName: String,
+    @SerializedName("supplyUnit") val supplyUnit: String,
+    @SerializedName("quantity") val quantity: Double,
+    @SerializedName("targetScope") val targetScope: String,
+    @SerializedName("appliedAt") val appliedAt: String,
+    @SerializedName("appliedByName") val appliedByName: String?,
+    @SerializedName("workflowStepId") val workflowStepId: Long?,
+    @SerializedName("notes") val notes: String?,
+    @SerializedName("plantIds") val plantIds: List<Long>,
+)
+
+data class CreateSupplyApplicationRequest(
+    @SerializedName("bedId") val bedId: Long,
+    @SerializedName("supplyInventoryId") val supplyInventoryId: Long,
+    @SerializedName("quantity") val quantity: Double,
+    @SerializedName("targetScope") val targetScope: String,
+    @SerializedName("plantIds") val plantIds: List<Long>? = null,
+    @SerializedName("workflowStepId") val workflowStepId: Long? = null,
+    @SerializedName("notes") val notes: String? = null,
+)
+
+object SupplyApplicationScope {
+    const val BED = "BED"
+    const val PLANTS = "PLANTS"
+    val values = listOf(BED, PLANTS)
+}
+
 // ── Workflows ──
 
 data class SpeciesWorkflowResponse(
@@ -1052,6 +1085,8 @@ data class SpeciesWorkflowStepResponse(
     @SerializedName("isSideBranch") val isSideBranch: Boolean,
     @SerializedName("sideBranchName") val sideBranchName: String?,
     @SerializedName("sortOrder") val sortOrder: Int,
+    @SerializedName("suggestedSupplyTypeId") val suggestedSupplyTypeId: Long? = null,
+    @SerializedName("suggestedQuantity") val suggestedQuantity: Double? = null,
 )
 
 data class PlantWorkflowProgressResponse(

@@ -514,6 +514,28 @@
     <string name="bed_protection_greenhouse">V\u00E4xthus</string>
     <string name="bed_protection_coldframe">Kallb\u00E4nk</string>
 
+    <!-- Supply Application -->
+    <string name="supply_application_fertilize">Gödsla</string>
+    <string name="supply_application_apply_title">Applicera</string>
+    <string name="supply_application_submit">Applicera</string>
+    <string name="supply_application_submitting">Applicerar…</string>
+    <string name="supply_application_target_label">Applicera på</string>
+    <string name="supply_application_whole_bed">På hela bädden</string>
+    <string name="supply_application_selected_plants">Valda plantor</string>
+    <string name="supply_application_select_plants">Välj plantor</string>
+    <string name="supply_application_select_supply">Välj förnödenhet</string>
+    <string name="supply_application_show_all_categories">Visa alla kategorier</string>
+    <string name="supply_application_remaining">kvar</string>
+    <string name="supply_application_quantity">Mängd</string>
+    <string name="supply_application_insufficient_quantity">Otillräcklig mängd i partiet</string>
+    <string name="supply_application_history_title">Applikationer</string>
+    <string name="supply_application_no_applications">Inga applikationer registrerade än</string>
+    <string name="supply_application_applied_to_bed">Applicerad på bädd</string>
+    <string name="supply_application_applied_to_plants">Applicerad på %1$d plantor</string>
+    <string name="supply_application_event_label">Applicerad förnödenhet</string>
+    <string name="supply_application_suggested_supply">Föreslagen förnödenhet</string>
+    <string name="supply_application_suggested_quantity">Föreslagen mängd</string>
+
     <!-- Analytics -->
     <string name="analytics">Statistik</string>
     <string name="season_summary">S\u00E4songs\u00F6versikt</string>

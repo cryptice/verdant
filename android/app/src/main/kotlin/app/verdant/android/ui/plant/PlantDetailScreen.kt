@@ -325,7 +325,12 @@ private fun EventCard(event: PlantEventResponse, onDelete: () -> Unit) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(eventTypeIcon(event.eventType), null, Modifier.size(20.dp),
                         tint = MaterialTheme.colorScheme.primary)
-                    Text(event.eventType.replace("_", " "), fontWeight = FontWeight.Bold)
+                    val eventLabel = if (event.eventType == "APPLIED_SUPPLY") {
+                        stringResource(R.string.supply_application_event_label)
+                    } else {
+                        event.eventType.replace("_", " ")
+                    }
+                    Text(eventLabel, fontWeight = FontWeight.Bold)
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(event.eventDate, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
@@ -376,5 +381,6 @@ fun eventTypeIcon(type: String) = when (type) {
     "RECOVERED" -> Icons.Default.Shield
     "REMOVED" -> Icons.Default.Delete
     "NOTE" -> Icons.Default.StickyNote2
+    "APPLIED_SUPPLY" -> Icons.Default.WaterDrop
     else -> Icons.Default.Circle
 }

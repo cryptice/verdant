@@ -516,6 +516,28 @@
     <string name="bed_protection_greenhouse">Greenhouse</string>
     <string name="bed_protection_coldframe">Cold frame</string>
 
+    <!-- Supply Application -->
+    <string name="supply_application_fertilize">Fertilize</string>
+    <string name="supply_application_apply_title">Apply</string>
+    <string name="supply_application_submit">Apply</string>
+    <string name="supply_application_submitting">Applying…</string>
+    <string name="supply_application_target_label">Apply to</string>
+    <string name="supply_application_whole_bed">Whole bed</string>
+    <string name="supply_application_selected_plants">Selected plants</string>
+    <string name="supply_application_select_plants">Select plants</string>
+    <string name="supply_application_select_supply">Select supply</string>
+    <string name="supply_application_show_all_categories">Show all categories</string>
+    <string name="supply_application_remaining">remaining</string>
+    <string name="supply_application_quantity">Amount</string>
+    <string name="supply_application_insufficient_quantity">Insufficient quantity in lot</string>
+    <string name="supply_application_history_title">Applications</string>
+    <string name="supply_application_no_applications">No applications recorded yet</string>
+    <string name="supply_application_applied_to_bed">Applied to bed</string>
+    <string name="supply_application_applied_to_plants">Applied to %1$d plants</string>
+    <string name="supply_application_event_label">Applied supply</string>
+    <string name="supply_application_suggested_supply">Suggested supply</string>
+    <string name="supply_application_suggested_quantity">Suggested amount</string>
+
     <!-- Analytics -->
     <string name="analytics">Analytics</string>
     <string name="season_summary">Season summary</string>

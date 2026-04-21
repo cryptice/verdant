@@ -28,6 +28,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
 import app.verdant.android.data.model.BedResponse
+import app.verdant.android.data.model.SupplyApplicationResponse
 import app.verdant.android.data.model.UpdateBedRequest
 import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.model.PlantResponse
@@ -42,6 +43,7 @@ data class BedDetailState(
     val isLoading: Boolean = true,
     val bed: BedResponse? = null,
     val plants: List<PlantResponse> = emptyList(),
+    val applications: List<SupplyApplicationResponse> = emptyList(),
     val error: String? = null,
     val deleted: Boolean = false,
     val expandedGroups: Set<String> = emptySet(),
@@ -66,7 +68,8 @@ class BedDetailViewModel @Inject constructor(
             try {
                 val bed = gardenRepository.getBed(bedId)
                 val plants = gardenRepository.getPlants(bedId)
-                _uiState.value = _uiState.value.copy(isLoading = false, bed = bed, plants = plants)
+                val applications = runCatching { gardenRepository.listSupplyApplicationsByBed(bedId, 10) }.getOrDefault(emptyList())
+                _uiState.value = _uiState.value.copy(isLoading = false, bed = bed, plants = plants, applications = applications)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
             }
@@ -139,6 +142,7 @@ fun BedDetailScreen(
     onPlantClick: (Long) -> Unit,
     onSowInBed: (Long) -> Unit = {},
     onPlantFromTray: (Long) -> Unit = {},
+    onFertilize: (Long) -> Unit = {},
     viewModel: BedDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -299,6 +303,11 @@ fun BedDetailScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     ) { Text(stringResource(R.string.plant_from_tray)) }
+                    OutlinedButton(
+                        onClick = { showAddDialog = false; onFertilize(bedId) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) { Text(stringResource(R.string.supply_application_fertilize)) }
                 }
             },
             confirmButton = {},
@@ -482,6 +491,58 @@ fun BedDetailScreen(
                             }
                         }
                     }
+                    // Applications section
+                    item {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            stringResource(R.string.supply_application_history_title),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+
+                    if (uiState.applications.isEmpty()) {
+                        item {
+                            Text(
+                                stringResource(R.string.supply_application_no_applications),
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                            )
+                        }
+                    } else {
+                        items(uiState.applications, key = { it.id }) { app ->
+                            Card(
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(app.supplyTypeName, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                                        val scopeLabel = if (app.targetScope == "BED") {
+                                            stringResource(R.string.supply_application_applied_to_bed)
+                                        } else {
+                                            stringResource(R.string.supply_application_applied_to_plants, app.plantIds.size)
+                                        }
+                                        Text(
+                                            "${app.quantity} ${app.supplyUnit.lowercase()} · $scopeLabel",
+                                            fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                        )
+                                    }
+                                    Text(
+                                        app.appliedAt.take(10),
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+
                     item { Spacer(Modifier.height(80.dp)) }
                 }
             }

@@ -152,6 +152,24 @@ sealed class Screen(val route: String) {
     data object Discard : Screen("activity/discard/{plantId}?taskId={taskId}") {
         fun create(plantId: Long) = "activity/discard/$plantId"
     }
+    data object ApplySupply : Screen("activity/apply-supply/{bedId}?plantIds={plantIds}&stepId={stepId}&supplyTypeId={supplyTypeId}&quantity={quantity}") {
+        fun create(
+            bedId: Long,
+            plantIds: List<Long> = emptyList(),
+            stepId: Long? = null,
+            supplyTypeId: Long? = null,
+            quantity: Double? = null,
+        ): String {
+            val base = "activity/apply-supply/$bedId"
+            val params = buildList {
+                if (plantIds.isNotEmpty()) add("plantIds=${plantIds.joinToString(",")}")
+                if (stepId != null) add("stepId=$stepId")
+                if (supplyTypeId != null) add("supplyTypeId=$supplyTypeId")
+                if (quantity != null) add("quantity=$quantity")
+            }
+            return if (params.isEmpty()) base else "$base?${params.joinToString("&")}"
+        }
+    }
 }
 
 @HiltViewModel
@@ -458,7 +476,8 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                     onBack = { navController.popBackStack() },
                     onPlantClick = { plantId -> navController.navigate(Screen.PlantDetail.create(plantId)) },
                     onSowInBed = { bedId -> navController.navigate(Screen.Sow.create(bedId = bedId)) },
-                    onPlantFromTray = { bedId -> navController.navigate(Screen.BatchPlantOut.create(bedId)) }
+                    onPlantFromTray = { bedId -> navController.navigate(Screen.BatchPlantOut.create(bedId)) },
+                    onFertilize = { bedId -> navController.navigate(Screen.ApplySupply.create(bedId)) }
                 )
             }
             composable(
@@ -714,6 +733,31 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                 )
             ) {
                 DiscardActivityScreen(onBack = { navController.popBackStack() })
+            }
+            composable(
+                Screen.ApplySupply.route,
+                arguments = listOf(
+                    navArgument("bedId") { type = NavType.LongType },
+                    navArgument("plantIds") { type = NavType.StringType; nullable = true; defaultValue = null },
+                    navArgument("stepId") { type = NavType.StringType; nullable = true; defaultValue = null },
+                    navArgument("supplyTypeId") { type = NavType.StringType; nullable = true; defaultValue = null },
+                    navArgument("quantity") { type = NavType.StringType; nullable = true; defaultValue = null },
+                )
+            ) { backStackEntry ->
+                val bedId = backStackEntry.arguments?.getLong("bedId") ?: 0L
+                val plantIds = backStackEntry.arguments?.getString("plantIds")
+                    ?.split(",")?.mapNotNull { it.toLongOrNull() } ?: emptyList()
+                val stepId = backStackEntry.arguments?.getString("stepId")?.toLongOrNull()
+                val supplyTypeId = backStackEntry.arguments?.getString("supplyTypeId")?.toLongOrNull()
+                val quantity = backStackEntry.arguments?.getString("quantity")?.toDoubleOrNull()
+                ApplySupplyScreen(
+                    bedId = bedId,
+                    initialPlantIds = plantIds,
+                    suggestedSupplyTypeId = supplyTypeId,
+                    suggestedQuantity = quantity,
+                    workflowStepId = stepId,
+                    onBack = { navController.popBackStack() }
+                )
             }
         }
         }
