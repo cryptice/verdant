@@ -53,7 +53,7 @@ fun verdantTopAppBarColors() = TopAppBarDefaults.topAppBarColors(
 fun VerdantTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = FaltetColorScheme,
-        typography  = androidx.compose.material3.Typography(),  // replaced in Task 3
+        typography  = FaltetTypography,
         shapes      = FaltetShapes,
         content     = content,
     )
