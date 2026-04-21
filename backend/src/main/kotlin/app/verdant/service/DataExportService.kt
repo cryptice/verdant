@@ -26,6 +26,7 @@ class DataExportService(
     private val speciesRepository: SpeciesRepository,
     private val speciesGroupRepository: SpeciesGroupRepository,
     private val speciesTagRepository: SpeciesTagRepository,
+    private val supplyApplicationService: SupplyApplicationService,
 ) {
     fun exportUserData(orgId: Long, userId: Long): UserDataExport {
         val user = userRepository.findById(userId) ?: throw NotFoundException("User not found")
@@ -253,6 +254,9 @@ class DataExportService(
             )
         }
 
+        val supplyApplications = gardens.mapNotNull { it.id }
+            .flatMap { supplyApplicationService.findByGarden(it, orgId, limit = Int.MAX_VALUE) }
+
         return UserDataExport(
             user = user.toResponse(),
             gardens = gardens.map { garden ->
@@ -302,6 +306,7 @@ class DataExportService(
             bouquetRecipes = bouquetRecipeResponses,
             successionSchedules = successionScheduleResponses,
             productionTargets = productionTargetResponses,
+            supplyApplications = supplyApplications,
             exportedAt = Instant.now(),
         )
     }

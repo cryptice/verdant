@@ -57,5 +57,6 @@ data class UserDataExport(
     val bouquetRecipes: List<BouquetRecipeResponse>,
     val successionSchedules: List<SuccessionScheduleResponse>,
     val productionTargets: List<ProductionTargetResponse>,
+    val supplyApplications: List<SupplyApplicationResponse>,
     val exportedAt: Instant,
 )
