@@ -174,7 +174,57 @@
     "addBed": "Lägg till en bädd"
   },
   "bed": {
-    "plants": "Växter",
+    "plants": {
+      "title": "Plantor",
+      "metaSuffix": "arter · grupperat",
+      "sow": "Så fröer",
+      "col": {
+        "species": "Art",
+        "variant": "Sort",
+        "count": "Antal",
+        "status": "Status",
+        "timeline": "Sådd → Plant"
+      }
+    },
+    "masthead": { "center": "— Bäddliggaren —" },
+    "sun": {
+      "full_sun": "Full sol",
+      "partial_sun": "Mest sol",
+      "partial_shade": "Halvskugga",
+      "full_shade": "Full skugga"
+    },
+    "irrigation": {
+      "drip": "Droppbevattning",
+      "sprinkler": "Spridare",
+      "soaker_hose": "Droppslang",
+      "manual": "Manuell",
+      "none": "Ingen"
+    },
+    "raised": "Upphöjd",
+    "meta": {
+      "length": "Längd",
+      "width": "Bredd",
+      "orient": "Orient",
+      "area": "Yta"
+    },
+    "stats": {
+      "active": "aktiva plantor",
+      "harvested": "årets skörd",
+      "daysToHarvest": "dagar till skörd",
+      "plants": "plantor totalt",
+      "utilization": "utnyttjande"
+    },
+    "harvest": {
+      "headline": "{{stems}} stjälkar skördade från denna bädd",
+      "season": "säsong {{year}}",
+      "bestWeek": "bästa vecka: v.{{week}}"
+    },
+    "danger": {
+      "title": "Farozon",
+      "warning": "Permanent radering. Alla plantor i bädden tas bort.",
+      "delete": "Radera bädd.{{id}}",
+      "confirm": "Är du säker?"
+    },
     "addPlant": "+ Lägg till växter",
     "deleteBed": "Radera bädd",
     "noPlantsYet": "Inga plantor ännu.",
@@ -296,7 +346,25 @@
     "addSpeciesBtn": "Lägg till art",
     "deleteSpeciesTitle": "Radera art",
     "plantedTitle": "Växter",
-    "noActivePlants": "Inga aktiva plantor i år"
+    "noActivePlants": "Inga aktiva plantor i år",
+    "masthead": {
+      "left": "Art · Redigera",
+      "center": "— Artkortet —"
+    },
+    "fields": {
+      "sortSv": "Sort · SV",
+      "sortEn": "Sort · EN",
+      "sowStart": "Sådd — start",
+      "sowEnd": "Sådd — slut",
+      "plantStart": "Plantera",
+      "harvestStart": "Skörd"
+    },
+    "section": { "cultivation": "§ Odling" },
+    "notes": { "label": "Odlingsanteckningar" },
+    "edit": {
+      "save": "Spara ändringar →",
+      "saving": "Sparar…"
+    }
   },
   "seeds": {
     "title": "utsädeslager",

@@ -174,7 +174,57 @@
     "addBed": "Add a bed"
   },
   "bed": {
-    "plants": "Plants",
+    "plants": {
+      "title": "Plants",
+      "metaSuffix": "species · grouped",
+      "sow": "Sow seeds",
+      "col": {
+        "species": "Species",
+        "variant": "Variant",
+        "count": "Count",
+        "status": "Status",
+        "timeline": "Sown → Planted"
+      }
+    },
+    "masthead": { "center": "— The Bed Ledger —" },
+    "sun": {
+      "full_sun": "Full sun",
+      "partial_sun": "Partial sun",
+      "partial_shade": "Partial shade",
+      "full_shade": "Full shade"
+    },
+    "irrigation": {
+      "drip": "Drip",
+      "sprinkler": "Sprinkler",
+      "soaker_hose": "Soaker hose",
+      "manual": "Manual",
+      "none": "None"
+    },
+    "raised": "Raised",
+    "meta": {
+      "length": "Length",
+      "width": "Width",
+      "orient": "Aspect",
+      "area": "Area"
+    },
+    "stats": {
+      "active": "active plants",
+      "harvested": "harvested this year",
+      "daysToHarvest": "days to harvest",
+      "plants": "plants total",
+      "utilization": "utilization"
+    },
+    "harvest": {
+      "headline": "{{stems}} stems harvested from this bed",
+      "season": "season {{year}}",
+      "bestWeek": "best week: w.{{week}}"
+    },
+    "danger": {
+      "title": "Danger zone",
+      "warning": "Permanent deletion. All plants in this bed are removed.",
+      "delete": "Delete bed.{{id}}",
+      "confirm": "Are you sure?"
+    },
     "addPlant": "+ Add plant",
     "deleteBed": "Delete bed",
     "noPlantsYet": "No plants yet.",
@@ -296,7 +346,25 @@
     "addSpeciesBtn": "Add species",
     "deleteSpeciesTitle": "Delete Species",
     "plantedTitle": "Plants",
-    "noActivePlants": "No active plants this year"
+    "noActivePlants": "No active plants this year",
+    "masthead": {
+      "left": "Species · Edit",
+      "center": "— The Species Card —"
+    },
+    "fields": {
+      "sortSv": "Variant · SV",
+      "sortEn": "Variant · EN",
+      "sowStart": "Sow — start",
+      "sowEnd": "Sow — end",
+      "plantStart": "Plant out",
+      "harvestStart": "Harvest"
+    },
+    "section": { "cultivation": "§ Cultivation" },
+    "notes": { "label": "Cultivation notes" },
+    "edit": {
+      "save": "Save changes →",
+      "saving": "Saving…"
+    }
   },
   "seeds": {
     "title": "Seed Stock",
