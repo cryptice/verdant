@@ -1,5 +1,6 @@
 package app.verdant.repository
 
+import app.verdant.dto.CreateSupplyApplicationRequest
 import app.verdant.entity.Bed
 import app.verdant.entity.Garden
 import app.verdant.entity.Organization
@@ -14,12 +15,15 @@ import app.verdant.entity.SupplyInventory
 import app.verdant.entity.SupplyType
 import app.verdant.entity.SupplyUnit
 import app.verdant.entity.User
+import app.verdant.service.SupplyApplicationService
 import io.agroal.api.AgroalDataSource
 import io.quarkus.test.junit.QuarkusTest
 import jakarta.inject.Inject
+import jakarta.ws.rs.BadRequestException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -39,6 +43,7 @@ class SupplyApplicationRepositoryTest {
     @Inject lateinit var plantRepo: PlantRepository
     @Inject lateinit var plantEventRepo: PlantEventRepository
     @Inject lateinit var userRepo: UserRepository
+    @Inject lateinit var service: SupplyApplicationService
     @Inject lateinit var ds: AgroalDataSource
 
     private var userId: Long = 0
@@ -236,5 +241,36 @@ class SupplyApplicationRepositoryTest {
         assertTrue(plantIds.contains(plant2.id))
         assertTrue(plantIds.contains(plant3.id))
         assertTrue(!plantIds.contains(unrelatedPlant.id))
+    }
+
+    @Test
+    fun `create with quantity exceeding inventory rolls back transaction`() {
+        // Seed a fresh inventory row with quantity = 10
+        val inventory = supplyInventoryRepo.persist(
+            SupplyInventory(orgId = orgId, supplyTypeId = supplyTypeId, quantity = BigDecimal("10.00"))
+        )
+
+        val request = CreateSupplyApplicationRequest(
+            bedId = bedId,
+            supplyInventoryId = inventory.id!!,
+            quantity = BigDecimal("50.00"),
+            targetScope = "BED",
+        )
+
+        assertThrows(BadRequestException::class.java) {
+            service.create(request, orgId, userId)
+        }
+
+        // supply_application table must still be empty
+        val appCount = ds.connection.use { conn ->
+            conn.prepareStatement("SELECT COUNT(*) FROM supply_application").use { ps ->
+                ps.executeQuery().use { rs -> rs.next(); rs.getLong(1) }
+            }
+        }
+        assertEquals(0L, appCount, "supply_application should have no rows after rollback")
+
+        // supply_inventory quantity must remain 10
+        val refreshed = supplyInventoryRepo.findById(inventory.id!!)!!
+        assertEquals(0, BigDecimal("10.00").compareTo(refreshed.quantity), "inventory quantity must remain 10 after rollback")
     }
 }

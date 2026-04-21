@@ -260,6 +260,19 @@ class PlantRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    fun findByIds(ids: List<Long>): List<Plant> {
+        if (ids.isEmpty()) return emptyList()
+        val placeholders = ids.joinToString(",") { "?" }
+        return ds.connection.use { conn ->
+            conn.prepareStatement("SELECT * FROM plant WHERE id IN ($placeholders)").use { ps ->
+                ids.forEachIndexed { i, id -> ps.setLong(i + 1, id) }
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.toPlant()) }
+                }
+            }
+        }
+    }
+
     fun findByGroup(orgId: Long, speciesId: Long, bedId: Long?, plantedDate: java.time.LocalDate?, status: PlantStatus, limit: Int): List<Plant> =
         ds.connection.use { conn ->
             val sql = buildString {
