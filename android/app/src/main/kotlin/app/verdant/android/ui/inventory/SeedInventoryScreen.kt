@@ -1,36 +1,54 @@
 package app.verdant.android.ui.inventory
 
-import androidx.compose.foundation.layout.*
+import android.util.Log
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Inventory
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
-import app.verdant.android.R
-import app.verdant.android.ui.theme.verdantTopAppBarColors
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.SeedInventoryResponse
 import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.ui.common.ConnectionErrorState
+import app.verdant.android.ui.faltet.FaltetEmptyState
+import app.verdant.android.ui.faltet.FaltetListRow
+import app.verdant.android.ui.faltet.FaltetLoadingState
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.theme.FaltetInk
+import app.verdant.android.ui.theme.FaltetSage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import android.util.Log
 import javax.inject.Inject
 
 private const val TAG = "SeedInventoryScreen"
@@ -89,69 +107,38 @@ fun SeedInventoryScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.seed_inventory)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                colors = verdantTopAppBarColors()
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onAddSeeds) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_seeds))
-            }
-        }
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Inventarie",
+        mastheadCenter = "Fröförråd",
     ) { padding ->
         when {
-            uiState.isLoading -> Box(
+            uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
+            uiState.error != null -> Box(
                 Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                ConnectionErrorState(onRetry = { viewModel.refresh() })
             }
-            uiState.error != null -> {
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    app.verdant.android.ui.common.ConnectionErrorState(onRetry = { viewModel.refresh() })
+            uiState.items.isEmpty() -> FaltetEmptyState(
+                headline = "Inga frön ännu",
+                subtitle = "Börja med att lägga till ditt första frö.",
+                modifier = Modifier.padding(padding),
+            )
+            else -> LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+                items(uiState.items, key = { it.id }) { item ->
+                    SeedInventoryFaltetRow(
+                        item = item,
+                        onDelete = { viewModel.delete(item.id) },
+                    )
                 }
-            }
-            uiState.items.isEmpty() -> {
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            Icons.Default.Inventory, null,
-                            Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text(stringResource(R.string.no_seeds_in_inventory), fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                        Spacer(Modifier.height(4.dp))
-                        Text(stringResource(R.string.use_activities_to_add_seeds), fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
-                    }
-                }
-            }
-            else -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding)
-                ) {
-                    items(uiState.items, key = { it.id }) { item ->
-                        SeedInventoryRow(item, onDelete = { viewModel.delete(item.id) })
-                        HorizontalDivider()
-                    }
-                }
+                item { Spacer(Modifier.height(80.dp)) }
             }
         }
     }
 }
 
 @Composable
-private fun SeedInventoryRow(
+private fun SeedInventoryFaltetRow(
     item: SeedInventoryResponse,
     onDelete: () -> Unit,
 ) {
@@ -160,48 +147,89 @@ private fun SeedInventoryRow(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text(stringResource(R.string.delete_seed_batch)) },
-            text = { Text(stringResource(R.string.delete_seed_batch_confirm, item.quantity, item.speciesName)) },
+            title = { Text("Ta bort fröparti") },
+            text = { Text("Ta bort ${item.quantity} frön av ${item.speciesName}?") },
             confirmButton = {
                 TextButton(onClick = { showDeleteConfirm = false; onDelete() }) {
-                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
+                    Text("Ta bort")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) { Text(stringResource(R.string.cancel)) }
-            }
+                TextButton(onClick = { showDeleteConfirm = false }) { Text("Avbryt") }
+            },
         )
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(item.speciesName, fontSize = 15.sp)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    stringResource(R.string.seeds_count_format, item.quantity),
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                item.collectionDate?.let {
-                    Text(stringResource(R.string.collected_label, it), fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                }
-                item.expirationDate?.let {
-                    Text(stringResource(R.string.expires_label, it), fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                }
-            }
+    val meta = buildString {
+        item.collectionDate?.let { append("Skördat $it") }
+        item.expirationDate?.let {
+            if (isNotEmpty()) append(" · ")
+            append("Utgår $it")
         }
-        IconButton(onClick = { showDeleteConfirm = true }) {
-            Icon(
-                Icons.Default.Delete, stringResource(R.string.delete),
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+    }.ifEmpty { null }
+
+    FaltetListRow(
+        leading = null,
+        title = item.speciesName,
+        meta = meta,
+        stat = {
+            Text(
+                text = "${item.quantity} ${item.unitType ?: "st"}",
+                fontFamily = FontFamily.Monospace,
+                fontSize = 14.sp,
+                color = FaltetInk,
             )
+        },
+        actions = {
+            IconButton(onClick = { showDeleteConfirm = true }) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Ta bort",
+                    tint = FaltetSage,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+        },
+        onClick = null,
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SeedInventoryScreenPreview() {
+    val items = listOf(
+        SeedInventoryResponse(
+            id = 1L,
+            speciesId = 10L,
+            speciesName = "Tomat Brandywine",
+            quantity = 45,
+            collectionDate = "2024-08-15",
+            expirationDate = "2026-08-15",
+            createdAt = "2024-08-16T10:00:00",
+        ),
+        SeedInventoryResponse(
+            id = 2L,
+            speciesId = 11L,
+            speciesName = "Basilika Genovese",
+            quantity = 120,
+            collectionDate = null,
+            expirationDate = "2025-12-01",
+            unitType = "frön",
+            createdAt = "2024-09-01T10:00:00",
+        ),
+        SeedInventoryResponse(
+            id = 3L,
+            speciesId = 12L,
+            speciesName = "Zucchini Black Beauty",
+            quantity = 18,
+            collectionDate = "2024-07-20",
+            expirationDate = null,
+            createdAt = "2024-07-21T10:00:00",
+        ),
+    )
+    LazyColumn {
+        items(items, key = { it.id }) { item ->
+            SeedInventoryFaltetRow(item = item, onDelete = {})
         }
     }
 }
