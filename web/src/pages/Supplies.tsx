@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type SupplyTypeResponse, type SupplyInventoryResponse } from '../api/client'
-import { PageHeader } from '../components/PageHeader'
+import { Masthead } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 
@@ -164,7 +164,16 @@ function mlWarning(value: unknown, minMl: number, maxMl: number, t: (key: string
 
 function Warning({ message }: { message: string | null }) {
   if (!message) return null
-  return <p className="text-xs text-orange-600 mt-0.5">{message}</p>
+  return (
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-clay)' }}>
+        ⚠
+      </span>
+      <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13, color: 'var(--color-clay)' }}>
+        {message}
+      </span>
+    </div>
+  )
 }
 
 function getRequiredFields(category: string): string[] {
@@ -253,7 +262,7 @@ function CategoryPropertyFields({
         <div>
           <label className="field-label">{t('supplies.npk')}</label>
           <input className="input w-full" value={npkVal} onChange={e => set('npk', e.target.value)} placeholder="e.g. 10-5-10" />
-          {npkVal && !npkValid && <p className="text-xs text-orange-600 mt-0.5">{t('supplies.warnNpkFormat')}</p>}
+          {npkVal && !npkValid && <Warning message={t('supplies.warnNpkFormat')} />}
         </div>
       )
     }
@@ -313,6 +322,24 @@ function CategoryPropertyFields({
     default:
       return null
   }
+}
+
+// Grid template: type name | total quantity | edit pencil
+const TYPE_TEMPLATE = '1fr 140px 36px'
+
+const headerStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: TYPE_TEMPLATE,
+  gap: 18,
+  padding: '10px 0',
+  borderBottom: '1px solid var(--color-ink)',
+  fontFamily: 'var(--font-mono)',
+  fontSize: 9,
+  letterSpacing: 1.4,
+  textTransform: 'uppercase',
+  color: 'var(--color-forest)',
+  opacity: 0.7,
+  alignItems: 'center',
 }
 
 export function Supplies() {
@@ -482,187 +509,410 @@ export function Supplies() {
   if (error) return <ErrorDisplay error={error} onRetry={() => { refetchTypes(); refetchBatches() }} />
 
   const grouped = groupByCategory(types ?? [], batches ?? [], t)
+
   return (
     <div>
-      <PageHeader
-        title={t('supplies.title')}
-        secondaryAction={{ label: t('supplies.newType'), onClick: () => { setMutError(null); setShowNewType(true) } }}
-        action={{ label: t('common.add'), onClick: () => { resetBatchForm(); setMutError(null); setAddBatchCategoryFilter(null); setShowAddBatch(true) } }}
+      <Masthead
+        left={t('nav.supplies')}
+        center="— Förrådet —"
+        right={
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            <button
+              onClick={() => { resetTypeForm(); setMutError(null); setShowNewType(true) }}
+              className="btn-secondary"
+              style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase' }}
+            >
+              {t('supplies.newType')}
+            </button>
+            <button
+              onClick={() => { resetBatchForm(); setMutError(null); setAddBatchCategoryFilter(null); setShowAddBatch(true) }}
+              className="btn-primary"
+              style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase' }}
+            >
+              {t('common.add')}
+            </button>
+          </div>
+        }
       />
 
-      <div className="px-4 py-4">
+      <div style={{ padding: '28px 40px' }}>
         {CATEGORIES.map(cat => {
           const items = grouped.get(cat) ?? []
+          const allExpanded = items.length > 0 && items.every(item => expanded.has(item.type.id))
+
           return (
-            <div key={cat} className="mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-3">
-                  <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">
-                    {t(`supplyCategory.${cat}`)}
-                  </h2>
-                  {items.length > 1 && (() => {
-                    const allExpanded = items.every(item => expanded.has(item.type.id))
-                    return (
-                      <button
-                        onClick={() => {
-                          setExpanded(prev => {
-                            const next = new Set(prev)
-                            if (allExpanded) {
-                              items.forEach(item => next.delete(item.type.id))
-                            } else {
-                              items.forEach(item => next.add(item.type.id))
-                            }
-                            return next
-                          })
-                        }}
-                        className="text-xs text-text-secondary hover:text-text cursor-pointer"
-                      >
-                        {allExpanded ? t('supplies.collapseAll') : t('supplies.expandAll')}
-                      </button>
-                    )
-                  })()}
+            <div key={cat} style={{ marginBottom: 40 }}>
+              {/* Category section header */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 8,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <span style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 9,
+                    letterSpacing: 1.8,
+                    textTransform: 'uppercase',
+                    color: 'var(--color-forest)',
+                  }}>
+                    § {t(`supplyCategory.${cat}`)}
+                  </span>
+                  {items.length > 1 && (
+                    <button
+                      onClick={() => {
+                        setExpanded(prev => {
+                          const next = new Set(prev)
+                          if (allExpanded) {
+                            items.forEach(item => next.delete(item.type.id))
+                          } else {
+                            items.forEach(item => next.add(item.type.id))
+                          }
+                          return next
+                        })
+                      }}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 9,
+                        letterSpacing: 1.2,
+                        textTransform: 'uppercase',
+                        color: 'var(--color-clay)',
+                        cursor: 'pointer',
+                        padding: 0,
+                      }}
+                    >
+                      {allExpanded ? t('supplies.collapseAll') : t('supplies.expandAll')}
+                    </button>
+                  )}
                 </div>
                 <button
                   onClick={() => { resetTypeForm(); setTypeCategory(cat); setTypeUnit(DEFAULT_UNIT[cat] ?? 'COUNT'); setMutError(null); setShowNewType(true) }}
-                  className="text-xs text-accent hover:underline cursor-pointer"
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 9,
+                    letterSpacing: 1.2,
+                    textTransform: 'uppercase',
+                    color: 'var(--color-clay)',
+                    cursor: 'pointer',
+                  }}
                 >
                   {t(`supplies.addCategoryType.${cat}`)}
                 </button>
               </div>
+
               {items.length === 0 && (
-                <p className="text-xs text-text-muted italic py-1">{t('supplies.noBatches')}</p>
+                <div style={{
+                  padding: '20px 0',
+                  fontFamily: 'var(--font-display)',
+                  fontStyle: 'italic',
+                  fontSize: 13,
+                  color: 'var(--color-forest)',
+                  opacity: 0.6,
+                  borderTop: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                  borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                }}>
+                  {t('supplies.noBatches')}
+                </div>
               )}
-              {items.length > 0 && <div className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">
-                {items.map((item, idx) => (
-                  <div key={item.type.id}>
-                    {idx > 0 && <div className="border-t border-divider" />}
-                    <button
-                      onClick={() => toggleExpand(item.type.id)}
-                      className="w-full flex items-center justify-between px-4 py-3 hover:bg-surface transition-colors text-left"
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <svg
-                          width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
-                          strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-                          className={`text-text-muted flex-shrink-0 transition-transform duration-150 ${expanded.has(item.type.id) ? 'rotate-90' : ''}`}
-                        >
-                          <polyline points="5 2 10 7 5 12" />
-                        </svg>
-                        <span className="text-sm font-medium text-text-primary truncate">{item.label}</span>
-                        <span
-                          role="button"
-                          onClick={e => {
-                            e.stopPropagation()
-                            resetBatchForm()
-                            setMutError(null)
-                            setBatchTypeId(item.type.id)
-                            setAddBatchCategoryFilter(null)
-                            setShowAddBatch(true)
-                          }}
-                          className="text-xs text-accent hover:underline cursor-pointer shrink-0"
-                        >
-                          {t('common.add')}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm tabular-nums text-text-secondary">
-                          {formatUnit(item.totalQuantity, item.type.unit, t)}
-                        </span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setEditType(item.type)
-                            setEditTypeName(item.type.name)
-                            setEditTypeUnit(item.type.unit)
-                            setEditTypeProps(item.type.properties ?? {})
-                            setMutError(null)
-                          }}
-                          className="text-text-muted hover:text-text-secondary transition-colors p-0.5"
-                          aria-label={t('common.edit')}
-                          title={t('supplies.editType')}
-                        >
-                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M9.5 2.5 L11.5 4.5 L4.5 11.5 L2 12 L2.5 9.5 Z" />
-                            <line x1="8" y1="4" x2="10" y2="6" />
-                          </svg>
-                        </button>
-                      </div>
-                    </button>
-                    {expanded.has(item.type.id) && (() => {
-                      const visibleBatches = (showUsed ? item.batches : item.batches.filter(b => b.quantity > 0))
-                        .slice().sort((a, b) => (a.quantity === 0 ? 1 : 0) - (b.quantity === 0 ? 1 : 0))
-                      const hasUsed = item.batches.some(b => b.quantity === 0)
-                      return (
-                      <div className="border-t border-divider bg-surface">
-                        {hasUsed && (
-                          <label className="flex items-center gap-2 px-4 py-2 text-xs text-text-secondary cursor-pointer">
-                            <input type="checkbox" checked={showUsed} onChange={e => setShowUsed(e.target.checked)} className="rounded" />
-                            {t('supplies.showUsed')}
-                          </label>
-                        )}
-                        {visibleBatches.length === 0 && (
-                          <p className="px-4 py-3 text-sm text-text-muted italic">{t('supplies.noBatches')}</p>
-                        )}
-                        {visibleBatches.map(batch => {
-                          const seasonName = seasons?.find(s => s.id === batch.seasonId)?.name
-                          return (
-                            <div key={batch.id} className="flex items-center justify-between px-4 py-2.5 border-t border-divider first:border-0">
-                              <div className="text-sm space-x-3">
-                                <span className="tabular-nums font-medium">{formatUnit(batch.quantity, batch.unit, t)}</span>
-                                {batch.costSek != null && (
-                                  <span className="text-text-secondary">
-                                    {formatCost(batch.costSek)}
-                                    {batch.quantity > 0 && ` (${formatCost(Math.round(batch.costSek / batch.quantity))}/${t(`supplyUnit.${batch.unit}`)})`}
-                                  </span>
-                                )}
-                                {seasonName && <span className="text-text-muted">{seasonName}</span>}
-                                {batch.notes && <span className="text-text-muted italic">{batch.notes}</span>}
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <button
-                                  onClick={() => { setDecrementBatch(batch); setDecrementAmount(String(batch.quantity)); setMutError(null) }}
-                                  className="text-xs px-2 py-1 rounded-lg bg-accent-light text-accent hover:bg-accent/20 transition-colors"
-                                  title={t('supplies.decrement')}
-                                >
-                                  {t('supplies.decrement')}
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setEditBatch(batch)
-                                    setEditBatchQuantity(String(batch.quantity))
-                                    setEditBatchCost(batch.costSek != null ? String(batch.costSek / 100) : '')
-                                    setEditBatchSeasonId(batch.seasonId ?? '')
-                                    setEditBatchNotes(batch.notes ?? '')
-                                    setMutError(null)
-                                  }}
-                                  className="text-text-muted hover:text-text-secondary transition-colors p-0.5"
-                                  aria-label={t('common.edit')}
-                                >
-                                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M9.5 2.5 L11.5 4.5 L4.5 11.5 L2 12 L2.5 9.5 Z" />
-                                    <line x1="8" y1="4" x2="10" y2="6" />
-                                  </svg>
-                                </button>
-                                <button
-                                  onClick={() => { setDeleteBatch(batch); setMutError(null) }}
-                                  className="text-text-muted hover:text-error transition-colors p-0.5"
-                                  aria-label={t('common.delete')}
-                                >
-                                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <line x1="2" y1="4" x2="12" y2="4" />
-                                    <path d="M5 4V2.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5V4" />
-                                    <path d="M3 4l.5 8.5a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5L11 4" />
-                                  </svg>
-                                </button>
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </div>
-                      )})()}
+
+              {items.length > 0 && (
+                <div>
+                  {/* Ledger header */}
+                  <div style={headerStyle as React.CSSProperties}>
+                    <span>{t('supplies.typeName')}</span>
+                    <span style={{ textAlign: 'right' }}>{t('supplies.quantity')}</span>
+                    <span />
                   </div>
-                ))}
-              </div>}
+
+                  {/* Type rows */}
+                  {items.map(item => {
+                    const isOpen = expanded.has(item.type.id)
+                    const visibleBatches = (showUsed ? item.batches : item.batches.filter(b => b.quantity > 0))
+                      .slice().sort((a, b) => (a.quantity === 0 ? 1 : 0) - (b.quantity === 0 ? 1 : 0))
+                    const hasUsed = item.batches.some(b => b.quantity === 0)
+
+                    return (
+                      <div key={item.type.id}>
+                        {/* Type row — click to expand */}
+                        <button
+                          onClick={() => toggleExpand(item.type.id)}
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: TYPE_TEMPLATE,
+                            gap: 18,
+                            padding: '14px 0',
+                            borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                            width: '100%',
+                            background: 'transparent',
+                            border: 'none',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            alignItems: 'center',
+                          }}
+                          className="ledger-row"
+                        >
+                          {/* Name + inline add */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                            <span style={{
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: 10,
+                              color: 'var(--color-forest)',
+                              opacity: 0.5,
+                              flexShrink: 0,
+                            }}>
+                              {isOpen ? '▼' : '▶'}
+                            </span>
+                            <span style={{
+                              fontFamily: 'var(--font-display)',
+                              fontSize: 18,
+                              fontWeight: 300,
+                              color: 'var(--color-ink)',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}>
+                              {item.label}
+                            </span>
+                            <span
+                              role="button"
+                              onClick={e => {
+                                e.stopPropagation()
+                                resetBatchForm()
+                                setMutError(null)
+                                setBatchTypeId(item.type.id)
+                                setAddBatchCategoryFilter(null)
+                                setShowAddBatch(true)
+                              }}
+                              style={{
+                                fontFamily: 'var(--font-mono)',
+                                fontSize: 9,
+                                letterSpacing: 1.2,
+                                textTransform: 'uppercase',
+                                color: 'var(--color-clay)',
+                                cursor: 'pointer',
+                                flexShrink: 0,
+                              }}
+                            >
+                              {t('common.add')}
+                            </span>
+                          </div>
+
+                          {/* Total quantity */}
+                          <div style={{
+                            fontFamily: 'var(--font-display)',
+                            fontSize: 16,
+                            fontVariantNumeric: 'tabular-nums',
+                            color: 'var(--color-ink)',
+                            textAlign: 'right',
+                          }}>
+                            {formatUnit(item.totalQuantity, item.type.unit, t)}
+                          </div>
+
+                          {/* Edit pencil */}
+                          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <span
+                              role="button"
+                              onClick={e => {
+                                e.stopPropagation()
+                                setEditType(item.type)
+                                setEditTypeName(item.type.name)
+                                setEditTypeUnit(item.type.unit)
+                                setEditTypeProps(item.type.properties ?? {})
+                                setMutError(null)
+                              }}
+                              style={{
+                                color: 'var(--color-forest)',
+                                opacity: 0.5,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                              }}
+                              aria-label={t('common.edit')}
+                            >
+                              <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M9.5 2.5 L11.5 4.5 L4.5 11.5 L2 12 L2.5 9.5 Z" />
+                                <line x1="8" y1="4" x2="10" y2="6" />
+                              </svg>
+                            </span>
+                          </div>
+                        </button>
+
+                        {/* Expanded batch rows */}
+                        {isOpen && (
+                          <div style={{
+                            borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                          }}>
+                            {hasUsed && (
+                              <label style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 8,
+                                padding: '8px 0 8px 32px',
+                                fontFamily: 'var(--font-mono)',
+                                fontSize: 9,
+                                letterSpacing: 1.2,
+                                textTransform: 'uppercase',
+                                color: 'var(--color-forest)',
+                                cursor: 'pointer',
+                              }}>
+                                <input type="checkbox" checked={showUsed} onChange={e => setShowUsed(e.target.checked)} className="rounded" />
+                                {t('supplies.showUsed')}
+                              </label>
+                            )}
+
+                            {visibleBatches.length === 0 && (
+                              <p style={{
+                                padding: '12px 0 12px 32px',
+                                fontFamily: 'var(--font-display)',
+                                fontStyle: 'italic',
+                                fontSize: 13,
+                                color: 'var(--color-forest)',
+                                opacity: 0.6,
+                              }}>
+                                {t('supplies.noBatches')}
+                              </p>
+                            )}
+
+                            {visibleBatches.map(batch => {
+                              const seasonName = seasons?.find(s => s.id === batch.seasonId)?.name
+                              return (
+                                <div
+                                  key={batch.id}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    padding: '10px 0 10px 32px',
+                                    borderTop: '1px solid color-mix(in srgb, var(--color-ink) 12%, transparent)',
+                                  }}
+                                >
+                                  <div style={{
+                                    display: 'flex',
+                                    gap: 14,
+                                    alignItems: 'baseline',
+                                    flexWrap: 'wrap',
+                                  }}>
+                                    <span style={{
+                                      fontFamily: 'var(--font-display)',
+                                      fontSize: 16,
+                                      fontVariantNumeric: 'tabular-nums',
+                                      color: 'var(--color-ink)',
+                                    }}>
+                                      {formatUnit(batch.quantity, batch.unit, t)}
+                                    </span>
+                                    {batch.costSek != null && (
+                                      <span style={{
+                                        fontFamily: 'var(--font-mono)',
+                                        fontSize: 10,
+                                        color: 'var(--color-forest)',
+                                        opacity: 0.7,
+                                      }}>
+                                        {formatCost(batch.costSek)}
+                                        {batch.quantity > 0 && ` (${formatCost(Math.round(batch.costSek / batch.quantity))}/${t(`supplyUnit.${batch.unit}`)})`}
+                                      </span>
+                                    )}
+                                    {seasonName && (
+                                      <span style={{
+                                        fontFamily: 'var(--font-mono)',
+                                        fontSize: 10,
+                                        color: 'var(--color-forest)',
+                                        opacity: 0.55,
+                                      }}>
+                                        {seasonName}
+                                      </span>
+                                    )}
+                                    {batch.notes && (
+                                      <span style={{
+                                        fontFamily: 'var(--font-display)',
+                                        fontStyle: 'italic',
+                                        fontSize: 13,
+                                        color: 'var(--color-forest)',
+                                        opacity: 0.65,
+                                      }}>
+                                        {batch.notes}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                                    <button
+                                      onClick={() => { setDecrementBatch(batch); setDecrementAmount(String(batch.quantity)); setMutError(null) }}
+                                      style={{
+                                        fontFamily: 'var(--font-mono)',
+                                        fontSize: 9,
+                                        letterSpacing: 1.2,
+                                        textTransform: 'uppercase',
+                                        color: 'var(--color-clay)',
+                                        background: 'color-mix(in srgb, var(--color-clay) 10%, transparent)',
+                                        border: '1px solid color-mix(in srgb, var(--color-clay) 30%, transparent)',
+                                        borderRadius: 4,
+                                        padding: '4px 8px',
+                                        cursor: 'pointer',
+                                      }}
+                                    >
+                                      {t('supplies.decrement')}
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setEditBatch(batch)
+                                        setEditBatchQuantity(String(batch.quantity))
+                                        setEditBatchCost(batch.costSek != null ? String(batch.costSek / 100) : '')
+                                        setEditBatchSeasonId(batch.seasonId ?? '')
+                                        setEditBatchNotes(batch.notes ?? '')
+                                        setMutError(null)
+                                      }}
+                                      style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        color: 'var(--color-forest)',
+                                        opacity: 0.5,
+                                        cursor: 'pointer',
+                                        padding: 2,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                      }}
+                                      aria-label={t('common.edit')}
+                                    >
+                                      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M9.5 2.5 L11.5 4.5 L4.5 11.5 L2 12 L2.5 9.5 Z" />
+                                        <line x1="8" y1="4" x2="10" y2="6" />
+                                      </svg>
+                                    </button>
+                                    <button
+                                      onClick={() => { setDeleteBatch(batch); setMutError(null) }}
+                                      style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        color: 'var(--color-forest)',
+                                        opacity: 0.45,
+                                        cursor: 'pointer',
+                                        padding: 2,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                      }}
+                                      aria-label={t('common.delete')}
+                                    >
+                                      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="2" y1="4" x2="12" y2="4" />
+                                        <path d="M5 4V2.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5V4" />
+                                        <path d="M3 4l.5 8.5a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5L11 4" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           )
         })}
@@ -675,11 +925,11 @@ export function Supplies() {
         title={t('supplies.addBatch')}
         actions={
           <>
-            <button onClick={() => { setShowAddBatch(false); resetBatchForm(); setMutError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+            <button onClick={() => { setShowAddBatch(false); resetBatchForm(); setMutError(null) }} className="btn-secondary">{t('common.cancel')}</button>
             <button
               onClick={() => createBatchMut.mutate()}
               disabled={!batchTypeId || (isPackageMode ? (!batchPackageSize || !batchPackageCount) : !batchQuantity) || createBatchMut.isPending}
-              className="btn-primary text-sm"
+              className="btn-primary"
             >
               {createBatchMut.isPending ? t('common.creating') : t('common.add')}
             </button>
@@ -783,11 +1033,11 @@ export function Supplies() {
         title={t('supplies.newType')}
         actions={
           <>
-            <button onClick={() => { setShowNewType(false); resetTypeForm(); setMutError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+            <button onClick={() => { setShowNewType(false); resetTypeForm(); setMutError(null) }} className="btn-secondary">{t('common.cancel')}</button>
             <button
               onClick={() => createTypeMut.mutate()}
               disabled={!typeCategory || !typeUnit || !arePropertiesValid(typeCategory, typeProps) || createTypeMut.isPending}
-              className="btn-primary text-sm"
+              className="btn-primary"
             >
               {createTypeMut.isPending ? t('common.creating') : t('common.add')}
             </button>
@@ -844,11 +1094,11 @@ export function Supplies() {
         title={t('supplies.editType')}
         actions={
           <>
-            <button onClick={() => { setEditType(null); setMutError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+            <button onClick={() => { setEditType(null); setMutError(null) }} className="btn-secondary">{t('common.cancel')}</button>
             <button
               onClick={() => updateTypeMut.mutate()}
               disabled={!editTypeUnit || (editType ? !arePropertiesValid(editType.category, editTypeProps) : false) || updateTypeMut.isPending}
-              className="btn-primary text-sm"
+              className="btn-primary"
             >
               {updateTypeMut.isPending ? t('common.saving') : t('common.save')}
             </button>
@@ -894,11 +1144,11 @@ export function Supplies() {
         title={t('common.edit')}
         actions={
           <>
-            <button onClick={() => { setEditBatch(null); setMutError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+            <button onClick={() => { setEditBatch(null); setMutError(null) }} className="btn-secondary">{t('common.cancel')}</button>
             <button
               onClick={() => updateBatchMut.mutate()}
               disabled={!editBatchQuantity || updateBatchMut.isPending}
-              className="btn-primary text-sm"
+              className="btn-primary"
             >
               {updateBatchMut.isPending ? t('common.saving') : t('common.save')}
             </button>
@@ -944,11 +1194,11 @@ export function Supplies() {
         title={t('supplies.decrementTitle')}
         actions={
           <>
-            <button onClick={() => { setDecrementBatch(null); setDecrementAmount(''); setMutError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+            <button onClick={() => { setDecrementBatch(null); setDecrementAmount(''); setMutError(null) }} className="btn-secondary">{t('common.cancel')}</button>
             <button
               onClick={() => decrementMut.mutate()}
               disabled={!decrementAmount || Number(decrementAmount) <= 0 || decrementMut.isPending}
-              className="btn-primary text-sm"
+              className="btn-primary"
             >
               {decrementMut.isPending ? t('common.saving') : t('supplies.decrement')}
             </button>
@@ -976,7 +1226,7 @@ export function Supplies() {
         title={t('common.delete')}
         actions={
           <>
-            <button onClick={() => { setDeleteBatch(null); setMutError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+            <button onClick={() => { setDeleteBatch(null); setMutError(null) }} className="btn-secondary">{t('common.cancel')}</button>
             <button
               onClick={() => deleteBatch && deleteBatchMut.mutate(deleteBatch.id)}
               className="px-4 py-2 text-sm text-error font-semibold"
@@ -997,7 +1247,7 @@ export function Supplies() {
         title={t('common.delete')}
         actions={
           <>
-            <button onClick={() => { setDeleteType(null); setMutError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+            <button onClick={() => { setDeleteType(null); setMutError(null) }} className="btn-secondary">{t('common.cancel')}</button>
             <button
               onClick={() => deleteType && deleteTypeMut.mutate(deleteType.id)}
               className="px-4 py-2 text-sm text-error font-semibold"
