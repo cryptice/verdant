@@ -37,6 +37,9 @@ data class WorkflowProgressState(
     val speciesName: String? = null,
     val workflow: SpeciesWorkflowResponse? = null,
     val plantCountsByStep: Map<Long, List<Long>> = emptyMap(),
+    // For each step, a map of bedId -> list of plantIds in that bed.
+    // Plants without a bed are excluded (can't be fertilized from workflow).
+    val plantsByBedByStep: Map<Long, Map<Long, List<Long>>> = emptyMap(),
     val error: String? = null,
     val completingStepId: Long? = null,
     val completionSuccess: Boolean = false,
@@ -71,11 +74,24 @@ class WorkflowProgressViewModel @Inject constructor(
                         plantCounts[step.id] = emptyList()
                     }
                 }
+                // Build a plantId -> bedId map (bedId nullable; drop plants without a bed).
+                val allPlantIds = plantCounts.values.flatten().toSet()
+                val plantBed: Map<Long, Long> = if (allPlantIds.isEmpty()) emptyMap() else {
+                    runCatching { repo.getAllPlants() }
+                        .getOrDefault(emptyList())
+                        .filter { it.id in allPlantIds && it.bedId != null }
+                        .associate { it.id to it.bedId!! }
+                }
+                val plantsByBedByStep: Map<Long, Map<Long, List<Long>>> = plantCounts.mapValues { (_, ids) ->
+                    ids.mapNotNull { pid -> plantBed[pid]?.let { bed -> bed to pid } }
+                        .groupBy({ it.first }, { it.second })
+                }
                 _uiState.value = WorkflowProgressState(
                     isLoading = false,
                     speciesName = workflow.templateName,
                     workflow = workflow,
                     plantCountsByStep = plantCounts,
+                    plantsByBedByStep = plantsByBedByStep,
                 )
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load workflow", e)
@@ -116,12 +132,27 @@ class WorkflowProgressViewModel @Inject constructor(
 @Composable
 fun WorkflowProgressScreen(
     onBack: () -> Unit,
-    onApplySupplyStep: ((stepId: Long, plantIds: List<Long>, supplyTypeId: Long?, quantity: Double?) -> Unit)? = null,
+    onApplySupplyStep: ((bedId: Long, stepId: Long, plantIds: List<Long>, supplyTypeId: Long?, quantity: Double?) -> Unit)? = null,
     viewModel: WorkflowProgressViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var confirmStep by remember { mutableStateOf<SpeciesWorkflowStepResponse?>(null) }
     var completionNotes by remember { mutableStateOf("") }
+    var bedPickerStep by remember { mutableStateOf<SpeciesWorkflowStepResponse?>(null) }
+
+    // Central dispatcher: if single bed, route directly; if multi-bed, open picker.
+    fun handleApplySupply(step: SpeciesWorkflowStepResponse) {
+        if (onApplySupplyStep == null) { confirmStep = step; return }
+        val byBed = uiState.plantsByBedByStep[step.id].orEmpty()
+        when (byBed.size) {
+            0 -> confirmStep = step // no plants in beds — fall back to plain completion
+            1 -> {
+                val (bedId, plantIds) = byBed.entries.single()
+                onApplySupplyStep(bedId, step.id, plantIds, step.suggestedSupplyTypeId, step.suggestedQuantity)
+            }
+            else -> bedPickerStep = step
+        }
+    }
 
     // Show confirmation dialog
     if (confirmStep != null) {
@@ -161,6 +192,36 @@ fun WorkflowProgressScreen(
                     Text("Cancel")
                 }
             }
+        )
+    }
+
+    // Bed picker for APPLIED_SUPPLY steps whose plants span multiple beds.
+    if (bedPickerStep != null && onApplySupplyStep != null) {
+        val step = bedPickerStep!!
+        val byBed = uiState.plantsByBedByStep[step.id].orEmpty()
+        AlertDialog(
+            onDismissRequest = { bedPickerStep = null },
+            title = { Text(step.name) },
+            text = {
+                Column {
+                    Text("Plants span ${byBed.size} beds — pick one to fertilize:")
+                    Spacer(Modifier.height(8.dp))
+                    byBed.forEach { (bedId, plants) ->
+                        TextButton(
+                            onClick = {
+                                onApplySupplyStep(bedId, step.id, plants, step.suggestedSupplyTypeId, step.suggestedQuantity)
+                                bedPickerStep = null
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text("Bed $bedId — ${plants.size} plant(s)")
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { bedPickerStep = null }) { Text("Cancel") }
+            },
         )
     }
 
@@ -229,11 +290,8 @@ fun WorkflowProgressScreen(
                             plantIds = plantIds,
                             isCompleting = uiState.completingStepId == step.id,
                             onComplete = {
-                                if (step.eventType == "APPLIED_SUPPLY" && onApplySupplyStep != null) {
-                                    onApplySupplyStep(step.id, plantIds, step.suggestedSupplyTypeId, step.suggestedQuantity)
-                                } else {
-                                    confirmStep = step
-                                }
+                                if (step.eventType == "APPLIED_SUPPLY") handleApplySupply(step)
+                                else confirmStep = step
                             },
                         )
                     }
@@ -257,11 +315,8 @@ fun WorkflowProgressScreen(
                                 plantIds = plantIds,
                                 isCompleting = uiState.completingStepId == step.id,
                                 onComplete = {
-                                    if (step.eventType == "APPLIED_SUPPLY" && onApplySupplyStep != null) {
-                                        onApplySupplyStep(step.id, plantIds, step.suggestedSupplyTypeId, step.suggestedQuantity)
-                                    } else {
-                                        confirmStep = step
-                                    }
+                                    if (step.eventType == "APPLIED_SUPPLY") handleApplySupply(step)
+                                    else confirmStep = step
                                 },
                             )
                         }

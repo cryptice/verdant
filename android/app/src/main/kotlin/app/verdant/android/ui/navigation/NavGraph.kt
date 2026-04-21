@@ -572,7 +572,20 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                 Screen.WorkflowProgress.route,
                 arguments = listOf(navArgument("speciesId") { type = NavType.LongType })
             ) {
-                WorkflowProgressScreen(onBack = { navController.popBackStack() })
+                WorkflowProgressScreen(
+                    onBack = { navController.popBackStack() },
+                    onApplySupplyStep = { bedId, stepId, plantIds, supplyTypeId, quantity ->
+                        navController.navigate(
+                            Screen.ApplySupply.create(
+                                bedId = bedId,
+                                plantIds = plantIds,
+                                stepId = stepId,
+                                supplyTypeId = supplyTypeId,
+                                quantity = quantity,
+                            )
+                        )
+                    },
+                )
             }
 
             // ── Planted Species ──
