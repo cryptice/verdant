@@ -1,16 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
-import { PageHeader } from '../components/PageHeader'
+import { Masthead, Ledger } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
-import { Pagination } from '../components/Pagination'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 
-const PAGE_SIZE = 50
-
 export function PlantedSpeciesList() {
+  const navigate = useNavigate()
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['species-summary'],
     queryFn: api.plants.speciesSummary,
@@ -18,7 +16,6 @@ export function PlantedSpeciesList() {
 
   const { t } = useTranslation()
   const [search, setSearch] = useState('')
-  const [page, setPage] = useState(0)
 
   const filtered = useMemo(() =>
     data?.filter(s =>
@@ -33,33 +30,72 @@ export function PlantedSpeciesList() {
 
   return (
     <div>
-      <PageHeader title={t('species.plantedTitle')} />
+      <Masthead
+        left={t('nav.plants')}
+        center="— Växtliggaren —"
+      />
       <OnboardingHint />
-      <div data-onboarding="plant-actions" className="px-4 py-4 space-y-3">
+
+      <div data-onboarding="plant-actions" style={{ padding: '28px 40px' }}>
         <input
           aria-label={t('common.searchSpecies')}
           value={search}
-          onChange={e => { setSearch(e.target.value); setPage(0) }}
+          onChange={e => setSearch(e.target.value)}
           placeholder={t('common.searchSpecies')}
           className="input"
+          style={{ marginBottom: 22, width: '100%' }}
         />
 
-        {filtered.length === 0 && (
-          <p className="text-text-secondary text-sm text-center py-4">{t('species.noActivePlants')}</p>
-        )}
-
-        {filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map(s => (
-          <Link key={s.speciesId} to={`/species/${s.speciesId}/plants`} className="card flex items-center justify-between no-underline text-inherit">
-            <div>
-              <p className="font-semibold">{s.speciesName}</p>
-              {s.scientificName && <p className="text-xs text-text-secondary">{s.scientificName}</p>}
-            </div>
-            <span className="bg-accent/15 text-accent text-xs font-bold px-2.5 py-0.5 rounded-full">
-              {s.activePlantCount}
-            </span>
-          </Link>
-        ))}
-        <Pagination page={page} pageSize={PAGE_SIZE} total={filtered.length} onPageChange={setPage} />
+        <Ledger
+          columns={[
+            {
+              key: 'id',
+              label: '№',
+              width: '60px',
+              render: (_p, i) => (
+                <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-sage)' }}>
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+              ),
+            },
+            {
+              key: 'name',
+              label: t('species.colName'),
+              width: '1.5fr',
+              render: (p) => (
+                <div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>{p.speciesName}</div>
+                  {p.scientificName && (
+                    <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 9, color: 'var(--color-sage)' }}>
+                      {p.scientificName}
+                    </div>
+                  )}
+                </div>
+              ),
+            },
+            {
+              key: 'count',
+              label: t('bed.plants.col.count'),
+              width: '100px',
+              align: 'right',
+              render: (p) => (
+                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{p.activePlantCount}</span>
+              ),
+            },
+            {
+              key: 'goto',
+              label: '',
+              width: '40px',
+              align: 'right',
+              render: () => (
+                <span style={{ color: 'var(--color-sage)', fontFamily: 'var(--font-mono)' }}>→</span>
+              ),
+            },
+          ]}
+          rows={filtered}
+          rowKey={(p) => p.speciesId}
+          onRowClick={(p) => navigate(`/species/${p.speciesId}/plants`)}
+        />
       </div>
     </div>
   )

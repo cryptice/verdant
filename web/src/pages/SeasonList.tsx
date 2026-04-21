@@ -2,25 +2,21 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type SeasonResponse } from '../api/client'
-import { PageHeader } from '../components/PageHeader'
+import { Masthead, Ledger } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 import { Dialog } from '../components/Dialog'
-import { Pagination } from '../components/Pagination'
-
-const PAGE_SIZE = 50
 
 export function SeasonList() {
   const qc = useQueryClient()
   const { t } = useTranslation()
   const { isActive: isOnboardingActive, isStepComplete, completeStep } = useOnboarding()
   const isSeasonStepComplete = isStepComplete('create_season')
-  const { data, error, isLoading, refetch } = useQuery({
+  const { data: seasons = [], error, isLoading, refetch } = useQuery({
     queryKey: ['seasons'],
     queryFn: () => api.seasons.list(),
   })
 
-  const [page, setPage] = useState(0)
   const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<SeasonResponse | null>(null)
   const [deleteItem, setDeleteItem] = useState<SeasonResponse | null>(null)
@@ -171,9 +167,18 @@ export function SeasonList() {
 
   return (
     <div>
-      <PageHeader title={t('seasons.title')} action={{ label: t('seasons.newSeason'), onClick: openAdd }} />
+      <Masthead
+        left={t('nav.seasons')}
+        center="— Säsongsliggaren —"
+        right={
+          <button onClick={openAdd} className="btn-primary">
+            {t('seasons.newSeason')}
+          </button>
+        }
+      />
+
       {isOnboardingActive && !isSeasonStepComplete && (
-        <div className="bg-accent-light/50 border border-accent/15 rounded-2xl px-6 py-6 text-center">
+        <div className="bg-accent-light/50 border border-accent/15 rounded-2xl px-6 py-6 text-center mx-10 mt-6">
           <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3">
             <span className="text-xl">📅</span>
           </div>
@@ -184,48 +189,70 @@ export function SeasonList() {
           </button>
         </div>
       )}
-      <div className="px-4 py-4">
-        {data && data.length === 0 && !(isOnboardingActive && !isSeasonStepComplete) && (
-          <p className="text-text-secondary text-sm text-center py-4">{t('seasons.noSeasons')}</p>
-        )}
 
-        {data && data.length > 0 && (<>
-          <div className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-divider bg-surface">
-                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('seasons.name')}</th>
-                  <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('seasons.year')}</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('seasons.active')}</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('seasons.lastFrost')}</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('seasons.firstFrost')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map(s => (
-                  <tr
-                    key={s.id}
-                    className={`border-b border-divider last:border-0 hover:bg-surface cursor-pointer transition-colors ${s.isActive ? 'bg-accent-light/30' : ''}`}
-                    onClick={() => openEdit(s)}
-                  >
-                    <td className="px-4 py-2.5 text-sm">{s.name}</td>
-                    <td className="px-4 py-2.5 text-sm text-right tabular-nums">{s.year}</td>
-                    <td className="px-4 py-2.5 text-sm">
-                      {s.isActive && (
-                        <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                          {t('seasons.active')}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-2.5 text-sm text-text-secondary">{s.lastFrostDate ?? '—'}</td>
-                    <td className="px-4 py-2.5 text-sm text-text-secondary">{s.firstFrostDate ?? '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <Pagination page={page} pageSize={PAGE_SIZE} total={data.length} onPageChange={setPage} />
-        </>)}
+      <div style={{ padding: '28px 40px' }}>
+        <Ledger
+          columns={[
+            {
+              key: 'id',
+              label: '№',
+              width: '60px',
+              render: (_s, i) => (
+                <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-mustard)' }}>
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+              ),
+            },
+            {
+              key: 'name',
+              label: t('seasons.name'),
+              width: '1.5fr',
+              render: (s) => (
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>{s.name}</span>
+              ),
+            },
+            {
+              key: 'year',
+              label: t('seasons.year'),
+              width: '80px',
+              align: 'right',
+              render: (s) => (
+                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{s.year}</span>
+              ),
+            },
+            {
+              key: 'active',
+              label: t('seasons.active'),
+              width: '80px',
+              align: 'right',
+              render: (s) => (
+                s.isActive ? <span style={{ color: 'var(--color-clay)' }}>●</span> : null
+              ),
+            },
+            {
+              key: 'frost',
+              label: t('seasons.lastFrost'),
+              width: '1.2fr',
+              render: (s) => (
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>
+                  {s.lastFrostDate ?? '—'} → {s.firstFrostDate ?? '—'}
+                </span>
+              ),
+            },
+            {
+              key: 'goto',
+              label: '',
+              width: '40px',
+              align: 'right',
+              render: () => (
+                <span style={{ color: 'var(--color-clay)', fontFamily: 'var(--font-mono)' }}>→</span>
+              ),
+            },
+          ]}
+          rows={seasons}
+          rowKey={(s) => s.id}
+          onRowClick={(s) => openEdit(s)}
+        />
       </div>
 
       <Dialog open={showAdd} onClose={() => { setShowAdd(false); resetForm() }} title={t('seasons.newSeason')} actions={

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
-import { PageHeader } from '../components/PageHeader'
+import { Masthead, Ledger } from '../components/faltet'
 import { Dialog } from '../components/Dialog'
 
 export function WorkflowTemplates() {
@@ -15,7 +15,7 @@ export function WorkflowTemplates() {
   const [newDesc, setNewDesc] = useState('')
   const [deleteId, setDeleteId] = useState<number | null>(null)
 
-  const { data: templates, isLoading } = useQuery({
+  const { data: templates = [], isLoading } = useQuery({
     queryKey: ['workflow-templates'],
     queryFn: api.workflows.templates,
   })
@@ -43,41 +43,82 @@ export function WorkflowTemplates() {
 
   return (
     <div>
-      <PageHeader
-        title={t('workflows.title')}
-        action={{ label: t('workflows.newTemplate'), onClick: () => setShowCreate(true) }}
+      <Masthead
+        left={t('nav.workflows')}
+        center="— Arbetsflödesliggaren —"
+        right={
+          <button onClick={() => setShowCreate(true)} className="btn-primary">
+            {t('workflows.newTemplate')}
+          </button>
+        }
       />
 
-      <div className="px-4 space-y-3">
-        {templates && templates.length === 0 && (
-          <p className="text-text-secondary text-sm text-center py-8">{t('workflows.noTemplates')}</p>
-        )}
-
-        {templates?.map(tmpl => (
-          <div
-            key={tmpl.id}
-            className="border border-divider rounded-xl cursor-pointer hover:bg-surface/50 transition-colors"
-            onClick={() => navigate(`/workflows/${tmpl.id}/edit`)}
-          >
-            <div className="flex items-center gap-2 px-3 py-2.5">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{tmpl.name}</p>
-                {tmpl.description && (
-                  <p className="text-xs text-text-secondary truncate mt-0.5">{tmpl.description}</p>
-                )}
-                <p className="text-xs text-text-secondary mt-0.5">
-                  {t('workflows.stepCount', { count: tmpl.steps.length })}
-                </p>
-              </div>
-              <button
-                onClick={(e) => { e.stopPropagation(); setDeleteId(tmpl.id) }}
-                className="text-xs text-error px-1 shrink-0"
-              >
-                {t('common.delete')}
-              </button>
-            </div>
-          </div>
-        ))}
+      <div style={{ padding: '28px 40px' }}>
+        <Ledger
+          columns={[
+            {
+              key: 'id',
+              label: '№',
+              width: '60px',
+              render: (_w, i) => (
+                <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-sage)' }}>
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+              ),
+            },
+            {
+              key: 'name',
+              label: t('workflows.templateName'),
+              width: '1.5fr',
+              render: (w) => (
+                <div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>{w.name}</div>
+                  {w.description && (
+                    <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-forest)', marginTop: 2 }}>
+                      {w.description}
+                    </div>
+                  )}
+                </div>
+              ),
+            },
+            {
+              key: 'stepCount',
+              label: t('workflows.steps'),
+              width: '100px',
+              align: 'right',
+              render: (w) => (
+                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{w.steps.length}</span>
+              ),
+            },
+            {
+              key: 'delete',
+              label: '',
+              width: '80px',
+              align: 'right',
+              render: (w) => (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setDeleteId(w.id) }}
+                  className="text-xs text-error"
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
+                >
+                  {t('common.delete')}
+                </button>
+              ),
+            },
+            {
+              key: 'goto',
+              label: '',
+              width: '40px',
+              align: 'right',
+              render: () => (
+                <span style={{ color: 'var(--color-sage)', fontFamily: 'var(--font-mono)' }}>→</span>
+              ),
+            },
+          ]}
+          rows={templates}
+          rowKey={(w) => w.id}
+          onRowClick={(w) => navigate(`/workflows/${w.id}/edit`)}
+        />
       </div>
 
       {showCreate && (
