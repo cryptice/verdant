@@ -37,6 +37,7 @@ import { PrivacyPolicy } from './pages/PrivacyPolicy'
 import { WorkflowTemplates } from './pages/WorkflowTemplates'
 import { WorkflowTemplateEdit } from './pages/WorkflowTemplateEdit'
 import { WorkflowProgress } from './pages/WorkflowProgress'
+import { ApplySupply } from './pages/ApplySupply'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token, loading } = useAuth()
@@ -85,6 +86,7 @@ export function App() {
         <Route path="seed-stock" element={<SeedInventory />} />
         <Route path="supplies" element={<Supplies />} />
         <Route path="sow" element={<SowActivity />} />
+        <Route path="activity/apply-supply" element={<ApplySupply />} />
         <Route path="species" element={<SpeciesList />} />
         <Route path="species-groups" element={<SpeciesGroups />} />
         <Route path="species-groups/:id/edit" element={<SpeciesGroupEdit />} />

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate, type NavigateFunction } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api, type SpeciesWorkflowStepResponse } from '../api/client'
@@ -11,6 +11,7 @@ import type { BreadcrumbItem } from '../components/Breadcrumb'
 export function WorkflowProgress() {
   const { t } = useTranslation()
   const qc = useQueryClient()
+  const navigate = useNavigate()
   const { speciesId: paramSpeciesId } = useParams<{ speciesId: string }>()
 
   const [speciesId, setSpeciesId] = useState<number | null>(paramSpeciesId ? Number(paramSpeciesId) : null)
@@ -140,31 +141,86 @@ export function WorkflowProgress() {
             {plantsAtStep && (
               <p className="text-sm">{t('workflows.plantsAtStep', { count: plantsAtStep.length })}</p>
             )}
-            <div>
-              <label className="field-label">{t('common.notesLabel')}</label>
-              <input value={completeNotes} onChange={e => setCompleteNotes(e.target.value)} className="input w-full" />
-            </div>
-            <div className="flex gap-2">
-              <button className="btn-secondary flex-1" onClick={() => { setSelectedStep(null); setCompleteNotes('') }}>
-                {t('common.cancel')}
-              </button>
-              <button
-                className="btn-primary flex-1"
-                disabled={!plantsAtStep || plantsAtStep.length === 0 || completeMut.isPending}
-                onClick={() => plantsAtStep && completeMut.mutate({
-                  stepId: selectedStep.id,
-                  plantIds: plantsAtStep,
-                  notes: completeNotes.trim() || undefined,
-                })}
-              >
-                {completeMut.isPending
-                  ? t('common.saving')
-                  : t('workflows.completeForPlants', { count: plantsAtStep?.length ?? 0 })}
-              </button>
-            </div>
+            {selectedStep.eventType === 'APPLIED_SUPPLY' ? (
+              <ApplySupplyStepAction
+                step={selectedStep}
+                plantIds={plantsAtStep ?? []}
+                onNavigate={() => setSelectedStep(null)}
+                navigate={navigate}
+              />
+            ) : (
+              <>
+                <div>
+                  <label className="field-label">{t('common.notesLabel')}</label>
+                  <input value={completeNotes} onChange={e => setCompleteNotes(e.target.value)} className="input w-full" />
+                </div>
+                <div className="flex gap-2">
+                  <button className="btn-secondary flex-1" onClick={() => { setSelectedStep(null); setCompleteNotes('') }}>
+                    {t('common.cancel')}
+                  </button>
+                  <button
+                    className="btn-primary flex-1"
+                    disabled={!plantsAtStep || plantsAtStep.length === 0 || completeMut.isPending}
+                    onClick={() => plantsAtStep && completeMut.mutate({
+                      stepId: selectedStep.id,
+                      plantIds: plantsAtStep,
+                      notes: completeNotes.trim() || undefined,
+                    })}
+                  >
+                    {completeMut.isPending
+                      ? t('common.saving')
+                      : t('workflows.completeForPlants', { count: plantsAtStep?.length ?? 0 })}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </Dialog>
       )}
+    </div>
+  )
+}
+
+function ApplySupplyStepAction({
+  step, plantIds, onNavigate, navigate,
+}: {
+  step: SpeciesWorkflowStepResponse
+  plantIds: number[]
+  onNavigate: () => void
+  navigate: NavigateFunction
+}) {
+  const { t } = useTranslation()
+
+  // Fetch the first plant to resolve its bedId for the apply-supply route
+  const { data: firstPlant } = useQuery({
+    queryKey: ['plant', plantIds[0]],
+    queryFn: () => api.plants.get(plantIds[0]),
+    enabled: plantIds.length > 0,
+  })
+
+  const handleGo = () => {
+    if (!firstPlant?.bedId) return
+    const qs = new URLSearchParams({
+      bedId: String(firstPlant.bedId),
+      plantIds: plantIds.join(','),
+      stepId: String(step.id),
+      ...(step.suggestedSupplyTypeId ? { supplyTypeId: String(step.suggestedSupplyTypeId) } : {}),
+      ...(step.suggestedQuantity ? { quantity: String(step.suggestedQuantity) } : {}),
+    })
+    onNavigate()
+    navigate(`/activity/apply-supply?${qs.toString()}`)
+  }
+
+  return (
+    <div className="flex gap-2">
+      <button className="btn-secondary flex-1" onClick={onNavigate}>{t('common.cancel')}</button>
+      <button
+        className="btn-primary flex-1"
+        disabled={plantIds.length === 0 || !firstPlant?.bedId}
+        onClick={handleGo}
+      >
+        {t('supplyApplication.submit')}
+      </button>
     </div>
   )
 }

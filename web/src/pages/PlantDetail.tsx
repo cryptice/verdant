@@ -15,6 +15,7 @@ const eventIcons: Record<string, string> = {
   HARVESTED: '🌾', RECOVERED: '💚', REMOVED: '🗑️', NOTE: '📝',
   BUDDING: '🌼', FIRST_BLOOM: '🌸', PEAK_BLOOM: '💐', LAST_BLOOM: '🥀',
   LIFTED: '⛏️', DIVIDED: '✂️', STORED: '📦', PINCHED: '🤏', DISBUDDED: '✂️',
+  APPLIED_SUPPLY: '💧',
 }
 
 export function PlantDetail() {

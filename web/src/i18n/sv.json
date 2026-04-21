@@ -86,7 +86,8 @@
     "DIVIDED": "Delat",
     "STORED": "Lagrat",
     "PINCHED": "Toppad",
-    "DISBUDDED": "Avknoppad"
+    "DISBUDDED": "Avknoppad",
+    "APPLIED_SUPPLY": "Applicerad förnödenhet"
   },
   "activityType": {
     "SOW": "Så",
@@ -1147,6 +1148,28 @@
     "GRAMS": "g",
     "METERS": "m",
     "PACKETS": "pkt"
+  },
+  "supplyApplication": {
+    "applyTitle": "Applicera",
+    "fertilize": "Gödsla",
+    "submit": "Applicera",
+    "submitting": "Applicerar…",
+    "targetLabel": "Applicera på",
+    "wholeBed": "På hela bädden",
+    "selectedPlants": "Valda plantor",
+    "selectPlants": "Välj plantor",
+    "selectSupply": "Välj förnödenhet",
+    "showAllCategories": "Visa alla kategorier",
+    "remaining": "kvar",
+    "quantity": "Mängd",
+    "insufficientQuantity": "Otillräcklig mängd i partiet",
+    "historyTitle": "Applikationer",
+    "noApplications": "Inga applikationer registrerade än",
+    "appliedToBed": "Applicerad på bädd",
+    "appliedToPlants": "Applicerad på {{count}} plantor",
+    "eventLabel": "Applicerad förnödenhet",
+    "suggestedSupply": "Föreslagen förnödenhet",
+    "suggestedQuantity": "Föreslagen mängd"
   },
   "workflows": {
     "title": "Arbetsflöden",

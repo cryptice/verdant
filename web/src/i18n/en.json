@@ -86,7 +86,8 @@
     "DIVIDED": "Divided",
     "STORED": "Stored",
     "PINCHED": "Pinched",
-    "DISBUDDED": "Disbudded"
+    "DISBUDDED": "Disbudded",
+    "APPLIED_SUPPLY": "Applied supply"
   },
   "activityType": {
     "SOW": "Sow",
@@ -1147,6 +1148,28 @@
     "GRAMS": "g",
     "METERS": "m",
     "PACKETS": "pkt"
+  },
+  "supplyApplication": {
+    "applyTitle": "Apply",
+    "fertilize": "Fertilize",
+    "submit": "Apply",
+    "submitting": "Applying…",
+    "targetLabel": "Apply to",
+    "wholeBed": "Whole bed",
+    "selectedPlants": "Selected plants",
+    "selectPlants": "Select plants",
+    "selectSupply": "Select supply",
+    "showAllCategories": "Show all categories",
+    "remaining": "remaining",
+    "quantity": "Amount",
+    "insufficientQuantity": "Insufficient quantity in lot",
+    "historyTitle": "Applications",
+    "noApplications": "No applications recorded yet",
+    "appliedToBed": "Applied to bed",
+    "appliedToPlants": "Applied to {{count}} plants",
+    "eventLabel": "Applied supply",
+    "suggestedSupply": "Suggested supply",
+    "suggestedQuantity": "Suggested amount"
   },
   "workflows": {
     "title": "Workflows",

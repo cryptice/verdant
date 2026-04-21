@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { api, type WorkflowStepResponse } from '../api/client'
+import { api, type WorkflowStepResponse, type SupplyTypeResponse } from '../api/client'
 import { PageHeader } from '../components/PageHeader'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
@@ -10,11 +10,11 @@ import type { BreadcrumbItem } from '../components/Breadcrumb'
 
 const EVENT_TYPES = [
   '', 'SEEDED', 'POTTED_UP', 'PLANTED_OUT', 'HARVESTED',
-  'PINCHED', 'FERTILIZED', 'WATERED', 'PRUNED', 'NOTE', 'OTHER',
+  'PINCHED', 'FERTILIZED', 'WATERED', 'PRUNED', 'NOTE', 'OTHER', 'APPLIED_SUPPLY',
 ]
 
 function StepRow({
-  step, onUpdate, onDelete, onMoveUp, onMoveDown, isFirst, isLast,
+  step, onUpdate, onDelete, onMoveUp, onMoveDown, isFirst, isLast, supplyTypes,
 }: {
   step: WorkflowStepResponse
   onUpdate: (data: Record<string, unknown>) => void
@@ -23,6 +23,7 @@ function StepRow({
   onMoveDown: () => void
   isFirst: boolean
   isLast: boolean
+  supplyTypes?: SupplyTypeResponse[]
 }) {
   const { t } = useTranslation()
   const [editing, setEditing] = useState(false)
@@ -32,11 +33,15 @@ function StepRow({
   const [isOptional, setIsOptional] = useState(step.isOptional)
   const [isSideBranch, setIsSideBranch] = useState(step.isSideBranch)
   const [sideBranchName, setSideBranchName] = useState(step.sideBranchName ?? '')
+  const [suggestedSupplyTypeId, setSuggestedSupplyTypeId] = useState<number | ''>(step.suggestedSupplyTypeId ?? '')
+  const [suggestedQuantity, setSuggestedQuantity] = useState<string>(step.suggestedQuantity != null ? String(step.suggestedQuantity) : '')
 
   const save = () => {
     onUpdate({
       name, eventType: eventType || null, daysAfterPrevious: days || null,
       isOptional, isSideBranch, sideBranchName: isSideBranch ? sideBranchName : null,
+      suggestedSupplyTypeId: eventType === 'APPLIED_SUPPLY' && suggestedSupplyTypeId !== '' ? Number(suggestedSupplyTypeId) : null,
+      suggestedQuantity: eventType === 'APPLIED_SUPPLY' && suggestedQuantity !== '' ? Number(suggestedQuantity) : null,
     })
     setEditing(false)
   }
@@ -104,6 +109,33 @@ function StepRow({
                 <input value={sideBranchName} onChange={e => setSideBranchName(e.target.value)} className="input w-full" />
               </div>
             )}
+            {eventType === 'APPLIED_SUPPLY' && (
+              <>
+                <div>
+                  <label className="field-label">{t('supplyApplication.suggestedSupply')}</label>
+                  <select
+                    value={suggestedSupplyTypeId}
+                    onChange={e => setSuggestedSupplyTypeId(e.target.value !== '' ? Number(e.target.value) : '')}
+                    className="input w-full"
+                  >
+                    <option value="">{t('common.none')}</option>
+                    {supplyTypes?.filter(st => st.category === 'FERTILIZER').map(st => (
+                      <option key={st.id} value={st.id}>{st.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="field-label">{t('supplyApplication.suggestedQuantity')}</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={suggestedQuantity}
+                    onChange={e => setSuggestedQuantity(e.target.value)}
+                    className="input w-full"
+                  />
+                </div>
+              </>
+            )}
             <div className="flex gap-2">
               <button className="btn-secondary flex-1" onClick={() => setEditing(false)}>{t('common.cancel')}</button>
               <button className="btn-primary flex-1" disabled={!name.trim()} onClick={save}>{t('common.save')}</button>
@@ -130,6 +162,11 @@ export function WorkflowTemplateEdit() {
   const { data: template, error, isLoading, refetch } = useQuery({
     queryKey: ['workflow-template', templateId],
     queryFn: () => api.workflows.getTemplate(templateId),
+  })
+
+  const { data: supplyTypes } = useQuery({
+    queryKey: ['supply-types'],
+    queryFn: () => api.supplies.types(),
   })
 
   if (template && !nameInit) {
@@ -225,6 +262,7 @@ export function WorkflowTemplateEdit() {
                 onMoveDown={() => moveStep(step.id, 'down')}
                 isFirst={idx === 0}
                 isLast={idx === sortedSteps.length - 1}
+                supplyTypes={supplyTypes}
               />
             ))}
           </div>

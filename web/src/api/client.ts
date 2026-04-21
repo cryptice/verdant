@@ -122,7 +122,7 @@ export interface PlantEventResponse {
   plantCount?: number; weightGrams?: number; quantity?: number
   stemCount?: number; stemLengthCm?: number; qualityGrade?: string
   vaseLifeDays?: number; harvestDestinationId?: number; customerName?: string
-  notes?: string; imageUrl?: string; createdAt: string
+  notes?: string; imageUrl?: string; supplyApplicationId?: number | null; createdAt: string
 }
 
 export interface SpeciesResponse {
@@ -310,6 +310,33 @@ export interface SupplyInventoryResponse {
   notes?: string; createdAt: string
 }
 
+// Supply Application
+export interface SupplyApplicationResponse {
+  id: number
+  bedId: number
+  supplyInventoryId: number
+  supplyTypeId: number
+  supplyTypeName: string
+  supplyUnit: 'COUNT' | 'LITERS' | 'KILOGRAMS' | 'GRAMS' | 'METERS' | 'PACKETS'
+  quantity: number
+  targetScope: 'BED' | 'PLANTS'
+  appliedAt: string
+  appliedByName: string | null
+  workflowStepId: number | null
+  notes: string | null
+  plantIds: number[]
+}
+
+export interface CreateSupplyApplicationRequest {
+  bedId: number
+  supplyInventoryId: number
+  quantity: number
+  targetScope: 'BED' | 'PLANTS'
+  plantIds?: number[]
+  workflowStepId?: number
+  notes?: string
+}
+
 // Workflow
 export interface WorkflowTemplateResponse {
   id: number; name: string; description?: string
@@ -319,6 +346,7 @@ export interface WorkflowStepResponse {
   id: number; name: string; description?: string; eventType?: string
   daysAfterPrevious?: number; isOptional: boolean; isSideBranch: boolean
   sideBranchName?: string; sortOrder: number
+  suggestedSupplyTypeId?: number; suggestedQuantity?: number
 }
 export interface SpeciesWorkflowResponse {
   templateId?: number; templateName?: string
@@ -328,6 +356,7 @@ export interface SpeciesWorkflowStepResponse {
   id: number; templateStepId?: number; name: string; description?: string
   eventType?: string; daysAfterPrevious?: number; isOptional: boolean
   isSideBranch: boolean; sideBranchName?: string; sortOrder: number
+  suggestedSupplyTypeId?: number; suggestedQuantity?: number
 }
 export interface PlantWorkflowProgressResponse {
   steps: SpeciesWorkflowStepResponse[]
@@ -534,6 +563,21 @@ export const api = {
     update: (id: number, data: Record<string, unknown>) => apiRequest<ProductionTargetResponse>(`/api/production-targets/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: number) => apiRequest<void>(`/api/production-targets/${id}`, { method: 'DELETE' }),
     forecast: (id: number) => apiRequest<ProductionForecastResponse>(`/api/production-targets/${id}/forecast`),
+  },
+
+  supplyApplications: {
+    create: (req: CreateSupplyApplicationRequest) =>
+      apiRequest<SupplyApplicationResponse>('/api/supply-applications', {
+        method: 'POST', body: JSON.stringify(req),
+      }),
+    listByBed: (bedId: number, limit = 20) =>
+      apiRequest<SupplyApplicationResponse[]>(
+        `/api/supply-applications/bed/${bedId}?limit=${limit}`),
+    listByGarden: (gardenId: number, limit = 20) =>
+      apiRequest<SupplyApplicationResponse[]>(
+        `/api/supply-applications/garden/${gardenId}?limit=${limit}`),
+    get: (id: number) =>
+      apiRequest<SupplyApplicationResponse>(`/api/supply-applications/${id}`),
   },
 
   supplies: {

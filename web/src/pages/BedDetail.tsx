@@ -52,6 +52,11 @@ export function BedDetail() {
     queryFn: api.species.list,
   })
 
+  const { data: applications } = useQuery({
+    queryKey: ['bed-applications', bedId],
+    queryFn: () => api.supplyApplications.listByBed(bedId, 10),
+  })
+
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState('')
   const [editDesc, setEditDesc] = useState('')
@@ -166,7 +171,12 @@ export function BedDetail() {
 
         <div className="flex items-center justify-between">
           <h2 className="font-semibold">{t('bed.plants')}</h2>
-          <button onClick={() => setShowAdd(true)} className="btn-primary text-sm">{t('bed.addPlant')}</button>
+          <div className="flex gap-2">
+            <button onClick={() => setShowAdd(true)} className="btn-primary text-sm">{t('bed.addPlant')}</button>
+            <Link to={`/activity/apply-supply?bedId=${bedId}`} className="btn-secondary text-sm no-underline">
+              {t('supplyApplication.fertilize')}
+            </Link>
+          </div>
         </div>
 
         {plants && plants.length === 0 && (
@@ -200,6 +210,26 @@ export function BedDetail() {
             </div>
           )
         })}
+      </div>
+
+      <div className="px-4 mt-6 space-y-2">
+        <h2 className="font-semibold">{t('supplyApplication.historyTitle')}</h2>
+        {applications && applications.length === 0 && (
+          <p className="text-text-secondary text-sm">{t('supplyApplication.noApplications')}</p>
+        )}
+        {applications?.map(a => (
+          <div key={a.id} className="card text-sm flex items-center justify-between">
+            <div>
+              <p className="font-semibold">{a.supplyTypeName}</p>
+              <p className="text-xs text-text-secondary">
+                {a.quantity} {a.supplyUnit.toLowerCase()} · {a.targetScope === 'BED'
+                  ? t('supplyApplication.appliedToBed')
+                  : t('supplyApplication.appliedToPlants', { count: a.plantIds.length })}
+              </p>
+            </div>
+            <span className="text-xs text-text-secondary">{new Date(a.appliedAt).toLocaleDateString()}</span>
+          </div>
+        ))}
       </div>
 
       <div className="mt-auto px-4 pb-4 pt-6">
