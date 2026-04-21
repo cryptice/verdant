@@ -8,6 +8,7 @@ import io.agroal.api.AgroalDataSource
 import jakarta.enterprise.context.ApplicationScoped
 import java.sql.ResultSet
 import java.sql.Statement
+import java.sql.Types
 
 @ApplicationScoped
 class WorkflowRepository(private val ds: AgroalDataSource) {
@@ -89,8 +90,8 @@ class WorkflowRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """INSERT INTO workflow_template_step (template_id, name, description, event_type, days_after_previous,
-                   is_optional, is_side_branch, side_branch_name, sort_order)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   is_optional, is_side_branch, side_branch_name, sort_order, suggested_supply_type_id, suggested_quantity)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setLong(1, step.templateId)
@@ -102,6 +103,8 @@ class WorkflowRepository(private val ds: AgroalDataSource) {
                 ps.setBoolean(7, step.isSideBranch)
                 ps.setString(8, step.sideBranchName)
                 ps.setInt(9, step.sortOrder)
+                step.suggestedSupplyTypeId?.let { ps.setLong(10, it) } ?: ps.setNull(10, Types.BIGINT)
+                step.suggestedQuantity?.let { ps.setBigDecimal(11, it) } ?: ps.setNull(11, Types.NUMERIC)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -115,7 +118,8 @@ class WorkflowRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """UPDATE workflow_template_step SET name = ?, description = ?, event_type = ?, days_after_previous = ?,
-                   is_optional = ?, is_side_branch = ?, side_branch_name = ?, sort_order = ?
+                   is_optional = ?, is_side_branch = ?, side_branch_name = ?, sort_order = ?,
+                   suggested_supply_type_id = ?, suggested_quantity = ?
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setString(1, step.name)
@@ -126,7 +130,9 @@ class WorkflowRepository(private val ds: AgroalDataSource) {
                 ps.setBoolean(6, step.isSideBranch)
                 ps.setString(7, step.sideBranchName)
                 ps.setInt(8, step.sortOrder)
-                ps.setLong(9, step.id!!)
+                step.suggestedSupplyTypeId?.let { ps.setLong(9, it) } ?: ps.setNull(9, Types.BIGINT)
+                step.suggestedQuantity?.let { ps.setBigDecimal(10, it) } ?: ps.setNull(10, Types.NUMERIC)
+                ps.setLong(11, step.id!!)
                 ps.executeUpdate()
             }
         }
@@ -158,8 +164,9 @@ class WorkflowRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """INSERT INTO species_workflow_step (species_id, template_step_id, name, description, event_type,
-                   days_after_previous, is_optional, is_side_branch, side_branch_name, sort_order)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   days_after_previous, is_optional, is_side_branch, side_branch_name, sort_order,
+                   suggested_supply_type_id, suggested_quantity)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setLong(1, step.speciesId)
@@ -172,6 +179,8 @@ class WorkflowRepository(private val ds: AgroalDataSource) {
                 ps.setBoolean(8, step.isSideBranch)
                 ps.setString(9, step.sideBranchName)
                 ps.setInt(10, step.sortOrder)
+                step.suggestedSupplyTypeId?.let { ps.setLong(11, it) } ?: ps.setNull(11, Types.BIGINT)
+                step.suggestedQuantity?.let { ps.setBigDecimal(12, it) } ?: ps.setNull(12, Types.NUMERIC)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -185,7 +194,8 @@ class WorkflowRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """UPDATE species_workflow_step SET name = ?, description = ?, event_type = ?, days_after_previous = ?,
-                   is_optional = ?, is_side_branch = ?, side_branch_name = ?, sort_order = ?
+                   is_optional = ?, is_side_branch = ?, side_branch_name = ?, sort_order = ?,
+                   suggested_supply_type_id = ?, suggested_quantity = ?
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setString(1, step.name)
@@ -196,7 +206,9 @@ class WorkflowRepository(private val ds: AgroalDataSource) {
                 ps.setBoolean(6, step.isSideBranch)
                 ps.setString(7, step.sideBranchName)
                 ps.setInt(8, step.sortOrder)
-                ps.setLong(9, step.id!!)
+                step.suggestedSupplyTypeId?.let { ps.setLong(9, it) } ?: ps.setNull(9, Types.BIGINT)
+                step.suggestedQuantity?.let { ps.setBigDecimal(10, it) } ?: ps.setNull(10, Types.NUMERIC)
+                ps.setLong(11, step.id!!)
                 ps.executeUpdate()
             }
         }
@@ -343,6 +355,8 @@ class WorkflowRepository(private val ds: AgroalDataSource) {
         isSideBranch = getBoolean("is_side_branch"),
         sideBranchName = getString("side_branch_name"),
         sortOrder = getInt("sort_order"),
+        suggestedSupplyTypeId = getLong("suggested_supply_type_id").takeIf { !wasNull() },
+        suggestedQuantity = getBigDecimal("suggested_quantity"),
     )
 
     private fun ResultSet.toSpeciesStep() = SpeciesWorkflowStep(
@@ -357,5 +371,7 @@ class WorkflowRepository(private val ds: AgroalDataSource) {
         isSideBranch = getBoolean("is_side_branch"),
         sideBranchName = getString("side_branch_name"),
         sortOrder = getInt("sort_order"),
+        suggestedSupplyTypeId = getLong("suggested_supply_type_id").takeIf { !wasNull() },
+        suggestedQuantity = getBigDecimal("suggested_quantity"),
     )
 }

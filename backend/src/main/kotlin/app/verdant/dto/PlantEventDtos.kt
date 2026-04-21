@@ -24,6 +24,7 @@ data class PlantEventResponse(
     val vaseLifeDays: Int?,
     val harvestDestinationId: Long?,
     val customerName: String?,
+    val supplyApplicationId: Long?,
     val createdAt: Instant,
 )
 

@@ -33,8 +33,8 @@ class PlantEventRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """INSERT INTO plant_event (plant_id, event_type, event_date, plant_count, weight_grams, quantity, notes, image_url, ai_suggestions,
-                   stem_count, stem_length_cm, quality_grade, vase_life_days, harvest_destination_id, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
+                   stem_count, stem_length_cm, quality_grade, vase_life_days, harvest_destination_id, supply_application_id, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setLong(1, event.plantId)
@@ -51,6 +51,7 @@ class PlantEventRepository(private val ds: AgroalDataSource) {
                 ps.setString(12, event.qualityGrade)
                 ps.setObject(13, event.vaseLifeDays)
                 ps.setObject(14, event.harvestDestinationId)
+                event.supplyApplicationId?.let { ps.setLong(15, it) } ?: ps.setNull(15, java.sql.Types.BIGINT)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -130,6 +131,7 @@ class PlantEventRepository(private val ds: AgroalDataSource) {
         qualityGrade = getString("quality_grade"),
         vaseLifeDays = getObject("vase_life_days") as? Int,
         harvestDestinationId = getObject("harvest_destination_id") as? Long,
+        supplyApplicationId = getLong("supply_application_id").takeIf { !wasNull() },
         createdAt = getTimestamp("created_at").toInstant(),
     )
 }

@@ -270,7 +270,7 @@ class PlantService(
             )
             PlantEventType.NOTE, PlantEventType.BUDDING, PlantEventType.FIRST_BLOOM,
             PlantEventType.PEAK_BLOOM, PlantEventType.LAST_BLOOM, PlantEventType.DIVIDED,
-            PlantEventType.PINCHED, PlantEventType.DISBUDDED -> plant
+            PlantEventType.PINCHED, PlantEventType.DISBUDDED, PlantEventType.APPLIED_SUPPLY -> plant
         }
 
         if (updatedPlant !== plant) {
@@ -338,5 +338,6 @@ fun PlantEvent.toResponse() = PlantEventResponse(
     qualityGrade = qualityGrade, vaseLifeDays = vaseLifeDays,
     harvestDestinationId = harvestDestinationId,
     customerName = null,
+    supplyApplicationId = supplyApplicationId,
     createdAt = createdAt,
 )

@@ -19,7 +19,8 @@ data class PlantEvent(
     val qualityGrade: String? = null,
     val vaseLifeDays: Int? = null,
     val harvestDestinationId: Long? = null,
+    val supplyApplicationId: Long? = null,
     val createdAt: Instant = Instant.now(),
 )
 
-enum class PlantEventType { SEEDED, POTTED_UP, PLANTED_OUT, HARVESTED, RECOVERED, REMOVED, NOTE, BUDDING, FIRST_BLOOM, PEAK_BLOOM, LAST_BLOOM, LIFTED, DIVIDED, STORED, PINCHED, DISBUDDED }
+enum class PlantEventType { SEEDED, POTTED_UP, PLANTED_OUT, HARVESTED, RECOVERED, REMOVED, NOTE, BUDDING, FIRST_BLOOM, PEAK_BLOOM, LAST_BLOOM, LIFTED, DIVIDED, STORED, PINCHED, DISBUDDED, APPLIED_SUPPLY }

@@ -1,5 +1,6 @@
 package app.verdant.entity
 
+import java.math.BigDecimal
 import java.time.Instant
 
 data class WorkflowTemplate(
@@ -22,6 +23,8 @@ data class WorkflowTemplateStep(
     val isSideBranch: Boolean = false,
     val sideBranchName: String? = null,
     val sortOrder: Int = 0,
+    val suggestedSupplyTypeId: Long? = null,
+    val suggestedQuantity: BigDecimal? = null,
 )
 
 data class SpeciesWorkflowStep(
@@ -36,6 +39,8 @@ data class SpeciesWorkflowStep(
     val isSideBranch: Boolean = false,
     val sideBranchName: String? = null,
     val sortOrder: Int = 0,
+    val suggestedSupplyTypeId: Long? = null,
+    val suggestedQuantity: BigDecimal? = null,
 )
 
 data class PlantWorkflowProgress(

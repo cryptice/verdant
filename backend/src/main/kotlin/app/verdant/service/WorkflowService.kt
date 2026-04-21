@@ -73,6 +73,8 @@ class WorkflowService(
                 isSideBranch = request.isSideBranch,
                 sideBranchName = request.sideBranchName,
                 sortOrder = request.sortOrder,
+                suggestedSupplyTypeId = request.suggestedSupplyTypeId,
+                suggestedQuantity = request.suggestedQuantity,
             )
         )
         return step.toResponse()
@@ -89,6 +91,8 @@ class WorkflowService(
             isSideBranch = request.isSideBranch ?: step.isSideBranch,
             sideBranchName = request.sideBranchName ?: step.sideBranchName,
             sortOrder = request.sortOrder ?: step.sortOrder,
+            suggestedSupplyTypeId = request.suggestedSupplyTypeId ?: step.suggestedSupplyTypeId,
+            suggestedQuantity = request.suggestedQuantity ?: step.suggestedQuantity,
         )
         workflowRepository.updateStep(updated)
         return updated.toResponse()
@@ -124,6 +128,8 @@ class WorkflowService(
                     isSideBranch = ts.isSideBranch,
                     sideBranchName = ts.sideBranchName,
                     sortOrder = ts.sortOrder,
+                    suggestedSupplyTypeId = ts.suggestedSupplyTypeId,
+                    suggestedQuantity = ts.suggestedQuantity,
                 )
             )
         }
@@ -167,6 +173,8 @@ class WorkflowService(
                 isSideBranch = request.isSideBranch,
                 sideBranchName = request.sideBranchName,
                 sortOrder = request.sortOrder,
+                suggestedSupplyTypeId = request.suggestedSupplyTypeId,
+                suggestedQuantity = request.suggestedQuantity,
             )
         )
         return step.toSpeciesStepResponse()
@@ -183,6 +191,8 @@ class WorkflowService(
             isSideBranch = request.isSideBranch ?: step.isSideBranch,
             sideBranchName = request.sideBranchName ?: step.sideBranchName,
             sortOrder = request.sortOrder ?: step.sortOrder,
+            suggestedSupplyTypeId = request.suggestedSupplyTypeId ?: step.suggestedSupplyTypeId,
+            suggestedQuantity = request.suggestedQuantity ?: step.suggestedQuantity,
         )
         workflowRepository.updateSpeciesStep(updated)
         return updated.toSpeciesStepResponse()
@@ -348,6 +358,8 @@ class WorkflowService(
         isSideBranch = isSideBranch,
         sideBranchName = sideBranchName,
         sortOrder = sortOrder,
+        suggestedSupplyTypeId = suggestedSupplyTypeId,
+        suggestedQuantity = suggestedQuantity,
     )
 
     private fun SpeciesWorkflowStep.toSpeciesStepResponse() = SpeciesWorkflowStepResponse(
@@ -361,5 +373,7 @@ class WorkflowService(
         isSideBranch = isSideBranch,
         sideBranchName = sideBranchName,
         sortOrder = sortOrder,
+        suggestedSupplyTypeId = suggestedSupplyTypeId,
+        suggestedQuantity = suggestedQuantity,
     )
 }

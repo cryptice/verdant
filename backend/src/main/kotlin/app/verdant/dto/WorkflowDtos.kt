@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
+import java.math.BigDecimal
 import java.time.Instant
 
 data class WorkflowTemplateResponse(
@@ -24,6 +25,8 @@ data class WorkflowStepResponse(
     @get:JsonProperty("isSideBranch") val isSideBranch: Boolean,
     val sideBranchName: String?,
     val sortOrder: Int,
+    val suggestedSupplyTypeId: Long? = null,
+    val suggestedQuantity: BigDecimal? = null,
 )
 
 data class CreateWorkflowTemplateRequest(
@@ -52,6 +55,8 @@ data class CreateWorkflowStepRequest(
     @field:Size(max = 255)
     val sideBranchName: String? = null,
     val sortOrder: Int = 0,
+    val suggestedSupplyTypeId: Long? = null,
+    val suggestedQuantity: BigDecimal? = null,
 )
 
 data class UpdateWorkflowStepRequest(
@@ -66,6 +71,8 @@ data class UpdateWorkflowStepRequest(
     @field:Size(max = 255)
     val sideBranchName: String? = null,
     val sortOrder: Int? = null,
+    val suggestedSupplyTypeId: Long? = null,
+    val suggestedQuantity: BigDecimal? = null,
 )
 
 data class SpeciesWorkflowResponse(
@@ -85,6 +92,8 @@ data class SpeciesWorkflowStepResponse(
     @get:JsonProperty("isSideBranch") val isSideBranch: Boolean,
     val sideBranchName: String?,
     val sortOrder: Int,
+    val suggestedSupplyTypeId: Long? = null,
+    val suggestedQuantity: BigDecimal? = null,
 )
 
 data class PlantWorkflowProgressResponse(
