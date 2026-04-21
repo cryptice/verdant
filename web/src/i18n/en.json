@@ -796,7 +796,23 @@
     "avgVaseLife": "Avg vase life",
     "area": "Area",
     "stemsPerM2": "Stems/m²",
-    "noData": "No analytics data yet"
+    "noData": "No analytics data yet",
+    "loading": "Loading…",
+    "masthead": {
+      "center": "— The Numbers —"
+    },
+    "section": {
+      "seasonOverview": "Season overview",
+      "speciesComparison": "Species comparison",
+      "yieldPerBed": "Yield per bed"
+    },
+    "card": {
+      "stems": "stems",
+      "plants": "Plants",
+      "species": "Species",
+      "topSpecies": "Top species",
+      "bed": "Bed"
+    }
   },
   "guide": {
     "title": "Guide",

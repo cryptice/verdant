@@ -2,23 +2,19 @@ import { useQuery } from '@tanstack/react-query'
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type SpeciesResponse } from '../api/client'
-import { PageHeader } from '../components/PageHeader'
+import { Masthead, Chip, Rule } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
-import { OnboardingHint } from '../onboarding/OnboardingHint'
 
 export function Analytics() {
   const { t } = useTranslation()
 
-  // --- Section 1: Season overview ---
   const { data: summaries, error: summariesError, isLoading: summariesLoading, refetch: summariesRefetch } = useQuery({
     queryKey: ['analytics-season-summaries'],
     queryFn: () => api.analytics.seasonSummaries(),
   })
 
-  // --- Section 2: Species comparison ---
   const [compSpecies, setCompSpecies] = useState<SpeciesResponse | null>(null)
-
   const { data: comparison, isLoading: compLoading } = useQuery({
     queryKey: ['analytics-species-comparison', compSpecies?.id],
     queryFn: () => api.analytics.speciesComparison(compSpecies!.id),
@@ -30,13 +26,11 @@ export function Analytics() {
     return Math.max(1, ...comparison.seasons.map(s => s.stemsHarvested))
   }, [comparison])
 
-  // --- Section 3: Yield per bed ---
-  const { data: yieldData, isLoading: yieldLoading } = useQuery({
+  const { data: yieldData } = useQuery({
     queryKey: ['analytics-yield-per-bed'],
     queryFn: () => api.analytics.yieldPerBed(),
   })
 
-  // Collect all unique season columns
   const allSeasons = useMemo(() => {
     if (!yieldData) return [] as { seasonId: number; seasonName: string }[]
     const map = new Map<number, string>()
@@ -48,195 +42,209 @@ export function Analytics() {
     return Array.from(map.entries()).map(([seasonId, seasonName]) => ({ seasonId, seasonName }))
   }, [yieldData])
 
-  if (summariesLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
+  if (summariesLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', padding: 64 }}>
+        <div style={{ width: 32, height: 32, border: '2px solid var(--color-ink)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      </div>
+    )
+  }
   if (summariesError) return <ErrorDisplay error={summariesError} onRetry={summariesRefetch} />
 
   return (
     <div>
-      <PageHeader title={t('analytics.title')} />
-      <OnboardingHint />
-      <div data-onboarding="analytics-view" className="px-4 py-4 space-y-8">
+      <Masthead left={t('nav.analytics')} center={t('analytics.masthead.center')} />
 
-        {/* ── Section 1: Season overview cards ── */}
+      <div style={{ padding: '28px 40px', display: 'flex', flexDirection: 'column', gap: 40 }}>
+
+        {/* § Season overview */}
         <section>
-          <h2 className="text-sm font-medium text-text-secondary mb-3">{t('analytics.seasonOverview')}</h2>
-
-          {(!summaries || summaries.length === 0) && (
-            <p className="text-text-secondary text-sm text-center py-4">{t('analytics.noData')}</p>
-          )}
-
-          {summaries && summaries.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <SectionHeading title={t('analytics.section.seasonOverview')} />
+          {(!summaries || summaries.length === 0) ? (
+            <EmptyBlock label={t('analytics.noData')} />
+          ) : (
+            <div style={{ display: 'flex', gap: 20, overflowX: 'auto', paddingBottom: 8 }}>
               {summaries.map(s => (
-                <div key={s.seasonId} className="border border-divider rounded-xl bg-bg shadow-sm p-4">
-                  <div className="flex items-baseline gap-2 mb-2">
-                    <span className="text-sm font-semibold">{s.seasonName}</span>
-                    <span className="text-xs text-text-secondary">{s.year}</span>
+                <div
+                  key={s.seasonId}
+                  style={{
+                    flex: '0 0 280px',
+                    background: 'var(--color-paper)',
+                    border: '1px solid var(--color-ink)',
+                    padding: '22px 28px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)' }}>
+                    <span>{s.seasonName}</span>
+                    <span>{s.year}</span>
                   </div>
-                  <p className="text-2xl font-bold tabular-nums">{s.totalStemsHarvested.toLocaleString()}</p>
-                  <p className="text-xs text-text-secondary mb-2">{t('analytics.totalStems')}</p>
-                  <div className="flex gap-4 text-xs text-text-secondary mb-2">
-                    <span>{t('analytics.plants')}: {s.totalPlants}</span>
-                    <span>{t('analytics.speciesCount')}: {s.speciesCount}</span>
+                  <div style={{
+                    fontFamily: 'var(--font-display)', fontSize: 44, fontWeight: 300, letterSpacing: -0.6, marginTop: 14,
+                    fontVariationSettings: '"SOFT" 100, "opsz" 144',
+                  }}>
+                    {s.totalStemsHarvested.toLocaleString()}
                   </div>
-                  {s.topSpecies.length > 0 && (
-                    <div>
-                      <p className="text-xs text-text-muted mb-0.5">{t('analytics.topSpecies')}</p>
-                      <p className="text-xs text-text-secondary">
-                        {s.topSpecies.slice(0, 3).map(sp => sp.speciesName).join(', ')}
-                      </p>
-                    </div>
-                  )}
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7 }}>
+                    {t('analytics.card.stems')}
+                  </div>
+                  <div style={{ marginTop: 14, borderTop: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)', paddingTop: 14, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <Meta label={t('analytics.card.plants')} value={s.totalPlants.toString()} />
+                    <Meta label={t('analytics.card.species')} value={s.speciesCount.toString()} />
+                    {s.topSpecies.length > 0 && (
+                      <div style={{ gridColumn: '1 / -1' }}>
+                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7, marginBottom: 4 }}>
+                          {t('analytics.card.topSpecies')}
+                        </div>
+                        <Chip tone="clay">{s.topSpecies[0].speciesName}</Chip>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </section>
 
-        {/* ── Section 2: Species comparison ── */}
+        {/* § Species comparison */}
         <section>
-          <h2 className="text-sm font-medium text-text-secondary mb-3">{t('analytics.speciesComparison')}</h2>
-          <div className="mb-3 max-w-xs">
-            <SpeciesAutocomplete
-              value={compSpecies}
-              onChange={setCompSpecies}
-              placeholder={t('analytics.selectSpecies')}
-            />
+          <SectionHeading title={t('analytics.section.speciesComparison')} />
+          <div style={{ marginBottom: 22, maxWidth: 360 }}>
+            <SpeciesAutocomplete value={compSpecies} onChange={setCompSpecies} />
           </div>
 
-          {!compSpecies && (
-            <p className="text-text-secondary text-sm py-2">{t('analytics.selectSpecies')}</p>
-          )}
-
-          {compSpecies && compLoading && (
-            <div className="flex justify-center py-4">
-              <div className="animate-spin h-5 w-5 border-2 border-accent border-t-transparent rounded-full" />
-            </div>
-          )}
-
-          {compSpecies && comparison && !compLoading && (
-            <div className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-divider bg-surface">
-                    <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('seasons.title')}</th>
-                    <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('trials.plantCount')}</th>
-                    <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('analytics.totalStems')}</th>
-                    <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('analytics.stemsPerPlant')}</th>
-                    <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('analytics.avgLength')}</th>
-                    <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('analytics.avgVaseLife')}</th>
-                    <th className="px-4 py-2 text-xs font-medium text-text-secondary w-32"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {comparison.seasons.map(s => (
-                    <tr key={s.seasonId} className="border-b border-divider last:border-0">
-                      <td className="px-4 py-2.5 text-sm">
-                        {s.seasonName} <span className="text-text-secondary text-xs">({s.year})</span>
-                      </td>
-                      <td className="px-4 py-2.5 text-sm text-right tabular-nums">{s.plantCount}</td>
-                      <td className="px-4 py-2.5 text-sm text-right tabular-nums">{s.stemsHarvested}</td>
-                      <td className="px-4 py-2.5 text-sm text-right tabular-nums">{s.stemsPerPlant != null ? s.stemsPerPlant.toFixed(1) : '—'}</td>
-                      <td className="px-4 py-2.5 text-sm text-right tabular-nums">{s.avgStemLength != null ? `${s.avgStemLength.toFixed(0)} cm` : '—'}</td>
-                      <td className="px-4 py-2.5 text-sm text-right tabular-nums">{s.avgVaseLife != null ? `${s.avgVaseLife.toFixed(0)} d` : '—'}</td>
-                      <td className="px-4 py-2.5">
-                        <div className="h-2 rounded-full bg-surface overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-accent"
-                            style={{ width: `${(s.stemsHarvested / maxStems) * 100}%` }}
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {comparison.seasons.length === 0 && (
-                    <tr>
-                      <td colSpan={7} className="px-4 py-4 text-sm text-text-secondary text-center">{t('analytics.noData')}</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+          {compSpecies === null ? (
+            <EmptyBlock label={t('analytics.selectSpecies')} />
+          ) : compLoading ? (
+            <EmptyBlock label={t('analytics.loading')} />
+          ) : !comparison?.seasons || comparison.seasons.length === 0 ? (
+            <EmptyBlock label={t('analytics.noData')} />
+          ) : (
+            <div>
+              {comparison.seasons.map(season => {
+                const pct = Math.round((season.stemsHarvested / maxStems) * 100)
+                return (
+                  <div
+                    key={season.seasonId}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '120px 100px 1fr 70px',
+                      gap: 18,
+                      alignItems: 'center',
+                      padding: '14px 0',
+                      borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                    }}
+                  >
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)' }}>
+                      {season.seasonName}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontVariantNumeric: 'tabular-nums' }}>
+                      {season.stemsHarvested.toLocaleString()}
+                    </span>
+                    <div style={{ height: 8, background: 'var(--color-paper)', border: '1px solid var(--color-ink)' }}>
+                      <div style={{ width: `${pct}%`, height: '100%', background: 'var(--color-clay)' }} />
+                    </div>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7, textAlign: 'right' }}>
+                      {pct}%
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           )}
         </section>
 
-        {/* ── Section 3: Yield per bed ── */}
+        {/* § Yield per bed */}
         <section>
-          <h2 className="text-sm font-medium text-text-secondary mb-3">{t('analytics.yieldPerBed')}</h2>
+          <SectionHeading title={t('analytics.section.yieldPerBed')} />
 
-          {yieldLoading && (
-            <div className="flex justify-center py-4">
-              <div className="animate-spin h-5 w-5 border-2 border-accent border-t-transparent rounded-full" />
-            </div>
-          )}
+          {(!yieldData || yieldData.length === 0) ? (
+            <EmptyBlock label={t('analytics.noData')} />
+          ) : (
+            <div>
+              {/* Header */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: `180px repeat(${allSeasons.length}, 1fr)`,
+                gap: 18,
+                padding: '10px 0',
+                borderBottom: '1px solid var(--color-ink)',
+                fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7,
+              }}>
+                <span>{t('analytics.card.bed')}</span>
+                {allSeasons.map(col => <span key={col.seasonId} style={{ textAlign: 'right' }}>{col.seasonName}</span>)}
+              </div>
 
-          {yieldData && yieldData.length === 0 && !yieldLoading && (
-            <p className="text-text-secondary text-sm text-center py-4">{t('analytics.noData')}</p>
-          )}
-
-          {yieldData && yieldData.length > 0 && !yieldLoading && (
-            <div className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-divider bg-surface">
-                    <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('sow.bedLabel')}</th>
-                    <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('analytics.area')}</th>
-                    {allSeasons.map(s => (
-                      <th key={s.seasonId} className="text-right px-4 py-2 text-xs font-medium text-text-secondary" colSpan={2}>
-                        {s.seasonName}
-                      </th>
-                    ))}
-                  </tr>
-                  <tr className="border-b border-divider bg-surface">
-                    <th className="px-4 py-1"></th>
-                    <th className="px-4 py-1"></th>
-                    {allSeasons.map(s => (
-                      <th key={`${s.seasonId}-sub`} className="text-right px-4 py-1 text-xs text-text-muted" colSpan={1}>
-                        {t('analytics.totalStems')}
-                      </th>
-                    ))}
-                    {allSeasons.map(s => (
-                      <th key={`${s.seasonId}-sub2`} className="text-right px-4 py-1 text-xs text-text-muted" colSpan={1}>
-                        {t('analytics.stemsPerM2')}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {yieldData.map(bed => {
-                    const seasonMap = new Map(bed.seasons.map(s => [s.seasonId, s]))
+              {/* Rows */}
+              {yieldData.map(bed => (
+                <div
+                  key={bed.bedId}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: `180px repeat(${allSeasons.length}, 1fr)`,
+                    gap: 18,
+                    padding: '12px 0',
+                    borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                    alignItems: 'center',
+                  }}
+                >
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>{bed.bedName}</span>
+                  {allSeasons.map(col => {
+                    const season = bed.seasons.find(s => s.seasonId === col.seasonId)
                     return (
-                      <tr key={bed.bedId} className="border-b border-divider last:border-0 hover:bg-surface transition-colors">
-                        <td className="px-4 py-2.5 text-sm">
-                          <span>{bed.bedName}</span>
-                          <span className="text-text-secondary text-xs ml-1">({bed.gardenName})</span>
-                        </td>
-                        <td className="px-4 py-2.5 text-sm text-text-secondary tabular-nums">
-                          {bed.areaM2 != null ? `${bed.areaM2.toFixed(1)} m\u00B2` : '—'}
-                        </td>
-                        {allSeasons.map(s => {
-                          const data = seasonMap.get(s.seasonId)
-                          return (
-                            <td key={s.seasonId} className="px-4 py-2.5 text-sm text-right tabular-nums" colSpan={2}>
-                              {data ? (
-                                <>
-                                  <span>{data.stemsHarvested}</span>
-                                  {data.stemsPerM2 != null && (
-                                    <span className="text-text-secondary text-xs ml-2">({data.stemsPerM2.toFixed(1)}/m{'\u00B2'})</span>
-                                  )}
-                                </>
-                              ) : '—'}
-                            </td>
-                          )
-                        })}
-                      </tr>
+                      <span
+                        key={col.seasonId}
+                        style={{
+                          textAlign: 'right',
+                          fontFamily: 'var(--font-display)',
+                          fontSize: 18,
+                          fontVariantNumeric: 'tabular-nums',
+                          color: season ? 'var(--color-ink)' : 'color-mix(in srgb, var(--color-clay) 40%, transparent)',
+                        }}
+                      >
+                        {season ? season.stemsHarvested.toLocaleString() : '—'}
+                      </span>
                     )
                   })}
-                </tbody>
-              </table>
+                </div>
+              ))}
             </div>
           )}
         </section>
+
+      </div>
+    </div>
+  )
+}
+
+function SectionHeading({ title }: { title: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 14 }}>
+      <h2 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 30, fontWeight: 300, margin: 0, fontVariationSettings: '"SOFT" 100, "opsz" 144' }}>
+        {title}<span style={{ color: 'var(--color-clay)' }}>.</span>
+      </h2>
+      <Rule inline variant="ink" />
+    </div>
+  )
+}
+
+function EmptyBlock({ label }: { label: string }) {
+  return (
+    <div style={{ padding: '40px 22px', textAlign: 'center', borderTop: '1px solid var(--color-ink)', borderBottom: '1px solid var(--color-ink)' }}>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7 }}>
+        {label}
+      </div>
+    </div>
+  )
+}
+
+function Meta({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7 }}>
+        {label}
+      </div>
+      <div style={{ fontFamily: 'var(--font-display)', fontSize: 18 }}>
+        {value}
       </div>
     </div>
   )

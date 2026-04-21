@@ -796,7 +796,23 @@
     "avgVaseLife": "Medellivslängd i vas",
     "area": "Yta",
     "stemsPerM2": "Stjälkar/m²",
-    "noData": "Ingen analysdata ännu"
+    "noData": "Ingen analysdata ännu",
+    "loading": "Laddar…",
+    "masthead": {
+      "center": "— Siffrorna —"
+    },
+    "section": {
+      "seasonOverview": "Säsongsöversikt",
+      "speciesComparison": "Artjämförelse",
+      "yieldPerBed": "Skörd per bädd"
+    },
+    "card": {
+      "stems": "stjälkar",
+      "plants": "Plantor",
+      "species": "Arter",
+      "topSpecies": "Bästa art",
+      "bed": "Bädd"
+    }
   },
   "guide": {
     "title": "Guide",
