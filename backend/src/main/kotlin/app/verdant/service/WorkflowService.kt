@@ -82,6 +82,7 @@ class WorkflowService(
 
     fun updateTemplateStep(stepId: Long, request: UpdateWorkflowStepRequest, orgId: Long): WorkflowStepResponse {
         val step = findTemplateStepById(stepId, orgId)
+        val clear = request.clearSuggestedSupply == true
         val updated = step.copy(
             name = request.name ?: step.name,
             description = request.description ?: step.description,
@@ -91,8 +92,8 @@ class WorkflowService(
             isSideBranch = request.isSideBranch ?: step.isSideBranch,
             sideBranchName = request.sideBranchName ?: step.sideBranchName,
             sortOrder = request.sortOrder ?: step.sortOrder,
-            suggestedSupplyTypeId = request.suggestedSupplyTypeId ?: step.suggestedSupplyTypeId,
-            suggestedQuantity = request.suggestedQuantity ?: step.suggestedQuantity,
+            suggestedSupplyTypeId = if (clear) null else request.suggestedSupplyTypeId ?: step.suggestedSupplyTypeId,
+            suggestedQuantity = if (clear) null else request.suggestedQuantity ?: step.suggestedQuantity,
         )
         workflowRepository.updateStep(updated)
         return updated.toResponse()
@@ -182,6 +183,7 @@ class WorkflowService(
 
     fun updateSpeciesStep(stepId: Long, request: UpdateWorkflowStepRequest, orgId: Long): SpeciesWorkflowStepResponse {
         val step = findSpeciesStepById(stepId, orgId)
+        val clear = request.clearSuggestedSupply == true
         val updated = step.copy(
             name = request.name ?: step.name,
             description = request.description ?: step.description,
@@ -191,8 +193,8 @@ class WorkflowService(
             isSideBranch = request.isSideBranch ?: step.isSideBranch,
             sideBranchName = request.sideBranchName ?: step.sideBranchName,
             sortOrder = request.sortOrder ?: step.sortOrder,
-            suggestedSupplyTypeId = request.suggestedSupplyTypeId ?: step.suggestedSupplyTypeId,
-            suggestedQuantity = request.suggestedQuantity ?: step.suggestedQuantity,
+            suggestedSupplyTypeId = if (clear) null else request.suggestedSupplyTypeId ?: step.suggestedSupplyTypeId,
+            suggestedQuantity = if (clear) null else request.suggestedQuantity ?: step.suggestedQuantity,
         )
         workflowRepository.updateSpeciesStep(updated)
         return updated.toSpeciesStepResponse()

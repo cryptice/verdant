@@ -37,11 +37,13 @@ function StepRow({
   const [suggestedQuantity, setSuggestedQuantity] = useState<string>(step.suggestedQuantity != null ? String(step.suggestedQuantity) : '')
 
   const save = () => {
+    const suggestSet = eventType === 'APPLIED_SUPPLY' && suggestedSupplyTypeId !== ''
     onUpdate({
       name, eventType: eventType || null, daysAfterPrevious: days || null,
       isOptional, isSideBranch, sideBranchName: isSideBranch ? sideBranchName : null,
-      suggestedSupplyTypeId: eventType === 'APPLIED_SUPPLY' && suggestedSupplyTypeId !== '' ? Number(suggestedSupplyTypeId) : null,
-      suggestedQuantity: eventType === 'APPLIED_SUPPLY' && suggestedQuantity !== '' ? Number(suggestedQuantity) : null,
+      suggestedSupplyTypeId: suggestSet ? Number(suggestedSupplyTypeId) : null,
+      suggestedQuantity: suggestSet && suggestedQuantity !== '' ? Number(suggestedQuantity) : null,
+      clearSuggestedSupply: !suggestSet,
     })
     setEditing(false)
   }

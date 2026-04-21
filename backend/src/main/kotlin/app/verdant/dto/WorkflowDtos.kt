@@ -73,6 +73,12 @@ data class UpdateWorkflowStepRequest(
     val sortOrder: Int? = null,
     val suggestedSupplyTypeId: Long? = null,
     val suggestedQuantity: BigDecimal? = null,
+    // When true, both suggestion fields are cleared (set to NULL) regardless
+    // of what suggestedSupplyTypeId / suggestedQuantity are in this request.
+    // Needed because Kotlin + Jackson cannot distinguish field-absent from
+    // field-present-with-null, so the default ?: keep-existing pattern can't
+    // be used to clear the suggestion.
+    val clearSuggestedSupply: Boolean? = null,
 )
 
 data class SpeciesWorkflowResponse(
