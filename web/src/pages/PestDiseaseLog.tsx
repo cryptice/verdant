@@ -1,20 +1,50 @@
+import React from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type PestDiseaseLogResponse, type SpeciesResponse, type BedWithGardenResponse } from '../api/client'
-import { PageHeader } from '../components/PageHeader'
+import { Masthead, Chip } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
-import { Pagination } from '../components/Pagination'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
-const PAGE_SIZE = 50
-
 const CATEGORIES = ['PEST', 'DISEASE', 'DEFICIENCY', 'OTHER'] as const
 const SEVERITIES = ['LOW', 'MODERATE', 'HIGH', 'CRITICAL'] as const
 const OUTCOMES = ['RESOLVED', 'ONGOING', 'CROP_LOSS', 'MONITORING'] as const
+
+const TEMPLATE = '60px 1.5fr 110px 130px 120px 90px 36px'
+
+const CATEGORY_COLOR: Record<string, string> = {
+  PEST: 'var(--color-berry)',
+  DISEASE: 'var(--color-clay)',
+  DEFICIENCY: 'var(--color-mustard)',
+  OTHER: 'var(--color-forest)',
+}
+
+const SEVERITY_TONE: Record<string, 'sage' | 'mustard' | 'clay' | 'berry'> = {
+  LOW: 'sage',
+  MODERATE: 'mustard',
+  HIGH: 'clay',
+  CRITICAL: 'berry',
+}
+
+const OUTCOME_TONE: Record<string, 'sage' | 'mustard' | 'berry' | 'sky'> = {
+  RESOLVED: 'sage',
+  ONGOING: 'mustard',
+  CROP_LOSS: 'berry',
+  MONITORING: 'sky',
+}
+
+const HEADER_STYLE: React.CSSProperties = {
+  fontFamily: 'var(--font-mono)',
+  fontSize: 9,
+  letterSpacing: 1.4,
+  textTransform: 'uppercase',
+  color: 'var(--color-forest)',
+  opacity: 0.7,
+}
 
 export function PestDiseaseLog() {
   const qc = useQueryClient()
@@ -38,7 +68,6 @@ export function PestDiseaseLog() {
     queryFn: () => api.pestDisease.list(seasonFilter),
   })
 
-  const [page, setPage] = useState(0)
   const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<PestDiseaseLogResponse | null>(null)
   const [deleteItem, setDeleteItem] = useState<PestDiseaseLogResponse | null>(null)
@@ -72,7 +101,7 @@ export function PestDiseaseLog() {
     setFormName(entry.name)
     setFormSeverity(entry.severity)
     setFormBedId(entry.bedId ? String(entry.bedId) : '')
-    setFormSpecies(null) // Species autocomplete requires full object; user can re-select
+    setFormSpecies(null)
     setFormTreatment(entry.treatment ?? '')
     setFormOutcome(entry.outcome ?? '')
     setFormNotes(entry.notes ?? '')
@@ -115,54 +144,16 @@ export function PestDiseaseLog() {
   if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
 
-  const categoryBadge = (cat: string) => {
-    const colors: Record<string, string> = {
-      PEST: 'bg-orange-100 text-orange-700',
-      DISEASE: 'bg-red-100 text-red-700',
-      DEFICIENCY: 'bg-yellow-100 text-yellow-700',
-      OTHER: 'bg-gray-100 text-gray-700',
-    }
-    return (
-      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${colors[cat] ?? colors.OTHER}`}>
-        {t(`pestCategories.${cat}`)}
-      </span>
-    )
-  }
-
-  const severityBadge = (sev: string) => {
-    const colors: Record<string, string> = {
-      LOW: 'bg-green-100 text-green-700',
-      MODERATE: 'bg-yellow-100 text-yellow-700',
-      HIGH: 'bg-orange-100 text-orange-700',
-      CRITICAL: 'bg-red-100 text-red-700',
-    }
-    return (
-      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${colors[sev] ?? 'bg-gray-100 text-gray-700'}`}>
-        {t(`severities.${sev}`)}
-      </span>
-    )
-  }
-
-  const outcomeBadge = (outcome: string | undefined) => {
-    if (!outcome) return '—'
-    const colors: Record<string, string> = {
-      RESOLVED: 'bg-green-100 text-green-700',
-      ONGOING: 'bg-yellow-100 text-yellow-700',
-      CROP_LOSS: 'bg-red-100 text-red-700',
-      MONITORING: 'bg-blue-100 text-blue-700',
-    }
-    return (
-      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${colors[outcome] ?? 'bg-gray-100 text-gray-700'}`}>
-        {t(`outcomes.${outcome}`)}
-      </span>
-    )
-  }
-
   const bedName = (bedId?: number) => {
     if (!bedId || !beds) return '—'
     const bed = beds.find((b: BedWithGardenResponse) => b.id === bedId)
     return bed ? bed.name : '—'
   }
+
+  const sortedLogs = (data ?? []).slice().sort((a, b) =>
+    CATEGORIES.indexOf(a.category as typeof CATEGORIES[number]) - CATEGORIES.indexOf(b.category as typeof CATEGORIES[number]) ||
+    a.observedDate.localeCompare(b.observedDate)
+  )
 
   const formFields = (
     <div className="space-y-4">
@@ -235,14 +226,22 @@ export function PestDiseaseLog() {
 
   return (
     <div>
-      <PageHeader title={t('pestDisease.title')} action={{ label: t('pestDisease.new'), onClick: openAdd, 'data-onboarding': 'add-pest-btn' }} />
+      <Masthead
+        left={t('nav.pestDisease')}
+        center="— Skadeliggaren —"
+        right={
+          <button onClick={openAdd} className="btn-primary" data-onboarding="add-pest-btn">
+            {t('pestDisease.new')}
+          </button>
+        }
+      />
       <OnboardingHint />
-      <div className="px-4 py-4">
+      <div style={{ padding: '28px 40px' }}>
         {/* Season filter */}
-        <div className="mb-4">
+        <div style={{ marginBottom: 22 }}>
           <select
             value={seasonFilter ?? ''}
-            onChange={e => { setSeasonFilter(e.target.value ? Number(e.target.value) : undefined); setPage(0) }}
+            onChange={e => setSeasonFilter(e.target.value ? Number(e.target.value) : undefined)}
             className="input w-auto"
           >
             <option value="">{t('pestDisease.allSeasons')}</option>
@@ -252,43 +251,89 @@ export function PestDiseaseLog() {
           </select>
         </div>
 
-        {data && data.length === 0 && (
-          <p className="text-text-secondary text-sm text-center py-4">{t('pestDisease.noEntries')}</p>
+        {sortedLogs.length === 0 && (
+          <div style={{ padding: '40px 22px', textAlign: 'center', borderBottom: '1px solid var(--color-ink)', borderTop: '1px solid var(--color-ink)' }}>
+            <div style={{ ...HEADER_STYLE, marginBottom: 6 }}>{t('pestDisease.noEntries')}</div>
+          </div>
         )}
 
-        {data && data.length > 0 && (<>
-          <div className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-divider bg-surface">
-                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('pestDisease.observedDate')}</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('pestDisease.name')}</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('pestDisease.category')}</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('pestDisease.severity')}</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('sow.bedLabel')}</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('pestDisease.outcome')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map(entry => (
-                  <tr
-                    key={entry.id}
-                    className="border-b border-divider last:border-0 hover:bg-surface cursor-pointer transition-colors"
-                    onClick={() => openEdit(entry)}
-                  >
-                    <td className="px-4 py-2.5 text-sm tabular-nums">{entry.observedDate}</td>
-                    <td className="px-4 py-2.5 text-sm">{entry.name}</td>
-                    <td className="px-4 py-2.5 text-sm">{categoryBadge(entry.category)}</td>
-                    <td className="px-4 py-2.5 text-sm">{severityBadge(entry.severity)}</td>
-                    <td className="px-4 py-2.5 text-sm text-text-secondary">{bedName(entry.bedId)}</td>
-                    <td className="px-4 py-2.5 text-sm">{outcomeBadge(entry.outcome)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {sortedLogs.length > 0 && (
+          <div>
+            {/* Header */}
+            <div style={{ display: 'grid', gridTemplateColumns: TEMPLATE, gap: 18, padding: '10px 0', borderBottom: '1px solid var(--color-ink)', ...HEADER_STYLE, opacity: 1 }}>
+              <span style={HEADER_STYLE}>№</span>
+              <span style={HEADER_STYLE}>{t('pestDisease.name')}</span>
+              <span style={HEADER_STYLE}>{t('pestDisease.severity')}</span>
+              <span style={HEADER_STYLE}>{t('pestDisease.outcome')}</span>
+              <span style={HEADER_STYLE}>{t('sow.bedLabel')}</span>
+              <span style={HEADER_STYLE}>{t('pestDisease.observedDate')}</span>
+              <span />
+            </div>
+
+            {/* Body with category section headers */}
+            {(() => {
+              let prevCategory: string | null = null
+              return sortedLogs.map((log, i) => {
+                const needsHeader = log.category !== prevCategory
+                prevCategory = log.category
+                return (
+                  <React.Fragment key={log.id}>
+                    {needsHeader && (
+                      <div style={{
+                        ...HEADER_STYLE,
+                        opacity: 1,
+                        padding: '16px 0 6px',
+                        color: CATEGORY_COLOR[log.category] ?? 'var(--color-forest)',
+                      }}>
+                        § {t(`pestCategories.${log.category}`)}
+                      </div>
+                    )}
+                    <button
+                      onClick={() => openEdit(log)}
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: TEMPLATE,
+                        gap: 18,
+                        padding: '14px 0',
+                        borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                        width: '100%',
+                        background: 'transparent',
+                        border: 'none',
+                        borderBottomWidth: 1,
+                        borderBottomStyle: 'solid',
+                        borderBottomColor: 'color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        alignItems: 'center',
+                      }}
+                      className="ledger-row"
+                    >
+                      <span style={{
+                        fontFamily: 'var(--font-display)',
+                        fontStyle: 'italic',
+                        fontSize: 22,
+                        color: CATEGORY_COLOR[log.category] ?? 'var(--color-forest)',
+                      }}>
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-display)', fontSize: 18 }}>{log.name}</span>
+                      <Chip tone={SEVERITY_TONE[log.severity] ?? 'sage'}>
+                        {t(`severities.${log.severity}`)}
+                      </Chip>
+                      {log.outcome
+                        ? <Chip tone={OUTCOME_TONE[log.outcome] ?? 'sage'}>{t(`outcomes.${log.outcome}`)}</Chip>
+                        : <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>—</span>
+                      }
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>{bedName(log.bedId)}</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>{log.observedDate}</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-clay)' }}>→</span>
+                    </button>
+                  </React.Fragment>
+                )
+              })
+            })()}
           </div>
-          <Pagination page={page} pageSize={PAGE_SIZE} total={data.length} onPageChange={setPage} />
-        </>)}
+        )}
       </div>
 
       <Dialog open={showAdd} onClose={() => { setShowAdd(false); resetForm() }} title={t('pestDisease.new')} actions={

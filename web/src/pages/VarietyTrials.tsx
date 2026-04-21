@@ -2,22 +2,34 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type VarietyTrialResponse, type SpeciesResponse, type BedWithGardenResponse } from '../api/client'
-import { PageHeader } from '../components/PageHeader'
+import { Masthead, Chip } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
-import { Pagination } from '../components/Pagination'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
-const PAGE_SIZE = 50
-
 const VERDICTS = ['KEEP', 'EXPAND', 'REDUCE', 'DROP', 'UNDECIDED'] as const
 const RECEPTIONS = ['LOVED', 'LIKED', 'NEUTRAL', 'DISLIKED'] as const
 
+const VERDICT_TONE: Record<string, 'sage' | 'mustard' | 'clay' | 'forest'> = {
+  KEEP: 'sage',
+  EXPAND: 'sage',
+  REDUCE: 'mustard',
+  DROP: 'clay',
+  UNDECIDED: 'forest',
+}
+
+const RECEPTION_TONE: Record<string, 'sage' | 'sky' | 'forest' | 'berry'> = {
+  LOVED: 'sage',
+  LIKED: 'sky',
+  NEUTRAL: 'forest',
+  DISLIKED: 'berry',
+}
+
 export function VarietyTrials() {
   const qc = useQueryClient()
-  const { t } = useTranslation()
+  const { t: tr } = useTranslation()
   const { completeStep } = useOnboarding()
 
   const [seasonFilter, setSeasonFilter] = useState<number | undefined>(undefined)
@@ -42,7 +54,6 @@ export function VarietyTrials() {
     queryFn: () => api.varietyTrials.list(seasonFilter),
   })
 
-  const [page, setPage] = useState(0)
   const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<VarietyTrialResponse | null>(null)
   const [deleteItem, setDeleteItem] = useState<VarietyTrialResponse | null>(null)
@@ -74,7 +85,7 @@ export function VarietyTrials() {
 
   const openEdit = (trial: VarietyTrialResponse) => {
     setFormSeasonId(String(trial.seasonId))
-    setFormSpecies(null) // Species autocomplete requires full object; user can re-select
+    setFormSpecies(null)
     setFormBedId(trial.bedId ? String(trial.bedId) : '')
     setFormPlantCount(trial.plantCount != null ? String(trial.plantCount) : '')
     setFormStemYield(trial.stemYield != null ? String(trial.stemYield) : '')
@@ -123,10 +134,7 @@ export function VarietyTrials() {
   if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
 
-  const speciesName = (speciesId: number) => {
-    const sp = speciesList?.find(s => s.id === speciesId)
-    return sp ? sp.commonName : `#${speciesId}`
-  }
+  const resolveSpecies = (speciesId: number) => speciesList?.find(s => s.id === speciesId)
 
   const bedName = (bedId?: number) => {
     if (!bedId || !beds) return '—'
@@ -134,35 +142,7 @@ export function VarietyTrials() {
     return bed ? bed.name : '—'
   }
 
-  const verdictBadge = (verdict: string) => {
-    const colors: Record<string, string> = {
-      KEEP: 'bg-green-100 text-green-700',
-      EXPAND: 'bg-blue-100 text-blue-700',
-      REDUCE: 'bg-yellow-100 text-yellow-700',
-      DROP: 'bg-red-100 text-red-700',
-      UNDECIDED: 'bg-gray-100 text-gray-700',
-    }
-    return (
-      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${colors[verdict] ?? colors.UNDECIDED}`}>
-        {t(`verdicts.${verdict}`)}
-      </span>
-    )
-  }
-
-  const receptionBadge = (reception: string | undefined) => {
-    if (!reception) return '—'
-    const colors: Record<string, string> = {
-      LOVED: 'bg-pink-100 text-pink-700',
-      LIKED: 'bg-green-100 text-green-700',
-      NEUTRAL: 'bg-gray-100 text-gray-700',
-      DISLIKED: 'bg-red-100 text-red-700',
-    }
-    return (
-      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${colors[reception] ?? 'bg-gray-100 text-gray-700'}`}>
-        {t(`receptions.${reception}`)}
-      </span>
-    )
-  }
+  const trials = data ?? []
 
   const canSubmitCreate = formSeasonId && formSpecies
   const canSubmitEdit = formSeasonId && (formSpecies || editItem?.speciesId)
@@ -170,7 +150,7 @@ export function VarietyTrials() {
   const formFields = (
     <div className="space-y-4">
       <div>
-        <label className="field-label">{t('seasons.title')} *</label>
+        <label className="field-label">{tr('seasons.title')} *</label>
         <select value={formSeasonId} onChange={e => setFormSeasonId(e.target.value)} className="input">
           <option value="">—</option>
           {seasons?.map(s => (
@@ -179,11 +159,11 @@ export function VarietyTrials() {
         </select>
       </div>
       <div>
-        <label className="field-label">{t('common.speciesLabel')}</label>
+        <label className="field-label">{tr('common.speciesLabel')}</label>
         <SpeciesAutocomplete value={formSpecies} onChange={setFormSpecies} />
       </div>
       <div>
-        <label className="field-label">{t('sow.bedLabel')}</label>
+        <label className="field-label">{tr('sow.bedLabel')}</label>
         <select value={formBedId} onChange={e => setFormBedId(e.target.value)} className="input">
           <option value="">—</option>
           {beds?.map((b: BedWithGardenResponse) => (
@@ -192,45 +172,45 @@ export function VarietyTrials() {
         </select>
       </div>
       <div>
-        <label className="field-label">{t('trials.plantCount')}</label>
+        <label className="field-label">{tr('trials.plantCount')}</label>
         <input type="number" value={formPlantCount} onChange={e => setFormPlantCount(e.target.value)} className="input" />
       </div>
       <div>
-        <label className="field-label">{t('trials.stemYield')}</label>
+        <label className="field-label">{tr('trials.stemYield')}</label>
         <input type="number" value={formStemYield} onChange={e => setFormStemYield(e.target.value)} className="input" />
       </div>
       <div>
-        <label className="field-label">{t('trials.avgLength')}</label>
+        <label className="field-label">{tr('trials.avgLength')}</label>
         <input type="number" value={formAvgLength} onChange={e => setFormAvgLength(e.target.value)} className="input" />
       </div>
       <div>
-        <label className="field-label">{t('trials.avgVaseLife')}</label>
+        <label className="field-label">{tr('trials.avgVaseLife')}</label>
         <input type="number" value={formAvgVaseLife} onChange={e => setFormAvgVaseLife(e.target.value)} className="input" />
       </div>
       <div>
-        <label className="field-label">{t('trials.qualityScore')} (1-10)</label>
+        <label className="field-label">{tr('trials.qualityScore')} (1-10)</label>
         <input type="number" min="1" max="10" value={formQualityScore} onChange={e => setFormQualityScore(e.target.value)} className="input" />
       </div>
       <div>
-        <label className="field-label">{t('trials.reception')}</label>
+        <label className="field-label">{tr('trials.reception')}</label>
         <select value={formReception} onChange={e => setFormReception(e.target.value)} className="input">
           <option value="">—</option>
           {RECEPTIONS.map(r => (
-            <option key={r} value={r}>{t(`receptions.${r}`)}</option>
+            <option key={r} value={r}>{tr(`receptions.${r}`)}</option>
           ))}
         </select>
       </div>
       <div>
-        <label className="field-label">{t('trials.verdict')} *</label>
+        <label className="field-label">{tr('trials.verdict')} *</label>
         <select value={formVerdict} onChange={e => setFormVerdict(e.target.value)} className="input">
           {VERDICTS.map(v => (
-            <option key={v} value={v}>{t(`verdicts.${v}`)}</option>
+            <option key={v} value={v}>{tr(`verdicts.${v}`)}</option>
           ))}
         </select>
       </div>
       <div>
-        <label className="field-label">{t('common.notesLabel')}</label>
-        <textarea value={formNotes} onChange={e => setFormNotes(e.target.value)} placeholder={t('common.optional')} rows={2} className="input" />
+        <label className="field-label">{tr('common.notesLabel')}</label>
+        <textarea value={formNotes} onChange={e => setFormNotes(e.target.value)} placeholder={tr('common.optional')} rows={2} className="input" />
       </div>
       {formError && <p className="text-error text-sm">{formError}</p>}
     </div>
@@ -238,92 +218,129 @@ export function VarietyTrials() {
 
   return (
     <div>
-      <PageHeader title={t('trials.title')} action={{ label: t('trials.new'), onClick: openAdd, 'data-onboarding': 'add-trial-btn' }} />
+      <Masthead
+        left={tr('nav.trials')}
+        center="— Sorteringsförsöksliggaren —"
+        right={
+          <button onClick={openAdd} className="btn-primary" data-onboarding="add-trial-btn">
+            {tr('trials.new')}
+          </button>
+        }
+      />
       <OnboardingHint />
-      <div className="px-4 py-4">
+      <div style={{ padding: '28px 40px' }}>
         {/* Season filter */}
-        <div className="mb-4">
+        <div style={{ marginBottom: 22 }}>
           <select
             value={seasonFilter ?? ''}
-            onChange={e => { setSeasonFilter(e.target.value ? Number(e.target.value) : undefined); setPage(0) }}
+            onChange={e => setSeasonFilter(e.target.value ? Number(e.target.value) : undefined)}
             className="input w-auto"
           >
-            <option value="">{t('pestDisease.allSeasons')}</option>
+            <option value="">{tr('pestDisease.allSeasons')}</option>
             {seasons?.map(s => (
               <option key={s.id} value={s.id}>{s.name}</option>
             ))}
           </select>
         </div>
 
-        {data && data.length === 0 && (
-          <p className="text-text-secondary text-sm text-center py-4">{t('trials.noTrials')}</p>
+        {trials.length === 0 && (
+          <div style={{ padding: '40px 22px', textAlign: 'center', borderBottom: '1px solid var(--color-ink)', borderTop: '1px solid var(--color-ink)' }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7, marginBottom: 6 }}>
+              {tr('trials.noTrials')}
+            </div>
+          </div>
         )}
 
-        {data && data.length > 0 && (<>
-          <div className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-divider bg-surface">
-                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('common.speciesLabel')}</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('sow.bedLabel')}</th>
-                  <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('trials.plantCount')}</th>
-                  <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('trials.stemYield')}</th>
-                  <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('trials.avgLength')}</th>
-                  <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('trials.avgVaseLife')}</th>
-                  <th className="text-right px-4 py-2 text-xs font-medium text-text-secondary">{t('trials.qualityScore')}</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('trials.reception')}</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('trials.verdict')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map(trial => (
-                  <tr
-                    key={trial.id}
-                    className="border-b border-divider last:border-0 hover:bg-surface cursor-pointer transition-colors"
-                    onClick={() => openEdit(trial)}
-                  >
-                    <td className="px-4 py-2.5 text-sm">{speciesName(trial.speciesId)}</td>
-                    <td className="px-4 py-2.5 text-sm text-text-secondary">{bedName(trial.bedId)}</td>
-                    <td className="px-4 py-2.5 text-sm text-right tabular-nums">{trial.plantCount ?? '—'}</td>
-                    <td className="px-4 py-2.5 text-sm text-right tabular-nums">{trial.stemYield ?? '—'}</td>
-                    <td className="px-4 py-2.5 text-sm text-right tabular-nums">{trial.avgStemLengthCm != null ? `${trial.avgStemLengthCm} cm` : '—'}</td>
-                    <td className="px-4 py-2.5 text-sm text-right tabular-nums">{trial.avgVaseLifeDays != null ? `${trial.avgVaseLifeDays} d` : '—'}</td>
-                    <td className="px-4 py-2.5 text-sm text-right tabular-nums">{trial.qualityScore != null ? `${trial.qualityScore}/10` : '—'}</td>
-                    <td className="px-4 py-2.5 text-sm">{receptionBadge(trial.customerReception)}</td>
-                    <td className="px-4 py-2.5 text-sm">{verdictBadge(trial.verdict)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {trials.length > 0 && (
+          <div>
+            {trials.map((trial, i) => {
+              const sp = resolveSpecies(trial.speciesId)
+              const speciesDisplayName = sp?.commonNameSv ?? sp?.commonName ?? `#${trial.speciesId}`
+              const variantDisplayName = sp?.variantNameSv ?? sp?.variantName
+
+              return (
+                <button
+                  key={trial.id}
+                  onClick={() => openEdit(trial)}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '60px 1fr 80px 200px 40px',
+                    gap: 22,
+                    padding: '20px 0',
+                    borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                    background: 'transparent',
+                    border: 'none',
+                    borderBottomWidth: 1,
+                    borderBottomStyle: 'solid',
+                    borderBottomColor: 'color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    alignItems: 'center',
+                    width: '100%',
+                  }}
+                  className="ledger-row"
+                >
+                  <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 26, color: 'var(--color-clay)' }}>
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 300 }}>
+                      {speciesDisplayName}
+                      {variantDisplayName && (
+                        <span style={{ fontStyle: 'italic', color: 'var(--color-clay)' }}> '{variantDisplayName}'</span>
+                      )}
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7, marginTop: 4 }}>
+                      {bedName(trial.bedId)} · {trial.notes?.slice(0, 60) ?? ''}
+                    </div>
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 32, fontWeight: 300, textAlign: 'center' }}>
+                    {trial.qualityScore ?? '—'}
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {trial.verdict && (
+                      <Chip tone={VERDICT_TONE[trial.verdict] ?? 'forest'}>
+                        {tr(`verdicts.${trial.verdict}`)}
+                      </Chip>
+                    )}
+                    {trial.customerReception && (
+                      <Chip tone={RECEPTION_TONE[trial.customerReception] ?? 'forest'}>
+                        {tr(`receptions.${trial.customerReception}`)}
+                      </Chip>
+                    )}
+                  </div>
+                  <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-clay)' }}>→</span>
+                </button>
+              )
+            })}
           </div>
-          <Pagination page={page} pageSize={PAGE_SIZE} total={data.length} onPageChange={setPage} />
-        </>)}
+        )}
       </div>
 
-      <Dialog open={showAdd} onClose={() => { setShowAdd(false); resetForm() }} title={t('trials.new')} actions={
+      <Dialog open={showAdd} onClose={() => { setShowAdd(false); resetForm() }} title={tr('trials.new')} actions={
         <>
-          <button onClick={() => { setShowAdd(false); resetForm() }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button onClick={() => { setShowAdd(false); resetForm() }} className="px-4 py-2 text-sm text-text-secondary">{tr('common.cancel')}</button>
           <button
             onClick={() => createMut.mutate()}
             disabled={!canSubmitCreate || createMut.isPending}
             className="btn-primary text-sm"
           >
-            {createMut.isPending ? t('common.saving') : t('common.add')}
+            {createMut.isPending ? tr('common.saving') : tr('common.add')}
           </button>
         </>
       }>
         {formFields}
       </Dialog>
 
-      <Dialog open={editItem !== null} onClose={() => { setEditItem(null); resetForm() }} title={t('trials.edit')} actions={
+      <Dialog open={editItem !== null} onClose={() => { setEditItem(null); resetForm() }} title={tr('trials.edit')} actions={
         <>
-          <button onClick={() => { setEditItem(null); resetForm() }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+          <button onClick={() => { setEditItem(null); resetForm() }} className="px-4 py-2 text-sm text-text-secondary">{tr('common.cancel')}</button>
           <button
             onClick={() => updateMut.mutate()}
             disabled={!canSubmitEdit || updateMut.isPending}
             className="btn-primary text-sm"
           >
-            {updateMut.isPending ? t('common.saving') : t('common.save')}
+            {updateMut.isPending ? tr('common.saving') : tr('common.save')}
           </button>
         </>
       }>
@@ -332,17 +349,17 @@ export function VarietyTrials() {
           onClick={() => { setEditItem(null); resetForm(); setDeleteItem(editItem) }}
           className="text-sm text-error hover:underline mt-4"
         >
-          {t('common.delete')}
+          {tr('common.delete')}
         </button>
       </Dialog>
 
-      <Dialog open={deleteItem !== null} onClose={() => { setDeleteItem(null); setDeleteError(null) }} title={t('common.delete')} actions={
+      <Dialog open={deleteItem !== null} onClose={() => { setDeleteItem(null); setDeleteError(null) }} title={tr('common.delete')} actions={
         <>
-          <button onClick={() => { setDeleteItem(null); setDeleteError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
-          <button onClick={() => deleteItem && deleteMut.mutate(deleteItem.id)} className="px-4 py-2 text-sm text-error font-semibold">{t('common.delete')}</button>
+          <button onClick={() => { setDeleteItem(null); setDeleteError(null) }} className="px-4 py-2 text-sm text-text-secondary">{tr('common.cancel')}</button>
+          <button onClick={() => deleteItem && deleteMut.mutate(deleteItem.id)} className="px-4 py-2 text-sm text-error font-semibold">{tr('common.delete')}</button>
         </>
       }>
-        <p className="text-text-secondary">{t('trials.noTrials')}</p>
+        <p className="text-text-secondary">{tr('trials.noTrials')}</p>
         {deleteError && <p className="text-error text-sm mt-2">{deleteError}</p>}
       </Dialog>
     </div>
