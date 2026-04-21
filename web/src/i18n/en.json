@@ -406,7 +406,18 @@
     "newInGroup": "New in group:",
     "addFromGroup": "Add to task",
     "addAllFromGroup": "Add all to task",
-    "removedFromGroup": "No longer in group:"
+    "removedFromGroup": "No longer in group:",
+    "masthead": { "center": "— Today's rows —" },
+    "today": "Today",
+    "upcoming": "Upcoming",
+    "filters": {
+      "harvest":     "Harvest",
+      "sowing":      "Sowing",
+      "watering":    "Water",
+      "planting":    "Plant",
+      "maintenance": "Care"
+    },
+    "drawer": { "placeholder": "Task details coming soon." }
   },
   "seasons": {
     "title": "Seasons",

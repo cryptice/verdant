@@ -406,7 +406,18 @@
     "newInGroup": "Nya i gruppen:",
     "addFromGroup": "Lägg till i uppgiften",
     "addAllFromGroup": "Lägg till alla i uppgiften",
-    "removedFromGroup": "Inte längre i gruppen:"
+    "removedFromGroup": "Inte längre i gruppen:",
+    "masthead": { "center": "— Dagens rader —" },
+    "today": "Idag",
+    "upcoming": "Kommande",
+    "filters": {
+      "harvest":     "Skörd",
+      "sowing":      "Sådd",
+      "watering":    "Vattna",
+      "planting":    "Plantera",
+      "maintenance": "Underhåll"
+    },
+    "drawer": { "placeholder": "Uppgiftsdetaljer kommer snart." }
   },
   "seasons": {
     "title": "Säsonger",
