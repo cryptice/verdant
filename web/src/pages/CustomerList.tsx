@@ -153,6 +153,8 @@ export function CustomerList() {
         />
 
         <Ledger
+          paginated
+          pageSize={50}
           columns={[
             {
               key: 'id',
