@@ -1470,7 +1470,15 @@
     "masthead": {
       "center": "— Mallen —"
     },
-    "daysAfter": "Dagar efter föregående"
+    "daysAfter": "Dagar efter föregående",
+    "progress": {
+      "masthead": {
+        "center": "— Arbetsflöde —"
+      },
+      "completion": "Framsteg",
+      "empty": "Inga steg",
+      "day": "DAG +{{n}}"
+    }
   },
   "form": {
     "masthead": {

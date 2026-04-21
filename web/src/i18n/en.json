@@ -1470,7 +1470,15 @@
     "masthead": {
       "center": "— The Template —"
     },
-    "daysAfter": "Days after previous"
+    "daysAfter": "Days after previous",
+    "progress": {
+      "masthead": {
+        "center": "— Workflow —"
+      },
+      "completion": "Progress",
+      "empty": "No steps",
+      "day": "DAY +{{n}}"
+    }
   },
   "form": {
     "masthead": {
