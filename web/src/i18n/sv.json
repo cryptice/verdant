@@ -60,7 +60,11 @@
     "close": "Stäng",
     "image": "Bild",
     "group": "Grupp",
-    "clear": "Rensa"
+    "clear": "Rensa",
+    "ledger": {
+      "empty": "Inga rader än",
+      "filterClear": "Rensa filter"
+    }
   },
   "language": {
     "label": "Språk",

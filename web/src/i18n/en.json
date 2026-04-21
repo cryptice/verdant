@@ -60,7 +60,11 @@
     "close": "Close",
     "image": "Image",
     "group": "Group",
-    "clear": "Clear"
+    "clear": "Clear",
+    "ledger": {
+      "empty": "No rows yet",
+      "filterClear": "Clear filters"
+    }
   },
   "language": {
     "label": "Language",
