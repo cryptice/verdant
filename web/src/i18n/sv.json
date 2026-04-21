@@ -346,6 +346,11 @@
     "variantNameSv": "Variantnamn (svenska)",
     "scientificName": "Vetenskapligt namn",
     "colName": "Namn",
+    "col": {
+      "species": "Art",
+      "variant": "Sort",
+      "type": "Typ"
+    },
     "adding": "Lägger till...",
     "addSpeciesBtn": "Lägg till art",
     "deleteSpeciesTitle": "Radera art",
@@ -534,6 +539,12 @@
     "WHOLESALE": "Grossist",
     "DIRECT": "Direkt",
     "OTHER": "Övrigt"
+  },
+  "plantType": {
+    "ANNUAL": "Ettårig",
+    "PERENNIAL": "Flerårig",
+    "BULB": "Lök",
+    "TUBER": "Knöl"
   },
   "pestDisease": {
     "title": "Skadedjur & sjukdomar",

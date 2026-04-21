@@ -346,6 +346,11 @@
     "variantNameSv": "Variant name (Swedish)",
     "scientificName": "Scientific name",
     "colName": "Name",
+    "col": {
+      "species": "Species",
+      "variant": "Variety",
+      "type": "Type"
+    },
     "adding": "Adding...",
     "addSpeciesBtn": "Add species",
     "deleteSpeciesTitle": "Delete Species",
@@ -534,6 +539,12 @@
     "WHOLESALE": "Wholesale",
     "DIRECT": "Direct",
     "OTHER": "Other"
+  },
+  "plantType": {
+    "ANNUAL": "Annual",
+    "PERENNIAL": "Perennial",
+    "BULB": "Bulb",
+    "TUBER": "Tuber"
   },
   "pestDisease": {
     "title": "Pest & Disease Log",

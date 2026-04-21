@@ -2,16 +2,25 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type CustomerResponse } from '../api/client'
-import { PageHeader } from '../components/PageHeader'
+import { Masthead, Ledger, LedgerFilters, Chip } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
-import { Pagination } from '../components/Pagination'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
+import type { LedgerFilterOption } from '../components/faltet'
 
-const PAGE_SIZE = 50
+const ALL_CHANNELS = ['FLORIST', 'FARMERS_MARKET', 'CSA', 'WEDDING', 'WHOLESALE', 'DIRECT', 'OTHER'] as const
+type Channel = typeof ALL_CHANNELS[number]
 
-const CHANNELS = ['FLORIST', 'FARMERS_MARKET', 'CSA', 'WEDDING', 'WHOLESALE', 'DIRECT', 'OTHER'] as const
+const CHANNEL_TONE: Record<Channel, LedgerFilterOption<Channel>['tone']> = {
+  FLORIST: 'clay',
+  FARMERS_MARKET: 'mustard',
+  CSA: 'sage',
+  WEDDING: 'berry',
+  WHOLESALE: 'sky',
+  DIRECT: 'forest',
+  OTHER: 'forest',
+}
 
 export function CustomerList() {
   const qc = useQueryClient()
@@ -22,7 +31,7 @@ export function CustomerList() {
     queryFn: () => api.customers.list(),
   })
 
-  const [page, setPage] = useState(0)
+  const [channels, setChannels] = useState<Set<Channel>>(new Set(ALL_CHANNELS))
   const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<CustomerResponse | null>(null)
   const [deleteItem, setDeleteItem] = useState<CustomerResponse | null>(null)
@@ -32,7 +41,6 @@ export function CustomerList() {
   const [formChannel, setFormChannel] = useState<string>('DIRECT')
   const [formContactInfo, setFormContactInfo] = useState('')
   const [formNotes, setFormNotes] = useState('')
-
   const [formError, setFormError] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
@@ -58,7 +66,12 @@ export function CustomerList() {
       contactInfo: formContactInfo || undefined,
       notes: formNotes || undefined,
     }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['customers'] }); setShowAdd(false); resetForm(); completeStep('add_customer') },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['customers'] })
+      setShowAdd(false)
+      resetForm()
+      completeStep('add_customer')
+    },
     onError: (err) => { setFormError(err instanceof Error ? err.message : String(err)) },
   })
 
@@ -82,22 +95,7 @@ export function CustomerList() {
   if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
 
-  const channelBadge = (channel: string) => {
-    const colors: Record<string, string> = {
-      FLORIST: 'bg-purple-100 text-purple-700',
-      FARMERS_MARKET: 'bg-green-100 text-green-700',
-      CSA: 'bg-blue-100 text-blue-700',
-      WEDDING: 'bg-pink-100 text-pink-700',
-      WHOLESALE: 'bg-amber-100 text-amber-700',
-      DIRECT: 'bg-teal-100 text-teal-700',
-      OTHER: 'bg-gray-100 text-gray-700',
-    }
-    return (
-      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${colors[channel] ?? colors.OTHER}`}>
-        {t(`channels.${channel}`)}
-      </span>
-    )
-  }
+  const filtered = (data ?? []).filter(c => channels.has(c.channel as Channel))
 
   const formFields = (
     <div className="space-y-4">
@@ -108,7 +106,7 @@ export function CustomerList() {
       <div>
         <label className="field-label">{t('customers.channel')} *</label>
         <select value={formChannel} onChange={e => setFormChannel(e.target.value)} className="input">
-          {CHANNELS.map(ch => (
+          {ALL_CHANNELS.map(ch => (
             <option key={ch} value={ch}>{t(`channels.${ch}`)}</option>
           ))}
         </select>
@@ -127,40 +125,102 @@ export function CustomerList() {
 
   return (
     <div>
-      <PageHeader title={t('customers.title')} action={{ label: t('customers.newCustomer'), onClick: openAdd, 'data-onboarding': 'add-customer-btn' }} />
+      <Masthead
+        left={t('nav.customers')}
+        center="— Kundliggaren —"
+        right={
+          <button
+            onClick={openAdd}
+            className="btn-primary"
+            data-onboarding="add-customer-btn"
+          >
+            {t('customers.newCustomer')}
+          </button>
+        }
+      />
       <OnboardingHint />
-      <div className="px-4 py-4">
-        {data && data.length === 0 && (
-          <p className="text-text-secondary text-sm text-center py-4">{t('customers.noCustomers')}</p>
-        )}
 
-        {data && data.length > 0 && (<>
-          <div className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-divider bg-surface">
-                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('customers.name')}</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('customers.channel')}</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-text-secondary">{t('customers.contactInfo')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map(c => (
-                  <tr
-                    key={c.id}
-                    className="border-b border-divider last:border-0 hover:bg-surface cursor-pointer transition-colors"
-                    onClick={() => openEdit(c)}
-                  >
-                    <td className="px-4 py-2.5 text-sm">{c.name}</td>
-                    <td className="px-4 py-2.5 text-sm">{channelBadge(c.channel)}</td>
-                    <td className="px-4 py-2.5 text-sm text-text-secondary truncate max-w-[200px]">{c.contactInfo ?? '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <Pagination page={page} pageSize={PAGE_SIZE} total={data.length} onPageChange={setPage} />
-        </>)}
+      <div style={{ padding: '28px 40px' }}>
+        <LedgerFilters
+          options={ALL_CHANNELS.map(ch => ({
+            id: ch,
+            label: t(`channels.${ch}`),
+            tone: CHANNEL_TONE[ch],
+          }))}
+          value={channels}
+          onChange={setChannels}
+          storageKey="verdant-customer-filters"
+        />
+
+        <Ledger
+          columns={[
+            {
+              key: 'id',
+              label: '№',
+              width: '60px',
+              render: (_c, i) => (
+                <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-berry)' }}>
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+              ),
+            },
+            {
+              key: 'name',
+              label: t('customers.name'),
+              width: '1.5fr',
+              render: (c: CustomerResponse) => (
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>
+                  {c.name}
+                </span>
+              ),
+            },
+            {
+              key: 'channel',
+              label: t('customers.channel'),
+              width: '140px',
+              render: (c: CustomerResponse) => {
+                const ch = c.channel as Channel
+                return (
+                  <Chip tone={CHANNEL_TONE[ch] ?? 'forest'}>
+                    {t(`channels.${c.channel}`)}
+                  </Chip>
+                )
+              },
+            },
+            {
+              key: 'contactInfo',
+              label: t('customers.contactInfo'),
+              width: '1fr',
+              render: (c: CustomerResponse) => (
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 10,
+                    color: 'var(--color-forest)',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    display: 'block',
+                  }}
+                >
+                  {c.contactInfo ?? '—'}
+                </span>
+              ),
+            },
+            {
+              key: 'goto',
+              label: '',
+              width: '40px',
+              align: 'right',
+              render: () => (
+                <span style={{ color: 'var(--color-clay)', fontFamily: 'var(--font-mono)' }}>→</span>
+              ),
+            },
+          ]}
+          rows={filtered}
+          rowKey={(c: CustomerResponse) => c.id}
+          onRowClick={(c: CustomerResponse) => openEdit(c)}
+        />
       </div>
 
       <Dialog open={showAdd} onClose={() => { setShowAdd(false); resetForm() }} title={t('customers.newCustomer')} actions={
