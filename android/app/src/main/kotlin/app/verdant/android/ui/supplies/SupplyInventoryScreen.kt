@@ -2,21 +2,47 @@ package app.verdant.android.ui.supplies
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Grass
+import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.filled.Label
+import androidx.compose.material.icons.filled.Science
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,10 +52,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
-import app.verdant.android.R
 import app.verdant.android.data.model.SupplyInventoryResponse
 import app.verdant.android.data.repository.GardenRepository
-import app.verdant.android.ui.theme.verdantTopAppBarColors
+import app.verdant.android.ui.common.ConnectionErrorState
+import app.verdant.android.ui.faltet.FaltetEmptyState
+import app.verdant.android.ui.faltet.FaltetListRow
+import app.verdant.android.ui.faltet.FaltetLoadingState
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.FaltetSectionHeader
+import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetForest
+import app.verdant.android.ui.theme.FaltetInk
+import app.verdant.android.ui.theme.FaltetInkLine20
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -98,10 +132,10 @@ private fun categoryLabel(category: String): String = when (category) {
 private fun categoryLabelSv(category: String): String = when (category) {
     "SOIL" -> "Jord"
     "POT" -> "Krukor"
-    "FERTILIZER" -> "G\u00f6dsel"
-    "TRAY" -> "Br\u00e4tten"
+    "FERTILIZER" -> "Gödsel"
+    "TRAY" -> "Brätten"
     "LABEL" -> "Etiketter"
-    "OTHER" -> "\u00d6vrigt"
+    "OTHER" -> "Övrigt"
     else -> category
 }
 
@@ -122,6 +156,16 @@ data class SupplyTypeGroup(
     val batches: List<SupplyInventoryResponse>,
 )
 
+private fun categoryIcon(category: String): ImageVector = when (category) {
+    "SOIL" -> Icons.Default.Grass
+    "POT" -> Icons.Default.Inventory2
+    "FERTILIZER" -> Icons.Default.Science
+    "TRAY" -> Icons.Default.Inventory2
+    "LABEL" -> Icons.Default.Label
+    "OTHER" -> Icons.Default.Category
+    else -> Icons.Default.Category
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SupplyInventoryScreen(
@@ -136,7 +180,6 @@ fun SupplyInventoryScreen(
         }
     }
 
-    // Use dialog state
     var useDialogBatch by remember { mutableStateOf<SupplyInventoryResponse?>(null) }
     var useAmount by remember { mutableStateOf("") }
 
@@ -144,24 +187,19 @@ fun SupplyInventoryScreen(
         val batch = useDialogBatch!!
         AlertDialog(
             onDismissRequest = { useDialogBatch = null; useAmount = "" },
-            title = { Text(stringResource(R.string.record_usage)) },
+            title = { Text("Registrera användning") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(batch.supplyTypeName)
                     Text(
-                        batch.supplyTypeName,
-                        fontWeight = FontWeight.Medium,
-                    )
-                    Text(
-                        stringResource(R.string.available_format, formatQuantity(batch.quantity, batch.unit)),
+                        "Tillgängligt: ${formatQuantity(batch.quantity, batch.unit)}",
                         fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        color = FaltetForest,
                     )
                     OutlinedTextField(
                         value = useAmount,
                         onValueChange = { useAmount = it },
-                        label = { Text(stringResource(R.string.amount_to_use)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
+                        label = { Text("Använd antal") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         singleLine = true,
                     )
@@ -178,60 +216,31 @@ fun SupplyInventoryScreen(
                         }
                     },
                     enabled = qty != null && qty > 0 && qty <= batch.quantity,
-                ) {
-                    Text(stringResource(R.string.use))
-                }
+                ) { Text("Använd") }
             },
             dismissButton = {
-                TextButton(onClick = { useDialogBatch = null; useAmount = "" }) {
-                    Text(stringResource(R.string.cancel))
-                }
+                TextButton(onClick = { useDialogBatch = null; useAmount = "" }) { Text("Avbryt") }
             },
         )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.supplies)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                colors = verdantTopAppBarColors(),
-            )
-        },
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Inventarie",
+        mastheadCenter = "Förnödenheter",
     ) { padding ->
         when {
-            uiState.isLoading -> Box(
+            uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
+            uiState.error != null && uiState.items.isEmpty() -> Box(
                 Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center,
             ) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                ConnectionErrorState(onRetry = { viewModel.refresh() })
             }
-            uiState.error != null && uiState.items.isEmpty() -> {
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    app.verdant.android.ui.common.ConnectionErrorState(onRetry = { viewModel.refresh() })
-                }
-            }
-            uiState.items.isEmpty() -> {
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            Icons.Default.Inventory2, null,
-                            Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            stringResource(R.string.no_supplies),
-                            fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                        )
-                    }
-                }
-            }
+            uiState.items.isEmpty() -> FaltetEmptyState(
+                headline = "Inga förnödenheter",
+                subtitle = "Lägg till din första inventarierad förnödenhet.",
+                modifier = Modifier.padding(padding),
+            )
             else -> {
                 val grouped = remember(uiState.items) {
                     uiState.items
@@ -251,25 +260,15 @@ fun SupplyInventoryScreen(
                                 .sortedBy { it.name }
                         }
                 }
-
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding),
-                    contentPadding = PaddingValues(vertical = 8.dp),
-                ) {
+                LazyColumn(Modifier.fillMaxSize().padding(padding)) {
                     grouped.forEach { (category, typeGroups) ->
                         item(key = "header_$category") {
-                            Text(
-                                categoryLabel(category),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                            )
+                            FaltetSectionHeader(label = categoryLabelSv(category))
                         }
-
                         items(typeGroups, key = { "type_${it.supplyTypeId}" }) { typeGroup ->
-                            SupplyTypeGroupCard(
+                            SupplyTypeFaltetRow(
                                 group = typeGroup,
+                                category = category,
                                 isDecrementing = uiState.decrementingId,
                                 onUseBatch = { batch ->
                                     useDialogBatch = batch
@@ -278,8 +277,7 @@ fun SupplyInventoryScreen(
                             )
                         }
                     }
-
-                    item { Spacer(Modifier.height(16.dp)) }
+                    item { Spacer(Modifier.height(80.dp)) }
                 }
             }
         }
@@ -287,94 +285,91 @@ fun SupplyInventoryScreen(
 }
 
 @Composable
-private fun SupplyTypeGroupCard(
+private fun SupplyTypeFaltetRow(
     group: SupplyTypeGroup,
+    category: String,
     isDecrementing: Long?,
     onUseBatch: (SupplyInventoryResponse) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
-
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
-            .clickable { expanded = !expanded },
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        ),
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        group.name,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 15.sp,
-                    )
-                    Text(
-                        formatQuantity(group.totalQuantity, group.unit),
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
+    Column {
+        FaltetListRow(
+            title = group.name,
+            meta = categoryLabelSv(category),
+            leading = {
                 Icon(
-                    if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    imageVector = categoryIcon(category),
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                    tint = FaltetForest,
+                    modifier = Modifier.size(18.dp),
                 )
-            }
-
-            AnimatedVisibility(visible = expanded) {
-                Column(
-                    modifier = Modifier.padding(top = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    group.batches.forEach { batch ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Column(Modifier.weight(1f)) {
-                                Text(
-                                    formatQuantity(batch.quantity, batch.unit),
-                                    fontSize = 14.sp,
-                                )
-                                batch.notes?.let { notes ->
-                                    Text(
-                                        notes,
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                    )
-                                }
-                                batch.costSek?.let { cost ->
-                                    Text(
-                                        "${cost / 100.0} kr",
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+            },
+            stat = {
+                Text(
+                    text = formatQuantity(group.totalQuantity, group.unit),
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 14.sp,
+                    color = FaltetInk,
+                )
+            },
+            actions = {
+                Icon(
+                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = if (expanded) "Dölj" else "Visa",
+                    tint = FaltetForest,
+                    modifier = Modifier.size(18.dp),
+                )
+            },
+            onClick = { expanded = !expanded },
+        )
+        AnimatedVisibility(visible = expanded) {
+            Column(Modifier.fillMaxWidth()) {
+                group.batches.forEachIndexed { index, batch ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .drawBehind {
+                                if (index < group.batches.size - 1) {
+                                    drawLine(
+                                        color = FaltetInkLine20,
+                                        start = Offset(0f, size.height),
+                                        end = Offset(size.width, size.height),
+                                        strokeWidth = 1.dp.toPx(),
                                     )
                                 }
                             }
-                            if (isDecrementing == batch.id) {
-                                CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
-                            } else {
-                                FilledTonalButton(
-                                    onClick = { onUseBatch(batch) },
-                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-                                    modifier = Modifier.height(32.dp),
-                                ) {
-                                    Text(stringResource(R.string.use), fontSize = 13.sp)
-                                }
+                            .padding(start = 54.dp, end = 18.dp, top = 10.dp, bottom = 10.dp),
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                text = formatQuantity(batch.quantity, batch.unit),
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 14.sp,
+                                color = FaltetInk,
+                            )
+                            batch.notes?.let { notes ->
+                                Text(text = notes, fontSize = 12.sp, color = FaltetForest)
+                            }
+                            batch.costSek?.let { cost ->
+                                Text(
+                                    text = "${cost / 100.0} kr",
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 12.sp,
+                                    color = FaltetForest,
+                                )
                             }
                         }
-                        if (batch != group.batches.last()) {
-                            HorizontalDivider(
-                                modifier = Modifier.padding(vertical = 2.dp),
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        if (isDecrementing == batch.id) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp,
+                                color = FaltetClay,
                             )
+                        } else {
+                            TextButton(onClick = { onUseBatch(batch) }) {
+                                Text("Använd", color = FaltetClay, fontSize = 13.sp)
+                            }
                         }
                     }
                 }
