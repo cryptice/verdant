@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -309,7 +310,17 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
             bottomBar = {
                 if (!hideChrome) {
                     NavigationBar(
-                        containerColor = MaterialTheme.colorScheme.surface
+                        containerColor = FaltetCream,
+                        contentColor = FaltetInk,
+                        modifier = Modifier
+                            .drawBehind {
+                                drawLine(
+                                    color = FaltetInk,
+                                    start = Offset(0f, 0f),
+                                    end = Offset(size.width, 0f),
+                                    strokeWidth = 1.dp.toPx(),
+                                )
+                            }
                     ) {
                         NavigationBarItem(
                             selected = currentRoute == Screen.MyWorld.route,
@@ -319,7 +330,21 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                                 }
                             },
                             icon = { Icon(Icons.Default.Eco, contentDescription = stringResource(R.string.my_world)) },
-                            label = { Text(stringResource(R.string.my_world)) }
+                            label = {
+                                Text(
+                                    text = stringResource(R.string.my_world).uppercase(),
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 9.sp,
+                                    letterSpacing = 1.4.sp,
+                                )
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = FaltetClay,
+                                selectedTextColor = FaltetClay,
+                                unselectedIconColor = FaltetForest,
+                                unselectedTextColor = FaltetForest,
+                                indicatorColor = Color.Transparent,
+                            )
                         )
 
                         NavigationBarItem(
@@ -330,10 +355,23 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                                 }
                             },
                             icon = { Icon(Icons.Default.Yard, contentDescription = stringResource(R.string.plants)) },
-                            label = { Text(stringResource(R.string.plants)) }
+                            label = {
+                                Text(
+                                    text = stringResource(R.string.plants).uppercase(),
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 9.sp,
+                                    letterSpacing = 1.4.sp,
+                                )
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = FaltetClay,
+                                selectedTextColor = FaltetClay,
+                                unselectedIconColor = FaltetForest,
+                                unselectedTextColor = FaltetForest,
+                                indicatorColor = Color.Transparent,
+                            )
                         )
 
-                        // Tasks button
                         NavigationBarItem(
                             selected = currentRoute == Screen.TaskList.route,
                             onClick = {
@@ -342,7 +380,21 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                                 }
                             },
                             icon = { Icon(Icons.Default.CalendarMonth, contentDescription = stringResource(R.string.scheduled_tasks)) },
-                            label = { Text(stringResource(R.string.scheduled_tasks)) }
+                            label = {
+                                Text(
+                                    text = stringResource(R.string.scheduled_tasks).uppercase(),
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 9.sp,
+                                    letterSpacing = 1.4.sp,
+                                )
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = FaltetClay,
+                                selectedTextColor = FaltetClay,
+                                unselectedIconColor = FaltetForest,
+                                unselectedTextColor = FaltetForest,
+                                indicatorColor = Color.Transparent,
+                            )
                         )
                     }
                 }
