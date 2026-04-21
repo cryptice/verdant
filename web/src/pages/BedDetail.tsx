@@ -1,365 +1,400 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
-import type { BedResponse } from '../api/client'
-import type { BreadcrumbItem } from '../components/Breadcrumb'
-import { PageHeader } from '../components/PageHeader'
-import { ErrorDisplay } from '../components/ErrorDisplay'
-import { StatusBadge } from '../components/StatusBadge'
-import { Dialog } from '../components/Dialog'
-
-const SOIL_TYPES = ['SANDY', 'LOAMY', 'CLAY', 'SILTY', 'PEATY', 'CHALKY'] as const
-const SUN_EXPOSURES = ['FULL_SUN', 'PARTIAL_SUN', 'PARTIAL_SHADE', 'FULL_SHADE'] as const
-const DRAINAGES = ['POOR', 'MODERATE', 'GOOD', 'SHARP'] as const
-const ASPECTS = ['FLAT', 'N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const
-const IRRIGATION_TYPES = ['DRIP', 'SPRINKLER', 'SOAKER_HOSE', 'MANUAL', 'NONE'] as const
-const PROTECTIONS = ['OPEN_FIELD', 'ROW_COVER', 'LOW_TUNNEL', 'HIGH_TUNNEL', 'GREENHOUSE', 'COLDFRAME'] as const
-
-function hasAnyCondition(bed: BedResponse): boolean {
-  return !!(
-    bed.soilType || bed.soilPh != null || bed.sunExposure || bed.drainage ||
-    bed.aspect || bed.irrigationType || bed.protection || bed.raisedBed != null
-  )
-}
+import { Masthead, Chip, Stat, PhotoPlaceholder } from '../components/faltet'
+import { SpeciesEditModal } from '../components/faltet/SpeciesEditModal'
 
 export function BedDetail() {
   const { id } = useParams<{ id: string }>()
   const bedId = Number(id)
-  const navigate = useNavigate()
-  const qc = useQueryClient()
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
 
-  const { data: bed, error, isLoading, refetch } = useQuery({
-    queryKey: ['bed', bedId],
-    queryFn: () => api.beds.get(bedId),
-  })
-
-  const { data: plants } = useQuery({
-    queryKey: ['bed-plants', bedId],
-    queryFn: () => api.beds.plants(bedId),
-  })
-
+  const { data: bed } = useQuery({ queryKey: ['bed', bedId], queryFn: () => api.beds.get(bedId) })
+  const { data: plants } = useQuery({ queryKey: ['bed-plants', bedId], queryFn: () => api.beds.plants(bedId) })
   const { data: garden } = useQuery({
     queryKey: ['garden', bed?.gardenId],
     queryFn: () => api.gardens.get(bed!.gardenId),
     enabled: !!bed,
   })
 
-  const { data: speciesList } = useQuery({
-    queryKey: ['species'],
-    queryFn: api.species.list,
-  })
+  const [modalSpecies, setModalSpecies] = useState<number | null>(null)
 
-  const { data: applications } = useQuery({
-    queryKey: ['bed-applications', bedId],
-    queryFn: () => api.supplyApplications.listByBed(bedId, 10),
-  })
-
-  const [editing, setEditing] = useState(false)
-  const [editName, setEditName] = useState('')
-  const [editDesc, setEditDesc] = useState('')
-  const [editLength, setEditLength] = useState('')
-  const [editWidth, setEditWidth] = useState('')
-  const [editConditionsOpen, setEditConditionsOpen] = useState(false)
-  const [editSoilType, setEditSoilType] = useState('')
-  const [editSoilPh, setEditSoilPh] = useState('')
-  const [editSunExposure, setEditSunExposure] = useState('')
-  const [editAspect, setEditAspect] = useState('')
-  const [editDrainage, setEditDrainage] = useState('')
-  const [editIrrigationType, setEditIrrigationType] = useState('')
-  const [editProtection, setEditProtection] = useState('')
-  const [editRaisedBed, setEditRaisedBed] = useState(false)
-
-  const [showDelete, setShowDelete] = useState(false)
-  const [showAdd, setShowAdd] = useState(false)
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
-
-  const editPhNum = editSoilPh !== '' ? parseFloat(editSoilPh) : undefined
-  const editPhOutOfRange = editPhNum !== undefined && (editPhNum < 3.0 || editPhNum > 9.0)
-
-  function openEdit(b: BedResponse) {
-    setEditName(b.name)
-    setEditDesc(b.description ?? '')
-    setEditLength(b.lengthMeters != null ? String(b.lengthMeters) : '')
-    setEditWidth(b.widthMeters != null ? String(b.widthMeters) : '')
-    setEditSoilType(b.soilType ?? '')
-    setEditSoilPh(b.soilPh != null ? String(b.soilPh) : '')
-    setEditSunExposure(b.sunExposure ?? '')
-    setEditAspect(b.aspect ?? '')
-    setEditDrainage(b.drainage ?? '')
-    setEditIrrigationType(b.irrigationType ?? '')
-    setEditProtection(b.protection ?? '')
-    setEditRaisedBed(b.raisedBed ?? false)
-    setEditConditionsOpen(hasAnyCondition(b))
-    setEditing(true)
-  }
-
-  const updateMut = useMutation({
-    mutationFn: () => api.beds.update(bedId, {
-      name: editName,
-      description: editDesc || undefined,
-      lengthMeters: editLength !== '' ? parseFloat(editLength) : undefined,
-      widthMeters: editWidth !== '' ? parseFloat(editWidth) : undefined,
-      soilType: editSoilType || undefined,
-      soilPh: editPhNum,
-      sunExposure: editSunExposure || undefined,
-      drainage: editDrainage || undefined,
-      aspect: editAspect || undefined,
-      irrigationType: editIrrigationType || undefined,
-      protection: editProtection || undefined,
-      raisedBed: editRaisedBed,
-    }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['bed', bedId] }); setEditing(false) },
-  })
-
-  const [deleteError, setDeleteError] = useState<string | null>(null)
-
-  const deleteMut = useMutation({
-    mutationFn: () => api.beds.delete(bedId),
-    onSuccess: () => { navigate(-1); qc.invalidateQueries({ queryKey: ['garden-beds'] }) },
-    onError: (err) => { setDeleteError(err instanceof Error ? err.message : String(err)) },
-  })
-
-  if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
-  if (error) return <ErrorDisplay error={error} onRetry={refetch} />
   if (!bed) return null
 
-  const resolveSpeciesName = (p: { speciesId?: number; speciesName?: string; name: string }) => {
-    if (p.speciesId && speciesList) {
-      const sp = speciesList.find(s => s.id === p.speciesId)
-      if (sp) {
-        const name = i18n.language === 'sv' ? (sp.commonNameSv ?? sp.commonName) : sp.commonName
-        const variant = i18n.language === 'sv' ? (sp.variantNameSv ?? sp.variantName) : sp.variantName
-        return variant ? `${name} — ${variant}` : name
-      }
-    }
-    return p.speciesName ?? p.name
-  }
+  const area =
+    bed.lengthMeters && bed.widthMeters
+      ? (bed.lengthMeters * bed.widthMeters).toFixed(1)
+      : '—'
 
-  const grouped = new Map<string, typeof plants>()
-  plants?.forEach(p => {
-    const key = resolveSpeciesName(p)
-    if (!grouped.has(key)) grouped.set(key, [])
-    grouped.get(key)!.push(p)
-  })
+  const activePlants = plants?.filter((p) => p.status === 'PLANTED_OUT') ?? []
+  const uniqueSpeciesCount = new Set(plants?.map((p) => p.speciesId).filter(Boolean)).size
 
-  const toggleGroup = (key: string) => {
-    setExpandedGroups(prev => {
-      const next = new Set(prev)
-      if (next.has(key)) next.delete(key); else next.add(key)
-      return next
-    })
-  }
-
-  const breadcrumbs: BreadcrumbItem[] = [
-    { label: t('nav.myWorld'), to: '/' },
-    { label: garden?.name ?? '…', to: `/garden/${bed.gardenId}` },
-  ]
+  const sunKey = bed.sunExposure ? bed.sunExposure.toLowerCase() : null
+  const irrigationKey = bed.irrigationType ? bed.irrigationType.toLowerCase() : null
 
   return (
-    <div className="flex flex-col flex-1">
-      <PageHeader
-        title={bed.name}
-        breadcrumbs={breadcrumbs}
-        editAction={() => openEdit(bed)}
+    <div>
+      <Masthead
+        left={
+          <span>
+            {t('nav.gardens')} / {garden?.name ?? '…'} /{' '}
+            <span style={{ color: 'var(--color-clay)' }}>Bädd № {bed.id}</span>
+          </span>
+        }
+        center={t('bed.masthead.center')}
       />
 
-      <div className="px-4 py-4 space-y-3">
-        {bed.description && <p className="text-text-secondary">{bed.description}</p>}
-
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold">{t('bed.plants')}</h2>
-          <div className="flex gap-2">
-            <button onClick={() => setShowAdd(true)} className="btn-primary text-sm">{t('bed.addPlant')}</button>
-            <Link to={`/activity/apply-supply?bedId=${bedId}`} className="btn-secondary text-sm no-underline">
-              {t('supplyApplication.fertilize')}
-            </Link>
-          </div>
-        </div>
-
-        {plants && plants.length === 0 && (
-          <p className="text-text-secondary text-sm">{t('bed.noPlantsYet')}</p>
-        )}
-
-        {Array.from(grouped.entries()).map(([species, group]) => {
-          const expanded = expandedGroups.has(species)
-          return (
-            <div key={species} className="card p-0 overflow-hidden">
-              <button aria-expanded={expanded} onClick={() => toggleGroup(species)} className="w-full flex items-center justify-between px-4 py-3 text-left">
-                <div>
-                  <p className="font-semibold">{species}</p>
-                  <p className="text-xs text-text-secondary">{t('bed.plantCount', { count: group!.length })}</p>
-                </div>
-                <span className="text-text-secondary text-lg">{expanded ? '▲' : '▼'}</span>
-              </button>
-              {expanded && (
-                <div className="border-t border-divider">
-                  {group!.map((p, i) => (
-                    <div key={p.id}>
-                      <Link to={`/plant/${p.id}`} className="flex items-center justify-between px-4 py-2.5 text-sm no-underline text-inherit hover:bg-surface">
-                        <span>{p.name}</span>
-                        <StatusBadge status={p.status} />
-                      </Link>
-                      {i < group!.length - 1 && <hr className="mx-4 border-divider" />}
-                    </div>
-                  ))}
-                </div>
-              )}
+      <div style={{ padding: '28px 40px' }}>
+        {/* Hero row */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 40, alignItems: 'start' }}>
+          <div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
+              <Chip tone="mustard">Bädd № {bed.id}</Chip>
+              {sunKey && <Chip tone="sage">{t(`bed.sun.${sunKey}`)}</Chip>}
+              {irrigationKey && <Chip tone="sky">{t(`bed.irrigation.${irrigationKey}`)}</Chip>}
+              {bed.raisedBed && <Chip tone="berry">{t('bed.raised')}</Chip>}
             </div>
-          )
-        })}
-      </div>
-
-      <div className="px-4 mt-6 space-y-2">
-        <h2 className="font-semibold">{t('supplyApplication.historyTitle')}</h2>
-        {applications && applications.length === 0 && (
-          <p className="text-text-secondary text-sm">{t('supplyApplication.noApplications')}</p>
-        )}
-        {applications?.map(a => (
-          <div key={a.id} className="card text-sm flex items-center justify-between">
-            <div>
-              <p className="font-semibold">{a.supplyTypeName}</p>
-              <p className="text-xs text-text-secondary">
-                {a.quantity} {a.supplyUnit.toLowerCase()} · {a.targetScope === 'BED'
-                  ? t('supplyApplication.appliedToBed')
-                  : t('supplyApplication.appliedToPlants', { count: a.plantIds.length })}
-              </p>
-            </div>
-            <span className="text-xs text-text-secondary">{new Date(a.appliedAt).toLocaleDateString()}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-auto px-4 pb-4 pt-6">
-        <div className="rounded-xl border border-error/20 overflow-hidden">
-          <div className="px-4 py-2 bg-error/5 border-b border-error/20">
-            <p className="text-xs font-semibold text-error uppercase tracking-wide">{t('common.dangerZone')}</p>
-          </div>
-          <div className="px-4 py-3 flex items-center justify-between">
-            <p className="text-sm text-text-secondary">{t('bed.deleteBedConfirm')}</p>
-            <button onClick={() => setShowDelete(true)} className="ml-4 shrink-0 text-sm font-medium text-error hover:underline">
-              {t('bed.deleteBed')}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <Dialog open={editing} onClose={() => setEditing(false)} title={t('bed.editBedTitle')} actions={
-        <>
-          <button onClick={() => setEditing(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
-          <button onClick={() => updateMut.mutate()} disabled={!editName.trim()} className="btn-primary text-sm">{t('common.save')}</button>
-        </>
-      }>
-        <div className="space-y-3">
-          <input value={editName} onChange={e => setEditName(e.target.value)} placeholder={t('bed.bedNamePlaceholder')} className="input" />
-          <textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} placeholder={t('bed.descriptionOptionalPlaceholder')} rows={2} className="input" />
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="field-label">{t('bed.conditions.lengthMeters')}</label>
-              <input type="number" step="0.1" min="0" value={editLength} onChange={e => setEditLength(e.target.value)} placeholder="—" className="input" />
-            </div>
-            <div>
-              <label className="field-label">{t('bed.conditions.widthMeters')}</label>
-              <input type="number" step="0.1" min="0" value={editWidth} onChange={e => setEditWidth(e.target.value)} placeholder="—" className="input" />
-            </div>
-          </div>
-
-          <div className="border border-divider rounded-lg overflow-hidden">
-            <button
-              type="button"
-              onClick={() => setEditConditionsOpen(o => !o)}
-              className="w-full flex items-center justify-between px-4 py-3 text-left bg-surface hover:bg-divider transition-colors"
+            <h1
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 80,
+                fontWeight: 300,
+                lineHeight: 1,
+                letterSpacing: -1.5,
+                margin: 0,
+                fontVariationSettings: '"SOFT" 100, "opsz" 144',
+              }}
             >
-              <span className="text-sm font-medium">{t('bed.conditions.sectionTitle')}</span>
-              <span className="text-text-secondary text-sm">{editConditionsOpen ? '▲' : '▼'}</span>
-            </button>
-            {editConditionsOpen && (
-              <div className="px-4 py-3 space-y-3 border-t border-divider">
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <div>
-                    <label className="field-label">{t('bed.conditions.soilType')}</label>
-                    <select value={editSoilType} onChange={e => setEditSoilType(e.target.value)} className="input">
-                      <option value="">{t('common.select')}</option>
-                      {SOIL_TYPES.map(v => <option key={v} value={v}>{t(`bed.conditions.soilTypes.${v}`)}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="field-label">{t('bed.conditions.soilPh')}</label>
-                    <input type="number" step="0.1" min="0" max="14" value={editSoilPh} onChange={e => setEditSoilPh(e.target.value)} placeholder="—" className="input" />
-                    {editPhOutOfRange && <p className="text-error text-xs mt-1">{t('bed.conditions.phHint')}</p>}
-                  </div>
-                  <div>
-                    <label className="field-label">{t('bed.conditions.sunExposure')}</label>
-                    <select value={editSunExposure} onChange={e => setEditSunExposure(e.target.value)} className="input">
-                      <option value="">{t('common.select')}</option>
-                      {SUN_EXPOSURES.map(v => <option key={v} value={v}>{t(`bed.conditions.sunExposures.${v}`)}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="field-label">{t('bed.conditions.aspect')}</label>
-                    <select value={editAspect} onChange={e => setEditAspect(e.target.value)} className="input">
-                      <option value="">{t('common.select')}</option>
-                      {ASPECTS.map(v => <option key={v} value={v}>{t(`bed.conditions.aspects.${v}`)}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="field-label">{t('bed.conditions.drainage')}</label>
-                    <select value={editDrainage} onChange={e => setEditDrainage(e.target.value)} className="input">
-                      <option value="">{t('common.select')}</option>
-                      {DRAINAGES.map(v => <option key={v} value={v}>{t(`bed.conditions.drainages.${v}`)}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="field-label">{t('bed.conditions.irrigationType')}</label>
-                    <select value={editIrrigationType} onChange={e => setEditIrrigationType(e.target.value)} className="input">
-                      <option value="">{t('common.select')}</option>
-                      {IRRIGATION_TYPES.map(v => <option key={v} value={v}>{t(`bed.conditions.irrigationTypes.${v}`)}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="field-label">{t('bed.conditions.protection')}</label>
-                    <select value={editProtection} onChange={e => setEditProtection(e.target.value)} className="input">
-                      <option value="">{t('common.select')}</option>
-                      {PROTECTIONS.map(v => <option key={v} value={v}>{t(`bed.conditions.protections.${v}`)}</option>)}
-                    </select>
-                  </div>
-                  <div className="flex items-center gap-2 pt-1">
-                    <input
-                      id="raisedBed-edit"
-                      type="checkbox"
-                      checked={editRaisedBed}
-                      onChange={e => setEditRaisedBed(e.target.checked)}
-                      className="h-4 w-4 rounded border-divider accent-accent"
-                    />
-                    <label htmlFor="raisedBed-edit" className="text-sm">{t('bed.conditions.raisedBed')}</label>
-                  </div>
-                </div>
-              </div>
+              Bädd.{String(bed.id).padStart(2, '0')}{' '}
+              <span style={{ color: 'var(--color-mustard)' }}>—</span>
+              <br />
+              <span style={{ fontStyle: 'italic', color: 'var(--color-clay)' }}>{bed.name}.</span>
+            </h1>
+            {bed.description && (
+              <p
+                style={{
+                  marginTop: 16,
+                  fontFamily: 'Georgia, var(--font-display)',
+                  fontSize: 15,
+                  lineHeight: 1.6,
+                  color: 'var(--color-forest)',
+                }}
+              >
+                {bed.description}
+              </p>
             )}
           </div>
+          <div>
+            <PhotoPlaceholder tone="sage" aspect="tall" label={`BÄDD.${String(bed.id).padStart(2, '0')}`} />
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 0,
+                marginTop: 12,
+                border: '1px solid var(--color-ink)',
+              }}
+            >
+              <MetaCell label={t('bed.meta.length')} value={bed.lengthMeters ? `${bed.lengthMeters} m` : '—'} />
+              <MetaCell label={t('bed.meta.width')} value={bed.widthMeters ? `${bed.widthMeters} m` : '—'} />
+              <MetaCell label={t('bed.meta.orient')} value={bed.aspect ?? '—'} />
+              <MetaCell label={t('bed.meta.area')} value={`${area} m²`} />
+            </div>
+          </div>
         </div>
-      </Dialog>
 
-      <Dialog open={showDelete} onClose={() => { setShowDelete(false); setDeleteError(null) }} title={t('bed.deleteBedTitle')} actions={
-        <>
-          <button onClick={() => { setShowDelete(false); setDeleteError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
-          <button onClick={() => deleteMut.mutate()} className="px-4 py-2 text-sm text-error font-semibold">{t('common.delete')}</button>
-        </>
-      }>
-        <p className="text-text-secondary">{t('bed.deleteBedConfirm')}</p>
-        {deleteError && <p className="text-error text-sm mt-2">{deleteError}</p>}
-      </Dialog>
-
-      <Dialog open={showAdd} onClose={() => setShowAdd(false)} title={t('bed.addPlantTitle')} actions={
-        <button onClick={() => setShowAdd(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
-      }>
-        <div className="space-y-2">
-          <button onClick={() => { setShowAdd(false); navigate(`/sow?bedId=${bedId}`) }} className="btn-primary w-full text-sm">{t('bed.sowSeedsInBed')}</button>
+        {/* Stats band */}
+        <div
+          style={{
+            margin: '40px 0',
+            padding: '20px 0',
+            borderTop: '1px solid var(--color-ink)',
+            borderBottom: '1px solid var(--color-ink)',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(5, 1fr)',
+            gap: 18,
+          }}
+        >
+          <Stat size="medium" value={activePlants.length} label={t('bed.stats.active')} hue="sage" />
+          {/* TODO: wire to real harvest data when available */}
+          <Stat size="medium" value={142} unit="st" label={t('bed.stats.harvested')} hue="clay" />
+          <Stat size="medium" value="—" label={t('bed.stats.daysToHarvest')} hue="mustard" />
+          <Stat size="medium" value={plants?.length ?? 0} label={t('bed.stats.plants')} hue="sky" />
+          {/* TODO: wire to real utilization when available */}
+          <Stat size="medium" value={0} unit="%" label={t('bed.stats.utilization')} hue="berry" />
         </div>
-      </Dialog>
 
+        {/* Plantor section */}
+        <SectionHeader
+          title={t('bed.plants.title')}
+          meta={`${uniqueSpeciesCount} ${t('bed.plants.metaSuffix')}`}
+          actions={
+            <Link
+              to={`/sow?bedId=${bedId}`}
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontStyle: 'italic',
+                fontSize: 16,
+                color: 'var(--color-clay)',
+                textDecoration: 'none',
+              }}
+            >
+              + {t('bed.plants.sow')}
+            </Link>
+          }
+        />
+
+        {/* Plant table header */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '50px 1.5fr 70px 1fr 120px',
+            gap: 18,
+            padding: '10px 0',
+            borderBottom: '1px solid var(--color-ink)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 9,
+            letterSpacing: 1.4,
+            textTransform: 'uppercase',
+            color: 'var(--color-forest)',
+            opacity: 0.7,
+          }}
+        >
+          <span>№</span>
+          <span>{t('bed.plants.col.species')}</span>
+          <span>{t('bed.plants.col.count')}</span>
+          <span>{t('bed.plants.col.status')}</span>
+          <span>{t('bed.plants.col.timeline')}</span>
+        </div>
+
+        {/* Plant rows */}
+        {plants?.map((p, i) => (
+          <button
+            key={p.id}
+            onClick={() => p.speciesId != null && setModalSpecies(p.speciesId)}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '50px 1.5fr 70px 1fr 120px',
+              gap: 18,
+              padding: '12px 0',
+              borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+              background: 'transparent',
+              border: 'none',
+              borderBottomWidth: 1,
+              borderBottomStyle: 'solid',
+              borderBottomColor: 'color-mix(in srgb, var(--color-ink) 20%, transparent)',
+              width: '100%',
+              textAlign: 'left',
+              cursor: p.speciesId != null ? 'pointer' : 'default',
+              alignItems: 'center',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontStyle: 'italic',
+                fontSize: 22,
+                color: 'var(--color-clay)',
+              }}
+            >
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>
+              {p.speciesName ?? p.name}
+            </div>
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 20,
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              {p.seedCount ?? 1}
+            </span>
+            <span
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10,
+                letterSpacing: 1.4,
+                textTransform: 'uppercase',
+              }}
+            >
+              {p.status}
+            </span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>
+              {p.plantedDate ?? '—'}
+            </span>
+          </button>
+        ))}
+
+        {/* Bottom row — harvest card + danger callout */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 22, marginTop: 40 }}>
+          {/* Harvest card — TODO: wire to real harvest stats when available */}
+          <div
+            style={{
+              background: 'var(--color-ink)',
+              color: 'var(--color-cream)',
+              padding: '22px 28px',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                top: -40,
+                right: -40,
+                width: 140,
+                height: 140,
+                borderRadius: '50%',
+                background: 'var(--color-butter)',
+                opacity: 0.2,
+              }}
+            />
+            <div
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontStyle: 'italic',
+                fontSize: 26,
+                fontVariationSettings: '"SOFT" 100, "opsz" 144',
+              }}
+            >
+              {t('bed.harvest.headline', { stems: 142 })}{' '}
+              <span style={{ color: 'var(--color-blush)' }}>{t('bed.harvest.season', { year: 2025 })}</span>.
+            </div>
+            <div
+              style={{
+                marginTop: 12,
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10,
+                letterSpacing: 1.4,
+                textTransform: 'uppercase',
+                display: 'flex',
+                gap: 18,
+              }}
+            >
+              <span style={{ color: 'var(--color-sage)' }}>{t('bed.harvest.bestWeek', { week: 32 })}</span>
+              <span style={{ color: 'var(--color-blush)' }}>+24 % vs 2024 ▲</span>
+            </div>
+          </div>
+
+          {/* Danger callout */}
+          <div
+            style={{
+              border: '1px solid color-mix(in srgb, var(--color-clay) 40%, transparent)',
+              padding: '22px 28px',
+            }}
+          >
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10,
+                letterSpacing: 1.4,
+                textTransform: 'uppercase',
+                color: 'var(--color-clay)',
+                marginBottom: 10,
+              }}
+            >
+              {t('bed.danger.title')}
+            </div>
+            <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 15, margin: 0 }}>
+              {t('bed.danger.warning')}
+            </p>
+            <button
+              onClick={() => {
+                if (window.confirm(t('bed.danger.confirm') ?? '')) {
+                  api.beds.delete(bedId)
+                }
+              }}
+              style={{
+                marginTop: 10,
+                background: 'transparent',
+                border: 'none',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10,
+                letterSpacing: 1.4,
+                textTransform: 'uppercase',
+                color: 'var(--color-clay)',
+                cursor: 'pointer',
+                padding: 0,
+              }}
+            >
+              → {t('bed.danger.delete', { id: String(bedId).padStart(2, '0') })}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <SpeciesEditModal speciesId={modalSpecies} onClose={() => setModalSpecies(null)} />
+    </div>
+  )
+}
+
+function MetaCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div
+      style={{
+        padding: '10px 14px',
+        borderTop: '1px solid var(--color-ink)',
+        borderLeft: '1px solid var(--color-ink)',
+      }}
+    >
+      <div
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: 9,
+          letterSpacing: 1.4,
+          textTransform: 'uppercase',
+          color: 'var(--color-forest)',
+          opacity: 0.7,
+        }}
+      >
+        {label}
+      </div>
+      <div style={{ fontFamily: 'var(--font-display)', fontSize: 22 }}>{value}</div>
+    </div>
+  )
+}
+
+function SectionHeader({
+  title,
+  meta,
+  actions,
+}: {
+  title: string
+  meta?: string
+  actions?: React.ReactNode
+}) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, margin: '40px 0 12px' }}>
+      <h2
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontStyle: 'italic',
+          fontSize: 30,
+          fontWeight: 300,
+          margin: 0,
+          fontVariationSettings: '"SOFT" 100, "opsz" 144',
+        }}
+      >
+        {title}
+        <span style={{ color: 'var(--color-clay)' }}>.</span>
+      </h2>
+      {meta && (
+        <span
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 10,
+            letterSpacing: 1.4,
+            textTransform: 'uppercase',
+          }}
+        >
+          {meta}
+        </span>
+      )}
+      {actions}
     </div>
   )
 }
