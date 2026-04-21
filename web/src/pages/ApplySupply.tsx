@@ -3,7 +3,41 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
-import { PageHeader } from '../components/PageHeader'
+import { Masthead, Rule } from '../components/faltet'
+
+const selectLabelStyle: React.CSSProperties = {
+  display: 'block',
+  fontFamily: 'var(--font-mono)',
+  fontSize: 9,
+  letterSpacing: 1.4,
+  textTransform: 'uppercase',
+  color: 'var(--color-forest)',
+  opacity: 0.7,
+  marginBottom: 4,
+}
+
+const selectStyle: React.CSSProperties = {
+  display: 'block',
+  width: '100%',
+  background: 'transparent',
+  border: 'none',
+  borderBottom: '1px solid var(--color-ink)',
+  borderRadius: 0,
+  padding: '4px 0',
+  fontFamily: 'var(--font-display)',
+  fontSize: 20,
+  fontWeight: 300,
+  color: 'var(--color-ink)',
+  outline: 'none',
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.6 }}>
+      {children}
+    </div>
+  )
+}
 
 export function ApplySupply() {
   const [params] = useSearchParams()
@@ -81,90 +115,142 @@ export function ApplySupply() {
     (scope === 'BED' || selectedPlantIds.length > 0)
 
   return (
-    <div className="max-w-lg">
-      <PageHeader title={t('supplyApplication.applyTitle')} />
+    <div>
+      <Masthead
+        left={
+          <span>
+            {t('nav.tasks')} /{' '}
+            <span style={{ color: 'var(--color-clay)' }}>{t('supplyApplication.applyTitle')}</span>
+          </span>
+        }
+        center={t('form.masthead.center')}
+      />
 
-      <div className="form-card space-y-4">
-        <fieldset>
-          <label className="field-label">{t('supplyApplication.targetLabel')}</label>
-          <div className="flex gap-4">
-            <label className="flex items-center gap-2">
-              <input type="radio" name="scope" value="BED" checked={scope === 'BED'} onChange={() => setScope('BED')} />
-              <span>{t('supplyApplication.wholeBed')}</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input type="radio" name="scope" value="PLANTS" checked={scope === 'PLANTS'} onChange={() => setScope('PLANTS')} />
-              <span>{t('supplyApplication.selectedPlants')}</span>
-            </label>
-          </div>
-        </fieldset>
+      <div style={{ padding: '28px 40px', paddingBottom: 120 }}>
+        {/* § Applicera på */}
+        <SectionLabel>§ {t('supplyApplication.targetLabel')}</SectionLabel>
+        <div style={{ marginTop: 8 }}><Rule variant="soft" /></div>
 
-        {scope === 'PLANTS' && bedPlants && (
-          <div>
-            <label className="field-label">{t('supplyApplication.selectPlants')}</label>
-            <div className="border border-divider rounded p-2 max-h-60 overflow-y-auto">
-              {bedPlants.filter(p => p.status !== 'REMOVED').map(p => (
-                <label key={p.id} className="flex items-center gap-2 py-1">
-                  <input
-                    type="checkbox"
-                    checked={selectedPlantIds.includes(p.id)}
-                    onChange={e => {
-                      setSelectedPlantIds(prev =>
-                        e.target.checked ? [...prev, p.id] : prev.filter(id => id !== p.id))
-                    }}
-                  />
-                  <span className="text-sm">{p.name}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div>
-          <label className="field-label">{t('supplyApplication.selectSupply')}</label>
-          <select value={inventoryId ?? ''} onChange={e => setInventoryId(Number(e.target.value) || null)} className="input">
-            <option value="">{t('common.select')}</option>
-            {visibleInventory.map(i => {
-              const type = supplyTypes?.find(st => st.id === i.supplyTypeId)
-              return (
-                <option key={i.id} value={i.id}>
-                  {type?.name ?? i.supplyTypeName} ({i.quantity.toFixed(2)} {(type?.unit ?? i.unit).toLowerCase()} {t('supplyApplication.remaining')})
-                </option>
-              )
-            })}
-          </select>
-          <label className="flex items-center gap-2 mt-2 text-xs">
-            <input type="checkbox" checked={showAllCategories} onChange={e => setShowAllCategories(e.target.checked)} />
-            <span>{t('supplyApplication.showAllCategories')}</span>
+        <div style={{ marginTop: 14, display: 'flex', gap: 24 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 300 }}>
+            <input type="radio" name="scope" value="BED" checked={scope === 'BED'} onChange={() => setScope('BED')} />
+            {t('supplyApplication.wholeBed')}
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 300 }}>
+            <input type="radio" name="scope" value="PLANTS" checked={scope === 'PLANTS'} onChange={() => setScope('PLANTS')} />
+            {t('supplyApplication.selectedPlants')}
           </label>
         </div>
 
-        <div>
-          <label className="field-label">{t('supplyApplication.quantity')}</label>
-          <div className="flex items-center gap-2">
-            <input type="number" step="0.01" value={quantity} onChange={e => setQuantity(e.target.value)} className="input flex-1" />
-            <span className="text-sm text-text-secondary">
-              {selectedLot ? (supplyTypes?.find(st => st.id === selectedLot.supplyTypeId)?.unit ?? selectedLot.unit).toLowerCase() : ''}
-            </span>
+        {/* Plant checklist — shown only in PLANTS mode */}
+        {scope === 'PLANTS' && bedPlants && (
+          <div style={{ marginTop: 20, border: '1px solid var(--color-ink)', background: 'var(--color-paper)', padding: '10px 14px', maxHeight: 240, overflowY: 'auto' }}>
+            <span style={selectLabelStyle}>{t('supplyApplication.selectPlants')}</span>
+            {bedPlants.filter(p => p.status !== 'REMOVED').map(p => (
+              <label
+                key={p.id}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', cursor: 'pointer', borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 12%, transparent)' }}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedPlantIds.includes(p.id)}
+                  onChange={e => {
+                    setSelectedPlantIds(prev =>
+                      e.target.checked ? [...prev, p.id] : prev.filter(id => id !== p.id))
+                  }}
+                />
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>{p.name}</span>
+              </label>
+            ))}
           </div>
-          {quantityExceeds && (
-            <p className="text-error text-xs mt-1">{t('supplyApplication.insufficientQuantity')}</p>
-          )}
+        )}
+
+        {/* § Förnödenhet */}
+        <div style={{ marginTop: 28 }}>
+          <SectionLabel>§ {t('supplyApplication.selectSupply')}</SectionLabel>
+          <div style={{ marginTop: 8 }}><Rule variant="soft" /></div>
         </div>
 
-        <div>
-          <label className="field-label">{t('common.notesLabel')}</label>
-          <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} className="input" />
+        <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 28px' }}>
+          {/* Supply select */}
+          <div style={{ gridColumn: '1 / -1' }}>
+            <label style={{ display: 'block' }}>
+              <span style={selectLabelStyle}>{t('supplyApplication.selectSupply')}</span>
+              <select
+                value={inventoryId ?? ''}
+                onChange={e => setInventoryId(Number(e.target.value) || null)}
+                style={selectStyle}
+              >
+                <option value="">{t('common.select')}</option>
+                {visibleInventory.map(i => {
+                  const type = supplyTypes?.find(st => st.id === i.supplyTypeId)
+                  return (
+                    <option key={i.id} value={i.id}>
+                      {type?.name ?? i.supplyTypeName} ({i.quantity.toFixed(2)} {(type?.unit ?? i.unit).toLowerCase()} {t('supplyApplication.remaining')})
+                    </option>
+                  )
+                })}
+              </select>
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7, cursor: 'pointer' }}>
+              <input type="checkbox" checked={showAllCategories} onChange={e => setShowAllCategories(e.target.checked)} />
+              {t('supplyApplication.showAllCategories')}
+            </label>
+          </div>
+
+          {/* Quantity */}
+          <div>
+            <span style={selectLabelStyle}>{t('supplyApplication.quantity')}</span>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <input
+                type="number"
+                step="0.01"
+                value={quantity}
+                onChange={e => setQuantity(e.target.value)}
+                style={{ ...selectStyle, width: 'auto', flex: 1 }}
+              />
+              {selectedLot && (
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-forest)', opacity: 0.7 }}>
+                  {(supplyTypes?.find(st => st.id === selectedLot.supplyTypeId)?.unit ?? selectedLot.unit).toLowerCase()}
+                </span>
+              )}
+            </div>
+            {quantityExceeds && (
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.2, color: 'var(--color-clay)', marginTop: 4 }}>
+                {t('supplyApplication.insufficientQuantity')}
+              </p>
+            )}
+          </div>
         </div>
+
+        {/* Notes */}
+        <div style={{ marginTop: 28, border: '1px solid var(--color-ink)', background: 'var(--color-paper)', padding: '14px 16px' }}>
+          <div style={selectLabelStyle}>{t('common.notesLabel')}</div>
+          <textarea
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            rows={3}
+            style={{ width: '100%', minHeight: 80, background: 'transparent', border: 'none', outline: 'none', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 16, resize: 'vertical', boxSizing: 'border-box' }}
+          />
+        </div>
+
+        {createMut.error && (
+          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-clay)', marginTop: 12 }}>
+            {(createMut.error as Error).message}
+          </p>
+        )}
       </div>
 
-      {createMut.error && <p className="text-error text-sm mt-3">{(createMut.error as Error).message}</p>}
-
-      <div className="mt-4 flex justify-end gap-2">
-        <button onClick={() => navigate(-1)} className="px-4 py-2 text-sm text-text-secondary">
+      {/* Sticky footer */}
+      <div style={{ position: 'sticky', bottom: 0, background: 'var(--color-cream)', borderTop: '1px solid var(--color-ink)', padding: '14px 40px', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+        <button className="btn-secondary" onClick={() => navigate(-1)}>
           {t('common.cancel')}
         </button>
-        <button onClick={() => createMut.mutate()} disabled={!canSubmit || createMut.isPending} className="btn-primary">
+        <button
+          className="btn-primary"
+          onClick={() => createMut.mutate()}
+          disabled={!canSubmit || createMut.isPending}
+        >
           {createMut.isPending ? t('supplyApplication.submitting') : t('supplyApplication.submit')}
         </button>
       </div>

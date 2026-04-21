@@ -3,11 +3,44 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api, type SpeciesResponse } from '../api/client'
-import { PageHeader } from '../components/PageHeader'
+import { Masthead, Rule } from '../components/faltet'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
-import type { BreadcrumbItem } from '../components/Breadcrumb'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
+
+const selectLabelStyle: React.CSSProperties = {
+  display: 'block',
+  fontFamily: 'var(--font-mono)',
+  fontSize: 9,
+  letterSpacing: 1.4,
+  textTransform: 'uppercase',
+  color: 'var(--color-forest)',
+  opacity: 0.7,
+  marginBottom: 4,
+}
+
+const selectStyle: React.CSSProperties = {
+  display: 'block',
+  width: '100%',
+  background: 'transparent',
+  border: 'none',
+  borderBottom: '1px solid var(--color-ink)',
+  borderRadius: 0,
+  padding: '4px 0',
+  fontFamily: 'var(--font-display)',
+  fontSize: 20,
+  fontWeight: 300,
+  color: 'var(--color-ink)',
+  outline: 'none',
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.6 }}>
+      {children}
+    </div>
+  )
+}
 
 export function SowActivity() {
   const navigate = useNavigate()
@@ -123,34 +156,45 @@ export function SowActivity() {
 
   const valid = speciesId && (sowInTray || bedId) && Number(seedCount) > 0
 
-  const breadcrumbs: BreadcrumbItem[] = taskId
-    ? [{ label: t('nav.tasks'), to: '/tasks' }]
+  // Build masthead breadcrumb context
+  const mastheadLeft = taskId
+    ? <span>{t('nav.tasks')} / <span style={{ color: 'var(--color-clay)' }}>{t('sow.title')}</span></span>
     : sowGarden && sowBed
-      ? [{ label: t('nav.myWorld'), to: '/' }, { label: sowGarden.name, to: `/garden/${sowGarden.id}` }, { label: sowBed.name, to: `/bed/${sowBed.id}` }]
-      : [{ label: t('nav.myWorld'), to: '/' }]
+      ? <span>{sowGarden.name} / {sowBed.name} / <span style={{ color: 'var(--color-clay)' }}>{t('sow.title')}</span></span>
+      : <span style={{ color: 'var(--color-clay)' }}>{t('sow.title')}</span>
 
   return (
-    <div className="max-w-lg">
-      <PageHeader title={t('sow.title')} breadcrumbs={breadcrumbs} />
-      <OnboardingHint />
-      <div className="form-card">
+    <div>
+      <Masthead
+        left={mastheadLeft}
+        center={t('sowing.masthead.center')}
+      />
 
-        <div data-onboarding="sow-species">
-          <label className="field-label">{t('common.speciesLabel')}</label>
+      <div style={{ padding: '28px 40px', paddingBottom: 120 }}>
+        <OnboardingHint />
+
+        {/* § 1. Art */}
+        <SectionLabel>§ 1. {t('sowing.section.species')}</SectionLabel>
+        <div style={{ marginTop: 8 }}><Rule variant="soft" /></div>
+
+        <div style={{ marginTop: 14 }} data-onboarding="sow-species">
           {isGroupTask && task ? (
-            <select
-              value={speciesId}
-              onChange={e => {
-                const sp = allSpecies?.find(s => s.id === Number(e.target.value)) ?? null
-                setSelectedSpecies(sp)
-              }}
-              className="input w-full"
-            >
-              <option value="">{t('sow.selectSpecies')}</option>
-              {task.acceptableSpecies.map(entry => (
-                <option key={entry.speciesId} value={entry.speciesId}>{entry.speciesName}</option>
-              ))}
-            </select>
+            <div>
+              <span style={selectLabelStyle}>{t('common.speciesLabel')}</span>
+              <select
+                value={speciesId}
+                onChange={e => {
+                  const sp = allSpecies?.find(s => s.id === Number(e.target.value)) ?? null
+                  setSelectedSpecies(sp)
+                }}
+                style={selectStyle}
+              >
+                <option value="">{t('sow.selectSpecies')}</option>
+                {task.acceptableSpecies.map(entry => (
+                  <option key={entry.speciesId} value={entry.speciesId}>{entry.speciesName}</option>
+                ))}
+              </select>
+            </div>
           ) : (
             <SpeciesAutocomplete
               value={selectedSpecies}
@@ -159,128 +203,210 @@ export function SowActivity() {
           )}
         </div>
 
+        {/* Seed batch — shown once a species is picked */}
         {speciesId && (
-          <div>
-            <label className="field-label">{t('sow.seedBatch')}</label>
-            <select value={seedBatchId} onChange={e => setSeedBatchId(e.target.value)} className="input w-full">
-              <option value="">{t('sow.seedBatchNone')}</option>
-              {seedBatches?.map(b => {
-                const unitLabel = b.unitType ? t(`unitTypes.${b.unitType}`) : ''
-                const parts = [
-                  unitLabel ? `${b.quantity} ${unitLabel.toLowerCase()}` : String(b.quantity),
-                  b.expirationDate ? `${t('seeds.expires')} ${b.expirationDate}` : null,
-                ]
-                return (
-                  <option key={b.id} value={b.id}>
-                    {parts.filter(Boolean).join(' · ')}
-                  </option>
-                )
-              })}
-            </select>
-            {seedBatches && seedBatches.length === 0 && (
-              <p className="text-xs text-text-secondary mt-1">{t('sow.noSeedStock')}</p>
-            )}
+          <div style={{ marginTop: 20 }}>
+            <label style={{ display: 'block' }}>
+              <span style={selectLabelStyle}>{t('sow.seedBatch')}</span>
+              <select value={seedBatchId} onChange={e => setSeedBatchId(e.target.value)} style={selectStyle}>
+                <option value="">{t('sow.seedBatchNone')}</option>
+                {seedBatches?.map(b => {
+                  const unitLabel = b.unitType ? t(`unitTypes.${b.unitType}`) : ''
+                  const parts = [
+                    unitLabel ? `${b.quantity} ${unitLabel.toLowerCase()}` : String(b.quantity),
+                    b.expirationDate ? `${t('seeds.expires')} ${b.expirationDate}` : null,
+                  ]
+                  return (
+                    <option key={b.id} value={b.id}>
+                      {parts.filter(Boolean).join(' · ')}
+                    </option>
+                  )
+                })}
+              </select>
+              {seedBatches && seedBatches.length === 0 && (
+                <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13, color: 'var(--color-forest)', marginTop: 6 }}>
+                  {t('sow.noSeedStock')}
+                </p>
+              )}
+            </label>
           </div>
         )}
 
-        {speciesId && !presetBedId && (
-          <div>
-            <label className="field-label">{t('sow.destination')}</label>
-            <div className="flex gap-2">
+        {/* § 2. Bädd */}
+        <div style={{ marginTop: 28 }}>
+          <SectionLabel>§ 2. {t('sowing.section.bed')}</SectionLabel>
+          <div style={{ marginTop: 8 }}><Rule variant="soft" /></div>
+        </div>
+
+        <div style={{ marginTop: 14 }} data-onboarding="sow-location">
+          {/* Destination toggle — only shown when no preset bed and a species is selected */}
+          {speciesId && !presetBedId && (
+            <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
               <button
                 type="button"
-                onClick={() => { setSowInTray(false) }}
-                className={`flex-1 py-2 rounded-md border text-sm font-medium transition-colors ${!sowInTray ? 'border-accent bg-accent-light text-accent' : 'border-divider bg-surface text-text-secondary hover:bg-divider'}`}
+                onClick={() => setSowInTray(false)}
+                style={{
+                  flex: 1,
+                  padding: '10px 0',
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 16,
+                  fontWeight: 300,
+                  background: !sowInTray ? 'var(--color-paper)' : 'transparent',
+                  border: `1px solid ${!sowInTray ? 'var(--color-ink)' : 'color-mix(in srgb, var(--color-ink) 30%, transparent)'}`,
+                  cursor: 'pointer',
+                  color: 'var(--color-ink)',
+                }}
               >
                 {t('sow.bed')}
               </button>
               <button
                 type="button"
                 onClick={() => { setSowInTray(true); setBedId('') }}
-                className={`flex-1 py-2 rounded-md border text-sm font-medium transition-colors ${sowInTray ? 'border-accent bg-accent-light text-accent' : 'border-divider bg-surface text-text-secondary hover:bg-divider'}`}
+                style={{
+                  flex: 1,
+                  padding: '10px 0',
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 16,
+                  fontWeight: 300,
+                  background: sowInTray ? 'var(--color-paper)' : 'transparent',
+                  border: `1px solid ${sowInTray ? 'var(--color-ink)' : 'color-mix(in srgb, var(--color-ink) 30%, transparent)'}`,
+                  cursor: 'pointer',
+                  color: 'var(--color-ink)',
+                }}
               >
                 {t('sow.tray')}
               </button>
             </div>
-          </div>
-        )}
+          )}
 
-        {speciesId && !sowInTray && (
-          <div data-onboarding="sow-location">
-            <label className="field-label">{t('sow.bedLabel')}</label>
-            <select value={bedId} onChange={e => setBedId(e.target.value)} className="input w-full">
-              <option value="">{t('sow.selectBed')}</option>
-              {beds?.map(b => <option key={b.id} value={b.id}>{b.gardenName} — {b.name}</option>)}
-            </select>
-          </div>
-        )}
+          {speciesId && !sowInTray && (
+            <label style={{ display: 'block' }}>
+              <span style={selectLabelStyle}>{t('sow.bedLabel')}</span>
+              <select value={bedId} onChange={e => setBedId(e.target.value)} style={selectStyle}>
+                <option value="">{t('sow.selectBed')}</option>
+                {beds?.map(b => <option key={b.id} value={b.id}>{b.gardenName} — {b.name}</option>)}
+              </select>
+            </label>
+          )}
 
-        {speciesId && (
+          {!speciesId && (
+            <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-forest)', opacity: 0.6 }}>
+              {t('sow.selectSpecies')}
+            </p>
+          )}
+        </div>
+
+        {/* § 3. Detaljer */}
+        <div style={{ marginTop: 28 }}>
+          <SectionLabel>§ 3. {t('sowing.section.details')}</SectionLabel>
+          <div style={{ marginTop: 8 }}><Rule variant="soft" /></div>
+        </div>
+
+        <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 28px' }}>
+          {/* Seed count */}
           <div>
-            <label className="field-label">{t('sow.seedCount')}</label>
-            <input type="number" value={seedCount} onChange={e => setSeedCount(e.target.value)} placeholder="e.g. 12" className="input" />
+            <span style={selectLabelStyle}>{t('sow.seedCount')}</span>
+            <input
+              type="number"
+              value={seedCount}
+              onChange={e => setSeedCount(e.target.value)}
+              style={{ ...selectStyle, fontFamily: 'var(--font-mono)', fontSize: 20 }}
+            />
           </div>
+        </div>
+
+        {/* Notes */}
+        <div style={{ marginTop: 28, border: '1px solid var(--color-ink)', background: 'var(--color-paper)', padding: '14px 16px' }}>
+          <div style={selectLabelStyle}>{t('common.notesLabel')}</div>
+          <textarea
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            placeholder={t('common.optional')}
+            rows={3}
+            style={{ width: '100%', minHeight: 80, background: 'transparent', border: 'none', outline: 'none', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 16, resize: 'vertical', boxSizing: 'border-box' }}
+          />
+        </div>
+
+        {sowMut.error && (
+          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-clay)', marginTop: 12 }}>
+            {sowMut.error instanceof Error ? sowMut.error.message : String(sowMut.error)}
+          </p>
         )}
 
-        {speciesId && (
-          <div>
-            <label className="field-label">{t('common.notesLabel')}</label>
-            <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('common.optional')} rows={2} className="input w-full" />
+        {/* Recent seed stock quick-pick */}
+        {allSeedStock && allSeedStock.length > 0 && (
+          <div style={{ marginTop: 40 }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.6, marginBottom: 12 }}>
+              {t('sow.recentSeedStock')}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {allSeedStock
+                .filter(s => s.quantity > 0)
+                .slice(0, 10)
+                .reverse()
+                .map(item => {
+                  const sp = allSpecies?.find(s => s.id === item.speciesId)
+                  const name = i18n.language === 'sv'
+                    ? (sp?.commonNameSv ?? sp?.commonName ?? item.speciesName)
+                    : (sp?.commonName ?? item.speciesName)
+                  const variant = i18n.language === 'sv'
+                    ? (sp?.variantNameSv ?? sp?.variantName)
+                    : sp?.variantName
+                  const unitLabel = item.unitType ? t(`unitTypes.${item.unitType}`).toLowerCase() : ''
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        if (sp) setSelectedSpecies(sp)
+                        setSeedBatchId(String(item.id))
+                        setSeedCount(String(item.quantity))
+                      }}
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr auto',
+                        gap: 16,
+                        padding: '10px 14px',
+                        background: 'transparent',
+                        border: '1px solid color-mix(in srgb, var(--color-ink) 25%, transparent)',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                      }}
+                    >
+                      <div>
+                        <p style={{ fontFamily: 'var(--font-display)', fontSize: 16, margin: 0 }}>
+                          {name}{variant ? <span style={{ color: 'var(--color-forest)', opacity: 0.7 }}> — {variant}</span> : ''}
+                        </p>
+                        {item.providerName && (
+                          <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1, color: 'var(--color-forest)', opacity: 0.6, margin: '2px 0 0' }}>
+                            {item.providerName}
+                          </p>
+                        )}
+                      </div>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-forest)', alignSelf: 'center' }}>
+                        {item.quantity} {unitLabel}
+                      </span>
+                    </button>
+                  )
+                })}
+            </div>
           </div>
         )}
-
       </div>
 
-      {sowMut.error && <p className="text-error text-sm mt-3">{sowMut.error instanceof Error ? sowMut.error.message : String(sowMut.error)}</p>}
-      <div className="mt-4 flex justify-end">
-        <button data-onboarding="sow-submit" onClick={() => sowMut.mutate()} disabled={!valid || sowMut.isPending} className="btn-primary">
+      {/* Sticky footer */}
+      <div style={{ position: 'sticky', bottom: 0, background: 'var(--color-cream)', borderTop: '1px solid var(--color-ink)', padding: '14px 40px', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+        <button className="btn-secondary" onClick={() => navigate(-1)}>
+          {t('common.cancel')}
+        </button>
+        <button
+          data-onboarding="sow-submit"
+          className="btn-primary"
+          onClick={() => sowMut.mutate()}
+          disabled={!valid || sowMut.isPending}
+        >
           {sowMut.isPending ? t('sow.sowing') : t('sow.sow')}
         </button>
       </div>
-
-      {allSeedStock && allSeedStock.length > 0 && (
-        <section className="mt-8">
-          <h2 className="text-sm font-semibold text-text-secondary mb-2">{t('sow.recentSeedStock')}</h2>
-          <div className="space-y-1.5">
-            {allSeedStock
-              .filter(s => s.quantity > 0)
-              .slice(0, 10)
-              .reverse()
-              .map(item => {
-                const sp = allSpecies?.find(s => s.id === item.speciesId)
-                const name = i18n.language === 'sv'
-                  ? (sp?.commonNameSv ?? sp?.commonName ?? item.speciesName)
-                  : (sp?.commonName ?? item.speciesName)
-                const variant = i18n.language === 'sv'
-                  ? (sp?.variantNameSv ?? sp?.variantName)
-                  : sp?.variantName
-                const unitLabel = item.unitType ? t(`unitTypes.${item.unitType}`).toLowerCase() : ''
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      if (sp) setSelectedSpecies(sp)
-                      setSeedBatchId(String(item.id))
-                      setSeedCount(String(item.quantity))
-                    }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-divider hover:bg-surface transition-colors text-left"
-                  >
-                    <span className="text-lg">🫘</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {name}{variant ? <span className="text-text-secondary"> — {variant}</span> : ''}
-                      </p>
-                      <p className="text-xs text-text-secondary">
-                        {item.quantity} {unitLabel}
-                        {item.providerName ? ` · ${item.providerName}` : ''}
-                      </p>
-                    </div>
-                  </button>
-                )
-              })}
-          </div>
-        </section>
-      )}
     </div>
   )
 }

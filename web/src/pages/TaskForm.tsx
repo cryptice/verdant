@@ -3,9 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api, type SpeciesResponse } from '../api/client'
-import { PageHeader } from '../components/PageHeader'
+import { Masthead, Rule } from '../components/faltet'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
-import type { BreadcrumbItem } from '../components/Breadcrumb'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
@@ -15,6 +14,40 @@ function speciesLabel(s: SpeciesResponse, lang: string) {
   const name = lang === 'sv' ? (s.commonNameSv ?? s.commonName) : s.commonName
   const variant = lang === 'sv' ? (s.variantNameSv ?? s.variantName) : s.variantName
   return variant ? `${name} — ${variant}` : name
+}
+
+const selectLabelStyle: React.CSSProperties = {
+  display: 'block',
+  fontFamily: 'var(--font-mono)',
+  fontSize: 9,
+  letterSpacing: 1.4,
+  textTransform: 'uppercase',
+  color: 'var(--color-forest)',
+  opacity: 0.7,
+  marginBottom: 4,
+}
+
+const selectStyle: React.CSSProperties = {
+  display: 'block',
+  width: '100%',
+  background: 'transparent',
+  border: 'none',
+  borderBottom: '1px solid var(--color-ink)',
+  borderRadius: 0,
+  padding: '4px 0',
+  fontFamily: 'var(--font-display)',
+  fontSize: 20,
+  fontWeight: 300,
+  color: 'var(--color-ink)',
+  outline: 'none',
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.6 }}>
+      {children}
+    </div>
+  )
 }
 
 export function TaskForm() {
@@ -120,102 +153,179 @@ export function TaskForm() {
         notes: notes || undefined,
       })
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['tasks'] }); completeStep('create_task'); navigate('/tasks', { replace: true }) },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['tasks'] })
+      completeStep('create_task')
+      navigate('/tasks', { replace: true })
+    },
   })
 
   const updateMut = useMutation({
     mutationFn: () => api.tasks.update(Number(taskId), {
       activityType, deadline, targetCount: Number(targetCount), notes: notes || undefined,
     }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['tasks'] }); navigate('/tasks', { replace: true }) },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['tasks'] })
+      navigate('/tasks', { replace: true })
+    },
   })
 
   const mutation = isEdit ? updateMut : createMut
 
-  const breadcrumbs: BreadcrumbItem[] = [{ label: t('nav.tasks'), to: '/tasks' }]
-
   return (
-    <div className="max-w-lg">
-      <PageHeader title={isEdit ? t('tasks.editTaskTitle') : t('tasks.newTaskTitle')} breadcrumbs={breadcrumbs} />
-      <OnboardingHint />
-      <div data-onboarding="task-form" className="form-card">
-        <div>
-          <label className="field-label">{t('tasks.activityLabel')}</label>
-          <select value={activityType} onChange={e => setActivityType(e.target.value)} className="input w-full">
-            {activityTypes.map(tp => (
-              <option key={tp} value={tp}>{t(`activityType.${tp}`, { defaultValue: tp.replace(/_/g, ' ') })}</option>
-            ))}
-          </select>
-        </div>
+    <div>
+      <Masthead
+        left={
+          <span>
+            {t('nav.tasks')} /{' '}
+            <span style={{ color: 'var(--color-clay)' }}>
+              {isEdit ? t('tasks.editTitle') : t('tasks.newTitle')}
+            </span>
+          </span>
+        }
+        center={t('form.masthead.center')}
+      />
 
-        <div>
-          <label className="field-label">{t('common.speciesLabel')}</label>
-          {isEdit && existing ? (
-            <div>
-              {existing.originGroupName && (
-                <div className="flex items-center gap-1 mb-1">
-                  <span className="text-xs bg-accent/15 text-accent px-1.5 py-0.5 rounded">{t('common.group')}</span>
-                  <span className="text-sm font-medium">{existing.originGroupName}</span>
-                </div>
-              )}
-              <div className="text-sm text-text-secondary">
-                {existing.acceptableSpecies.map(s => s.speciesName).join(', ')}
-              </div>
-            </div>
-          ) : isGroupMode ? (
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs bg-accent/15 text-accent px-1.5 py-0.5 rounded">{t('common.group')}</span>
-                <span className="text-sm font-medium">{selectedGroupName}</span>
-                <button onClick={() => handleSpeciesSelect(null)} className="text-xs text-text-secondary ml-auto">{t('common.clear')}</button>
-              </div>
-              <div className="border border-divider rounded-xl p-2 max-h-48 overflow-y-auto space-y-1">
-                {groupSpecies.map(s => (
-                  <label key={s.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-surface cursor-pointer text-sm">
-                    <input
-                      type="checkbox"
-                      checked={checkedSpeciesIds.has(s.id)}
-                      onChange={() => toggleSpecies(s.id)}
-                      className="rounded"
-                    />
-                    {speciesLabel(s, i18n.language)}
-                  </label>
-                ))}
-                {groupSpecies.length === 0 && (
-                  <p className="text-xs text-text-secondary px-2 py-1">{t('tasks.loadingGroupSpecies')}</p>
-                )}
-              </div>
-            </div>
-          ) : (
-            <SpeciesAutocomplete
-              value={selectedSpecies}
-              onChange={handleSpeciesSelect}
-              onGroupSelect={handleGroupSelect}
-              showGroups
+      <div style={{ padding: '28px 40px', paddingBottom: 120 }}>
+        <OnboardingHint />
+
+        {/* § Detaljer */}
+        <SectionLabel>§ {t('form.sections.details')}</SectionLabel>
+        <div style={{ marginTop: 8 }}><Rule variant="soft" /></div>
+
+        <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 28px' }}>
+          {/* Activity type */}
+          <label style={{ display: 'block' }}>
+            <span style={selectLabelStyle}>{t('tasks.form.type')}</span>
+            <select value={activityType} onChange={e => setActivityType(e.target.value)} style={selectStyle}>
+              {activityTypes.map(tp => (
+                <option key={tp} value={tp}>{t(`activityType.${tp}`, { defaultValue: tp.replace(/_/g, ' ') })}</option>
+              ))}
+            </select>
+          </label>
+
+          {/* Deadline */}
+          <div>
+            <span style={selectLabelStyle}>{t('tasks.form.deadline')}</span>
+            <input
+              type="date"
+              value={deadline}
+              onChange={e => setDeadline(e.target.value)}
+              style={{ ...selectStyle, fontFamily: 'var(--font-mono)', fontSize: 14 }}
             />
-          )}
+          </div>
+
+          {/* Target count */}
+          <div>
+            <span style={selectLabelStyle}>{t('tasks.targetCountLabel')}</span>
+            <input
+              type="number"
+              value={targetCount}
+              onChange={e => setTargetCount(e.target.value)}
+              style={{ ...selectStyle, fontFamily: 'var(--font-mono)', fontSize: 14 }}
+            />
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="field-label">{t('tasks.deadlineLabel')}</label>
-            <input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} className="input w-full" />
-          </div>
-          <div>
-            <label className="field-label">{t('tasks.targetCountLabel')}</label>
-            <input type="number" value={targetCount} onChange={e => setTargetCount(e.target.value)} placeholder="e.g. 10" className="input w-full" />
+        {/* § Schema */}
+        <div style={{ marginTop: 28 }}>
+          <SectionLabel>§ {t('form.sections.scheduling')}</SectionLabel>
+          <div style={{ marginTop: 8 }}><Rule variant="soft" /></div>
+        </div>
+
+        <div style={{ marginTop: 14 }}>
+          {/* Species picker */}
+          <div data-onboarding="task-form">
+            <span style={selectLabelStyle}>{t('common.speciesLabel')}</span>
+            {isEdit && existing ? (
+              <div style={{ paddingTop: 6 }}>
+                {existing.originGroupName && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', background: 'var(--color-paper)', padding: '2px 6px', border: '1px solid var(--color-ink)' }}>
+                      {t('common.group')}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>{existing.originGroupName}</span>
+                  </div>
+                )}
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, color: 'var(--color-forest)' }}>
+                  {existing.acceptableSpecies.map(s => s.speciesName).join(', ')}
+                </div>
+              </div>
+            ) : isGroupMode ? (
+              <div style={{ marginTop: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', background: 'var(--color-paper)', padding: '2px 6px', border: '1px solid var(--color-ink)' }}>
+                    {t('common.group')}
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 18 }}>{selectedGroupName}</span>
+                  <button
+                    onClick={() => handleSpeciesSelect(null)}
+                    style={{ marginLeft: 'auto', background: 'transparent', border: 'none', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--color-clay)', cursor: 'pointer' }}
+                  >
+                    {t('common.clear')}
+                  </button>
+                </div>
+                <div style={{ border: '1px solid var(--color-ink)', background: 'var(--color-paper)', padding: '8px 12px', maxHeight: 192, overflowY: 'auto' }}>
+                  {groupSpecies.map(s => (
+                    <label
+                      key={s.id}
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', cursor: 'pointer', borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 12%, transparent)' }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checkedSpeciesIds.has(s.id)}
+                        onChange={() => toggleSpecies(s.id)}
+                      />
+                      <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>{speciesLabel(s, i18n.language)}</span>
+                    </label>
+                  ))}
+                  {groupSpecies.length === 0 && (
+                    <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-forest)' }}>
+                      {t('tasks.loadingGroupSpecies')}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <SpeciesAutocomplete
+                value={selectedSpecies}
+                onChange={handleSpeciesSelect}
+                onGroupSelect={handleGroupSelect}
+                showGroups
+              />
+            )}
           </div>
         </div>
 
-        <div>
-          <label className="field-label">{t('common.notesLabel')}</label>
-          <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('common.optional')} rows={2} className="input w-full" />
+        {/* Notes */}
+        <div style={{ marginTop: 28, border: '1px solid var(--color-ink)', background: 'var(--color-paper)', padding: '14px 16px' }}>
+          <div style={selectLabelStyle}>{t('common.notesLabel')}</div>
+          <textarea
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            placeholder={t('common.optional')}
+            rows={3}
+            style={{ width: '100%', minHeight: 80, background: 'transparent', border: 'none', outline: 'none', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 16, resize: 'vertical', boxSizing: 'border-box' }}
+          />
         </div>
+
+        {mutation.error && (
+          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-clay)', marginTop: 12 }}>
+            {mutation.error instanceof Error ? mutation.error.message : String(mutation.error)}
+          </p>
+        )}
       </div>
 
-      {mutation.error && <p className="text-error text-sm mt-3">{mutation.error instanceof Error ? mutation.error.message : String(mutation.error)}</p>}
-      <div className="mt-4 flex justify-end">
-        <button onClick={() => mutation.mutate()} disabled={!valid || mutation.isPending} className="btn-primary">
+      {/* Sticky footer */}
+      <div style={{ position: 'sticky', bottom: 0, background: 'var(--color-cream)', borderTop: '1px solid var(--color-ink)', padding: '14px 40px', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+        <button className="btn-secondary" onClick={() => navigate('/tasks')}>
+          {t('common.cancel')}
+        </button>
+        <button
+          className="btn-primary"
+          onClick={() => mutation.mutate()}
+          disabled={!valid || mutation.isPending}
+        >
           {mutation.isPending ? t('common.saving') : isEdit ? t('tasks.updateTask') : t('tasks.createTask')}
         </button>
       </div>
