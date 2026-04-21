@@ -169,7 +169,17 @@
     "deleteAccountTitle": "Radera konto",
     "deleteAccountConfirm": "Detta raderar ditt konto och all din data permanent. Det går inte att ångra.",
     "advancedMode": "Avancerat läge",
-    "advancedModeDescription": "Visa avancerade funktioner som statistik, sortförsök, successioner och marknadsplats"
+    "advancedModeDescription": "Visa avancerade funktioner som statistik, sortförsök, successioner och marknadsplats",
+    "downloadMyData": "Ladda ner mina uppgifter",
+    "exportingData": "Exporterar…",
+    "masthead": {
+      "center": "— Konto —"
+    }
+  },
+  "orgSettings": {
+    "masthead": {
+      "center": "— Organisation —"
+    }
   },
   "garden": {
     "beds": "Bäddar",
@@ -467,6 +477,28 @@
     "badge": "Gratis trädgårdsplanerare",
     "heroTitle": "Planera, odla och skörda med tillförsikt",
     "heroSubtitle": "Verdant hjälper dig organisera dina trädgårdar, följa varje planta från frö till skörd och aldrig missa en uppgift.",
+    "hero": {
+      "headline": "Odla vackert. Skörda mer.",
+      "sub": "Trädgårdsplanering för kommersiell snittblomsodling."
+    },
+    "features": {
+      "gardens": {
+        "title": "Trädgårdar",
+        "description": "Organisera dina trädgårdar och bäddar. Håll koll på vad som växer var."
+      },
+      "plants": {
+        "title": "Plantor",
+        "description": "Följ varje planta från sådd till skörd. Registrera händelser och se din trädgård växa."
+      },
+      "seeds": {
+        "title": "Frölager",
+        "description": "Håll reda på din frösamling, antal och utgångsdatum."
+      },
+      "tasks": {
+        "title": "Uppgifter",
+        "description": "Schemalägg sådd, plantering och skörd så att inget faller mellan stolarna."
+      }
+    },
     "feature": {
       "gardens": {
         "title": "Trädgårdsplanering",
@@ -758,6 +790,12 @@
   "guide": {
     "title": "Guide",
     "advanced": "Avancerade funktioner",
+    "masthead": {
+      "center": "— Handboken —"
+    },
+    "hero": {
+      "headline": "Handbok."
+    },
     "sections": {
       "getting-started": {
         "title": "Kom igång",

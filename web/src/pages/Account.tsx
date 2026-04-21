@@ -4,12 +4,12 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api, downloadDataExport } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
-import { PageHeader } from '../components/PageHeader'
+import { Masthead } from '../components/faltet'
 import { Dialog } from '../components/Dialog'
 
 export function Account() {
   const { user, logout, refreshUser } = useAuth()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [showDelete, setShowDelete] = useState(false)
 
   const advancedModeMut = useMutation({
@@ -30,73 +30,184 @@ export function Account() {
 
   return (
     <div>
-      <PageHeader title={t('account.title')} />
-      <div className="px-4 py-4 space-y-6">
-        <div className="card flex items-center gap-4">
+      <Masthead
+        left={t('nav.account')}
+        center={t('account.masthead.center')}
+      />
+
+      <div style={{ padding: '28px 40px', paddingBottom: 80 }}>
+        {/* User info row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 40 }}>
           {user.avatarUrl ? (
-            <img src={user.avatarUrl} alt={user.displayName} className="w-14 h-14 rounded-full" />
+            <img
+              src={user.avatarUrl}
+              alt={user.displayName}
+              style={{ width: 56, height: 56, borderRadius: '50%', border: '1px solid var(--color-ink)' }}
+            />
           ) : (
-            <div className="w-14 h-14 rounded-full bg-accent/15 flex items-center justify-center text-xl font-bold text-accent">
+            <div
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: '50%',
+                background: 'var(--color-paper)',
+                border: '1px solid var(--color-ink)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontFamily: 'var(--font-display)',
+                fontSize: 22,
+              }}
+            >
               {user.displayName.charAt(0)}
             </div>
           )}
           <div>
-            <p className="font-semibold">{user.displayName}</p>
-            <p className="text-sm text-text-secondary">{user.email}</p>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 300 }}>{user.displayName}</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7, marginTop: 2 }}>{user.email}</div>
           </div>
         </div>
 
-        <button onClick={logout} className="btn-secondary w-full">
-          {t('account.signOut')}
-        </button>
-
-        <div className="card flex items-start justify-between gap-4">
+        {/* Settings grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 28px' }}>
           <div>
-            <p className="text-sm font-medium text-text-primary">{t('account.advancedMode')}</p>
-            <p className="text-xs text-text-secondary mt-0.5">{t('account.advancedModeDescription')}</p>
-          </div>
-          <button
-            role="switch"
-            aria-checked={user.advancedMode}
-            onClick={() => advancedModeMut.mutate(!user.advancedMode)}
-            disabled={advancedModeMut.isPending}
-            className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none disabled:opacity-50 ${
-              user.advancedMode ? 'bg-accent' : 'bg-divider'
-            }`}
-          >
             <span
-              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${
-                user.advancedMode ? 'translate-x-5' : 'translate-x-0'
-              }`}
-            />
+              style={{
+                display: 'block',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 9,
+                letterSpacing: 1.4,
+                textTransform: 'uppercase',
+                color: 'var(--color-forest)',
+                opacity: 0.7,
+                marginBottom: 8,
+              }}
+            >
+              {t('account.advancedMode')}
+            </span>
+            <label style={{ display: 'flex', gap: 10, alignItems: 'center', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={user.advancedMode}
+                onChange={() => advancedModeMut.mutate(!user.advancedMode)}
+                disabled={advancedModeMut.isPending}
+              />
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontStyle: 'italic' }}>
+                {t('account.advancedModeDescription')}
+              </span>
+            </label>
+          </div>
+          <div>
+            <span
+              style={{
+                display: 'block',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 9,
+                letterSpacing: 1.4,
+                textTransform: 'uppercase',
+                color: 'var(--color-forest)',
+                opacity: 0.7,
+                marginBottom: 8,
+              }}
+            >
+              {t('language.label')}
+            </span>
+            <select
+              value={i18n.language}
+              onChange={(e) => { i18n.changeLanguage(e.target.value); localStorage.setItem('verdant-lang', e.target.value) }}
+              className="input"
+            >
+              <option value="sv">Svenska</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Actions row */}
+        <div style={{ marginTop: 40, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+          <button onClick={() => logout()} className="btn-secondary">
+            {t('account.signOut')}
+          </button>
+          <button
+            onClick={() => exportMut.mutate()}
+            disabled={exportMut.isPending}
+            className="btn-secondary"
+          >
+            {exportMut.isPending ? t('account.exportingData') : t('account.downloadMyData')}
+          </button>
+          <Link
+            to="/privacy"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+              color: 'var(--color-forest)',
+              textDecoration: 'none',
+            }}
+          >
+            {t('privacy.title')}
+          </Link>
+        </div>
+
+        {/* Farozon callout */}
+        <div
+          style={{
+            marginTop: 60,
+            padding: '22px 28px',
+            border: '1px solid color-mix(in srgb, var(--color-clay) 40%, transparent)',
+          }}
+        >
+          <div
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+              color: 'var(--color-clay)',
+              marginBottom: 10,
+            }}
+          >
+            {t('common.dangerZone')}
+          </div>
+          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 15, margin: 0 }}>
+            {t('account.deleteAccountConfirm')}
+          </p>
+          <button
+            onClick={() => setShowDelete(true)}
+            style={{
+              marginTop: 10,
+              background: 'transparent',
+              border: 'none',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+              color: 'var(--color-clay)',
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            → {t('account.deleteAccount')}
           </button>
         </div>
-
-        <Link to="/privacy" className="block px-3 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-surface rounded-md transition-colors">
-          {t('privacy.title')}
-        </Link>
-
-        <button
-          onClick={() => exportMut.mutate()}
-          disabled={exportMut.isPending}
-          className="w-full text-left px-3 py-2 text-sm text-text-secondary hover:bg-surface rounded-md transition-colors disabled:opacity-50"
-        >
-          {exportMut.isPending ? t('account.exportingData') : t('account.downloadMyData')}
-        </button>
-
-        <button onClick={() => setShowDelete(true)} className="w-full text-left px-3 py-2 text-sm text-error hover:bg-error/5 rounded-md transition-colors">
-          {t('account.deleteAccount')}
-        </button>
       </div>
 
-      <Dialog open={showDelete} onClose={() => setShowDelete(false)} title={t('account.deleteAccountTitle')} actions={
-        <>
-          <button onClick={() => setShowDelete(false)} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
-          <button onClick={() => deleteMut.mutate()} className="px-4 py-2 text-sm text-error font-semibold">
-            {deleteMut.isPending ? t('common.deleting') : t('common.delete')}
-          </button>
-        </>
-      }>
+      <Dialog
+        open={showDelete}
+        onClose={() => setShowDelete(false)}
+        title={t('account.deleteAccountTitle')}
+        actions={
+          <>
+            <button onClick={() => setShowDelete(false)} className="px-4 py-2 text-sm text-text-secondary">
+              {t('common.cancel')}
+            </button>
+            <button onClick={() => deleteMut.mutate()} className="px-4 py-2 text-sm text-error font-semibold">
+              {deleteMut.isPending ? t('common.deleting') : t('common.delete')}
+            </button>
+          </>
+        }
+      >
         <p className="text-text-secondary">{t('account.deleteAccountConfirm')}</p>
       </Dialog>
     </div>

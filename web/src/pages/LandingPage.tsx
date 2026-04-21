@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthContext'
 import { api } from '../api/client'
+import { Rule } from '../components/faltet'
 
 declare global {
   interface Window {
@@ -17,12 +18,7 @@ declare global {
   }
 }
 
-const features = [
-  { icon: '🌱', key: 'gardens' },
-  { icon: '🌿', key: 'plants' },
-  { icon: '🫘', key: 'seeds' },
-  { icon: '📋', key: 'tasks' },
-] as const
+const featureKeys = ['gardens', 'plants', 'seeds', 'tasks'] as const
 
 export function LandingPage() {
   const { login, token } = useAuth()
@@ -75,162 +71,210 @@ export function LandingPage() {
     }
   }, [handleCredentialResponse, i18n.language])
 
-  return (
-    <div className="min-h-screen bg-surface overflow-hidden">
-      {/* Decorative background elements */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-[0.04]"
-          style={{ background: 'radial-gradient(circle, var(--color-accent) 0%, transparent 70%)' }} />
-        <div className="absolute top-1/3 -left-48 w-[500px] h-[500px] rounded-full opacity-[0.03]"
-          style={{ background: 'radial-gradient(circle, var(--color-accent) 0%, transparent 70%)' }} />
-        <div className="absolute -bottom-24 right-1/4 w-80 h-80 rounded-full opacity-[0.04]"
-          style={{ background: 'radial-gradient(circle, var(--color-accent) 0%, transparent 70%)' }} />
-      </div>
+  const headline = t('landing.hero.headline')
+  const headlineParts = headline.split('.')
 
-      {/* Nav */}
-      <nav className="relative z-10 flex items-center justify-between px-6 md:px-12 py-5 max-w-6xl mx-auto">
-        <div className="flex items-center gap-2.5">
-          <span className="text-2xl">🌿</span>
-          <span className="text-lg font-semibold text-text-primary tracking-tight">Verdant</span>
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--color-cream)' }}>
+      {/* Top strip */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+          padding: '22px 40px',
+          borderBottom: '1px solid var(--color-ink)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+          <span
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontStyle: 'italic',
+              fontSize: 32,
+              fontWeight: 300,
+              color: 'var(--color-ink)',
+            }}
+          >
+            Verdant<span style={{ color: 'var(--color-clay)' }}>.</span>
+          </span>
+          <span
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: 'var(--color-forest)',
+            }}
+          >
+            {t('app.subtitle')}
+          </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <button
-            onClick={() => { const newLang = i18n.language === 'sv' ? 'en' : 'sv'; i18n.changeLanguage(newLang); localStorage.setItem('verdant-lang', newLang) }}
-            className="text-xs font-medium text-text-secondary hover:text-text-primary transition-colors px-2 py-1 rounded-md hover:bg-bg cursor-pointer"
+            onClick={() => {
+              const newLang = i18n.language === 'sv' ? 'en' : 'sv'
+              i18n.changeLanguage(newLang)
+              localStorage.setItem('verdant-lang', newLang)
+            }}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+              color: 'var(--color-forest)',
+              cursor: 'pointer',
+            }}
           >
             {i18n.language === 'sv' ? 'EN' : 'SV'}
           </button>
-          <a href="#sign-in" className="text-sm font-medium text-accent hover:text-accent-hover transition-colors">
-            {t('landing.signIn')}
-          </a>
+          <div id="google-signin-btn" />
         </div>
-      </nav>
+      </div>
 
       {/* Hero */}
-      <section className="relative z-10 max-w-6xl mx-auto px-6 md:px-12 pt-16 md:pt-28 pb-20 md:pb-32">
-        <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-light text-accent text-xs font-medium mb-8"
-            style={{ animation: 'fadeUp 0.6s ease-out both' }}>
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-accent" />
-            {t('landing.badge')}
-          </div>
-          <h1 className="text-4xl md:text-[3.25rem] md:leading-[1.15] font-bold text-text-primary tracking-tight mb-5"
-            style={{ animation: 'fadeUp 0.6s ease-out 0.1s both' }}>
-            {t('landing.heroTitle')}
-          </h1>
-          <p className="text-lg md:text-xl text-text-secondary leading-relaxed max-w-lg mb-10"
-            style={{ animation: 'fadeUp 0.6s ease-out 0.2s both' }}>
-            {t('landing.heroSubtitle')}
-          </p>
-          <div style={{ animation: 'fadeUp 0.6s ease-out 0.3s both' }}>
-            <div id="google-signin-btn" className="mb-3" />
-            {error && <p className="text-error text-sm">{error}</p>}
-          </div>
-        </div>
+      <div style={{ maxWidth: 860, margin: '80px auto 60px', padding: '0 40px' }}>
+        <h1
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 80,
+            fontWeight: 300,
+            letterSpacing: -1.5,
+            lineHeight: 1,
+            margin: 0,
+            fontVariationSettings: '"SOFT" 100, "opsz" 144',
+          }}
+        >
+          {headlineParts[0]}
+          <span style={{ color: 'var(--color-clay)' }}>.</span>
+          {headlineParts.length > 1 && headlineParts[1]?.trim() && (
+            <>
+              <br />
+              <span style={{ fontStyle: 'italic' }}>{headlineParts[1].trim()}</span>
+              <span style={{ color: 'var(--color-clay)' }}>.</span>
+            </>
+          )}
+        </h1>
+        <p
+          style={{
+            fontFamily: 'Georgia, var(--font-display)',
+            fontSize: 18,
+            lineHeight: 1.6,
+            color: 'var(--color-forest)',
+            marginTop: 28,
+          }}
+        >
+          {t('landing.hero.sub')}
+        </p>
+      </div>
 
-        {/* Decorative botanical illustration (CSS art) */}
-        <div className="hidden lg:block absolute right-12 top-20 w-72 h-80 opacity-[0.08]"
-          style={{ animation: 'fadeUp 0.8s ease-out 0.4s both' }}>
-          <svg viewBox="0 0 200 280" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-            <path d="M100 280V140" stroke="var(--color-accent)" strokeWidth="2" />
-            <path d="M100 140C100 140 60 120 40 80C20 40 50 10 100 40" stroke="var(--color-accent)" strokeWidth="1.5" fill="var(--color-accent)" fillOpacity="0.15" />
-            <path d="M100 140C100 140 140 110 150 60C160 10 130 -10 100 30" stroke="var(--color-accent)" strokeWidth="1.5" fill="var(--color-accent)" fillOpacity="0.1" />
-            <path d="M100 200C100 200 70 180 55 150C40 120 60 100 100 120" stroke="var(--color-accent)" strokeWidth="1.5" fill="var(--color-accent)" fillOpacity="0.12" />
-            <path d="M100 200C100 200 135 185 145 155C155 125 135 110 100 125" stroke="var(--color-accent)" strokeWidth="1.5" fill="var(--color-accent)" fillOpacity="0.08" />
-            <circle cx="100" cy="25" r="6" fill="var(--color-accent)" fillOpacity="0.2" />
-            <circle cx="45" cy="70" r="4" fill="var(--color-accent)" fillOpacity="0.15" />
-            <circle cx="150" cy="50" r="5" fill="var(--color-accent)" fillOpacity="0.15" />
-          </svg>
-        </div>
-      </section>
+      <Rule variant="ink" />
 
-      {/* Features */}
-      <section className="relative z-10 max-w-6xl mx-auto px-6 md:px-12 pb-20 md:pb-32">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-          {features.map((f, i) => (
-            <div
-              key={f.key}
-              className="group bg-bg border border-divider rounded-xl p-6 hover:border-accent/30 hover:shadow-sm transition-all duration-300"
-              style={{ animation: `fadeUp 0.5s ease-out ${0.4 + i * 0.08}s both` }}
-            >
-              <div className="text-3xl mb-4 group-hover:scale-110 transition-transform duration-300 inline-block">
-                {f.icon}
+      {/* Features — 4-up grid */}
+      <div style={{ maxWidth: 1100, margin: '60px auto', padding: '0 40px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 28 }}>
+          {featureKeys.map((key, i) => (
+            <div key={key}>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 9,
+                  letterSpacing: 1.4,
+                  textTransform: 'uppercase',
+                  color: 'var(--color-forest)',
+                  opacity: 0.7,
+                }}
+              >
+                {String.fromCharCode(8470)} {String(i + 1).padStart(2, '0')}
               </div>
-              <h3 className="font-semibold text-text-primary mb-1.5">
-                {t(`landing.feature.${f.key}.title`)}
-              </h3>
-              <p className="text-sm text-text-secondary leading-relaxed">
-                {t(`landing.feature.${f.key}.description`)}
+              <div
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 22,
+                  fontWeight: 300,
+                  marginTop: 6,
+                }}
+              >
+                {t(`landing.features.${key}.title`)}
+              </div>
+              <p
+                style={{
+                  fontFamily: 'Georgia, var(--font-display)',
+                  fontSize: 15,
+                  lineHeight: 1.6,
+                  color: 'var(--color-forest)',
+                  marginTop: 8,
+                }}
+              >
+                {t(`landing.features.${key}.description`)}
               </p>
             </div>
           ))}
         </div>
-      </section>
+      </div>
 
-      {/* How it works */}
-      <section className="relative z-10 max-w-6xl mx-auto px-6 md:px-12 pb-20 md:pb-32">
-        <div className="bg-bg border border-divider rounded-2xl p-8 md:p-12">
-          <h2 className="text-2xl font-bold text-text-primary tracking-tight mb-8">
-            {t('landing.howItWorks')}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-            {[1, 2, 3].map(step => (
-              <div key={step} className="flex gap-4">
-                <div className="shrink-0 w-8 h-8 rounded-full bg-accent-light text-accent text-sm font-bold flex items-center justify-center">
-                  {step}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-text-primary mb-1">
-                    {t(`landing.step${step}.title`)}
-                  </h3>
-                  <p className="text-sm text-text-secondary leading-relaxed">
-                    {t(`landing.step${step}.description`)}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {error && (
+        <p
+          style={{
+            color: 'var(--color-clay)',
+            textAlign: 'center',
+            fontFamily: 'var(--font-display)',
+            fontStyle: 'italic',
+            padding: '0 40px',
+          }}
+        >
+          {error}
+        </p>
+      )}
 
-      {/* CTA */}
-      <section id="sign-in" className="relative z-10 max-w-6xl mx-auto px-6 md:px-12 pb-24 md:pb-36">
-        <div className="text-center max-w-md mx-auto">
-          <span className="text-4xl block mb-4">🌻</span>
-          <h2 className="text-2xl font-bold text-text-primary tracking-tight mb-3">
-            {t('landing.ctaTitle')}
-          </h2>
-          <p className="text-text-secondary mb-8">
-            {t('landing.ctaSubtitle')}
-          </p>
-          <div className="inline-block">
-            <div id="google-signin-btn-bottom" className="mb-3" />
-          </div>
-        </div>
-      </section>
+      {/* Bottom sign-in */}
+      <div style={{ maxWidth: 860, margin: '60px auto', padding: '0 40px', textAlign: 'center' }}>
+        <div id="google-signin-btn-bottom" style={{ display: 'inline-block' }} />
+      </div>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-divider">
-        <div className="max-w-6xl mx-auto px-6 md:px-12 py-6 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-text-secondary">
-            <span>🌿</span>
-            <span>Verdant</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <p className="text-xs text-text-muted">{t('landing.footer')}</p>
-            <Link to="/privacy" className="text-xs text-text-muted hover:text-text-secondary transition-colors">
-              {t('privacy.title')}
-            </Link>
-          </div>
+      <div style={{ borderTop: '1px solid var(--color-ink)', padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontStyle: 'italic',
+            fontSize: 14,
+            color: 'var(--color-forest)',
+          }}
+        >
+          Verdant<span style={{ color: 'var(--color-clay)' }}>.</span>
+        </span>
+        <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+          <span
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 9,
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+              color: 'var(--color-forest)',
+              opacity: 0.6,
+            }}
+          >
+            {t('landing.footer')}
+          </span>
+          <Link
+            to="/privacy"
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 9,
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+              color: 'var(--color-forest)',
+              opacity: 0.6,
+              textDecoration: 'none',
+            }}
+          >
+            {t('privacy.title')}
+          </Link>
         </div>
-      </footer>
-
-      <style>{`
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(16px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+      </div>
     </div>
   )
 }

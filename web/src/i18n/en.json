@@ -169,7 +169,17 @@
     "deleteAccountTitle": "Delete Account",
     "deleteAccountConfirm": "This will permanently delete your account and all your data. This action cannot be undone.",
     "advancedMode": "Advanced mode",
-    "advancedModeDescription": "Show advanced features like analytics, variety trials, successions, and marketplace"
+    "advancedModeDescription": "Show advanced features like analytics, variety trials, successions, and marketplace",
+    "downloadMyData": "Download my data",
+    "exportingData": "Exporting…",
+    "masthead": {
+      "center": "— Account —"
+    }
+  },
+  "orgSettings": {
+    "masthead": {
+      "center": "— Organisation —"
+    }
   },
   "garden": {
     "beds": "Beds",
@@ -467,6 +477,28 @@
     "badge": "Free garden planner",
     "heroTitle": "Plan, grow, and harvest with confidence",
     "heroSubtitle": "Verdant helps you organize your gardens, track every plant from seed to harvest, and never miss a task.",
+    "hero": {
+      "headline": "Grow beautifully. Harvest more.",
+      "sub": "Garden planning for commercial cut-flower growing."
+    },
+    "features": {
+      "gardens": {
+        "title": "Gardens",
+        "description": "Organize your gardens and beds. Keep a clear overview of what grows where."
+      },
+      "plants": {
+        "title": "Plants",
+        "description": "Follow every plant from sowing to harvest. Record events and watch your garden grow."
+      },
+      "seeds": {
+        "title": "Seed stock",
+        "description": "Keep track of your seed collection, quantities, and expiration dates."
+      },
+      "tasks": {
+        "title": "Tasks",
+        "description": "Schedule sowing, planting, and harvesting tasks so nothing falls through the cracks."
+      }
+    },
     "feature": {
       "gardens": {
         "title": "Garden planning",
@@ -758,6 +790,12 @@
   "guide": {
     "title": "Guide",
     "advanced": "Advanced Features",
+    "masthead": {
+      "center": "— The Handbook —"
+    },
+    "hero": {
+      "headline": "Handbook."
+    },
     "sections": {
       "getting-started": {
         "title": "Getting Started",

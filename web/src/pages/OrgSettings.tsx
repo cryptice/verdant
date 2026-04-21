@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import type { OrgMemberResponse, OrgInviteResponse } from '../api/client'
 import { useOrg } from '../auth/OrgContext'
-import { PageHeader } from '../components/PageHeader'
+import { Masthead, Field, Rule } from '../components/faltet'
 
 export function OrgSettings() {
   const { t } = useTranslation()
@@ -64,37 +64,33 @@ export function OrgSettings() {
 
   return (
     <div>
-      <PageHeader title={t('org.settings.title')} />
-      <div className="px-4 py-4 space-y-6 max-w-2xl">
+      <Masthead
+        left={t('nav.orgSettings')}
+        center={t('orgSettings.masthead.center')}
+      />
 
-        {/* Org name and emoji — owners only */}
+      <div style={{ padding: '28px 40px', paddingBottom: 80 }}>
+
+        {/* Org info fields — owners only */}
         {isOwner && (
-          <div className="card space-y-4">
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-1">
-                  {t('org.settings.nameLabel')}
-                </label>
-                <input
-                  type="text"
-                  value={orgName}
-                  onChange={e => setOrgName(e.target.value)}
-                  className="input w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-1">
-                  {t('org.settings.emojiLabel')}
-                </label>
-                <input
-                  type="text"
-                  value={orgEmoji}
-                  onChange={e => setOrgEmoji(e.target.value)}
-                  className="input w-20"
-                  maxLength={4}
-                />
-              </div>
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 28px' }}>
+            <Field
+              label={t('org.settings.nameLabel')}
+              editable
+              value={orgName}
+              onChange={setOrgName}
+            />
+            <Field
+              label={t('org.settings.emojiLabel')}
+              editable
+              value={orgEmoji}
+              onChange={setOrgEmoji}
+            />
+          </div>
+        )}
+
+        {isOwner && (
+          <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
             <button
               onClick={handleSave}
               disabled={updateMut.isPending}
@@ -105,39 +101,79 @@ export function OrgSettings() {
           </div>
         )}
 
-        {/* Members list */}
-        <div className="card">
-          <h2 className="text-sm font-semibold text-text-primary mb-3">{t('org.settings.members')}</h2>
+        {/* Members section */}
+        <div style={{ marginTop: 40 }}>
+          <div
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 9,
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+              color: 'var(--color-forest)',
+              opacity: 0.6,
+            }}
+          >
+            § {t('org.settings.members')}
+          </div>
+          <div style={{ marginTop: 8 }}>
+            <Rule variant="soft" />
+          </div>
+
           {membersQuery.isLoading ? (
-            <div className="flex justify-center py-4">
-              <div className="animate-spin h-5 w-5 border-2 border-accent border-t-transparent rounded-full" />
+            <div style={{ padding: '20px 0', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 15, color: 'var(--color-forest)' }}>
+              …
             </div>
           ) : (
-            <div className="divide-y divide-divider/50">
-              {members.map(member => (
-                <div key={member.id} className="flex items-center gap-3 py-3">
-                  {member.avatarUrl ? (
-                    <img src={member.avatarUrl} alt={member.displayName} className="w-8 h-8 rounded-full flex-shrink-0" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-accent/15 flex items-center justify-center text-sm font-semibold text-accent flex-shrink-0">
-                      {member.displayName.charAt(0)}
+            <div style={{ marginTop: 14 }}>
+              {members.map((member) => (
+                <div
+                  key={member.id}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1.5fr 120px auto',
+                    gap: 18,
+                    padding: '12px 0',
+                    borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>
+                    {member.displayName}
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1, color: 'var(--color-forest)', opacity: 0.6 }}>
+                      {member.email}
                     </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-text-primary truncate">{member.displayName}</p>
-                    <p className="text-xs text-text-secondary truncate">{member.email}</p>
                   </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <span className="text-xs text-text-muted">
-                      {t(`org.settings.role.${member.role}`, member.role)}
-                    </span>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 9,
+                      letterSpacing: 1.4,
+                      textTransform: 'uppercase',
+                      color: 'var(--color-forest)',
+                      opacity: 0.7,
+                    }}
+                  >
+                    {t(`org.settings.role.${member.role}`, member.role)}
+                  </div>
+                  <div>
                     {isOwner && member.role !== 'OWNER' && (
                       <button
                         onClick={() => removeMut.mutate(member.userId)}
                         disabled={removeMut.isPending}
-                        className="text-xs text-error hover:underline disabled:opacity-50"
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: 9,
+                          letterSpacing: 1.4,
+                          textTransform: 'uppercase',
+                          color: 'var(--color-clay)',
+                          cursor: 'pointer',
+                          padding: 0,
+                          opacity: removeMut.isPending ? 0.5 : 1,
+                        }}
                       >
-                        {t('org.settings.removeMember')}
+                        ↵ {t('org.settings.removeMember')}
                       </button>
                     )}
                   </div>
@@ -149,37 +185,82 @@ export function OrgSettings() {
 
         {/* Invite section — owners only */}
         {isOwner && (
-          <div className="card space-y-4">
-            <h2 className="text-sm font-semibold text-text-primary">{t('org.settings.inviteTitle')}</h2>
-            <div className="flex gap-2">
+          <div style={{ marginTop: 40 }}>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 9,
+                letterSpacing: 1.4,
+                textTransform: 'uppercase',
+                color: 'var(--color-forest)',
+                opacity: 0.6,
+              }}
+            >
+              § {t('org.settings.inviteTitle')}
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <Rule variant="soft" />
+            </div>
+            <div style={{ marginTop: 14, display: 'flex', gap: 12 }}>
               <input
                 type="email"
                 value={inviteEmail}
                 onChange={e => setInviteEmail(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleInvite()}
                 placeholder={t('org.settings.inviteLabel')}
-                className="input flex-1"
+                className="input"
+                style={{ flex: 1 }}
               />
               <button
                 onClick={handleInvite}
                 disabled={inviteMut.isPending || !inviteEmail.trim()}
-                className="btn-primary flex-shrink-0"
+                className="btn-primary"
               >
                 {inviteMut.isPending ? t('common.saving') : t('org.settings.inviteButton')}
               </button>
             </div>
 
             {sentInvites.length > 0 && (
-              <div>
-                <p className="text-xs font-medium text-text-secondary mb-2">{t('org.settings.pendingInvites')}</p>
-                <div className="divide-y divide-divider/50">
-                  {sentInvites.map(invite => (
-                    <div key={invite.id} className="py-2 flex items-center justify-between">
-                      <span className="text-sm text-text-primary">{invite.email}</span>
-                      <span className="text-xs text-text-muted capitalize">{invite.status.toLowerCase()}</span>
-                    </div>
-                  ))}
+              <div style={{ marginTop: 14 }}>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 9,
+                    letterSpacing: 1.4,
+                    textTransform: 'uppercase',
+                    color: 'var(--color-forest)',
+                    opacity: 0.6,
+                    marginBottom: 8,
+                  }}
+                >
+                  {t('org.settings.pendingInvites')}
                 </div>
+                {sentInvites.map(invite => (
+                  <div
+                    key={invite.id}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '10px 0',
+                      borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                    }}
+                  >
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>{invite.email}</span>
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 9,
+                        letterSpacing: 1.4,
+                        textTransform: 'uppercase',
+                        color: 'var(--color-forest)',
+                        opacity: 0.6,
+                      }}
+                    >
+                      {invite.status.toLowerCase()}
+                    </span>
+                  </div>
+                ))}
               </div>
             )}
           </div>
