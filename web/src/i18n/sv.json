@@ -364,6 +364,13 @@
     "edit": {
       "save": "Spara ändringar →",
       "saving": "Sparar…"
+    },
+    "workflow": { "link": "Arbetsflöde" },
+    "delete": {
+      "trigger": "Radera art",
+      "confirm": "Säker? Tas bort permanent.",
+      "confirmButton": "Radera",
+      "deleting": "Raderar…"
     }
   },
   "seeds": {

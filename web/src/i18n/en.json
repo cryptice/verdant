@@ -364,6 +364,13 @@
     "edit": {
       "save": "Save changes →",
       "saving": "Saving…"
+    },
+    "workflow": { "link": "Workflow" },
+    "delete": {
+      "trigger": "Delete species",
+      "confirm": "Sure? This is permanent.",
+      "confirmButton": "Delete",
+      "deleting": "Deleting…"
     }
   },
   "seeds": {
