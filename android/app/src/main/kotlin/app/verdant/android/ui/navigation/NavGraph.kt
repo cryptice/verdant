@@ -1,17 +1,29 @@
 package app.verdant.android.ui.navigation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
@@ -21,10 +33,17 @@ import app.verdant.android.R
 import app.verdant.android.data.SessionManager
 import app.verdant.android.ui.account.AccountScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import app.verdant.android.ui.activity.*
 import app.verdant.android.ui.auth.AuthScreen
+import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetCream
+import app.verdant.android.ui.theme.FaltetDisplay
+import app.verdant.android.ui.theme.FaltetForest
+import app.verdant.android.ui.theme.FaltetInk
+import app.verdant.android.ui.theme.FaltetInkLine20
 import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.ui.plants.PlantedSpeciesListScreen
 import app.verdant.android.ui.plants.PlantedSpeciesDetailScreen
@@ -204,161 +223,72 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
         drawerState = drawerState,
         gesturesEnabled = showTopBar,
         drawerContent = {
-            ModalDrawerSheet(modifier = Modifier.width(280.dp)) {
-                Spacer(Modifier.height(24.dp))
-                Text(
-                    stringResource(R.string.app_name),
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
-                )
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                Spacer(Modifier.height(8.dp))
+            ModalDrawerSheet(
+                drawerContainerColor = FaltetCream,
+                drawerContentColor = FaltetInk,
+            ) {
+                Column(modifier = Modifier.fillMaxHeight().padding(top = 24.dp)) {
+                    // Wordmark header
+                    Row(
+                        modifier = Modifier.padding(horizontal = 18.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            buildAnnotatedString {
+                                withStyle(SpanStyle(color = FaltetInk)) { append("Verdant") }
+                                withStyle(SpanStyle(color = FaltetClay)) { append(".") }
+                            },
+                            fontFamily = FaltetDisplay,
+                            fontStyle = FontStyle.Italic,
+                            fontWeight = FontWeight.W300,
+                            fontSize = 26.sp,
+                        )
+                    }
+                    Text(
+                        text = "Est. 2026 — Småland".uppercase(),
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 10.sp,
+                        letterSpacing = 1.8.sp,
+                        color = FaltetForest,
+                        modifier = Modifier.padding(start = 18.dp, top = 4.dp),
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    Box(Modifier.fillMaxWidth().height(1.dp).background(FaltetInk))
 
-                NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.species)) },
-                    icon = { Icon(Icons.Default.Spa, contentDescription = null) },
-                    selected = currentRoute == Screen.SpeciesList.route,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate(Screen.SpeciesList.route) {
-                            popUpTo(Screen.MyWorld.route)
-                        }
-                    },
-                    modifier = Modifier.padding(horizontal = 12.dp)
-                )
-                NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.seed_inventory)) },
-                    icon = { Icon(Icons.Default.Inventory, contentDescription = null) },
-                    selected = currentRoute == Screen.SeedInventory.route,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate(Screen.SeedInventory.route) {
-                            popUpTo(Screen.MyWorld.route)
-                        }
-                    },
-                    modifier = Modifier.padding(horizontal = 12.dp)
-                )
-                NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.supplies)) },
-                    icon = { Icon(Icons.Default.Inventory2, contentDescription = null) },
-                    selected = currentRoute == Screen.Supplies.route,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate(Screen.Supplies.route) {
-                            popUpTo(Screen.MyWorld.route)
-                        }
-                    },
-                    modifier = Modifier.padding(horizontal = 12.dp)
-                )
-                NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.seasons)) },
-                    icon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },
-                    selected = currentRoute == Screen.Seasons.route,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate(Screen.Seasons.route) {
-                            popUpTo(Screen.MyWorld.route)
-                        }
-                    },
-                    modifier = Modifier.padding(horizontal = 12.dp)
-                )
-                NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.successions)) },
-                    icon = { Icon(Icons.Default.Autorenew, contentDescription = null) },
-                    selected = currentRoute == Screen.Successions.route,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate(Screen.Successions.route) {
-                            popUpTo(Screen.MyWorld.route)
-                        }
-                    },
-                    modifier = Modifier.padding(horizontal = 12.dp)
-                )
-                NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.targets)) },
-                    icon = { Icon(Icons.Default.TrackChanges, contentDescription = null) },
-                    selected = currentRoute == Screen.Targets.route,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate(Screen.Targets.route) {
-                            popUpTo(Screen.MyWorld.route)
-                        }
-                    },
-                    modifier = Modifier.padding(horizontal = 12.dp)
-                )
-                NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.pest_disease)) },
-                    icon = { Icon(Icons.Default.BugReport, contentDescription = null) },
-                    selected = currentRoute == Screen.PestDiseaseLog.route,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate(Screen.PestDiseaseLog.route) {
-                            popUpTo(Screen.MyWorld.route)
-                        }
-                    },
-                    modifier = Modifier.padding(horizontal = 12.dp)
-                )
-                NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.variety_trials)) },
-                    icon = { Icon(Icons.Default.Science, contentDescription = null) },
-                    selected = currentRoute == Screen.Trials.route,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate(Screen.Trials.route) {
-                            popUpTo(Screen.MyWorld.route)
-                        }
-                    },
-                    modifier = Modifier.padding(horizontal = 12.dp)
-                )
-                NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.bouquets)) },
-                    icon = { Icon(Icons.Default.LocalFlorist, contentDescription = null) },
-                    selected = currentRoute == Screen.Bouquets.route,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate(Screen.Bouquets.route) {
-                            popUpTo(Screen.MyWorld.route)
-                        }
-                    },
-                    modifier = Modifier.padding(horizontal = 12.dp)
-                )
-                NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.customers)) },
-                    icon = { Icon(Icons.Default.People, contentDescription = null) },
-                    selected = currentRoute == Screen.Customers.route,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate(Screen.Customers.route) {
-                            popUpTo(Screen.MyWorld.route)
-                        }
-                    },
-                    modifier = Modifier.padding(horizontal = 12.dp)
-                )
-                NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.analytics)) },
-                    icon = { Icon(Icons.Default.Analytics, contentDescription = null) },
-                    selected = currentRoute == Screen.Analytics.route,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate(Screen.Analytics.route) {
-                            popUpTo(Screen.MyWorld.route)
-                        }
-                    },
-                    modifier = Modifier.padding(horizontal = 12.dp)
-                )
-                NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.account)) },
-                    icon = { Icon(Icons.Default.Person, contentDescription = null) },
-                    selected = currentRoute == Screen.Account.route,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                        navController.navigate(Screen.Account.route) {
-                            popUpTo(Screen.MyWorld.route)
-                        }
-                    },
-                    modifier = Modifier.padding(horizontal = 12.dp)
-                )
+                    // Scrollable nav body
+                    Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                        // Section 1 — § ODLING
+                        DrawerSection("§ Odling")
+                        DrawerItem("Översikt", Screen.MyWorld.route, currentRoute, navController, scope, drawerState)
+                        DrawerItem("Plantor", Screen.PlantedSpeciesList.route, currentRoute, navController, scope, drawerState)
+
+                        // Section 2 — § UPPGIFTER
+                        DrawerSection("§ Uppgifter")
+                        DrawerItem("Uppgifter", Screen.TaskList.route, currentRoute, navController, scope, drawerState)
+                        DrawerItem("Frölager", Screen.SeedInventory.route, currentRoute, navController, scope, drawerState)
+                        DrawerItem("Förbrukning", Screen.Supplies.route, currentRoute, navController, scope, drawerState)
+                        DrawerItem("Successioner", Screen.Successions.route, currentRoute, navController, scope, drawerState)
+                        DrawerItem("Mål", Screen.Targets.route, currentRoute, navController, scope, drawerState)
+
+                        // Section 3 — § SKÖRD & FÖRSÄLJNING
+                        DrawerSection("§ Skörd & Försäljning")
+                        DrawerItem("Kunder", Screen.Customers.route, currentRoute, navController, scope, drawerState)
+                        DrawerItem("Buketter", Screen.Bouquets.route, currentRoute, navController, scope, drawerState)
+
+                        // Section 4 — § ANALYS
+                        DrawerSection("§ Analys")
+                        DrawerItem("Försök", Screen.Trials.route, currentRoute, navController, scope, drawerState)
+                        DrawerItem("Skadedjur", Screen.PestDiseaseLog.route, currentRoute, navController, scope, drawerState)
+                        DrawerItem("Analys", Screen.Analytics.route, currentRoute, navController, scope, drawerState)
+                    }
+
+                    // § KONTO — bottom-docked
+                    Box(Modifier.fillMaxWidth().height(1.dp).background(FaltetInkLine20))
+                    DrawerSection("§ Konto")
+                    DrawerItem("Säsonger", Screen.Seasons.route, currentRoute, navController, scope, drawerState)
+                    DrawerItem("Konto", Screen.Account.route, currentRoute, navController, scope, drawerState)
+                    Spacer(Modifier.height(16.dp))
+                }
             }
         }
     ) {
@@ -773,6 +703,68 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                 )
             }
         }
+        }
+    }
+}
+
+@Composable
+private fun DrawerSection(title: String) {
+    Text(
+        text = title.uppercase(),
+        fontFamily = FontFamily.Monospace,
+        fontSize = 9.sp,
+        letterSpacing = 1.4.sp,
+        color = FaltetForest.copy(alpha = 0.7f),
+        modifier = Modifier.padding(start = 18.dp, top = 14.dp, bottom = 6.dp),
+    )
+}
+
+@Composable
+private fun DrawerItem(
+    label: String,
+    route: String,
+    currentRoute: String?,
+    navController: NavController,
+    scope: CoroutineScope,
+    drawerState: DrawerState,
+) {
+    val active = currentRoute == route
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .clickable {
+                scope.launch { drawerState.close() }
+                navController.navigate(route) {
+                    popUpTo(Screen.MyWorld.route)
+                }
+            }
+            .drawBehind {
+                drawLine(
+                    color = FaltetInkLine20,
+                    start = Offset(0f, size.height),
+                    end = Offset(size.width, size.height),
+                    strokeWidth = 1.dp.toPx(),
+                )
+            }
+            .padding(horizontal = 18.dp, vertical = 12.dp),
+    ) {
+        Text(
+            text = label,
+            fontFamily = FaltetDisplay,
+            fontStyle = FontStyle.Italic,
+            fontSize = 18.sp,
+            color = if (active) FaltetClay else FaltetInk,
+            modifier = Modifier.weight(1f),
+        )
+        if (active) {
+            Text(
+                text = "●",
+                fontFamily = FaltetDisplay,
+                fontSize = 16.sp,
+                color = FaltetClay,
+            )
         }
     }
 }
