@@ -1381,7 +1381,12 @@
     "noneEvent": "Manual action",
     "startSideBranch": "Start side branch",
     "stepCount": "{{count}} steps",
-    "deleteTemplate": "Delete workflow"
+    "deleteTemplate": "Delete workflow",
+    "newTitle": "New template",
+    "masthead": {
+      "center": "— The Template —"
+    },
+    "daysAfter": "Days after previous"
   },
   "form": {
     "masthead": {

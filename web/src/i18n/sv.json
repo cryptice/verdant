@@ -1381,7 +1381,12 @@
     "noneEvent": "Manuell åtgärd",
     "startSideBranch": "Starta sidoflöde",
     "stepCount": "{{count}} steg",
-    "deleteTemplate": "Radera arbetsflöde"
+    "deleteTemplate": "Radera arbetsflöde",
+    "newTitle": "Ny mall",
+    "masthead": {
+      "center": "— Mallen —"
+    },
+    "daysAfter": "Dagar efter föregående"
   },
   "form": {
     "masthead": {
