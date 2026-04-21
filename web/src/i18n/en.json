@@ -1,4 +1,16 @@
 {
+  "app": {
+    "subtitle": "Est. 2026 — Småland"
+  },
+  "sidebar": {
+    "groups": {
+      "odling":    "Growing",
+      "uppgifter": "Tasks",
+      "sales":     "Harvest & Sales",
+      "analysis":  "Analytics",
+      "account":   "Account"
+    }
+  },
   "nav": {
     "myWorld": "My world",
     "dashboard": "Dashboard",
@@ -20,7 +32,9 @@
     "guide": "Guide",
     "speciesGroups": "Species Groups",
     "supplies": "Supplies",
-    "workflows": "Workflows"
+    "workflows": "Workflows",
+    "harvest": "Harvest",
+    "orgSettings": "Org settings"
   },
   "common": {
     "cancel": "Cancel",

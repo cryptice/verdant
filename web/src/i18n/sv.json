@@ -1,4 +1,16 @@
 {
+  "app": {
+    "subtitle": "Est. 2026 — Småland"
+  },
+  "sidebar": {
+    "groups": {
+      "odling": "Odling",
+      "uppgifter": "Uppgifter",
+      "sales": "Skörd & Försäljning",
+      "analysis": "Analys",
+      "account": "Konto"
+    }
+  },
   "nav": {
     "myWorld": "Min värld",
     "dashboard": "Översikt",
@@ -20,7 +32,9 @@
     "guide": "Guide",
     "speciesGroups": "Artgrupper",
     "supplies": "Utrustning & förbrukning",
-    "workflows": "Arbetsflöden"
+    "workflows": "Arbetsflöden",
+    "harvest": "Skörd",
+    "orgSettings": "Org-inställningar"
   },
   "common": {
     "cancel": "Avbryt",
