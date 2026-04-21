@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type SupplyTypeResponse, type SupplyInventoryResponse } from '../api/client'
-import { Masthead } from '../components/faltet'
+import { Masthead, LedgerPagination } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 
@@ -510,6 +510,27 @@ export function Supplies() {
 
   const grouped = groupByCategory(types ?? [], batches ?? [], t)
 
+  // Flat ordered list of all supply type entries for pagination
+  const allInventoryEntries: { cat: string; item: GroupedType }[] = CATEGORIES.flatMap(cat =>
+    (grouped.get(cat) ?? []).map(item => ({ cat, item }))
+  )
+  const [inventoryPage, setInventoryPage] = useState(0)
+  const inventoryPageSize = 50
+  useEffect(() => { setInventoryPage(0) }, [allInventoryEntries.length])
+  const pagedEntries = allInventoryEntries.slice(inventoryPage * inventoryPageSize, (inventoryPage + 1) * inventoryPageSize)
+
+  // Rebuild a per-category map from the visible slice for rendering
+  const pagedGrouped = new Map<string, GroupedType[]>()
+  for (const { cat, item } of pagedEntries) {
+    const arr = pagedGrouped.get(cat) ?? []
+    arr.push(item)
+    pagedGrouped.set(cat, arr)
+  }
+  // Note: when a category's items span page boundaries, only the current
+  // page's slice is rendered. Empty-state within a category reflects the
+  // current page — typically Supplies sits well under 50 items across all
+  // categories so users rarely hit the boundary.
+
   return (
     <div>
       <Masthead
@@ -537,7 +558,7 @@ export function Supplies() {
 
       <div style={{ padding: '28px 40px' }}>
         {CATEGORIES.map(cat => {
-          const items = grouped.get(cat) ?? []
+          const items = pagedGrouped.get(cat) ?? []
           const allExpanded = items.length > 0 && items.every(item => expanded.has(item.type.id))
 
           return (
@@ -916,6 +937,12 @@ export function Supplies() {
             </div>
           )
         })}
+        <LedgerPagination
+          page={inventoryPage}
+          pageSize={inventoryPageSize}
+          total={allInventoryEntries.length}
+          onChange={setInventoryPage}
+        />
       </div>
 
       {/* Add batch dialog */}

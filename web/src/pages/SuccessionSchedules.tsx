@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type SuccessionScheduleResponse, type SpeciesResponse, type BedWithGardenResponse } from '../api/client'
 import { ErrorDisplay } from '../components/ErrorDisplay'
@@ -7,7 +7,7 @@ import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
-import { Masthead } from '../components/faltet'
+import { Masthead, LedgerPagination } from '../components/faltet'
 
 const PAGE_SIZE = 50
 
@@ -51,6 +51,7 @@ export function SuccessionSchedules() {
   })
 
   const [page, setPage] = useState(0)
+  useEffect(() => { setPage(0) }, [seasonFilter])
   const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<SuccessionScheduleResponse | null>(null)
   const [deleteItem, setDeleteItem] = useState<SuccessionScheduleResponse | null>(null)
@@ -281,26 +282,7 @@ export function SuccessionSchedules() {
               </div>
             ))}
 
-            {/* Pagination (simple) */}
-            {schedules.length > PAGE_SIZE && (
-              <div style={{ display: 'flex', gap: 8, marginTop: 16, fontFamily: 'var(--font-mono)', fontSize: 10 }}>
-                <button
-                  onClick={() => setPage(p => Math.max(0, p - 1))}
-                  disabled={page === 0}
-                  style={{ background: 'transparent', border: 'none', cursor: page === 0 ? 'default' : 'pointer', opacity: page === 0 ? 0.3 : 1 }}
-                >
-                  ←
-                </button>
-                <span>{page + 1} / {Math.ceil(schedules.length / PAGE_SIZE)}</span>
-                <button
-                  onClick={() => setPage(p => Math.min(Math.ceil(schedules.length / PAGE_SIZE) - 1, p + 1))}
-                  disabled={(page + 1) * PAGE_SIZE >= schedules.length}
-                  style={{ background: 'transparent', border: 'none', cursor: (page + 1) * PAGE_SIZE >= schedules.length ? 'default' : 'pointer', opacity: (page + 1) * PAGE_SIZE >= schedules.length ? 0.3 : 1 }}
-                >
-                  →
-                </button>
-              </div>
-            )}
+            <LedgerPagination page={page} pageSize={PAGE_SIZE} total={schedules.length} onChange={setPage} />
           </>
         )}
       </div>

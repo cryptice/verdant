@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api, type SeedInventoryResponse, type SpeciesResponse } from '../api/client'
-import { Masthead } from '../components/faltet'
+import { Masthead, LedgerPagination } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
@@ -128,6 +128,10 @@ export function SeedInventory() {
   }
   const groupEntries = Array.from(grouped.entries())
 
+  const [page, setPage] = useState(0)
+  const pageSize = 50
+  useEffect(() => { setPage(0) }, [groupEntries.length])
+
   return (
     <div>
       <Masthead
@@ -158,7 +162,8 @@ export function SeedInventory() {
               <span />
             </div>
 
-            {groupEntries.map(([speciesId, batches], groupIndex) => {
+            {groupEntries.slice(page * pageSize, (page + 1) * pageSize).map(([speciesId, batches], i) => {
+              const globalIndex = page * pageSize + i
               const sp = species?.find(s => s.id === speciesId)
               const speciesDisplayName = sp?.commonNameSv ?? sp?.commonName ?? batches[0].speciesName
               const scientificName = sp?.scientificName
@@ -189,7 +194,7 @@ export function SeedInventory() {
                     className="ledger-row"
                   >
                     <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-mustard)' }}>
-                      {String(groupIndex + 1).padStart(2, '0')}
+                      {String(globalIndex + 1).padStart(2, '0')}
                     </span>
                     <div>
                       <div style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>{speciesDisplayName}</div>
@@ -275,6 +280,7 @@ export function SeedInventory() {
                 </div>
               )
             })}
+            <LedgerPagination page={page} pageSize={pageSize} total={groupEntries.length} onChange={setPage} />
           </div>
         )}
       </div>

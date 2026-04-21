@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type VarietyTrialResponse, type SpeciesResponse, type BedWithGardenResponse } from '../api/client'
-import { Masthead, Chip } from '../components/faltet'
+import { Masthead, Chip, LedgerPagination } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
@@ -53,6 +53,10 @@ export function VarietyTrials() {
     queryKey: ['variety-trials', seasonFilter],
     queryFn: () => api.varietyTrials.list(seasonFilter),
   })
+
+  const [page, setPage] = useState(0)
+  const pageSize = 50
+  useEffect(() => { setPage(0) }, [seasonFilter])
 
   const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<VarietyTrialResponse | null>(null)
@@ -253,7 +257,8 @@ export function VarietyTrials() {
 
         {trials.length > 0 && (
           <div>
-            {trials.map((trial, i) => {
+            {trials.slice(page * pageSize, (page + 1) * pageSize).map((trial, i) => {
+              const globalIndex = page * pageSize + i
               const sp = resolveSpecies(trial.speciesId)
               const speciesDisplayName = sp?.commonNameSv ?? sp?.commonName ?? `#${trial.speciesId}`
               const variantDisplayName = sp?.variantNameSv ?? sp?.variantName
@@ -281,7 +286,7 @@ export function VarietyTrials() {
                   className="ledger-row"
                 >
                   <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 26, color: 'var(--color-clay)' }}>
-                    {String(i + 1).padStart(2, '0')}
+                    {String(globalIndex + 1).padStart(2, '0')}
                   </span>
                   <div>
                     <div style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 300 }}>
@@ -313,6 +318,7 @@ export function VarietyTrials() {
                 </button>
               )
             })}
+            <LedgerPagination page={page} pageSize={pageSize} total={trials.length} onChange={setPage} />
           </div>
         )}
       </div>

@@ -1,12 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type BouquetRecipeResponse, type SpeciesResponse } from '../api/client'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { useOnboarding } from '../onboarding/OnboardingContext'
-import { Masthead, Chip } from '../components/faltet'
+import { Masthead, Chip, LedgerPagination } from '../components/faltet'
 
 const ROLES = ['FLOWER', 'FOLIAGE', 'FILLER', 'ACCENT'] as const
 
@@ -48,6 +48,10 @@ export function BouquetRecipes() {
     next.has(id) ? next.delete(id) : next.add(id)
     return next
   })
+
+  const [page, setPage] = useState(0)
+  const pageSize = 50
+  useEffect(() => { setPage(0) }, [data])
 
   const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<BouquetRecipeResponse | null>(null)
@@ -237,7 +241,9 @@ export function BouquetRecipes() {
             </div>
 
             {/* Body rows */}
-            {recipes.map((recipe, i) => (
+            {recipes.slice(page * pageSize, (page + 1) * pageSize).map((recipe, i) => {
+              const globalIndex = page * pageSize + i
+              return (
               <div key={recipe.id}>
                 <button
                   onClick={() => toggle(recipe.id)}
@@ -257,7 +263,7 @@ export function BouquetRecipes() {
                   className="ledger-row"
                 >
                   <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-clay)' }}>
-                    {String(i + 1).padStart(2, '0')}
+                    {String(globalIndex + 1).padStart(2, '0')}
                   </span>
                   <div>
                     <div style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>{recipe.name}</div>
@@ -319,7 +325,9 @@ export function BouquetRecipes() {
                   </div>
                 )}
               </div>
-            ))}
+              )
+            })}
+            <LedgerPagination page={page} pageSize={pageSize} total={recipes.length} onChange={setPage} />
           </>
         )}
       </div>
