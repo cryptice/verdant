@@ -1,11 +1,12 @@
 // web/src/components/faltet/Ledger.tsx
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { LedgerPagination } from './LedgerPagination'
 
 export type LedgerColumn<T> = {
   key: string
   label: string
-  width?: string              // CSS grid track, defaults to '1fr'
+  width?: string
   align?: 'left' | 'right'
   render?: (row: T, index: number) => ReactNode
 }
@@ -17,12 +18,21 @@ type Props<T> = {
   onRowClick?: (row: T) => void
   emptyMessage?: string
   sectionHeaders?: (row: T, index: number, prev: T | null) => ReactNode | null
+  paginated?: boolean
+  pageSize?: number
 }
 
 export function Ledger<T>({
   columns, rows, rowKey, onRowClick, emptyMessage, sectionHeaders,
+  paginated = false, pageSize = 50,
 }: Props<T>) {
   const { t } = useTranslation()
+  const [page, setPage] = useState(0)
+
+  // Reset page when row identity-set changes (filter/search/data refetch).
+  const rowKeysFingerprint = rows.map(rowKey).join('|')
+  useEffect(() => { setPage(0) }, [rowKeysFingerprint])
+
   const template = columns.map((c) => c.width ?? '1fr').join(' ')
 
   if (rows.length === 0) {
@@ -46,6 +56,10 @@ export function Ledger<T>({
       </div>
     )
   }
+
+  const visibleRows = paginated
+    ? rows.slice(page * pageSize, (page + 1) * pageSize)
+    : rows
 
   return (
     <div>
@@ -71,8 +85,14 @@ export function Ledger<T>({
       </div>
 
       {/* Body */}
-      {rows.map((row, i) => {
-        const sectionNode = sectionHeaders?.(row, i, i === 0 ? null : rows[i - 1])
+      {visibleRows.map((row, i) => {
+        const globalIndex = paginated ? page * pageSize + i : i
+        const prevRow = globalIndex > 0 ? rows[globalIndex - 1] : null
+        // When paginated, force a section header on the first row of each page
+        // even if the preceding row (off-page) shares the same group.
+        const prevForHeader = paginated && i === 0 ? null : prevRow
+        const sectionNode = sectionHeaders?.(row, globalIndex, prevForHeader)
+
         const rowStyle: React.CSSProperties = {
           display: 'grid', gridTemplateColumns: template, gap: 18,
           padding: '12px 0',
@@ -80,7 +100,6 @@ export function Ledger<T>({
           alignItems: 'center',
           textAlign: 'left',
           background: 'transparent',
-          border: onRowClick ? undefined : undefined,
           cursor: onRowClick ? 'pointer' : 'default',
           width: '100%',
         }
@@ -107,13 +126,22 @@ export function Ledger<T>({
                     color: 'var(--color-ink)',
                   }}
                 >
-                  {col.render ? col.render(row, i) : String((row as any)[col.key] ?? '')}
+                  {col.render ? col.render(row, globalIndex) : String((row as any)[col.key] ?? '')}
                 </div>
               ))}
             </RowComponent>
           </div>
         )
       })}
+
+      {paginated && (
+        <LedgerPagination
+          page={page}
+          pageSize={pageSize}
+          total={rows.length}
+          onChange={setPage}
+        />
+      )}
     </div>
   )
 }

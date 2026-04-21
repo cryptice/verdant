@@ -72,7 +72,10 @@
     "sv": "Svenska"
   },
   "pagination": {
-    "showing": "{{from}}–{{to}} of {{total}}"
+    "showing": "{{from}}–{{to}} of {{total}}",
+    "of": "of",
+    "previous": "Previous page",
+    "next": "Next page"
   },
   "error": {
     "generic": "Something went wrong",

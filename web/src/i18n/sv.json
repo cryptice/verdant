@@ -72,7 +72,10 @@
     "sv": "Svenska"
   },
   "pagination": {
-    "showing": "{{from}}–{{to}} av {{total}}"
+    "showing": "{{from}}–{{to}} av {{total}}",
+    "of": "av",
+    "previous": "Föregående sida",
+    "next": "Nästa sida"
   },
   "error": {
     "generic": "Något gick fel",

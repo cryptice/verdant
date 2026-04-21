@@ -8,7 +8,14 @@ import { Ledger } from './Ledger'
 
 i18n.use(initReactI18next).init({
   lng: 'en',
-  resources: { en: { translation: { common: { ledger: { empty: 'No rows yet' } } } } },
+  resources: {
+    en: {
+      translation: {
+        common: { ledger: { empty: 'No rows yet' } },
+        pagination: { of: 'of', previous: 'Previous page', next: 'Next page' },
+      },
+    },
+  },
   interpolation: { escapeValue: false },
 })
 
@@ -64,5 +71,23 @@ describe('Ledger', () => {
     render(withI18n(<Ledger columns={columns} rows={rows} rowKey={(r) => r.id} sectionHeaders={sectionHeaders} />))
     expect(screen.getByText('§ SECTION 1')).toBeInTheDocument()
     expect(screen.getByText('§ SECTION 2')).toBeInTheDocument()
+  })
+
+  test('paginated prop slices rows', () => {
+    const rows = Array.from({ length: 7 }, (_, i) => ({ id: i, name: `Row ${i}`, count: i }))
+    render(withI18n(<Ledger columns={columns} rows={rows} rowKey={(r) => r.id} paginated pageSize={5} />))
+    expect(screen.getByText('Row 0')).toBeInTheDocument()
+    expect(screen.getByText('Row 4')).toBeInTheDocument()
+    expect(screen.queryByText('Row 5')).not.toBeInTheDocument()
+  })
+
+  test('next button advances the page slice', async () => {
+    const rows = Array.from({ length: 7 }, (_, i) => ({ id: i, name: `Row ${i}`, count: i }))
+    render(withI18n(<Ledger columns={columns} rows={rows} rowKey={(r) => r.id} paginated pageSize={5} />))
+    const nextBtn = screen.getByLabelText('Next page')
+    fireEvent.click(nextBtn)
+    expect(screen.getByText('Row 5')).toBeInTheDocument()
+    expect(screen.getByText('Row 6')).toBeInTheDocument()
+    expect(screen.queryByText('Row 0')).not.toBeInTheDocument()
   })
 })
