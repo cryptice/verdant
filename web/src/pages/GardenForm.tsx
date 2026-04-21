@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
-import { PageHeader } from '../components/PageHeader'
-import type { BreadcrumbItem } from '../components/Breadcrumb'
+import { Masthead, Field } from '../components/faltet'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 
 const GARDEN_ICONS = [
@@ -24,47 +23,88 @@ export function GardenForm() {
 
   const mutation = useMutation({
     mutationFn: () => api.gardens.create({ name, description: description || undefined, emoji: emoji || undefined }),
-    onSuccess: (g) => { qc.invalidateQueries({ queryKey: ['dashboard'] }); navigate(`/garden/${g.id}`, { replace: true }) },
+    onSuccess: (g) => {
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+      navigate(`/garden/${g.id}`, { replace: true })
+    },
   })
 
-  const breadcrumbs: BreadcrumbItem[] = [{ label: t('nav.myWorld'), to: '/' }]
-
   return (
-    <div className="max-w-lg">
-      <PageHeader title={t('garden.newGardenTitle')} breadcrumbs={breadcrumbs} />
-      <OnboardingHint />
-      <div data-onboarding="garden-form" className="form-card">
-        <div>
-          <label className="field-label">{t('common.iconLabel')}</label>
-          <div className="grid grid-cols-8 gap-1 p-2 bg-surface rounded-md border border-divider">
-            {GARDEN_ICONS.map(icon => (
-              <button
-                key={icon}
-                type="button"
-                onClick={() => setEmoji(emoji === icon ? '' : icon)}
-                className={`text-xl p-1.5 rounded-md transition-colors leading-none ${
-                  emoji === icon
-                    ? 'bg-accent-light ring-1 ring-accent'
-                    : 'hover:bg-divider'
-                }`}
-              >
-                {icon}
-              </button>
-            ))}
+    <div>
+      <Masthead
+        left={
+          <span>
+            {t('nav.gardens')} /{' '}
+            <span style={{ color: 'var(--color-clay)' }}>{t('garden.newGardenTitle')}</span>
+          </span>
+        }
+        center={t('form.masthead.center')}
+      />
+
+      <div style={{ padding: '28px 40px', paddingBottom: 120 }}>
+        <OnboardingHint />
+
+        <div data-onboarding="garden-form">
+          {/* Icon picker */}
+          <div style={{ marginBottom: 20 }}>
+            <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7, marginBottom: 8 }}>
+              {t('common.iconLabel')}
+            </span>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 4 }}>
+              {GARDEN_ICONS.map((icon) => (
+                <button
+                  key={icon}
+                  type="button"
+                  onClick={() => setEmoji(emoji === icon ? '' : icon)}
+                  style={{
+                    fontSize: 22,
+                    padding: 4,
+                    background: emoji === icon ? 'var(--color-paper)' : 'transparent',
+                    border: `1px solid ${emoji === icon ? 'var(--color-ink)' : 'transparent'}`,
+                    cursor: 'pointer',
+                    lineHeight: 1,
+                  }}
+                >
+                  {icon}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gap: 20 }}>
+            <Field
+              label={t('common.nameLabel')}
+              editable
+              value={name}
+              onChange={setName}
+              placeholder={t('garden.gardenNamePlaceholder')}
+            />
+            <Field
+              label={t('common.descriptionLabel')}
+              editable
+              value={description}
+              onChange={setDescription}
+            />
           </div>
         </div>
-        <div>
-          <label className="field-label">{t('common.nameLabel')}</label>
-          <input value={name} onChange={e => setName(e.target.value)} placeholder={t('garden.gardenNamePlaceholder')} className="input" />
-        </div>
-        <div>
-          <label className="field-label">{t('common.descriptionLabel')}</label>
-          <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder={t('common.optional')} rows={3} className="input" />
-        </div>
+
+        {mutation.error && (
+          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-clay)', marginTop: 16 }}>
+            {mutation.error instanceof Error ? mutation.error.message : String(mutation.error)}
+          </p>
+        )}
       </div>
-      {mutation.error && <p className="text-error text-sm mt-3">{mutation.error instanceof Error ? mutation.error.message : String(mutation.error)}</p>}
-      <div className="mt-4 flex justify-end">
-        <button onClick={() => mutation.mutate()} disabled={!name.trim() || mutation.isPending} className="btn-primary">
+
+      {/* Sticky footer */}
+      <div style={{ position: 'sticky', bottom: 0, background: 'var(--color-cream)', borderTop: '1px solid var(--color-ink)', padding: '14px 40px', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+        <button className="btn-secondary" onClick={() => navigate('/')}>
+          {t('common.cancel')}
+        </button>
+        <button
+          className="btn-primary"
+          onClick={() => mutation.mutate()}
+          disabled={!name.trim() || mutation.isPending}
+        >
           {mutation.isPending ? t('garden.creatingGarden') : t('garden.createGarden')}
         </button>
       </div>

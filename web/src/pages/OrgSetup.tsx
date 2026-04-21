@@ -51,95 +51,146 @@ export function OrgSetup() {
   const hasInvites = invites && invites.length > 0
 
   return (
-    <div className="min-h-screen bg-surface flex items-start justify-center pt-16 px-4">
-      <div className="w-full max-w-3xl">
-        <div className="text-center mb-10">
-          <span className="text-5xl">🌱</span>
-          <h1 className="text-2xl font-semibold mt-4">{t('org.setup.title')}</h1>
-          <p className="text-text-secondary text-sm mt-2">{t(hasInvites ? 'org.setup.subtitleWithInvites' : 'org.setup.subtitle')}</p>
-        </div>
+    <div style={{ minHeight: '100vh', background: 'var(--color-cream)' }}>
+      {/* Editorial top strip */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, padding: '22px 40px', borderBottom: '1px solid var(--color-ink)' }}>
+        <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 32, fontWeight: 300, color: 'var(--color-ink)' }}>
+          Verdant<span style={{ color: 'var(--color-clay)' }}>.</span>
+        </span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-forest)' }}>
+          {t('app.subtitle')}
+        </span>
+      </div>
 
-        <div className={`grid gap-6 ${hasInvites ? 'md:grid-cols-2' : ''}`}>
+      <div style={{ maxWidth: 680, margin: '60px auto', padding: '0 24px' }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 48, fontWeight: 300, letterSpacing: -1, fontVariationSettings: '"SOFT" 100, "opsz" 144', margin: 0 }}>
+          {t('orgSetup.hero.headline')}
+        </h1>
+        <p style={{ fontFamily: 'Georgia, var(--font-display)', fontSize: 16, lineHeight: 1.6, color: 'var(--color-forest)', marginTop: 22 }}>
+          {t('orgSetup.intro')}
+        </p>
+
+        <div style={{ marginTop: 48, display: 'grid', gridTemplateColumns: hasInvites ? '1fr 1fr' : '1fr', gap: 32, alignItems: 'start' }}>
+          {/* Pending invites */}
           {hasInvites && (
-            <div className="space-y-3">
-              <h2 className="font-semibold text-text-primary">{t('org.setup.pendingInvites')}</h2>
-              {invites.map(invite => (
-                <div key={invite.id} className="card rounded-2xl space-y-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">{invite.orgName.charAt(0)}</span>
-                    <div className="min-w-0">
-                      <p className="font-semibold truncate">{invite.orgName}</p>
-                      <p className="text-sm text-text-secondary">
-                        {t('org.setup.invitedBy', { name: invite.invitedByName })}
-                      </p>
+            <div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.6, marginBottom: 16 }}>
+                § {t('org.setup.pendingInvites')}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {invites.map((invite) => (
+                  <div key={invite.id} style={{ border: '1px solid var(--color-ink)', padding: '16px 20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                      <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 28 }}>
+                        {invite.orgName.charAt(0)}
+                      </span>
+                      <div>
+                        <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 300, margin: 0 }}>{invite.orgName}</p>
+                        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.6, margin: 0, marginTop: 2 }}>
+                          {t('org.setup.invitedBy', { name: invite.invitedByName })}
+                        </p>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button
+                        onClick={() => acceptMutation.mutate(invite.id)}
+                        disabled={acceptMutation.isPending || declineMutation.isPending}
+                        className="btn-primary"
+                        style={{ flex: 1 }}
+                      >
+                        {acceptMutation.isPending ? t('org.setup.accepting') : t('org.setup.accept')}
+                      </button>
+                      <button
+                        onClick={() => declineMutation.mutate(invite.id)}
+                        disabled={acceptMutation.isPending || declineMutation.isPending}
+                        className="btn-secondary"
+                      >
+                        {t('org.setup.decline')}
+                      </button>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => acceptMutation.mutate(invite.id)}
-                      disabled={acceptMutation.isPending || declineMutation.isPending}
-                      className="btn-primary flex-1 text-sm"
-                    >
-                      {acceptMutation.isPending ? t('org.setup.accepting') : t('org.setup.accept')}
-                    </button>
-                    <button
-                      onClick={() => declineMutation.mutate(invite.id)}
-                      disabled={acceptMutation.isPending || declineMutation.isPending}
-                      className="px-4 py-2 text-sm text-text-secondary hover:text-text-primary transition-colors"
-                    >
-                      {t('org.setup.decline')}
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
 
-          <div className="card rounded-2xl">
-            <h2 className="font-semibold text-text-primary mb-4">{t('org.setup.createTitle')}</h2>
-            <div className="space-y-4">
+          {/* Create org */}
+          <div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.6, marginBottom: 16 }}>
+              § {t('org.setup.createTitle')}
+            </div>
+
+            <div style={{ display: 'grid', gap: 20 }}>
+              {/* Emoji picker */}
               <div>
-                <label className="field-label">{t('common.iconLabel')}</label>
-                <div className="grid grid-cols-8 gap-1 p-2 bg-surface rounded-md border border-divider">
-                  {GARDEN_ICONS.map(icon => (
+                <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7, marginBottom: 8 }}>
+                  {t('common.iconLabel')}
+                </span>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 4 }}>
+                  {GARDEN_ICONS.map((icon) => (
                     <button
                       key={icon}
                       type="button"
                       onClick={() => setOrgEmoji(orgEmoji === icon ? '' : icon)}
-                      className={`text-xl p-1.5 rounded-md transition-colors leading-none ${
-                        orgEmoji === icon
-                          ? 'bg-accent-light ring-1 ring-accent'
-                          : 'hover:bg-divider'
-                      }`}
+                      style={{
+                        fontSize: 20,
+                        padding: 4,
+                        background: orgEmoji === icon ? 'var(--color-paper)' : 'transparent',
+                        border: `1px solid ${orgEmoji === icon ? 'var(--color-ink)' : 'transparent'}`,
+                        cursor: 'pointer',
+                        lineHeight: 1,
+                      }}
                     >
                       {icon}
                     </button>
                   ))}
                 </div>
               </div>
-              <div>
-                <label className="field-label">{t('common.nameLabel')}</label>
+
+              {/* Org name input */}
+              <label style={{ display: 'block' }}>
+                <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7, marginBottom: 4 }}>
+                  {t('common.nameLabel')}
+                </span>
                 <input
                   value={orgName}
-                  onChange={e => setOrgName(e.target.value)}
+                  onChange={(e) => setOrgName(e.target.value)}
                   placeholder={t('org.setup.namePlaceholder')}
-                  className="input w-full"
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    background: 'transparent',
+                    border: 'none',
+                    borderBottom: '1px solid var(--color-ink)',
+                    borderRadius: 0,
+                    padding: '4px 0',
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 20,
+                    fontWeight: 300,
+                    color: 'var(--color-ink)',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
                 />
-              </div>
+              </label>
+
               {createMutation.error && (
-                <p className="text-error text-sm">
+                <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-clay)', margin: 0 }}>
                   {createMutation.error instanceof Error
                     ? createMutation.error.message
                     : String(createMutation.error)}
                 </p>
               )}
-              <button
-                onClick={() => createMutation.mutate()}
-                disabled={!orgName.trim() || createMutation.isPending}
-                className="btn-primary w-full"
-              >
-                {createMutation.isPending ? t('org.setup.creating') : t('org.setup.create')}
-              </button>
+
+              <div style={{ textAlign: 'right' }}>
+                <button
+                  className="btn-primary"
+                  onClick={() => createMutation.mutate()}
+                  disabled={!orgName.trim() || createMutation.isPending}
+                >
+                  {createMutation.isPending ? t('org.setup.creating') : t('orgSetup.submit')}
+                </button>
+              </div>
             </div>
           </div>
         </div>
