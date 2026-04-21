@@ -18,6 +18,7 @@ function useGroups(): NavGroup[] {
         { to: '/plants',         label: t('nav.plants') },
         { to: '/workflows',      label: t('nav.workflows') },
         { to: '/successions',    label: t('nav.successions') },
+        { to: '/seasons',        label: t('nav.seasons') },
       ],
     },
     {
@@ -223,7 +224,14 @@ function GroupBlock({ group, currentPath }: { group: NavGroup; currentPath: stri
         § {group.header}
       </div>
       {group.items.map((item) => {
-        const active = currentPath === item.to || (item.to !== '/' && currentPath.startsWith(item.to))
+        // Items with a query string must match exactly (e.g. /analytics?tab=harvest
+        // should not collide with plain /analytics). Items without a query match on
+        // prefix so /gardens/123 highlights the Gardens entry.
+        const hasQuery = item.to.includes('?')
+        const active = hasQuery
+          ? currentPath === item.to
+          : currentPath === item.to
+            || (item.to !== '/' && (currentPath === item.to || currentPath.startsWith(item.to + '/')))
         return (
           <Link
             key={item.to}
