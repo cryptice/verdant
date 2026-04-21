@@ -135,6 +135,19 @@
       "description": "Följ guiden för att lära dig alla funktioner i Verdant. Du kan alltid öppna listan genom att klicka på cirkeln i nedre högra hörnet.",
       "progress": "{{completed}} av {{total}} steg klara",
       "button": "Öppna guiden"
+    },
+    "masthead": { "center": "— Fältliggaren —" },
+    "hero": {
+      "label":      "aktiva bäddar",
+      "photoLabel": "NORRA FÄLTET · JULI"
+    },
+    "trays": { "title": "Brickor" },
+    "tasks": { "title": "Uppgifter" },
+    "beds":  { "title": "Bäddar" },
+    "harvest": {
+      "headline": "{{stems}} stjälkar skördade från fältet",
+      "season":   "säsong {{year}}",
+      "bestWeek": "bästa vecka: v.{{week}}"
     }
   },
   "account": {

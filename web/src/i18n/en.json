@@ -135,6 +135,19 @@
       "description": "Follow the setup guide to learn how to use all features.",
       "progress": "{{completed}} of {{total}} steps complete",
       "button": "Open setup guide"
+    },
+    "masthead": { "center": "— The Field Ledger —" },
+    "hero": {
+      "label":      "active beds",
+      "photoLabel": "NORTH FIELD · JULY"
+    },
+    "trays": { "title": "Trays" },
+    "tasks": { "title": "Tasks" },
+    "beds":  { "title": "Beds" },
+    "harvest": {
+      "headline": "{{stems}} stems harvested from the field",
+      "season":   "season {{year}}",
+      "bestWeek": "best week: w.{{week}}"
     }
   },
   "account": {

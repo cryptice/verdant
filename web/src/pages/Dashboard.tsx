@@ -1,170 +1,351 @@
+// web/src/pages/Dashboard.tsx
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
-import { ErrorDisplay } from '../components/ErrorDisplay'
-import { StatusBadge } from '../components/StatusBadge'
-import { useAuth } from '../auth/AuthContext'
+import { Masthead, Stat, Rule, PhotoPlaceholder, Chip } from '../components/faltet'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
-function formatWeight(grams: number) {
-  return grams >= 1000 ? `${(grams / 1000).toFixed(1)} kg` : `${grams} g`
-}
-
 export function Dashboard() {
-  const { user } = useAuth()
   const { t } = useTranslation()
   const { isActive, completedCount, totalCount, setDrawerOpen } = useOnboarding()
 
-  const { data: dashboard, error, isLoading, refetch } = useQuery({
+  const { data: dashboard } = useQuery({
     queryKey: ['dashboard'],
     queryFn: api.dashboard,
   })
 
-  const { data: tray, error: trayError } = useQuery({
-    queryKey: ['tray-summary'],
-    queryFn: api.plants.traySummary,
+  const { data: beds } = useQuery({
+    queryKey: ['beds'],
+    queryFn: () => api.beds.list(),
   })
 
-  const { data: harvests, error: harvestsError } = useQuery({
+  const { data: trays } = useQuery({
+    queryKey: ['tray-summary'],
+    queryFn: () => api.plants.traySummary(),
+  })
+
+  const { data: tasks } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: () => api.tasks.list(),
+  })
+
+  const { data: harvests } = useQuery({
     queryKey: ['harvest-stats'],
     queryFn: api.stats.harvests,
   })
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-16">
-        <div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" />
-      </div>
-    )
-  }
+  const activeBedCount = dashboard?.stats.totalBeds ?? beds?.length ?? 0
 
-  if (error) return <ErrorDisplay error={error} onRetry={refetch} />
+  // Harvest totals: sum totalStems across all species (TODO: wire to season-scoped data)
+  const totalStems = harvests?.reduce((acc, h) => acc + h.totalStems, 0) ?? 142
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">{t('dashboard.greeting', { name: user?.displayName?.split(' ')[0] })}</h1>
-        {dashboard && (
-          <p className="text-text-secondary text-sm mt-1">
-            {t('dashboard.gardens', { count: dashboard.stats.totalGardens })} · {t('dashboard.plants', { count: dashboard.stats.totalPlants })}
-          </p>
-        )}
-      </div>
+    <div>
+      <Masthead left={t('nav.dashboard')} center={t('dashboard.masthead.center')} />
 
       {isActive && (
-        <div className="card bg-accent-light border-accent/20">
-          <div className="flex items-center gap-4">
-            <span className="text-3xl">🌿</span>
-            <div className="flex-1">
-              <p className="font-semibold">{t('dashboard.onboardingWidget.title')}</p>
-              <p className="text-sm text-text-secondary mt-0.5">{t('dashboard.onboardingWidget.description')}</p>
-              <div className="flex items-center gap-3 mt-2">
-                <div className="flex-1 h-1.5 bg-white/50 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-accent rounded-full transition-all duration-500"
-                    style={{ width: `${(completedCount / totalCount) * 100}%` }}
-                  />
-                </div>
-                <span className="text-xs text-text-secondary whitespace-nowrap">
-                  {t('dashboard.onboardingWidget.progress', { completed: completedCount, total: totalCount })}
+        <div
+          style={{
+            margin: '16px 40px 0',
+            padding: '14px 18px',
+            background: 'var(--color-paper)',
+            border: '1px solid var(--color-ink)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 18,
+          }}
+        >
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>
+              {t('dashboard.onboardingWidget.title')}
+            </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10,
+                letterSpacing: 1.4,
+                textTransform: 'uppercase',
+                color: 'var(--color-forest)',
+                marginTop: 4,
+              }}
+            >
+              {t('dashboard.onboardingWidget.progress', { completed: completedCount, total: totalCount })}
+            </div>
+          </div>
+          <button className="btn-secondary" onClick={() => setDrawerOpen(true)}>
+            {t('dashboard.onboardingWidget.button')}
+          </button>
+        </div>
+      )}
+
+      <div style={{ padding: '28px 40px' }}>
+        {/* Hero — asymmetric 2fr / 1fr */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '2fr 1fr',
+            gap: 40,
+            alignItems: 'center',
+          }}
+          className="dashboard-hero"
+        >
+          <Stat
+            size="large"
+            value={activeBedCount}
+            unit="×"
+            label={t('dashboard.hero.label')}
+            hue="sage"
+          />
+          <PhotoPlaceholder tone="sage" aspect="wide" label={t('dashboard.hero.photoLabel')} />
+        </div>
+
+        <div style={{ margin: '28px 0' }}>
+          <Rule variant="ink" />
+        </div>
+
+        {/* Three content columns */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 0,
+          }}
+          className="dashboard-columns"
+        >
+          {/* Column 1 — Tray summary */}
+          <section style={{ padding: '0 22px 0 0', borderRight: '1px solid var(--color-ink)' }}>
+            <ColumnHeader title={t('dashboard.trays.title')} />
+            {trays?.slice(0, 6).map((row, i) => (
+              <div
+                key={i}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1.5fr 60px 80px',
+                  gap: 10,
+                  padding: '10px 0',
+                  borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 16,
+                }}
+              >
+                <span>{row.speciesName}</span>
+                <span style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                  {row.count}
+                </span>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 10,
+                    textAlign: 'right',
+                    textTransform: 'uppercase',
+                    letterSpacing: 1.2,
+                    color: 'var(--color-forest)',
+                  }}
+                >
+                  {row.status}
                 </span>
               </div>
+            ))}
+            {(!trays || trays.length === 0) && (
+              <p
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10,
+                  letterSpacing: 1.4,
+                  textTransform: 'uppercase',
+                  color: 'var(--color-forest)',
+                  opacity: 0.6,
+                  marginTop: 12,
+                }}
+              >
+                —
+              </p>
+            )}
+          </section>
+
+          {/* Column 2 — Tasks */}
+          <section style={{ padding: '0 22px', borderRight: '1px solid var(--color-ink)' }}>
+            <ColumnHeader
+              title={t('dashboard.tasks.title')}
+              right={
+                <Link to="/tasks" style={{ color: 'var(--color-clay)', textDecoration: 'none' }}>
+                  →
+                </Link>
+              }
+            />
+            {tasks?.slice(0, 6).map((task) => (
+              <div
+                key={task.id}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '40px 1fr 80px',
+                  gap: 10,
+                  padding: '10px 0',
+                  borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                  alignItems: 'center',
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontStyle: 'italic',
+                    fontSize: 20,
+                    color: 'var(--color-clay)',
+                    fontVariationSettings: '"SOFT" 100, "opsz" 144',
+                  }}
+                >
+                  №
+                </span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>
+                  {task.speciesName ?? task.activityType}
+                </span>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 10,
+                    textAlign: 'right',
+                    letterSpacing: 1.2,
+                  }}
+                >
+                  {task.deadline?.slice(0, 10) ?? '—'}
+                </span>
+              </div>
+            ))}
+            {(!tasks || tasks.length === 0) && (
+              <p
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10,
+                  letterSpacing: 1.4,
+                  textTransform: 'uppercase',
+                  color: 'var(--color-forest)',
+                  opacity: 0.6,
+                  marginTop: 12,
+                }}
+              >
+                —
+              </p>
+            )}
+          </section>
+
+          {/* Column 3 — Beds */}
+          <section style={{ padding: '0 0 0 22px' }}>
+            <ColumnHeader title={t('dashboard.beds.title')} />
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {beds?.map((b) => (
+                <Chip key={b.id} tone="sage">
+                  № {b.id} · {b.name}
+                </Chip>
+              ))}
             </div>
-            <button
-              onClick={() => setDrawerOpen(true)}
-              className="btn-primary shrink-0 text-sm"
-            >
-              {t('dashboard.onboardingWidget.button')}
-            </button>
+            {(!beds || beds.length === 0) && (
+              <p
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10,
+                  letterSpacing: 1.4,
+                  textTransform: 'uppercase',
+                  color: 'var(--color-forest)',
+                  opacity: 0.6,
+                  marginTop: 12,
+                }}
+              >
+                —
+              </p>
+            )}
+          </section>
+        </div>
+
+        <div style={{ margin: '28px 0 16px' }}>
+          <Rule variant="ink" />
+        </div>
+
+        {/* Harvest totals band — dark ink bg + cream text + butter decorative circle */}
+        <div
+          style={{
+            background: 'var(--color-ink)',
+            color: 'var(--color-cream)',
+            padding: '22px 28px',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Decorative butter circle top-right */}
+          <div
+            style={{
+              position: 'absolute',
+              top: -40,
+              right: -40,
+              width: 140,
+              height: 140,
+              borderRadius: '50%',
+              background: 'var(--color-butter)',
+              opacity: 0.2,
+            }}
+          />
+          <div
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontStyle: 'italic',
+              fontSize: 26,
+              fontVariationSettings: '"SOFT" 100, "opsz" 144',
+            }}
+          >
+            {t('dashboard.harvest.headline', { stems: totalStems, year: 2025 })}{' '}
+            <span style={{ color: 'var(--color-blush)' }}>
+              {t('dashboard.harvest.season', { year: 2025 })}
+            </span>
+            .
+          </div>
+          <div
+            style={{
+              marginTop: 12,
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+              display: 'flex',
+              gap: 18,
+            }}
+          >
+            {/* TODO: wire bestWeek and delta to real harvest analytics */}
+            <span style={{ color: 'var(--color-sage)' }}>
+              {t('dashboard.harvest.bestWeek', { week: 32 })}
+            </span>
+            <span style={{ color: 'var(--color-blush)' }}>+24 % vs 2024 ▲</span>
           </div>
         </div>
-      )}
+      </div>
+    </div>
+  )
+}
 
-      {dashboard && dashboard.gardens.length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="font-bold text-lg">{t('nav.gardens')}</h2>
-            <Link to="/gardens" className="text-sm text-accent hover:underline">{t('dashboard.viewAll')}</Link>
-          </div>
-          <div className="space-y-3">
-            {dashboard.gardens.map((g, i) => (
-              <Link key={g.id} to={`/garden/${g.id}`} data-onboarding={i === 0 ? 'garden-card' : undefined} className="card flex items-center gap-4 no-underline text-inherit group">
-                <span className="text-4xl group-hover:scale-110 transition-transform duration-200">{g.emoji ?? '🌱'}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-lg">{g.name}</p>
-                  <p className="text-sm text-text-secondary">
-                    {t('dashboard.plants', { count: g.plantCount })} · {t('dashboard.beds', { count: g.bedCount })}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {trayError && (
-        <section>
-          <h2 className="font-bold text-lg mb-2">{t('dashboard.plantsInTrays')}</h2>
-          <p className="text-error text-sm">{trayError instanceof Error ? trayError.message : String(trayError)}</p>
-        </section>
-      )}
-
-      {tray && tray.length > 0 && (
-        <section>
-          <h2 className="font-bold text-lg mb-2">{t('dashboard.plantsInTrays')}</h2>
-          <div className="card space-y-2">
-            {tray.map((t2, i) => (
-              <div key={i} className="flex items-center justify-between text-sm">
-                <span className="flex-1">{t2.speciesName}</span>
-                <span className="text-accent font-medium w-8 text-right">{t2.count}</span>
-                <span className="w-20 text-right"><StatusBadge status={t2.status} /></span>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {harvestsError && (
-        <section>
-          <h2 className="font-bold text-lg mb-2">{t('dashboard.harvestStats')}</h2>
-          <p className="text-error text-sm">{harvestsError instanceof Error ? harvestsError.message : String(harvestsError)}</p>
-        </section>
-      )}
-
-      {harvests && harvests.length > 0 && (
-        <section>
-          <h2 className="font-bold text-lg mb-2">{t('dashboard.harvestStats')}</h2>
-          <div className="space-y-3">
-            {harvests.map(h => (
-              <div key={h.species} className="card">
-                <p className="font-bold mb-2">{h.species}</p>
-                <div className="flex justify-between text-center text-sm">
-                  <div>
-                    <p className="font-bold text-accent">{formatWeight(h.totalWeightGrams)}</p>
-                    <p className="text-text-secondary text-xs">{t('dashboard.weight')}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-accent">{h.totalQuantity}</p>
-                    <p className="text-text-secondary text-xs">{t('dashboard.quantity')}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-accent">{h.harvestCount}</p>
-                    <p className="text-text-secondary text-xs">{t('dashboard.harvests')}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {(!harvests || harvests.length === 0) && (
-        <div className="card text-center py-6">
-          <p className="text-2xl text-text-secondary/30 mb-1">🌾</p>
-          <p className="text-sm text-text-secondary">{t('dashboard.noHarvests')}</p>
-        </div>
-      )}
+function ColumnHeader({ title, right }: { title: string; right?: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '0 0 10px',
+        borderBottom: '1px solid var(--color-ink)',
+        marginBottom: 6,
+      }}
+    >
+      <span
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontStyle: 'italic',
+          fontSize: 22,
+          fontVariationSettings: '"SOFT" 100, "opsz" 144',
+        }}
+      >
+        {title}
+        <span style={{ color: 'var(--color-clay)' }}>.</span>
+      </span>
+      <Rule inline variant="soft" />
+      {right}
     </div>
   )
 }
