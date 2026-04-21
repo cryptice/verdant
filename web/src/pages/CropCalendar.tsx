@@ -2,15 +2,15 @@ import { useQuery } from '@tanstack/react-query'
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type SpeciesResponse, type PlantResponse, type PlantEventResponse } from '../api/client'
-import { PageHeader } from '../components/PageHeader'
+import { Masthead, Chip } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
-import { OnboardingHint } from '../onboarding/OnboardingHint'
 
 const MONTHS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D']
 
 interface SpeciesRow {
   speciesId: number
   name: string
+  scientificName?: string
   sowRange?: [number, number]   // month indices 0-11
   bloomRange?: [number, number]
   harvestRange?: [number, number]
@@ -27,18 +27,31 @@ function parseBloomMonths(bloomMonths: string | undefined): [number, number] | u
   return [Math.min(...parts) - 1, Math.max(...parts) - 1]
 }
 
-function barStyle(range: [number, number], color: string, top: string) {
+function barStyle(range: [number, number], color: string, top: number): React.CSSProperties {
   const left = `${(range[0] / 12) * 100}%`
   const width = `${(((range[1] - range[0]) + 1) / 12) * 100}%`
   return {
-    position: 'absolute' as const,
+    position: 'absolute',
     left,
     width,
     top,
-    height: '6px',
-    borderRadius: '3px',
-    backgroundColor: color,
+    height: 6,
+    background: color,
   }
+}
+
+const selectStyle: React.CSSProperties = {
+  background: 'transparent',
+  border: 'none',
+  borderBottom: '1px solid var(--color-ink)',
+  borderRadius: 0,
+  padding: '4px 0',
+  fontFamily: 'var(--font-display)',
+  fontSize: 20,
+  fontWeight: 300,
+  color: 'var(--color-ink)',
+  outline: 'none',
+  minWidth: 200,
 }
 
 export function CropCalendar() {
@@ -99,10 +112,8 @@ export function CropCalendar() {
     })
 
     const result: SpeciesRow[] = []
-    const processedSpeciesIds = new Set<number>()
 
     bySpecies.forEach((speciesPlants, speciesId) => {
-      processedSpeciesIds.add(speciesId)
       const sp = speciesMap.get(speciesId)
       if (!sp) return
 
@@ -143,101 +154,133 @@ export function CropCalendar() {
         ? [Math.min(...harvestMonths), Math.max(...harvestMonths)]
         : undefined
 
-      result.push({ speciesId, name, sowRange, bloomRange, harvestRange })
+      result.push({ speciesId, name, scientificName: sp.scientificName ?? undefined, sowRange, bloomRange, harvestRange })
     })
 
     result.sort((a, b) => a.name.localeCompare(b.name))
     return result
-  }, [speciesList, plants, allEvents, seasonId, i18n.language])
+  }, [speciesList, plants, allEvents, i18n.language])
 
-  if (isLoading && seasonId !== undefined) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
+  if (isLoading && seasonId !== undefined) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', padding: 64 }}>
+        <div style={{ width: 32, height: 32, border: '2px solid var(--color-ink)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      </div>
+    )
+  }
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
+
+  const MUSTARD = 'var(--color-mustard)'
+  const SAGE = 'var(--color-sage)'
+  const CLAY = 'var(--color-clay)'
 
   return (
     <div>
-      <PageHeader title={t('calendar.title')} />
-      <OnboardingHint />
-      <div className="px-4 py-4">
-        {/* Season filter */}
-        <div className="mb-4">
-          <select
-            value={seasonId ?? ''}
-            onChange={e => setSeasonId(e.target.value ? Number(e.target.value) : undefined)}
-            className="input w-auto"
-          >
-            <option value="">{t('pestDisease.allSeasons')}</option>
-            {seasons?.map(s => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
+      <Masthead left={t('nav.calendar')} center={t('calendar.masthead.center')} />
+
+      <div style={{ padding: '28px 40px' }}>
+        {/* Season selector */}
+        <div style={{ marginBottom: 28, display: 'flex', alignItems: 'flex-end', gap: 14 }}>
+          <div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7, marginBottom: 4 }}>
+              {t('calendar.seasonLabel')}
+            </div>
+            <select
+              value={seasonId ?? ''}
+              onChange={(e) => setSeasonId(e.target.value ? Number(e.target.value) : undefined)}
+              style={selectStyle}
+            >
+              <option value="">—</option>
+              {seasons?.map((s) => (
+                <option key={s.id} value={s.id}>{s.name} · {s.year}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Legend */}
-        <div className="flex gap-4 mb-4 text-xs text-text-secondary">
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-4 h-1.5 rounded-full" style={{ backgroundColor: '#93C5FD' }} />
-            {t('calendar.sow')}
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-4 h-1.5 rounded-full" style={{ backgroundColor: '#F9A8D4' }} />
-            {t('calendar.bloom')}
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-4 h-1.5 rounded-full" style={{ backgroundColor: '#FDBA74' }} />
-            {t('calendar.harvest')}
-          </span>
+        <div style={{ display: 'flex', gap: 10, marginBottom: 22 }}>
+          <Chip tone="mustard">{t('calendar.legend.sow')}</Chip>
+          <Chip tone="sage">{t('calendar.legend.bloom')}</Chip>
+          <Chip tone="clay">{t('calendar.legend.harvest')}</Chip>
         </div>
 
-        {!seasonId && (
-          <p className="text-text-secondary text-sm text-center py-4">{t('calendar.noData')}</p>
+        {/* Empty state */}
+        {(seasonId === undefined || rows.length === 0) && (
+          <div style={{ padding: '60px 22px', textAlign: 'center', borderTop: '1px solid var(--color-ink)', borderBottom: '1px solid var(--color-ink)' }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7, marginBottom: 8 }}>
+              {t('calendar.emptyTitle')}
+            </div>
+            <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 16, color: 'var(--color-forest)' }}>
+              {t('calendar.emptyBody')}
+            </div>
+          </div>
         )}
 
-        {seasonId && rows.length === 0 && (
-          <p className="text-text-secondary text-sm text-center py-4">{t('calendar.noData')}</p>
-        )}
-
-        {seasonId && rows.length > 0 && (
-          <div data-onboarding="calendar-view" className="border border-divider rounded-xl overflow-hidden bg-bg shadow-sm">
-            {/* Month headers */}
-            <div className="flex border-b border-divider bg-surface">
-              <div className="w-48 min-w-[12rem] shrink-0 px-4 py-2 text-xs font-medium text-text-secondary">
-                {t('common.speciesLabel')}
-              </div>
-              <div className="flex-1 flex">
-                {MONTHS.map((m, i) => (
-                  <div key={i} className="flex-1 text-center text-xs font-medium text-text-secondary py-2">
-                    {m}
-                  </div>
-                ))}
-              </div>
+        {/* Calendar grid */}
+        {rows.length > 0 && (
+          <div>
+            {/* Header row */}
+            <div style={{ display: 'grid', gridTemplateColumns: '200px repeat(12, 1fr)', borderBottom: '1px solid var(--color-ink)' }}>
+              <div />
+              {MONTHS.map((m, i) => (
+                <div
+                  key={i}
+                  style={{
+                    textAlign: 'center',
+                    padding: '10px 0',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 9,
+                    letterSpacing: 1.4,
+                    textTransform: 'uppercase',
+                    color: 'var(--color-forest)',
+                    opacity: 0.7,
+                    borderLeft: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                  }}
+                >
+                  {m}
+                </div>
+              ))}
             </div>
 
             {/* Species rows */}
-            {rows.map((row, idx) => (
+            {rows.map((row) => (
               <div
                 key={row.speciesId}
-                className={`flex border-b border-divider last:border-0 ${idx % 2 === 1 ? 'bg-surface/50' : ''}`}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '200px repeat(12, 1fr)',
+                  alignItems: 'stretch',
+                  borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                  minHeight: 44,
+                }}
               >
-                <div className="w-48 min-w-[12rem] shrink-0 px-4 py-3 text-sm truncate" title={row.name}>
-                  {row.name}
+                <div style={{ padding: '10px 14px 10px 0' }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 300 }}>{row.name}</div>
+                  {row.scientificName && (
+                    <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 9, color: 'var(--color-sage)' }}>
+                      {row.scientificName}
+                    </div>
+                  )}
                 </div>
-                <div className="flex-1 relative" style={{ minHeight: '36px' }}>
-                  {/* Month grid lines */}
-                  <div className="absolute inset-0 flex">
-                    {MONTHS.map((_, i) => (
-                      <div key={i} className="flex-1 border-l border-divider/30 first:border-l-0" />
-                    ))}
-                  </div>
-                  {/* Bars */}
-                  {row.sowRange && (
-                    <div style={barStyle(row.sowRange, '#93C5FD', '6px')} />
-                  )}
-                  {row.bloomRange && (
-                    <div style={barStyle(row.bloomRange, '#F9A8D4', '15px')} />
-                  )}
-                  {row.harvestRange && (
-                    <div style={barStyle(row.harvestRange, '#FDBA74', '24px')} />
-                  )}
+                <div style={{ gridColumn: '2 / -1', position: 'relative', borderLeft: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)' }}>
+                  {row.sowRange && <div style={barStyle(row.sowRange, MUSTARD, 14)} />}
+                  {row.bloomRange && <div style={barStyle(row.bloomRange, SAGE, 22)} />}
+                  {row.harvestRange && <div style={barStyle(row.harvestRange, CLAY, 30)} />}
+                  {/* Vertical month hairlines */}
+                  {Array.from({ length: 11 }).map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        position: 'absolute',
+                        left: `${((i + 1) / 12) * 100}%`,
+                        top: 0,
+                        bottom: 0,
+                        width: 1,
+                        background: 'color-mix(in srgb, var(--color-ink) 12%, transparent)',
+                      }}
+                    />
+                  ))}
                 </div>
               </div>
             ))}

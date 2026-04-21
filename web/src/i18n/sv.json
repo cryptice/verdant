@@ -720,7 +720,18 @@
     "noData": "Ingen data för denna säsong",
     "sow": "Sådd",
     "bloom": "Blomning",
-    "harvest": "Skörd"
+    "harvest": "Skörd",
+    "masthead": {
+      "center": "— Odlingskalender —"
+    },
+    "legend": {
+      "sow": "Sådd",
+      "bloom": "Blomning",
+      "harvest": "Skörd"
+    },
+    "seasonLabel": "Säsong",
+    "emptyTitle": "Inga data ännu",
+    "emptyBody": "Välj en säsong ovan för att se kalendern."
   },
   "successions": {
     "title": "Successionsodling",

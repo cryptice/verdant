@@ -720,7 +720,18 @@
     "noData": "No data for this season",
     "sow": "Sow",
     "bloom": "Bloom",
-    "harvest": "Harvest"
+    "harvest": "Harvest",
+    "masthead": {
+      "center": "— Cultivation Calendar —"
+    },
+    "legend": {
+      "sow": "Sowing",
+      "bloom": "Bloom",
+      "harvest": "Harvest"
+    },
+    "seasonLabel": "Season",
+    "emptyTitle": "No data yet",
+    "emptyBody": "Choose a season above to view the calendar."
   },
   "successions": {
     "title": "Succession Planting",
