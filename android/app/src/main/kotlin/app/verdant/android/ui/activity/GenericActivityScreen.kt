@@ -1,26 +1,47 @@
 package app.verdant.android.ui.activity
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import android.graphics.Bitmap
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import app.verdant.android.R
-import app.verdant.android.ui.theme.verdantTopAppBarColors
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.verdant.android.data.model.*
+import app.verdant.android.data.model.BedWithGardenResponse
+import app.verdant.android.data.model.CompleteTaskPartiallyRequest
+import app.verdant.android.data.model.CreatePlantEventRequest
+import app.verdant.android.data.model.PlantResponse
+import app.verdant.android.data.model.RecordCommentRequest
+import app.verdant.android.data.model.ScheduledTaskResponse
 import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.ui.faltet.Chip
+import app.verdant.android.ui.faltet.FaltetFormSubmitBar
+import app.verdant.android.ui.faltet.FaltetImagePicker
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.Field
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -119,26 +140,49 @@ fun PotUpActivityScreen(
         if (uiState.task != null && !prefilled) { count = uiState.task!!.remainingCount.toString(); prefilled = true }
     }
     var notes by remember { mutableStateOf("") }
-    var imageBase64 by remember { mutableStateOf<String?>(null) }
+    var photoBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(uiState.error) { uiState.error?.let { snackbarHostState.showSnackbar(it) } }
     LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
 
     ActivityScaffold(
-        title = stringResource(R.string.pot_up),
-        plantName = uiState.plant?.name,
-        onBack = onBack,
+        mastheadLeft = "§ Kruka upp",
+        mastheadCenter = uiState.plant?.name ?: "",
+        submitLabel = "Kruka upp",
+        onSubmit = {
+            viewModel.submitEvent(
+                "POTTED_UP",
+                plantCount = count.toIntOrNull(),
+                notes = notes.ifBlank { null },
+                imageBase64 = photoBitmap?.toCompressedBase64(),
+            )
+        },
+        submitEnabled = !uiState.isLoading,
+        submitting = uiState.isLoading,
+        snackbarHostState = snackbarHostState,
     ) {
-        CountField(value = count, onValueChange = { count = it }, label = stringResource(R.string.plant_count))
-        PhotoSection(imageBase64) { imageBase64 = it }
-        FrequentCommentsField(value = notes, onValueChange = { notes = it }, suggestions = uiState.comments)
-        SubmitButton(
-            label = stringResource(R.string.record_pot_up),
-            isLoading = uiState.isLoading,
-            onClick = {
-                viewModel.submitEvent("POTTED_UP", plantCount = count.toIntOrNull(), notes = notes.ifBlank { null }, imageBase64 = imageBase64)
-            }
-        )
-        uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }
+        item {
+            PhotoSection(
+                bitmap = photoBitmap,
+                onBitmapChange = { photoBitmap = it },
+            )
+        }
+        item {
+            CountField(
+                label = "Antal",
+                value = count,
+                onValueChange = { count = it },
+                required = true,
+            )
+        }
+        item {
+            FrequentCommentsField(
+                value = notes,
+                onValueChange = { notes = it },
+                suggestions = uiState.comments,
+            )
+        }
     }
 }
 
@@ -155,26 +199,49 @@ fun PlantActivityScreen(
         if (uiState.task != null && !prefilled) { count = uiState.task!!.remainingCount.toString(); prefilled = true }
     }
     var notes by remember { mutableStateOf("") }
-    var imageBase64 by remember { mutableStateOf<String?>(null) }
+    var photoBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(uiState.error) { uiState.error?.let { snackbarHostState.showSnackbar(it) } }
     LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
 
     ActivityScaffold(
-        title = stringResource(R.string.plant_out),
-        plantName = uiState.plant?.name,
-        onBack = onBack,
+        mastheadLeft = "§ Plantera ut",
+        mastheadCenter = uiState.plant?.name ?: "",
+        submitLabel = "Plantera ut",
+        onSubmit = {
+            viewModel.submitEvent(
+                "PLANTED_OUT",
+                plantCount = count.toIntOrNull(),
+                notes = notes.ifBlank { null },
+                imageBase64 = photoBitmap?.toCompressedBase64(),
+            )
+        },
+        submitEnabled = !uiState.isLoading,
+        submitting = uiState.isLoading,
+        snackbarHostState = snackbarHostState,
     ) {
-        CountField(value = count, onValueChange = { count = it }, label = stringResource(R.string.plant_count))
-        PhotoSection(imageBase64) { imageBase64 = it }
-        FrequentCommentsField(value = notes, onValueChange = { notes = it }, suggestions = uiState.comments)
-        SubmitButton(
-            label = stringResource(R.string.record_planting),
-            isLoading = uiState.isLoading,
-            onClick = {
-                viewModel.submitEvent("PLANTED_OUT", plantCount = count.toIntOrNull(), notes = notes.ifBlank { null }, imageBase64 = imageBase64)
-            }
-        )
-        uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }
+        item {
+            PhotoSection(
+                bitmap = photoBitmap,
+                onBitmapChange = { photoBitmap = it },
+            )
+        }
+        item {
+            CountField(
+                label = "Antal",
+                value = count,
+                onValueChange = { count = it },
+                required = true,
+            )
+        }
+        item {
+            FrequentCommentsField(
+                value = notes,
+                onValueChange = { notes = it },
+                suggestions = uiState.comments,
+            )
+        }
     }
 }
 
@@ -193,49 +260,67 @@ fun HarvestActivityScreen(
     var weightGrams by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
-    var imageBase64 by remember { mutableStateOf<String?>(null) }
+    var photoBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(uiState.error) { uiState.error?.let { snackbarHostState.showSnackbar(it) } }
     LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
 
     ActivityScaffold(
-        title = stringResource(R.string.harvest),
-        plantName = uiState.plant?.name,
-        onBack = onBack,
+        mastheadLeft = "§ Skörda",
+        mastheadCenter = uiState.plant?.name ?: "",
+        submitLabel = "Skörda",
+        onSubmit = {
+            viewModel.submitEvent(
+                "HARVESTED",
+                plantCount = count.toIntOrNull(),
+                weightGrams = weightGrams.toDoubleOrNull(),
+                quantity = quantity.toIntOrNull(),
+                notes = notes.ifBlank { null },
+                imageBase64 = photoBitmap?.toCompressedBase64(),
+            )
+        },
+        submitEnabled = !uiState.isLoading,
+        submitting = uiState.isLoading,
+        snackbarHostState = snackbarHostState,
     ) {
-        CountField(value = count, onValueChange = { count = it }, label = stringResource(R.string.harvest_count))
-        OutlinedTextField(
-            value = weightGrams,
-            onValueChange = { weightGrams = it.filter { c -> c.isDigit() || c == '.' } },
-            label = { Text(stringResource(R.string.weight_grams)) },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            singleLine = true
-        )
-        OutlinedTextField(
-            value = quantity,
-            onValueChange = { quantity = it.filter { c -> c.isDigit() } },
-            label = { Text(stringResource(R.string.quantity_fruits)) },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            singleLine = true
-        )
-        PhotoSection(imageBase64) { imageBase64 = it }
-        FrequentCommentsField(value = notes, onValueChange = { notes = it }, suggestions = uiState.comments)
-        SubmitButton(
-            label = stringResource(R.string.record_harvest),
-            isLoading = uiState.isLoading,
-            onClick = {
-                viewModel.submitEvent(
-                    "HARVESTED",
-                    plantCount = count.toIntOrNull(),
-                    weightGrams = weightGrams.toDoubleOrNull(),
-                    quantity = quantity.toIntOrNull(),
-                    notes = notes.ifBlank { null },
-                    imageBase64 = imageBase64,
-                )
-            }
-        )
-        uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }
+        item {
+            PhotoSection(
+                bitmap = photoBitmap,
+                onBitmapChange = { photoBitmap = it },
+            )
+        }
+        item {
+            CountField(
+                label = "Antal",
+                value = count,
+                onValueChange = { count = it },
+                required = true,
+            )
+        }
+        item {
+            Field(
+                label = "Vikt g (valfri)",
+                value = weightGrams,
+                onValueChange = { weightGrams = it.filter { c -> c.isDigit() || c == '.' } },
+                keyboardType = KeyboardType.Decimal,
+            )
+        }
+        item {
+            Field(
+                label = "Antal stjälkar (valfri)",
+                value = quantity,
+                onValueChange = { quantity = it.filter { c -> c.isDigit() } },
+                keyboardType = KeyboardType.Number,
+            )
+        }
+        item {
+            FrequentCommentsField(
+                value = notes,
+                onValueChange = { notes = it },
+                suggestions = uiState.comments,
+            )
+        }
     }
 }
 
@@ -252,26 +337,49 @@ fun RecoverActivityScreen(
         if (uiState.task != null && !prefilled) { count = uiState.task!!.remainingCount.toString(); prefilled = true }
     }
     var notes by remember { mutableStateOf("") }
-    var imageBase64 by remember { mutableStateOf<String?>(null) }
+    var photoBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(uiState.error) { uiState.error?.let { snackbarHostState.showSnackbar(it) } }
     LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
 
     ActivityScaffold(
-        title = stringResource(R.string.recover),
-        plantName = uiState.plant?.name,
-        onBack = onBack,
+        mastheadLeft = "§ Återhämta",
+        mastheadCenter = uiState.plant?.name ?: "",
+        submitLabel = "Återhämta",
+        onSubmit = {
+            viewModel.submitEvent(
+                "RECOVERED",
+                plantCount = count.toIntOrNull(),
+                notes = notes.ifBlank { null },
+                imageBase64 = photoBitmap?.toCompressedBase64(),
+            )
+        },
+        submitEnabled = !uiState.isLoading,
+        submitting = uiState.isLoading,
+        snackbarHostState = snackbarHostState,
     ) {
-        CountField(value = count, onValueChange = { count = it }, label = stringResource(R.string.surviving_count))
-        PhotoSection(imageBase64) { imageBase64 = it }
-        FrequentCommentsField(value = notes, onValueChange = { notes = it }, suggestions = uiState.comments)
-        SubmitButton(
-            label = stringResource(R.string.record_recovery),
-            isLoading = uiState.isLoading,
-            onClick = {
-                viewModel.submitEvent("RECOVERED", plantCount = count.toIntOrNull(), notes = notes.ifBlank { null }, imageBase64 = imageBase64)
-            }
-        )
-        uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }
+        item {
+            PhotoSection(
+                bitmap = photoBitmap,
+                onBitmapChange = { photoBitmap = it },
+            )
+        }
+        item {
+            CountField(
+                label = "Antal",
+                value = count,
+                onValueChange = { count = it },
+                required = true,
+            )
+        }
+        item {
+            FrequentCommentsField(
+                value = notes,
+                onValueChange = { notes = it },
+                suggestions = uiState.comments,
+            )
+        }
     }
 }
 
@@ -288,26 +396,49 @@ fun DiscardActivityScreen(
         if (uiState.task != null && !prefilled) { count = uiState.task!!.remainingCount.toString(); prefilled = true }
     }
     var notes by remember { mutableStateOf("") }
-    var imageBase64 by remember { mutableStateOf<String?>(null) }
+    var photoBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(uiState.error) { uiState.error?.let { snackbarHostState.showSnackbar(it) } }
     LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
 
     ActivityScaffold(
-        title = stringResource(R.string.discard),
-        plantName = uiState.plant?.name,
-        onBack = onBack,
+        mastheadLeft = "§ Kassera",
+        mastheadCenter = uiState.plant?.name ?: "",
+        submitLabel = "Kassera",
+        onSubmit = {
+            viewModel.submitEvent(
+                "REMOVED",
+                plantCount = count.toIntOrNull(),
+                notes = notes.ifBlank { null },
+                imageBase64 = photoBitmap?.toCompressedBase64(),
+            )
+        },
+        submitEnabled = !uiState.isLoading,
+        submitting = uiState.isLoading,
+        snackbarHostState = snackbarHostState,
     ) {
-        CountField(value = count, onValueChange = { count = it }, label = stringResource(R.string.count_removed))
-        PhotoSection(imageBase64) { imageBase64 = it }
-        FrequentCommentsField(value = notes, onValueChange = { notes = it }, suggestions = uiState.comments)
-        SubmitButton(
-            label = stringResource(R.string.record_discard),
-            isLoading = uiState.isLoading,
-            onClick = {
-                viewModel.submitEvent("REMOVED", plantCount = count.toIntOrNull(), notes = notes.ifBlank { null }, imageBase64 = imageBase64)
-            }
-        )
-        uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }
+        item {
+            PhotoSection(
+                bitmap = photoBitmap,
+                onBitmapChange = { photoBitmap = it },
+            )
+        }
+        item {
+            CountField(
+                label = "Antal",
+                value = count,
+                onValueChange = { count = it },
+                required = true,
+            )
+        }
+        item {
+            FrequentCommentsField(
+                value = notes,
+                onValueChange = { notes = it },
+                suggestions = uiState.comments,
+            )
+        }
     }
 }
 
@@ -316,63 +447,143 @@ fun DiscardActivityScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ActivityScaffold(
-    title: String,
-    plantName: String?,
-    onBack: () -> Unit,
-    content: @Composable ColumnScope.() -> Unit,
+    mastheadLeft: String,
+    mastheadCenter: String,
+    submitLabel: String,
+    onSubmit: () -> Unit,
+    submitEnabled: Boolean,
+    submitting: Boolean,
+    snackbarHostState: SnackbarHostState,
+    content: LazyListScope.() -> Unit,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(title) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                colors = verdantTopAppBarColors()
+    FaltetScreenScaffold(
+        mastheadLeft = mastheadLeft,
+        mastheadCenter = mastheadCenter,
+        bottomBar = {
+            FaltetFormSubmitBar(
+                label = submitLabel,
+                onClick = onSubmit,
+                enabled = submitEnabled,
+                submitting = submitting,
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            if (plantName != null) {
-                Text(plantName, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-            }
-            content()
-            Spacer(Modifier.height(32.dp))
-        }
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            content = content,
+        )
     }
 }
 
 @Composable
-private fun PhotoSection(imageBase64: String?, onCapture: (String) -> Unit) {
-    Text(stringResource(R.string.photo), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-    PhotoPicker(
-        imageUrl = null,
-        onImageCaptured = { b64, _ -> onCapture(b64) }
+private fun PhotoSection(
+    bitmap: Bitmap?,
+    onBitmapChange: (Bitmap?) -> Unit,
+) {
+    FaltetImagePicker(
+        label = "Foto (valfri)",
+        value = bitmap,
+        onValueChange = onBitmapChange,
     )
 }
 
 @Composable
-private fun SubmitButton(label: String, isLoading: Boolean, onClick: () -> Unit) {
-    Spacer(Modifier.height(8.dp))
-    Button(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth().height(52.dp),
-        shape = RoundedCornerShape(12.dp),
-        enabled = !isLoading
+private fun CountField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    required: Boolean = true,
+    error: String? = null,
+) {
+    Field(
+        label = label,
+        value = value,
+        onValueChange = { onValueChange(it.filter { c -> c.isDigit() }) },
+        keyboardType = KeyboardType.Number,
+        required = required,
+        error = error,
+    )
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun FrequentCommentsField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    suggestions: List<String>,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Field(
+            label = "Anteckningar (valfri)",
+            value = value,
+            onValueChange = onValueChange,
+        )
+        if (suggestions.isNotEmpty()) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                suggestions.forEach { suggestion ->
+                    Box(modifier = Modifier.clickable { onValueChange(suggestion) }) {
+                        Chip(text = suggestion)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
+@Composable
+private fun HarvestActivityScreenPreview() {
+    val snackbarHostState = remember { SnackbarHostState() }
+    ActivityScaffold(
+        mastheadLeft = "§ Skörda",
+        mastheadCenter = "Cosmos #1",
+        submitLabel = "Skörda",
+        onSubmit = {},
+        submitEnabled = true,
+        submitting = false,
+        snackbarHostState = snackbarHostState,
     ) {
-        if (isLoading) {
-            CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-        } else {
-            Text(label)
+        item {
+            PhotoSection(bitmap = null, onBitmapChange = {})
+        }
+        item {
+            CountField(
+                label = "Antal",
+                value = "5",
+                onValueChange = {},
+                required = true,
+            )
+        }
+        item {
+            Field(
+                label = "Vikt g (valfri)",
+                value = "120.5",
+                onValueChange = {},
+                keyboardType = KeyboardType.Decimal,
+            )
+        }
+        item {
+            Field(
+                label = "Antal stjälkar (valfri)",
+                value = "12",
+                onValueChange = {},
+                keyboardType = KeyboardType.Number,
+            )
+        }
+        item {
+            FrequentCommentsField(
+                value = "Fin skörd",
+                onValueChange = {},
+                suggestions = listOf("Bra kvalitet", "Tidig skörd", "Lite skadad"),
+            )
         }
     }
 }
