@@ -1,23 +1,47 @@
 package app.verdant.android.ui.bed
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -26,13 +50,26 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
-import app.verdant.android.R
 import app.verdant.android.data.model.BedResponse
+import app.verdant.android.data.model.PlantResponse
 import app.verdant.android.data.model.SupplyApplicationResponse
 import app.verdant.android.data.model.UpdateBedRequest
-import app.verdant.android.ui.theme.verdantTopAppBarColors
-import app.verdant.android.data.model.PlantResponse
 import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.ui.common.ConnectionErrorState
+import app.verdant.android.ui.faltet.FaltetEmptyState
+import app.verdant.android.ui.faltet.FaltetFab
+import app.verdant.android.ui.faltet.FaltetHero
+import app.verdant.android.ui.faltet.FaltetListRow
+import app.verdant.android.ui.faltet.FaltetLoadingState
+import app.verdant.android.ui.faltet.FaltetMetadataRow
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.FaltetSectionHeader
+import app.verdant.android.ui.faltet.PhotoPlaceholder
+import app.verdant.android.ui.faltet.PhotoTone
+import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetDisplay
+import app.verdant.android.ui.theme.FaltetForest
+import app.verdant.android.ui.theme.FaltetInk
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -179,7 +216,7 @@ fun BedDetailScreen(
     if (editing) {
         AlertDialog(
             onDismissRequest = { editing = false },
-            title = { Text(stringResource(R.string.edit)) },
+            title = { Text("Redigera bädd") },
             text = {
                 Column(
                     modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -188,7 +225,7 @@ fun BedDetailScreen(
                     OutlinedTextField(
                         value = editName,
                         onValueChange = { editName = it },
-                        label = { Text(stringResource(R.string.bed_name)) },
+                        label = { Text("Namn") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true
@@ -196,14 +233,14 @@ fun BedDetailScreen(
                     OutlinedTextField(
                         value = editDescription,
                         onValueChange = { editDescription = it },
-                        label = { Text(stringResource(R.string.description_optional)) },
+                        label = { Text("Beskrivning (valfri)") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         minLines = 2
                     )
 
                     // Conditions section in edit dialog
-                    Card(
+                    androidx.compose.material3.Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -216,9 +253,8 @@ fun BedDetailScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    stringResource(R.string.bed_conditions_section_title),
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 14.sp,
+                                    "Villkor",
+                                    style = MaterialTheme.typography.labelMedium,
                                     modifier = Modifier.weight(1f)
                                 )
                                 IconButton(onClick = { editConditionsExpanded = !editConditionsExpanded }) {
@@ -277,11 +313,11 @@ fun BedDetailScreen(
                     },
                     enabled = editName.isNotBlank()
                 ) {
-                    Text(stringResource(R.string.save))
+                    Text("Spara")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { editing = false }) { Text(stringResource(R.string.cancel)) }
+                TextButton(onClick = { editing = false }) { Text("Avbryt") }
             }
         )
     }
@@ -290,256 +326,227 @@ fun BedDetailScreen(
         val bedId = uiState.bed?.id ?: 0L
         AlertDialog(
             onDismissRequest = { showAddDialog = false },
-            title = { Text(stringResource(R.string.add_plant)) },
+            title = { Text("Lägg till") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(
+                    androidx.compose.material3.Button(
                         onClick = { showAddDialog = false; onSowInBed(bedId) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
-                    ) { Text(stringResource(R.string.sow_seeds_in_bed)) }
-                    Button(
+                    ) { Text("Så frön i bädd") }
+                    androidx.compose.material3.Button(
                         onClick = { showAddDialog = false; onPlantFromTray(bedId) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
-                    ) { Text(stringResource(R.string.plant_from_tray)) }
-                    OutlinedButton(
+                    ) { Text("Plantera från bricka") }
+                    androidx.compose.material3.OutlinedButton(
                         onClick = { showAddDialog = false; onFertilize(bedId) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
-                    ) { Text(stringResource(R.string.supply_application_fertilize)) }
+                    ) { Text("Gödsla") }
                 }
             },
             confirmButton = {},
             dismissButton = {
-                TextButton(onClick = { showAddDialog = false }) { Text(stringResource(R.string.cancel)) }
+                TextButton(onClick = { showAddDialog = false }) { Text("Avbryt") }
             }
         )
     }
 
-    if (showDeleteDialog) {
+    if (showDeleteDialog && uiState.bed != null) {
+        val bed = uiState.bed!!
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text(stringResource(R.string.delete_bed)) },
-            text = { Text(stringResource(R.string.delete_bed_confirm)) },
+            title = { Text("Ta bort bädd") },
+            text = { Text("Vill du ta bort bädden \"${bed.name}\"?") },
             confirmButton = {
-                TextButton(onClick = { showDeleteDialog = false; viewModel.delete() }) {
-                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
-                }
+                TextButton(onClick = {
+                    viewModel.delete()
+                    showDeleteDialog = false
+                    onBack()
+                }) { Text("Ta bort", color = FaltetClay) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.cancel)) }
+                TextButton(onClick = { showDeleteDialog = false }) { Text("Avbryt") }
             }
         )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(uiState.bed?.name ?: stringResource(R.string.bed)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                actions = {
-                    IconButton(onClick = {
-                        uiState.bed?.let { bed ->
-                            editName = bed.name
-                            editDescription = bed.description ?: ""
-                            editSoilType = bed.soilType
-                            editSoilPhText = bed.soilPh?.toString() ?: ""
-                            editSunExposure = bed.sunExposure
-                            editAspect = bed.aspect
-                            editDrainage = bed.drainage
-                            editIrrigationType = bed.irrigationType
-                            editProtection = bed.protection
-                            editRaisedBed = bed.raisedBed
-                            editConditionsExpanded = listOf(
-                                bed.soilType, bed.soilPh?.toString(), bed.sunExposure,
-                                bed.aspect, bed.drainage, bed.irrigationType, bed.protection,
-                                bed.raisedBed?.toString()
-                            ).any { it != null }
-                            editing = true
-                        }
-                    }) {
-                        Icon(Icons.Default.Edit, stringResource(R.string.edit))
-                    }
-                    IconButton(onClick = { showDeleteDialog = true }) {
-                        Icon(Icons.Default.Delete, stringResource(R.string.delete), tint = MaterialTheme.colorScheme.error)
-                    }
-                },
-                colors = verdantTopAppBarColors()
-            )
-        },
-        floatingActionButton = {
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Bädd",
+        mastheadCenter = uiState.bed?.name ?: "",
+        mastheadRight = {
             if (uiState.bed != null) {
-                FloatingActionButton(
-                    onClick = { showAddDialog = true },
-                    containerColor = MaterialTheme.colorScheme.primary
-                ) {
-                    Icon(Icons.Default.Add, stringResource(R.string.add_plant))
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    IconButton(
+                        onClick = {
+                            uiState.bed?.let { bed ->
+                                editName = bed.name
+                                editDescription = bed.description ?: ""
+                                editSoilType = bed.soilType
+                                editSoilPhText = bed.soilPh?.toString() ?: ""
+                                editSunExposure = bed.sunExposure
+                                editAspect = bed.aspect
+                                editDrainage = bed.drainage
+                                editIrrigationType = bed.irrigationType
+                                editProtection = bed.protection
+                                editRaisedBed = bed.raisedBed
+                                editConditionsExpanded = listOf(
+                                    bed.soilType, bed.soilPh?.toString(), bed.sunExposure,
+                                    bed.aspect, bed.drainage, bed.irrigationType, bed.protection,
+                                    bed.raisedBed?.toString()
+                                ).any { it != null }
+                                editing = true
+                            }
+                        },
+                        modifier = Modifier.size(36.dp),
+                    ) {
+                        Icon(Icons.Default.Edit, "Redigera", tint = FaltetClay, modifier = Modifier.size(18.dp))
+                    }
+                    IconButton(
+                        onClick = { showDeleteDialog = true },
+                        modifier = Modifier.size(36.dp),
+                    ) {
+                        Icon(Icons.Default.DeleteOutline, "Ta bort", tint = FaltetClay, modifier = Modifier.size(18.dp))
+                    }
                 }
             }
-        }
+        },
+        fab = {
+            uiState.bed?.let {
+                FaltetFab(onClick = { showAddDialog = true }, contentDescription = "Lägg till planta")
+            }
+        },
     ) { padding ->
         when {
-            uiState.isLoading && uiState.bed == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+            uiState.isLoading && uiState.bed == null -> FaltetLoadingState(Modifier.padding(padding))
+            uiState.error != null -> Box(
+                Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center,
+            ) {
+                ConnectionErrorState(onRetry = { viewModel.refresh() })
             }
-            uiState.error != null -> {
-                app.verdant.android.ui.common.ConnectionErrorState(
-                    onRetry = { viewModel.refresh() },
-                    modifier = Modifier.padding(padding)
-                )
-            }
+            uiState.bed == null -> FaltetEmptyState(
+                headline = "Bädden hittades inte",
+                subtitle = "Bädden kan ha tagits bort.",
+                modifier = Modifier.padding(padding),
+            )
             else -> {
-                val groupedPlants = uiState.plants.groupBy { it.speciesName ?: it.name }
-                val listState = rememberLazyListState(
-                    initialFirstVisibleItemIndex = uiState.scrollIndex,
-                    initialFirstVisibleItemScrollOffset = uiState.scrollOffset
-                )
-                LaunchedEffect(listState) {
-                    snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
-                        .collect { (index, offset) -> viewModel.saveScrollPosition(index, offset) }
-                }
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    uiState.bed?.let { bed ->
-                        item {
-                            Spacer(Modifier.height(4.dp))
-                            bed.description?.let {
-                                Text(it, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
-                                Spacer(Modifier.height(16.dp))
-                            }
-                            Text(stringResource(R.string.plants), fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                        }
-                    }
-
-                    if (uiState.plants.isEmpty()) {
-                        item {
-                            Text(
-                                stringResource(R.string.no_plants_yet),
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                            )
-                        }
-                    }
-
-
-                    items(groupedPlants.entries.toList(), key = { it.key }) { (species, plantsInGroup) ->
-                        val isExpanded = species in uiState.expandedGroups
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                        ) {
-                            Column {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable { viewModel.toggleGroup(species) }
-                                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(Modifier.weight(1f)) {
-                                        Text(species, fontWeight = FontWeight.SemiBold)
-                                        val count = plantsInGroup.size
-                                        val label = if (count == 1) stringResource(R.string.plant_singular) else stringResource(R.string.plant_plural)
-                                        Text("$count $label", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                                    }
-                                    Icon(
-                                        if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                    )
-                                }
-                                AnimatedVisibility(visible = isExpanded) {
-                                    Column {
-                                        HorizontalDivider()
-                                        plantsInGroup.forEachIndexed { index, plant ->
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .clickable { onPlantClick(plant.id) }
-                                                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text(plant.name, modifier = Modifier.weight(1f), fontSize = 14.sp)
-                                                val statusRes = when (plant.status) {
-                                                    "SEEDED" -> R.string.event_seeded
-                                                    "POTTED_UP" -> R.string.event_potted_up
-                                                    "PLANTED_OUT", "GROWING" -> R.string.event_growing
-                                                    "HARVESTED" -> R.string.event_harvested
-                                                    "RECOVERED" -> R.string.event_recovered
-                                                    "REMOVED" -> R.string.event_removed
-                                                    else -> R.string.plant
-                                                }
-                                                AssistChip(
-                                                    onClick = {},
-                                                    label = { Text(stringResource(statusRes), fontSize = 12.sp) }
-                                                )
-                                            }
-                                            if (index < plantsInGroup.lastIndex) {
-                                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    // Applications section
+                val bed = uiState.bed!!
+                LazyColumn(Modifier.fillMaxSize().padding(padding)) {
                     item {
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            stringResource(R.string.supply_application_history_title),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
+                        FaltetHero(
+                            title = bed.name,
+                            subtitle = bed.description,
+                            leading = {
+                                PhotoPlaceholder(
+                                    label = bed.name,
+                                    tone = PhotoTone.Sage,
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                            },
                         )
                     }
 
-                    if (uiState.applications.isEmpty()) {
+                    // Villkor section
+                    val hasAnyCondition = listOf(
+                        bed.soilType, bed.soilPh?.toString(), bed.drainage,
+                        bed.raisedBed?.toString(),
+                        bed.sunExposure, bed.aspect,
+                        bed.irrigationType,
+                        bed.protection,
+                    ).any { it != null }
+                    if (hasAnyCondition) {
+                        item { FaltetSectionHeader(label = "Villkor") }
                         item {
-                            Text(
-                                stringResource(R.string.supply_application_no_applications),
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                            ConditionGroup(
+                                title = "Jord",
+                                summary = listOfNotNull(
+                                    bed.soilType?.let { bedSoilTypeLabel(it) },
+                                    bed.soilPh?.let { "pH $it" },
+                                ).joinToString(" · ").takeIf { it.isNotBlank() },
+                                fields = listOf(
+                                    "Jordtyp" to bed.soilType?.let { bedSoilTypeLabel(it) },
+                                    "pH" to bed.soilPh?.toString(),
+                                    "Dränering" to bed.drainage?.let { bedDrainageLabel(it) },
+                                    "Upphöjd bädd" to bed.raisedBed?.let { if (it) "Ja" else "Nej" },
+                                ),
                             )
                         }
+                        item {
+                            ConditionGroup(
+                                title = "Exponering",
+                                summary = listOfNotNull(
+                                    bed.sunExposure?.let { bedSunExposureLabel(it) },
+                                    bed.aspect?.let { bedAspectLabel(it) },
+                                ).joinToString(" · ").takeIf { it.isNotBlank() },
+                                fields = listOf(
+                                    "Sol" to bed.sunExposure?.let { bedSunExposureLabel(it) },
+                                    "Väderstreck" to bed.aspect?.let { bedAspectLabel(it) },
+                                ),
+                            )
+                        }
+                        item {
+                            ConditionGroup(
+                                title = "Bevattning",
+                                summary = bed.irrigationType?.let { bedIrrigationTypeLabel(it) },
+                                fields = listOf(
+                                    "Bevattning" to bed.irrigationType?.let { bedIrrigationTypeLabel(it) },
+                                ),
+                            )
+                        }
+                        item {
+                            ConditionGroup(
+                                title = "Skydd",
+                                summary = bed.protection?.let { bedProtectionLabel(it) },
+                                fields = listOf(
+                                    "Skydd" to bed.protection?.let { bedProtectionLabel(it) },
+                                ),
+                            )
+                        }
+                    }
+
+                    // Plantor section
+                    item { FaltetSectionHeader(label = "Plantor") }
+                    if (uiState.plants.isEmpty()) {
+                        item { InlineEmpty("Inga plantor ännu.") }
                     } else {
-                        items(uiState.applications, key = { it.id }) { app ->
-                            Card(
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Column(Modifier.weight(1f)) {
-                                        Text(app.supplyTypeName, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                                        val scopeLabel = if (app.targetScope == "BED") {
-                                            stringResource(R.string.supply_application_applied_to_bed)
-                                        } else {
-                                            stringResource(R.string.supply_application_applied_to_plants, app.plantIds.size)
+                        items(uiState.plants, key = { it.id }) { plant ->
+                            val count = plant.survivingCount ?: plant.seedCount
+                            FaltetListRow(
+                                title = plant.name,
+                                meta = "${statusLabelSv(plant.status)} · ${formattedDate(plant.plantedDate)}",
+                                stat = if (count != null && count > 1) {
+                                    {
+                                        Row(verticalAlignment = Alignment.Bottom) {
+                                            Text("$count", fontFamily = FontFamily.Monospace, fontSize = 16.sp, color = FaltetInk)
+                                            Text(" STK", fontFamily = FontFamily.Monospace, fontSize = 9.sp, letterSpacing = 1.2.sp, color = FaltetForest)
                                         }
-                                        Text(
-                                            "${app.quantity} ${app.supplyUnit.lowercase()} · $scopeLabel",
-                                            fontSize = 12.sp,
-                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                        )
                                     }
+                                } else null,
+                                onClick = { onPlantClick(plant.id) },
+                            )
+                        }
+                    }
+
+                    // Gödsling & vatten section
+                    item { FaltetSectionHeader(label = "Gödsling & vatten") }
+                    if (uiState.applications.isEmpty()) {
+                        item { InlineEmpty("Inga gödslingar ännu.") }
+                    } else {
+                        items(uiState.applications, key = { it.id }) { application ->
+                            FaltetListRow(
+                                title = application.supplyTypeName,
+                                meta = formattedDate(application.appliedAt.take(10)),
+                                stat = {
                                     Text(
-                                        app.appliedAt.take(10),
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                        "${application.quantity} ${application.supplyUnit.lowercase()}",
+                                        fontFamily = FontFamily.Monospace,
+                                        fontSize = 14.sp,
+                                        color = FaltetInk,
                                     )
-                                }
-                            }
+                                },
+                            )
                         }
                     }
 
@@ -547,5 +554,100 @@ fun BedDetailScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ConditionGroup(
+    title: String,
+    summary: String?,
+    fields: List<Pair<String, String?>>,
+) {
+    if (fields.all { it.second == null }) return
+    var expanded by remember { mutableStateOf(false) }
+    Column {
+        FaltetListRow(
+            title = title,
+            meta = summary,
+            actions = {
+                Icon(
+                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = if (expanded) "Dölj" else "Visa",
+                    tint = FaltetForest,
+                    modifier = Modifier.size(18.dp),
+                )
+            },
+            onClick = { expanded = !expanded },
+        )
+        AnimatedVisibility(visible = expanded) {
+            Column {
+                fields.forEach { (label, value) ->
+                    if (value != null) FaltetMetadataRow(label = label, value = value)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun InlineEmpty(text: String) {
+    Text(
+        text = text,
+        fontFamily = FaltetDisplay,
+        fontStyle = FontStyle.Italic,
+        fontSize = 14.sp,
+        color = FaltetForest,
+        modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
+    )
+}
+
+private fun statusLabelSv(status: String?): String = when (status) {
+    "SEEDED" -> "Sådd"
+    "POTTED_UP" -> "Krukad"
+    "PLANTED_OUT", "GROWING" -> "Utplanterad"
+    "HARVESTED" -> "Skördad"
+    "RECOVERED" -> "Återhämtad"
+    "REMOVED" -> "Borttagen"
+    null -> "—"
+    else -> status
+}
+
+private fun formattedDate(date: String?): String {
+    if (date == null) return "—"
+    return try {
+        val parsed = java.time.LocalDate.parse(date)
+        "${parsed.dayOfMonth} ${monthShortSv(parsed.monthValue)}"
+    } catch (e: Exception) {
+        date
+    }
+}
+
+private fun monthShortSv(month: Int): String = arrayOf(
+    "jan", "feb", "mar", "apr", "maj", "jun",
+    "jul", "aug", "sep", "okt", "nov", "dec",
+)[month - 1]
+
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
+@Composable
+private fun ConditionGroupPreview() {
+    Column {
+        ConditionGroup(
+            title = "Jord",
+            summary = "Lerhaltig · pH 6.5",
+            fields = listOf(
+                "Jordtyp" to "Lerhaltig",
+                "pH" to "6.5",
+                "Dränering" to "God",
+                "Upphöjd bädd" to "Ja",
+            ),
+        )
+        ConditionGroup(
+            title = "Exponering",
+            summary = "Fullt sol · Söder",
+            fields = listOf(
+                "Sol" to "Fullt sol",
+                "Väderstreck" to "Söder",
+            ),
+        )
     }
 }
