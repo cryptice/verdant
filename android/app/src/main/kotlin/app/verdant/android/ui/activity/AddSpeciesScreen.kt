@@ -166,24 +166,24 @@ class AddSpeciesViewModel @Inject constructor(
 
     fun identifyPlant(imageBase64: String) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(identifying = true, suggestions = emptyList())
+            _uiState.value = _uiState.value.copy(identifying = true, suggestions = emptyList(), error = null)
             try {
                 val suggestions = repo.identifyPlant(IdentifyPlantRequest(imageBase64))
                 _uiState.value = _uiState.value.copy(identifying = false, suggestions = suggestions)
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(identifying = false)
+                _uiState.value = _uiState.value.copy(identifying = false, error = "Kunde inte identifiera bilden")
             }
         }
     }
 
     fun extractSpeciesInfo(imageBase64: String) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(extracting = true, extractedInfo = null)
+            _uiState.value = _uiState.value.copy(extracting = true, extractedInfo = null, error = null)
             try {
                 val info = repo.extractSpeciesInfo(ExtractSpeciesInfoRequest(imageBase64))
                 _uiState.value = _uiState.value.copy(extracting = false, extractedInfo = info)
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(extracting = false)
+                _uiState.value = _uiState.value.copy(extracting = false, error = "Kunde inte extrahera information")
             }
         }
     }
