@@ -1,6 +1,7 @@
 package app.verdant.android.ui.world
 
 import android.util.Log
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,6 +26,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.DashboardResponse
+import app.verdant.android.data.model.GardenSummary
 import app.verdant.android.data.model.HarvestStatRow
 import app.verdant.android.data.model.TraySummaryEntry
 import app.verdant.android.data.repository.GardenRepository
@@ -33,6 +36,8 @@ import app.verdant.android.ui.faltet.FaltetFab
 import app.verdant.android.ui.faltet.FaltetListRow
 import app.verdant.android.ui.faltet.FaltetLoadingState
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.FaltetSectionHeader
+import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
 import app.verdant.android.ui.theme.FaltetInk
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -102,50 +107,189 @@ fun MyVerdantWorldScreen(
     ) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
-            uiState.error != null -> ConnectionErrorState(onRetry = { viewModel.refresh() })
-            uiState.dashboard!!.gardens.isEmpty() -> FaltetEmptyState(
+            uiState.error != null -> Box(
+                Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center,
+            ) {
+                ConnectionErrorState(onRetry = { viewModel.refresh() })
+            }
+            uiState.dashboard == null ||
+                (uiState.dashboard!!.gardens.isEmpty() &&
+                    uiState.trayPlants.isEmpty() &&
+                    uiState.harvestStats.isEmpty()) -> FaltetEmptyState(
                 headline = "Inga trädgårdar",
                 subtitle = "Skapa din första trädgård.",
                 modifier = Modifier.padding(padding),
             )
-            else -> LazyColumn(Modifier.fillMaxSize().padding(padding)) {
-                items(uiState.dashboard!!.gardens, key = { it.id }) { garden ->
-                    FaltetListRow(
-                        title = garden.name,
-                        leading = null,
-                        meta = null,
-                        stat = {
-                            Row(verticalAlignment = Alignment.Bottom) {
-                                Text(
-                                    text = garden.bedCount.toString(),
-                                    fontFamily = FontFamily.Monospace,
-                                    fontSize = 16.sp,
-                                    color = FaltetInk,
-                                )
-                                Text(
-                                    text = " BÄDDAR",
-                                    fontFamily = FontFamily.Monospace,
-                                    fontSize = 9.sp,
-                                    letterSpacing = 1.2.sp,
-                                    color = FaltetForest,
-                                )
-                            }
-                        },
-                        actions = null,
-                        onClick = { onGardenClick(garden.id) },
-                    )
+            else -> {
+                val dashboard = uiState.dashboard!!
+                LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+                    item { FaltetSectionHeader(label = "Trädgårdar") }
+                    if (dashboard.gardens.isEmpty()) {
+                        item {
+                            Text(
+                                text = "Inga trädgårdar ännu",
+                                fontSize = 14.sp,
+                                color = FaltetForest,
+                                modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
+                            )
+                        }
+                    } else {
+                        items(dashboard.gardens, key = { "garden_${it.id}" }) { garden ->
+                            FaltetListRow(
+                                title = garden.name,
+                                meta = "${garden.plantCount} plantor · ${garden.bedCount} bäddar",
+                                stat = {
+                                    Row(verticalAlignment = Alignment.Bottom) {
+                                        Text(
+                                            text = garden.bedCount.toString(),
+                                            fontFamily = FontFamily.Monospace,
+                                            fontSize = 16.sp,
+                                            color = FaltetInk,
+                                        )
+                                        Text(
+                                            text = " BÄDDAR",
+                                            fontFamily = FontFamily.Monospace,
+                                            fontSize = 9.sp,
+                                            letterSpacing = 1.2.sp,
+                                            color = FaltetForest,
+                                        )
+                                    }
+                                },
+                                onClick = { onGardenClick(garden.id) },
+                            )
+                        }
+                    }
+
+                    if (uiState.trayPlants.isNotEmpty()) {
+                        item { FaltetSectionHeader(label = "Plantor i brätten") }
+                        items(uiState.trayPlants, key = { "tray_${it.speciesName}_${it.status}" }) { entry ->
+                            FaltetListRow(
+                                title = entry.speciesName,
+                                meta = trayStatusLabelSv(entry.status),
+                                stat = {
+                                    Row(verticalAlignment = Alignment.Bottom) {
+                                        Text(
+                                            text = entry.count.toString(),
+                                            fontFamily = FontFamily.Monospace,
+                                            fontSize = 16.sp,
+                                            color = FaltetInk,
+                                        )
+                                        Text(
+                                            text = " ST",
+                                            fontFamily = FontFamily.Monospace,
+                                            fontSize = 9.sp,
+                                            letterSpacing = 1.2.sp,
+                                            color = FaltetForest,
+                                        )
+                                    }
+                                },
+                            )
+                        }
+                    }
+
+                    if (uiState.harvestStats.isNotEmpty()) {
+                        item { FaltetSectionHeader(label = "Skördestatistik") }
+                        items(uiState.harvestStats, key = { "stat_${it.species}" }) { stat ->
+                            FaltetListRow(
+                                title = stat.species,
+                                meta = "${stat.harvestCount} skördar · ${stat.totalQuantity} st",
+                                stat = {
+                                    Text(
+                                        text = formatWeight(stat.totalWeightGrams),
+                                        fontFamily = FaltetDisplay,
+                                        fontStyle = FontStyle.Italic,
+                                        fontSize = 16.sp,
+                                        color = FaltetInk,
+                                    )
+                                },
+                            )
+                        }
+                    }
+
+                    item { Spacer(Modifier.height(80.dp)) }
                 }
-                item { Spacer(Modifier.height(80.dp)) }
             }
         }
     }
 }
 
+private fun trayStatusLabelSv(status: String): String = when (status) {
+    "SEEDED" -> "Sådd"
+    "POTTED_UP" -> "Krukad"
+    "PLANTED_OUT", "GROWING" -> "Växer"
+    "HARVESTED" -> "Skördad"
+    "RECOVERED" -> "Återhämtad"
+    "REMOVED" -> "Borttagen"
+    else -> status
+}
+
+private fun formatWeight(grams: Double): String {
+    return if (grams >= 1000) "${"%.1f".format(grams / 1000)} KG"
+    else "${"%.0f".format(grams)} G"
+}
+
 @Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
 @Composable
 private fun MyVerdantWorldScreenPreview() {
-    FaltetEmptyState(
-        headline = "Inga trädgårdar",
-        subtitle = "Skapa din första trädgård.",
+    val dashboard = DashboardResponse(
+        user = app.verdant.android.data.model.UserResponse(
+            id = 1L, email = "a@b.com", displayName = "Erik", avatarUrl = null, role = "USER", createdAt = "2024-01-01",
+        ),
+        gardens = listOf(
+            GardenSummary(id = 1, name = "Köksträdgården", emoji = "🌿", bedCount = 4, plantCount = 12),
+            GardenSummary(id = 2, name = "Bärlandet", emoji = "🍓", bedCount = 2, plantCount = 6),
+        ),
+        stats = app.verdant.android.data.model.DashboardStats(totalGardens = 2, totalBeds = 6, totalPlants = 18),
     )
+    val trayPlants = listOf(TraySummaryEntry(speciesName = "Tomat", status = "SEEDED", count = 24))
+    val harvestStats = listOf(HarvestStatRow(species = "Gurka", totalWeightGrams = 1340.0, totalQuantity = 7, harvestCount = 3))
+
+    val uiState = MyWorldState(isLoading = false, dashboard = dashboard, trayPlants = trayPlants, harvestStats = harvestStats)
+
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Min värld",
+        mastheadCenter = "Trädgårdar",
+        fab = { FaltetFab(onClick = {}, contentDescription = "Skapa trädgård") },
+    ) { padding ->
+        LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+            item { FaltetSectionHeader(label = "Trädgårdar") }
+            items(uiState.dashboard!!.gardens, key = { "garden_${it.id}" }) { garden ->
+                FaltetListRow(
+                    title = garden.name,
+                    meta = "${garden.plantCount} plantor · ${garden.bedCount} bäddar",
+                    stat = {
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Text(text = garden.bedCount.toString(), fontFamily = FontFamily.Monospace, fontSize = 16.sp, color = FaltetInk)
+                            Text(text = " BÄDDAR", fontFamily = FontFamily.Monospace, fontSize = 9.sp, letterSpacing = 1.2.sp, color = FaltetForest)
+                        }
+                    },
+                )
+            }
+            item { FaltetSectionHeader(label = "Plantor i brätten") }
+            items(uiState.trayPlants, key = { "tray_${it.speciesName}_${it.status}" }) { entry ->
+                FaltetListRow(
+                    title = entry.speciesName,
+                    meta = trayStatusLabelSv(entry.status),
+                    stat = {
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Text(text = entry.count.toString(), fontFamily = FontFamily.Monospace, fontSize = 16.sp, color = FaltetInk)
+                            Text(text = " ST", fontFamily = FontFamily.Monospace, fontSize = 9.sp, letterSpacing = 1.2.sp, color = FaltetForest)
+                        }
+                    },
+                )
+            }
+            item { FaltetSectionHeader(label = "Skördestatistik") }
+            items(uiState.harvestStats, key = { "stat_${it.species}" }) { stat ->
+                FaltetListRow(
+                    title = stat.species,
+                    meta = "${stat.harvestCount} skördar · ${stat.totalQuantity} st",
+                    stat = {
+                        Text(text = formatWeight(stat.totalWeightGrams), fontFamily = FaltetDisplay, fontStyle = FontStyle.Italic, fontSize = 16.sp, color = FaltetInk)
+                    },
+                )
+            }
+            item { Spacer(Modifier.height(80.dp)) }
+        }
+    }
 }
