@@ -17,6 +17,7 @@ fun FaltetScreenScaffold(
     topBar: @Composable () -> Unit = {},
     bottomBar: @Composable () -> Unit = {},
     fab: @Composable (() -> Unit)? = null,
+    snackbarHost: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
     Scaffold(
@@ -29,6 +30,7 @@ fun FaltetScreenScaffold(
         },
         bottomBar = bottomBar,
         floatingActionButton = { fab?.invoke() },
+        snackbarHost = snackbarHost,
         content = content,
     )
 }
