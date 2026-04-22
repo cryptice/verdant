@@ -1,27 +1,44 @@
 package app.verdant.android.ui.analytics
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.verdant.android.R
-import app.verdant.android.data.model.*
+import app.verdant.android.data.model.SpeciesComparisonResponse
+import app.verdant.android.data.model.SpeciesResponse
+import app.verdant.android.data.model.SeasonSummaryResponse
+import app.verdant.android.data.model.YieldPerBedResponse
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
-import app.verdant.android.ui.theme.verdantTopAppBarColors
+import app.verdant.android.ui.faltet.FaltetDropdown
+import app.verdant.android.ui.faltet.FaltetListRow
+import app.verdant.android.ui.faltet.FaltetLoadingState
+import app.verdant.android.ui.faltet.FaltetMetadataRow
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.FaltetSectionHeader
+import app.verdant.android.ui.theme.FaltetClay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -87,239 +104,192 @@ fun AnalyticsScreen(
     viewModel: AnalyticsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var selectedSpecies by remember { mutableStateOf<SpeciesResponse?>(null) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.analytics)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                colors = verdantTopAppBarColors(),
-            )
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Analys",
+        mastheadCenter = "Analys",
+        mastheadRight = {
+            IconButton(onClick = onBack, modifier = Modifier.size(36.dp)) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Tillbaka",
+                    tint = FaltetClay,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
         },
     ) { padding ->
         when {
-            uiState.isLoading -> Box(
-                Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center,
-            ) { CircularProgressIndicator() }
+            uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
 
             uiState.error != null
                 && uiState.seasonSummaries.isEmpty()
                 && uiState.yieldPerBed.isEmpty() -> {
-                ConnectionErrorState(
-                    onRetry = { viewModel.refresh() },
-                    modifier = Modifier.padding(padding),
-                )
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    ConnectionErrorState(onRetry = { viewModel.refresh() })
+                }
             }
 
             else -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    item { SectionHeader(stringResource(R.string.season_summary)) }
-                    if (uiState.seasonSummaries.isEmpty()) {
-                        item {
-                            Text(
-                                stringResource(R.string.no_season_data),
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+
+                    // ── Säsonger ──────────────────────────────────────────────
+                    item { FaltetSectionHeader(label = "Säsonger") }
+
+                    uiState.seasonSummaries.forEach { season ->
+                        item(key = "season_header_${season.seasonId}") {
+                            FaltetListRow(
+                                title = season.seasonName,
+                                meta = season.year.toString(),
                             )
                         }
-                    } else {
-                        items(uiState.seasonSummaries, key = { "season_${it.seasonId}" }) { s ->
-                            SeasonSummaryCard(s)
+                        item(key = "season_stems_${season.seasonId}") {
+                            FaltetMetadataRow(
+                                label = "Stjälkar skördade",
+                                value = season.totalStemsHarvested.toString(),
+                            )
+                        }
+                        item(key = "season_plants_${season.seasonId}") {
+                            FaltetMetadataRow(
+                                label = "Plantor",
+                                value = season.totalPlants.toString(),
+                            )
+                        }
+                        item(key = "season_species_${season.seasonId}") {
+                            FaltetMetadataRow(
+                                label = "Arter",
+                                value = season.speciesCount.toString(),
+                            )
                         }
                     }
 
-                    item { SectionHeader(stringResource(R.string.species_comparison)) }
-                    item {
-                        SpeciesComparisonSection(
-                            species = uiState.species,
-                            selectedId = uiState.selectedSpeciesId,
-                            loading = uiState.loadingComparison,
-                            comparison = uiState.comparison,
-                            onSelect = { viewModel.selectSpecies(it) },
+                    item { Spacer(Modifier.height(8.dp)) }
+
+                    // ── Jämförelse av arter ───────────────────────────────────
+                    item { FaltetSectionHeader(label = "Jämförelse av arter") }
+
+                    item(key = "species_dropdown") {
+                        FaltetDropdown(
+                            label = "Art",
+                            options = uiState.species,
+                            selected = selectedSpecies,
+                            onSelectedChange = { species ->
+                                selectedSpecies = species
+                                viewModel.selectSpecies(species.id)
+                            },
+                            labelFor = { speciesDisplayName(it) },
+                            searchable = true,
+                            modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp),
                         )
                     }
 
-                    item { SectionHeader(stringResource(R.string.yield_per_bed)) }
-                    if (uiState.yieldPerBed.isEmpty()) {
-                        item {
-                            Text(
-                                stringResource(R.string.no_bed_data),
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            )
+                    if (uiState.loadingComparison) {
+                        item(key = "comparison_loading") {
+                            FaltetLoadingState(Modifier.height(80.dp))
                         }
                     } else {
-                        items(uiState.yieldPerBed, key = { "bed_${it.bedId}" }) { b ->
-                            YieldPerBedCard(b)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SectionHeader(text: String) {
-    Text(
-        text,
-        fontWeight = FontWeight.Bold,
-        fontSize = 16.sp,
-        color = MaterialTheme.colorScheme.primary,
-    )
-}
-
-@Composable
-private fun SeasonSummaryCard(s: SeasonSummaryResponse) {
-    Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp)) {
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(s.seasonName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text("${s.year}", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-            }
-            Spacer(Modifier.height(4.dp))
-            StatRow(stringResource(R.string.total_harvested), "${s.totalStemsHarvested}")
-            StatRow(stringResource(R.string.plants), "${s.totalPlants}")
-            StatRow(stringResource(R.string.species), "${s.speciesCount}")
-        }
-    }
-}
-
-@Composable
-private fun StatRow(label: String, value: String) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
-        Text(value, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SpeciesComparisonSection(
-    species: List<SpeciesResponse>,
-    selectedId: Long?,
-    loading: Boolean,
-    comparison: SpeciesComparisonResponse?,
-    onSelect: (Long) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = it },
-        ) {
-            OutlinedTextField(
-                value = species.find { it.id == selectedId }?.let { it.commonNameSv ?: it.commonName } ?: "",
-                onValueChange = {},
-                readOnly = true,
-                label = { Text(stringResource(R.string.species)) },
-                modifier = Modifier.fillMaxWidth().menuAnchor(),
-                shape = RoundedCornerShape(12.dp),
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            )
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-            ) {
-                species.forEach { s ->
-                    DropdownMenuItem(
-                        text = { Text(s.commonNameSv ?: s.commonName) },
-                        onClick = {
-                            onSelect(s.id)
-                            expanded = false
-                        },
-                    )
-                }
-            }
-        }
-
-        when {
-            loading -> CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
-            comparison != null -> {
-                if (comparison.seasons.isEmpty()) {
-                    Text(
-                        stringResource(R.string.no_analytics_data),
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    )
-                } else {
-                    Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            comparison.seasons.forEach { sd ->
-                                Column {
-                                    Text(
-                                        "${sd.seasonName} (${sd.year})",
-                                        fontWeight = FontWeight.Medium,
-                                        fontSize = 14.sp,
-                                    )
-                                    StatRow(stringResource(R.string.plants), "${sd.plantCount}")
-                                    StatRow(stringResource(R.string.total_harvested), "${sd.stemsHarvested}")
-                                    sd.stemsPerPlant?.let {
-                                        StatRow(stringResource(R.string.stems_per_plant_label), String.format("%.1f", it))
-                                    }
-                                }
-                                HorizontalDivider()
+                        uiState.comparison?.seasons?.forEach { seasonComp ->
+                            item(key = "comp_header_${seasonComp.seasonId}") {
+                                FaltetSectionHeader(label = seasonComp.seasonName)
+                            }
+                            item(key = "comp_plants_${seasonComp.seasonId}") {
+                                FaltetMetadataRow(
+                                    label = "Plantor",
+                                    value = seasonComp.plantCount.toString(),
+                                )
+                            }
+                            item(key = "comp_stems_${seasonComp.seasonId}") {
+                                FaltetMetadataRow(
+                                    label = "Stjälkar skördade",
+                                    value = seasonComp.stemsHarvested.toString(),
+                                )
+                            }
+                            item(key = "comp_spp_${seasonComp.seasonId}") {
+                                FaltetMetadataRow(
+                                    label = "Stjälkar per planta",
+                                    value = seasonComp.stemsPerPlant?.let { "%.1f".format(it) },
+                                )
+                            }
+                            item(key = "comp_year_${seasonComp.seasonId}") {
+                                FaltetMetadataRow(
+                                    label = "År",
+                                    value = seasonComp.year.toString(),
+                                )
                             }
                         }
                     }
+
+                    item { Spacer(Modifier.height(8.dp)) }
+
+                    // ── Skörd per bädd ────────────────────────────────────────
+                    item { FaltetSectionHeader(label = "Skörd per bädd") }
+
+                    uiState.yieldPerBed.forEach { bed ->
+                        item(key = "bed_header_${bed.bedId}") {
+                            FaltetListRow(
+                                title = bed.bedName,
+                                meta = bed.gardenName,
+                            )
+                        }
+                        bed.seasons.forEach { season ->
+                            item(key = "bed_season_${bed.bedId}_${season.seasonId}") {
+                                FaltetMetadataRow(
+                                    label = season.seasonName,
+                                    value = buildString {
+                                        append("${season.stemsHarvested} stjälkar")
+                                        season.stemsPerM2?.let {
+                                            append(" · ${formatStemsPerSqm(it)} / m²")
+                                        }
+                                    },
+                                )
+                            }
+                        }
+                    }
+
+                    item { Spacer(Modifier.height(80.dp)) }
                 }
-            }
-            else -> {
-                Text(
-                    stringResource(R.string.compare_seasons),
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                )
             }
         }
     }
 }
 
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
 @Composable
-private fun YieldPerBedCard(b: YieldPerBedResponse) {
-    Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp)) {
-            Text(b.bedName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Text(
-                b.gardenName,
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-            )
-            b.areaM2?.let {
-                Text(
-                    "${String.format("%.1f", it)} m²",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                )
-            }
-            Spacer(Modifier.height(6.dp))
-            b.seasons.forEach { bs ->
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(bs.seasonName, fontSize = 13.sp)
-                    Text(
-                        buildString {
-                            append("${bs.stemsHarvested}")
-                            bs.stemsPerM2?.let { append(" (${String.format("%.1f", it)} ${"/m²"})") }
-                        },
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
-                    )
-                }
-            }
+private fun AnalyticsScreenSasonerPreview() {
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Analys",
+        mastheadCenter = "Analys",
+    ) { padding ->
+        LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+            item { FaltetSectionHeader(label = "Säsonger") }
+            item { FaltetListRow(title = "Säsong 2024", meta = "2024") }
+            item { FaltetMetadataRow(label = "Stjälkar skördade", value = "1 240") }
+            item { FaltetMetadataRow(label = "Plantor", value = "320") }
+            item { FaltetMetadataRow(label = "Arter", value = "18") }
+            item { FaltetListRow(title = "Säsong 2023", meta = "2023") }
+            item { FaltetMetadataRow(label = "Stjälkar skördade", value = "980") }
+            item { FaltetMetadataRow(label = "Plantor", value = "270") }
+            item { FaltetMetadataRow(label = "Arter", value = "14") }
         }
     }
+}
+
+private fun speciesDisplayName(species: SpeciesResponse): String {
+    val base = species.commonNameSv ?: species.commonName
+    return species.variantNameSv?.let { "$base $it" }
+        ?: species.variantName?.let { "$base $it" }
+        ?: base
+}
+
+private fun formatWeight(grams: Double): String {
+    return if (grams >= 1000) "${"%.1f".format(grams / 1000)} kg"
+    else "${"%.0f".format(grams)} g"
+}
+
+private fun formatStemsPerSqm(value: Double): String {
+    return "%.1f".format(value)
 }
