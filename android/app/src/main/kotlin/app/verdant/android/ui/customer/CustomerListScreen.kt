@@ -1,34 +1,57 @@
 package app.verdant.android.ui.customer
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.verdant.android.R
 import app.verdant.android.data.model.CreateCustomerRequest
 import app.verdant.android.data.model.CustomerChannel
 import app.verdant.android.data.model.CustomerResponse
 import app.verdant.android.data.model.UpdateCustomerRequest
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
-import app.verdant.android.ui.theme.verdantTopAppBarColors
+import app.verdant.android.ui.faltet.FaltetEmptyState
+import app.verdant.android.ui.faltet.FaltetFab
+import app.verdant.android.ui.faltet.FaltetListRow
+import app.verdant.android.ui.faltet.FaltetLoadingState
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -111,57 +134,42 @@ fun CustomerListScreen(
     var showDialog by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<CustomerResponse?>(null) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.customers)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                colors = verdantTopAppBarColors(),
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Kund",
+        mastheadCenter = "Kunder",
+        fab = {
+            FaltetFab(
+                onClick = { editing = null; showDialog = true },
+                contentDescription = "Ny kund",
+                icon = Icons.Default.Add,
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { editing = null; showDialog = true }) {
-                Icon(Icons.Default.Add, stringResource(R.string.new_customer))
-            }
         },
     ) { padding ->
         when {
-            uiState.isLoading -> Box(
+            uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
+            uiState.error != null && uiState.items.isEmpty() -> Box(
                 Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center,
-            ) { CircularProgressIndicator() }
-
-            uiState.error != null && uiState.items.isEmpty() -> {
-                ConnectionErrorState(
-                    onRetry = { viewModel.refresh() },
-                    modifier = Modifier.padding(padding),
-                )
+            ) {
+                ConnectionErrorState(onRetry = { viewModel.refresh() })
             }
-
-            uiState.items.isEmpty() -> {
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    Text(
-                        stringResource(R.string.no_customers),
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            uiState.items.isEmpty() -> FaltetEmptyState(
+                headline = "Inga kunder",
+                subtitle = "Lägg till din första kund.",
+                modifier = Modifier.padding(padding),
+            )
+            else -> LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+                items(uiState.items, key = { it.id }) { customer ->
+                    FaltetListRow(
+                        title = customer.name,
+                        meta = channelLabel(customer.channel),
+                        leading = null,
+                        stat = null,
+                        actions = null,
+                        onClick = { editing = customer; showDialog = true },
                     )
                 }
-            }
-
-            else -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    items(uiState.items, key = { it.id }) { c ->
-                        CustomerCard(c, onClick = { editing = c; showDialog = true })
-                    }
-                }
+                item { Spacer(Modifier.height(80.dp)) }
             }
         }
     }
@@ -201,36 +209,14 @@ fun CustomerListScreen(
     }
 }
 
-@Composable
-private fun CustomerCard(customer: CustomerResponse, onClick: () -> Unit) {
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Text(customer.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                channelLabel(customer.channel),
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            customer.contactInfo?.takeIf { it.isNotBlank() }?.let {
-                Text(it, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-            }
-        }
-    }
-}
-
-@Composable
 private fun channelLabel(channel: String): String = when (channel) {
-    CustomerChannel.FLORIST -> stringResource(R.string.channel_florist)
-    CustomerChannel.FARMERS_MARKET -> stringResource(R.string.channel_farmers_market)
-    CustomerChannel.CSA -> stringResource(R.string.channel_csa)
-    CustomerChannel.WEDDING -> stringResource(R.string.channel_wedding)
-    CustomerChannel.WHOLESALE -> stringResource(R.string.channel_wholesale)
-    CustomerChannel.DIRECT -> stringResource(R.string.channel_direct)
-    else -> stringResource(R.string.channel_other)
+    CustomerChannel.FLORIST -> "Blomsterhandel"
+    CustomerChannel.FARMERS_MARKET -> "Bondemarknaden"
+    CustomerChannel.CSA -> "Andelsodling"
+    CustomerChannel.WEDDING -> "Bröllop"
+    CustomerChannel.WHOLESALE -> "Grossist"
+    CustomerChannel.DIRECT -> "Direktförsäljning"
+    else -> "Övrigt"
 }
 
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
@@ -249,7 +235,7 @@ private fun CustomerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(if (existing != null) R.string.edit_customer else R.string.new_customer)) },
+        title = { Text(if (existing != null) "Redigera kund" else "Ny kund") },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -258,13 +244,13 @@ private fun CustomerDialog(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text(stringResource(R.string.customer_name)) },
+                    label = { Text("Namn") },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true,
                 )
 
-                Text(stringResource(R.string.customer_channel), fontWeight = FontWeight.Medium, fontSize = 13.sp)
+                Text("Kanal", fontWeight = FontWeight.Medium, fontSize = 13.sp)
                 androidx.compose.foundation.layout.FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -281,7 +267,7 @@ private fun CustomerDialog(
                 OutlinedTextField(
                     value = contactInfo,
                     onValueChange = { contactInfo = it },
-                    label = { Text(stringResource(R.string.contact_info)) },
+                    label = { Text("Kontaktuppgifter") },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                 )
@@ -289,7 +275,7 @@ private fun CustomerDialog(
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
-                    label = { Text(stringResource(R.string.notes)) },
+                    label = { Text("Anteckningar") },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                 )
@@ -298,7 +284,7 @@ private fun CustomerDialog(
                     TextButton(
                         onClick = onDelete,
                         colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                    ) { Text(stringResource(R.string.delete)) }
+                    ) { Text("Ta bort") }
                 }
             }
         },
@@ -310,12 +296,31 @@ private fun CustomerDialog(
                 if (saving) {
                     CircularProgressIndicator(Modifier.size(18.dp), color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text(stringResource(R.string.save))
+                    Text("Spara")
                 }
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+            TextButton(onClick = onDismiss) { Text("Avbryt") }
         },
     )
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
+@Composable
+private fun CustomerListScreenPreview() {
+    val customers = listOf(
+        CustomerResponse(1L, "Blomsterriket AB", CustomerChannel.FLORIST, "anna@blomsterriket.se", null, "2024-01-01"),
+        CustomerResponse(2L, "Naturens Skafferi", CustomerChannel.FARMERS_MARKET, null, "Standplats 12", "2024-01-02"),
+        CustomerResponse(3L, "Gröna Lådan", CustomerChannel.CSA, "info@gronaladan.se", null, "2024-01-03"),
+    )
+    Column {
+        customers.forEach { customer ->
+            FaltetListRow(
+                title = customer.name,
+                meta = channelLabel(customer.channel),
+                onClick = {},
+            )
+        }
+    }
 }
