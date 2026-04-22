@@ -1,8 +1,15 @@
 package app.verdant.android.ui.targets
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -10,31 +17,54 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.verdant.android.R
 import app.verdant.android.data.model.ProductionForecastResponse
 import app.verdant.android.data.model.ProductionTargetResponse
 import app.verdant.android.data.model.SeasonResponse
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
-import app.verdant.android.ui.theme.verdantTopAppBarColors
+import app.verdant.android.ui.faltet.FaltetEmptyState
+import app.verdant.android.ui.faltet.FaltetFab
+import app.verdant.android.ui.faltet.FaltetListRow
+import app.verdant.android.ui.faltet.FaltetLoadingState
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.theme.FaltetDisplay
+import app.verdant.android.ui.theme.FaltetForest
+import app.verdant.android.ui.theme.FaltetInk
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,6 +72,8 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.temporal.WeekFields
 import javax.inject.Inject
 
 data class TargetsState(
@@ -127,6 +159,21 @@ class TargetsViewModel @Inject constructor(
     }
 }
 
+/** Formats a target's date range as e.g. "2026 · V. 14–26". */
+private fun periodLabel(startDate: String, endDate: String): String {
+    return try {
+        val isoWeek = WeekFields.ISO
+        val start = LocalDate.parse(startDate, DateTimeFormatter.ISO_LOCAL_DATE)
+        val end = LocalDate.parse(endDate, DateTimeFormatter.ISO_LOCAL_DATE)
+        val year = start.get(isoWeek.weekBasedYear())
+        val startWeek = start.get(isoWeek.weekOfWeekBasedYear())
+        val endWeek = end.get(isoWeek.weekOfWeekBasedYear())
+        "$year · V. $startWeek–$endWeek"
+    } catch (_: Exception) {
+        "$startDate – $endDate"
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductionTargetsScreen(
@@ -136,63 +183,55 @@ fun ProductionTargetsScreen(
     val uiState by viewModel.uiState.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.production_targets)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                colors = verdantTopAppBarColors(),
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { showDialog = true }) {
-                Icon(Icons.Default.Add, stringResource(R.string.new_target))
-            }
-        },
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Plan",
+        mastheadCenter = "Produktionsmål",
+        fab = { FaltetFab(onClick = { showDialog = true }, contentDescription = "Nytt mål") },
     ) { padding ->
         when {
-            uiState.isLoading -> Box(
+            uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
+
+            uiState.error != null && uiState.items.isEmpty() -> Box(
                 Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center,
-            ) { CircularProgressIndicator() }
-
-            uiState.error != null && uiState.items.isEmpty() -> {
-                ConnectionErrorState(
-                    onRetry = { viewModel.refresh() },
-                    modifier = Modifier.padding(padding),
-                )
+            ) {
+                ConnectionErrorState(onRetry = { viewModel.refresh() })
             }
 
-            uiState.items.isEmpty() -> {
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    Text(
-                        stringResource(R.string.no_targets),
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            uiState.items.isEmpty() -> FaltetEmptyState(
+                headline = "Inga produktionsmål",
+                subtitle = "Sätt upp mål för säsongens produktion.",
+                modifier = Modifier.padding(padding),
+            )
+
+            else -> LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+                items(uiState.items, key = { it.id }) { target ->
+                    FaltetListRow(
+                        leading = null,
+                        title = target.speciesName ?: "Art #${target.speciesId}",
+                        meta = periodLabel(target.startDate, target.endDate),
+                        stat = {
+                            Row(verticalAlignment = Alignment.Bottom) {
+                                Text(
+                                    text = target.stemsPerWeek.toString(),
+                                    fontFamily = FaltetDisplay,
+                                    fontStyle = FontStyle.Italic,
+                                    fontSize = 16.sp,
+                                    color = FaltetInk,
+                                )
+                                Text(
+                                    text = " stk/v",
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 14.sp,
+                                    color = FaltetForest,
+                                )
+                            }
+                        },
+                        actions = null,
+                        onClick = null,
                     )
                 }
-            }
-
-            else -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    items(uiState.items, key = { it.id }) { t ->
-                        TargetCard(
-                            target = t,
-                            forecast = uiState.forecasts[t.id],
-                            isLoadingForecast = uiState.forecastLoadingId == t.id,
-                            onExpand = { viewModel.loadForecast(t.id) },
-                            onDelete = { viewModel.delete(t.id) },
-                        )
-                    }
-                }
+                item { Spacer(Modifier.height(80.dp)) }
             }
         }
     }
@@ -209,93 +248,6 @@ fun ProductionTargetsScreen(
                 showDialog = false
             },
         )
-    }
-}
-
-@Composable
-private fun TargetCard(
-    target: ProductionTargetResponse,
-    forecast: ProductionForecastResponse?,
-    isLoadingForecast: Boolean,
-    onExpand: () -> Unit,
-    onDelete: () -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth().clickable {
-            expanded = !expanded
-            if (expanded) onExpand()
-        },
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text(target.speciesName ?: "Species #${target.speciesId}", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Text(
-                        "${target.stemsPerWeek} ${stringResource(R.string.stems_per_week).lowercase()}",
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    Text(
-                        "${target.startDate} → ${target.endDate}",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    )
-                }
-                Icon(
-                    if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    null,
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                )
-            }
-
-            AnimatedVisibility(visible = expanded) {
-                Column(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(stringResource(R.string.forecast), fontWeight = FontWeight.Medium, fontSize = 13.sp)
-                    when {
-                        isLoadingForecast -> {
-                            Box(Modifier.fillMaxWidth().padding(vertical = 8.dp), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-                            }
-                        }
-                        forecast != null -> {
-                            ForecastRow(stringResource(R.string.total_stems_needed), forecast.totalStemsNeeded.toString())
-                            ForecastRow(stringResource(R.string.plants_needed), forecast.plantsNeeded.toString())
-                            ForecastRow(stringResource(R.string.seeds_needed), forecast.seedsNeeded.toString())
-                            forecast.suggestedSowDate?.let {
-                                ForecastRow(stringResource(R.string.suggested_sow_date), it)
-                            }
-                            if (forecast.warnings.isNotEmpty()) {
-                                Spacer(Modifier.height(6.dp))
-                                Text(stringResource(R.string.warnings), fontWeight = FontWeight.Medium, fontSize = 13.sp, color = MaterialTheme.colorScheme.error)
-                                forecast.warnings.forEach { w ->
-                                    Text("• $w", fontSize = 12.sp, color = MaterialTheme.colorScheme.error)
-                                }
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    TextButton(
-                        onClick = onDelete,
-                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                    ) { Text(stringResource(R.string.delete)) }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ForecastRow(label: String, value: String) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
-        Text(value, fontSize = 12.sp, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -334,10 +286,10 @@ private fun TargetDialog(
                         onPicked(Instant.ofEpochMilli(it).atZone(ZoneId.of("UTC")).toLocalDate().toString())
                     }
                     onClose()
-                }) { Text(stringResource(R.string.ok)) }
+                }) { Text("OK") }
             },
             dismissButton = {
-                TextButton(onClick = onClose) { Text(stringResource(R.string.cancel)) }
+                TextButton(onClick = onClose) { Text("Avbryt") }
             },
         ) { DatePicker(state = state) }
     }
@@ -347,7 +299,7 @@ private fun TargetDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.new_target)) },
+        title = { Text("Nytt mål") },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -361,7 +313,7 @@ private fun TargetDialog(
                         value = species.find { it.id == speciesId }?.let { it.commonNameSv ?: it.commonName } ?: "",
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text(stringResource(R.string.species)) },
+                        label = { Text("Art") },
                         modifier = Modifier.fillMaxWidth().menuAnchor(),
                         shape = RoundedCornerShape(12.dp),
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(speciesExpanded) },
@@ -387,7 +339,7 @@ private fun TargetDialog(
                         value = seasons.find { it.id == seasonId }?.name ?: "",
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text(stringResource(R.string.seasons)) },
+                        label = { Text("Säsong") },
                         modifier = Modifier.fillMaxWidth().menuAnchor(),
                         shape = RoundedCornerShape(12.dp),
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(seasonExpanded) },
@@ -408,7 +360,7 @@ private fun TargetDialog(
                 OutlinedTextField(
                     value = stemsPerWeek,
                     onValueChange = { stemsPerWeek = it.filter { c -> c.isDigit() } },
-                    label = { Text(stringResource(R.string.stems_per_week)) },
+                    label = { Text("Stjälkar per vecka") },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -418,7 +370,7 @@ private fun TargetDialog(
                 OutlinedTextField(
                     value = startDate,
                     onValueChange = { startDate = it },
-                    label = { Text(stringResource(R.string.delivery_window_start)) },
+                    label = { Text("Leveransfönster start") },
                     readOnly = true,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -433,7 +385,7 @@ private fun TargetDialog(
                 OutlinedTextField(
                     value = endDate,
                     onValueChange = { endDate = it },
-                    label = { Text(stringResource(R.string.delivery_window_end)) },
+                    label = { Text("Leveransfönster slut") },
                     readOnly = true,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -464,14 +416,71 @@ private fun TargetDialog(
                 },
             ) {
                 if (saving) {
-                    CircularProgressIndicator(Modifier.size(18.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    CircularProgressIndicator(Modifier.size(18.dp))
                 } else {
-                    Text(stringResource(R.string.save))
+                    Text("Spara")
                 }
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+            TextButton(onClick = onDismiss) { Text("Avbryt") }
         },
     )
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
+@Composable
+private fun ProductionTargetsScreenPreview() {
+    val targets = listOf(
+        ProductionTargetResponse(
+            id = 1L,
+            seasonId = 1L,
+            speciesId = 10L,
+            speciesName = "Solros",
+            stemsPerWeek = 120,
+            startDate = "2026-04-01",
+            endDate = "2026-06-30",
+            notes = null,
+            createdAt = "2026-01-01T00:00:00Z",
+        ),
+        ProductionTargetResponse(
+            id = 2L,
+            seasonId = 1L,
+            speciesId = 11L,
+            speciesName = "Pion",
+            stemsPerWeek = 80,
+            startDate = "2026-05-15",
+            endDate = "2026-07-20",
+            notes = null,
+            createdAt = "2026-01-01T00:00:00Z",
+        ),
+    )
+    LazyColumn {
+        items(targets, key = { it.id }) { target ->
+            FaltetListRow(
+                leading = null,
+                title = target.speciesName ?: "Art #${target.speciesId}",
+                meta = periodLabel(target.startDate, target.endDate),
+                stat = {
+                    Row(verticalAlignment = Alignment.Bottom) {
+                        Text(
+                            text = target.stemsPerWeek.toString(),
+                            fontFamily = FaltetDisplay,
+                            fontStyle = FontStyle.Italic,
+                            fontSize = 16.sp,
+                            color = FaltetInk,
+                        )
+                        Text(
+                            text = " stk/v",
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 14.sp,
+                            color = FaltetForest,
+                        )
+                    }
+                },
+                actions = null,
+                onClick = null,
+            )
+        }
+    }
 }
