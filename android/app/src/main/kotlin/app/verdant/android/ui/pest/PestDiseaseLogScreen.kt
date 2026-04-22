@@ -1,6 +1,5 @@
 package app.verdant.android.ui.pest
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -8,15 +7,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -26,7 +26,17 @@ import app.verdant.android.R
 import app.verdant.android.data.model.*
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
-import app.verdant.android.ui.theme.verdantTopAppBarColors
+import app.verdant.android.ui.faltet.FaltetEmptyState
+import app.verdant.android.ui.faltet.FaltetFab
+import app.verdant.android.ui.faltet.FaltetListRow
+import app.verdant.android.ui.faltet.FaltetLoadingState
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.theme.FaltetBerry
+import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetCream
+import app.verdant.android.ui.theme.FaltetForest
+import app.verdant.android.ui.theme.FaltetMustard
+import app.verdant.android.ui.theme.FaltetSage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -112,6 +122,14 @@ class PestDiseaseLogViewModel @Inject constructor(
     }
 }
 
+private fun severityDotColor(severity: String) = when (severity) {
+    Severity.LOW -> FaltetSage
+    Severity.MODERATE -> FaltetMustard
+    Severity.HIGH -> FaltetClay
+    Severity.CRITICAL -> FaltetBerry
+    else -> FaltetForest
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PestDiseaseLogScreen(
@@ -121,67 +139,6 @@ fun PestDiseaseLogScreen(
     val uiState by viewModel.uiState.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<PestDiseaseLogResponse?>(null) }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.pest_disease_log)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                colors = verdantTopAppBarColors(),
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { editing = null; showDialog = true }) {
-                Icon(Icons.Default.Add, stringResource(R.string.new_pest_disease))
-            }
-        },
-    ) { padding ->
-        when {
-            uiState.isLoading -> Box(
-                Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center,
-            ) { CircularProgressIndicator() }
-
-            uiState.error != null && uiState.items.isEmpty() -> {
-                ConnectionErrorState(
-                    onRetry = { viewModel.refresh() },
-                    modifier = Modifier.padding(padding),
-                )
-            }
-
-            uiState.items.isEmpty() -> {
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    Text(
-                        stringResource(R.string.no_pest_disease),
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    )
-                }
-            }
-
-            else -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    items(uiState.items, key = { it.id }) { log ->
-                        PestDiseaseLogCard(
-                            log = log,
-                            speciesName = uiState.species.find { it.id == log.speciesId }?.let { s ->
-                                s.commonNameSv ?: s.commonName
-                            },
-                            onClick = { editing = log; showDialog = true },
-                        )
-                    }
-                }
-            }
-        }
-    }
 
     if (showDialog) {
         PestDiseaseLogDialog(
@@ -217,46 +174,59 @@ fun PestDiseaseLogScreen(
             },
         )
     }
-}
 
-@Composable
-private fun PestDiseaseLogCard(
-    log: PestDiseaseLogResponse,
-    speciesName: String?,
-    onClick: () -> Unit,
-) {
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(log.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                SeverityBadge(log.severity)
-            }
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "${categoryLabel(log.category)} • ${log.observedDate}",
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Hälsa",
+        mastheadCenter = "Skadegörare",
+        fab = {
+            FaltetFab(
+                onClick = { editing = null; showDialog = true },
+                contentDescription = stringResource(R.string.new_pest_disease),
             )
-            if (speciesName != null) {
-                Text(
-                    speciesName,
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                )
+        },
+    ) { padding ->
+        when {
+            uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
+
+            uiState.error != null && uiState.items.isEmpty() -> Box(
+                Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center,
+            ) {
+                ConnectionErrorState(onRetry = { viewModel.refresh() })
             }
-            log.treatment?.takeIf { it.isNotBlank() }?.let {
-                Spacer(Modifier.height(4.dp))
-                Text("${stringResource(R.string.treatment)}: $it", fontSize = 13.sp)
-            }
-            log.outcome?.let {
-                Text("${stringResource(R.string.outcome)}: ${outcomeLabel(it)}", fontSize = 13.sp)
+
+            uiState.items.isEmpty() -> FaltetEmptyState(
+                headline = "Inga observationer",
+                subtitle = "Logga din första skadegörar-observation.",
+                modifier = Modifier.padding(padding),
+            )
+
+            else -> LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+                items(uiState.items, key = { it.id }) { log ->
+                    val speciesName = uiState.species.find { it.id == log.speciesId }?.let { s ->
+                        s.commonNameSv ?: s.commonName
+                    }
+                    val dotColor = severityDotColor(log.severity)
+                    FaltetListRow(
+                        title = log.name,
+                        meta = buildString {
+                            append(log.observedDate)
+                            if (speciesName != null) append(" · $speciesName")
+                        },
+                        metaMaxLines = 2,
+                        leading = {
+                            Box(
+                                Modifier
+                                    .size(10.dp)
+                                    .drawBehind { drawCircle(dotColor) },
+                            )
+                        },
+                        stat = null,
+                        actions = null,
+                        onClick = { editing = log; showDialog = true },
+                    )
+                }
+                item { Spacer(Modifier.height(80.dp)) }
             }
         }
     }
@@ -285,29 +255,6 @@ private fun outcomeLabel(outcome: String): String = when (outcome) {
     Outcome.CROP_LOSS -> stringResource(R.string.outcome_crop_loss)
     Outcome.MONITORING -> stringResource(R.string.outcome_monitoring)
     else -> outcome
-}
-
-@Composable
-private fun SeverityBadge(severity: String) {
-    val color = when (severity) {
-        Severity.LOW -> MaterialTheme.colorScheme.secondaryContainer
-        Severity.CRITICAL, Severity.HIGH -> MaterialTheme.colorScheme.errorContainer
-        else -> MaterialTheme.colorScheme.tertiaryContainer
-    }
-    val onColor = when (severity) {
-        Severity.LOW -> MaterialTheme.colorScheme.onSecondaryContainer
-        Severity.CRITICAL, Severity.HIGH -> MaterialTheme.colorScheme.onErrorContainer
-        else -> MaterialTheme.colorScheme.onTertiaryContainer
-    }
-    Surface(shape = RoundedCornerShape(8.dp), color = color) {
-        Text(
-            severityLabel(severity),
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
-            color = onColor,
-        )
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -404,7 +351,6 @@ private fun PestDiseaseLogDialog(
                     },
                 )
 
-                // Species picker (optional)
                 ExposedDropdownMenuBox(
                     expanded = speciesExpanded,
                     onExpandedChange = { speciesExpanded = it },
@@ -519,6 +465,40 @@ private fun <T> ChipRow(
                 onClick = { onSelect(v) },
                 label = { Text(labelFor(v), fontSize = 12.sp) },
             )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
+@Composable
+private fun PestDiseaseLogScreenPreview() {
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Hälsa",
+        mastheadCenter = "Skadegörare",
+    ) { padding ->
+        LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+            items(
+                listOf(
+                    Triple("Bladlöss", Severity.LOW, "2024-06-01 · Cosmos bipinnatus"),
+                    Triple("Mjöldagg", Severity.MODERATE, "2024-06-10 · Dahlia"),
+                    Triple("Gråmögel", Severity.HIGH, "2024-06-15"),
+                    Triple("Rotröta", Severity.CRITICAL, "2024-06-20 · Zinnia"),
+                )
+            ) { (name, severity, meta) ->
+                val dotColor = severityDotColor(severity)
+                FaltetListRow(
+                    title = name,
+                    meta = meta,
+                    metaMaxLines = 2,
+                    leading = {
+                        Box(
+                            Modifier
+                                .size(10.dp)
+                                .drawBehind { drawCircle(dotColor) },
+                        )
+                    },
+                )
+            }
         }
     }
 }
