@@ -11,11 +11,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.verdant.android.ui.theme.FaltetClay
 import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
 import app.verdant.android.ui.theme.FaltetInk
@@ -28,12 +32,20 @@ fun Field(
     accent: FaltetTone? = null,
     placeholder: String? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
+    error: String? = null,
+    required: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val valueColor = accent?.color() ?: FaltetInk
+    val underlineColor = if (error != null) FaltetClay else FaltetInk
     Column(modifier) {
         Text(
-            text = label.uppercase(),
+            text = buildAnnotatedString {
+                append(label.uppercase())
+                if (required) {
+                    withStyle(SpanStyle(color = FaltetClay)) { append(" *") }
+                }
+            },
             fontFamily = FontFamily.Monospace,
             fontSize = 9.sp,
             letterSpacing = 1.4.sp,
@@ -55,7 +67,7 @@ fun Field(
                     .fillMaxWidth()
                     .drawBehind {
                         drawLine(
-                            color = FaltetInk,
+                            color = underlineColor,
                             start = Offset(0f, size.height),
                             end = Offset(size.width, size.height),
                             strokeWidth = 1.dp.toPx(),
@@ -87,7 +99,15 @@ fun Field(
                     .padding(top = 4.dp)
                     .fillMaxWidth()
                     .height(1.dp)
-                    .background(FaltetInk),
+                    .background(underlineColor),
+            )
+        }
+        if (error != null) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = error,
+                fontSize = 12.sp,
+                color = FaltetClay,
             )
         }
     }
