@@ -1,22 +1,30 @@
 package app.verdant.android.ui.bed
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -31,8 +39,11 @@ import app.verdant.android.data.model.BedProtection
 import app.verdant.android.data.model.BedSoilType
 import app.verdant.android.data.model.BedSunExposure
 import app.verdant.android.data.model.CreateBedRequest
-import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.ui.faltet.FaltetChipSelector
+import app.verdant.android.ui.faltet.FaltetFormSubmitBar
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.Field
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -100,150 +111,309 @@ fun CreateBedScreen(
     viewModel: CreateBedViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var conditionsExpanded by remember { mutableStateOf(false) }
-
-    // Conditions state
     var soilType by remember { mutableStateOf<String?>(null) }
     var soilPhText by remember { mutableStateOf("") }
+    var drainage by remember { mutableStateOf<String?>(null) }
     var sunExposure by remember { mutableStateOf<String?>(null) }
     var aspect by remember { mutableStateOf<String?>(null) }
-    var drainage by remember { mutableStateOf<String?>(null) }
     var irrigationType by remember { mutableStateOf<String?>(null) }
     var protection by remember { mutableStateOf<String?>(null) }
     var raisedBed by remember { mutableStateOf<Boolean?>(null) }
+    var nameError by remember { mutableStateOf(false) }
+    var phError by remember { mutableStateOf<String?>(null) }
 
-    val soilPhValue = soilPhText.toDoubleOrNull()
-    val soilPhError = soilPhText.isNotBlank() && (soilPhValue == null || soilPhValue < 3.0 || soilPhValue > 9.0)
+    val canSubmit = name.isNotBlank() && phError == null && !uiState.isLoading
 
-    LaunchedEffect(uiState.createdId) {
-        uiState.createdId?.let { onCreated(it) }
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.new_bed)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                colors = verdantTopAppBarColors()
+    val submitAction: () -> Unit = {
+        val phValue = soilPhText.toDoubleOrNull()
+        val phInvalid = soilPhText.isNotBlank() && (phValue == null || phValue < 3.0 || phValue > 9.0)
+        phError = if (phInvalid) "pH måste vara mellan 3.0 och 9.0" else null
+        nameError = name.isBlank()
+        if (!nameError && phError == null) {
+            viewModel.create(
+                name = name,
+                description = description,
+                soilType = soilType,
+                soilPh = phValue,
+                sunExposure = sunExposure,
+                aspect = aspect,
+                drainage = drainage,
+                irrigationType = irrigationType,
+                protection = protection,
+                raisedBed = raisedBed,
             )
         }
+    }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            snackbarHostState.showSnackbar(it)
+        }
+    }
+    LaunchedEffect(uiState.createdId) {
+        if (uiState.createdId != null) onCreated(uiState.createdId!!)
+    }
+
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Bädd",
+        mastheadCenter = "Ny bädd",
+        bottomBar = {
+            FaltetFormSubmitBar(
+                label = "Skapa",
+                onClick = submitAction,
+                enabled = canSubmit,
+                submitting = uiState.isLoading,
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text(stringResource(R.string.bed_name)) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            )
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text(stringResource(R.string.description_optional)) },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 3,
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            // Conditions section
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                Column {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            stringResource(R.string.bed_conditions_section_title),
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 15.sp,
-                            modifier = Modifier.weight(1f)
-                        )
-                        IconButton(onClick = { conditionsExpanded = !conditionsExpanded }) {
-                            Icon(
-                                if (conditionsExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                contentDescription = null
-                            )
-                        }
-                    }
-                    AnimatedVisibility(visible = conditionsExpanded) {
-                        Column(
-                            modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            BedConditionsFields(
-                                soilType = soilType,
-                                onSoilTypeChange = { soilType = it },
-                                soilPhText = soilPhText,
-                                onSoilPhTextChange = { soilPhText = it },
-                                soilPhError = soilPhError,
-                                sunExposure = sunExposure,
-                                onSunExposureChange = { sunExposure = it },
-                                aspect = aspect,
-                                onAspectChange = { aspect = it },
-                                drainage = drainage,
-                                onDrainageChange = { drainage = it },
-                                irrigationType = irrigationType,
-                                onIrrigationTypeChange = { irrigationType = it },
-                                protection = protection,
-                                onProtectionChange = { protection = it },
-                                raisedBed = raisedBed,
-                                onRaisedBedChange = { raisedBed = it }
-                            )
-                        }
-                    }
-                }
+            item {
+                Field(
+                    label = "Namn",
+                    value = name,
+                    onValueChange = { name = it; nameError = false },
+                    required = true,
+                    error = if (nameError) "Namn krävs" else null,
+                )
             }
-
-            Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = {
-                    viewModel.create(
-                        name = name,
-                        description = description,
-                        soilType = soilType,
-                        soilPh = soilPhText.toDoubleOrNull(),
-                        sunExposure = sunExposure,
-                        drainage = drainage,
-                        aspect = aspect,
-                        irrigationType = irrigationType,
-                        protection = protection,
-                        raisedBed = raisedBed
-                    )
-                },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(12.dp),
-                enabled = name.isNotBlank() && !uiState.isLoading
-            ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                } else {
-                    Text(stringResource(R.string.create_bed))
-                }
+            item {
+                Field(
+                    label = "Beskrivning (valfri)",
+                    value = description,
+                    onValueChange = { description = it },
+                )
             }
-            uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }
+            item {
+                FaltetChipSelector(
+                    label = "Jordtyp",
+                    options = BedSoilType.values,
+                    selected = soilType,
+                    onSelectedChange = { soilType = it },
+                    labelFor = { bedSoilTypeLabelStr(it) },
+                )
+            }
+            item {
+                Field(
+                    label = "pH (valfri)",
+                    value = soilPhText,
+                    onValueChange = { soilPhText = it; phError = null },
+                    keyboardType = KeyboardType.Decimal,
+                    error = phError,
+                )
+            }
+            item {
+                FaltetChipSelector(
+                    label = "Dränering",
+                    options = BedDrainage.values,
+                    selected = drainage,
+                    onSelectedChange = { drainage = it },
+                    labelFor = { bedDrainageLabelStr(it) },
+                )
+            }
+            item {
+                FaltetChipSelector(
+                    label = "Sol",
+                    options = BedSunExposure.values,
+                    selected = sunExposure,
+                    onSelectedChange = { sunExposure = it },
+                    labelFor = { bedSunExposureLabelStr(it) },
+                )
+            }
+            item {
+                FaltetChipSelector(
+                    label = "Väderstreck",
+                    options = BedAspect.values,
+                    selected = aspect,
+                    onSelectedChange = { aspect = it },
+                    labelFor = { bedAspectLabelStr(it) },
+                )
+            }
+            item {
+                FaltetChipSelector(
+                    label = "Bevattning",
+                    options = BedIrrigationType.values,
+                    selected = irrigationType,
+                    onSelectedChange = { irrigationType = it },
+                    labelFor = { bedIrrigationTypeLabelStr(it) },
+                )
+            }
+            item {
+                FaltetChipSelector(
+                    label = "Skydd",
+                    options = BedProtection.values,
+                    selected = protection,
+                    onSelectedChange = { protection = it },
+                    labelFor = { bedProtectionLabelStr(it) },
+                )
+            }
+            item {
+                FaltetChipSelector(
+                    label = "Upphöjd bädd (valfri)",
+                    options = listOf(true, false),
+                    selected = raisedBed,
+                    onSelectedChange = { raisedBed = it },
+                    labelFor = { if (it) "Ja" else "Nej" },
+                )
+            }
         }
     }
 }
 
+// BedConditionsFields — kept for use by BedDetailScreen (edit dialog)
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+fun BedConditionsFields(
+    soilType: String?,
+    onSoilTypeChange: (String?) -> Unit,
+    soilPhText: String,
+    onSoilPhTextChange: (String) -> Unit,
+    soilPhError: Boolean,
+    sunExposure: String?,
+    onSunExposureChange: (String?) -> Unit,
+    aspect: String?,
+    onAspectChange: (String?) -> Unit,
+    drainage: String?,
+    onDrainageChange: (String?) -> Unit,
+    irrigationType: String?,
+    onIrrigationTypeChange: (String?) -> Unit,
+    protection: String?,
+    onProtectionChange: (String?) -> Unit,
+    raisedBed: Boolean?,
+    onRaisedBedChange: (Boolean?) -> Unit,
+) {
+    FaltetChipSelector(
+        label = "Jordtyp",
+        options = BedSoilType.values,
+        selected = soilType,
+        onSelectedChange = onSoilTypeChange,
+        labelFor = { bedSoilTypeLabelStr(it) },
+    )
+    FaltetChipSelector(
+        label = "Sol",
+        options = BedSunExposure.values,
+        selected = sunExposure,
+        onSelectedChange = onSunExposureChange,
+        labelFor = { bedSunExposureLabelStr(it) },
+    )
+    FaltetChipSelector(
+        label = "Väderstreck",
+        options = BedAspect.values,
+        selected = aspect,
+        onSelectedChange = onAspectChange,
+        labelFor = { bedAspectLabelStr(it) },
+    )
+    FaltetChipSelector(
+        label = "Dränering",
+        options = BedDrainage.values,
+        selected = drainage,
+        onSelectedChange = onDrainageChange,
+        labelFor = { bedDrainageLabelStr(it) },
+    )
+    FaltetChipSelector(
+        label = "Bevattning",
+        options = BedIrrigationType.values,
+        selected = irrigationType,
+        onSelectedChange = onIrrigationTypeChange,
+        labelFor = { bedIrrigationTypeLabelStr(it) },
+    )
+    FaltetChipSelector(
+        label = "Skydd",
+        options = BedProtection.values,
+        selected = protection,
+        onSelectedChange = onProtectionChange,
+        labelFor = { bedProtectionLabelStr(it) },
+    )
+    Field(
+        label = "pH (valfri)",
+        value = soilPhText,
+        onValueChange = onSoilPhTextChange,
+        keyboardType = KeyboardType.Decimal,
+        error = if (soilPhError) "pH måste vara mellan 3.0 och 9.0" else null,
+    )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text("Upphöjd bädd", fontWeight = FontWeight.Medium, fontSize = 13.sp)
+        Switch(
+            checked = raisedBed == true,
+            onCheckedChange = { checked -> onRaisedBedChange(if (checked) true else null) }
+        )
+    }
+}
+
+// Non-composable label functions — used by FaltetChipSelector.labelFor (plain (T) -> String lambda)
+fun bedSoilTypeLabelStr(value: String): String = when (value) {
+    BedSoilType.SANDY -> "Sand"
+    BedSoilType.LOAMY -> "Mulljord"
+    BedSoilType.CLAY -> "Lera"
+    BedSoilType.SILTY -> "Siltjord"
+    BedSoilType.PEATY -> "Torv"
+    BedSoilType.CHALKY -> "Kalkjord"
+    else -> value
+}
+
+fun bedSunExposureLabelStr(value: String): String = when (value) {
+    BedSunExposure.FULL_SUN -> "Fullt sol"
+    BedSunExposure.PARTIAL_SUN -> "Halvskugga/sol"
+    BedSunExposure.PARTIAL_SHADE -> "Halvskugga"
+    BedSunExposure.FULL_SHADE -> "Skugga"
+    else -> value
+}
+
+fun bedDrainageLabelStr(value: String): String = when (value) {
+    BedDrainage.POOR -> "Dålig"
+    BedDrainage.MODERATE -> "Måttlig"
+    BedDrainage.GOOD -> "Bra"
+    BedDrainage.SHARP -> "Skarp"
+    else -> value
+}
+
+fun bedAspectLabelStr(value: String): String = when (value) {
+    BedAspect.FLAT -> "Plant"
+    BedAspect.N -> "N"
+    BedAspect.NE -> "NO"
+    BedAspect.E -> "O"
+    BedAspect.SE -> "SO"
+    BedAspect.S -> "S"
+    BedAspect.SW -> "SV"
+    BedAspect.W -> "V"
+    BedAspect.NW -> "NV"
+    else -> value
+}
+
+fun bedIrrigationTypeLabelStr(value: String): String = when (value) {
+    BedIrrigationType.DRIP -> "Droppbevattning"
+    BedIrrigationType.SPRINKLER -> "Spridare"
+    BedIrrigationType.SOAKER_HOSE -> "Soakerslang"
+    BedIrrigationType.MANUAL -> "Manuell"
+    BedIrrigationType.NONE -> "Ingen"
+    else -> value
+}
+
+fun bedProtectionLabelStr(value: String): String = when (value) {
+    BedProtection.OPEN_FIELD -> "Öppet fält"
+    BedProtection.ROW_COVER -> "Radtäcke"
+    BedProtection.LOW_TUNNEL -> "Låg tunnel"
+    BedProtection.HIGH_TUNNEL -> "Hög tunnel"
+    BedProtection.GREENHOUSE -> "Växthus"
+    BedProtection.COLDFRAME -> "Kallbänk"
+    else -> value
+}
+
+// Composable label functions — used by BedDetailScreen and other composable call sites
 @Composable
 fun bedSoilTypeLabel(value: String): String = when (value) {
     BedSoilType.SANDY -> stringResource(R.string.bed_soil_sandy)
@@ -308,124 +478,74 @@ fun bedProtectionLabel(value: String): String = when (value) {
     else -> value
 }
 
-@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
 @Composable
-fun BedConditionsFields(
-    soilType: String?,
-    onSoilTypeChange: (String?) -> Unit,
-    soilPhText: String,
-    onSoilPhTextChange: (String) -> Unit,
-    soilPhError: Boolean,
-    sunExposure: String?,
-    onSunExposureChange: (String?) -> Unit,
-    aspect: String?,
-    onAspectChange: (String?) -> Unit,
-    drainage: String?,
-    onDrainageChange: (String?) -> Unit,
-    irrigationType: String?,
-    onIrrigationTypeChange: (String?) -> Unit,
-    protection: String?,
-    onProtectionChange: (String?) -> Unit,
-    raisedBed: Boolean?,
-    onRaisedBedChange: (Boolean?) -> Unit,
-) {
-    // Soil type
-    Text(stringResource(R.string.bed_soil_type), fontWeight = FontWeight.Medium, fontSize = 13.sp)
-    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        BedSoilType.values.forEach { v ->
-            FilterChip(
-                selected = soilType == v,
-                onClick = { onSoilTypeChange(if (soilType == v) null else v) },
-                label = { Text(bedSoilTypeLabel(v), fontSize = 12.sp) }
+private fun CreateBedScreenPreview() {
+    // Populated form state with a pH error for visual inspection
+    val snackbarHostState = remember { SnackbarHostState() }
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Bädd",
+        mastheadCenter = "Ny bädd",
+        bottomBar = {
+            FaltetFormSubmitBar(
+                label = "Skapa",
+                onClick = {},
+                enabled = false,
+                submitting = false,
             )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            item {
+                Field(
+                    label = "Namn",
+                    value = "Köksträdgård",
+                    onValueChange = {},
+                    required = true,
+                    error = null,
+                )
+            }
+            item {
+                Field(
+                    label = "Beskrivning (valfri)",
+                    value = "Södra delen av trädgården",
+                    onValueChange = {},
+                )
+            }
+            item {
+                FaltetChipSelector(
+                    label = "Jordtyp",
+                    options = BedSoilType.values,
+                    selected = BedSoilType.LOAMY,
+                    onSelectedChange = {},
+                    labelFor = { it },
+                )
+            }
+            item {
+                Field(
+                    label = "pH (valfri)",
+                    value = "2.0",
+                    onValueChange = {},
+                    keyboardType = KeyboardType.Decimal,
+                    error = "pH måste vara mellan 3.0 och 9.0",
+                )
+            }
+            item {
+                FaltetChipSelector(
+                    label = "Dränering",
+                    options = BedDrainage.values,
+                    selected = BedDrainage.GOOD,
+                    onSelectedChange = {},
+                    labelFor = { it },
+                )
+            }
         }
-    }
-
-    // Soil pH
-    OutlinedTextField(
-        value = soilPhText,
-        onValueChange = onSoilPhTextChange,
-        label = { Text(stringResource(R.string.bed_soil_ph)) },
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-        isError = soilPhError,
-        supportingText = if (soilPhError) {
-            { Text(stringResource(R.string.bed_soil_ph_error)) }
-        } else null,
-        singleLine = true
-    )
-
-    // Sun exposure
-    Text(stringResource(R.string.bed_sun_exposure), fontWeight = FontWeight.Medium, fontSize = 13.sp)
-    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        BedSunExposure.values.forEach { v ->
-            FilterChip(
-                selected = sunExposure == v,
-                onClick = { onSunExposureChange(if (sunExposure == v) null else v) },
-                label = { Text(bedSunExposureLabel(v), fontSize = 12.sp) }
-            )
-        }
-    }
-
-    // Aspect
-    Text(stringResource(R.string.bed_aspect), fontWeight = FontWeight.Medium, fontSize = 13.sp)
-    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        BedAspect.values.forEach { v ->
-            FilterChip(
-                selected = aspect == v,
-                onClick = { onAspectChange(if (aspect == v) null else v) },
-                label = { Text(bedAspectLabel(v), fontSize = 12.sp) }
-            )
-        }
-    }
-
-    // Drainage
-    Text(stringResource(R.string.bed_drainage), fontWeight = FontWeight.Medium, fontSize = 13.sp)
-    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        BedDrainage.values.forEach { v ->
-            FilterChip(
-                selected = drainage == v,
-                onClick = { onDrainageChange(if (drainage == v) null else v) },
-                label = { Text(bedDrainageLabel(v), fontSize = 12.sp) }
-            )
-        }
-    }
-
-    // Irrigation type
-    Text(stringResource(R.string.bed_irrigation), fontWeight = FontWeight.Medium, fontSize = 13.sp)
-    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        BedIrrigationType.values.forEach { v ->
-            FilterChip(
-                selected = irrigationType == v,
-                onClick = { onIrrigationTypeChange(if (irrigationType == v) null else v) },
-                label = { Text(bedIrrigationTypeLabel(v), fontSize = 12.sp) }
-            )
-        }
-    }
-
-    // Protection
-    Text(stringResource(R.string.bed_protection), fontWeight = FontWeight.Medium, fontSize = 13.sp)
-    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        BedProtection.values.forEach { v ->
-            FilterChip(
-                selected = protection == v,
-                onClick = { onProtectionChange(if (protection == v) null else v) },
-                label = { Text(bedProtectionLabel(v), fontSize = 12.sp) }
-            )
-        }
-    }
-
-    // Raised bed
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(stringResource(R.string.bed_raised_bed), fontWeight = FontWeight.Medium, fontSize = 13.sp)
-        Switch(
-            checked = raisedBed == true,
-            onCheckedChange = { checked -> onRaisedBedChange(if (checked) true else null) }
-        )
     }
 }
