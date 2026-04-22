@@ -253,6 +253,48 @@ fun AddSpeciesScreen(
         }
     }
 
+    // AI auto-populate from suggestions (front photo identification)
+    LaunchedEffect(uiState.suggestions) {
+        val top = uiState.suggestions.firstOrNull() ?: return@LaunchedEffect
+        if (commonName.isBlank()) commonName = top.commonName
+        if (scientificName.isBlank()) scientificName = top.species
+        val box = top.cropBox
+        val src = frontBitmap
+        if (box != null && src != null) {
+            val cropped = src.cropToBox(box)
+            frontBitmap = cropped
+            imageFrontBase64 = cropped.toCompressedBase64()
+        }
+    }
+
+    // AI auto-populate from extraction (back photo info extraction)
+    LaunchedEffect(uiState.extractedInfo) {
+        val info = uiState.extractedInfo ?: return@LaunchedEffect
+        if (commonName.isBlank()) info.commonName?.let { commonName = it }
+        if (variantName.isBlank()) info.variantName?.let { variantName = it }
+        if (variantNameSv.isBlank()) info.variantNameSv?.let { variantNameSv = it }
+        if (scientificName.isBlank()) info.scientificName?.let { scientificName = it }
+        if (germinationTimeDaysMin.isBlank()) info.germinationTimeDaysMin?.let { germinationTimeDaysMin = it.toString() }
+        if (germinationTimeDaysMax.isBlank()) info.germinationTimeDaysMax?.let { germinationTimeDaysMax = it.toString() }
+        if (daysToHarvestMin.isBlank()) info.daysToHarvestMin?.let { daysToHarvestMin = it.toString() }
+        if (daysToHarvestMax.isBlank()) info.daysToHarvestMax?.let { daysToHarvestMax = it.toString() }
+        if (sowingDepthMm.isBlank()) info.sowingDepthMm?.let { sowingDepthMm = it.toString() }
+        if (heightCmMin.isBlank()) info.heightCmMin?.let { heightCmMin = it.toString() }
+        if (heightCmMax.isBlank()) info.heightCmMax?.let { heightCmMax = it.toString() }
+        if (germinationRate.isBlank()) info.germinationRate?.let { germinationRate = it.toString() }
+        if (selectedBloomMonths.isEmpty()) info.bloomMonths?.let { selectedBloomMonths = it.toSet() }
+        if (selectedSowingMonths.isEmpty()) info.sowingMonths?.let { selectedSowingMonths = it.toSet() }
+        if (selectedPositions.isEmpty()) info.growingPositions?.let { selectedPositions = it.toSet() }
+        if (selectedSoils.isEmpty()) info.soils?.let { selectedSoils = it.toSet() }
+        val box = info.cropBox
+        val src = backBitmap
+        if (box != null && src != null) {
+            val cropped = src.cropToBox(box)
+            backBitmap = cropped
+            imageBackBase64 = cropped.toCompressedBase64()
+        }
+    }
+
     val hasData = commonName.isNotBlank() || variantName.isNotBlank() || variantNameSv.isNotBlank() ||
         scientificName.isNotBlank() || imageFrontBase64 != null || imageBackBase64 != null ||
         germinationTimeDaysMin.isNotBlank() || germinationTimeDaysMax.isNotBlank() ||
@@ -417,6 +459,18 @@ fun AddSpeciesScreen(
         }
     }
 
+    val fillFromSuggestion: (PlantSuggestion) -> Unit = { suggestion ->
+        commonName = suggestion.commonName
+        scientificName = suggestion.species
+        val box = suggestion.cropBox
+        val src = frontBitmap
+        if (box != null && src != null) {
+            val cropped = src.cropToBox(box)
+            frontBitmap = cropped
+            imageFrontBase64 = cropped.toCompressedBase64()
+        }
+    }
+
     FaltetScreenScaffold(
         mastheadLeft = "§ Art",
         mastheadCenter = if (isEdit) uiState.existingSpecies?.commonName ?: "Redigera art" else "Ny art",
@@ -445,6 +499,76 @@ fun AddSpeciesScreen(
             contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            // Photo row: front + back side-by-side
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        FaltetImagePicker(
+                            label = "Framsida *",
+                            value = frontBitmap,
+                            onValueChange = { bitmap ->
+                                frontBitmap = bitmap
+                                if (bitmap != null) {
+                                    val b64 = bitmap.toCompressedBase64()
+                                    imageFrontBase64 = b64
+                                    viewModel.identifyPlant(b64)
+                                } else {
+                                    imageFrontBase64 = null
+                                }
+                            },
+                        )
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        FaltetImagePicker(
+                            label = "Baksida (valfri)",
+                            value = backBitmap,
+                            onValueChange = { bitmap ->
+                                backBitmap = bitmap
+                                if (bitmap != null) {
+                                    val b64 = bitmap.toCompressedBase64()
+                                    imageBackBase64 = b64
+                                    viewModel.extractSpeciesInfo(b64)
+                                } else {
+                                    imageBackBase64 = null
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+
+            // AI spinner row
+            if (uiState.identifying || uiState.extracting) {
+                item {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp),
+                    ) {
+                        CircularProgressIndicator(
+                            color = FaltetClay,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            text = if (uiState.identifying) "Identifierar…" else "Extraherar information…",
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 10.sp,
+                            letterSpacing = 1.2.sp,
+                            color = FaltetForest,
+                        )
+                    }
+                }
+            }
+
+            // AI suggestion cards
+            if (uiState.suggestions.isNotEmpty()) {
+                item { FaltetSectionHeader(label = "Förslag") }
+                items(uiState.suggestions, key = { it.species }) { suggestion ->
+                    SuggestionRow(suggestion = suggestion, onTap = { fillFromSuggestion(suggestion) })
+                }
+            }
+
             // Common name
             item {
                 Field(
@@ -650,6 +774,51 @@ fun AddSpeciesScreen(
 
             item { Spacer(Modifier.height(80.dp)) }
         }
+    }
+}
+
+@Composable
+private fun SuggestionRow(
+    suggestion: PlantSuggestion,
+    onTap: () -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onTap)
+            .drawBehind {
+                drawLine(
+                    color = FaltetInkLine20,
+                    start = Offset(0f, size.height),
+                    end = Offset(size.width, size.height),
+                    strokeWidth = 1.dp.toPx(),
+                )
+            }
+            .padding(horizontal = 18.dp, vertical = 10.dp),
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = suggestion.commonName,
+                fontFamily = FaltetDisplay,
+                fontStyle = FontStyle.Italic,
+                fontSize = 16.sp,
+                color = FaltetInk,
+            )
+            Text(
+                text = suggestion.species.uppercase(),
+                fontFamily = FontFamily.Monospace,
+                fontSize = 10.sp,
+                letterSpacing = 1.2.sp,
+                color = FaltetForest,
+            )
+        }
+        Text(
+            text = "${(suggestion.confidence * 100).toInt()}%",
+            fontFamily = FontFamily.Monospace,
+            fontSize = 14.sp,
+            color = FaltetClay,
+        )
     }
 }
 
