@@ -12,6 +12,7 @@ import android.location.Geocoder
 import android.location.LocationManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,11 +30,15 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -42,8 +47,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
 import app.verdant.android.data.model.*
-import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.ui.faltet.FaltetFormSubmitBar
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.Field
+import app.verdant.android.ui.theme.FaltetForest
+import app.verdant.android.ui.theme.FaltetInkLine20
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
@@ -150,7 +159,7 @@ class CreateGardenViewModel @Inject constructor(
 
     // Step 1+2: Layout
     var gardenName by mutableStateOf("")
-    var gardenEmoji by mutableStateOf("\uD83C\uDF31")
+    var gardenEmoji by mutableStateOf("🌱")
     var gardenBoundary = mutableStateListOf<GmsLatLng>()
     var beds = mutableStateListOf<EditableBed>()
 
@@ -208,7 +217,7 @@ class CreateGardenViewModel @Inject constructor(
             try {
                 val request = CreateGardenWithLayoutRequest(
                     name = gardenName,
-                    emoji = gardenEmoji.ifBlank { "\uD83C\uDF31" },
+                    emoji = gardenEmoji.ifBlank { "🌱" },
                     latitude = selectedLatLng?.latitude,
                     longitude = selectedLatLng?.longitude,
                     address = selectedAddress.ifBlank { null },
@@ -271,36 +280,50 @@ fun CreateGardenScreen(
 ) {
     val context = LocalContext.current
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(viewModel.error) { viewModel.error?.let { snackbarHostState.showSnackbar(it) } }
     LaunchedEffect(viewModel.createdGardenId) {
-        viewModel.createdGardenId?.let { onCreated() }
+        if (viewModel.createdGardenId != null) onCreated()
     }
 
-    Scaffold(
+    val mastheadCenter = when (viewModel.currentStep) {
+        0 -> stringResource(R.string.pick_location)
+        1 -> stringResource(R.string.garden_boundary)
+        2 -> stringResource(R.string.name_your_garden)
+        3 -> stringResource(R.string.garden_beds)
+        else -> "Ny trädgård"
+    }
+
+    val canSubmit = viewModel.gardenName.isNotBlank() && !viewModel.isCreating
+
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Trädgård",
+        mastheadCenter = mastheadCenter,
+        bottomBar = {
+            when (viewModel.currentStep) {
+                0 -> {} // no bottom bar on location picker — navigation via FABs on map
+                1 -> {} // no bottom bar on boundary editor — navigation via FABs on map
+                2 -> FaltetFormSubmitBar(
+                    label = stringResource(R.string.next_edit_beds),
+                    onClick = { viewModel.currentStep = 3 },
+                    enabled = viewModel.gardenName.isNotBlank(),
+                    submitting = false,
+                )
+                3 -> FaltetFormSubmitBar(
+                    label = "Skapa",
+                    onClick = { viewModel.createGarden() },
+                    enabled = canSubmit,
+                    submitting = viewModel.isCreating,
+                )
+                else -> {}
+            }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        when (viewModel.currentStep) {
-                            0 -> stringResource(R.string.pick_location)
-                            1 -> stringResource(R.string.garden_boundary)
-                            2 -> stringResource(R.string.name_your_garden)
-                            3 -> stringResource(R.string.garden_beds)
-                            else -> "New Garden"
-                        }
-                    )
-                },
-                windowInsets = WindowInsets(0),
-                navigationIcon = {
-                    IconButton(onClick = {
-                        if (viewModel.currentStep > 0) viewModel.currentStep--
-                        else onBack()
-                    }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                colors = verdantTopAppBarColors()
-            )
-        }
+            if (viewModel.currentStep > 0) {
+                // Provide a back navigation row above the masthead for wizard steps
+            }
+        },
     ) { padding ->
         when (viewModel.currentStep) {
             0 -> LocationPickerStep(
@@ -556,42 +579,29 @@ private fun NameGardenStep(
     modifier: Modifier,
     viewModel: CreateGardenViewModel
 ) {
-    Column(
-        modifier = modifier.padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    var nameError by remember { mutableStateOf(false) }
+
+    LazyColumn(
+        modifier = modifier,
+        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(
-            stringResource(R.string.what_should_we_call_garden),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(Modifier.height(32.dp))
-        OutlinedTextField(
-            value = viewModel.gardenEmoji,
-            onValueChange = { viewModel.gardenEmoji = it },
-            label = { Text(stringResource(R.string.emoji)) },
-            modifier = Modifier.width(96.dp),
-            shape = RoundedCornerShape(12.dp),
-            singleLine = true
-        )
-        Spacer(Modifier.height(16.dp))
-        OutlinedTextField(
-            value = viewModel.gardenName,
-            onValueChange = { viewModel.gardenName = it },
-            label = { Text(stringResource(R.string.garden_name)) },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            singleLine = true
-        )
-        Spacer(Modifier.height(32.dp))
-        Button(
-            onClick = { viewModel.currentStep = 3 },
-            modifier = Modifier.fillMaxWidth().height(52.dp),
-            shape = RoundedCornerShape(12.dp),
-            enabled = viewModel.gardenName.isNotBlank()
-        ) {
-            Text(stringResource(R.string.next_edit_beds))
+        item {
+            Field(
+                label = "Namn",
+                value = viewModel.gardenName,
+                onValueChange = { viewModel.gardenName = it; nameError = false },
+                required = true,
+                error = if (nameError) "Namn krävs" else null,
+            )
+        }
+        item {
+            Field(
+                label = "Emoji",
+                value = viewModel.gardenEmoji,
+                onValueChange = { viewModel.gardenEmoji = it },
+                placeholder = "🌱",
+            )
         }
     }
 }
@@ -621,68 +631,90 @@ private fun BedEditorStep(
     LazyColumn(modifier = modifier) {
         // Map
         item {
-            Box(modifier = Modifier.fillMaxWidth().height(400.dp)) {
-                GoogleMap(
-                    modifier = Modifier.fillMaxSize(),
-                    cameraPositionState = cameraPositionState,
-                    properties = MapProperties(mapType = MapType.HYBRID, maxZoomPreference = 21f),
-                    uiSettings = MapUiSettings(scrollGesturesEnabled = true, zoomGesturesEnabled = true, rotationGesturesEnabled = false, tiltGesturesEnabled = false)
-                ) {
-                    // Garden boundary as reference (non-editable)
-                    if (viewModel.gardenBoundary.size >= 3) {
-                        Polygon(
-                            points = viewModel.gardenBoundary.toList(),
-                            fillColor = Color(0x1100AA00),
-                            strokeColor = Color(0xFF00AA00),
-                            strokeWidth = 2f
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 18.dp, vertical = 8.dp)
+                    .drawBehind {
+                        drawLine(
+                            color = FaltetInkLine20,
+                            start = Offset(0f, size.height),
+                            end = Offset(size.width, size.height),
+                            strokeWidth = 1.dp.toPx(),
                         )
-                    }
-
-                    // Bed polygons, vertex markers, and midpoint "+" markers
-                    viewModel.beds.forEachIndexed { bedIndex, bed ->
-                        if (bed.boundary.size >= 3) {
+                    },
+            ) {
+                Text(
+                    text = "KARTA",
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 9.sp,
+                    letterSpacing = 1.4.sp,
+                    color = FaltetForest.copy(alpha = 0.7f),
+                )
+                Spacer(Modifier.height(8.dp))
+                Box(modifier = Modifier.fillMaxWidth().height(400.dp)) {
+                    GoogleMap(
+                        modifier = Modifier.fillMaxSize(),
+                        cameraPositionState = cameraPositionState,
+                        properties = MapProperties(mapType = MapType.HYBRID, maxZoomPreference = 21f),
+                        uiSettings = MapUiSettings(scrollGesturesEnabled = true, zoomGesturesEnabled = true, rotationGesturesEnabled = false, tiltGesturesEnabled = false)
+                    ) {
+                        // Garden boundary as reference (non-editable)
+                        if (viewModel.gardenBoundary.size >= 3) {
                             Polygon(
-                                points = bed.boundary.toList(),
-                                fillColor = bed.color.copy(alpha = 0.3f),
-                                strokeColor = bed.color,
+                                points = viewModel.gardenBoundary.toList(),
+                                fillColor = Color(0x1100AA00),
+                                strokeColor = Color(0xFF00AA00),
                                 strokeWidth = 2f
                             )
                         }
 
-                        // Vertex markers
-                        for (vi in 0 until bed.boundary.size) {
-                            key(bedVersion, bedIndex, vi) {
-                                val state = rememberMarkerState(position = bed.boundary[vi])
-                                LaunchedEffect(state) {
-                                    snapshotFlow { state.isDragging }.collect { dragging ->
-                                        if (!dragging && bedIndex < viewModel.beds.size && vi < viewModel.beds[bedIndex].boundary.size) {
-                                            viewModel.beds[bedIndex].boundary[vi] = state.position
+                        // Bed polygons, vertex markers, and midpoint "+" markers
+                        viewModel.beds.forEachIndexed { bedIndex, bed ->
+                            if (bed.boundary.size >= 3) {
+                                Polygon(
+                                    points = bed.boundary.toList(),
+                                    fillColor = bed.color.copy(alpha = 0.3f),
+                                    strokeColor = bed.color,
+                                    strokeWidth = 2f
+                                )
+                            }
+
+                            // Vertex markers
+                            for (vi in 0 until bed.boundary.size) {
+                                key(bedVersion, bedIndex, vi) {
+                                    val state = rememberMarkerState(position = bed.boundary[vi])
+                                    LaunchedEffect(state) {
+                                        snapshotFlow { state.isDragging }.collect { dragging ->
+                                            if (!dragging && bedIndex < viewModel.beds.size && vi < viewModel.beds[bedIndex].boundary.size) {
+                                                viewModel.beds[bedIndex].boundary[vi] = state.position
+                                            }
                                         }
                                     }
+                                    Marker(state = state, draggable = true, title = bed.name.value, alpha = 0.8f)
                                 }
-                                Marker(state = state, draggable = true, title = bed.name.value, alpha = 0.8f)
                             }
-                        }
 
-                        // Midpoint "+" markers
-                        if (bed.boundary.size >= 2) {
-                            val pts = bed.boundary.toList()
-                            for (i in pts.indices) {
-                                val next = (i + 1) % pts.size
-                                val mid = midpoint(pts[i], pts[next])
-                                val insertAfter = i
-                                val bi = bedIndex
-                                Marker(
-                                    state = MarkerState(position = mid),
-                                    icon = getPlusIcon(),
-                                    anchor = Offset(0.5f, 0.5f),
-                                    alpha = 0.85f,
-                                    onClick = {
-                                        viewModel.addVertexToBed(bi, insertAfter, mid)
-                                        bedVersion++
-                                        true
-                                    }
-                                )
+                            // Midpoint "+" markers
+                            if (bed.boundary.size >= 2) {
+                                val pts = bed.boundary.toList()
+                                for (i in pts.indices) {
+                                    val next = (i + 1) % pts.size
+                                    val mid = midpoint(pts[i], pts[next])
+                                    val insertAfter = i
+                                    val bi = bedIndex
+                                    Marker(
+                                        state = MarkerState(position = mid),
+                                        icon = getPlusIcon(),
+                                        anchor = Offset(0.5f, 0.5f),
+                                        alpha = 0.85f,
+                                        onClick = {
+                                            viewModel.addVertexToBed(bi, insertAfter, mid)
+                                            bedVersion++
+                                            true
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -754,19 +786,90 @@ private fun BedEditorStep(
                 app.verdant.android.ui.common.InlineErrorBanner(errorMsg, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
             }
         }
+    }
+}
 
-        // Create button
-        item {
-            Button(
-                onClick = { viewModel.createGarden() },
-                modifier = Modifier.fillMaxWidth().padding(16.dp).height(52.dp),
-                shape = RoundedCornerShape(12.dp),
-                enabled = viewModel.gardenName.isNotBlank() && !viewModel.isCreating
-            ) {
-                if (viewModel.isCreating) {
-                    CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                } else {
-                    Text(stringResource(R.string.create_garden))
+// ──────────────────────────────────────────────
+// Preview
+// ──────────────────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
+@Composable
+private fun CreateGardenScreenPreview() {
+    val snackbarHostState = remember { SnackbarHostState() }
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Trädgård",
+        mastheadCenter = "Ny trädgård",
+        bottomBar = {
+            FaltetFormSubmitBar(
+                label = "Skapa",
+                onClick = {},
+                enabled = true,
+                submitting = false,
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            item {
+                Field(
+                    label = "Namn",
+                    value = "Mina Örter",
+                    onValueChange = {},
+                    required = true,
+                )
+            }
+            item {
+                Field(
+                    label = "Emoji",
+                    value = "🌱",
+                    onValueChange = {},
+                    placeholder = "🌱",
+                )
+            }
+            item {
+                // Map placeholder for preview
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .drawBehind {
+                            drawLine(
+                                color = FaltetInkLine20,
+                                start = Offset(0f, size.height),
+                                end = Offset(size.width, size.height),
+                                strokeWidth = 1.dp.toPx(),
+                            )
+                        },
+                ) {
+                    Text(
+                        text = "KARTA",
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 9.sp,
+                        letterSpacing = 1.4.sp,
+                        color = FaltetForest.copy(alpha = 0.7f),
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .background(FaltetForest.copy(alpha = 0.1f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "Karta",
+                            color = FaltetForest.copy(alpha = 0.4f),
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
             }
         }
