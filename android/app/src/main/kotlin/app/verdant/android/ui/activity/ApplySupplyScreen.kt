@@ -1,29 +1,39 @@
 package app.verdant.android.ui.activity
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.verdant.android.R
-import app.verdant.android.data.model.*
+import app.verdant.android.data.model.CreateSupplyApplicationRequest
+import app.verdant.android.data.model.PlantResponse
+import app.verdant.android.data.model.SupplyApplicationScope
+import app.verdant.android.data.model.SupplyInventoryResponse
+import app.verdant.android.data.model.SupplyTypeResponse
 import app.verdant.android.data.repository.GardenRepository
-import app.verdant.android.ui.common.InlineErrorBanner
-import app.verdant.android.ui.theme.verdantTopAppBarColors
+import app.verdant.android.ui.faltet.FaltetChecklistGroup
+import app.verdant.android.ui.faltet.FaltetDropdown
+import app.verdant.android.ui.faltet.FaltetFormSubmitBar
+import app.verdant.android.ui.faltet.FaltetScopeToggle
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.Field
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -123,6 +133,8 @@ class ApplySupplyViewModel @Inject constructor(
     }
 }
 
+private enum class Scope { BED, PLANTS }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ApplySupplyScreen(
@@ -137,7 +149,7 @@ fun ApplySupplyScreen(
     LaunchedEffect(Unit) { vm.load(bedId, initialPlantIds, suggestedSupplyTypeId, suggestedQuantity) }
     val state by vm.uiState.collectAsState()
 
-    var supplyExpanded by remember { mutableStateOf(false) }
+    val scope = if (state.scope == SupplyApplicationScope.BED) Scope.BED else Scope.PLANTS
 
     val visibleInventory = remember(state.inventory, state.supplyTypes, state.showAllCategories) {
         state.inventory.filter { inv ->
@@ -152,204 +164,229 @@ fun ApplySupplyScreen(
     val quantityNum = state.quantity.toDoubleOrNull() ?: 0.0
     val quantityExceeds = selectedLot != null && quantityNum > selectedLot.quantity
 
+    var quantityError by remember { mutableStateOf<String?>(null) }
+
     val canSubmit = state.selectedInventoryId != null &&
         quantityNum > 0 &&
         !quantityExceeds &&
-        (state.scope == SupplyApplicationScope.BED || state.selectedPlantIds.isNotEmpty())
+        (state.scope == SupplyApplicationScope.BED || state.selectedPlantIds.isNotEmpty()) &&
+        !state.saving
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.supply_application_apply_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                colors = verdantTopAppBarColors()
-            )
+    val submitAction: () -> Unit = {
+        val qty = state.quantity.toDoubleOrNull()
+        quantityError = when {
+            qty == null || qty <= 0 -> "Ogiltig mängd"
+            qty > (selectedLot?.quantity ?: 0.0) -> "Mängd överskrider tillgängligt"
+            else -> null
         }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Spacer(Modifier.height(4.dp))
-
-            // Target scope selector
-            Text(stringResource(R.string.supply_application_target_label), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    RadioButton(
-                        selected = state.scope == SupplyApplicationScope.BED,
-                        onClick = { vm.setScope(SupplyApplicationScope.BED) }
-                    )
-                    Text(stringResource(R.string.supply_application_whole_bed), fontSize = 15.sp)
-                }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    RadioButton(
-                        selected = state.scope == SupplyApplicationScope.PLANTS,
-                        onClick = { vm.setScope(SupplyApplicationScope.PLANTS) }
-                    )
-                    Text(stringResource(R.string.supply_application_selected_plants), fontSize = 15.sp)
-                }
-            }
-
-            // Plant checklist (PLANTS scope only)
-            if (state.scope == SupplyApplicationScope.PLANTS) {
-                Text(stringResource(R.string.supply_application_select_plants), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Card(
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    Column(Modifier.padding(vertical = 4.dp)) {
-                        val activePlants = state.bedPlants.filter { it.status != "REMOVED" }
-                        if (activePlants.isEmpty()) {
-                            Text(
-                                stringResource(R.string.no_plants_found),
-                                modifier = Modifier.padding(16.dp),
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                            )
-                        } else {
-                            activePlants.forEach { plant ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 12.dp, vertical = 2.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Checkbox(
-                                        checked = plant.id in state.selectedPlantIds,
-                                        onCheckedChange = { vm.togglePlant(plant.id) }
-                                    )
-                                    Text(plant.name, fontSize = 14.sp, modifier = Modifier.weight(1f))
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Supply dropdown
-            Text(stringResource(R.string.supply_application_select_supply), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            ExposedDropdownMenuBox(
-                expanded = supplyExpanded,
-                onExpandedChange = { supplyExpanded = it }
-            ) {
-                val displayLabel = selectedLot?.let { lot ->
-                    val type = state.supplyTypes.find { it.id == lot.supplyTypeId }
-                    buildString {
-                        append(type?.name ?: lot.supplyTypeName)
-                        append(" (${lot.quantity} ${lot.unit.lowercase()} ${stringResource(R.string.supply_application_remaining)})")
-                    }
-                } ?: ""
-                OutlinedTextField(
-                    value = displayLabel,
-                    onValueChange = {},
-                    readOnly = true,
-                    placeholder = { Text(stringResource(R.string.supply_application_select_supply)) },
-                    modifier = Modifier.fillMaxWidth().menuAnchor(),
-                    shape = RoundedCornerShape(12.dp),
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(supplyExpanded) }
-                )
-                ExposedDropdownMenu(
-                    expanded = supplyExpanded,
-                    onDismissRequest = { supplyExpanded = false }
-                ) {
-                    if (visibleInventory.isEmpty()) {
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    stringResource(R.string.no_supplies_available),
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                                )
-                            },
-                            onClick = {}
-                        )
-                    } else {
-                        visibleInventory.forEach { inv ->
-                            val type = state.supplyTypes.find { it.id == inv.supplyTypeId }
-                            DropdownMenuItem(
-                                text = {
-                                    Text(buildString {
-                                        append(type?.name ?: inv.supplyTypeName)
-                                        append(" – ${inv.quantity} ${inv.unit.lowercase()}")
-                                        append(" ${stringResource(R.string.supply_application_remaining)}")
-                                    })
-                                },
-                                onClick = {
-                                    vm.setInventoryId(inv.id)
-                                    supplyExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Show all categories toggle
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(
-                    checked = state.showAllCategories,
-                    onCheckedChange = { vm.setShowAllCategories(it) }
-                )
-                Text(stringResource(R.string.supply_application_show_all_categories), fontSize = 14.sp)
-            }
-
-            // Quantity input
-            Text(stringResource(R.string.supply_application_quantity), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            OutlinedTextField(
-                value = state.quantity,
-                onValueChange = { vm.setQuantity(it) },
-                placeholder = { Text("0.0") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                suffix = {
-                    val unit = selectedLot?.let { lot ->
-                        state.supplyTypes.find { it.id == lot.supplyTypeId }?.unit?.lowercase()
-                            ?: lot.unit.lowercase()
-                    } ?: ""
-                    if (unit.isNotBlank()) Text(unit, fontSize = 13.sp)
-                },
-                isError = quantityExceeds,
-                supportingText = if (quantityExceeds) {
-                    { Text(stringResource(R.string.supply_application_insufficient_quantity), color = MaterialTheme.colorScheme.error) }
-                } else null
-            )
-
-            // Notes
-            OutlinedTextField(
-                value = state.notes,
-                onValueChange = { vm.setNotes(it) },
-                label = { Text(stringResource(R.string.notes_optional)) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                minLines = 2
-            )
-
-            // Error
-            state.error?.let { InlineErrorBanner(it) }
-
-            // Submit
-            Button(
-                onClick = { vm.submit(bedId, workflowStepId, onBack) },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(12.dp),
-                enabled = canSubmit && !state.saving
-            ) {
-                if (state.saving) {
-                    CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                } else {
-                    Text(stringResource(R.string.supply_application_submit))
-                }
-            }
-
-            Spacer(Modifier.height(32.dp))
+        if (quantityError == null) {
+            vm.submit(bedId, workflowStepId, onBack)
         }
     }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(state.error) { state.error?.let { snackbarHostState.showSnackbar(it) } }
+    LaunchedEffect(state.done) { if (state.done) onBack() }
+
+    val activePlants = remember(state.bedPlants) { state.bedPlants.filter { it.status != "REMOVED" } }
+    val selectedPlantObjects = remember(state.selectedPlantIds, activePlants) {
+        activePlants.filter { it.id in state.selectedPlantIds }.toSet()
+    }
+
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Gödsling",
+        mastheadCenter = "Applicera förnödenhet",
+        bottomBar = {
+            FaltetFormSubmitBar(
+                label = "Spara",
+                onClick = submitAction,
+                enabled = canSubmit,
+                submitting = state.saving,
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            item {
+                FaltetScopeToggle(
+                    label = "Omfattning",
+                    options = listOf(Scope.BED, Scope.PLANTS),
+                    selected = scope,
+                    onSelectedChange = { vm.setScope(if (it == Scope.BED) SupplyApplicationScope.BED else SupplyApplicationScope.PLANTS) },
+                    labelFor = { if (it == Scope.BED) "Hela bädden" else "Enskilda plantor" },
+                    required = true,
+                )
+            }
+            if (scope == Scope.PLANTS) {
+                item {
+                    FaltetChecklistGroup(
+                        label = "Plantor",
+                        options = activePlants,
+                        selected = selectedPlantObjects,
+                        onSelectedChange = { plants ->
+                            val newIds = plants.map { it.id }.toSet()
+                            val added = newIds - state.selectedPlantIds
+                            val removed = state.selectedPlantIds - newIds
+                            added.forEach { vm.togglePlant(it) }
+                            removed.forEach { vm.togglePlant(it) }
+                        },
+                        labelFor = { it.name },
+                        subtitleFor = { plant -> plant.status.let { "Status: ${statusLabelSv(it)}" } },
+                        selectAllEnabled = true,
+                        required = true,
+                    )
+                }
+            }
+            item {
+                FaltetDropdown(
+                    label = "Förnödenhet",
+                    options = visibleInventory,
+                    selected = selectedLot,
+                    onSelectedChange = { vm.setInventoryId(it.id) },
+                    labelFor = { "${it.supplyTypeName} · ${app.verdant.android.ui.supplies.formatQuantity(it.quantity, it.unit)}" },
+                    searchable = true,
+                    required = true,
+                )
+            }
+            item {
+                Field(
+                    label = "Mängd",
+                    value = state.quantity,
+                    onValueChange = { vm.setQuantity(it); quantityError = null },
+                    keyboardType = KeyboardType.Decimal,
+                    required = true,
+                    error = quantityError ?: if (quantityExceeds) "Mängd överskrider tillgängligt" else null,
+                )
+            }
+            item {
+                Field(
+                    label = "Anteckningar (valfri)",
+                    value = state.notes,
+                    onValueChange = { vm.setNotes(it) },
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
+@Composable
+private fun ApplySupplyScreenPreview() {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val previewPlants = listOf(
+        PlantResponse(
+            id = 1L,
+            name = "Cosmos #1",
+            speciesId = null,
+            speciesName = "Cosmos bipinnatus",
+            plantedDate = null,
+            status = "PLANTED_OUT",
+            seedCount = null,
+            survivingCount = null,
+            bedId = 42L,
+            createdAt = "",
+            updatedAt = "",
+        ),
+        PlantResponse(
+            id = 2L,
+            name = "Zinnia #3",
+            speciesId = null,
+            speciesName = "Zinnia elegans",
+            plantedDate = null,
+            status = "GROWING",
+            seedCount = null,
+            survivingCount = null,
+            bedId = 42L,
+            createdAt = "",
+            updatedAt = "",
+        ),
+    )
+    val selectedObjects = previewPlants.toSet()
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Gödsling",
+        mastheadCenter = "Applicera förnödenhet",
+        bottomBar = {
+            FaltetFormSubmitBar(
+                label = "Spara",
+                onClick = {},
+                enabled = false,
+                submitting = false,
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            item {
+                FaltetScopeToggle(
+                    label = "Omfattning",
+                    options = listOf(Scope.BED, Scope.PLANTS),
+                    selected = Scope.PLANTS,
+                    onSelectedChange = {},
+                    labelFor = { if (it == Scope.BED) "Hela bädden" else "Enskilda plantor" },
+                    required = true,
+                )
+            }
+            item {
+                FaltetChecklistGroup(
+                    label = "Plantor",
+                    options = previewPlants,
+                    selected = selectedObjects,
+                    onSelectedChange = {},
+                    labelFor = { it.name },
+                    subtitleFor = { plant -> "Status: ${statusLabelSv(plant.status)}" },
+                    selectAllEnabled = true,
+                    required = true,
+                )
+            }
+            item {
+                FaltetDropdown(
+                    label = "Förnödenhet",
+                    options = emptyList<SupplyInventoryResponse>(),
+                    selected = null,
+                    onSelectedChange = {},
+                    labelFor = { it.supplyTypeName },
+                    searchable = true,
+                    required = true,
+                )
+            }
+            item {
+                Field(
+                    label = "Mängd",
+                    value = "",
+                    onValueChange = {},
+                    keyboardType = KeyboardType.Decimal,
+                    required = true,
+                    error = null,
+                )
+            }
+            item {
+                Field(
+                    label = "Anteckningar (valfri)",
+                    value = "",
+                    onValueChange = {},
+                )
+            }
+        }
+    }
+}
+
+private fun statusLabelSv(status: String?): String = when (status) {
+    "SEEDED" -> "Sådd"
+    "POTTED_UP" -> "Krukad"
+    "PLANTED_OUT", "GROWING" -> "Utplanterad"
+    "HARVESTED" -> "Skördad"
+    null -> "—"
+    else -> status
 }
