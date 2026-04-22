@@ -1,35 +1,60 @@
 package app.verdant.android.ui.garden
 
 import android.util.Log
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.verdant.android.R
 import app.verdant.android.data.model.BedResponse
-import app.verdant.android.data.model.UpdateGardenRequest
-import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.model.GardenResponse
+import app.verdant.android.data.model.UpdateGardenRequest
 import app.verdant.android.data.repository.GardenRepository
-import app.verdant.android.ui.bed.bedDrainageLabel
-import app.verdant.android.ui.bed.bedProtectionLabel
-import app.verdant.android.ui.bed.bedSunExposureLabel
+import app.verdant.android.ui.common.ConnectionErrorState
+import app.verdant.android.ui.faltet.FaltetEmptyState
+import app.verdant.android.ui.faltet.FaltetFab
+import app.verdant.android.ui.faltet.FaltetHero
+import app.verdant.android.ui.faltet.FaltetListRow
+import app.verdant.android.ui.faltet.FaltetLoadingState
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.FaltetSectionHeader
+import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetDisplay
+import app.verdant.android.ui.theme.FaltetForest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,37 +62,6 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 private const val TAG = "GardenDetail"
-
-@Composable
-private fun BedConditionChips(bed: BedResponse) {
-    val sunLabel = bed.sunExposure?.let { bedSunExposureLabel(it) }
-    val drainageLabel = bed.drainage?.let { bedDrainageLabel(it) }
-    val protectionLabel = bed.protection?.let { bedProtectionLabel(it) }
-
-    if (sunLabel == null && drainageLabel == null && protectionLabel == null) return
-
-    Spacer(Modifier.height(6.dp))
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        sunLabel?.let {
-            AssistChip(
-                onClick = {},
-                label = { Text("\u2600\uFE0F $it", fontSize = 11.sp) }
-            )
-        }
-        drainageLabel?.let {
-            AssistChip(
-                onClick = {},
-                label = { Text("\uD83D\uDCA7 $it", fontSize = 11.sp) }
-            )
-        }
-        protectionLabel?.let {
-            AssistChip(
-                onClick = {},
-                label = { Text("\uD83C\uDFE0 $it", fontSize = 11.sp) }
-            )
-        }
-    }
-}
 
 data class GardenDetailState(
     val isLoading: Boolean = true,
@@ -141,172 +135,105 @@ fun GardenDetailScreen(
     onBack: () -> Unit,
     onBedClick: (Long) -> Unit,
     onCreateBed: (Long) -> Unit,
-    viewModel: GardenDetailViewModel = hiltViewModel()
+    viewModel: GardenDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var editing by remember { mutableStateOf(false) }
-    var editName by remember { mutableStateOf("") }
-    var editDescription by remember { mutableStateOf("") }
-    var editEmoji by remember { mutableStateOf("") }
 
     LaunchedEffect(uiState.deleted) {
         if (uiState.deleted) onBack()
     }
 
-    if (editing) {
-        AlertDialog(
-            onDismissRequest = { editing = false },
-            title = { Text(stringResource(R.string.edit)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(
-                        value = editName,
-                        onValueChange = { editName = it },
-                        label = { Text(stringResource(R.string.garden_name)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true
-                    )
-                    OutlinedTextField(
-                        value = editDescription,
-                        onValueChange = { editDescription = it },
-                        label = { Text(stringResource(R.string.description_optional)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        minLines = 2
-                    )
-                    OutlinedTextField(
-                        value = editEmoji,
-                        onValueChange = { editEmoji = it },
-                        label = { Text(stringResource(R.string.emoji)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true
-                    )
-                }
+    if (showEditDialog && uiState.garden != null) {
+        EditGardenDialog(
+            garden = uiState.garden!!,
+            onDismiss = { showEditDialog = false },
+            onSave = { name, description, emoji ->
+                viewModel.update(name, description, emoji)
+                showEditDialog = false
             },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.update(editName, editDescription.ifBlank { null }, editEmoji.ifBlank { null })
-                        editing = false
-                    },
-                    enabled = editName.isNotBlank()
-                ) {
-                    Text(stringResource(R.string.save))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { editing = false }) { Text(stringResource(R.string.cancel)) }
-            }
         )
     }
 
-    if (showDeleteDialog) {
+    if (showDeleteDialog && uiState.garden != null) {
+        val gardenName = uiState.garden!!.name
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text(stringResource(R.string.delete_garden)) },
-            text = { Text(stringResource(R.string.delete_garden_confirm)) },
+            title = { Text("Ta bort trädgård") },
+            text = { Text("Vill du ta bort trädgården \"${gardenName}\"?") },
             confirmButton = {
-                TextButton(onClick = { showDeleteDialog = false; viewModel.delete() }) {
-                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
-                }
+                TextButton(onClick = {
+                    viewModel.delete()
+                    showDeleteDialog = false
+                }) { Text("Ta bort", color = FaltetClay) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.cancel)) }
-            }
+                TextButton(onClick = { showDeleteDialog = false }) { Text("Avbryt") }
+            },
         )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(uiState.garden?.name ?: stringResource(R.string.garden)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Trädgård",
+        mastheadCenter = uiState.garden?.name ?: "",
+        mastheadRight = {
+            if (uiState.garden != null) {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    IconButton(onClick = { showEditDialog = true }, modifier = Modifier.size(36.dp)) {
+                        Icon(Icons.Default.Edit, "Redigera", tint = FaltetClay, modifier = Modifier.size(18.dp))
                     }
-                },
-                actions = {
-                    IconButton(onClick = {
-                        uiState.garden?.let { garden ->
-                            editName = garden.name
-                            editDescription = garden.description ?: ""
-                            editEmoji = garden.emoji ?: ""
-                            editing = true
-                        }
-                    }) {
-                        Icon(Icons.Default.Edit, stringResource(R.string.edit))
+                    IconButton(onClick = { showDeleteDialog = true }, modifier = Modifier.size(36.dp)) {
+                        Icon(Icons.Default.DeleteOutline, "Ta bort", tint = FaltetClay, modifier = Modifier.size(18.dp))
                     }
-                    IconButton(onClick = { showDeleteDialog = true }) {
-                        Icon(Icons.Default.Delete, stringResource(R.string.delete), tint = MaterialTheme.colorScheme.error)
-                    }
-                },
-                colors = verdantTopAppBarColors()
-            )
-        },
-        floatingActionButton = {
-            uiState.garden?.let { garden ->
-                FloatingActionButton(
-                    onClick = { onCreateBed(garden.id) },
-                    containerColor = MaterialTheme.colorScheme.primary
-                ) {
-                    Icon(Icons.Default.Add, stringResource(R.string.add_bed))
                 }
             }
-        }
+        },
+        fab = {
+            uiState.garden?.let { garden ->
+                FaltetFab(onClick = { onCreateBed(garden.id) }, contentDescription = "Skapa bädd")
+            }
+        },
     ) { padding ->
         when {
-            uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+            uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
+            uiState.error != null -> Box(
+                Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center,
+            ) {
+                ConnectionErrorState(onRetry = { viewModel.refresh() })
             }
-            uiState.error != null -> {
-                app.verdant.android.ui.common.ConnectionErrorState(
-                    onRetry = { viewModel.refresh() },
-                    modifier = Modifier.padding(padding)
-                )
-            }
+            uiState.garden == null -> FaltetEmptyState(
+                headline = "Trädgården hittades inte",
+                subtitle = "Trädgården kan ha tagits bort.",
+                modifier = Modifier.padding(padding),
+            )
             else -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    uiState.garden?.let { garden ->
-                        item {
-                            Spacer(Modifier.height(4.dp))
-                            Text(garden.emoji ?: "\uD83C\uDF31", fontSize = 48.sp)
-                            garden.description?.let {
-                                Spacer(Modifier.height(8.dp))
-                                Text(it, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
-                            }
-                            Spacer(Modifier.height(16.dp))
-                            Text(stringResource(R.string.beds), fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                        }
+                val garden = uiState.garden!!
+                LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+                    item {
+                        FaltetHero(
+                            title = garden.name,
+                            subtitle = garden.description,
+                            leading = {
+                                Text(
+                                    text = garden.emoji ?: "🌱",
+                                    fontSize = 64.sp,
+                                    modifier = Modifier.align(Alignment.Center),
+                                )
+                            },
+                        )
                     }
-
+                    item { FaltetSectionHeader(label = "Bäddar") }
                     if (uiState.beds.isEmpty()) {
-                        item {
-                            Text(
-                                stringResource(R.string.no_beds_yet),
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                        item { InlineEmpty("Inga bäddar ännu. Tryck + för att skapa.") }
+                    } else {
+                        items(uiState.beds, key = { it.id }) { bed ->
+                            FaltetListRow(
+                                title = bed.name,
+                                meta = bed.description,
+                                onClick = { onBedClick(bed.id) },
                             )
-                        }
-                    }
-
-                    items(uiState.beds) { bed ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth().clickable { onBedClick(bed.id) },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                        ) {
-                            Column(Modifier.padding(16.dp)) {
-                                Text(bed.name, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-                                bed.description?.let {
-                                    Text(it, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                                }
-                                BedConditionChips(bed)
-                            }
                         }
                     }
                     item { Spacer(Modifier.height(80.dp)) }
@@ -314,4 +241,76 @@ fun GardenDetailScreen(
             }
         }
     }
+}
+
+@Composable
+private fun EditGardenDialog(
+    garden: GardenResponse,
+    onDismiss: () -> Unit,
+    onSave: (name: String, description: String?, emoji: String?) -> Unit,
+) {
+    var editName by remember { mutableStateOf(garden.name) }
+    var editDescription by remember { mutableStateOf(garden.description ?: "") }
+    var editEmoji by remember { mutableStateOf(garden.emoji ?: "") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Redigera trädgård") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = editName,
+                    onValueChange = { editName = it },
+                    label = { Text("Namn") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = editDescription,
+                    onValueChange = { editDescription = it },
+                    label = { Text("Beskrivning (valfri)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 2,
+                )
+                OutlinedTextField(
+                    value = editEmoji,
+                    onValueChange = { editEmoji = it },
+                    label = { Text("Emoji") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onSave(editName, editDescription.ifBlank { null }, editEmoji.ifBlank { null })
+                },
+                enabled = editName.isNotBlank(),
+            ) {
+                Text("Spara")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Avbryt") }
+        },
+    )
+}
+
+@Composable
+private fun InlineEmpty(text: String) {
+    Text(
+        text = text,
+        fontFamily = FaltetDisplay,
+        fontStyle = FontStyle.Italic,
+        fontSize = 14.sp,
+        color = FaltetForest,
+        modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
+    )
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
+@Composable
+private fun InlineEmptyPreview() {
+    InlineEmpty("Inga bäddar ännu. Tryck + för att skapa.")
 }
