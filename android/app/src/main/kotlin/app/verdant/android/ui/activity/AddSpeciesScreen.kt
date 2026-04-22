@@ -42,6 +42,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -444,8 +445,232 @@ fun AddSpeciesScreen(
             contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // Chunk 2 (fields) and chunk 3 (AI photos) fill this in later tasks.
-            item { Spacer(Modifier.height(0.dp)) }
+            // Common name
+            item {
+                Field(
+                    label = "Artnamn",
+                    value = commonName,
+                    onValueChange = { commonName = it },
+                    required = true,
+                    error = if (showValidationErrors && commonName.isBlank()) "Artnamn krävs" else null,
+                )
+            }
+
+            // Scientific name
+            item {
+                Field(
+                    label = "Vetenskapligt namn",
+                    value = scientificName,
+                    onValueChange = { scientificName = it },
+                    required = true,
+                    error = if (showValidationErrors && scientificName.isBlank()) "Vetenskapligt namn krävs" else null,
+                )
+            }
+
+            // Variant EN
+            item {
+                Field(
+                    label = "Variant (engelska, valfri)",
+                    value = variantName,
+                    onValueChange = { variantName = it },
+                )
+            }
+
+            // Variant SV
+            item {
+                Field(
+                    label = "Variant (svenska, valfri)",
+                    value = variantNameSv,
+                    onValueChange = { variantNameSv = it },
+                )
+            }
+
+            // Germination time min
+            item {
+                Field(
+                    label = "Grobarhet dagar min",
+                    value = germinationTimeDaysMin,
+                    onValueChange = { germinationTimeDaysMin = it.filter { c -> c.isDigit() } },
+                    keyboardType = KeyboardType.Number,
+                    required = true,
+                    error = if (showValidationErrors && germinationTimeDaysMin.toIntOrNull() == null) "Heltal krävs" else null,
+                )
+            }
+
+            // Germination time max
+            item {
+                Field(
+                    label = "Grobarhet dagar max (valfri)",
+                    value = germinationTimeDaysMax,
+                    onValueChange = { germinationTimeDaysMax = it.filter { c -> c.isDigit() } },
+                    keyboardType = KeyboardType.Number,
+                )
+            }
+
+            // Days to harvest min
+            item {
+                Field(
+                    label = "Dagar till skörd min",
+                    value = daysToHarvestMin,
+                    onValueChange = { daysToHarvestMin = it.filter { c -> c.isDigit() } },
+                    keyboardType = KeyboardType.Number,
+                    required = true,
+                    error = if (showValidationErrors && daysToHarvestMin.toIntOrNull() == null) "Heltal krävs" else null,
+                )
+            }
+
+            // Days to harvest max
+            item {
+                Field(
+                    label = "Dagar till skörd max (valfri)",
+                    value = daysToHarvestMax,
+                    onValueChange = { daysToHarvestMax = it.filter { c -> c.isDigit() } },
+                    keyboardType = KeyboardType.Number,
+                )
+            }
+
+            // Sowing depth
+            item {
+                Field(
+                    label = "Sådjup mm",
+                    value = sowingDepthMm,
+                    onValueChange = { sowingDepthMm = it.filter { c -> c.isDigit() } },
+                    keyboardType = KeyboardType.Number,
+                    required = true,
+                    error = if (showValidationErrors && sowingDepthMm.toIntOrNull() == null) "Heltal krävs" else null,
+                )
+            }
+
+            // Height min
+            item {
+                Field(
+                    label = "Höjd cm min",
+                    value = heightCmMin,
+                    onValueChange = { heightCmMin = it.filter { c -> c.isDigit() } },
+                    keyboardType = KeyboardType.Number,
+                    required = true,
+                    error = if (showValidationErrors && heightCmMin.toIntOrNull() == null) "Heltal krävs" else null,
+                )
+            }
+
+            // Height max
+            item {
+                Field(
+                    label = "Höjd cm max (valfri)",
+                    value = heightCmMax,
+                    onValueChange = { heightCmMax = it.filter { c -> c.isDigit() } },
+                    keyboardType = KeyboardType.Number,
+                )
+            }
+
+            // Sowing months
+            item {
+                FaltetChipMultiSelector(
+                    label = "Såmånader (valfri)",
+                    options = (1..12).toList(),
+                    selected = selectedSowingMonths,
+                    onSelectedChange = { selectedSowingMonths = it },
+                    labelFor = { monthShortSv(it) },
+                )
+            }
+
+            // Bloom months
+            item {
+                FaltetChipMultiSelector(
+                    label = "Blomningsmånader (valfri)",
+                    options = (1..12).toList(),
+                    selected = selectedBloomMonths,
+                    onSelectedChange = { selectedBloomMonths = it },
+                    labelFor = { monthShortSv(it) },
+                )
+            }
+
+            // Germination rate
+            item {
+                Field(
+                    label = "Grobarhetsprocent",
+                    value = germinationRate,
+                    onValueChange = { germinationRate = it.filter { c -> c.isDigit() } },
+                    keyboardType = KeyboardType.Number,
+                    required = true,
+                    error = if (showValidationErrors && germinationRate.toIntOrNull() == null) "Heltal krävs" else null,
+                )
+            }
+
+            // Growing positions
+            item {
+                FaltetChipMultiSelector(
+                    label = "Växtplats",
+                    options = listOf("SUNNY", "PARTIALLY_SUNNY", "SHADOWY"),
+                    selected = selectedPositions,
+                    onSelectedChange = { selectedPositions = it },
+                    labelFor = { positionLabelSv(it) },
+                    required = true,
+                )
+            }
+
+            // Soil types
+            item {
+                FaltetChipMultiSelector(
+                    label = "Jordtyp",
+                    options = listOf("CLAY", "SANDY", "LOAMY", "CHALKY", "PEATY", "SILTY"),
+                    selected = selectedSoils,
+                    onSelectedChange = { selectedSoils = it },
+                    labelFor = { soilLabelSv(it) },
+                    required = true,
+                )
+            }
+
+            // Tags — state is Set<Long> of IDs; convert at render boundary
+            item {
+                FaltetChipMultiSelector(
+                    label = "Taggar (valfri)",
+                    options = uiState.tags,
+                    selected = uiState.tags.filter { it.id in selectedTagIds }.toSet(),
+                    onSelectedChange = { newSet -> selectedTagIds = newSet.map { it.id }.toSet() },
+                    labelFor = { it.name },
+                )
+            }
+
+            // + NY TAGG affordance
+            item {
+                Text(
+                    text = "+ NY TAGG",
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 10.sp,
+                    letterSpacing = 1.4.sp,
+                    color = FaltetClay,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showNewTagDialog = true }
+                        .padding(horizontal = 18.dp, vertical = 8.dp),
+                )
+            }
+
+            item { Spacer(Modifier.height(80.dp)) }
         }
     }
+}
+
+private fun monthShortSv(month: Int): String = arrayOf(
+    "jan", "feb", "mar", "apr", "maj", "jun",
+    "jul", "aug", "sep", "okt", "nov", "dec",
+)[month - 1]
+
+private fun positionLabelSv(code: String): String = when (code) {
+    "SUNNY" -> "Sol"
+    "PARTIALLY_SUNNY" -> "Halvskugga"
+    "SHADOWY" -> "Skugga"
+    else -> code
+}
+
+private fun soilLabelSv(code: String): String = when (code) {
+    "CLAY" -> "Lera"
+    "SANDY" -> "Sand"
+    "LOAMY" -> "Mylla"
+    "CHALKY" -> "Kalk"
+    "PEATY" -> "Torv"
+    "SILTY" -> "Silt"
+    else -> code
 }
