@@ -1,42 +1,40 @@
 package app.verdant.android.ui.plant
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.verdant.android.R
-import app.verdant.android.ui.activity.toCompressedBase64
-import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.model.CreatePlantRequest
 import app.verdant.android.data.model.IdentifyPlantRequest
 import app.verdant.android.data.model.PlantSuggestion
 import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.ui.activity.toCompressedBase64
+import app.verdant.android.ui.faltet.FaltetFormSubmitBar
+import app.verdant.android.ui.faltet.FaltetImagePicker
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.Field
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -103,49 +101,26 @@ fun CreatePlantScreen(
     viewModel: CreatePlantViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
+
     var name by remember { mutableStateOf("") }
+    var nameError by remember { mutableStateOf(false) }
     var species by remember { mutableStateOf("") }
-    var seedCount by remember { mutableStateOf("") }
+    var seedCountText by remember { mutableStateOf("") }
     var scanBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
-        if (bitmap != null) {
-            scanBitmap = bitmap
-            val b64 = bitmap.toCompressedBase64()
-            viewModel.identifyPlant(b64)
+    val canSubmit = name.isNotBlank() && !uiState.isLoading
+
+    val submitAction: () -> Unit = {
+        nameError = name.isBlank()
+        if (!nameError) {
+            viewModel.create(name, species, seedCountText.toIntOrNull())
         }
     }
 
-    val cameraPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) cameraLauncher.launch(null)
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let { snackbarHostState.showSnackbar(it) }
     }
-
-    fun launchCamera() {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            cameraLauncher.launch(null)
-        } else {
-            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-        }
-    }
-
-    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) {
-            try {
-                val inputStream = context.contentResolver.openInputStream(uri)
-                val bitmap = BitmapFactory.decodeStream(inputStream)
-                inputStream?.close()
-                if (bitmap != null) {
-                    scanBitmap = bitmap
-                    val b64 = bitmap.toCompressedBase64()
-                    viewModel.identifyPlant(b64)
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to load image from gallery", e)
-            }
-        }
-    }
-
     LaunchedEffect(uiState.created) {
         if (uiState.created) onCreated()
     }
@@ -159,115 +134,150 @@ fun CreatePlantScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.new_plant)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                colors = verdantTopAppBarColors()
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Planta",
+        mastheadCenter = "Ny planta",
+        bottomBar = {
+            FaltetFormSubmitBar(
+                label = "Skapa",
+                onClick = submitAction,
+                enabled = canSubmit,
+                submitting = uiState.isLoading,
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // Scan seed package
-            Text(stringResource(R.string.scan_seed_package), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { launchCamera() }) {
-                    Icon(Icons.Default.CameraAlt, null, Modifier.size(18.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.camera))
-                }
-                OutlinedButton(onClick = { galleryLauncher.launch("image/*") }) {
-                    Text(stringResource(R.string.gallery))
-                }
+            item {
+                FaltetImagePicker(
+                    label = "Foto (valfri)",
+                    value = scanBitmap,
+                    onValueChange = { bitmap ->
+                        scanBitmap = bitmap
+                        if (bitmap != null) {
+                            val b64 = bitmap.toCompressedBase64()
+                            viewModel.identifyPlant(b64)
+                        }
+                    },
+                )
             }
-
-            scanBitmap?.let { bmp ->
-                Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-                    Image(
-                        bitmap = bmp.asImageBitmap(),
-                        contentDescription = stringResource(R.string.seed_package),
-                        modifier = Modifier.fillMaxWidth().heightIn(max = 150.dp),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-            }
-
             if (uiState.identifying) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    CircularProgressIndicator(Modifier.size(16.dp))
-                    Text(stringResource(R.string.identifying), fontSize = 14.sp)
+                item {
+                    Text("Identifierar...")
                 }
             }
-
             if (uiState.suggestions.isNotEmpty()) {
-                Text(stringResource(R.string.suggestions), fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                uiState.suggestions.forEach { s ->
-                    Card(
-                        shape = RoundedCornerShape(8.dp),
+                item {
+                    Text("Förslag:")
+                }
+                items(uiState.suggestions.size) { i ->
+                    val s = uiState.suggestions[i]
+                    androidx.compose.material3.Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                         onClick = {
                             species = s.species
                             if (name.isBlank()) name = s.commonName
-                        }
+                        },
                     ) {
-                        Column(Modifier.padding(12.dp)) {
-                            Text("${s.commonName} (${s.species})", fontWeight = FontWeight.Medium)
-                            Text("${(s.confidence * 100).toInt()}%", fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                        androidx.compose.foundation.layout.Column(
+                            modifier = Modifier.padding(12.dp),
+                        ) {
+                            Text("${s.commonName} (${s.species})")
+                            Text("${(s.confidence * 100).toInt()}%")
                         }
                     }
                 }
             }
-
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text(stringResource(R.string.plant_name)) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            )
-            OutlinedTextField(
-                value = species,
-                onValueChange = { species = it },
-                label = { Text(stringResource(R.string.species_optional)) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            )
-            OutlinedTextField(
-                value = seedCount,
-                onValueChange = { seedCount = it.filter { c -> c.isDigit() } },
-                label = { Text(stringResource(R.string.seed_count_optional)) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = { viewModel.create(name, species, seedCount.toIntOrNull()) },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(12.dp),
-                enabled = name.isNotBlank() && !uiState.isLoading
-            ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                } else {
-                    Text(stringResource(R.string.add_plant))
-                }
+            item {
+                Field(
+                    label = "Namn",
+                    value = name,
+                    onValueChange = { name = it; nameError = false },
+                    required = true,
+                    error = if (nameError) "Namn krävs" else null,
+                )
             }
-            uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }
+            item {
+                Field(
+                    label = "Art (valfri)",
+                    value = species,
+                    onValueChange = { species = it },
+                )
+            }
+            item {
+                Field(
+                    label = "Antal frön (valfri)",
+                    value = seedCountText,
+                    onValueChange = { seedCountText = it.filter { c -> c.isDigit() } },
+                    keyboardType = KeyboardType.Number,
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
+@Composable
+private fun CreatePlantScreenPreview() {
+    val snackbarHostState = remember { SnackbarHostState() }
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Planta",
+        mastheadCenter = "Ny planta",
+        bottomBar = {
+            FaltetFormSubmitBar(
+                label = "Skapa",
+                onClick = {},
+                enabled = true,
+                submitting = false,
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            item {
+                FaltetImagePicker(
+                    label = "Foto (valfri)",
+                    value = null,
+                    onValueChange = {},
+                )
+            }
+            item {
+                Field(
+                    label = "Namn",
+                    value = "Tomat",
+                    onValueChange = {},
+                    required = true,
+                    error = null,
+                )
+            }
+            item {
+                Field(
+                    label = "Art (valfri)",
+                    value = "Solanum lycopersicum",
+                    onValueChange = {},
+                )
+            }
+            item {
+                Field(
+                    label = "Antal frön (valfri)",
+                    value = "12",
+                    onValueChange = {},
+                    keyboardType = KeyboardType.Number,
+                )
+            }
         }
     }
 }
