@@ -1,35 +1,45 @@
 package app.verdant.android.ui.task
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.verdant.android.R
-import app.verdant.android.data.model.*
-import app.verdant.android.ui.theme.verdantTopAppBarColors
+import app.verdant.android.data.model.CreateScheduledTaskRequest
+import app.verdant.android.data.model.ScheduledTaskResponse
+import app.verdant.android.data.model.SpeciesResponse
+import app.verdant.android.data.model.UpdateScheduledTaskRequest
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.activity.Activity
+import app.verdant.android.ui.faltet.FaltetDatePicker
+import app.verdant.android.ui.faltet.FaltetDropdown
+import app.verdant.android.ui.faltet.FaltetFormSubmitBar
+import app.verdant.android.ui.faltet.FaltetLoadingState
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.Field
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import android.util.Log
 import javax.inject.Inject
 
@@ -95,6 +105,22 @@ class TaskFormViewModel @Inject constructor(
     }
 }
 
+private fun activityTypeLabelSvStr(name: String): String = when (name) {
+    Activity.SOW.name -> "Så"
+    Activity.POT_UP.name -> "Potta upp"
+    Activity.PLANT.name -> "Plantera"
+    Activity.HARVEST.name -> "Skörda"
+    Activity.RECOVER.name -> "Återhämta"
+    Activity.DISCARD.name -> "Kassera"
+    else -> name
+}
+
+private fun speciesDisplayName(s: SpeciesResponse): String {
+    val name = s.commonNameSv ?: s.commonName
+    val variant = s.variantNameSv ?: s.variantName
+    return if (variant.isNullOrBlank()) name else "$name – $variant"
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskFormScreen(
@@ -105,232 +131,180 @@ fun TaskFormScreen(
     val isEdit = viewModel.taskId != null
     val existing = uiState.existingTask
 
-    var selectedSpeciesId by remember { mutableStateOf<Long?>(null) }
     var selectedActivityType by remember { mutableStateOf<String?>(null) }
-    var deadline by remember { mutableStateOf("") }
-    var targetCount by remember { mutableStateOf("") }
+    var selectedSpecies by remember { mutableStateOf<SpeciesResponse?>(null) }
+    var deadline by remember { mutableStateOf<LocalDate?>(null) }
+    var targetCountText by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
 
-    var speciesExpanded by remember { mutableStateOf(false) }
-    var speciesSearch by remember { mutableStateOf("") }
-    var activityExpanded by remember { mutableStateOf(false) }
-    var showDatePicker by remember { mutableStateOf(false) }
-
-    // Pre-fill from existing task
     var prefilled by remember { mutableStateOf(false) }
-    LaunchedEffect(existing) {
-        if (existing != null && !prefilled) {
-            selectedSpeciesId = existing.speciesId
+    LaunchedEffect(existing, uiState.species) {
+        if (existing != null && !prefilled && uiState.species.isNotEmpty()) {
             selectedActivityType = existing.activityType
-            deadline = existing.deadline
-            targetCount = existing.targetCount.toString()
+            selectedSpecies = existing.speciesId?.let { id -> uiState.species.find { it.id == id } }
+            deadline = runCatching { LocalDate.parse(existing.deadline) }.getOrNull()
+            targetCountText = existing.targetCount.toString()
             notes = existing.notes ?: ""
             prefilled = true
         }
     }
 
+    val canSubmit = selectedActivityType != null && selectedSpecies != null && deadline != null && !uiState.isLoading
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(uiState.error) { uiState.error?.let { snackbarHostState.showSnackbar(it) } }
     LaunchedEffect(uiState.saved) { if (uiState.saved) onBack() }
 
-    if (showDatePicker) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = deadline.takeIf { it.isNotBlank() }?.let {
-                LocalDate.parse(it).atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Arbete",
+        mastheadCenter = if (isEdit) (existing?.let { it.speciesName ?: "Uppgift" } ?: "Uppgift") else "Ny uppgift",
+        bottomBar = {
+            FaltetFormSubmitBar(
+                label = if (isEdit) "Spara" else "Skapa",
+                onClick = {
+                    viewModel.save(
+                        speciesId = selectedSpecies!!.id,
+                        activityType = selectedActivityType!!,
+                        deadline = deadline!!.toString(),
+                        targetCount = targetCountText.toIntOrNull() ?: 0,
+                        notes = notes.ifBlank { null },
+                    )
+                },
+                enabled = canSubmit,
+                submitting = uiState.isLoading,
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { padding ->
+        if (uiState.isLoading && isEdit) {
+            FaltetLoadingState(Modifier.padding(padding))
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                item {
+                    FaltetDropdown(
+                        label = "Aktivitet",
+                        options = Activity.entries.map { it.name },
+                        selected = selectedActivityType,
+                        onSelectedChange = { selectedActivityType = it },
+                        labelFor = { activityTypeLabelSvStr(it) },
+                        searchable = false,
+                        required = true,
+                    )
+                }
+                item {
+                    FaltetDropdown(
+                        label = "Art",
+                        options = uiState.species,
+                        selected = selectedSpecies,
+                        onSelectedChange = { selectedSpecies = it },
+                        labelFor = { speciesDisplayName(it) },
+                        searchable = true,
+                        required = true,
+                    )
+                }
+                item {
+                    FaltetDatePicker(
+                        label = "Deadline",
+                        value = deadline,
+                        onValueChange = { deadline = it },
+                        required = true,
+                    )
+                }
+                item {
+                    Field(
+                        label = "Målantal (valfri)",
+                        value = targetCountText,
+                        onValueChange = { targetCountText = it.filter { c -> c.isDigit() } },
+                        keyboardType = KeyboardType.Number,
+                    )
+                }
+                item {
+                    Field(
+                        label = "Anteckningar (valfri)",
+                        value = notes,
+                        onValueChange = { notes = it },
+                    )
+                }
             }
-        )
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let {
-                        deadline = Instant.ofEpochMilli(it).atZone(ZoneId.of("UTC")).toLocalDate().toString()
-                    }
-                    showDatePicker = false
-                }) { Text(stringResource(R.string.ok)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.cancel)) }
-            }
-        ) {
-            DatePicker(state = datePickerState)
         }
     }
+}
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(if (isEdit) R.string.edit_task else R.string.create_task)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                colors = verdantTopAppBarColors()
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
+@Composable
+private fun TaskFormScreenPreview() {
+    val snackbarHostState = remember { SnackbarHostState() }
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Arbete",
+        mastheadCenter = "Ny uppgift",
+        bottomBar = {
+            FaltetFormSubmitBar(
+                label = "Skapa",
+                onClick = {},
+                enabled = true,
+                submitting = false,
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 16.dp)
-                .padding(top = 16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Activity type picker
-            Text(stringResource(R.string.task_activity_type), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            ExposedDropdownMenuBox(
-                expanded = activityExpanded,
-                onExpandedChange = { activityExpanded = it }
-            ) {
-                OutlinedTextField(
-                    value = selectedActivityType?.let { type ->
-                        Activity.entries.find { it.name == type }?.let { stringResource(it.labelRes) } ?: type
-                    } ?: "",
+            item {
+                FaltetDropdown(
+                    label = "Aktivitet",
+                    options = Activity.entries.map { it.name },
+                    selected = Activity.SOW.name,
+                    onSelectedChange = {},
+                    labelFor = { activityTypeLabelSvStr(it) },
+                    searchable = false,
+                    required = true,
+                )
+            }
+            item {
+                FaltetDropdown(
+                    label = "Art",
+                    options = emptyList<SpeciesResponse>(),
+                    selected = null,
+                    onSelectedChange = {},
+                    labelFor = { speciesDisplayName(it) },
+                    searchable = true,
+                    required = true,
+                )
+            }
+            item {
+                FaltetDatePicker(
+                    label = "Deadline",
+                    value = LocalDate.of(2026, 6, 1),
                     onValueChange = {},
-                    readOnly = true,
-                    placeholder = { Text(stringResource(R.string.select_activity_type)) },
-                    modifier = Modifier.fillMaxWidth().menuAnchor(),
-                    shape = RoundedCornerShape(12.dp),
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(activityExpanded) }
+                    required = true,
                 )
-                ExposedDropdownMenu(
-                    expanded = activityExpanded,
-                    onDismissRequest = { activityExpanded = false }
-                ) {
-                    Activity.entries.forEach { activity ->
-                        DropdownMenuItem(
-                            text = { Text(stringResource(activity.labelRes)) },
-                            leadingIcon = { Icon(activity.icon, null, modifier = Modifier.size(20.dp)) },
-                            onClick = {
-                                selectedActivityType = activity.name
-                                activityExpanded = false
-                            }
-                        )
-                    }
-                }
             }
-
-            // Species picker
-            Text(stringResource(R.string.species_required), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            ExposedDropdownMenuBox(
-                expanded = speciesExpanded,
-                onExpandedChange = { speciesExpanded = it }
-            ) {
-                OutlinedTextField(
-                    value = speciesSearch.ifBlank {
-                        uiState.species.find { it.id == selectedSpeciesId }?.let { s ->
-                            val name = s.commonNameSv ?: s.commonName
-                            val variant = s.variantNameSv ?: s.variantName
-                            if (variant.isNullOrBlank()) name else "$name \u2013 $variant"
-                        } ?: ""
-                    },
-                    onValueChange = { speciesSearch = it; speciesExpanded = true },
-                    placeholder = { Text(stringResource(R.string.search_species)) },
-                    modifier = Modifier.fillMaxWidth().menuAnchor(),
-                    shape = RoundedCornerShape(12.dp),
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(speciesExpanded) },
-                    singleLine = true
+            item {
+                Field(
+                    label = "Målantal (valfri)",
+                    value = "20",
+                    onValueChange = {},
+                    keyboardType = KeyboardType.Number,
                 )
-                val filtered = uiState.species.filter {
-                    speciesSearch.isBlank() || it.commonName.contains(speciesSearch, ignoreCase = true) || (it.commonNameSv?.contains(speciesSearch, ignoreCase = true) == true) || (it.variantName?.contains(speciesSearch, ignoreCase = true) == true) || (it.variantNameSv?.contains(speciesSearch, ignoreCase = true) == true)
-                }
-                ExposedDropdownMenu(
-                    expanded = speciesExpanded,
-                    onDismissRequest = { speciesExpanded = false; speciesSearch = "" }
-                ) {
-                    filtered.forEach { species ->
-                        DropdownMenuItem(
-                            text = {
-                                val name = species.commonNameSv ?: species.commonName
-                                val variant = species.variantNameSv ?: species.variantName
-                                Text(if (variant.isNullOrBlank()) name else "$name \u2013 $variant")
-                            },
-                            onClick = {
-                                selectedSpeciesId = species.id
-                                speciesSearch = ""
-                                speciesExpanded = false
-                            }
-                        )
-                    }
-                    if (filtered.isEmpty()) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.no_species_found), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)) },
-                            onClick = {}
-                        )
-                    }
-                }
             }
-
-            // Deadline
-            Text(stringResource(R.string.task_deadline), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            OutlinedTextField(
-                value = deadline,
-                onValueChange = {},
-                readOnly = true,
-                placeholder = { Text(stringResource(R.string.select_deadline)) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                trailingIcon = {
-                    IconButton(onClick = { showDatePicker = true }) {
-                        Icon(Icons.Default.CalendarMonth, stringResource(R.string.select_deadline))
-                    }
-                }
-            )
-
-            // Target count
-            Text(stringResource(R.string.task_target_count), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            OutlinedTextField(
-                value = targetCount,
-                onValueChange = { targetCount = it.filter { c -> c.isDigit() } },
-                placeholder = { Text(stringResource(R.string.task_target_count)) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true
-            )
-
-            // Notes
-            OutlinedTextField(
-                value = notes,
-                onValueChange = { notes = it },
-                label = { Text(stringResource(R.string.notes_optional)) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                minLines = 2
-            )
-
-            Spacer(Modifier.height(32.dp))
-        }
-
-            // Fixed bottom button
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }
-                Button(
-                    onClick = {
-                        viewModel.save(
-                            speciesId = selectedSpeciesId!!,
-                            activityType = selectedActivityType!!,
-                            deadline = deadline,
-                            targetCount = targetCount.toInt(),
-                            notes = notes.ifBlank { null },
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    enabled = selectedSpeciesId != null && selectedActivityType != null &&
-                            deadline.isNotBlank() && targetCount.toIntOrNull() != null &&
-                            targetCount.toInt() > 0 && !uiState.isLoading
-                ) {
-                    if (uiState.isLoading) {
-                        CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                    } else {
-                        Text(stringResource(R.string.save_task))
-                    }
-                }
+            item {
+                Field(
+                    label = "Anteckningar (valfri)",
+                    value = "",
+                    onValueChange = {},
+                )
             }
         }
     }
