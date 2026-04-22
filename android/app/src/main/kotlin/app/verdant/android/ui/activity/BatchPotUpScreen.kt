@@ -1,31 +1,53 @@
 package app.verdant.android.ui.activity
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import android.graphics.Bitmap
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.verdant.android.R
-import app.verdant.android.data.model.*
-import app.verdant.android.ui.theme.verdantTopAppBarColors
+import app.verdant.android.data.model.BatchEventRequest
+import app.verdant.android.data.model.CompleteTaskPartiallyRequest
+import app.verdant.android.data.model.PlantGroupResponse
+import app.verdant.android.data.model.RecordCommentRequest
 import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.ui.faltet.FaltetEmptyState
+import app.verdant.android.ui.faltet.FaltetFormSubmitBar
+import app.verdant.android.ui.faltet.FaltetImagePicker
+import app.verdant.android.ui.faltet.FaltetListRow
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.Field
 import app.verdant.android.ui.supplies.SupplyUsageBottomSheet
+import app.verdant.android.ui.theme.FaltetClay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -105,16 +127,15 @@ fun BatchPotUpScreen(
     viewModel: BatchPotUpViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
     var selectedGroup by remember { mutableStateOf<PlantGroupResponse?>(null) }
-    var count by remember { mutableStateOf("") }
+    var countText by remember { mutableStateOf("") }
+    var countError by remember { mutableStateOf<String?>(null) }
     var notes by remember { mutableStateOf("") }
+    var photoBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var imageBase64 by remember { mutableStateOf<String?>(null) }
 
     var showSupplySheet by remember { mutableStateOf(false) }
-
-    LaunchedEffect(uiState.created) {
-        // Don't auto-navigate; we show the supply usage option first
-    }
 
     if (showSupplySheet) {
         SupplyUsageBottomSheet(
@@ -126,178 +147,230 @@ fun BatchPotUpScreen(
     if (uiState.created) {
         AlertDialog(
             onDismissRequest = { onBack() },
-            title = { Text(stringResource(R.string.pot_up)) },
-            text = { Text(stringResource(R.string.record_supply_usage) + "?") },
+            title = { Text("Kruka upp") },
+            text = { Text("Vill du registrera förbrukning av jord eller krukor?") },
             confirmButton = {
                 TextButton(onClick = { showSupplySheet = true }) {
-                    Text(stringResource(R.string.record_usage))
+                    Text("Registrera förbrukning", color = FaltetClay)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { onBack() }) {
-                    Text(stringResource(R.string.skip))
-                }
+                TextButton(onClick = { onBack() }) { Text("Hoppa över") }
             },
         )
     }
 
-    // Auto-select if only one group
     LaunchedEffect(uiState.groups) {
         if (uiState.groups.size == 1 && selectedGroup == null) {
             selectedGroup = uiState.groups.first()
-            count = uiState.groups.first().count.toString()
+            countText = uiState.groups.first().count.toString()
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.pot_up)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                colors = verdantTopAppBarColors()
+    val canSubmit = selectedGroup != null
+        && countText.toIntOrNull()?.let { it in 1..selectedGroup!!.count } == true
+        && !uiState.submitting
+
+    val submitAction: () -> Unit = {
+        val count = countText.toIntOrNull()
+        countError = when {
+            count == null -> "Antal krävs"
+            count !in 1..selectedGroup!!.count -> "Antal måste vara mellan 1 och ${selectedGroup!!.count}"
+            else -> null
+        }
+        if (countError == null) {
+            viewModel.submit(
+                selectedGroup!!,
+                count!!,
+                notes.ifBlank { null },
+                imageBase64,
             )
         }
-    ) { padding ->
-        when {
-            uiState.isLoading -> Box(
-                Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-            uiState.error != null && uiState.groups.isEmpty() -> Box(
-                Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                app.verdant.android.ui.common.ConnectionErrorState(onRetry = onBack)
-            }
-            selectedGroup == null -> {
-                // Group picker
-                if (uiState.groups.isEmpty()) {
-                    Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                        Text(stringResource(R.string.no_plants_found), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize().padding(padding),
-                    ) {
-                        items(uiState.groups) { group ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        selectedGroup = group
-                                        count = group.count.toString()
-                                    }
-                                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(
-                                        group.speciesName ?: stringResource(R.string.unknown_species),
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                    val location = if (group.bedId == null) stringResource(R.string.tray)
-                                        else "${group.gardenName} - ${group.bedName}"
-                                    Text(
-                                        buildString {
-                                            append(location)
-                                            group.plantedDate?.let { append(" · $it") }
-                                        },
-                                        fontSize = 13.sp,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                                    )
-                                }
-                                Text(
-                                    "${group.count}",
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                            HorizontalDivider()
-                        }
-                    }
-                }
-            }
-            else -> {
-                // Pot up form
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .padding(16.dp)
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+    }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(uiState.error) { uiState.error?.let { snackbarHostState.showSnackbar(it) } }
+
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Kruka upp",
+        mastheadCenter = if (selectedGroup == null) "Välj grupp" else selectedGroup!!.speciesName ?: "Okänd art",
+        mastheadRight = if (selectedGroup != null) {
+            {
+                IconButton(
+                    onClick = { selectedGroup = null },
+                    modifier = Modifier.size(36.dp),
                 ) {
-                    Text(
-                        selectedGroup!!.speciesName ?: stringResource(R.string.unknown_species),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        "Tillbaka",
+                        tint = FaltetClay,
+                        modifier = Modifier.size(18.dp),
                     )
-                    val location = if (selectedGroup!!.bedId == null) stringResource(R.string.tray)
-                        else "${selectedGroup!!.gardenName} - ${selectedGroup!!.bedName}"
-                    Text(
-                        buildString {
-                            append(location)
-                            selectedGroup!!.plantedDate?.let { append(" · $it") }
-                            append(" · ${stringResource(R.string.n_available, selectedGroup!!.count)}")
-                        },
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-
-                    CountField(
-                        value = count,
-                        onValueChange = { count = it },
-                        label = stringResource(R.string.plant_count)
-                    )
-
-                    Text(stringResource(R.string.photo), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    PhotoPicker(
-                        imageUrl = null,
-                        onImageCaptured = { b64, _ -> imageBase64 = b64 }
-                    )
-
-                    FrequentCommentsField(
-                        value = notes,
-                        onValueChange = { notes = it },
-                        suggestions = uiState.comments
-                    )
-
-                    Spacer(Modifier.height(8.dp))
-                    Button(
-                        onClick = {
-                            val c = count.toIntOrNull() ?: 0
-                            if (c > 0) {
-                                viewModel.submit(
-                                    selectedGroup!!,
-                                    c.coerceAtMost(selectedGroup!!.count),
-                                    notes.ifBlank { null },
-                                    imageBase64
-                                )
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        enabled = (count.toIntOrNull() ?: 0) > 0 && !uiState.submitting
-                    ) {
-                        if (uiState.submitting) {
-                            CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                        } else {
-                            Text(stringResource(R.string.record_pot_up))
-                        }
-                    }
-
-                    uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }
-                    Spacer(Modifier.height(32.dp))
                 }
+            }
+        } else null,
+        bottomBar = if (selectedGroup != null) {
+            {
+                FaltetFormSubmitBar(
+                    label = "Kruka upp",
+                    onClick = submitAction,
+                    enabled = canSubmit,
+                    submitting = uiState.submitting,
+                )
+            }
+        } else {
+            {}
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { padding ->
+        if (selectedGroup == null) {
+            if (uiState.groups.isEmpty()) {
+                FaltetEmptyState(
+                    headline = "Inga grupper att kruka upp",
+                    subtitle = "Så först några frön i brätten.",
+                    modifier = Modifier.padding(padding),
+                )
+            } else {
+                LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+                    items(uiState.groups, key = { "${it.speciesId}_${it.plantedDate}" }) { group ->
+                        FaltetListRow(
+                            title = group.speciesName ?: "Okänd art",
+                            meta = "${formattedDate(group.plantedDate)} · ${group.count} frön i brätte",
+                            onClick = {
+                                selectedGroup = group
+                                countText = group.count.toString()
+                            },
+                        )
+                    }
+                    item { Spacer(Modifier.height(80.dp)) }
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                item {
+                    Field(
+                        label = "Antal att kruka upp",
+                        value = countText,
+                        onValueChange = { countText = it.filter { c -> c.isDigit() }; countError = null },
+                        keyboardType = KeyboardType.Number,
+                        required = true,
+                        error = countError,
+                    )
+                }
+                item {
+                    FaltetImagePicker(
+                        label = "Foto (valfri)",
+                        value = photoBitmap,
+                        onValueChange = { bitmap ->
+                            photoBitmap = bitmap
+                            imageBase64 = bitmap?.toCompressedBase64()
+                        },
+                    )
+                }
+                item {
+                    Field(label = "Anteckningar (valfri)", value = notes, onValueChange = { notes = it })
+                }
+                item { Spacer(Modifier.height(80.dp)) }
             }
         }
     }
 }
+
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
+@Composable
+private fun BatchPotUpScreenPreview_List() {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val previewGroups = listOf(
+        PlantGroupResponse(speciesId = 1L, speciesName = "Cosmos bipinnatus", bedId = null, bedName = null, gardenName = null, plantedDate = "2026-03-15", status = "SEEDED", count = 48),
+        PlantGroupResponse(speciesId = 2L, speciesName = "Zinnia elegans", bedId = null, bedName = null, gardenName = null, plantedDate = "2026-03-20", status = "SEEDED", count = 32),
+        PlantGroupResponse(speciesId = 3L, speciesName = "Lathyrus odoratus", bedId = null, bedName = null, gardenName = null, plantedDate = "2026-02-28", status = "SEEDED", count = 60),
+    )
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Kruka upp",
+        mastheadCenter = "Välj grupp",
+        mastheadRight = null,
+        bottomBar = {},
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { padding ->
+        LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+            items(previewGroups, key = { "${it.speciesId}_${it.plantedDate}" }) { group ->
+                FaltetListRow(
+                    title = group.speciesName ?: "Okänd art",
+                    meta = "${formattedDate(group.plantedDate)} · ${group.count} frön i brätte",
+                    onClick = {},
+                )
+            }
+            item { Spacer(Modifier.height(80.dp)) }
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
+@Composable
+private fun BatchPotUpScreenPreview_Detail() {
+    val snackbarHostState = remember { SnackbarHostState() }
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Kruka upp",
+        mastheadCenter = "Cosmos bipinnatus",
+        mastheadRight = {
+            IconButton(onClick = {}, modifier = Modifier.size(36.dp)) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Tillbaka", tint = FaltetClay, modifier = Modifier.size(18.dp))
+            }
+        },
+        bottomBar = {
+            FaltetFormSubmitBar(
+                label = "Kruka upp",
+                onClick = {},
+                enabled = true,
+                submitting = false,
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            item {
+                Field(
+                    label = "Antal att kruka upp",
+                    value = "24",
+                    onValueChange = {},
+                    keyboardType = KeyboardType.Number,
+                    required = true,
+                    error = null,
+                )
+            }
+            item {
+                FaltetImagePicker(
+                    label = "Foto (valfri)",
+                    value = null,
+                    onValueChange = {},
+                )
+            }
+            item {
+                Field(label = "Anteckningar (valfri)", value = "", onValueChange = {})
+            }
+        }
+    }
+}
+
+private fun formattedDate(date: String?): String {
+    if (date == null) return "—"
+    return try {
+        val parsed = java.time.LocalDate.parse(date.take(10))
+        "${parsed.dayOfMonth} ${monthShortSv(parsed.monthValue)}"
+    } catch (e: Exception) {
+        date
+    }
+}
+
+private fun monthShortSv(month: Int): String = arrayOf(
+    "jan", "feb", "mar", "apr", "maj", "jun",
+    "jul", "aug", "sep", "okt", "nov", "dec",
+)[month - 1]
