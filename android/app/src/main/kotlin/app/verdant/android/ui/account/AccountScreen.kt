@@ -1,29 +1,41 @@
 package app.verdant.android.ui.account
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.os.LocaleListCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.verdant.android.R
 import app.verdant.android.data.model.UpdateUserRequest
-import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.model.UserResponse
 import app.verdant.android.data.repository.AuthRepository
 import app.verdant.android.data.repository.GardenRepository
-import coil.compose.AsyncImage
+import app.verdant.android.ui.faltet.FaltetAvatar
+import app.verdant.android.ui.faltet.FaltetChipSelector
+import app.verdant.android.ui.faltet.FaltetHero
+import app.verdant.android.ui.faltet.FaltetListRow
+import app.verdant.android.ui.faltet.FaltetLoadingState
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.FaltetSectionHeader
+import app.verdant.android.ui.theme.FaltetClay
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -108,89 +120,83 @@ fun AccountScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text(stringResource(R.string.delete_account)) },
-            text = { Text(stringResource(R.string.delete_account_confirm)) },
+            title = { Text("Ta bort konto") },
+            text = { Text("Vill du verkligen ta bort ditt konto? Detta kan inte ångras.") },
             confirmButton = {
-                TextButton(onClick = { showDeleteDialog = false; viewModel.deleteAccount() }) {
-                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
-                }
+                TextButton(onClick = {
+                    viewModel.deleteAccount()
+                    showDeleteDialog = false
+                }) { Text("Ta bort", color = FaltetClay) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.cancel)) }
-            }
+                TextButton(onClick = { showDeleteDialog = false }) { Text("Avbryt") }
+            },
         )
     }
 
-    Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.account)) }, colors = verdantTopAppBarColors()) }
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Konto",
+        mastheadCenter = "Konto",
     ) { padding ->
         when {
-            uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-            uiState.error != null -> {
-                app.verdant.android.ui.common.ConnectionErrorState(
-                    message = stringResource(R.string.couldnt_load_account),
-                    onRetry = { viewModel.load() },
-                    modifier = Modifier.padding(padding)
-                )
-            }
+            uiState.isLoading -> FaltetLoadingState()
             uiState.user != null -> {
                 val user = uiState.user!!
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
                 ) {
-                    Spacer(Modifier.height(24.dp))
-                    user.avatarUrl?.let { url ->
-                        AsyncImage(
-                            model = url,
-                            contentDescription = "Avatar",
-                            modifier = Modifier.size(96.dp).clip(CircleShape)
-                        )
-                        Spacer(Modifier.height(16.dp))
-                    }
-                    Text(user.displayName, fontWeight = FontWeight.Bold, fontSize = 22.sp)
-                    Text(user.email, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
-
-                    Spacer(Modifier.height(32.dp))
-
-                    // Language picker
-                    Text(stringResource(R.string.language), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Spacer(Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(
-                            selected = uiState.user?.language == "en",
-                            onClick = { viewModel.updateLanguage("en") },
-                            label = { Text(stringResource(R.string.language_english)) }
-                        )
-                        FilterChip(
-                            selected = uiState.user?.language != "en",
-                            onClick = { viewModel.updateLanguage("sv") },
-                            label = { Text(stringResource(R.string.language_swedish)) }
+                    item {
+                        FaltetHero(
+                            title = user.displayName,
+                            subtitle = user.email,
+                            leading = {
+                                FaltetAvatar(
+                                    url = user.avatarUrl,
+                                    displayName = user.displayName,
+                                    size = 88.dp,
+                                )
+                            },
                         )
                     }
-
-                    Spacer(Modifier.height(32.dp))
-
-                    OutlinedButton(
-                        onClick = { viewModel.signOut() },
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(stringResource(R.string.sign_out))
+                    item {
+                        FaltetSectionHeader(label = "Språk")
+                        FaltetChipSelector(
+                            label = "",
+                            options = listOf("sv", "en"),
+                            selected = user.language,
+                            onSelectedChange = { newLang -> newLang?.let { viewModel.updateLanguage(it) } },
+                            labelFor = { if (it == "sv") "Svenska" else "English" },
+                            modifier = Modifier.padding(horizontal = 18.dp),
+                        )
+                        Spacer(Modifier.height(8.dp))
                     }
-
-                    Spacer(Modifier.height(16.dp))
-
-                    TextButton(
-                        onClick = { showDeleteDialog = true },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(stringResource(R.string.delete_account), color = MaterialTheme.colorScheme.error)
+                    item {
+                        FaltetSectionHeader(label = "Konto")
+                        FaltetListRow(
+                            title = "Logga ut",
+                            onClick = { viewModel.signOut() },
+                        )
+                        FaltetListRow(
+                            title = "Ta bort konto",
+                            onClick = { showDeleteDialog = true },
+                        )
                     }
                 }
             }
         }
     }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
+@Composable
+private fun AccountHeroPreview() {
+    FaltetHero(
+        title = "Erik Lindblad",
+        subtitle = "erik@example.se",
+        leading = {
+            FaltetAvatar(url = null, displayName = "Erik Lindblad", size = 88.dp)
+        },
+    )
 }
