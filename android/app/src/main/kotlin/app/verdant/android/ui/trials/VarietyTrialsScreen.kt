@@ -1,33 +1,63 @@
 package app.verdant.android.ui.trials
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
-import app.verdant.android.data.model.*
+import app.verdant.android.data.model.CreateVarietyTrialRequest
+import app.verdant.android.data.model.Reception
+import app.verdant.android.data.model.SeasonResponse
+import app.verdant.android.data.model.SpeciesResponse
+import app.verdant.android.data.model.UpdateVarietyTrialRequest
+import app.verdant.android.data.model.VarietyTrialResponse
+import app.verdant.android.data.model.Verdict
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
-import app.verdant.android.ui.theme.verdantTopAppBarColors
+import app.verdant.android.ui.faltet.Chip
+import app.verdant.android.ui.faltet.FaltetEmptyState
+import app.verdant.android.ui.faltet.FaltetFab
+import app.verdant.android.ui.faltet.FaltetListRow
+import app.verdant.android.ui.faltet.FaltetLoadingState
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.FaltetTone
+import app.verdant.android.ui.theme.FaltetCream
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -113,6 +143,22 @@ class TrialsViewModel @Inject constructor(
     }
 }
 
+private fun verdictTone(verdict: String): FaltetTone = when (verdict) {
+    Verdict.KEEP -> FaltetTone.Sage
+    Verdict.EXPAND -> FaltetTone.Clay
+    Verdict.DROP -> FaltetTone.Berry
+    Verdict.REDUCE -> FaltetTone.Mustard
+    else -> FaltetTone.Forest
+}
+
+private fun verdictLabelSv(verdict: String): String = when (verdict) {
+    Verdict.KEEP -> "Behåll"
+    Verdict.EXPAND -> "Utöka"
+    Verdict.REDUCE -> "Minska"
+    Verdict.DROP -> "Avveckla"
+    else -> "Ej beslutad"
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VarietyTrialsScreen(
@@ -123,57 +169,51 @@ fun VarietyTrialsScreen(
     var showDialog by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<VarietyTrialResponse?>(null) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.variety_trials)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                colors = verdantTopAppBarColors(),
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Forskning",
+        mastheadCenter = "Sortförsök",
+        fab = {
+            FaltetFab(
+                onClick = { editing = null; showDialog = true },
+                contentDescription = stringResource(R.string.new_trial),
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { editing = null; showDialog = true }) {
-                Icon(Icons.Default.Add, stringResource(R.string.new_trial))
-            }
         },
     ) { padding ->
         when {
-            uiState.isLoading -> Box(
-                Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center,
-            ) { CircularProgressIndicator() }
+            uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
 
-            uiState.error != null && uiState.items.isEmpty() -> {
-                ConnectionErrorState(
-                    onRetry = { viewModel.refresh() },
-                    modifier = Modifier.padding(padding),
-                )
-            }
+            uiState.error != null && uiState.items.isEmpty() -> ConnectionErrorState(
+                onRetry = { viewModel.refresh() },
+                modifier = Modifier.padding(padding),
+            )
 
-            uiState.items.isEmpty() -> {
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    Text(
-                        stringResource(R.string.no_trials),
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            uiState.items.isEmpty() -> FaltetEmptyState(
+                headline = "Inga sortförsök",
+                subtitle = "Starta ditt första försök.",
+                modifier = Modifier.padding(padding),
+            )
+
+            else -> LazyColumn(
+                modifier = Modifier.padding(padding),
+                contentPadding = PaddingValues(vertical = 8.dp),
+            ) {
+                items(uiState.items, key = { it.id }) { trial ->
+                    val year = uiState.seasons.find { it.id == trial.seasonId }?.year
+                    val meta = if (year != null) "$year · ${trial.speciesName ?: "Art #${trial.speciesId}"}"
+                               else trial.speciesName ?: "Art #${trial.speciesId}"
+                    FaltetListRow(
+                        title = trial.speciesName ?: "Art #${trial.speciesId}",
+                        meta = meta,
+                        leading = null,
+                        stat = {
+                            Chip(
+                                text = verdictLabelSv(trial.verdict),
+                                tone = verdictTone(trial.verdict),
+                            )
+                        },
+                        actions = null,
+                        onClick = { editing = trial; showDialog = true },
                     )
-                }
-            }
-
-            else -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    items(uiState.items, key = { it.id }) { t ->
-                        val seasonName = uiState.seasons.find { it.id == t.seasonId }?.name
-                        TrialCard(t, seasonName, onClick = { editing = t; showDialog = true })
-                    }
                 }
             }
         }
@@ -212,62 +252,6 @@ fun VarietyTrialsScreen(
     }
 }
 
-@Composable
-private fun TrialCard(trial: VarietyTrialResponse, seasonName: String?, onClick: () -> Unit) {
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(trial.speciesName ?: "Species #${trial.speciesId}", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.primaryContainer) {
-                    Text(
-                        verdictLabel(trial.verdict),
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                }
-            }
-            if (seasonName != null) {
-                Spacer(Modifier.height(2.dp))
-                Text(seasonName, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-            }
-            trial.qualityScore?.let {
-                Spacer(Modifier.height(4.dp))
-                Text("${stringResource(R.string.quality_score)}: $it/10", fontSize = 13.sp)
-            }
-            trial.customerReception?.let {
-                Text("${stringResource(R.string.customer_reception)}: ${receptionLabel(it)}", fontSize = 13.sp)
-            }
-        }
-    }
-}
-
-@Composable
-private fun verdictLabel(v: String): String = when (v) {
-    Verdict.KEEP -> stringResource(R.string.verdict_keep)
-    Verdict.EXPAND -> stringResource(R.string.verdict_expand)
-    Verdict.REDUCE -> stringResource(R.string.verdict_reduce)
-    Verdict.DROP -> stringResource(R.string.verdict_drop)
-    else -> stringResource(R.string.verdict_undecided)
-}
-
-@Composable
-private fun receptionLabel(r: String): String = when (r) {
-    Reception.LOVED -> stringResource(R.string.reception_loved)
-    Reception.LIKED -> stringResource(R.string.reception_liked)
-    Reception.NEUTRAL -> stringResource(R.string.reception_neutral)
-    Reception.DISLIKED -> stringResource(R.string.reception_disliked)
-    else -> r
-}
-
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun TrialDialog(
@@ -294,7 +278,7 @@ private fun TrialDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(if (existing != null) R.string.edit_trial else R.string.new_trial)) },
         text = {
-            Column(
+            androidx.compose.foundation.layout.Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -307,7 +291,7 @@ private fun TrialDialog(
                         onValueChange = {},
                         readOnly = true,
                         label = { Text(stringResource(R.string.species)) },
-                        modifier = Modifier.fillMaxWidth().menuAnchor(),
+                        modifier = Modifier.menuAnchor(),
                         shape = RoundedCornerShape(12.dp),
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(speciesExpanded) },
                     )
@@ -333,7 +317,7 @@ private fun TrialDialog(
                         onValueChange = {},
                         readOnly = true,
                         label = { Text(stringResource(R.string.seasons)) },
-                        modifier = Modifier.fillMaxWidth().menuAnchor(),
+                        modifier = Modifier.menuAnchor(),
                         shape = RoundedCornerShape(12.dp),
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(seasonExpanded) },
                     )
@@ -388,7 +372,7 @@ private fun TrialDialog(
                         FilterChip(
                             selected = v == verdict,
                             onClick = { verdict = v },
-                            label = { Text(verdictLabel(v), fontSize = 12.sp) },
+                            label = { Text(verdictLabelSv(v), fontSize = 12.sp) },
                         )
                     }
                 }
@@ -436,5 +420,48 @@ private fun TrialDialog(
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
         },
+    )
+}
+
+@Composable
+private fun receptionLabel(r: String): String = when (r) {
+    Reception.LOVED -> stringResource(R.string.reception_loved)
+    Reception.LIKED -> stringResource(R.string.reception_liked)
+    Reception.NEUTRAL -> stringResource(R.string.reception_neutral)
+    Reception.DISLIKED -> stringResource(R.string.reception_disliked)
+    else -> r
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
+@Composable
+private fun VarietyTrialsScreenPreview() {
+    val trial = VarietyTrialResponse(
+        id = 1L,
+        seasonId = 1L,
+        speciesId = 1L,
+        speciesName = "Cosmos bipinnatus",
+        bedId = null,
+        plantCount = null,
+        stemYield = null,
+        avgStemLengthCm = null,
+        avgVaseLifeDays = null,
+        qualityScore = 8,
+        customerReception = null,
+        verdict = Verdict.EXPAND,
+        notes = null,
+        createdAt = "2025-01-01T00:00:00Z",
+    )
+    FaltetListRow(
+        title = trial.speciesName ?: "Art #${trial.speciesId}",
+        meta = "2025 · ${trial.speciesName ?: "Art #${trial.speciesId}"}",
+        leading = null,
+        stat = {
+            Chip(
+                text = verdictLabelSv(trial.verdict),
+                tone = verdictTone(trial.verdict),
+            )
+        },
+        actions = null,
+        onClick = {},
     )
 }
