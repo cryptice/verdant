@@ -1,38 +1,54 @@
 package app.verdant.android.ui.season
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.verdant.android.R
 import app.verdant.android.data.model.CreateSeasonRequest
 import app.verdant.android.data.model.SeasonResponse
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
-import app.verdant.android.ui.theme.verdantTopAppBarColors
+import app.verdant.android.ui.faltet.FaltetDatePicker
+import app.verdant.android.ui.faltet.FaltetEmptyState
+import app.verdant.android.ui.faltet.FaltetFab
+import app.verdant.android.ui.faltet.FaltetListRow
+import app.verdant.android.ui.faltet.FaltetLoadingState
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.Field
+import app.verdant.android.ui.theme.FaltetClay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.time.Year
+import java.time.LocalDate
 import javax.inject.Inject
 
 data class SeasonSelectorState(
@@ -106,221 +122,172 @@ fun SeasonSelectorScreen(
     viewModel: SeasonSelectorViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var showDialog by remember { mutableStateOf(false) }
-    var editingSeason by remember { mutableStateOf<SeasonResponse?>(null) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.seasons)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                colors = verdantTopAppBarColors()
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { editingSeason = null; showDialog = true }) {
-                Icon(Icons.Default.Add, stringResource(R.string.new_season))
-            }
-        }
-    ) { padding ->
-        when {
-            uiState.isLoading -> {
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            }
-            uiState.error != null && uiState.seasons.isEmpty() -> {
-                ConnectionErrorState(
-                    onRetry = { viewModel.refresh() },
-                    modifier = Modifier.padding(padding)
-                )
-            }
-            uiState.seasons.isEmpty() -> {
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(stringResource(R.string.no_seasons), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                    }
-                }
-            }
-            else -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(uiState.seasons, key = { it.id }) { season ->
-                        SeasonCard(
-                            season = season,
-                            onClick = { editingSeason = season; showDialog = true }
-                        )
-                    }
-                }
-            }
-        }
+    var showFormDialog by remember { mutableStateOf(false) }
+    var editingSeason by remember { mutableStateOf<SeasonResponse?>(null) }
+    var formName by remember { mutableStateOf("") }
+    var formYear by remember { mutableStateOf("") }
+    var formLastFrost by remember { mutableStateOf<LocalDate?>(null) }
+    var formFirstFrost by remember { mutableStateOf<LocalDate?>(null) }
+
+    val openCreate: () -> Unit = {
+        editingSeason = null
+        formName = ""
+        formYear = java.time.Year.now().value.toString()
+        formLastFrost = null
+        formFirstFrost = null
+        showFormDialog = true
     }
 
-    if (showDialog) {
-        SeasonFormDialog(
-            season = editingSeason,
-            saving = uiState.saving,
-            onDismiss = { showDialog = false },
-            onSave = { name, year, lastFrost, firstFrost ->
-                if (editingSeason != null) {
-                    viewModel.updateSeason(editingSeason!!.id, buildMap {
-                        put("name", name)
-                        put("year", year)
-                        put("lastFrostDate", lastFrost.ifBlank { null })
-                        put("firstFrostDate", firstFrost.ifBlank { null })
-                    })
-                } else {
-                    viewModel.createSeason(CreateSeasonRequest(
-                        name = name,
-                        year = year,
-                        lastFrostDate = lastFrost.ifBlank { null },
-                        firstFrostDate = firstFrost.ifBlank { null },
-                    ))
+    val openEdit: (SeasonResponse) -> Unit = { season ->
+        editingSeason = season
+        formName = season.name
+        formYear = season.year.toString()
+        formLastFrost = season.lastFrostDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        formFirstFrost = season.firstFrostDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        showFormDialog = true
+    }
+
+    val closeDialog: () -> Unit = {
+        showFormDialog = false
+        editingSeason = null
+    }
+
+    if (showFormDialog) {
+        AlertDialog(
+            onDismissRequest = closeDialog,
+            title = { Text(if (editingSeason != null) "Redigera säsong" else "Ny säsong") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Field(label = "Namn", value = formName, onValueChange = { formName = it }, required = true)
+                    Field(
+                        label = "År",
+                        value = formYear,
+                        onValueChange = { formYear = it.filter { c -> c.isDigit() } },
+                        keyboardType = KeyboardType.Number,
+                        required = true,
+                    )
+                    FaltetDatePicker(label = "Sista frost (valfri)", value = formLastFrost, onValueChange = { formLastFrost = it })
+                    FaltetDatePicker(label = "Första frost (valfri)", value = formFirstFrost, onValueChange = { formFirstFrost = it })
                 }
-                showDialog = false
             },
-            onDelete = if (editingSeason != null) {
-                { viewModel.deleteSeason(editingSeason!!.id); showDialog = false }
-            } else null
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val year = formYear.toIntOrNull() ?: return@TextButton
+                        val lastFrost = formLastFrost?.toString()
+                        val firstFrost = formFirstFrost?.toString()
+                        val editing = editingSeason
+                        if (editing != null) {
+                            viewModel.updateSeason(editing.id, buildMap {
+                                put("name", formName)
+                                put("year", year)
+                                put("lastFrostDate", lastFrost)
+                                put("firstFrostDate", firstFrost)
+                            })
+                        } else {
+                            viewModel.createSeason(CreateSeasonRequest(
+                                name = formName,
+                                year = year,
+                                lastFrostDate = lastFrost,
+                                firstFrostDate = firstFrost,
+                            ))
+                        }
+                        closeDialog()
+                    },
+                    enabled = formName.isNotBlank() && formYear.toIntOrNull() != null && !uiState.saving,
+                ) { Text(if (editingSeason != null) "Spara" else "Skapa", color = FaltetClay) }
+            },
+            dismissButton = {
+                Row {
+                    val editing = editingSeason
+                    if (editing != null) {
+                        TextButton(onClick = {
+                            viewModel.deleteSeason(editing.id)
+                            closeDialog()
+                        }) { Text("Ta bort", color = FaltetClay) }
+                    }
+                    TextButton(onClick = closeDialog) { Text("Avbryt") }
+                }
+            },
         )
     }
-}
 
-@Composable
-private fun SeasonCard(season: SeasonResponse, onClick: () -> Unit) {
-    val borderColor = if (season.isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
-    val borderWidth = if (season.isActive) 2.dp else 1.dp
-
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(borderWidth, borderColor),
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(season.name, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                if (season.isActive) {
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer
-                    ) {
-                        Text(
-                            stringResource(R.string.active_season),
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                }
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Plan",
+        mastheadCenter = "Säsonger",
+        fab = { FaltetFab(onClick = openCreate, contentDescription = "Skapa säsong") },
+    ) { padding ->
+        when {
+            uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
+            uiState.error != null -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                ConnectionErrorState(onRetry = { viewModel.refresh() })
             }
-            Spacer(Modifier.height(4.dp))
-            Text("${season.year}", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-            if (season.lastFrostDate != null || season.firstFrostDate != null) {
-                Spacer(Modifier.height(4.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    season.lastFrostDate?.let {
-                        Text("${stringResource(R.string.last_frost)}: $it", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                    }
-                    season.firstFrostDate?.let {
-                        Text("${stringResource(R.string.first_frost)}: $it", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                    }
+            uiState.seasons.isEmpty() -> FaltetEmptyState(
+                headline = "Inga säsonger",
+                subtitle = "Skapa din första säsong.",
+                modifier = Modifier.padding(padding),
+            )
+            else -> LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+                items(uiState.seasons, key = { it.id }) { season ->
+                    FaltetListRow(
+                        title = season.name,
+                        meta = buildString {
+                            append(season.year.toString())
+                            season.lastFrostDate?.let { append(" · Sista frost $it") }
+                            season.firstFrostDate?.let { append(" · Första frost $it") }
+                        },
+                        leading = if (season.isActive) {
+                            {
+                                Box(
+                                    Modifier
+                                        .size(10.dp)
+                                        .drawBehind { drawCircle(FaltetClay) },
+                                )
+                            }
+                        } else null,
+                        stat = if (season.isActive) {
+                            {
+                                Text(
+                                    text = "AKTIV",
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 9.sp,
+                                    letterSpacing = 1.2.sp,
+                                    color = FaltetClay,
+                                )
+                            }
+                        } else null,
+                        onClick = { openEdit(season) },
+                    )
                 }
+                item { Spacer(Modifier.height(80.dp)) }
             }
         }
     }
 }
 
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
 @Composable
-private fun SeasonFormDialog(
-    season: SeasonResponse?,
-    saving: Boolean,
-    onDismiss: () -> Unit,
-    onSave: (name: String, year: Int, lastFrost: String, firstFrost: String) -> Unit,
-    onDelete: (() -> Unit)?,
-) {
-    var name by remember { mutableStateOf(season?.name ?: "") }
-    var year by remember { mutableStateOf(season?.year?.toString() ?: Year.now().value.toString()) }
-    var lastFrost by remember { mutableStateOf(season?.lastFrostDate ?: "") }
-    var firstFrost by remember { mutableStateOf(season?.firstFrostDate ?: "") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(if (season != null) R.string.edit_season else R.string.new_season)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text(stringResource(R.string.season_name)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = year,
-                    onValueChange = { year = it.filter { c -> c.isDigit() } },
-                    label = { Text(stringResource(R.string.season_year)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = lastFrost,
-                    onValueChange = { lastFrost = it },
-                    label = { Text(stringResource(R.string.last_frost)) },
-                    placeholder = { Text("YYYY-MM-DD") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = firstFrost,
-                    onValueChange = { firstFrost = it },
-                    label = { Text(stringResource(R.string.first_frost)) },
-                    placeholder = { Text("YYYY-MM-DD") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-                if (onDelete != null) {
-                    TextButton(
-                        onClick = onDelete,
-                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                    ) {
-                        Text(stringResource(R.string.delete))
-                    }
-                }
-            }
+private fun SeasonRowPreview() {
+    FaltetListRow(
+        title = "Sommar",
+        meta = "2026 · Sista frost 2026-05-15",
+        leading = {
+            Box(
+                Modifier
+                    .size(10.dp)
+                    .drawBehind { drawCircle(FaltetClay) },
+            )
         },
-        confirmButton = {
-            Button(
-                onClick = { onSave(name, year.toIntOrNull() ?: Year.now().value, lastFrost, firstFrost) },
-                enabled = name.isNotBlank() && year.isNotBlank() && !saving
-            ) {
-                if (saving) {
-                    CircularProgressIndicator(Modifier.size(18.dp), color = MaterialTheme.colorScheme.onPrimary)
-                } else {
-                    Text(stringResource(R.string.save))
-                }
-            }
+        stat = {
+            Text(
+                text = "AKTIV",
+                fontFamily = FontFamily.Monospace,
+                fontSize = 9.sp,
+                letterSpacing = 1.2.sp,
+                color = FaltetClay,
+            )
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        }
+        onClick = {},
     )
 }
