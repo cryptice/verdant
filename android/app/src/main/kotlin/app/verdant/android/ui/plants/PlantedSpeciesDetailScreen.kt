@@ -1,20 +1,33 @@
 package app.verdant.android.ui.plants
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -150,6 +163,144 @@ fun PlantedSpeciesDetailScreen(
         uiState.locations.sumOf { it.count }
     }
 
+    var selectedSubItem by remember { mutableStateOf<PlantLocationGroup?>(null) }
+    var actionCount by remember { mutableStateOf("") }
+    var actionSubmitting by remember { mutableStateOf(false) }
+    var selectedTargetBedId by remember { mutableStateOf<Long?>(null) }
+    var bedExpanded by remember { mutableStateOf(false) }
+    var plantOutMode by remember { mutableStateOf(false) }
+
+    val dismissModal: () -> Unit = {
+        selectedSubItem = null
+        actionCount = ""
+        actionSubmitting = false
+        selectedTargetBedId = null
+        bedExpanded = false
+        plantOutMode = false
+    }
+
+    // Dialog 2: action selection for a specific status group
+    if (selectedSubItem != null && !plantOutMode) {
+        val item = selectedSubItem!!
+        val actions: List<Pair<String, String>> = buildList {
+            when (item.status) {
+                "SEEDED" -> {
+                    if (item.bedId == null) add("POTTED_UP" to "Kruka upp")
+                    add("PLANTED_OUT" to "Plantera ut")
+                }
+                "POTTED_UP" -> add("PLANTED_OUT" to "Plantera ut")
+                "PLANTED_OUT", "GROWING" -> {
+                    add("HARVESTED" to "Skörda")
+                    add("RECOVERED" to "Återhämta")
+                }
+                "HARVESTED" -> add("RECOVERED" to "Återhämta")
+            }
+            add("REMOVED" to "Kassera")
+        }
+        AlertDialog(
+            onDismissRequest = dismissModal,
+            title = { Text("${statusLabelSv(item.status ?: "")} · ${item.count}") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = actionCount,
+                        onValueChange = { actionCount = it.filter { c -> c.isDigit() } },
+                        label = { Text("Antal") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                    )
+                    val count = actionCount.toIntOrNull() ?: 0
+                    actions.forEach { (eventType, label) ->
+                        val isDestructive = eventType == "REMOVED"
+                        Button(
+                            onClick = {
+                                if (eventType == "PLANTED_OUT") {
+                                    plantOutMode = true
+                                } else {
+                                    actionSubmitting = true
+                                    viewModel.batchEvent(item, eventType, count.coerceAtMost(item.count)) {
+                                        dismissModal()
+                                    }
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = count in 1..item.count && !actionSubmitting,
+                            colors = if (isDestructive) ButtonDefaults.buttonColors(containerColor = FaltetClay)
+                                     else ButtonDefaults.buttonColors(),
+                        ) {
+                            Text(label)
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = dismissModal) { Text("Avbryt") }
+            },
+        )
+    }
+
+    // Dialog 3: bed picker for plant-out
+    if (selectedSubItem != null && plantOutMode) {
+        val item = selectedSubItem!!
+        val count = actionCount.toIntOrNull() ?: 0
+        AlertDialog(
+            onDismissRequest = dismissModal,
+            title = { Text("Plantera ut") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = "Välj bädd",
+                        fontSize = 14.sp,
+                        color = FaltetForest,
+                    )
+                    ExposedDropdownMenuBox(
+                        expanded = bedExpanded,
+                        onExpandedChange = { bedExpanded = it },
+                    ) {
+                        OutlinedTextField(
+                            value = uiState.beds.find { it.id == selectedTargetBedId }?.let { "${it.gardenName} - ${it.name}" } ?: "",
+                            onValueChange = {},
+                            readOnly = true,
+                            placeholder = { Text("Välj bädd") },
+                            modifier = Modifier.fillMaxWidth().menuAnchor(),
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(bedExpanded) },
+                        )
+                        ExposedDropdownMenu(
+                            expanded = bedExpanded,
+                            onDismissRequest = { bedExpanded = false },
+                        ) {
+                            uiState.beds.forEach { bed ->
+                                DropdownMenuItem(
+                                    text = { Text("${bed.gardenName} - ${bed.name}") },
+                                    onClick = { selectedTargetBedId = bed.id; bedExpanded = false },
+                                )
+                            }
+                        }
+                    }
+                    Button(
+                        onClick = {
+                            actionSubmitting = true
+                            viewModel.batchEvent(item, "PLANTED_OUT", count.coerceAtMost(item.count), targetBedId = selectedTargetBedId) {
+                                dismissModal()
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = selectedTargetBedId != null && count in 1..item.count && !actionSubmitting,
+                    ) {
+                        Text("Plantera ut")
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { plantOutMode = false; selectedTargetBedId = null }) {
+                    Text("Tillbaka")
+                }
+            },
+        )
+    }
+
     FaltetScreenScaffold(
         mastheadLeft = "§ Art",
         mastheadCenter = uiState.speciesName,
@@ -227,6 +378,10 @@ fun PlantedSpeciesDetailScreen(
                                             }
                                         }
                                     } else null,
+                                    onClick = {
+                                        selectedSubItem = loc
+                                        actionCount = loc.count.toString()
+                                    },
                                 )
                             }
                         }
