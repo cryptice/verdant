@@ -1,37 +1,81 @@
 package app.verdant.android.ui.activity
 
 import android.graphics.Bitmap
+import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.verdant.android.R
-import app.verdant.android.data.model.*
-import app.verdant.android.ui.theme.verdantTopAppBarColors
+import app.verdant.android.data.model.CreateSpeciesGroupRequest
+import app.verdant.android.data.model.CreateSpeciesRequest
+import app.verdant.android.data.model.CreateSpeciesTagRequest
+import app.verdant.android.data.model.ExtractSpeciesInfoRequest
+import app.verdant.android.data.model.ExtractedSpeciesInfo
+import app.verdant.android.data.model.IdentifyPlantRequest
+import app.verdant.android.data.model.PlantSuggestion
+import app.verdant.android.data.model.SpeciesGroupResponse
+import app.verdant.android.data.model.SpeciesResponse
+import app.verdant.android.data.model.SpeciesTagResponse
+import app.verdant.android.data.model.UpdateSpeciesRequest
 import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.ui.faltet.FaltetChipMultiSelector
+import app.verdant.android.ui.faltet.FaltetFormSubmitBar
+import app.verdant.android.ui.faltet.FaltetImagePicker
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.FaltetSectionHeader
+import app.verdant.android.ui.faltet.Field
+import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetDisplay
+import app.verdant.android.ui.theme.FaltetForest
+import app.verdant.android.ui.theme.FaltetInk
+import app.verdant.android.ui.theme.FaltetInkLine20
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import android.util.Log
 import javax.inject.Inject
 
 private const val TAG = "AddSpeciesScreen"
@@ -148,7 +192,7 @@ class AddSpeciesViewModel @Inject constructor(
 @Composable
 fun AddSpeciesScreen(
     onBack: () -> Unit,
-    viewModel: AddSpeciesViewModel = hiltViewModel()
+    viewModel: AddSpeciesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isEdit = viewModel.speciesId != null
@@ -157,13 +201,12 @@ fun AddSpeciesScreen(
     var variantName by remember { mutableStateOf("") }
     var variantNameSv by remember { mutableStateOf("") }
     var scientificName by remember { mutableStateOf("") }
-    val currentLocale = java.util.Locale.getDefault().language // "sv" or "en"
     var imageFrontBase64 by remember { mutableStateOf<String?>(null) }
     var imageBackBase64 by remember { mutableStateOf<String?>(null) }
     var imageFrontUrl by remember { mutableStateOf<String?>(null) }
     var imageBackUrl by remember { mutableStateOf<String?>(null) }
-    var frontBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
-    var backBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+    var frontBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var backBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var germinationTimeDaysMin by remember { mutableStateOf("") }
     var germinationTimeDaysMax by remember { mutableStateOf("") }
     var daysToHarvestMin by remember { mutableStateOf("") }
@@ -175,26 +218,14 @@ fun AddSpeciesScreen(
     var selectedSowingMonths by remember { mutableStateOf<Set<Int>>(emptySet()) }
     var germinationRate by remember { mutableStateOf("") }
     var selectedTagIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
+    var selectedPositions by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var selectedSoils by remember { mutableStateOf<Set<String>>(emptySet()) }
     var showNewTagDialog by remember { mutableStateOf(false) }
+    var newTagName by remember { mutableStateOf("") }
     var showDiscardDialog by remember { mutableStateOf(false) }
     var showValidationErrors by remember { mutableStateOf(false) }
-
-    val growingPositions = listOf("SUNNY", "PARTIALLY_SUNNY", "SHADOWY")
-    val growingPositionLabelRes = listOf(R.string.sunny, R.string.partial_sun, R.string.shadowy)
-    var selectedPositions by remember { mutableStateOf<Set<String>>(emptySet()) }
-
-    val soilTypes = listOf("CLAY", "SANDY", "LOAMY", "CHALKY", "PEATY", "SILTY")
-    val soilTypeLabelRes = listOf(R.string.clay, R.string.sandy, R.string.loamy, R.string.chalky, R.string.peaty, R.string.silty)
-    var selectedSoils by remember { mutableStateOf<Set<String>>(emptySet()) }
-
-    val monthLabelRes = listOf(
-        R.string.month_jan, R.string.month_feb, R.string.month_mar, R.string.month_apr,
-        R.string.month_may, R.string.month_jun, R.string.month_jul, R.string.month_aug,
-        R.string.month_sep, R.string.month_oct, R.string.month_nov, R.string.month_dec
-    )
-
-    // Pre-fill from existing species for edit mode
     var prefilled by remember { mutableStateOf(false) }
+
     LaunchedEffect(uiState.existingSpecies) {
         val s = uiState.existingSpecies
         if (s != null && !prefilled) {
@@ -221,106 +252,51 @@ fun AddSpeciesScreen(
         }
     }
 
-    val hasData = commonName.isNotBlank() || variantName.isNotBlank() || variantNameSv.isNotBlank() || scientificName.isNotBlank() ||
-        imageFrontBase64 != null || imageBackBase64 != null || imageFrontUrl != null || imageBackUrl != null ||
+    val hasData = commonName.isNotBlank() || variantName.isNotBlank() || variantNameSv.isNotBlank() ||
+        scientificName.isNotBlank() || imageFrontBase64 != null || imageBackBase64 != null ||
         germinationTimeDaysMin.isNotBlank() || germinationTimeDaysMax.isNotBlank() ||
-        daysToHarvestMin.isNotBlank() || daysToHarvestMax.isNotBlank() || sowingDepthMm.isNotBlank() ||
-        heightCmMin.isNotBlank() || heightCmMax.isNotBlank() || selectedBloomMonths.isNotEmpty() || selectedSowingMonths.isNotEmpty() || germinationRate.isNotBlank()
+        daysToHarvestMin.isNotBlank() || daysToHarvestMax.isNotBlank() ||
+        sowingDepthMm.isNotBlank() || heightCmMin.isNotBlank() || heightCmMax.isNotBlank() ||
+        selectedBloomMonths.isNotEmpty() || selectedSowingMonths.isNotEmpty() ||
+        germinationRate.isNotBlank() || selectedTagIds.isNotEmpty() ||
+        selectedPositions.isNotEmpty() || selectedSoils.isNotEmpty()
 
-    // Validation: all fields mandatory except group and tags
-    val isCommonNameValid = commonName.isNotBlank()
-    val isScientificNameValid = scientificName.isNotBlank()
-    val isGerminationTimeDaysMinValid = germinationTimeDaysMin.toIntOrNull() != null
-    val isDaysToHarvestMinValid = daysToHarvestMin.toIntOrNull() != null
-    val isSowingDepthMmValid = sowingDepthMm.toIntOrNull() != null
-    val isHeightCmMinValid = heightCmMin.toIntOrNull() != null
-    val isGerminationRateValid = germinationRate.toIntOrNull() != null
-    val isPositionsValid = selectedPositions.isNotEmpty()
-    val isSoilsValid = selectedSoils.isNotEmpty()
-    val isFrontPhotoValid = imageFrontBase64 != null || imageFrontUrl != null
-
-    val isFormValid = isCommonNameValid && isScientificNameValid &&
-        isGerminationTimeDaysMinValid && isDaysToHarvestMinValid &&
-        isSowingDepthMmValid && isHeightCmMinValid &&
-        isGerminationRateValid && isPositionsValid && isSoilsValid && isFrontPhotoValid
-
-    // In edit mode, check whether anything actually changed from the original
-    val existing = uiState.existingSpecies
-    val hasChanges = existing == null || // create mode = always "changed"
-        commonName != existing.commonName ||
-        variantName != (existing.variantName ?: "") ||
-        variantNameSv != (existing.variantNameSv ?: "") ||
-        (scientificName) != (existing.scientificName ?: "") ||
-        imageFrontBase64 != null ||
-        imageBackBase64 != null ||
-        germinationTimeDaysMin != (existing.germinationTimeDaysMin?.toString() ?: "") ||
-        germinationTimeDaysMax != (existing.germinationTimeDaysMax?.toString() ?: "") ||
-        daysToHarvestMin != (existing.daysToHarvestMin?.toString() ?: "") ||
-        daysToHarvestMax != (existing.daysToHarvestMax?.toString() ?: "") ||
-        sowingDepthMm != (existing.sowingDepthMm?.toString() ?: "") ||
-        heightCmMin != (existing.heightCmMin?.toString() ?: "") ||
-        heightCmMax != (existing.heightCmMax?.toString() ?: "") ||
-        selectedBloomMonths != existing.bloomMonths.toSet() ||
-        selectedSowingMonths != existing.sowingMonths.toSet() ||
-        germinationRate != (existing.germinationRate?.toString() ?: "") ||
-        selectedPositions != existing.growingPositions.toSet() ||
-        selectedSoils != existing.soils.toSet() ||
-        selectedTagIds != existing.tags.map { it.id }.toSet()
-
-    fun tryBack() {
-        if (hasData) showDiscardDialog = true else onBack()
+    val hasChanges = if (!isEdit) hasData else {
+        val s = uiState.existingSpecies
+        s == null || commonName != s.commonName ||
+            variantName != (s.variantName ?: "") ||
+            variantNameSv != (s.variantNameSv ?: "") ||
+            scientificName != (s.scientificName ?: "") ||
+            imageFrontBase64 != null || imageBackBase64 != null ||
+            germinationTimeDaysMin != (s.germinationTimeDaysMin?.toString() ?: "") ||
+            germinationTimeDaysMax != (s.germinationTimeDaysMax?.toString() ?: "") ||
+            daysToHarvestMin != (s.daysToHarvestMin?.toString() ?: "") ||
+            daysToHarvestMax != (s.daysToHarvestMax?.toString() ?: "") ||
+            sowingDepthMm != (s.sowingDepthMm?.toString() ?: "") ||
+            heightCmMin != (s.heightCmMin?.toString() ?: "") ||
+            heightCmMax != (s.heightCmMax?.toString() ?: "") ||
+            selectedBloomMonths != s.bloomMonths.toSet() ||
+            selectedSowingMonths != s.sowingMonths.toSet() ||
+            germinationRate != (s.germinationRate?.toString() ?: "") ||
+            selectedTagIds != s.tags.map { it.id }.toSet() ||
+            selectedPositions != s.growingPositions.toSet() ||
+            selectedSoils != s.soils.toSet()
     }
 
-    androidx.activity.compose.BackHandler(enabled = true) { tryBack() }
-
-    // Auto-populate from AI suggestions (front photo) + crop
-    LaunchedEffect(uiState.suggestions) {
-        if (uiState.suggestions.isNotEmpty()) {
-            val top = uiState.suggestions.first()
-            if (commonName.isBlank()) {
-                commonName = top.commonName
-                scientificName = top.species
-            }
-            // Crop front photo to seed package bounds
-            top.cropBox?.let { box ->
-                frontBitmap?.let { bmp ->
-                    val cropped = bmp.cropToBox(box)
-                    frontBitmap = cropped
-                    imageFrontBase64 = cropped.toCompressedBase64()
-                }
-            }
+    val tryBack: () -> Unit = {
+        if (hasData && (!isEdit || hasChanges)) {
+            showDiscardDialog = true
+        } else {
+            onBack()
         }
     }
 
-    // Auto-populate from extracted info (back photo) + crop
-    LaunchedEffect(uiState.extractedInfo) {
-        val info = uiState.extractedInfo ?: return@LaunchedEffect
-        if (commonName.isBlank()) info.commonName?.let { commonName = it }
-        if (variantName.isBlank()) info.variantName?.let { variantName = it }
-        if (variantNameSv.isBlank()) info.variantNameSv?.let { variantNameSv = it }
-        if (scientificName.isBlank()) info.scientificName?.let { scientificName = it }
-        info.germinationTimeDaysMin?.let { germinationTimeDaysMin = it.toString() }
-        info.germinationTimeDaysMax?.let { germinationTimeDaysMax = it.toString() }
-        info.daysToHarvestMin?.let { daysToHarvestMin = it.toString() }
-        info.daysToHarvestMax?.let { daysToHarvestMax = it.toString() }
-        info.sowingDepthMm?.let { sowingDepthMm = it.toString() }
-        info.heightCmMin?.let { heightCmMin = it.toString() }
-        info.heightCmMax?.let { heightCmMax = it.toString() }
-        info.bloomMonths?.let { selectedBloomMonths = it.toSet() }
-        info.sowingMonths?.let { selectedSowingMonths = it.toSet() }
-        info.germinationRate?.let { germinationRate = it.toString() }
-        info.growingPositions?.let { selectedPositions = it.toSet() }
-        info.soils?.let { selectedSoils = it.toSet() }
-        // Crop back photo to seed package bounds
-        info.cropBox?.let { box ->
-            backBitmap?.let { bmp ->
-                val cropped = bmp.cropToBox(box)
-                backBitmap = cropped
-                imageBackBase64 = cropped.toCompressedBase64()
-            }
-        }
-    }
+    BackHandler(enabled = hasData) { tryBack() }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let { snackbarHostState.showSnackbar(it) }
+    }
     LaunchedEffect(uiState.created) {
         if (uiState.created) onBack()
     }
@@ -328,535 +304,148 @@ fun AddSpeciesScreen(
     if (showDiscardDialog) {
         AlertDialog(
             onDismissRequest = { showDiscardDialog = false },
-            title = { Text(stringResource(R.string.discard_changes)) },
-            text = { Text(stringResource(R.string.discard_changes_confirm)) },
+            title = { Text("Avbryt ändringar?") },
+            text = { Text("Dina ändringar kommer att gå förlorade.") },
             confirmButton = {
-                TextButton(onClick = { showDiscardDialog = false; onBack() }) {
-                    Text(stringResource(R.string.discard), color = MaterialTheme.colorScheme.error)
-                }
+                TextButton(onClick = {
+                    showDiscardDialog = false
+                    onBack()
+                }) { Text("Avbryt ändringar", color = FaltetClay) }
             },
             dismissButton = {
-                TextButton(onClick = { showDiscardDialog = false }) { Text(stringResource(R.string.cancel)) }
-            }
+                TextButton(onClick = { showDiscardDialog = false }) { Text("Fortsätt redigera") }
+            },
         )
     }
 
     if (showNewTagDialog) {
-        var newName by remember { mutableStateOf("") }
         AlertDialog(
-            onDismissRequest = { showNewTagDialog = false },
-            title = { Text(stringResource(R.string.new_tag_title)) },
+            onDismissRequest = { showNewTagDialog = false; newTagName = "" },
+            title = { Text("Ny tagg") },
             text = {
-                OutlinedTextField(
-                    value = newName,
-                    onValueChange = { newName = it },
-                    label = { Text(stringResource(R.string.tag_name)) },
-                    shape = RoundedCornerShape(12.dp)
+                Field(
+                    label = "Namn",
+                    value = newTagName,
+                    onValueChange = { newTagName = it },
+                    required = true,
                 )
             },
             confirmButton = {
-                TextButton(onClick = {
-                    if (newName.isNotBlank()) {
-                        viewModel.createTag(newName)
-                        showNewTagDialog = false
-                    }
-                }) { Text(stringResource(R.string.create)) }
+                TextButton(
+                    onClick = {
+                        if (newTagName.isNotBlank()) {
+                            viewModel.createTag(newTagName.trim())
+                            showNewTagDialog = false
+                            newTagName = ""
+                        }
+                    },
+                    enabled = newTagName.isNotBlank(),
+                ) { Text("Skapa", color = FaltetClay) }
             },
             dismissButton = {
-                TextButton(onClick = { showNewTagDialog = false }) { Text(stringResource(R.string.cancel)) }
-            }
+                TextButton(onClick = { showNewTagDialog = false; newTagName = "" }) { Text("Avbryt") }
+            },
         )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(if (isEdit) R.string.edit_species else R.string.add_species)) },
-                navigationIcon = {
-                    IconButton(onClick = { tryBack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                colors = verdantTopAppBarColors()
-            )
+    val submitAction: () -> Unit = {
+        showValidationErrors = true
+        val germMin = germinationTimeDaysMin.toIntOrNull()
+        val harvestMin = daysToHarvestMin.toIntOrNull()
+        val depth = sowingDepthMm.toIntOrNull()
+        val heightMin = heightCmMin.toIntOrNull()
+        val germRate = germinationRate.toIntOrNull()
+        val valid = commonName.isNotBlank() &&
+            scientificName.isNotBlank() &&
+            germMin != null && harvestMin != null &&
+            depth != null && heightMin != null && germRate != null &&
+            selectedPositions.isNotEmpty() &&
+            selectedSoils.isNotEmpty() &&
+            (imageFrontBase64 != null || imageFrontUrl != null)
+
+        if (valid) {
+            if (isEdit) {
+                viewModel.updateSpecies(
+                    UpdateSpeciesRequest(
+                        commonName = commonName,
+                        variantName = variantName.ifBlank { null },
+                        variantNameSv = variantNameSv.ifBlank { null },
+                        scientificName = scientificName.ifBlank { null },
+                        imageFrontBase64 = imageFrontBase64,
+                        imageBackBase64 = imageBackBase64,
+                        germinationTimeDaysMin = germMin,
+                        germinationTimeDaysMax = germinationTimeDaysMax.toIntOrNull(),
+                        daysToHarvestMin = harvestMin,
+                        daysToHarvestMax = daysToHarvestMax.toIntOrNull(),
+                        sowingDepthMm = depth,
+                        heightCmMin = heightMin,
+                        heightCmMax = heightCmMax.toIntOrNull(),
+                        bloomMonths = selectedBloomMonths.toList().sorted(),
+                        sowingMonths = selectedSowingMonths.toList().sorted(),
+                        germinationRate = germRate,
+                        tagIds = selectedTagIds.toList(),
+                        growingPositions = selectedPositions.toList(),
+                        soils = selectedSoils.toList(),
+                    )
+                )
+            } else {
+                viewModel.createSpecies(
+                    CreateSpeciesRequest(
+                        commonName = commonName,
+                        variantName = variantName.ifBlank { null },
+                        variantNameSv = variantNameSv.ifBlank { null },
+                        scientificName = scientificName.ifBlank { null },
+                        imageFrontBase64 = imageFrontBase64,
+                        imageBackBase64 = imageBackBase64,
+                        germinationTimeDaysMin = germMin,
+                        germinationTimeDaysMax = germinationTimeDaysMax.toIntOrNull(),
+                        daysToHarvestMin = harvestMin,
+                        daysToHarvestMax = daysToHarvestMax.toIntOrNull(),
+                        sowingDepthMm = depth,
+                        heightCmMin = heightMin,
+                        heightCmMax = heightCmMax.toIntOrNull(),
+                        bloomMonths = selectedBloomMonths.toList().sorted(),
+                        sowingMonths = selectedSowingMonths.toList().sorted(),
+                        germinationRate = germRate,
+                        tagIds = selectedTagIds.toList(),
+                        growingPositions = selectedPositions.toList(),
+                        soils = selectedSoils.toList(),
+                    )
+                )
+            }
         }
+    }
+
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Art",
+        mastheadCenter = if (isEdit) uiState.existingSpecies?.commonName ?: "Redigera art" else "Ny art",
+        mastheadRight = {
+            IconButton(onClick = { tryBack() }, modifier = Modifier.size(36.dp)) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Tillbaka",
+                    tint = FaltetClay,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+        },
+        bottomBar = {
+            FaltetFormSubmitBar(
+                label = if (isEdit) "Spara" else "Skapa",
+                onClick = submitAction,
+                enabled = !uiState.isLoading,
+                submitting = uiState.isLoading,
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.fillMaxSize().padding(padding),
+            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // Photos side by side
-            item {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.front_photo), fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        Spacer(Modifier.height(4.dp))
-                        PhotoPicker(
-                            imageUrl = imageFrontUrl,
-                            maxImageHeight = 180,
-                            onImageCaptured = { b64, bmp ->
-                                imageFrontBase64 = b64
-                                imageFrontUrl = null
-                                frontBitmap = bmp
-                                viewModel.identifyPlant(b64)
-                            }
-                        )
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.back_photo), fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        Spacer(Modifier.height(4.dp))
-                        PhotoPicker(
-                            imageUrl = imageBackUrl,
-                            maxImageHeight = 180,
-                            onImageCaptured = { b64, bmp ->
-                                imageBackBase64 = b64
-                                imageBackUrl = null
-                                backBitmap = bmp
-                                viewModel.extractSpeciesInfo(b64)
-                            }
-                        )
-                    }
-                }
-            }
-
-            if (uiState.identifying || uiState.extracting) {
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        CircularProgressIndicator(Modifier.size(16.dp))
-                        Text(stringResource(R.string.identifying), fontSize = 14.sp)
-                    }
-                }
-            }
-
-            if (uiState.suggestions.isNotEmpty()) {
-                item {
-                    Text(stringResource(R.string.ai_suggestions), fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                }
-                uiState.suggestions.forEach { s ->
-                    item {
-                        Card(
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                            onClick = {
-                                commonName = s.commonName
-                                scientificName = s.species
-                            }
-                        ) {
-                            Column(Modifier.padding(12.dp)) {
-                                Text("${s.commonName} (${s.species})", fontWeight = FontWeight.Medium)
-                                Text("${(s.confidence * 100).toInt()}%", fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Names
-            item {
-                OutlinedTextField(
-                    value = commonName,
-                    onValueChange = { commonName = it },
-                    label = { Text(stringResource(R.string.common_name_required)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    isError = showValidationErrors && !isCommonNameValid
-                )
-            }
-            item {
-                OutlinedTextField(
-                    value = scientificName,
-                    onValueChange = { scientificName = it },
-                    label = { Text(stringResource(R.string.scientific_name) + " *") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    isError = showValidationErrors && !isScientificNameValid
-                )
-            }
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = variantName,
-                        onValueChange = { variantName = it },
-                        label = { Text(stringResource(R.string.variant_name)) },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true
-                    )
-                    OutlinedTextField(
-                        value = variantNameSv,
-                        onValueChange = { variantNameSv = it },
-                        label = { Text(stringResource(R.string.variant_name) + " (SV)") },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true
-                    )
-                }
-            }
-
-            // Growth timings
-            item { Text(stringResource(R.string.growth_information), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = germinationTimeDaysMin,
-                        onValueChange = { germinationTimeDaysMin = it.filter { c -> c.isDigit() } },
-                        label = { Text(stringResource(R.string.germination_time_days) + " min *") },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                        isError = showValidationErrors && !isGerminationTimeDaysMinValid
-                    )
-                    OutlinedTextField(
-                        value = germinationTimeDaysMax,
-                        onValueChange = { germinationTimeDaysMax = it.filter { c -> c.isDigit() } },
-                        label = { Text(stringResource(R.string.germination_time_days) + " max") },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                    )
-                }
-            }
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = daysToHarvestMin,
-                        onValueChange = { daysToHarvestMin = it.filter { c -> c.isDigit() } },
-                        label = { Text(stringResource(R.string.days_to_harvest) + " min *") },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                        isError = showValidationErrors && !isDaysToHarvestMinValid
-                    )
-                    OutlinedTextField(
-                        value = daysToHarvestMax,
-                        onValueChange = { daysToHarvestMax = it.filter { c -> c.isDigit() } },
-                        label = { Text(stringResource(R.string.days_to_harvest) + " max") },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                    )
-                }
-            }
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = sowingDepthMm,
-                        onValueChange = { sowingDepthMm = it.filter { c -> c.isDigit() } },
-                        label = { Text(stringResource(R.string.sowing_depth_mm) + " *") },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                        isError = showValidationErrors && !isSowingDepthMmValid
-                    )
-                }
-            }
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = heightCmMin,
-                        onValueChange = { heightCmMin = it.filter { c -> c.isDigit() } },
-                        label = { Text(stringResource(R.string.height_cm) + " min *") },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                        isError = showValidationErrors && !isHeightCmMinValid
-                    )
-                    OutlinedTextField(
-                        value = heightCmMax,
-                        onValueChange = { heightCmMax = it.filter { c -> c.isDigit() } },
-                        label = { Text(stringResource(R.string.height_cm) + " max") },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                    )
-                }
-            }
-
-            // Sowing months
-            item { Text(stringResource(R.string.sowing_months), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
-            item {
-                @OptIn(ExperimentalLayoutApi::class)
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    (1..12).forEach { month ->
-                        FilterChip(
-                            selected = month in selectedSowingMonths,
-                            onClick = { selectedSowingMonths = if (month in selectedSowingMonths) selectedSowingMonths - month else selectedSowingMonths + month },
-                            label = { Text(stringResource(monthLabelRes[month - 1])) }
-                        )
-                    }
-                }
-            }
-
-            // Bloom months
-            item { Text(stringResource(R.string.bloom_months), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
-            item {
-                @OptIn(ExperimentalLayoutApi::class)
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    (1..12).forEach { month ->
-                        FilterChip(
-                            selected = month in selectedBloomMonths,
-                            onClick = { selectedBloomMonths = if (month in selectedBloomMonths) selectedBloomMonths - month else selectedBloomMonths + month },
-                            label = { Text(stringResource(monthLabelRes[month - 1])) }
-                        )
-                    }
-                }
-            }
-            item {
-                OutlinedTextField(
-                    value = germinationRate,
-                    onValueChange = { germinationRate = it.filter { c -> c.isDigit() } },
-                    label = { Text(stringResource(R.string.germination_rate_percent) + " *") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true,
-                    isError = showValidationErrors && !isGerminationRateValid
-                )
-            }
-
-            // Growing position
-            item {
-                Text(
-                    stringResource(R.string.growing_position) + " *",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = if (showValidationErrors && !isPositionsValid) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-                )
-            }
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    growingPositions.forEachIndexed { i, pos ->
-                        FilterChip(
-                            selected = pos in selectedPositions,
-                            onClick = { selectedPositions = if (pos in selectedPositions) selectedPositions - pos else selectedPositions + pos },
-                            label = { Text(stringResource(growingPositionLabelRes[i])) }
-                        )
-                    }
-                }
-            }
-
-            // Soil type
-            item {
-                Text(
-                    stringResource(R.string.soil_type) + " *",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = if (showValidationErrors && !isSoilsValid) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-                )
-            }
-            item {
-                @OptIn(ExperimentalLayoutApi::class)
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    soilTypes.forEachIndexed { i, soil ->
-                        FilterChip(
-                            selected = soil in selectedSoils,
-                            onClick = { selectedSoils = if (soil in selectedSoils) selectedSoils - soil else selectedSoils + soil },
-                            label = { Text(stringResource(soilTypeLabelRes[i])) }
-                        )
-                    }
-                }
-            }
-
-            // Tag picker
-            item { Text(stringResource(R.string.tags), fontWeight = FontWeight.Bold, fontSize = 16.sp) }
-            item {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.horizontalScroll(rememberScrollState())
-                ) {
-                    uiState.tags.forEach { tag ->
-                        FilterChip(
-                            selected = tag.id in selectedTagIds,
-                            onClick = {
-                                selectedTagIds = if (tag.id in selectedTagIds)
-                                    selectedTagIds - tag.id else selectedTagIds + tag.id
-                            },
-                            label = { Text(tag.name) }
-                        )
-                    }
-                    SuggestionChip(
-                        onClick = { showNewTagDialog = true },
-                        label = { Text(stringResource(R.string.new_tag)) }
-                    )
-                }
-            }
-
-            // Providers (read-only, shown in edit mode)
-            if (isEdit && uiState.existingSpecies != null) {
-                val providers = uiState.existingSpecies!!.providers
-                item {
-                    Text(
-                        stringResource(R.string.providers),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
-                }
-                if (providers.isEmpty()) {
-                    item {
-                        Text(
-                            stringResource(R.string.no_providers),
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                    }
-                } else {
-                    providers.forEach { provider ->
-                        item {
-                            Card(
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                            ) {
-                                Column(Modifier.padding(12.dp)) {
-                                    Text(
-                                        provider.providerName,
-                                        fontWeight = FontWeight.Medium,
-                                        fontSize = 15.sp
-                                    )
-                                    Text(
-                                        provider.providerIdentifier,
-                                        fontSize = 13.sp,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                    )
-                                    // Front/back images
-                                    if (provider.imageFrontUrl != null || provider.imageBackUrl != null) {
-                                        Spacer(Modifier.height(8.dp))
-                                        Row(
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            provider.imageFrontUrl?.let { url ->
-                                                coil.compose.AsyncImage(
-                                                    model = url,
-                                                    contentDescription = stringResource(R.string.front_photo),
-                                                    modifier = Modifier
-                                                        .weight(1f)
-                                                        .heightIn(max = 120.dp),
-                                                    contentScale = androidx.compose.ui.layout.ContentScale.Fit,
-                                                )
-                                            }
-                                            provider.imageBackUrl?.let { url ->
-                                                coil.compose.AsyncImage(
-                                                    model = url,
-                                                    contentDescription = stringResource(R.string.back_photo),
-                                                    modifier = Modifier
-                                                        .weight(1f)
-                                                        .heightIn(max = 120.dp),
-                                                    contentScale = androidx.compose.ui.layout.ContentScale.Fit,
-                                                )
-                                            }
-                                        }
-                                    }
-                                    // Product URL
-                                    provider.productUrl?.let { url ->
-                                        val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
-                                        Spacer(Modifier.height(4.dp))
-                                        Text(
-                                            stringResource(R.string.product_page),
-                                            fontSize = 13.sp,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.clickable { uriHandler.openUri(url) }
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            item { Spacer(Modifier.height(8.dp)) }
-
-            item {
-                Button(
-                    onClick = {
-                        if (isEdit && !hasChanges) { onBack(); return@Button }
-                        showValidationErrors = true
-                        if (!isFormValid) return@Button
-                        if (isEdit) {
-                            viewModel.updateSpecies(
-                                UpdateSpeciesRequest(
-                                    commonName = commonName,
-                                    commonNameSv = if (currentLocale == "sv") commonName else null,
-                                    variantName = variantName.ifBlank { null },
-                                    variantNameSv = variantNameSv.ifBlank { null },
-                                    scientificName = scientificName,
-                                    imageFrontBase64 = imageFrontBase64,
-                                    imageBackBase64 = imageBackBase64,
-                                    germinationTimeDaysMin = germinationTimeDaysMin.toIntOrNull(),
-                                    germinationTimeDaysMax = germinationTimeDaysMax.toIntOrNull(),
-                                    daysToHarvestMin = daysToHarvestMin.toIntOrNull(),
-                                    daysToHarvestMax = daysToHarvestMax.toIntOrNull(),
-                                    sowingDepthMm = sowingDepthMm.toIntOrNull(),
-                                    growingPositions = selectedPositions.toList(),
-                                    soils = selectedSoils.toList(),
-                                    heightCmMin = heightCmMin.toIntOrNull(),
-                                    heightCmMax = heightCmMax.toIntOrNull(),
-                                    bloomMonths = selectedBloomMonths.sorted(),
-                                    sowingMonths = selectedSowingMonths.sorted(),
-                                    germinationRate = germinationRate.toIntOrNull(),
-                                    tagIds = selectedTagIds.toList(),
-                                )
-                            )
-                        } else {
-                            viewModel.createSpecies(
-                                CreateSpeciesRequest(
-                                    commonName = commonName,
-                                    commonNameSv = if (currentLocale == "sv") commonName else null,
-                                    variantName = variantName.ifBlank { null },
-                                    variantNameSv = variantNameSv.ifBlank { null },
-                                    scientificName = scientificName,
-                                    imageFrontBase64 = imageFrontBase64,
-                                    imageBackBase64 = imageBackBase64,
-                                    germinationTimeDaysMin = germinationTimeDaysMin.toIntOrNull(),
-                                    germinationTimeDaysMax = germinationTimeDaysMax.toIntOrNull(),
-                                    daysToHarvestMin = daysToHarvestMin.toIntOrNull(),
-                                    daysToHarvestMax = daysToHarvestMax.toIntOrNull(),
-                                    sowingDepthMm = sowingDepthMm.toIntOrNull(),
-                                    growingPositions = selectedPositions.toList(),
-                                    soils = selectedSoils.toList(),
-                                    heightCmMin = heightCmMin.toIntOrNull(),
-                                    heightCmMax = heightCmMax.toIntOrNull(),
-                                    bloomMonths = selectedBloomMonths.sorted(),
-                                    sowingMonths = selectedSowingMonths.sorted(),
-                                    germinationRate = germinationRate.toIntOrNull(),
-                                    tagIds = selectedTagIds.toList(),
-                                )
-                            )
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    enabled = !uiState.isLoading
-                ) {
-                    if (uiState.isLoading) {
-                        CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                    } else {
-                        Text(stringResource(R.string.save_species))
-                    }
-                }
-            }
-
-            item {
-                uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }
-                Spacer(Modifier.height(32.dp))
-            }
+            // Chunk 2 (fields) and chunk 3 (AI photos) fill this in later tasks.
+            item { Spacer(Modifier.height(0.dp)) }
         }
     }
 }
