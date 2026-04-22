@@ -1,45 +1,41 @@
 package app.verdant.android.ui.plant
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.PhotoLibrary
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.verdant.android.R
-import app.verdant.android.ui.activity.toCompressedBase64
-import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.model.CreatePlantEventRequest
 import app.verdant.android.data.model.CustomerResponse
 import app.verdant.android.data.model.IdentifyPlantRequest
 import app.verdant.android.data.model.PlantSuggestion
 import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.ui.activity.toCompressedBase64
+import app.verdant.android.ui.faltet.FaltetChipSelector
+import app.verdant.android.ui.faltet.FaltetDropdown
+import app.verdant.android.ui.faltet.FaltetFormSubmitBar
+import app.verdant.android.ui.faltet.FaltetImagePicker
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.Field
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -108,6 +104,39 @@ class AddPlantEventViewModel @Inject constructor(
 
 // toCompressedBase64 is defined in app.verdant.android.ui.activity.PhotoPicker
 
+private val eventTypes = listOf(
+    "SEEDED", "POTTED_UP", "PLANTED_OUT", "HARVESTED", "RECOVERED", "REMOVED", "NOTE",
+    "BUDDING", "FIRST_BLOOM", "PEAK_BLOOM", "LAST_BLOOM",
+    "LIFTED", "DIVIDED", "STORED", "PINCHED", "DISBUDDED",
+)
+
+private fun eventTypeLabelSvStr(type: String): String = when (type) {
+    "SEEDED" -> "Sått"
+    "POTTED_UP" -> "Omplanterad"
+    "PLANTED_OUT" -> "Utplanterad"
+    "HARVESTED" -> "Skördad"
+    "RECOVERED" -> "Återhämtad"
+    "REMOVED" -> "Borttagen"
+    "NOTE" -> "Anteckning"
+    "BUDDING" -> "Knoppning"
+    "FIRST_BLOOM" -> "Första blomma"
+    "PEAK_BLOOM" -> "Full blom"
+    "LAST_BLOOM" -> "Sista blomma"
+    "LIFTED" -> "Uppgrävd"
+    "DIVIDED" -> "Delad"
+    "STORED" -> "Lagrad"
+    "PINCHED" -> "Toppkörd"
+    "DISBUDDED" -> "Sidoknopp borttagen"
+    else -> type
+}
+
+private fun qualityLabelSvStr(grade: String): String = when (grade) {
+    "A" -> "A"
+    "B" -> "B"
+    "C" -> "C"
+    else -> grade
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddPlantEventScreen(
@@ -115,32 +144,8 @@ fun AddPlantEventScreen(
     viewModel: AddPlantEventViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
 
-    val eventTypes = listOf(
-        "SEEDED", "POTTED_UP", "PLANTED_OUT", "HARVESTED", "RECOVERED", "REMOVED", "NOTE",
-        "BUDDING", "FIRST_BLOOM", "PEAK_BLOOM", "LAST_BLOOM",
-        "LIFTED", "DIVIDED", "STORED", "PINCHED", "DISBUDDED",
-    )
-    val eventTypeLabels = mapOf(
-        "SEEDED" to R.string.event_seeded,
-        "POTTED_UP" to R.string.event_potted_up,
-        "PLANTED_OUT" to R.string.event_planted_out,
-        "HARVESTED" to R.string.event_harvested,
-        "RECOVERED" to R.string.event_recovered,
-        "REMOVED" to R.string.event_removed,
-        "NOTE" to R.string.event_note,
-        "BUDDING" to R.string.budding,
-        "FIRST_BLOOM" to R.string.first_bloom,
-        "PEAK_BLOOM" to R.string.peak_bloom,
-        "LAST_BLOOM" to R.string.last_bloom,
-        "LIFTED" to R.string.lifted,
-        "DIVIDED" to R.string.divided,
-        "STORED" to R.string.stored,
-        "PINCHED" to R.string.pinched,
-        "DISBUDDED" to R.string.disbudded,
-    )
-    var selectedType by remember { mutableStateOf("NOTE") }
+    var eventType by remember { mutableStateOf<String?>(null) }
     var plantCount by remember { mutableStateOf("") }
     var weightGrams by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("") }
@@ -148,307 +153,287 @@ fun AddPlantEventScreen(
     var stemLengthCm by remember { mutableStateOf("") }
     var vaseLifeDays by remember { mutableStateOf("") }
     var qualityGrade by remember { mutableStateOf<String?>(null) }
-    var selectedCustomerId by remember { mutableStateOf<Long?>(null) }
-    var customerDropdownExpanded by remember { mutableStateOf(false) }
+    var selectedCustomer by remember { mutableStateOf<CustomerResponse?>(null) }
     var notes by remember { mutableStateOf("") }
     var imageBase64 by remember { mutableStateOf<String?>(null) }
-    var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var photoBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
-        if (bitmap != null) {
-            imageBitmap = bitmap
-            val b64 = bitmap.toCompressedBase64()
-            imageBase64 = b64
-            if (selectedType == "SEEDED" || selectedType == "HARVESTED") {
-                viewModel.identifyPlant(b64)
-            }
-        }
-    }
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(uiState.error) { uiState.error?.let { snackbarHostState.showSnackbar(it) } }
+    LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
 
-    val cameraPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) cameraLauncher.launch(null)
-    }
+    val canSubmit = eventType != null && !uiState.isLoading
 
-    fun launchCamera() {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            cameraLauncher.launch(null)
-        } else {
-            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-        }
-    }
+    val submitAction = {
+        val suggestionsJson = if (uiState.suggestions.isNotEmpty()) {
+            "[${uiState.suggestions.joinToString(",") {
+                """{"species":"${it.species}","commonName":"${it.commonName}","confidence":${it.confidence}}"""
+            }}]"
+        } else null
 
-    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) {
-            try {
-                val inputStream = context.contentResolver.openInputStream(uri)
-                val bitmap = BitmapFactory.decodeStream(inputStream)
-                inputStream?.close()
-                if (bitmap != null) {
-                    imageBitmap = bitmap
-                    val b64 = bitmap.toCompressedBase64()
-                    imageBase64 = b64
-                    if (selectedType == "SEEDED" || selectedType == "HARVESTED") {
-                        viewModel.identifyPlant(b64)
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to load image from gallery", e)
-            }
-        }
-    }
-
-    LaunchedEffect(uiState.created) {
-        if (uiState.created) onBack()
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.add_event)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                colors = verdantTopAppBarColors()
+        viewModel.addEvent(
+            CreatePlantEventRequest(
+                eventType = eventType!!,
+                eventDate = LocalDate.now().toString(),
+                plantCount = plantCount.toIntOrNull(),
+                weightGrams = weightGrams.toDoubleOrNull(),
+                quantity = quantity.toIntOrNull(),
+                notes = notes.ifBlank { null },
+                imageBase64 = imageBase64,
+                aiSuggestions = suggestionsJson,
+                stemCount = stemCount.toIntOrNull(),
+                stemLengthCm = stemLengthCm.toIntOrNull(),
+                vaseLifeDays = vaseLifeDays.toIntOrNull(),
+                qualityGrade = qualityGrade,
+                harvestDestinationId = selectedCustomer?.id,
             )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+        )
+    }
+
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Händelse",
+        mastheadCenter = "Händelse",
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        bottomBar = {
+            FaltetFormSubmitBar(
+                label = "Spara",
+                onClick = submitAction,
+                enabled = canSubmit,
+                submitting = uiState.isLoading,
+            )
+        },
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
-            // Event type chips -- primary types
-            Text(stringResource(R.string.event_type), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            val primaryTypes = listOf("SEEDED", "POTTED_UP", "PLANTED_OUT", "HARVESTED", "RECOVERED", "REMOVED", "NOTE")
-            val secondaryTypes = listOf("BUDDING", "FIRST_BLOOM", "PEAK_BLOOM", "LAST_BLOOM", "LIFTED", "DIVIDED", "STORED", "PINCHED", "DISBUDDED")
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                primaryTypes.forEach { type ->
-                    FilterChip(
-                        selected = selectedType == type,
-                        onClick = { selectedType = type },
-                        label = { Text(stringResource(eventTypeLabels[type] ?: R.string.event_note), fontSize = 11.sp) }
-                    )
-                }
-            }
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                secondaryTypes.forEach { type ->
-                    FilterChip(
-                        selected = selectedType == type,
-                        onClick = { selectedType = type },
-                        label = { Text(stringResource(eventTypeLabels[type] ?: R.string.event_note), fontSize = 11.sp) }
-                    )
-                }
-            }
-
-            // Conditional fields
-            if (selectedType in listOf("SEEDED", "POTTED_UP", "PLANTED_OUT")) {
-                OutlinedTextField(
-                    value = plantCount,
-                    onValueChange = { plantCount = it.filter { c -> c.isDigit() } },
-                    label = { Text(stringResource(R.string.plant_count)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                )
-            }
-
-            if (selectedType == "HARVESTED") {
-                OutlinedTextField(
-                    value = weightGrams,
-                    onValueChange = { weightGrams = it.filter { c -> c.isDigit() || c == '.' } },
-                    label = { Text(stringResource(R.string.weight_grams)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                OutlinedTextField(
-                    value = quantity,
-                    onValueChange = { quantity = it.filter { c -> c.isDigit() } },
-                    label = { Text(stringResource(R.string.quantity_fruits)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                // Flower-specific harvest fields
-                OutlinedTextField(
-                    value = stemCount,
-                    onValueChange = { stemCount = it.filter { c -> c.isDigit() } },
-                    label = { Text(stringResource(R.string.stem_count)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                OutlinedTextField(
-                    value = stemLengthCm,
-                    onValueChange = { stemLengthCm = it.filter { c -> c.isDigit() } },
-                    label = { Text(stringResource(R.string.stem_length)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                OutlinedTextField(
-                    value = vaseLifeDays,
-                    onValueChange = { vaseLifeDays = it.filter { c -> c.isDigit() } },
-                    label = { Text(stringResource(R.string.vase_life_days)) },
-                    placeholder = { Text(stringResource(R.string.vase_life_days_hint)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                // Quality grade
-                Text(stringResource(R.string.quality_grade), fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("A", "B", "C").forEach { grade ->
-                        FilterChip(
-                            selected = qualityGrade == grade,
-                            onClick = { qualityGrade = if (qualityGrade == grade) null else grade },
-                            label = { Text(grade) }
-                        )
-                    }
-                }
-                // Destination (customer dropdown)
-                if (uiState.customers.isNotEmpty()) {
-                    Text(stringResource(R.string.destination), fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Box {
-                        OutlinedTextField(
-                            value = uiState.customers.find { it.id == selectedCustomerId }?.name ?: "",
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text(stringResource(R.string.destination)) },
-                            modifier = Modifier.fillMaxWidth().clickable { customerDropdownExpanded = true },
-                            shape = RoundedCornerShape(12.dp),
-                            enabled = false,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                                disabledBorderColor = MaterialTheme.colorScheme.outline,
-                                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        )
-                        DropdownMenu(
-                            expanded = customerDropdownExpanded,
-                            onDismissRequest = { customerDropdownExpanded = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.none)) },
-                                onClick = { selectedCustomerId = null; customerDropdownExpanded = false }
-                            )
-                            uiState.customers.forEach { customer ->
-                                DropdownMenuItem(
-                                    text = { Text(customer.name) },
-                                    onClick = { selectedCustomerId = customer.id; customerDropdownExpanded = false }
-                                )
+            item {
+                FaltetImagePicker(
+                    label = "Foto (valfri)",
+                    value = photoBitmap,
+                    onValueChange = { bitmap ->
+                        photoBitmap = bitmap
+                        if (bitmap != null) {
+                            val b64 = bitmap.toCompressedBase64()
+                            imageBase64 = b64
+                            if (eventType == "SEEDED" || eventType == "HARVESTED") {
+                                viewModel.identifyPlant(b64)
                             }
+                        } else {
+                            imageBase64 = null
                         }
-                    }
-                }
+                    },
+                )
             }
 
-            // Photo
-            Text(stringResource(R.string.photo), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { launchCamera() }) {
-                    Icon(Icons.Default.CameraAlt, null, Modifier.size(18.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.camera))
-                }
-                OutlinedButton(onClick = { galleryLauncher.launch("image/*") }) {
-                    Icon(Icons.Default.PhotoLibrary, null, Modifier.size(18.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.gallery))
-                }
+            item {
+                FaltetChipSelector(
+                    label = "Händelsetyp",
+                    options = eventTypes,
+                    selected = eventType,
+                    onSelectedChange = { eventType = it },
+                    labelFor = { eventTypeLabelSvStr(it) },
+                    required = true,
+                )
             }
 
-            imageBitmap?.let { bmp ->
-                Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-                    Image(
-                        bitmap = bmp.asImageBitmap(),
-                        contentDescription = stringResource(R.string.photo),
-                        modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp),
-                        contentScale = ContentScale.Crop
+            if (eventType != null) {
+                item {
+                    Field(
+                        label = "Antal plantor (valfri)",
+                        value = plantCount,
+                        onValueChange = { plantCount = it },
+                        keyboardType = KeyboardType.Number,
                     )
                 }
             }
 
-            // AI suggestions
-            if (uiState.identifying) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    CircularProgressIndicator(Modifier.size(16.dp))
-                    Text(stringResource(R.string.identifying), fontSize = 14.sp)
+            if (eventType == "HARVESTED") {
+                item {
+                    Field(
+                        label = "Vikt g (valfri)",
+                        value = weightGrams,
+                        onValueChange = { weightGrams = it },
+                        keyboardType = KeyboardType.Decimal,
+                    )
                 }
-            }
-            if (uiState.suggestions.isNotEmpty()) {
-                Text(stringResource(R.string.ai_suggestions), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                uiState.suggestions.forEach { s ->
-                    Card(
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                    ) {
-                        Column(Modifier.padding(12.dp)) {
-                            Text("${s.commonName} (${s.species})", fontWeight = FontWeight.Medium)
-                            Text("Confidence: ${(s.confidence * 100).toInt()}%", fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                        }
-                    }
+                item {
+                    Field(
+                        label = "Antal stjälkar (valfri)",
+                        value = stemCount,
+                        onValueChange = { stemCount = it },
+                        keyboardType = KeyboardType.Number,
+                    )
+                }
+                item {
+                    Field(
+                        label = "Stjälklängd cm (valfri)",
+                        value = stemLengthCm,
+                        onValueChange = { stemLengthCm = it },
+                        keyboardType = KeyboardType.Decimal,
+                    )
+                }
+                item {
+                    Field(
+                        label = "Vaslivslängd dagar (valfri)",
+                        value = vaseLifeDays,
+                        onValueChange = { vaseLifeDays = it },
+                        keyboardType = KeyboardType.Number,
+                    )
+                }
+                item {
+                    FaltetChipSelector(
+                        label = "Kvalitet (valfri)",
+                        options = listOf("A", "B", "C"),
+                        selected = qualityGrade,
+                        onSelectedChange = { qualityGrade = it },
+                        labelFor = { qualityLabelSvStr(it) },
+                    )
+                }
+                item {
+                    FaltetDropdown(
+                        label = "Kund (valfri)",
+                        options = uiState.customers,
+                        selected = selectedCustomer,
+                        onSelectedChange = { selectedCustomer = it },
+                        labelFor = { it.name },
+                        searchable = true,
+                    )
                 }
             }
 
-            // Notes
-            OutlinedTextField(
-                value = notes,
-                onValueChange = { notes = it },
-                label = { Text(stringResource(R.string.notes_optional)) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                minLines = 2
+            item {
+                Field(
+                    label = "Anteckningar (valfri)",
+                    value = notes,
+                    onValueChange = { notes = it },
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
+@Composable
+private fun AddPlantEventScreenPreview_Harvested() {
+    val uiState = AddPlantEventState(
+        customers = listOf(CustomerResponse(id = 1L, name = "Blomsterbutiken", channel = "", contactInfo = null, notes = null, createdAt = "")),
+    )
+
+    var eventType by remember { mutableStateOf<String?>("HARVESTED") }
+    var plantCount by remember { mutableStateOf("") }
+    var weightGrams by remember { mutableStateOf("") }
+    var stemCount by remember { mutableStateOf("") }
+    var stemLengthCm by remember { mutableStateOf("") }
+    var vaseLifeDays by remember { mutableStateOf("") }
+    var qualityGrade by remember { mutableStateOf<String?>(null) }
+    var selectedCustomer by remember { mutableStateOf<CustomerResponse?>(null) }
+    var notes by remember { mutableStateOf("") }
+    var photoBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+    val canSubmit = eventType != null
+
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Händelse",
+        mastheadCenter = "Händelse",
+        bottomBar = {
+            FaltetFormSubmitBar(
+                label = "Spara",
+                onClick = {},
+                enabled = canSubmit,
+                submitting = false,
             )
-
-            Spacer(Modifier.height(8.dp))
-
-            // Submit
-            Button(
-                onClick = {
-                    val suggestionsJson = if (uiState.suggestions.isNotEmpty()) {
-                        "[${uiState.suggestions.joinToString(",") {
-                            """{"species":"${it.species}","commonName":"${it.commonName}","confidence":${it.confidence}}"""
-                        }}]"
-                    } else null
-
-                    viewModel.addEvent(
-                        CreatePlantEventRequest(
-                            eventType = selectedType,
-                            eventDate = LocalDate.now().toString(),
-                            plantCount = plantCount.toIntOrNull(),
-                            weightGrams = weightGrams.toDoubleOrNull(),
-                            quantity = quantity.toIntOrNull(),
-                            notes = notes.ifBlank { null },
-                            imageBase64 = imageBase64,
-                            aiSuggestions = suggestionsJson,
-                            stemCount = stemCount.toIntOrNull(),
-                            stemLengthCm = stemLengthCm.toIntOrNull(),
-                            vaseLifeDays = vaseLifeDays.toIntOrNull(),
-                            qualityGrade = qualityGrade,
-                            harvestDestinationId = selectedCustomerId,
-                        )
-                    )
-                },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(12.dp),
-                enabled = !uiState.isLoading
-            ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                } else {
-                    Text(stringResource(R.string.add_event))
-                }
+        },
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+        ) {
+            item {
+                FaltetImagePicker(
+                    label = "Foto (valfri)",
+                    value = photoBitmap,
+                    onValueChange = { photoBitmap = it },
+                )
             }
-
-            uiState.error?.let { app.verdant.android.ui.common.InlineErrorBanner(it) }
+            item {
+                FaltetChipSelector(
+                    label = "Händelsetyp",
+                    options = eventTypes,
+                    selected = eventType,
+                    onSelectedChange = { eventType = it },
+                    labelFor = { eventTypeLabelSvStr(it) },
+                    required = true,
+                )
+            }
+            item {
+                Field(
+                    label = "Antal plantor (valfri)",
+                    value = plantCount,
+                    onValueChange = { plantCount = it },
+                    keyboardType = KeyboardType.Number,
+                )
+            }
+            item {
+                Field(
+                    label = "Vikt g (valfri)",
+                    value = weightGrams,
+                    onValueChange = { weightGrams = it },
+                    keyboardType = KeyboardType.Decimal,
+                )
+            }
+            item {
+                Field(
+                    label = "Antal stjälkar (valfri)",
+                    value = stemCount,
+                    onValueChange = { stemCount = it },
+                    keyboardType = KeyboardType.Number,
+                )
+            }
+            item {
+                Field(
+                    label = "Stjälklängd cm (valfri)",
+                    value = stemLengthCm,
+                    onValueChange = { stemLengthCm = it },
+                    keyboardType = KeyboardType.Decimal,
+                )
+            }
+            item {
+                Field(
+                    label = "Vaslivslängd dagar (valfri)",
+                    value = vaseLifeDays,
+                    onValueChange = { vaseLifeDays = it },
+                    keyboardType = KeyboardType.Number,
+                )
+            }
+            item {
+                FaltetChipSelector(
+                    label = "Kvalitet (valfri)",
+                    options = listOf("A", "B", "C"),
+                    selected = qualityGrade,
+                    onSelectedChange = { qualityGrade = it },
+                    labelFor = { qualityLabelSvStr(it) },
+                )
+            }
+            item {
+                FaltetDropdown(
+                    label = "Kund (valfri)",
+                    options = uiState.customers,
+                    selected = selectedCustomer,
+                    onSelectedChange = { selectedCustomer = it },
+                    labelFor = { it.name },
+                    searchable = true,
+                )
+            }
+            item {
+                Field(
+                    label = "Anteckningar (valfri)",
+                    value = notes,
+                    onValueChange = { notes = it },
+                )
+            }
         }
     }
 }
