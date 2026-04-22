@@ -8,7 +8,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -154,6 +161,25 @@ fun TaskListScreen(
 
     LaunchedEffect(Unit) { viewModel.loadTasks() }
 
+    var taskToDelete by remember { mutableStateOf<ScheduledTaskResponse?>(null) }
+
+    taskToDelete?.let { task ->
+        AlertDialog(
+            onDismissRequest = { taskToDelete = null },
+            title = { Text("Ta bort uppgift") },
+            text = { Text("Vill du ta bort \"${task.originGroupName ?: task.speciesName ?: "Uppgift"}\"?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.deleteTask(task.id)
+                    taskToDelete = null
+                }) { Text("Ta bort", color = FaltetClay) }
+            },
+            dismissButton = {
+                TextButton(onClick = { taskToDelete = null }) { Text("Avbryt") }
+            },
+        )
+    }
+
     val groups = remember(uiState.tasks) { groupTasks(uiState.tasks) }
 
     FaltetScreenScaffold(
@@ -201,7 +227,19 @@ fun TaskListScreen(
                                 )
                             },
                             stat = null,
-                            actions = null,
+                            actions = {
+                                IconButton(
+                                    onClick = { taskToDelete = task },
+                                    modifier = Modifier.size(36.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Ta bort",
+                                        tint = FaltetClay,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                }
+                            },
                             onClick = { onEditTask(task.id) },
                         )
                     }
