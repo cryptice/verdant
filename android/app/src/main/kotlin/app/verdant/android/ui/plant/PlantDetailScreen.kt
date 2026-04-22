@@ -1,33 +1,80 @@
 package app.verdant.android.ui.plant
 
-import coil.compose.AsyncImage
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Agriculture
+import androidx.compose.material.icons.filled.Circle
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Grain
+import androidx.compose.material.icons.filled.Grass
+import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.filled.Park
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.StickyNote2
+import androidx.compose.material.icons.filled.WaterDrop
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.verdant.android.R
 import app.verdant.android.data.model.PlantEventResponse
-import app.verdant.android.data.model.PlantWorkflowProgressResponse
-import app.verdant.android.ui.theme.verdantTopAppBarColors
 import app.verdant.android.data.model.PlantResponse
+import app.verdant.android.data.model.PlantWorkflowProgressResponse
 import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.ui.common.ConnectionErrorState
+import app.verdant.android.ui.faltet.FaltetEmptyState
+import app.verdant.android.ui.faltet.FaltetFab
+import app.verdant.android.ui.faltet.FaltetHero
+import app.verdant.android.ui.faltet.FaltetListRow
+import app.verdant.android.ui.faltet.FaltetLoadingState
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.FaltetSectionHeader
+import app.verdant.android.ui.faltet.PhotoPlaceholder
+import app.verdant.android.ui.faltet.PhotoTone
+import app.verdant.android.ui.theme.FaltetBerry
+import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetDisplay
+import app.verdant.android.ui.theme.FaltetForest
+import app.verdant.android.ui.theme.FaltetInk
+import app.verdant.android.ui.theme.FaltetMustard
+import app.verdant.android.ui.theme.FaltetSage
+import app.verdant.android.ui.theme.FaltetSky
+import coil.compose.AsyncImage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -105,6 +152,7 @@ class PlantDetailViewModel @Inject constructor(
 fun PlantDetailScreen(
     onBack: () -> Unit,
     onAddEvent: (Long) -> Unit,
+    onEditPlant: ((Long) -> Unit)? = null,
     onWorkflowProgress: ((Long) -> Unit)? = null,
     refreshKey: Boolean? = null,
     viewModel: PlantDetailViewModel = hiltViewModel()
@@ -120,253 +168,173 @@ fun PlantDetailScreen(
         if (uiState.deleted) onBack()
     }
 
-    if (showDeleteDialog) {
+    if (showDeleteDialog && uiState.plant != null) {
+        val plantName = uiState.plant!!.name
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text(stringResource(R.string.delete_plant)) },
-            text = { Text(stringResource(R.string.delete_plant_confirm)) },
+            title = { Text("Ta bort planta") },
+            text = { Text("Vill du ta bort plantan \"${plantName}\"?") },
             confirmButton = {
-                TextButton(onClick = { showDeleteDialog = false; viewModel.delete() }) {
-                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
-                }
+                TextButton(onClick = {
+                    viewModel.delete()
+                    showDeleteDialog = false
+                }) { Text("Ta bort", color = FaltetClay) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.cancel)) }
-            }
+                TextButton(onClick = { showDeleteDialog = false }) { Text("Avbryt") }
+            },
         )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(uiState.plant?.name ?: stringResource(R.string.plant)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { showDeleteDialog = true }) {
-                        Icon(Icons.Default.Delete, stringResource(R.string.delete), tint = MaterialTheme.colorScheme.error)
-                    }
-                },
-                colors = verdantTopAppBarColors()
-            )
-        },
-        floatingActionButton = {
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Planta",
+        mastheadCenter = uiState.plant?.name ?: "",
+        mastheadRight = {
             if (uiState.plant != null) {
-                FloatingActionButton(onClick = { onAddEvent(uiState.plant!!.id) }) {
-                    Icon(Icons.Default.Add, stringResource(R.string.add_event))
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (onEditPlant != null) {
+                        IconButton(
+                            onClick = { onEditPlant(uiState.plant!!.id) },
+                            modifier = Modifier.size(36.dp),
+                        ) {
+                            Icon(Icons.Default.Edit, "Redigera", tint = FaltetClay, modifier = Modifier.size(18.dp))
+                        }
+                    }
+                    IconButton(
+                        onClick = { showDeleteDialog = true },
+                        modifier = Modifier.size(36.dp),
+                    ) {
+                        Icon(Icons.Default.DeleteOutline, "Ta bort", tint = FaltetClay, modifier = Modifier.size(18.dp))
+                    }
                 }
             }
-        }
+        },
+        fab = {
+            uiState.plant?.let { plant ->
+                FaltetFab(onClick = { onAddEvent(plant.id) }, contentDescription = "Lägg till händelse")
+            }
+        },
     ) { padding ->
         when {
-            uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+            uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
+            uiState.error != null && uiState.plant == null -> Box(
+                Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center,
+            ) {
+                ConnectionErrorState(onRetry = { viewModel.refresh() })
             }
-            uiState.error != null && uiState.plant == null -> {
-                app.verdant.android.ui.common.ConnectionErrorState(
-                    onRetry = { viewModel.refresh() },
-                    modifier = Modifier.padding(padding)
-                )
-            }
-            uiState.plant != null -> {
+            uiState.plant == null -> FaltetEmptyState(
+                headline = "Plantan hittades inte",
+                subtitle = "Plantan kan ha tagits bort.",
+                modifier = Modifier.padding(padding),
+            )
+            else -> {
                 val plant = uiState.plant!!
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(vertical = 16.dp)
-                ) {
-                    // Header card
-                    item {
-                        Card(shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-                            Column(Modifier.padding(20.dp)) {
-                                Text(plant.name, fontWeight = FontWeight.Bold, fontSize = 24.sp)
-                                plant.speciesName?.let {
-                                    Spacer(Modifier.height(4.dp))
-                                    Text(it, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
-                                }
-                                Spacer(Modifier.height(8.dp))
-                                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                                    AssistChip(
-                                        onClick = {},
-                                        label = { Text(plant.status.replace("_", " ")) },
-                                        leadingIcon = { Icon(eventTypeIcon(plant.status), null, Modifier.size(16.dp)) }
-                                    )
-                                    plant.seedCount?.let {
-                                        AssistChip(onClick = {}, label = { Text(stringResource(R.string.seeds_count, it)) })
-                                    }
-                                    plant.survivingCount?.let {
-                                        AssistChip(onClick = {}, label = { Text(stringResource(R.string.alive_count, it)) })
-                                    }
-                                }
+
+                val eventsByMonth: List<Pair<java.time.YearMonth, List<PlantEventResponse>>> = remember(uiState.events) {
+                    uiState.events
+                        .sortedByDescending { it.eventDate }
+                        .groupBy {
+                            try {
+                                java.time.YearMonth.from(java.time.LocalDate.parse(it.eventDate.take(10)))
+                            } catch (e: Exception) {
+                                java.time.YearMonth.now()
                             }
                         }
+                        .toList()
+                }
+
+                LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+                    item {
+                        FaltetHero(
+                            title = plant.name,
+                            subtitle = plant.speciesName?.takeIf { it.isNotBlank() },
+                            leading = {
+                                PhotoPlaceholder(
+                                    label = plant.name,
+                                    tone = PhotoTone.Blush,
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                            },
+                        )
                     }
 
-                    // Workflow progress section
-                    uiState.workflowProgress?.let { progress ->
-                        item {
-                            Card(
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                                )
-                            ) {
-                                Column(Modifier.padding(16.dp)) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Text(
-                                            "Workflow Progress",
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 16.sp,
-                                        )
-                                        if (onWorkflowProgress != null && plant.speciesId != null) {
-                                            TextButton(
-                                                onClick = { onWorkflowProgress(plant.speciesId) }
-                                            ) {
-                                                Text("View All")
-                                                Icon(
-                                                    Icons.Default.ChevronRight,
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(18.dp)
-                                                )
-                                            }
+                    item {
+                        val stages = listOf("SÅDD", "KRUKAD", "UTPLANTERAD", "SKÖRDAD")
+                        val currentIdx = when (plant.status) {
+                            "SEEDED" -> 0
+                            "POTTED_UP" -> 1
+                            "PLANTED_OUT", "GROWING" -> 2
+                            "HARVESTED" -> 3
+                            else -> -1
+                        }
+                        Text(
+                            text = buildAnnotatedString {
+                                stages.forEachIndexed { i, stage ->
+                                    val color = when {
+                                        i < currentIdx -> FaltetInk
+                                        i == currentIdx -> FaltetClay
+                                        else -> FaltetForest.copy(alpha = 0.4f)
+                                    }
+                                    withStyle(SpanStyle(color = color)) { append(stage) }
+                                    if (i < stages.size - 1) {
+                                        withStyle(SpanStyle(color = FaltetForest.copy(alpha = 0.4f))) {
+                                            append("  ·  ")
                                         }
                                     }
-                                    Spacer(Modifier.height(8.dp))
-                                    val currentStepName = progress.steps
-                                        .firstOrNull { it.id == progress.currentStepId }?.name
-                                    val completedCount = progress.completedStepIds.size
-                                    val totalCount = progress.steps.size
-                                    if (currentStepName != null) {
-                                        Text(
-                                            "Current step: $currentStepName",
-                                            fontSize = 14.sp,
-                                        )
-                                    }
-                                    Spacer(Modifier.height(4.dp))
-                                    LinearProgressIndicator(
-                                        progress = {
-                                            if (totalCount > 0) completedCount.toFloat() / totalCount else 0f
-                                        },
-                                        modifier = Modifier.fillMaxWidth().height(6.dp),
-                                    )
-                                    Spacer(Modifier.height(4.dp))
-                                    Text(
-                                        "$completedCount / $totalCount steps completed",
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
-                                    )
                                 }
+                            },
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 10.sp,
+                            letterSpacing = 1.4.sp,
+                            modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
+                        )
+                    }
+
+                    if (eventsByMonth.isEmpty()) {
+                        item { FaltetSectionHeader(label = "Händelser") }
+                        item { InlineEmpty("Inga händelser ännu.") }
+                    } else {
+                        eventsByMonth.forEach { (yearMonth, events) ->
+                            item(key = "header_${yearMonth}") {
+                                FaltetSectionHeader(label = monthLabelSv(yearMonth))
                             }
-                        }
-                    }
-
-                    // Timeline header
-                    item {
-                        Text(stringResource(R.string.timeline), fontWeight = FontWeight.Bold, fontSize = 18.sp,
-                            modifier = Modifier.padding(top = 8.dp))
-                    }
-
-                    if (uiState.events.isEmpty()) {
-                        item {
-                            Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-                                Text(
-                                    stringResource(R.string.no_events_yet),
-                                    modifier = Modifier.padding(16.dp),
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                            items(events, key = { it.id }) { event ->
+                                FaltetListRow(
+                                    leading = {
+                                        Box(
+                                            Modifier
+                                                .size(10.dp)
+                                                .drawBehind { drawCircle(eventToneColor(event.eventType)) },
+                                        )
+                                    },
+                                    title = eventTypeLabelSv(event.eventType),
+                                    meta = buildString {
+                                        append(formattedDate(event.eventDate))
+                                        event.notes?.takeIf { it.isNotBlank() }?.let { append(" · $it") }
+                                    },
+                                    metaMaxLines = 2,
+                                    stat = {
+                                        val statText = listOfNotNull(
+                                            event.plantCount?.takeIf { it > 0 }?.let { "$it" },
+                                            event.weightGrams?.takeIf { it > 0 }?.let { "${it.toInt()}g" },
+                                        ).joinToString(" · ")
+                                        if (statText.isNotBlank()) {
+                                            Text(
+                                                text = statText,
+                                                fontFamily = FontFamily.Monospace,
+                                                fontSize = 14.sp,
+                                                color = FaltetInk,
+                                            )
+                                        }
+                                    },
                                 )
                             }
                         }
                     }
 
-                    items(uiState.events.reversed()) { event ->
-                        EventCard(event = event, onDelete = { viewModel.deleteEvent(event.id) })
-                    }
+                    item { Spacer(Modifier.height(80.dp)) }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun EventCard(event: PlantEventResponse, onDelete: () -> Unit) {
-    var showDeleteDialog by remember { mutableStateOf(false) }
-
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text(stringResource(R.string.delete_event)) },
-            text = { Text(stringResource(R.string.remove_event_confirm)) },
-            confirmButton = {
-                TextButton(onClick = { showDeleteDialog = false; onDelete() }) {
-                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.cancel)) }
-            }
-        )
-    }
-
-    Card(shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-        Column(Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(eventTypeIcon(event.eventType), null, Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.primary)
-                    val eventLabel = if (event.eventType == "APPLIED_SUPPLY") {
-                        stringResource(R.string.supply_application_event_label)
-                    } else {
-                        event.eventType.replace("_", " ")
-                    }
-                    Text(eventLabel, fontWeight = FontWeight.Bold)
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(event.eventDate, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                    IconButton(onClick = { showDeleteDialog = true }, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.Close, stringResource(R.string.delete), Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
-                    }
-                }
-            }
-
-            // Data row
-            val dataItems = buildList {
-                event.plantCount?.let { add("Count: $it") }
-                event.weightGrams?.let { add("${it}g") }
-                event.quantity?.let { add("Qty: $it") }
-            }
-            if (dataItems.isNotEmpty()) {
-                Spacer(Modifier.height(4.dp))
-                Text(dataItems.joinToString(" · "), fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
-            }
-
-            event.notes?.let {
-                Spacer(Modifier.height(4.dp))
-                Text(it, fontSize = 14.sp)
-            }
-
-            // Photo thumbnail
-            event.imageUrl?.let { url ->
-                Spacer(Modifier.height(8.dp))
-                AsyncImage(
-                    model = url,
-                    contentDescription = "Event photo",
-                    modifier = Modifier.fillMaxWidth().heightIn(max = 150.dp),
-                    contentScale = ContentScale.Crop
-                )
             }
         }
     }
@@ -383,4 +351,90 @@ fun eventTypeIcon(type: String) = when (type) {
     "NOTE" -> Icons.Default.StickyNote2
     "APPLIED_SUPPLY" -> Icons.Default.WaterDrop
     else -> Icons.Default.Circle
+}
+
+private fun eventToneColor(type: String?): androidx.compose.ui.graphics.Color = when (type) {
+    "SEEDED", "SOWED" -> FaltetMustard
+    "POTTED_UP" -> FaltetSky
+    "PLANTED_OUT" -> FaltetSage
+    "HARVESTED" -> FaltetClay
+    "FERTILIZED" -> FaltetBerry
+    "WATERED" -> FaltetSky
+    "NOTE" -> FaltetForest
+    else -> FaltetForest
+}
+
+private fun eventTypeLabelSv(type: String?): String = when (type) {
+    "SEEDED", "SOWED" -> "Sådd"
+    "POTTED_UP" -> "Krukad"
+    "PLANTED_OUT" -> "Utplanterad"
+    "HARVESTED" -> "Skördad"
+    "FERTILIZED" -> "Gödslad"
+    "WATERED" -> "Vattnad"
+    "NOTE" -> "Anteckning"
+    null -> "—"
+    else -> type.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() }
+}
+
+private fun formattedDate(date: String?): String {
+    if (date == null) return "—"
+    return try {
+        val parsed = java.time.LocalDate.parse(date.take(10))
+        "${parsed.dayOfMonth} ${monthShortSv(parsed.monthValue)}"
+    } catch (e: Exception) {
+        date
+    }
+}
+
+private fun monthShortSv(month: Int): String = arrayOf(
+    "jan", "feb", "mar", "apr", "maj", "jun",
+    "jul", "aug", "sep", "okt", "nov", "dec",
+)[month - 1]
+
+private fun monthLabelSv(yearMonth: java.time.YearMonth): String {
+    val names = arrayOf(
+        "Januari", "Februari", "Mars", "April", "Maj", "Juni",
+        "Juli", "Augusti", "September", "Oktober", "November", "December",
+    )
+    return "${names[yearMonth.monthValue - 1]} ${yearMonth.year}"
+}
+
+@Composable
+private fun InlineEmpty(text: String) {
+    Text(
+        text = text,
+        fontFamily = FaltetDisplay,
+        fontStyle = FontStyle.Italic,
+        fontSize = 14.sp,
+        color = FaltetForest,
+        modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
+    )
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
+@Composable
+private fun WorkflowStripPreview() {
+    val stages = listOf("SÅDD", "KRUKAD", "UTPLANTERAD", "SKÖRDAD")
+    val currentIdx = 1
+    Text(
+        text = buildAnnotatedString {
+            stages.forEachIndexed { i, stage ->
+                val color = when {
+                    i < currentIdx -> FaltetInk
+                    i == currentIdx -> FaltetClay
+                    else -> FaltetForest.copy(alpha = 0.4f)
+                }
+                withStyle(SpanStyle(color = color)) { append(stage) }
+                if (i < stages.size - 1) {
+                    withStyle(SpanStyle(color = FaltetForest.copy(alpha = 0.4f))) {
+                        append("  ·  ")
+                    }
+                }
+            }
+        },
+        fontFamily = FontFamily.Monospace,
+        fontSize = 10.sp,
+        letterSpacing = 1.4.sp,
+        modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
+    )
 }
