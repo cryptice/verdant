@@ -1,34 +1,55 @@
 package app.verdant.android.ui.activity
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import android.graphics.Bitmap
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.verdant.android.R
-import app.verdant.android.data.model.*
-import app.verdant.android.ui.theme.verdantTopAppBarColors
+import app.verdant.android.data.model.BatchSowRequest
+import app.verdant.android.data.model.BedWithGardenResponse
+import app.verdant.android.data.model.CompleteTaskPartiallyRequest
+import app.verdant.android.data.model.DecrementSeedInventoryRequest
+import app.verdant.android.data.model.RecordCommentRequest
+import app.verdant.android.data.model.ScheduledTaskResponse
+import app.verdant.android.data.model.SeedInventoryResponse
+import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.ui.faltet.FaltetDropdown
+import app.verdant.android.ui.faltet.FaltetFormSubmitBar
+import app.verdant.android.ui.faltet.FaltetImagePicker
+import app.verdant.android.ui.faltet.FaltetScopeToggle
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.Field
 import app.verdant.android.ui.supplies.SupplyUsageBottomSheet
+import app.verdant.android.ui.theme.FaltetClay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import android.util.Log
 import javax.inject.Inject
-import androidx.lifecycle.SavedStateHandle
 
 private const val TAG = "SowActivityScreen"
 
@@ -116,6 +137,14 @@ class SowActivityViewModel @Inject constructor(
     }
 }
 
+private fun speciesDisplayName(s: SpeciesResponse): String {
+    val name = s.commonNameSv ?: s.commonName
+    val variant = s.variantNameSv ?: s.variantName
+    return if (variant.isNullOrBlank()) name else "$name – $variant"
+}
+
+private enum class SowDestination { TRAY, BED }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SowActivityScreen(
@@ -125,41 +154,51 @@ fun SowActivityScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    var selectedSpeciesId by remember { mutableStateOf<Long?>(viewModel.preselectedSpeciesId) }
-    var selectedBedId by remember { mutableStateOf<Long?>(viewModel.preselectedBedId) }
-    var sowInTray by remember { mutableStateOf(false) }
-    var selectedSeedBatchId by remember { mutableStateOf<Long?>(null) }
-    var seedCount by remember { mutableStateOf("") }
+    var selectedSpecies by remember { mutableStateOf<SpeciesResponse?>(null) }
+    var selectedBed by remember { mutableStateOf<BedWithGardenResponse?>(null) }
+    var destination by remember {
+        mutableStateOf(
+            if (viewModel.preselectedBedId != null) SowDestination.BED else SowDestination.TRAY
+        )
+    }
+    var selectedSeedBatch by remember { mutableStateOf<SeedInventoryResponse?>(null) }
+    var countText by remember { mutableStateOf("") }
+    var countError by remember { mutableStateOf<String?>(null) }
     var notes by remember { mutableStateOf("") }
+    var photoBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var imageBase64 by remember { mutableStateOf<String?>(null) }
-    var speciesExpanded by remember { mutableStateOf(false) }
-    var bedExpanded by remember { mutableStateOf(false) }
-    var seedBatchExpanded by remember { mutableStateOf(false) }
-    var speciesSearch by remember { mutableStateOf("") }
+
+    // Resolve preselected species/bed once species list is loaded
+    LaunchedEffect(uiState.species) {
+        if (selectedSpecies == null && viewModel.preselectedSpeciesId != null) {
+            selectedSpecies = uiState.species.find { it.id == viewModel.preselectedSpeciesId }
+        }
+    }
+    LaunchedEffect(uiState.beds) {
+        if (selectedBed == null && viewModel.preselectedBedId != null) {
+            selectedBed = uiState.beds.find { it.id == viewModel.preselectedBedId }
+        }
+    }
 
     // Pre-fill from task
     var taskPrefilled by remember { mutableStateOf(false) }
     LaunchedEffect(uiState.task) {
         if (uiState.task != null && !taskPrefilled) {
-            selectedSpeciesId = uiState.task!!.speciesId
-            seedCount = uiState.task!!.remainingCount.toString()
+            selectedSpecies = uiState.species.find { it.id == uiState.task!!.speciesId }
+            countText = uiState.task!!.remainingCount.toString()
             taskPrefilled = true
         }
     }
 
     // Load seed lots when species changes
-    LaunchedEffect(selectedSpeciesId) {
-        if (selectedSpeciesId != null) {
-            viewModel.loadSeedBatches(selectedSpeciesId!!)
-            selectedSeedBatchId = null
+    LaunchedEffect(selectedSpecies) {
+        if (selectedSpecies != null) {
+            viewModel.loadSeedBatches(selectedSpecies!!.id)
+            selectedSeedBatch = null
         }
     }
 
     var showSupplySheet by remember { mutableStateOf(false) }
-
-    LaunchedEffect(uiState.created) {
-        // Don't auto-navigate; we show the supply usage option first
-    }
 
     if (showSupplySheet) {
         SupplyUsageBottomSheet(
@@ -171,246 +210,230 @@ fun SowActivityScreen(
     if (uiState.created) {
         AlertDialog(
             onDismissRequest = { onSowComplete() },
-            title = { Text(stringResource(R.string.sow)) },
-            text = { Text(stringResource(R.string.record_supply_usage) + "?") },
+            title = { Text("Sådd") },
+            text = { Text("Vill du registrera förbrukning av jord eller krukor?") },
             confirmButton = {
                 TextButton(onClick = { showSupplySheet = true }) {
-                    Text(stringResource(R.string.record_usage))
+                    Text("Registrera förbrukning", color = FaltetClay)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { onSowComplete() }) {
-                    Text(stringResource(R.string.skip))
-                }
+                TextButton(onClick = { onSowComplete() }) { Text("Hoppa över") }
             },
         )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.sow)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-                    }
-                },
-                colors = verdantTopAppBarColors()
+    val canSubmit = selectedSpecies != null &&
+        (destination == SowDestination.TRAY || selectedBed != null) &&
+        countText.toIntOrNull()?.let { it > 0 } == true &&
+        !uiState.isLoading
+
+    val submitAction: () -> Unit = {
+        viewModel.sow(
+            bedId = if (destination == SowDestination.BED) selectedBed?.id else null,
+            speciesId = selectedSpecies!!.id,
+            name = speciesDisplayName(selectedSpecies!!),
+            seedCount = countText.toIntOrNull(),
+            notes = notes.ifBlank { null },
+            imageBase64 = imageBase64,
+            seedBatchId = selectedSeedBatch?.id,
+        )
+    }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(uiState.error) { uiState.error?.let { snackbarHostState.showSnackbar(it) } }
+    LaunchedEffect(uiState.created) { if (uiState.created) { /* nav handled by dialog dismiss */ } }
+
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Sådd",
+        mastheadCenter = "Såaktivitet",
+        bottomBar = {
+            FaltetFormSubmitBar(
+                label = "Så",
+                onClick = submitAction,
+                enabled = canSubmit,
+                submitting = uiState.isLoading,
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = padding.calculateTopPadding())
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Spacer(Modifier.height(0.dp))
-            // Species picker
-            Text(stringResource(R.string.species_required), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            ExposedDropdownMenuBox(
-                expanded = speciesExpanded,
-                onExpandedChange = { speciesExpanded = it }
-            ) {
-                OutlinedTextField(
-                    value = speciesSearch.ifBlank {
-                        uiState.species.find { it.id == selectedSpeciesId }?.let { s ->
-                            val name = s.commonNameSv ?: s.commonName
-                            val variant = s.variantNameSv ?: s.variantName
-                            if (variant.isNullOrBlank()) name else "$name \u2013 $variant"
-                        } ?: ""
+            item {
+                FaltetDropdown(
+                    label = "Art",
+                    options = uiState.species,
+                    selected = selectedSpecies,
+                    onSelectedChange = { selectedSpecies = it },
+                    labelFor = { speciesDisplayName(it) },
+                    searchable = true,
+                    required = true,
+                )
+            }
+            item {
+                FaltetScopeToggle(
+                    label = "Destination",
+                    options = listOf(SowDestination.TRAY, SowDestination.BED),
+                    selected = destination,
+                    onSelectedChange = { destination = it },
+                    labelFor = { if (it == SowDestination.TRAY) "Så i brätte" else "Så direkt i bädd" },
+                )
+            }
+            if (destination == SowDestination.BED) {
+                item {
+                    FaltetDropdown(
+                        label = "Bädd",
+                        options = uiState.beds,
+                        selected = selectedBed,
+                        onSelectedChange = { selectedBed = it },
+                        labelFor = { "${it.gardenName} · ${it.name}" },
+                        searchable = true,
+                        required = true,
+                    )
+                }
+            }
+            if (selectedSpecies != null) {
+                val batches = uiState.seedBatches.filter { it.speciesId == selectedSpecies!!.id }
+                if (batches.isNotEmpty()) {
+                    item {
+                        FaltetDropdown(
+                            label = "Frökälla (valfri)",
+                            options = batches,
+                            selected = selectedSeedBatch,
+                            onSelectedChange = { selectedSeedBatch = it },
+                            labelFor = { "${it.speciesName} · ${it.quantity} frön" },
+                            searchable = false,
+                        )
+                    }
+                }
+            }
+            item {
+                Field(
+                    label = "Antal frön",
+                    value = countText,
+                    onValueChange = { countText = it.filter { c -> c.isDigit() }; countError = null },
+                    keyboardType = KeyboardType.Number,
+                    required = true,
+                    error = countError,
+                )
+            }
+            item {
+                FaltetImagePicker(
+                    label = "Foto (valfri)",
+                    value = photoBitmap,
+                    onValueChange = { bitmap ->
+                        photoBitmap = bitmap
+                        imageBase64 = bitmap?.toCompressedBase64()
                     },
-                    onValueChange = { speciesSearch = it; speciesExpanded = true },
-                    placeholder = { Text(stringResource(R.string.search_species)) },
-                    modifier = Modifier.fillMaxWidth().menuAnchor(),
-                    shape = RoundedCornerShape(12.dp),
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(speciesExpanded) },
-                    singleLine = true
-                )
-                val filtered = uiState.species.filter {
-                    speciesSearch.isBlank() || it.commonName.contains(speciesSearch, ignoreCase = true) || (it.commonNameSv?.contains(speciesSearch, ignoreCase = true) == true) || (it.variantName?.contains(speciesSearch, ignoreCase = true) == true) || (it.variantNameSv?.contains(speciesSearch, ignoreCase = true) == true)
-                }
-                ExposedDropdownMenu(
-                    expanded = speciesExpanded,
-                    onDismissRequest = { speciesExpanded = false }
-                ) {
-                    filtered.forEach { species ->
-                        DropdownMenuItem(
-                            text = {
-                                val name = species.commonNameSv ?: species.commonName
-                                val variant = species.variantNameSv ?: species.variantName
-                                Text(if (variant.isNullOrBlank()) name else "$name \u2013 $variant")
-                            },
-                            onClick = {
-                                selectedSpeciesId = species.id
-                                speciesSearch = ""
-                                speciesExpanded = false
-                            }
-                        )
-                    }
-                    if (filtered.isEmpty()) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.no_species_found), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)) },
-                            onClick = {}
-                        )
-                    }
-                }
-            }
-
-            // Seed lot picker (shown when species selected and lots available)
-            if (selectedSpeciesId != null && uiState.seedBatches.isNotEmpty()) {
-                Text(stringResource(R.string.seed_batch_required), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                ExposedDropdownMenuBox(
-                    expanded = seedBatchExpanded,
-                    onExpandedChange = { seedBatchExpanded = it }
-                ) {
-                    val selectedLot = uiState.seedBatches.find { it.id == selectedSeedBatchId }
-                    OutlinedTextField(
-                        value = selectedLot?.let {
-                            buildString {
-                                append(stringResource(R.string.seeds_count_format, it.quantity))
-                                it.collectionDate?.let { d -> append(" (${stringResource(R.string.collected_date, d)})") }
-                            }
-                        } ?: "",
-                        onValueChange = {},
-                        readOnly = true,
-                        placeholder = { Text(stringResource(R.string.select_seed_batch)) },
-                        modifier = Modifier.fillMaxWidth().menuAnchor(),
-                        shape = RoundedCornerShape(12.dp),
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(seedBatchExpanded) }
-                    )
-                    ExposedDropdownMenu(
-                        expanded = seedBatchExpanded,
-                        onDismissRequest = { seedBatchExpanded = false }
-                    ) {
-                        uiState.seedBatches.forEach { lot ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(buildString {
-                                        append(stringResource(R.string.seeds_count_format, lot.quantity))
-                                        lot.collectionDate?.let { d -> append(" (${stringResource(R.string.collected_date, d)})") }
-                                        lot.expirationDate?.let { d -> append(" \u00B7 ${stringResource(R.string.expires_date, d)}") }
-                                    })
-                                },
-                                onClick = {
-                                    selectedSeedBatchId = lot.id
-                                    seedBatchExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-            } else if (selectedSpeciesId != null && uiState.seedBatches.isEmpty()) {
-                Text(
-                    stringResource(R.string.no_seed_batches),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    fontSize = 14.sp
                 )
             }
-
-            // Tray toggle (hidden when launched from a specific bed)
-            if (viewModel.preselectedBedId == null) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(stringResource(R.string.sow_in_tray), fontSize = 16.sp)
-                    Switch(
-                        checked = sowInTray,
-                        onCheckedChange = { sowInTray = it; if (it) selectedBedId = null }
-                    )
-                }
+            item {
+                Field(
+                    label = "Anteckningar (valfri)",
+                    value = notes,
+                    onValueChange = { notes = it },
+                )
             }
-
-            // Bed picker (hidden when sowing in tray)
-            if (!sowInTray) {
-                Text(stringResource(R.string.bed_required), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                ExposedDropdownMenuBox(
-                    expanded = bedExpanded,
-                    onExpandedChange = { bedExpanded = it }
-                ) {
-                    OutlinedTextField(
-                        value = uiState.beds.find { it.id == selectedBedId }?.let { "${it.gardenName} - ${it.name}" } ?: "",
-                        onValueChange = {},
-                        readOnly = true,
-                        placeholder = { Text(stringResource(R.string.select_bed)) },
-                        modifier = Modifier.fillMaxWidth().menuAnchor(),
-                        shape = RoundedCornerShape(12.dp),
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(bedExpanded) }
-                    )
-                    ExposedDropdownMenu(
-                        expanded = bedExpanded,
-                        onDismissRequest = { bedExpanded = false }
-                    ) {
-                        uiState.beds.forEach { bed ->
-                            DropdownMenuItem(
-                                text = { Text("${bed.gardenName} - ${bed.name}") },
-                                onClick = { selectedBedId = bed.id; bedExpanded = false }
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Count
-            CountField(
-                value = seedCount,
-                onValueChange = { seedCount = it },
-                label = stringResource(R.string.seed_count)
-            )
-
-            // Photo
-            Text(stringResource(R.string.photo), fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            PhotoPicker(
-                imageUrl = null,
-                onImageCaptured = { b64, _ -> imageBase64 = b64 }
-            )
-
-            // Notes
-            FrequentCommentsField(
-                value = notes,
-                onValueChange = { notes = it },
-                suggestions = uiState.comments
-            )
-
-            Spacer(Modifier.height(16.dp))
         }
-        uiState.error?.let {
-            app.verdant.android.ui.common.InlineErrorBanner(it)
-        }
-        Button(
-            onClick = {
-                viewModel.sow(
-                    bedId = selectedBedId,
-                    speciesId = selectedSpeciesId!!,
-                    name = uiState.species.find { it.id == selectedSpeciesId }?.let { s ->
-                        val name = s.commonNameSv ?: s.commonName
-                        val variant = s.variantNameSv ?: s.variantName
-                        if (variant.isNullOrBlank()) name else "$name \u2013 $variant"
-                    } ?: "",
-                    seedCount = seedCount.toIntOrNull(),
-                    notes = notes.ifBlank { null },
-                    imageBase64 = imageBase64,
-                    seedBatchId = selectedSeedBatchId,
-                )
-            },
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp).height(48.dp),
-            shape = RoundedCornerShape(12.dp),
-            enabled = selectedSpeciesId != null && (sowInTray || selectedBedId != null) && (seedCount.toIntOrNull() ?: 0) > 0 && !uiState.isLoading
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
+@Composable
+private fun SowActivityScreenPreview() {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val previewSpecies = SpeciesResponse(
+        id = 1L,
+        commonName = "Cosmos",
+        commonNameSv = "Kosmos",
+        variantName = null,
+        variantNameSv = null,
+        scientificName = "Cosmos bipinnatus",
+        imageFrontUrl = null,
+        imageBackUrl = null,
+        photos = emptyList(),
+        germinationTimeDaysMin = null,
+        germinationTimeDaysMax = null,
+        daysToHarvestMin = null,
+        daysToHarvestMax = null,
+        sowingDepthMm = null,
+        growingPositions = emptyList(),
+        soils = emptyList(),
+        heightCmMin = null,
+        heightCmMax = null,
+        germinationRate = null,
+        tags = emptyList(),
+        createdAt = "",
+    )
+    FaltetScreenScaffold(
+        mastheadLeft = "§ Sådd",
+        mastheadCenter = "Såaktivitet",
+        bottomBar = {
+            FaltetFormSubmitBar(
+                label = "Så",
+                onClick = {},
+                enabled = true,
+                submitting = false,
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-            } else {
-                Text(stringResource(R.string.sow))
+            item {
+                FaltetDropdown(
+                    label = "Art",
+                    options = listOf(previewSpecies),
+                    selected = previewSpecies,
+                    onSelectedChange = {},
+                    labelFor = { speciesDisplayName(it) },
+                    searchable = true,
+                    required = true,
+                )
             }
-        }
+            item {
+                FaltetScopeToggle(
+                    label = "Destination",
+                    options = listOf(SowDestination.TRAY, SowDestination.BED),
+                    selected = SowDestination.TRAY,
+                    onSelectedChange = {},
+                    labelFor = { if (it == SowDestination.TRAY) "Så i brätte" else "Så direkt i bädd" },
+                )
+            }
+            item {
+                Field(
+                    label = "Antal frön",
+                    value = "50",
+                    onValueChange = {},
+                    keyboardType = KeyboardType.Number,
+                    required = true,
+                    error = null,
+                )
+            }
+            item {
+                FaltetImagePicker(
+                    label = "Foto (valfri)",
+                    value = null,
+                    onValueChange = {},
+                )
+            }
+            item {
+                Field(
+                    label = "Anteckningar (valfri)",
+                    value = "",
+                    onValueChange = {},
+                )
+            }
         }
     }
 }
