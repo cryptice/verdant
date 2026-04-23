@@ -40,6 +40,7 @@ class SplashViewModel @Inject constructor(
 fun SplashScreen(
     onNavigateToAuth: () -> Unit,
     onNavigateToDashboard: () -> Unit,
+    onNavigateToOrgRequired: () -> Unit,
     viewModel: SplashViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -50,9 +51,14 @@ fun SplashScreen(
         if (existingToken != null) {
             Log.d(TAG, "Stored token found, refreshing user + org…")
             try {
-                viewModel.authRepository.refreshUser()
-                Log.d(TAG, "User refresh succeeded, navigating to dashboard")
-                onNavigateToDashboard()
+                val user = viewModel.authRepository.refreshUser()
+                if (user.organizations.isEmpty()) {
+                    Log.d(TAG, "User has no organizations, navigating to OrgRequired")
+                    onNavigateToOrgRequired()
+                } else {
+                    Log.d(TAG, "User refresh succeeded, navigating to dashboard")
+                    onNavigateToDashboard()
+                }
             } catch (e: Exception) {
                 Log.w(TAG, "User refresh failed (${e.javaClass.simpleName}); navigating to dashboard anyway")
                 onNavigateToDashboard()
@@ -81,9 +87,14 @@ fun SplashScreen(
             val credential = GoogleIdTokenCredential.createFrom(result.credential.data)
             Log.d(TAG, "Google ID token obtained, calling backend auth...")
 
-            viewModel.authRepository.signIn(credential.idToken)
-            Log.d(TAG, "Backend auth successful, navigating to dashboard")
-            onNavigateToDashboard()
+            val auth = viewModel.authRepository.signIn(credential.idToken)
+            if (auth.user.organizations.isEmpty()) {
+                Log.d(TAG, "Silent sign-in: user has no organizations, navigating to OrgRequired")
+                onNavigateToOrgRequired()
+            } else {
+                Log.d(TAG, "Backend auth successful, navigating to dashboard")
+                onNavigateToDashboard()
+            }
         } catch (e: Exception) {
             Log.w(TAG, "Silent sign-in failed: ${e.javaClass.simpleName}: ${e.message}")
             onNavigateToAuth()

@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import app.verdant.android.ui.activity.*
 import app.verdant.android.ui.auth.AuthScreen
+import app.verdant.android.ui.orgrequired.OrgRequiredScreen
 import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetCream
 import app.verdant.android.ui.theme.FaltetDisplay
@@ -74,6 +75,7 @@ import app.verdant.android.ui.analytics.AnalyticsScreen
 sealed class Screen(val route: String) {
     data object Splash : Screen("splash")
     data object Auth : Screen("auth")
+    data object OrgRequired : Screen("org-required")
     data object MyWorld : Screen("my-world")
     data object CreateGarden : Screen("garden/create")
     data object GardenDetail : Screen("garden/{gardenId}") {
@@ -204,7 +206,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
-    val hideChrome = currentRoute in listOf(Screen.Splash.route, Screen.Auth.route)
+    val hideChrome = currentRoute in listOf(Screen.Splash.route, Screen.Auth.route, Screen.OrgRequired.route)
     val showTopBar = currentRoute == Screen.MyWorld.route
     val showBottomBar = currentRoute in listOf(Screen.MyWorld.route, Screen.PlantedSpeciesList.route, Screen.TaskList.route)
 
@@ -411,12 +413,20 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
             composable(Screen.Splash.route) {
                 SplashScreen(
                     onNavigateToAuth = { navController.navigate(Screen.Auth.route) { popUpTo(0) { inclusive = true } } },
-                    onNavigateToDashboard = { navController.navigate(Screen.MyWorld.route) { popUpTo(0) { inclusive = true } } }
+                    onNavigateToDashboard = { navController.navigate(Screen.MyWorld.route) { popUpTo(0) { inclusive = true } } },
+                    onNavigateToOrgRequired = { navController.navigate(Screen.OrgRequired.route) { popUpTo(0) { inclusive = true } } },
                 )
             }
             composable(Screen.Auth.route) {
                 AuthScreen(
-                    onAuthSuccess = { navController.navigate(Screen.MyWorld.route) { popUpTo(0) { inclusive = true } } }
+                    onAuthSuccess = { navController.navigate(Screen.MyWorld.route) { popUpTo(0) { inclusive = true } } },
+                    onNeedsOrg = { navController.navigate(Screen.OrgRequired.route) { popUpTo(0) { inclusive = true } } },
+                )
+            }
+            composable(Screen.OrgRequired.route) {
+                OrgRequiredScreen(
+                    onOrgReady = { navController.navigate(Screen.MyWorld.route) { popUpTo(0) { inclusive = true } } },
+                    onSignedOut = { navController.navigate(Screen.Auth.route) { popUpTo(0) { inclusive = true } } },
                 )
             }
             composable(Screen.MyWorld.route) {

@@ -54,7 +54,8 @@ private const val TAG = "AuthScreen"
 data class AuthUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
-    val success: Boolean = false
+    val success: Boolean = false,
+    val needsOrg: Boolean = false,
 )
 
 @HiltViewModel
@@ -73,9 +74,13 @@ class AuthViewModel @Inject constructor(
             _uiState.value = AuthUiState(isLoading = true)
             try {
                 Log.d(TAG, "Sending ID token to backend...")
-                authRepository.signIn(idToken)
-                Log.d(TAG, "Backend auth successful")
-                _uiState.value = AuthUiState(success = true)
+                val auth = authRepository.signIn(idToken)
+                Log.d(TAG, "Backend auth successful; orgs=${auth.user.organizations.size}")
+                _uiState.value = if (auth.user.organizations.isEmpty()) {
+                    AuthUiState(needsOrg = true)
+                } else {
+                    AuthUiState(success = true)
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "Backend auth failed: ${e.javaClass.simpleName}: ${e.message}", e)
                 _uiState.value = AuthUiState(error = e.message ?: "Sign in failed")
@@ -87,6 +92,7 @@ class AuthViewModel @Inject constructor(
 @Composable
 fun AuthScreen(
     onAuthSuccess: () -> Unit,
+    onNeedsOrg: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -94,6 +100,9 @@ fun AuthScreen(
 
     LaunchedEffect(uiState.success) {
         if (uiState.success) onAuthSuccess()
+    }
+    LaunchedEffect(uiState.needsOrg) {
+        if (uiState.needsOrg) onNeedsOrg()
     }
 
     Box(
