@@ -1,6 +1,6 @@
 {
   "app": {
-    "subtitle": "Est. 2026 — Småland"
+    "subtitle": "Est. 2026"
   },
   "sidebar": {
     "groups": {
@@ -1290,6 +1290,17 @@
       }
     },
     "nav": "Organisation"
+  },
+  "orgSetup": {
+    "hero": {
+      "headline": "Välkommen till Verdant."
+    },
+    "intro": "Börja med att skapa en organisation för din odling. Du kan bjuda in medarbetare senare.",
+    "submit": "Skapa organisation"
+  },
+  "speciesGroups": {
+    "newTitle": "Ny grupp",
+    "members": "Medlemmar"
   },
   "groups": {
     "title": "Artgrupper",
