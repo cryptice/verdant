@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<title>Verdant — Dashboard directions</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,0..100;1,9..144,300..700,0..100&family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Caveat:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { margin:0; padding:0; background:#f0eee9; }
+  * { box-sizing: border-box; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="lib/design-canvas.jsx"></script>
+<script type="text/babel" src="lib/shared.jsx"></script>
+<script type="text/babel" src="lib/direction-faltet.jsx"></script>
+<script type="text/babel" src="lib/direction-kretslopp.jsx"></script>
+<script type="text/babel" src="lib/direction-vaxthuset.jsx"></script>
+<script type="text/babel" src="lib/faltet-tasks.jsx"></script>
+<script type="text/babel" src="lib/faltet-bed.jsx"></script>
+<script type="text/babel" src="lib/faltet-species-modal.jsx"></script>
+<script type="text/babel">
+  function App() {
+    // Desktop 1280x800, mobile 390x780
+    const DW = 1280, DH = 800;
+    const MW = 390, MH = 780;
+
+    return (
+      <DesignCanvas>
+        <DCSection id="intro" title="Verdant · Dashboard" subtitle="Three bold directions for the overview screen — warm, modern, on-brand. Swedish-first cut-flower farm data.">
+          <DCArtboard id="brief" label="Brief" width={360} height={440}>
+            <div style={{
+              padding: 28, height: '100%', fontFamily: 'Inter, sans-serif',
+              background: '#FDFAF2', color: '#1E241D', display: 'flex', flexDirection: 'column', gap: 12,
+            }}>
+              <div style={{ fontFamily: '"Fraunces", serif', fontStyle: 'italic', fontSize: 32, lineHeight: 1, letterSpacing: -0.8 }}>
+                Three directions<span style={{ color: '#B6553C' }}>.</span>
+              </div>
+              <div style={{ fontSize: 13, lineHeight: 1.5, color: '#2F3D2E' }}>
+                All three preserve the sage accent and warm off-white base from the existing system, and read the same data shape (gardens, tray summary, harvest stats, tasks).
+              </div>
+              <div style={{ fontSize: 12, fontFamily: 'ui-monospace, monospace', letterSpacing: 1, textTransform: 'uppercase', color: '#6B8F6A', marginTop: 4 }}>Compare →</div>
+              <div style={{ display: 'grid', gap: 10, marginTop: 8, fontSize: 12.5, lineHeight: 1.4 }}>
+                <div><b>1 · Fältet</b> — editorial magazine. Fraunces display serif, asymmetric grid, thin rules, monospace metadata.</div>
+                <div><b>2 · Kretslopp</b> — data-ops. Near-black surfaces, saturated sage, seasonal arc hero, dense tables.</div>
+                <div><b>3 · Växthuset</b> — organic bento. Oversized rounded tiles, Caveat accents, color fields per garden, blob shapes.</div>
+              </div>
+              <div style={{ flex: 1 }} />
+              <div style={{ fontSize: 11, color: '#2F3D2E', opacity: 0.6, fontFamily: 'ui-monospace, monospace', letterSpacing: 0.5 }}>
+                click any artboard to focus · ←/→ to page · ↑/↓ across sections
+              </div>
+            </div>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="faltet" title="1 · Fältet" subtitle="Editorial. Oversized Fraunces italic, asymmetric grid, monospace chips. Warm cream + deep forest + clay accent. Slow, considered — like a farm almanac.">
+          <DCArtboard id="faltet-desktop" label="Desktop · 1280" width={DW} height={DH}>
+            <FaltetDesktop />
+          </DCArtboard>
+          <DCArtboard id="faltet-mobile" label="Mobile · 390" width={MW} height={MH}>
+            <FaltetMobile />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="kretslopp" title="2 · Kretslopp" subtitle="Data-ops. Dark sage surfaces, tabular numerals, seasonal arc hero with today marker + frost band, sparklines, dense tables. For power users.">
+          <DCArtboard id="kretslopp-desktop" label="Desktop · 1280" width={DW} height={DH}>
+            <KretsloppDesktop />
+          </DCArtboard>
+          <DCArtboard id="kretslopp-mobile" label="Mobile · 390" width={MW} height={MH}>
+            <KretsloppMobile />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="vaxthuset" title="3 · Växthuset" subtitle="Organic bento. Big rounded color-field tiles, Caveat handwriting accents, blob shapes, oversized emoji. Warm and edgy-friendly.">
+          <DCArtboard id="vaxthuset-desktop" label="Desktop · 1280" width={DW} height={DH}>
+            <VXDesktop />
+          </DCArtboard>
+          <DCArtboard id="vaxthuset-mobile" label="Mobile · 390" width={MW} height={MH}>
+            <VXMobile />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="faltet-tasks" title="Fältet · Uppgifter" subtitle="Task list in the chosen Fältet direction. Ledger-style rows, seasonal color coding by activity type, split into Idag / Kommande sections.">
+          <DCArtboard id="faltet-tasks-desktop" label="Desktop · 1280" width={DW} height={DH}>
+            <FaltetTasksDesktop />
+          </DCArtboard>
+          <DCArtboard id="faltet-tasks-mobile" label="Mobile · 390" width={MW} height={MH}>
+            <FaltetTasksMobile />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="faltet-bed" title="Fältet · Bädd" subtitle="Plants list for a single bed. Breadcrumbs, bed meta with conditions chips, stats band, grouped species ledger with counts, status and sow→plant timeline.">
+          <DCArtboard id="faltet-bed-desktop" label="Desktop · 1280" width={DW} height={DH}>
+            <FaltetBedDesktop />
+          </DCArtboard>
+          <DCArtboard id="faltet-bed-mobile" label="Mobile · 390" width={MW} height={MH}>
+            <FaltetBedMobile />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="faltet-species-modal" title="Fältet · Redigera art" subtitle="Editing modal over the bed screen. Masthead + editorial hero with chips and italic sort name, masonry field grid with accent-colored values, seed-provider ledger and an ink/cream action footer.">
+          <DCArtboard id="faltet-species-modal-desktop" label="Desktop · 1280" width={DW} height={DH}>
+            <FaltetSpeciesModal />
+          </DCArtboard>
+          <DCArtboard id="faltet-species-modal-mobile" label="Mobile · 390" width={MW} height={MH}>
+            <FaltetSpeciesModalMobile />
+          </DCArtboard>
+        </DCSection>
+      </DesignCanvas>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
