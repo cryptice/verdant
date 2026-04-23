@@ -1,13 +1,17 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useAuth } from '../../auth/AuthContext'
 
-type NavItem = { to: string; label: string }
+type NavItem = { to: string; label: string; advanced?: boolean }
 type NavGroup = { header: string; items: NavItem[] }
 
 function useGroups(): NavGroup[] {
   const { t } = useTranslation()
-  return [
+  const { user } = useAuth()
+  const showAdvanced = user?.advancedMode ?? false
+
+  const allGroups: NavGroup[] = [
     {
       header: t('sidebar.groups.odling'),
       items: [
@@ -17,7 +21,7 @@ function useGroups(): NavGroup[] {
         { to: '/species-groups', label: t('nav.speciesGroups') },
         { to: '/plants',         label: t('nav.plants') },
         { to: '/workflows',      label: t('nav.workflows') },
-        { to: '/successions',    label: t('nav.successions') },
+        { to: '/successions',    label: t('nav.successions'), advanced: true },
         { to: '/seasons',        label: t('nav.seasons') },
       ],
     },
@@ -25,8 +29,8 @@ function useGroups(): NavGroup[] {
       header: t('sidebar.groups.uppgifter'),
       items: [
         { to: '/tasks',      label: t('nav.tasks') },
-        { to: '/calendar',   label: t('nav.calendar') },
-        { to: '/targets',    label: t('nav.targets') },
+        { to: '/calendar',   label: t('nav.calendar'),  advanced: true },
+        { to: '/targets',    label: t('nav.targets'),   advanced: true },
         { to: '/seed-stock', label: t('nav.seeds') },
         { to: '/supplies',   label: t('nav.supplies') },
       ],
@@ -34,17 +38,17 @@ function useGroups(): NavGroup[] {
     {
       header: t('sidebar.groups.sales'),
       items: [
-        { to: '/analytics?tab=harvest', label: t('nav.harvest') },
+        { to: '/analytics?tab=harvest', label: t('nav.harvest'),  advanced: true },
         { to: '/customers',             label: t('nav.customers') },
-        { to: '/bouquets',              label: t('nav.bouquets') },
+        { to: '/bouquets',              label: t('nav.bouquets'), advanced: true },
       ],
     },
     {
       header: t('sidebar.groups.analysis'),
       items: [
-        { to: '/trials',       label: t('nav.trials') },
-        { to: '/pest-disease', label: t('nav.pestDisease') },
-        { to: '/analytics',    label: t('nav.analytics') },
+        { to: '/trials',       label: t('nav.trials'),      advanced: true },
+        { to: '/pest-disease', label: t('nav.pestDisease'), advanced: true },
+        { to: '/analytics',    label: t('nav.analytics'),   advanced: true },
       ],
     },
     {
@@ -56,12 +60,22 @@ function useGroups(): NavGroup[] {
       ],
     },
   ]
+
+  return allGroups
+    .map((g) => ({
+      ...g,
+      items: showAdvanced ? g.items : g.items.filter((i) => !i.advanced),
+    }))
+    .filter((g) => g.items.length > 0)
 }
 
 export function Sidebar() {
   const { t, i18n } = useTranslation()
   const location = useLocation()
   const groups = useGroups()
+  const accountHeader = t('sidebar.groups.account')
+  const topGroups = groups.filter((g) => g.header !== accountHeader)
+  const accountGroup = groups.find((g) => g.header === accountHeader)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const currentPath = location.pathname + location.search
 
@@ -108,13 +122,15 @@ export function Sidebar() {
       <div style={{ height: 1, background: 'var(--color-ink)', margin: '16px 0' }} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-        {groups.slice(0, 4).map((group) => (
+        {topGroups.map((group) => (
           <GroupBlock key={group.header} group={group} currentPath={currentPath} />
         ))}
 
-        <div style={{ marginTop: 'auto' }}>
-          <GroupBlock group={groups[4]} currentPath={currentPath} />
-        </div>
+        {accountGroup && (
+          <div style={{ marginTop: 'auto' }}>
+            <GroupBlock group={accountGroup} currentPath={currentPath} />
+          </div>
+        )}
       </div>
 
       <div
