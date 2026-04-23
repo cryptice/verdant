@@ -73,7 +73,7 @@ Lighter variant of form pattern. No hero. Simpler field list. Destructive action
 
 These pages render outside the Fältet `<Layout>` shell (no sidebar).
 
-1. **Top strip** — Verdant wordmark Fraunces italic 32 + clay period, `Est. 2026 — Småland` mono subtitle on the left. Right-aligned: login link on LandingPage; language switcher on the others. 1 px ink bottom border. Full-bleed cream.
+1. **Top strip** — Verdant wordmark Fraunces italic 32 + clay period, `Est. 2026` mono subtitle on the left. Right-aligned: login link on LandingPage; language switcher on the others. 1 px ink bottom border. Full-bleed cream.
 2. **Content area** — max-width 860 px centered, cream bg. Fraunces-Georgia 16 (`font-family: Georgia, var(--font-display); font-size: 15–16; line-height: 1.6; color: var(--color-forest)`) for prose paragraphs. Hairline rules between sections. Editorial headlines Fraunces 48–80, weight 300, letter-spacing -1.
 3. **No emoji icons.** Unicode glyphs only (per spec 1 handoff rule).
 4. **Footer** — mono small-caps privacy / language / contact links on cream, 1 px ink top border.
@@ -136,7 +136,7 @@ Most copy already exists. New keys needed:
 
 ```json
 "landing": {
-  "masthead": { "subtitle": "Est. 2026 — Småland" },
+  "masthead": { "subtitle": "Est. 2026" },
   "hero": {
     "headline":   "Odla vackert. Skörda mer." / "Grow beautifully. Harvest more.",
     "sub":        "Trädgårdsplanering för kommersiell snittblomsodling." / "Garden planning for commercial cut-flower growing."

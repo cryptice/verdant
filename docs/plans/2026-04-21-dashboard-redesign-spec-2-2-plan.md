@@ -49,7 +49,7 @@ Form pattern without hero. Destructive actions live in a Farozon-style callout a
 
 New. Used for LandingPage, PrivacyPolicy, OrgSetup, Guide (last one inside Layout shell; first three outside).
 
-1. Top strip (for pages outside `<Layout>`): Verdant wordmark Fraunces italic 32 + clay period, `Est. 2026 — Småland` mono subtitle on left. Right: login or language switcher. 1px ink bottom.
+1. Top strip (for pages outside `<Layout>`): Verdant wordmark Fraunces italic 32 + clay period, `Est. 2026` mono subtitle on left. Right: login or language switcher. 1px ink bottom.
 2. Content area: `max-width: 860px` centered, cream bg. Body prose in Fraunces Georgia (15–16px, `line-height: 1.6`, `color: var(--color-forest)`). Section headers mono 9 small-caps `§ …` 0.7 opacity.
 3. Unicode glyphs only. No emoji icons.
 

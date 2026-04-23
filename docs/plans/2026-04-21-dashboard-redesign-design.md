@@ -165,7 +165,7 @@ Cream-tinted rectangle with a radial tone wash + mono label. Dimensions flow fro
 
 **Header block:**
 - `Verdant` wordmark — Fraunces italic 26px wght 300, trailing `.` in `--color-clay`.
-- Subtitle — mono 10px `0.08em` uppercase: `Est. 2026 — Småland` (via i18n `app.subtitle`).
+- Subtitle — mono 10px `0.08em` uppercase: `Est. 2026` (via i18n `app.subtitle`).
 - 1px ink hairline beneath.
 
 **Nav groups** (see Q2 option c from brainstorming):
@@ -297,7 +297,7 @@ Each task ends with its own commit. Milestone commit after task 6.
 
 New namespace keys in both `web/src/i18n/sv.json` and `web/src/i18n/en.json`:
 
-- `app.subtitle` — "Est. 2026 — Småland" / "Est. 2026 — Småland" (sv=en for this one)
+- `app.subtitle` — "Est. 2026" / "Est. 2026" (sv=en for this one)
 - `dashboard.hero.label` — "aktiva bäddar" / "active beds"
 - `dashboard.masthead.center` — "— Fältliggaren —" / "— The Field Ledger —"
 - `dashboard.trays.title` — "Brickor" / "Trays"

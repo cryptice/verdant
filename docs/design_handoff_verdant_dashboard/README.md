@@ -37,7 +37,7 @@ If the project has no styling system yet, pick sensibly — Tailwind with CSS cu
 
 **Layout — desktop 1280×800.**
 
-- **Left sidebar, 220 px wide**, full height, 1 px solid ink right border. Wordmark "Verdant" in Fraunces italic 26 px with a clay period; a tiny monospace "Est. 2026 — Småland" below. Primary nav is a list of italic labels (Översikt, Trädgårdar, Uppgifter, Skörd, Arter, Frölager). Each item has a hairline bottom border at 20 % ink; the active item is italic, clay-colored, with a clay bullet on the right.
+- **Left sidebar, 220 px wide**, full height, 1 px solid ink right border. Wordmark "Verdant" in Fraunces italic 26 px with a clay period; a tiny monospace "Est. 2026" below. Primary nav is a list of italic labels (Översikt, Trädgårdar, Uppgifter, Skörd, Arter, Frölager). Each item has a hairline bottom border at 20 % ink; the active item is italic, clay-colored, with a clay bullet on the right.
 - **Main column** has a masthead bar (14 px padding, bottom ink border, monospace small-caps "Översikt" on the left, italic "— Fältliggaren —" centered, cream background).
 - **Asymmetric hero grid** below the masthead: a massive stat on the left (`FalStat`, value at Fraunces 88 px, weight 300, opsz 144, SOFT 100, `letter-spacing -1.2`, with a small italic unit glyph in sage and a monospace small-caps label + clay delta marker), and a secondary visual on the right.
 - Below: three content columns — tray ledger (table), tasks (ledger), bed status (chip list). Column rules are 1 px ink.

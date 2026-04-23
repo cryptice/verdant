@@ -859,7 +859,7 @@ drawerContent = {
                 )
             }
             Text(
-                text = "Est. 2026 — Småland".uppercase(),
+                text = "Est. 2026".uppercase(),
                 fontFamily = FontFamily.Monospace,
                 fontSize = 10.sp,
                 letterSpacing = 1.8.sp,

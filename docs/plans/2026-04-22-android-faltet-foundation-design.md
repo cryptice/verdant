@@ -187,7 +187,7 @@ Wraps `Scaffold` with `containerColor = FaltetCream`. `topBar` slot contains a `
 
 Preserve the existing `ModalNavigationDrawer` structure. Replace the drawer content's sheet with a Fältet-styled column:
 
-1. **Header** — 24dp top padding + 16dp horizontal: Fraunces italic 26sp "Verdant" + clay "." + mono 10sp 0.08em uppercase "Est. 2026 — Småland" below. 1dp ink hairline.
+1. **Header** — 24dp top padding + 16dp horizontal: Fraunces italic 26sp "Verdant" + clay "." + mono 10sp 0.08em uppercase "Est. 2026" below. 1dp ink hairline.
 2. **Five grouped sections**, four top-docked and the last bottom-docked via `Modifier.weight(1f)` spacer:
    - `§ ODLING` — MyWorld, PlantedSpeciesList (Plantor), Workflows progress links per species
    - `§ UPPGIFTER` — TaskList, SeedInventory, Supplies, Successions, ProductionTargets

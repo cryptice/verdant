@@ -964,7 +964,7 @@ Append to `web/src/i18n/sv.json` (merge into existing structure):
 ```json
 {
   "app": {
-    "subtitle": "Est. 2026 — Småland"
+    "subtitle": "Est. 2026"
   },
   "sidebar": {
     "groups": {
@@ -1006,7 +1006,7 @@ And in `web/src/i18n/en.json`:
 ```json
 {
   "app": {
-    "subtitle": "Est. 2026 — Småland"
+    "subtitle": "Est. 2026"
   },
   "sidebar": {
     "groups": {

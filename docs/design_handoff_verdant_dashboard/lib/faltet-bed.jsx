@@ -39,7 +39,7 @@ function FaltetBedDesktop() {
           fontSize: 9, letterSpacing: 1.8, textTransform: 'uppercase',
           color: FAL.forest, marginTop: 2, opacity: 0.7,
         }}>
-          Est. 2026 — Småland
+          Est. 2026
         </div>
         <div style={{ height: 28 }} />
         <div style={{
