@@ -199,88 +199,6 @@ export function GardenDetail() {
           <Stat size="medium" value={harvestStemsThisYear} unit="st" label={t('garden.stats.harvested')} hue="clay" />
         </div>
 
-        {/* Beds section heading */}
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 14 }}>
-          <h2
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontStyle: 'italic',
-              fontSize: 30,
-              fontWeight: 300,
-              margin: 0,
-              fontVariationSettings: '"SOFT" 100, "opsz" 144',
-            }}
-          >
-            {t('garden.beds')}<span style={{ color: 'var(--color-accent)' }}>.</span>
-          </h2>
-          <Rule inline variant="ink" />
-          <button
-            onClick={() => { resetNewBed(); setShowNewBed(true) }}
-            style={{
-              background: 'transparent',
-              border: '1px solid var(--color-accent)',
-              fontFamily: 'var(--font-mono)',
-              fontSize: 11,
-              letterSpacing: 1.6,
-              textTransform: 'uppercase',
-              color: 'var(--color-accent)',
-              cursor: 'pointer',
-              padding: '6px 14px',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {t('garden.newBed')}
-          </button>
-        </div>
-
-        {sortedBeds.length === 0 && (
-          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--color-forest)' }}>
-            {t('garden.noBedsYet')}
-          </p>
-        )}
-
-        {/* Bed rows */}
-        {sortedBeds.map((bed, i) => (
-          <Link
-            key={bed.id}
-            to={`/bed/${bed.id}`}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '50px 1.5fr auto 40px',
-              gap: 18,
-              padding: '14px 0',
-              borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
-              alignItems: 'center',
-              textDecoration: 'none',
-              color: 'var(--color-ink)',
-            }}
-          >
-            <span
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontStyle: 'italic',
-                fontSize: 22,
-                color: 'var(--color-sage)',
-              }}
-            >
-              {String(i + 1).padStart(2, '0')}
-            </span>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>{bed.name}</span>
-            <div style={{ display: 'flex', gap: 6 }}>
-              {bed.sunExposure && (
-                <Chip tone="sage">{t(`bed.conditions.sunExposures.${bed.sunExposure}`)}</Chip>
-              )}
-              {bed.drainage && (
-                <Chip tone="sky">{t(`bed.conditions.drainages.${bed.drainage}`)}</Chip>
-              )}
-              {bed.protection && (
-                <Chip tone="berry">{t(`bed.conditions.protections.${bed.protection}`)}</Chip>
-              )}
-            </div>
-            <span style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-mono)' }}>→</span>
-          </Link>
-        ))}
-
         {/* Bottom row — harvest card + danger callout */}
         <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 22, marginTop: 40 }}>
           {/* Harvest card */}
@@ -373,6 +291,88 @@ export function GardenDetail() {
             </button>
           </div>
         </div>
+
+        {/* Beds section heading */}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginTop: 48, marginBottom: 14 }}>
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontStyle: 'italic',
+              fontSize: 30,
+              fontWeight: 300,
+              margin: 0,
+              fontVariationSettings: '"SOFT" 100, "opsz" 144',
+            }}
+          >
+            {t('garden.beds')}<span style={{ color: 'var(--color-accent)' }}>.</span>
+          </h2>
+          <Rule inline variant="ink" />
+          <button
+            onClick={() => { resetNewBed(); setShowNewBed(true) }}
+            style={{
+              background: 'transparent',
+              border: '1px solid var(--color-accent)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 11,
+              letterSpacing: 1.6,
+              textTransform: 'uppercase',
+              color: 'var(--color-accent)',
+              cursor: 'pointer',
+              padding: '6px 14px',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {t('garden.newBed')}
+          </button>
+        </div>
+
+        {sortedBeds.length === 0 && (
+          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--color-forest)' }}>
+            {t('garden.noBedsYet')}
+          </p>
+        )}
+
+        {/* Bed rows */}
+        {sortedBeds.map((bed, i) => (
+          <Link
+            key={bed.id}
+            to={`/bed/${bed.id}`}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '50px 1.5fr auto 40px',
+              gap: 18,
+              padding: '14px 0',
+              borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+              alignItems: 'center',
+              textDecoration: 'none',
+              color: 'var(--color-ink)',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontStyle: 'italic',
+                fontSize: 22,
+                color: 'var(--color-sage)',
+              }}
+            >
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>{bed.name}</span>
+            <div style={{ display: 'flex', gap: 6 }}>
+              {bed.sunExposure && (
+                <Chip tone="sage">{t(`bed.conditions.sunExposures.${bed.sunExposure}`)}</Chip>
+              )}
+              {bed.drainage && (
+                <Chip tone="sky">{t(`bed.conditions.drainages.${bed.drainage}`)}</Chip>
+              )}
+              {bed.protection && (
+                <Chip tone="berry">{t(`bed.conditions.protections.${bed.protection}`)}</Chip>
+              )}
+            </div>
+            <span style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-mono)' }}>→</span>
+          </Link>
+        ))}
       </div>
 
       {/* Edit garden dialog */}
