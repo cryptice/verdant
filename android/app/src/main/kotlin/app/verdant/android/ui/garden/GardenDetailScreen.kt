@@ -20,7 +20,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -45,6 +44,7 @@ import app.verdant.android.data.model.GardenResponse
 import app.verdant.android.data.model.UpdateGardenRequest
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
+import app.verdant.android.ui.faltet.Field
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetFab
 import app.verdant.android.ui.faltet.FaltetHero
@@ -258,26 +258,22 @@ private fun EditGardenDialog(
         title = { Text("Redigera trädgård") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(
+                Field(
+                    label = "Namn",
                     value = editName,
                     onValueChange = { editName = it },
-                    label = { Text("Namn") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
+                    required = true,
                 )
-                OutlinedTextField(
+                Field(
+                    label = "Beskrivning (valfri)",
                     value = editDescription,
                     onValueChange = { editDescription = it },
-                    label = { Text("Beskrivning (valfri)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 2,
                 )
-                OutlinedTextField(
+                Field(
+                    label = "Emoji",
                     value = editEmoji,
                     onValueChange = { editEmoji = it },
-                    label = { Text("Emoji") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
+                    placeholder = "🌱",
                 )
             }
         },
