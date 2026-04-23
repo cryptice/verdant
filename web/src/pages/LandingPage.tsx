@@ -96,7 +96,7 @@ export function LandingPage() {
               color: 'var(--color-ink)',
             }}
           >
-            Verdant<span style={{ color: 'var(--color-clay)' }}>.</span>
+            Verdant<span style={{ color: 'var(--color-accent)' }}>.</span>
           </span>
           <span
             style={{
@@ -148,12 +148,12 @@ export function LandingPage() {
           }}
         >
           {headlineParts[0]}
-          <span style={{ color: 'var(--color-clay)' }}>.</span>
+          <span style={{ color: 'var(--color-accent)' }}>.</span>
           {headlineParts.length > 1 && headlineParts[1]?.trim() && (
             <>
               <br />
               <span style={{ fontStyle: 'italic' }}>{headlineParts[1].trim()}</span>
-              <span style={{ color: 'var(--color-clay)' }}>.</span>
+              <span style={{ color: 'var(--color-accent)' }}>.</span>
             </>
           )}
         </h1>
@@ -218,7 +218,7 @@ export function LandingPage() {
       {error && (
         <p
           style={{
-            color: 'var(--color-clay)',
+            color: 'var(--color-accent)',
             textAlign: 'center',
             fontFamily: 'var(--font-display)',
             fontStyle: 'italic',
@@ -244,7 +244,7 @@ export function LandingPage() {
             color: 'var(--color-forest)',
           }}
         >
-          Verdant<span style={{ color: 'var(--color-clay)' }}>.</span>
+          Verdant<span style={{ color: 'var(--color-accent)' }}>.</span>
         </span>
         <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
           <span

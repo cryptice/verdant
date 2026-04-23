@@ -37,7 +37,7 @@ export function PlantedSpeciesDetail() {
         left={
           <span>
             {t('nav.plants')} /{' '}
-            <span style={{ color: 'var(--color-clay)' }}>{summary?.speciesName ?? t('species.title')}</span>
+            <span style={{ color: 'var(--color-accent)' }}>{summary?.speciesName ?? t('species.title')}</span>
           </span>
         }
       />
@@ -55,7 +55,7 @@ export function PlantedSpeciesDetail() {
           }}
         >
           {summary?.speciesName ?? t('species.title')}
-          <span style={{ color: 'var(--color-clay)' }}>.</span>
+          <span style={{ color: 'var(--color-accent)' }}>.</span>
         </h1>
         {summary?.scientificName && (
           <p
@@ -141,7 +141,7 @@ export function PlantedSpeciesDetail() {
                 width: '40px',
                 align: 'right',
                 render: () => (
-                  <span style={{ color: 'var(--color-clay)', fontFamily: 'var(--font-mono)' }}>→</span>
+                  <span style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-mono)' }}>→</span>
                 ),
               },
             ]}

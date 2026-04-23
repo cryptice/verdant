@@ -120,7 +120,7 @@ export function ApplySupply() {
         left={
           <span>
             {t('nav.tasks')} /{' '}
-            <span style={{ color: 'var(--color-clay)' }}>{t('supplyApplication.applyTitle')}</span>
+            <span style={{ color: 'var(--color-accent)' }}>{t('supplyApplication.applyTitle')}</span>
           </span>
         }
         center={t('form.masthead.center')}
@@ -216,7 +216,7 @@ export function ApplySupply() {
               )}
             </div>
             {quantityExceeds && (
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.2, color: 'var(--color-clay)', marginTop: 4 }}>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.2, color: 'var(--color-error)', marginTop: 4 }}>
                 {t('supplyApplication.insufficientQuantity')}
               </p>
             )}
@@ -235,7 +235,7 @@ export function ApplySupply() {
         </div>
 
         {createMut.error && (
-          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-clay)', marginTop: 12 }}>
+          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-error)', marginTop: 12 }}>
             {(createMut.error as Error).message}
           </p>
         )}

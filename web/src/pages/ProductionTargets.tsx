@@ -311,7 +311,7 @@ export function ProductionTargets() {
                       </div>
                       <button
                         onClick={() => openEdit(target)}
-                        style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-clay)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                        style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-accent)', background: 'transparent', border: 'none', cursor: 'pointer' }}
                       >
                         {t('targets.edit')} →
                       </button>

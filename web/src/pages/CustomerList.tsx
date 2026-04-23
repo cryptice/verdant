@@ -215,7 +215,7 @@ export function CustomerList() {
               width: '40px',
               align: 'right',
               render: () => (
-                <span style={{ color: 'var(--color-clay)', fontFamily: 'var(--font-mono)' }}>→</span>
+                <span style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-mono)' }}>→</span>
               ),
             },
           ]}

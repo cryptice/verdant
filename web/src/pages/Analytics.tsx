@@ -141,7 +141,7 @@ export function Analytics() {
                       {season.stemsHarvested.toLocaleString()}
                     </span>
                     <div style={{ height: 8, background: 'var(--color-paper)', border: '1px solid var(--color-ink)' }}>
-                      <div style={{ width: `${pct}%`, height: '100%', background: 'var(--color-clay)' }} />
+                      <div style={{ width: `${pct}%`, height: '100%', background: 'var(--color-accent)' }} />
                     </div>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7, textAlign: 'right' }}>
                       {pct}%
@@ -198,7 +198,7 @@ export function Analytics() {
                           fontFamily: 'var(--font-display)',
                           fontSize: 18,
                           fontVariantNumeric: 'tabular-nums',
-                          color: season ? 'var(--color-ink)' : 'color-mix(in srgb, var(--color-clay) 40%, transparent)',
+                          color: season ? 'var(--color-ink)' : 'color-mix(in srgb, var(--color-accent) 40%, transparent)',
                         }}
                       >
                         {season ? season.stemsHarvested.toLocaleString() : '—'}
@@ -220,7 +220,7 @@ function SectionHeading({ title }: { title: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 14 }}>
       <h2 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 30, fontWeight: 300, margin: 0, fontVariationSettings: '"SOFT" 100, "opsz" 144' }}>
-        {title}<span style={{ color: 'var(--color-clay)' }}>.</span>
+        {title}<span style={{ color: 'var(--color-accent)' }}>.</span>
       </h2>
       <Rule inline variant="ink" />
     </div>

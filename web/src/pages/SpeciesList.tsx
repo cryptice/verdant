@@ -144,7 +144,7 @@ export function SpeciesList() {
               label: '№',
               width: '60px',
               render: (_s, i) => (
-                <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-clay)' }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-accent)' }}>
                   {String(i + 1).padStart(2, '0')}
                 </span>
               ),
@@ -171,7 +171,7 @@ export function SpeciesList() {
               label: t('species.col.variant'),
               width: '1fr',
               render: (s: SpeciesResponse) => (
-                <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--color-clay)' }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--color-accent)' }}>
                   {s.variantNameSv ?? s.variantName ?? ''}
                 </span>
               ),
@@ -192,7 +192,7 @@ export function SpeciesList() {
               width: '40px',
               align: 'right',
               render: () => (
-                <span style={{ color: 'var(--color-clay)', fontFamily: 'var(--font-mono)' }}>→</span>
+                <span style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-mono)' }}>→</span>
               ),
             },
           ]}

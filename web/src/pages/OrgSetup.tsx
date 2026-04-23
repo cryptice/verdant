@@ -55,7 +55,7 @@ export function OrgSetup() {
       {/* Editorial top strip */}
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, padding: '22px 40px', borderBottom: '1px solid var(--color-ink)' }}>
         <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 32, fontWeight: 300, color: 'var(--color-ink)' }}>
-          Verdant<span style={{ color: 'var(--color-clay)' }}>.</span>
+          Verdant<span style={{ color: 'var(--color-accent)' }}>.</span>
         </span>
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-forest)' }}>
           {t('app.subtitle')}
@@ -175,7 +175,7 @@ export function OrgSetup() {
               </label>
 
               {createMutation.error && (
-                <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-clay)', margin: 0 }}>
+                <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-error)', margin: 0 }}>
                   {createMutation.error instanceof Error
                     ? createMutation.error.message
                     : String(createMutation.error)}

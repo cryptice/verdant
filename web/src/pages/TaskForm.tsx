@@ -178,7 +178,7 @@ export function TaskForm() {
         left={
           <span>
             {t('nav.tasks')} /{' '}
-            <span style={{ color: 'var(--color-clay)' }}>
+            <span style={{ color: 'var(--color-accent)' }}>
               {isEdit ? t('tasks.editTitle') : t('tasks.newTitle')}
             </span>
           </span>
@@ -260,7 +260,7 @@ export function TaskForm() {
                   <span style={{ fontFamily: 'var(--font-display)', fontSize: 18 }}>{selectedGroupName}</span>
                   <button
                     onClick={() => handleSpeciesSelect(null)}
-                    style={{ marginLeft: 'auto', background: 'transparent', border: 'none', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--color-clay)', cursor: 'pointer' }}
+                    style={{ marginLeft: 'auto', background: 'transparent', border: 'none', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--color-accent)', cursor: 'pointer' }}
                   >
                     {t('common.clear')}
                   </button>
@@ -310,7 +310,7 @@ export function TaskForm() {
         </div>
 
         {mutation.error && (
-          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-clay)', marginTop: 12 }}>
+          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-error)', marginTop: 12 }}>
             {mutation.error instanceof Error ? mutation.error.message : String(mutation.error)}
           </p>
         )}

@@ -64,7 +64,7 @@ export function Stat({
           <span style={{ width: 6, height: 6, borderRadius: 999, background: hueVar }} />
           {label}
         </span>
-        {delta && <span style={{ color: 'var(--color-clay)' }}>▲ {delta}</span>}
+        {delta && <span style={{ color: 'var(--color-accent)' }}>▲ {delta}</span>}
       </div>
     </div>
   )

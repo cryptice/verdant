@@ -89,7 +89,7 @@ export function Sidebar() {
             lineHeight: 1,
           }}
         >
-          Verdant<span style={{ color: 'var(--color-clay)' }}>.</span>
+          Verdant<span style={{ color: 'var(--color-accent)' }}>.</span>
         </div>
         <div
           style={{
@@ -141,7 +141,7 @@ export function Sidebar() {
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              color: i18n.language === lng ? 'var(--color-clay)' : 'var(--color-forest)',
+              color: i18n.language === lng ? 'var(--color-accent)' : 'var(--color-forest)',
               padding: 0,
               fontFamily: 'inherit',
               fontSize: 'inherit',
@@ -245,13 +245,13 @@ function GroupBlock({ group, currentPath }: { group: NavGroup; currentPath: stri
               fontFamily: 'var(--font-display)',
               fontStyle: 'italic',
               fontSize: 16,
-              color: active ? 'var(--color-clay)' : 'var(--color-ink)',
+              color: active ? 'var(--color-accent)' : 'var(--color-ink)',
               textDecoration: 'none',
               fontVariationSettings: '"SOFT" 100, "opsz" 144',
             }}
           >
             <span>{item.label}</span>
-            {active && <span style={{ color: 'var(--color-clay)' }}>&#9679;</span>}
+            {active && <span style={{ color: 'var(--color-accent)' }}>&#9679;</span>}
           </Link>
         )
       })}

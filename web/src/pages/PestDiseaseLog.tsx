@@ -18,7 +18,7 @@ const TEMPLATE = '60px 1.5fr 110px 130px 120px 90px 36px'
 
 const CATEGORY_COLOR: Record<string, string> = {
   PEST: 'var(--color-berry)',
-  DISEASE: 'var(--color-clay)',
+  DISEASE: 'var(--color-accent)',
   DEFICIENCY: 'var(--color-mustard)',
   OTHER: 'var(--color-forest)',
 }
@@ -332,7 +332,7 @@ export function PestDiseaseLog() {
                       }
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>{bedName(log.bedId)}</span>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>{log.observedDate}</span>
-                      <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-clay)' }}>→</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>→</span>
                     </button>
                   </React.Fragment>
                 )

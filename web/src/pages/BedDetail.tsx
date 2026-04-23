@@ -40,7 +40,7 @@ export function BedDetail() {
         left={
           <span>
             {t('nav.gardens')} / {garden?.name ?? '…'} /{' '}
-            <span style={{ color: 'var(--color-clay)' }}>Bädd № {bed.id}</span>
+            <span style={{ color: 'var(--color-accent)' }}>Bädd № {bed.id}</span>
           </span>
         }
         center={t('bed.masthead.center')}
@@ -70,7 +70,7 @@ export function BedDetail() {
               Bädd.{String(bed.id).padStart(2, '0')}{' '}
               <span style={{ color: 'var(--color-mustard)' }}>—</span>
               <br />
-              <span style={{ fontStyle: 'italic', color: 'var(--color-clay)' }}>{bed.name}.</span>
+              <span style={{ fontStyle: 'italic', color: 'var(--color-accent)' }}>{bed.name}.</span>
             </h1>
             {bed.description && (
               <p
@@ -137,7 +137,7 @@ export function BedDetail() {
                 fontFamily: 'var(--font-display)',
                 fontStyle: 'italic',
                 fontSize: 16,
-                color: 'var(--color-clay)',
+                color: 'var(--color-accent)',
                 textDecoration: 'none',
               }}
             >
@@ -196,7 +196,7 @@ export function BedDetail() {
                 fontFamily: 'var(--font-display)',
                 fontStyle: 'italic',
                 fontSize: 22,
-                color: 'var(--color-clay)',
+                color: 'var(--color-accent)',
               }}
             >
               {String(i + 1).padStart(2, '0')}
@@ -283,7 +283,7 @@ export function BedDetail() {
           {/* Danger callout */}
           <div
             style={{
-              border: '1px solid color-mix(in srgb, var(--color-clay) 40%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--color-accent) 40%, transparent)',
               padding: '22px 28px',
             }}
           >
@@ -293,7 +293,7 @@ export function BedDetail() {
                 fontSize: 10,
                 letterSpacing: 1.4,
                 textTransform: 'uppercase',
-                color: 'var(--color-clay)',
+                color: 'var(--color-accent)',
                 marginBottom: 10,
               }}
             >
@@ -316,7 +316,7 @@ export function BedDetail() {
                 fontSize: 10,
                 letterSpacing: 1.4,
                 textTransform: 'uppercase',
-                color: 'var(--color-clay)',
+                color: 'var(--color-accent)',
                 cursor: 'pointer',
                 padding: 0,
               }}
@@ -380,7 +380,7 @@ function SectionHeader({
         }}
       >
         {title}
-        <span style={{ color: 'var(--color-clay)' }}>.</span>
+        <span style={{ color: 'var(--color-accent)' }}>.</span>
       </h2>
       {meta && (
         <span

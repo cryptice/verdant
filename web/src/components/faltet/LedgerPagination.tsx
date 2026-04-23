@@ -21,7 +21,7 @@ export function LedgerPagination({ page, pageSize, total, onChange }: LedgerPagi
   const btn = (disabled: boolean): React.CSSProperties => ({
     background: 'transparent',
     border: 'none',
-    color: 'var(--color-clay)',
+    color: 'var(--color-accent)',
     fontFamily: 'var(--font-mono)',
     fontSize: 14,
     cursor: disabled ? 'default' : 'pointer',

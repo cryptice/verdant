@@ -170,7 +170,7 @@ function StepRow({
             style={{
               background: 'transparent',
               border: 'none',
-              color: 'var(--color-clay)',
+              color: 'var(--color-accent)',
               cursor: 'pointer',
               fontFamily: 'var(--font-mono)',
               fontSize: 10,
@@ -388,7 +388,7 @@ export function WorkflowTemplateEdit() {
         left={
           <span>
             {t('nav.workflows')} /{' '}
-            <span style={{ color: 'var(--color-clay)' }}>
+            <span style={{ color: 'var(--color-accent)' }}>
               {template.name || t('workflows.newTitle')}
             </span>
           </span>
@@ -425,7 +425,7 @@ export function WorkflowTemplateEdit() {
               whiteSpace: 'nowrap',
             }}
           >
-            {t('workflows.steps')}<span style={{ color: 'var(--color-clay)' }}>.</span>
+            {t('workflows.steps')}<span style={{ color: 'var(--color-accent)' }}>.</span>
           </h2>
           <Rule inline variant="ink" />
           <button

@@ -61,7 +61,7 @@ export function SpeciesEditForm({ speciesId, onSaved }: { speciesId: number; onS
           >
             {displayName}
             {displayVariant && (
-              <span style={{ fontStyle: 'italic', color: 'var(--color-clay)' }}> '{displayVariant}'</span>
+              <span style={{ fontStyle: 'italic', color: 'var(--color-accent)' }}> '{displayVariant}'</span>
             )}
           </div>
           {species.scientificName && (

@@ -226,7 +226,7 @@ export function SeasonList() {
               width: '80px',
               align: 'right',
               render: (s) => (
-                s.isActive ? <span style={{ color: 'var(--color-clay)' }}>●</span> : null
+                s.isActive ? <span style={{ color: 'var(--color-accent)' }}>●</span> : null
               ),
             },
             {
@@ -245,7 +245,7 @@ export function SeasonList() {
               width: '40px',
               align: 'right',
               render: () => (
-                <span style={{ color: 'var(--color-clay)', fontFamily: 'var(--font-mono)' }}>→</span>
+                <span style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-mono)' }}>→</span>
               ),
             },
           ]}

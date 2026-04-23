@@ -166,10 +166,10 @@ function Warning({ message }: { message: string | null }) {
   if (!message) return null
   return (
     <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
-      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-clay)' }}>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-accent)' }}>
         ⚠
       </span>
-      <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13, color: 'var(--color-clay)' }}>
+      <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13, color: 'var(--color-accent)' }}>
         {message}
       </span>
     </div>
@@ -600,7 +600,7 @@ export function Supplies() {
                         fontSize: 9,
                         letterSpacing: 1.2,
                         textTransform: 'uppercase',
-                        color: 'var(--color-clay)',
+                        color: 'var(--color-accent)',
                         cursor: 'pointer',
                         padding: 0,
                       }}
@@ -618,7 +618,7 @@ export function Supplies() {
                     fontSize: 9,
                     letterSpacing: 1.2,
                     textTransform: 'uppercase',
-                    color: 'var(--color-clay)',
+                    color: 'var(--color-accent)',
                     cursor: 'pointer',
                   }}
                 >
@@ -714,7 +714,7 @@ export function Supplies() {
                                 fontSize: 9,
                                 letterSpacing: 1.2,
                                 textTransform: 'uppercase',
-                                color: 'var(--color-clay)',
+                                color: 'var(--color-accent)',
                                 cursor: 'pointer',
                                 flexShrink: 0,
                               }}
@@ -867,9 +867,9 @@ export function Supplies() {
                                         fontSize: 9,
                                         letterSpacing: 1.2,
                                         textTransform: 'uppercase',
-                                        color: 'var(--color-clay)',
-                                        background: 'color-mix(in srgb, var(--color-clay) 10%, transparent)',
-                                        border: '1px solid color-mix(in srgb, var(--color-clay) 30%, transparent)',
+                                        color: 'var(--color-accent)',
+                                        background: 'color-mix(in srgb, var(--color-accent) 10%, transparent)',
+                                        border: '1px solid color-mix(in srgb, var(--color-accent) 30%, transparent)',
                                         borderRadius: 4,
                                         padding: '4px 8px',
                                         cursor: 'pointer',

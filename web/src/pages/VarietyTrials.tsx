@@ -285,14 +285,14 @@ export function VarietyTrials() {
                   }}
                   className="ledger-row"
                 >
-                  <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 26, color: 'var(--color-clay)' }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 26, color: 'var(--color-accent)' }}>
                     {String(globalIndex + 1).padStart(2, '0')}
                   </span>
                   <div>
                     <div style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 300 }}>
                       {speciesDisplayName}
                       {variantDisplayName && (
-                        <span style={{ fontStyle: 'italic', color: 'var(--color-clay)' }}> '{variantDisplayName}'</span>
+                        <span style={{ fontStyle: 'italic', color: 'var(--color-accent)' }}> '{variantDisplayName}'</span>
                       )}
                     </div>
                     <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7, marginTop: 4 }}>
@@ -314,7 +314,7 @@ export function VarietyTrials() {
                       </Chip>
                     )}
                   </div>
-                  <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-clay)' }}>→</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>→</span>
                 </button>
               )
             })}

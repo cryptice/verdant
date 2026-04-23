@@ -259,7 +259,7 @@ export function SuccessionSchedules() {
                   alignItems: 'center',
                 }}
               >
-                <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-clay)' }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-accent)' }}>
                   {String(page * PAGE_SIZE + i + 1).padStart(2, '0')}
                 </span>
                 <span style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>{s.speciesName}</span>
@@ -269,13 +269,13 @@ export function SuccessionSchedules() {
                 <button
                   onClick={() => generateTasksMut.mutate(s.id)}
                   disabled={generateTasksMut.isPending}
-                  style={{ background: 'transparent', border: 'none', fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-clay)', cursor: 'pointer', textAlign: 'left' }}
+                  style={{ background: 'transparent', border: 'none', fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-accent)', cursor: 'pointer', textAlign: 'left' }}
                 >
                   {t('successions.generateTasks')} →
                 </button>
                 <button
                   onClick={() => openEdit(s)}
-                  style={{ background: 'transparent', border: 'none', color: 'var(--color-clay)', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}
+                  style={{ background: 'transparent', border: 'none', color: 'var(--color-accent)', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}
                 >
                   →
                 </button>

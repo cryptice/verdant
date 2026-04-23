@@ -155,7 +155,7 @@ export function Account() {
           style={{
             marginTop: 60,
             padding: '22px 28px',
-            border: '1px solid color-mix(in srgb, var(--color-clay) 40%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--color-accent) 40%, transparent)',
           }}
         >
           <div
@@ -164,7 +164,7 @@ export function Account() {
               fontSize: 10,
               letterSpacing: 1.4,
               textTransform: 'uppercase',
-              color: 'var(--color-clay)',
+              color: 'var(--color-accent)',
               marginBottom: 10,
             }}
           >
@@ -183,7 +183,7 @@ export function Account() {
               fontSize: 10,
               letterSpacing: 1.4,
               textTransform: 'uppercase',
-              color: 'var(--color-clay)',
+              color: 'var(--color-accent)',
               cursor: 'pointer',
               padding: 0,
             }}

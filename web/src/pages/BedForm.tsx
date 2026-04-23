@@ -98,7 +98,7 @@ export function BedForm() {
           <span>
             {t('nav.gardens')}
             {garden?.name ? ` / ${garden.name}` : ''} /{' '}
-            <span style={{ color: 'var(--color-clay)' }}>{t('bed.newBedTitle')}</span>
+            <span style={{ color: 'var(--color-accent)' }}>{t('bed.newBedTitle')}</span>
           </span>
         }
         center={t('form.masthead.center')}
@@ -182,7 +182,7 @@ export function BedForm() {
                   accent={phOutOfRange ? 'clay' : undefined}
                 />
                 {phOutOfRange && (
-                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--color-clay)', marginTop: 4 }}>
+                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--color-accent)', marginTop: 4 }}>
                     {t('bed.conditions.phHint')}
                   </p>
                 )}
@@ -266,7 +266,7 @@ export function BedForm() {
 
       {mutation.error && (
         <div style={{ padding: '0 40px 16px' }}>
-          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-clay)' }}>
+          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-accent)' }}>
             {mutation.error instanceof Error ? mutation.error.message : String(mutation.error)}
           </p>
         </div>

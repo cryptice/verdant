@@ -108,7 +108,7 @@ export function SpeciesEditModal({
                     fontSize: 10,
                     letterSpacing: 1.4,
                     textTransform: 'uppercase',
-                    color: 'var(--color-clay)',
+                    color: 'var(--color-accent)',
                     cursor: 'pointer',
                   }}
                 >

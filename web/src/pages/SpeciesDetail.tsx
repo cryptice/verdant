@@ -60,7 +60,7 @@ export function SpeciesDetail() {
                 fontSize: 10,
                 letterSpacing: 1.4,
                 textTransform: 'uppercase',
-                color: 'var(--color-clay)',
+                color: 'var(--color-accent)',
                 cursor: 'pointer',
               }}
             >
@@ -73,7 +73,7 @@ export function SpeciesDetail() {
                   fontFamily: 'var(--font-display)',
                   fontStyle: 'italic',
                   fontSize: 15,
-                  color: 'var(--color-clay)',
+                  color: 'var(--color-accent)',
                 }}
               >
                 {t('species.delete.confirm')}
@@ -85,7 +85,7 @@ export function SpeciesDetail() {
                 onClick={() => deleteMut.mutate()}
                 disabled={deleteMut.isPending}
                 className="btn-primary"
-                style={{ background: 'var(--color-clay)', borderColor: 'var(--color-clay)' }}
+                style={{ background: 'var(--color-accent)', borderColor: 'var(--color-accent)' }}
               >
                 {deleteMut.isPending ? t('species.delete.deleting') : t('species.delete.confirmButton')}
               </button>
@@ -99,7 +99,7 @@ export function SpeciesDetail() {
               fontFamily: 'var(--font-display)',
               fontStyle: 'italic',
               fontSize: 14,
-              color: 'var(--color-clay)',
+              color: 'var(--color-accent)',
               textAlign: 'right',
             }}
           >

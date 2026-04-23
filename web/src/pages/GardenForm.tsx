@@ -35,7 +35,7 @@ export function GardenForm() {
         left={
           <span>
             {t('nav.gardens')} /{' '}
-            <span style={{ color: 'var(--color-clay)' }}>{t('garden.newGardenTitle')}</span>
+            <span style={{ color: 'var(--color-accent)' }}>{t('garden.newGardenTitle')}</span>
           </span>
         }
         center={t('form.masthead.center')}
@@ -89,7 +89,7 @@ export function GardenForm() {
         </div>
 
         {mutation.error && (
-          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-clay)', marginTop: 16 }}>
+          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-error)', marginTop: 16 }}>
             {mutation.error instanceof Error ? mutation.error.message : String(mutation.error)}
           </p>
         )}

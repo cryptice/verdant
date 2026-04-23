@@ -9,7 +9,7 @@ import { Dialog } from '../components/Dialog'
 type ActivityFilter = 'harvest' | 'sowing' | 'watering' | 'planting' | 'maintenance'
 const FILTERS: ActivityFilter[] = ['harvest', 'sowing', 'watering', 'planting', 'maintenance']
 const TONE: Record<ActivityFilter, string> = {
-  harvest:     'var(--color-clay)',
+  harvest:     'var(--color-accent)',
   sowing:      'var(--color-mustard)',
   watering:    'var(--color-sky)',
   planting:    'var(--color-sage)',
@@ -243,7 +243,7 @@ function SectionHeader({ title, count }: { title: string; count: number }) {
           fontVariationSettings: '"SOFT" 100, "opsz" 144',
         }}
       >
-        {title}<span style={{ color: 'var(--color-clay)' }}>.</span>
+        {title}<span style={{ color: 'var(--color-accent)' }}>.</span>
       </h2>
       <Rule inline variant="ink" />
       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase' }}>

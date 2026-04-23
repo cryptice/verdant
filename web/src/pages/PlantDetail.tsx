@@ -125,7 +125,7 @@ export function PlantDetail() {
             {speciesLabel && (
               <> / {speciesLabel}</>
             )}
-            {' '}/ <span style={{ color: 'var(--color-clay)' }}>{plantDisplayName}</span>
+            {' '}/ <span style={{ color: 'var(--color-accent)' }}>{plantDisplayName}</span>
           </span>
         }
       />
@@ -152,7 +152,7 @@ export function PlantDetail() {
                 fontVariationSettings: '"SOFT" 100, "opsz" 144',
               }}
             >
-              {plantDisplayName}<span style={{ color: 'var(--color-clay)' }}>.</span>
+              {plantDisplayName}<span style={{ color: 'var(--color-accent)' }}>.</span>
             </h1>
 
             {plant.speciesName && plant.name && plant.name !== plant.speciesName && (
@@ -161,7 +161,7 @@ export function PlantDetail() {
                   fontFamily: 'var(--font-display)',
                   fontStyle: 'italic',
                   fontSize: 18,
-                  color: 'var(--color-clay)',
+                  color: 'var(--color-accent)',
                   marginTop: 6,
                 }}
               >
@@ -183,7 +183,7 @@ export function PlantDetail() {
               fontVariationSettings: '"SOFT" 100, "opsz" 144',
             }}
           >
-            {t('plant.events')}<span style={{ color: 'var(--color-clay)' }}>.</span>
+            {t('plant.events')}<span style={{ color: 'var(--color-accent)' }}>.</span>
           </h2>
           <Rule inline variant="ink" />
           <button onClick={() => setShowAddEvent(true)} className="btn-secondary">
@@ -198,7 +198,7 @@ export function PlantDetail() {
               fontSize: 10,
               letterSpacing: 1.4,
               textTransform: 'uppercase',
-              color: 'var(--color-clay)',
+              color: 'var(--color-accent)',
               cursor: 'pointer',
               marginLeft: 'auto',
             }}
@@ -277,7 +277,7 @@ export function PlantDetail() {
                       fontSize: 10,
                       letterSpacing: 1.4,
                       textTransform: 'uppercase',
-                      color: 'var(--color-clay)',
+                      color: 'var(--color-accent)',
                       cursor: 'pointer',
                       padding: 0,
                     }}

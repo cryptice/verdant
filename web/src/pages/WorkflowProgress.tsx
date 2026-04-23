@@ -97,7 +97,7 @@ export function WorkflowProgress() {
     ? (
       <span>
         {t('nav.workflows')} /{' '}
-        <span style={{ color: 'var(--color-clay)' }}>{selectedSpecies.commonName}</span>
+        <span style={{ color: 'var(--color-accent)' }}>{selectedSpecies.commonName}</span>
       </span>
     )
     : t('nav.workflows')
@@ -149,7 +149,7 @@ export function WorkflowProgress() {
                 }}>
                   {selectedSpecies.commonName}
                   {selectedSpecies.variantName && (
-                    <span style={{ fontStyle: 'italic', color: 'var(--color-clay)' }}>
+                    <span style={{ fontStyle: 'italic', color: 'var(--color-accent)' }}>
                       {' ’'}{selectedSpecies.variantName}{'’'}
                     </span>
                   )}
@@ -182,7 +182,7 @@ export function WorkflowProgress() {
                     fontSize: 20, fontWeight: 300, margin: 0,
                   }}>
                     {t('workflows.sideBranch')}: {branchName}
-                    <span style={{ color: 'var(--color-clay)' }}>.</span>
+                    <span style={{ color: 'var(--color-accent)' }}>.</span>
                   </h2>
                   <Rule inline variant="soft" />
                 </div>

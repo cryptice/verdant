@@ -68,7 +68,7 @@ export function Guide() {
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: 9,
-              color: 'var(--color-clay)',
+              color: 'var(--color-accent)',
               marginLeft: 'auto',
             }}
           >

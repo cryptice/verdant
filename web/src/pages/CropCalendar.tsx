@@ -172,7 +172,7 @@ export function CropCalendar() {
 
   const MUSTARD = 'var(--color-mustard)'
   const SAGE = 'var(--color-sage)'
-  const CLAY = 'var(--color-clay)'
+  const CLAY = 'var(--color-accent)'
 
   return (
     <div>

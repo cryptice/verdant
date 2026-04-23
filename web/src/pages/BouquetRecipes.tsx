@@ -262,7 +262,7 @@ export function BouquetRecipes() {
                   }}
                   className="ledger-row"
                 >
-                  <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-clay)' }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-accent)' }}>
                     {String(globalIndex + 1).padStart(2, '0')}
                   </span>
                   <div>
@@ -273,7 +273,7 @@ export function BouquetRecipes() {
                       </div>
                     )}
                   </div>
-                  <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--color-clay)' }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--color-accent)' }}>
                     {formatPrice(recipe.priceSek)}
                   </span>
                   <span style={{ fontVariantNumeric: 'tabular-nums' }}>{recipe.items.length}</span>
@@ -317,7 +317,7 @@ export function BouquetRecipes() {
                     <div style={{ marginTop: 10 }}>
                       <button
                         onClick={() => openEdit(recipe)}
-                        style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-clay)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                        style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-accent)', background: 'transparent', border: 'none', cursor: 'pointer' }}
                       >
                         {t('bouquets.edit')} →
                       </button>

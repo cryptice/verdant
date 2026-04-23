@@ -24,8 +24,10 @@
   --color-text-primary:   var(--color-ink);
   --color-text-secondary: var(--color-forest);
   --color-text-muted:     color-mix(in srgb, var(--color-forest) 60%, transparent);
-  --color-accent:         var(--color-clay);
-  --color-accent-hover:   color-mix(in srgb, var(--color-clay) 85%, var(--color-ink));
+  /* Accent — primary interactive highlight (active states, decorative accents, affordances).
+     Clay is reserved for destructive semantics only (errors, delete). */
+  --color-accent:         var(--color-mustard);
+  --color-accent-hover:   color-mix(in srgb, var(--color-mustard) 85%, var(--color-ink));
   --color-accent-light:   var(--color-paper);
   --color-warm:           var(--color-paper);
   --color-error:          var(--color-clay);
@@ -102,7 +104,7 @@ body {
   font-weight: 300;
   color: var(--color-ink);
   outline: none;
-  &:focus { border-bottom-color: var(--color-clay); }
+  &:focus { border-bottom-color: var(--color-accent); }
   &::placeholder { color: var(--color-text-muted); }
 }
 

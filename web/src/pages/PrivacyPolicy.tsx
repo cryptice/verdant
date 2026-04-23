@@ -28,7 +28,7 @@ export function PrivacyPolicy() {
             color: 'var(--color-ink)',
           }}
         >
-          Verdant<span style={{ color: 'var(--color-clay)' }}>.</span>
+          Verdant<span style={{ color: 'var(--color-accent)' }}>.</span>
         </span>
       </div>
 

@@ -133,7 +133,7 @@ export function GardenDetail() {
         left={
           <span>
             {t('nav.gardens')} /{' '}
-            <span style={{ color: 'var(--color-clay)' }}>{garden.name}</span>
+            <span style={{ color: 'var(--color-accent)' }}>{garden.name}</span>
           </span>
         }
         center={t('garden.masthead.center')}
@@ -163,7 +163,7 @@ export function GardenDetail() {
               }}
             >
               {garden.emoji && <span style={{ marginRight: 16 }}>{garden.emoji}</span>}
-              {garden.name}<span style={{ color: 'var(--color-clay)' }}>.</span>
+              {garden.name}<span style={{ color: 'var(--color-accent)' }}>.</span>
             </h1>
             {garden.description && (
               <p
@@ -211,7 +211,7 @@ export function GardenDetail() {
               fontVariationSettings: '"SOFT" 100, "opsz" 144',
             }}
           >
-            {t('garden.beds')}<span style={{ color: 'var(--color-clay)' }}>.</span>
+            {t('garden.beds')}<span style={{ color: 'var(--color-accent)' }}>.</span>
           </h2>
           <Rule inline variant="ink" />
           <button
@@ -222,7 +222,7 @@ export function GardenDetail() {
               fontFamily: 'var(--font-display)',
               fontStyle: 'italic',
               fontSize: 16,
-              color: 'var(--color-clay)',
+              color: 'var(--color-accent)',
               cursor: 'pointer',
               padding: 0,
             }}
@@ -275,7 +275,7 @@ export function GardenDetail() {
                 <Chip tone="berry">{t(`bed.conditions.protections.${bed.protection}`)}</Chip>
               )}
             </div>
-            <span style={{ color: 'var(--color-clay)', fontFamily: 'var(--font-mono)' }}>→</span>
+            <span style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-mono)' }}>→</span>
           </Link>
         ))}
 
@@ -333,7 +333,7 @@ export function GardenDetail() {
           {/* Danger callout */}
           <div
             style={{
-              border: '1px solid color-mix(in srgb, var(--color-clay) 40%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--color-accent) 40%, transparent)',
               padding: '22px 28px',
             }}
           >
@@ -343,7 +343,7 @@ export function GardenDetail() {
                 fontSize: 10,
                 letterSpacing: 1.4,
                 textTransform: 'uppercase',
-                color: 'var(--color-clay)',
+                color: 'var(--color-accent)',
                 marginBottom: 10,
               }}
             >
@@ -362,7 +362,7 @@ export function GardenDetail() {
                 fontSize: 10,
                 letterSpacing: 1.4,
                 textTransform: 'uppercase',
-                color: 'var(--color-clay)',
+                color: 'var(--color-accent)',
                 cursor: 'pointer',
                 padding: 0,
               }}

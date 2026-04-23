@@ -169,7 +169,7 @@ export function Dashboard() {
             <ColumnHeader
               title={t('dashboard.tasks.title')}
               right={
-                <Link to="/tasks" style={{ color: 'var(--color-clay)', textDecoration: 'none' }}>
+                <Link to="/tasks" style={{ color: 'var(--color-accent)', textDecoration: 'none' }}>
                   →
                 </Link>
               }
@@ -191,7 +191,7 @@ export function Dashboard() {
                     fontFamily: 'var(--font-display)',
                     fontStyle: 'italic',
                     fontSize: 20,
-                    color: 'var(--color-clay)',
+                    color: 'var(--color-accent)',
                     fontVariationSettings: '"SOFT" 100, "opsz" 144',
                   }}
                 >
@@ -342,7 +342,7 @@ function ColumnHeader({ title, right }: { title: string; right?: React.ReactNode
         }}
       >
         {title}
-        <span style={{ color: 'var(--color-clay)' }}>.</span>
+        <span style={{ color: 'var(--color-accent)' }}>.</span>
       </span>
       <Rule inline variant="soft" />
       {right}

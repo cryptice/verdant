@@ -167,7 +167,7 @@ export function OrgSettings() {
                           fontSize: 9,
                           letterSpacing: 1.4,
                           textTransform: 'uppercase',
-                          color: 'var(--color-clay)',
+                          color: 'var(--color-accent)',
                           cursor: 'pointer',
                           padding: 0,
                           opacity: removeMut.isPending ? 0.5 : 1,

@@ -158,10 +158,10 @@ export function SowActivity() {
 
   // Build masthead breadcrumb context
   const mastheadLeft = taskId
-    ? <span>{t('nav.tasks')} / <span style={{ color: 'var(--color-clay)' }}>{t('sow.title')}</span></span>
+    ? <span>{t('nav.tasks')} / <span style={{ color: 'var(--color-accent)' }}>{t('sow.title')}</span></span>
     : sowGarden && sowBed
-      ? <span>{sowGarden.name} / {sowBed.name} / <span style={{ color: 'var(--color-clay)' }}>{t('sow.title')}</span></span>
-      : <span style={{ color: 'var(--color-clay)' }}>{t('sow.title')}</span>
+      ? <span>{sowGarden.name} / {sowBed.name} / <span style={{ color: 'var(--color-accent)' }}>{t('sow.title')}</span></span>
+      : <span style={{ color: 'var(--color-accent)' }}>{t('sow.title')}</span>
 
   return (
     <div>
@@ -328,7 +328,7 @@ export function SowActivity() {
         </div>
 
         {sowMut.error && (
-          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-clay)', marginTop: 12 }}>
+          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-error)', marginTop: 12 }}>
             {sowMut.error instanceof Error ? sowMut.error.message : String(sowMut.error)}
           </p>
         )}

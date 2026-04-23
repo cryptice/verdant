@@ -96,7 +96,7 @@ export function SpeciesGroupEdit() {
         left={
           <span>
             {t('nav.speciesGroups')} /{' '}
-            <span style={{ color: 'var(--color-clay)' }}>{group?.name ?? t('speciesGroups.newTitle')}</span>
+            <span style={{ color: 'var(--color-accent)' }}>{group?.name ?? t('speciesGroups.newTitle')}</span>
           </span>
         }
         center={t('form.masthead.center')}
@@ -147,7 +147,7 @@ export function SpeciesGroupEdit() {
                     </span>
                     <button
                       onClick={() => removeSpeciesMut.mutate(s.id)}
-                      style={{ background: 'transparent', border: 'none', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-clay)', cursor: 'pointer' }}
+                      style={{ background: 'transparent', border: 'none', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-error)', cursor: 'pointer' }}
                     >
                       {t('groups.remove')}
                     </button>
@@ -179,7 +179,7 @@ export function SpeciesGroupEdit() {
           <button
             onClick={() => deleteMut.mutate()}
             disabled={deleteMut.isPending}
-            style={{ background: 'transparent', border: 'none', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-clay)', cursor: 'pointer', padding: 0 }}
+            style={{ background: 'transparent', border: 'none', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-error)', cursor: 'pointer', padding: 0 }}
           >
             {deleteMut.isPending ? t('common.deleting') : t('groups.deleteGroup')}
           </button>
