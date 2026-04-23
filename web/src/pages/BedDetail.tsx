@@ -40,7 +40,7 @@ export function BedDetail() {
         left={
           <span>
             {t('nav.gardens')} / {garden?.name ?? '…'} /{' '}
-            <span style={{ color: 'var(--color-accent)' }}>Bädd № {bed.id}</span>
+            <span style={{ color: 'var(--color-accent)' }}>{bed.name}</span>
           </span>
         }
         center={t('bed.masthead.center')}
@@ -48,61 +48,38 @@ export function BedDetail() {
 
       <div style={{ padding: '28px 40px' }}>
         {/* Hero row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 40, alignItems: 'start' }}>
-          <div>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
-              <Chip tone="mustard">Bädd № {bed.id}</Chip>
-              {sunKey && <Chip tone="sage">{t(`bed.sun.${sunKey}`)}</Chip>}
-              {irrigationKey && <Chip tone="sky">{t(`bed.irrigation.${irrigationKey}`)}</Chip>}
-              {bed.raisedBed && <Chip tone="berry">{t('bed.raised')}</Chip>}
-            </div>
-            <h1
+        <div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
+            {sunKey && <Chip tone="sage">{t(`bed.sun.${sunKey}`)}</Chip>}
+            {irrigationKey && <Chip tone="sky">{t(`bed.irrigation.${irrigationKey}`)}</Chip>}
+            {bed.raisedBed && <Chip tone="berry">{t('bed.raised')}</Chip>}
+          </div>
+          <h1
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 80,
+              fontWeight: 300,
+              lineHeight: 1,
+              letterSpacing: -1.5,
+              margin: 0,
+              fontVariationSettings: '"SOFT" 100, "opsz" 144',
+            }}
+          >
+            <span style={{ fontStyle: 'italic', color: 'var(--color-accent)' }}>{bed.name}.</span>
+          </h1>
+          {bed.description && (
+            <p
               style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 80,
-                fontWeight: 300,
-                lineHeight: 1,
-                letterSpacing: -1.5,
-                margin: 0,
-                fontVariationSettings: '"SOFT" 100, "opsz" 144',
+                marginTop: 16,
+                fontFamily: 'Georgia, var(--font-display)',
+                fontSize: 15,
+                lineHeight: 1.6,
+                color: 'var(--color-forest)',
               }}
             >
-              Bädd.{String(bed.id).padStart(2, '0')}{' '}
-              <span style={{ color: 'var(--color-mustard)' }}>—</span>
-              <br />
-              <span style={{ fontStyle: 'italic', color: 'var(--color-accent)' }}>{bed.name}.</span>
-            </h1>
-            {bed.description && (
-              <p
-                style={{
-                  marginTop: 16,
-                  fontFamily: 'Georgia, var(--font-display)',
-                  fontSize: 15,
-                  lineHeight: 1.6,
-                  color: 'var(--color-forest)',
-                }}
-              >
-                {bed.description}
-              </p>
-            )}
-          </div>
-          <div>
-            <PhotoPlaceholder tone="sage" aspect="tall" label={`BÄDD.${String(bed.id).padStart(2, '0')}`} />
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 0,
-                marginTop: 12,
-                border: '1px solid var(--color-ink)',
-              }}
-            >
-              <MetaCell label={t('bed.meta.length')} value={bed.lengthMeters ? `${bed.lengthMeters} m` : '—'} />
-              <MetaCell label={t('bed.meta.width')} value={bed.widthMeters ? `${bed.widthMeters} m` : '—'} />
-              <MetaCell label={t('bed.meta.orient')} value={bed.aspect ?? '—'} />
-              <MetaCell label={t('bed.meta.area')} value={`${area} m²`} />
-            </div>
-          </div>
+              {bed.description}
+            </p>
+          )}
         </div>
 
         {/* Stats band */}
@@ -323,6 +300,25 @@ export function BedDetail() {
             >
               → {t('bed.danger.delete', { id: String(bedId).padStart(2, '0') })}
             </button>
+          </div>
+        </div>
+
+        {/* Bed layout — photo + dimensions */}
+        <div style={{ marginTop: 48, maxWidth: 420 }}>
+          <PhotoPlaceholder tone="sage" aspect="tall" label={bed.name.toUpperCase()} />
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 0,
+              marginTop: 12,
+              border: '1px solid var(--color-ink)',
+            }}
+          >
+            <MetaCell label={t('bed.meta.length')} value={bed.lengthMeters ? `${bed.lengthMeters} m` : '—'} />
+            <MetaCell label={t('bed.meta.width')} value={bed.widthMeters ? `${bed.widthMeters} m` : '—'} />
+            <MetaCell label={t('bed.meta.orient')} value={bed.aspect ?? '—'} />
+            <MetaCell label={t('bed.meta.area')} value={`${area} m²`} />
           </div>
         </div>
       </div>
