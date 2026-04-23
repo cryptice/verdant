@@ -1,10 +1,19 @@
 package app.verdant.android.ui.plant
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -16,10 +25,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -35,13 +50,18 @@ import app.verdant.android.ui.faltet.FaltetDropdown
 import app.verdant.android.ui.faltet.FaltetFormSubmitBar
 import app.verdant.android.ui.faltet.FaltetImagePicker
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.FaltetSectionHeader
 import app.verdant.android.ui.faltet.Field
+import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetDisplay
+import app.verdant.android.ui.theme.FaltetForest
+import app.verdant.android.ui.theme.FaltetInk
+import app.verdant.android.ui.theme.FaltetInkLine20
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import android.util.Log
 import javax.inject.Inject
 
 private const val TAG = "AddPlantEventScreen"
@@ -91,12 +111,12 @@ class AddPlantEventViewModel @Inject constructor(
 
     fun identifyPlant(imageBase64: String) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(identifying = true, suggestions = emptyList())
+            _uiState.value = _uiState.value.copy(identifying = true, suggestions = emptyList(), error = null)
             try {
                 val suggestions = gardenRepository.identifyPlant(IdentifyPlantRequest(imageBase64))
                 _uiState.value = _uiState.value.copy(identifying = false, suggestions = suggestions)
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(identifying = false, error = e.message)
+                _uiState.value = _uiState.value.copy(identifying = false, error = "Kunde inte identifiera bilden")
             }
         }
     }
@@ -217,14 +237,42 @@ fun AddPlantEventScreen(
                         if (bitmap != null) {
                             val b64 = bitmap.toCompressedBase64()
                             imageBase64 = b64
-                            if (eventType == "SEEDED" || eventType == "HARVESTED") {
-                                viewModel.identifyPlant(b64)
-                            }
+                            viewModel.identifyPlant(b64)
                         } else {
                             imageBase64 = null
                         }
                     },
                 )
+            }
+
+            if (uiState.identifying) {
+                item {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp),
+                    ) {
+                        CircularProgressIndicator(
+                            color = FaltetClay,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            text = "Identifierar…",
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 10.sp,
+                            letterSpacing = 1.2.sp,
+                            color = FaltetForest,
+                        )
+                    }
+                }
+            }
+
+            if (uiState.suggestions.isNotEmpty()) {
+                item { FaltetSectionHeader(label = "Förslag") }
+                items(uiState.suggestions, key = { it.species }) { suggestion ->
+                    SuggestionRow(suggestion = suggestion)
+                }
             }
 
             item {
@@ -311,6 +359,47 @@ fun AddPlantEventScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun SuggestionRow(suggestion: PlantSuggestion) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .drawBehind {
+                drawLine(
+                    color = FaltetInkLine20,
+                    start = Offset(0f, size.height),
+                    end = Offset(size.width, size.height),
+                    strokeWidth = 1.dp.toPx(),
+                )
+            }
+            .padding(horizontal = 18.dp, vertical = 10.dp),
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = suggestion.commonName,
+                fontFamily = FaltetDisplay,
+                fontStyle = FontStyle.Italic,
+                fontSize = 16.sp,
+                color = FaltetInk,
+            )
+            Text(
+                text = suggestion.species.uppercase(),
+                fontFamily = FontFamily.Monospace,
+                fontSize = 10.sp,
+                letterSpacing = 1.2.sp,
+                color = FaltetForest,
+            )
+        }
+        Text(
+            text = "${(suggestion.confidence * 100).toInt()}%",
+            fontFamily = FontFamily.Monospace,
+            fontSize = 14.sp,
+            color = FaltetClay,
+        )
     }
 }
 
