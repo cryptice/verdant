@@ -333,13 +333,13 @@ export function GardenDetail() {
         )}
 
         {/* Bed rows */}
-        {sortedBeds.map((bed, i) => (
+        {sortedBeds.map((bed) => (
           <Link
             key={bed.id}
             to={`/bed/${bed.id}`}
             style={{
               display: 'grid',
-              gridTemplateColumns: '50px 1.5fr auto 40px',
+              gridTemplateColumns: '1.5fr auto 40px',
               gap: 18,
               padding: '14px 0',
               borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
@@ -348,16 +348,6 @@ export function GardenDetail() {
               color: 'var(--color-ink)',
             }}
           >
-            <span
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontStyle: 'italic',
-                fontSize: 22,
-                color: 'var(--color-sage)',
-              }}
-            >
-              {String(i + 1).padStart(2, '0')}
-            </span>
             <span style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>{bed.name}</span>
             <div style={{ display: 'flex', gap: 6 }}>
               {bed.sunExposure && (
