@@ -465,6 +465,7 @@ data class CreateSpeciesRequest(
     @SerializedName("sowingMonths") val sowingMonths: List<Int> = emptyList(),
     @SerializedName("germinationRate") val germinationRate: Int? = null,
     @SerializedName("tagIds") val tagIds: List<Long> = emptyList(),
+    @SerializedName("groupId") val groupId: Long? = null,
     @SerializedName("workflowTemplateId") val workflowTemplateId: Long? = null,
 )
 
@@ -489,6 +490,7 @@ data class UpdateSpeciesRequest(
     @SerializedName("sowingMonths") val sowingMonths: List<Int>? = null,
     @SerializedName("germinationRate") val germinationRate: Int? = null,
     @SerializedName("tagIds") val tagIds: List<Long>? = null,
+    @SerializedName("groupId") val groupId: Long? = null,
     @SerializedName("workflowTemplateId") val workflowTemplateId: Long? = null,
 )
 

@@ -63,6 +63,7 @@ import app.verdant.android.data.model.SpeciesTagResponse
 import app.verdant.android.data.model.UpdateSpeciesRequest
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.faltet.FaltetChipMultiSelector
+import app.verdant.android.ui.faltet.FaltetDropdown
 import app.verdant.android.ui.faltet.FaltetFormSubmitBar
 import app.verdant.android.ui.faltet.FaltetImagePicker
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
@@ -221,6 +222,9 @@ fun AddSpeciesScreen(
     var selectedTagIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
     var selectedPositions by remember { mutableStateOf<Set<String>>(emptySet()) }
     var selectedSoils by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var selectedGroupId by remember { mutableStateOf<Long?>(null) }
+    var showNewGroupDialog by remember { mutableStateOf(false) }
+    var newGroupName by remember { mutableStateOf("") }
     var showNewTagDialog by remember { mutableStateOf(false) }
     var newTagName by remember { mutableStateOf("") }
     var showDiscardDialog by remember { mutableStateOf(false) }
@@ -249,6 +253,7 @@ fun AddSpeciesScreen(
             selectedTagIds = s.tags.map { it.id }.toSet()
             selectedPositions = s.growingPositions.toSet()
             selectedSoils = s.soils.toSet()
+            selectedGroupId = s.groups.firstOrNull()?.id
             prefilled = true
         }
     }
@@ -302,7 +307,7 @@ fun AddSpeciesScreen(
         sowingDepthMm.isNotBlank() || heightCmMin.isNotBlank() || heightCmMax.isNotBlank() ||
         selectedBloomMonths.isNotEmpty() || selectedSowingMonths.isNotEmpty() ||
         germinationRate.isNotBlank() || selectedTagIds.isNotEmpty() ||
-        selectedPositions.isNotEmpty() || selectedSoils.isNotEmpty()
+        selectedPositions.isNotEmpty() || selectedSoils.isNotEmpty() || selectedGroupId != null
 
     val hasChanges = if (!isEdit) hasData else {
         val s = uiState.existingSpecies
@@ -323,7 +328,8 @@ fun AddSpeciesScreen(
             germinationRate != (s.germinationRate?.toString() ?: "") ||
             selectedTagIds != s.tags.map { it.id }.toSet() ||
             selectedPositions != s.growingPositions.toSet() ||
-            selectedSoils != s.soils.toSet()
+            selectedSoils != s.soils.toSet() ||
+            selectedGroupId != s.groups.firstOrNull()?.id
     }
 
     val tryBack: () -> Unit = {
@@ -391,6 +397,36 @@ fun AddSpeciesScreen(
         )
     }
 
+    if (showNewGroupDialog) {
+        AlertDialog(
+            onDismissRequest = { showNewGroupDialog = false; newGroupName = "" },
+            title = { Text("Ny grupp") },
+            text = {
+                Field(
+                    label = "Namn",
+                    value = newGroupName,
+                    onValueChange = { newGroupName = it },
+                    required = true,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (newGroupName.isNotBlank()) {
+                            viewModel.createGroup(newGroupName.trim())
+                            showNewGroupDialog = false
+                            newGroupName = ""
+                        }
+                    },
+                    enabled = newGroupName.isNotBlank(),
+                ) { Text("Skapa", color = FaltetClay) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showNewGroupDialog = false; newGroupName = "" }) { Text("Avbryt") }
+            },
+        )
+    }
+
     val submitAction: () -> Unit = {
         showValidationErrors = true
         val germMin = germinationTimeDaysMin.toIntOrNull()
@@ -429,6 +465,7 @@ fun AddSpeciesScreen(
                         tagIds = selectedTagIds.toList(),
                         growingPositions = selectedPositions.toList(),
                         soils = selectedSoils.toList(),
+                        groupId = selectedGroupId,
                     )
                 )
             } else {
@@ -453,6 +490,7 @@ fun AddSpeciesScreen(
                         tagIds = selectedTagIds.toList(),
                         growingPositions = selectedPositions.toList(),
                         soils = selectedSoils.toList(),
+                        groupId = selectedGroupId,
                     )
                 )
             }
@@ -742,6 +780,35 @@ fun AddSpeciesScreen(
                     onSelectedChange = { selectedSoils = it },
                     labelFor = { soilLabelSv(it) },
                     required = true,
+                )
+            }
+
+            // Group dropdown
+            item {
+                val selectedGroup = uiState.groups.find { it.id == selectedGroupId }
+                FaltetDropdown(
+                    label = "Grupp (valfri)",
+                    options = uiState.groups,
+                    selected = selectedGroup,
+                    onSelectedChange = { group -> selectedGroupId = group.id },
+                    labelFor = { it.name },
+                    searchable = false,
+                )
+            }
+
+            // + NY GRUPP affordance
+            item {
+                Text(
+                    text = "+ NY GRUPP",
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 10.sp,
+                    letterSpacing = 1.4.sp,
+                    color = FaltetClay,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showNewGroupDialog = true }
+                        .padding(horizontal = 18.dp, vertical = 8.dp),
                 )
             }
 
