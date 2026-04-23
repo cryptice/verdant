@@ -26,7 +26,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetCream
 import app.verdant.android.ui.theme.FaltetForest
 import app.verdant.android.ui.theme.FaltetInkLine40
@@ -47,7 +47,7 @@ fun <T : Any> FaltetScopeToggle(
             text = buildAnnotatedString {
                 append(label.uppercase())
                 if (required) {
-                    withStyle(SpanStyle(color = FaltetClay)) { append(" *") }
+                    withStyle(SpanStyle(color = FaltetAccent)) { append(" *") }
                 }
             },
             fontFamily = FontFamily.Monospace,
@@ -78,7 +78,7 @@ fun <T : Any> FaltetScopeToggle(
                                 )
                             } else Modifier,
                         )
-                        .background(if (isSelected) FaltetClay else FaltetCream)
+                        .background(if (isSelected) FaltetAccent else FaltetCream)
                         .clickable(enabled = !isSelected) { onSelectedChange(option) }
                         .padding(horizontal = 12.dp, vertical = 10.dp),
                     contentAlignment = Alignment.Center,

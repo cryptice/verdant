@@ -69,6 +69,7 @@ import app.verdant.android.ui.faltet.FaltetImagePicker
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.FaltetSectionHeader
 import app.verdant.android.ui.faltet.Field
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetClay
 import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
@@ -389,7 +390,7 @@ fun AddSpeciesScreen(
                         }
                     },
                     enabled = newTagName.isNotBlank(),
-                ) { Text("Skapa", color = FaltetClay) }
+                ) { Text("Skapa", color = FaltetAccent) }
             },
             dismissButton = {
                 TextButton(onClick = { showNewTagDialog = false; newTagName = "" }) { Text("Avbryt") }
@@ -419,7 +420,7 @@ fun AddSpeciesScreen(
                         }
                     },
                     enabled = newGroupName.isNotBlank(),
-                ) { Text("Skapa", color = FaltetClay) }
+                ) { Text("Skapa", color = FaltetAccent) }
             },
             dismissButton = {
                 TextButton(onClick = { showNewGroupDialog = false; newGroupName = "" }) { Text("Avbryt") }
@@ -517,7 +518,7 @@ fun AddSpeciesScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Tillbaka",
-                    tint = FaltetClay,
+                    tint = FaltetAccent,
                     modifier = Modifier.size(18.dp),
                 )
             }
@@ -583,7 +584,7 @@ fun AddSpeciesScreen(
                         modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp),
                     ) {
                         CircularProgressIndicator(
-                            color = FaltetClay,
+                            color = FaltetAccent,
                             strokeWidth = 2.dp,
                             modifier = Modifier.size(18.dp),
                         )
@@ -803,7 +804,7 @@ fun AddSpeciesScreen(
                     fontFamily = FontFamily.Monospace,
                     fontSize = 10.sp,
                     letterSpacing = 1.4.sp,
-                    color = FaltetClay,
+                    color = FaltetAccent,
                     textAlign = TextAlign.End,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -830,7 +831,7 @@ fun AddSpeciesScreen(
                     fontFamily = FontFamily.Monospace,
                     fontSize = 10.sp,
                     letterSpacing = 1.4.sp,
-                    color = FaltetClay,
+                    color = FaltetAccent,
                     textAlign = TextAlign.End,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -884,7 +885,7 @@ private fun SuggestionRow(
             text = "${(suggestion.confidence * 100).toInt()}%",
             fontFamily = FontFamily.Monospace,
             fontSize = 14.sp,
-            color = FaltetClay,
+            color = FaltetAccent,
         )
     }
 }

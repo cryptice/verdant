@@ -20,7 +20,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
 import app.verdant.android.ui.theme.FaltetInk

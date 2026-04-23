@@ -52,7 +52,7 @@ import app.verdant.android.ui.faltet.FaltetImagePicker
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.FaltetSectionHeader
 import app.verdant.android.ui.faltet.Field
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
 import app.verdant.android.ui.theme.FaltetInk
@@ -252,7 +252,7 @@ fun AddPlantEventScreen(
                         modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp),
                     ) {
                         CircularProgressIndicator(
-                            color = FaltetClay,
+                            color = FaltetAccent,
                             strokeWidth = 2.dp,
                             modifier = Modifier.size(18.dp),
                         )
@@ -398,7 +398,7 @@ private fun SuggestionRow(suggestion: PlantSuggestion) {
             text = "${(suggestion.confidence * 100).toInt()}%",
             fontFamily = FontFamily.Monospace,
             fontSize = 14.sp,
-            color = FaltetClay,
+            color = FaltetAccent,
         )
     }
 }

@@ -67,6 +67,7 @@ import app.verdant.android.ui.faltet.FaltetSectionHeader
 import app.verdant.android.ui.faltet.PhotoPlaceholder
 import app.verdant.android.ui.faltet.PhotoTone
 import app.verdant.android.ui.theme.FaltetBerry
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetClay
 import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
@@ -197,7 +198,7 @@ fun PlantDetailScreen(
                             onClick = { onEditPlant(uiState.plant!!.id) },
                             modifier = Modifier.size(36.dp),
                         ) {
-                            Icon(Icons.Default.Edit, "Redigera", tint = FaltetClay, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.Edit, "Redigera", tint = FaltetAccent, modifier = Modifier.size(18.dp))
                         }
                     }
                     IconButton(
@@ -273,7 +274,7 @@ fun PlantDetailScreen(
                                 stages.forEachIndexed { i, stage ->
                                     val color = when {
                                         i < currentIdx -> FaltetInk
-                                        i == currentIdx -> FaltetClay
+                                        i == currentIdx -> FaltetAccent
                                         else -> FaltetForest.copy(alpha = 0.4f)
                                     }
                                     withStyle(SpanStyle(color = color)) { append(stage) }
@@ -357,7 +358,7 @@ private fun eventToneColor(type: String?): androidx.compose.ui.graphics.Color = 
     "SEEDED", "SOWED" -> FaltetMustard
     "POTTED_UP" -> FaltetSky
     "PLANTED_OUT" -> FaltetSage
-    "HARVESTED" -> FaltetClay
+    "HARVESTED" -> FaltetAccent
     "FERTILIZED" -> FaltetBerry
     "WATERED" -> FaltetSky
     "NOTE" -> FaltetForest
@@ -421,7 +422,7 @@ private fun WorkflowStripPreview() {
             stages.forEachIndexed { i, stage ->
                 val color = when {
                     i < currentIdx -> FaltetInk
-                    i == currentIdx -> FaltetClay
+                    i == currentIdx -> FaltetAccent
                     else -> FaltetForest.copy(alpha = 0.4f)
                 }
                 withStyle(SpanStyle(color = color)) { append(stage) }

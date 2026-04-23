@@ -10,7 +10,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetInk
 
 @Composable
@@ -22,7 +22,7 @@ fun FaltetFab(
     FloatingActionButton(
         onClick = onClick,
         containerColor = FaltetInk,
-        contentColor = FaltetClay,
+        contentColor = FaltetAccent,
         shape = CircleShape,
         elevation = FloatingActionButtonDefaults.elevation(
             defaultElevation = 0.dp,

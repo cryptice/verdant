@@ -19,3 +19,8 @@ val FaltetBlush   = Color(0xFFE9B8A8)
 val FaltetInkLine20 = FaltetInk.copy(alpha = 0.20f)
 val FaltetInkLine40 = FaltetInk.copy(alpha = 0.40f)
 val FaltetInkFill04 = FaltetInk.copy(alpha = 0.04f)
+
+// Semantic aliases
+// FaltetAccent — primary interactive accent (active states, highlights, primary affordances)
+// FaltetClay   — destructive semantics only (delete, confirm-destructive, error state)
+val FaltetAccent = FaltetMustard

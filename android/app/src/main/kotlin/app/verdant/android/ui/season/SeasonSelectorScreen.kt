@@ -43,6 +43,7 @@ import app.verdant.android.ui.faltet.FaltetListRow
 import app.verdant.android.ui.faltet.FaltetLoadingState
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.Field
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetClay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -196,7 +197,7 @@ fun SeasonSelectorScreen(
                         closeDialog()
                     },
                     enabled = formName.isNotBlank() && formYear.toIntOrNull() != null && !uiState.saving,
-                ) { Text(if (editingSeason != null) "Spara" else "Skapa", color = FaltetClay) }
+                ) { Text(if (editingSeason != null) "Spara" else "Skapa", color = FaltetAccent) }
             },
             dismissButton = {
                 Row {
@@ -242,7 +243,7 @@ fun SeasonSelectorScreen(
                                 Box(
                                     Modifier
                                         .size(10.dp)
-                                        .drawBehind { drawCircle(FaltetClay) },
+                                        .drawBehind { drawCircle(FaltetAccent) },
                                 )
                             }
                         } else null,
@@ -253,7 +254,7 @@ fun SeasonSelectorScreen(
                                     fontFamily = FontFamily.Monospace,
                                     fontSize = 9.sp,
                                     letterSpacing = 1.2.sp,
-                                    color = FaltetClay,
+                                    color = FaltetAccent,
                                 )
                             }
                         } else null,
@@ -276,7 +277,7 @@ private fun SeasonRowPreview() {
             Box(
                 Modifier
                     .size(10.dp)
-                    .drawBehind { drawCircle(FaltetClay) },
+                    .drawBehind { drawCircle(FaltetAccent) },
             )
         },
         stat = {
@@ -285,7 +286,7 @@ private fun SeasonRowPreview() {
                 fontFamily = FontFamily.Monospace,
                 fontSize = 9.sp,
                 letterSpacing = 1.2.sp,
-                color = FaltetClay,
+                color = FaltetAccent,
             )
         },
         onClick = {},

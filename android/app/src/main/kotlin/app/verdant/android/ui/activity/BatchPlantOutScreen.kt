@@ -40,7 +40,7 @@ import app.verdant.android.ui.faltet.FaltetFormSubmitBar
 import app.verdant.android.ui.faltet.FaltetListRow
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.Field
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -156,7 +156,7 @@ fun BatchPlantOutScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Default.ArrowBack,
                         contentDescription = "Tillbaka",
-                        tint = FaltetClay,
+                        tint = FaltetAccent,
                         modifier = Modifier.size(18.dp),
                     )
                 }
@@ -276,7 +276,7 @@ private fun BatchPlantOutScreenPreview_Detail() {
                 Icon(
                     imageVector = Icons.AutoMirrored.Default.ArrowBack,
                     contentDescription = "Tillbaka",
-                    tint = FaltetClay,
+                    tint = FaltetAccent,
                     modifier = Modifier.size(18.dp),
                 )
             }

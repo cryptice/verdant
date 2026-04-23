@@ -52,6 +52,7 @@ import app.verdant.android.ui.faltet.FaltetListRow
 import app.verdant.android.ui.faltet.FaltetLoadingState
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.FaltetSectionHeader
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetClay
 import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
@@ -181,7 +182,7 @@ fun GardenDetailScreen(
             if (uiState.garden != null) {
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     IconButton(onClick = { showEditDialog = true }, modifier = Modifier.size(36.dp)) {
-                        Icon(Icons.Default.Edit, "Redigera", tint = FaltetClay, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Default.Edit, "Redigera", tint = FaltetAccent, modifier = Modifier.size(18.dp))
                     }
                     IconButton(onClick = { showDeleteDialog = true }, modifier = Modifier.size(36.dp)) {
                         Icon(Icons.Default.DeleteOutline, "Ta bort", tint = FaltetClay, modifier = Modifier.size(18.dp))

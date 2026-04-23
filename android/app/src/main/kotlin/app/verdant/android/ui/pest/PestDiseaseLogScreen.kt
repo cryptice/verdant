@@ -32,7 +32,7 @@ import app.verdant.android.ui.faltet.FaltetListRow
 import app.verdant.android.ui.faltet.FaltetLoadingState
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.theme.FaltetBerry
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetCream
 import app.verdant.android.ui.theme.FaltetForest
 import app.verdant.android.ui.theme.FaltetMustard
@@ -125,7 +125,7 @@ class PestDiseaseLogViewModel @Inject constructor(
 private fun severityDotColor(severity: String) = when (severity) {
     Severity.LOW -> FaltetSage
     Severity.MODERATE -> FaltetMustard
-    Severity.HIGH -> FaltetClay
+    Severity.HIGH -> FaltetAccent
     Severity.CRITICAL -> FaltetBerry
     else -> FaltetForest
 }

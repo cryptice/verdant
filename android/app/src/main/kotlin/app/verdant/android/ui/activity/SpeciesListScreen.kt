@@ -44,7 +44,7 @@ import app.verdant.android.ui.faltet.FaltetSearchField
 import app.verdant.android.ui.theme.FaltetBerry
 import app.verdant.android.ui.theme.FaltetBlush
 import app.verdant.android.ui.theme.FaltetButter
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetForest
 import app.verdant.android.ui.theme.FaltetInk
 import app.verdant.android.ui.theme.FaltetMustard
@@ -119,14 +119,14 @@ private fun SpeciesResponse.matchesQuery(query: String): Boolean {
 }
 
 private fun categoryColor(groups: List<SpeciesGroupRef>): Color {
-    val name = groups.firstOrNull()?.name?.lowercase() ?: return FaltetClay
+    val name = groups.firstOrNull()?.name?.lowercase() ?: return FaltetAccent
     return when {
         name.contains("grönsak") || name.contains("veggie") || name.contains("vegetable") -> FaltetSage
         name.contains("snittblomma") || name.contains("snittblom") || name.contains("cut flower") -> FaltetBlush
         name.contains("ört") || name.contains("herb") -> FaltetButter
         name.contains("frukt") || name.contains("fruit") -> FaltetBerry
         name.contains("övrigt") || name.contains("other") -> FaltetMustard
-        else -> FaltetClay
+        else -> FaltetAccent
     }
 }
 

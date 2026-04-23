@@ -15,7 +15,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetCream
 import app.verdant.android.ui.theme.FaltetForest
 
@@ -42,7 +42,7 @@ fun FaltetSectionHeader(
             Modifier
                 .width(24.dp)
                 .height(1.5.dp)
-                .background(FaltetClay),
+                .background(FaltetAccent),
         )
     }
 }

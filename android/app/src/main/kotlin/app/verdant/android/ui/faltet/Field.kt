@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetClay
 import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
@@ -43,7 +44,7 @@ fun Field(
             text = buildAnnotatedString {
                 append(label.uppercase())
                 if (required) {
-                    withStyle(SpanStyle(color = FaltetClay)) { append(" *") }
+                    withStyle(SpanStyle(color = FaltetAccent)) { append(" *") }
                 }
             },
             fontFamily = FontFamily.Monospace,

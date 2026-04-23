@@ -13,7 +13,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
 import app.verdant.android.ui.theme.FaltetInk
@@ -70,7 +70,7 @@ fun Stat(
                     fontFamily = FontFamily.Monospace,
                     fontSize = 11.sp,
                     letterSpacing = 1.8.sp,
-                    color = FaltetClay,
+                    color = FaltetAccent,
                 )
             }
         }

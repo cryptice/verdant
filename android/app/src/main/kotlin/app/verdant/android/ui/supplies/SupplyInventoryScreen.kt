@@ -60,7 +60,7 @@ import app.verdant.android.ui.faltet.FaltetListRow
 import app.verdant.android.ui.faltet.FaltetLoadingState
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.FaltetSectionHeader
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetForest
 import app.verdant.android.ui.theme.FaltetInk
 import app.verdant.android.ui.theme.FaltetInkLine20
@@ -364,11 +364,11 @@ private fun SupplyTypeFaltetRow(
                             CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
                                 strokeWidth = 2.dp,
-                                color = FaltetClay,
+                                color = FaltetAccent,
                             )
                         } else {
                             TextButton(onClick = { onUseBatch(batch) }) {
-                                Text("Använd", color = FaltetClay, fontSize = 13.sp)
+                                Text("Använd", color = FaltetAccent, fontSize = 13.sp)
                             }
                         }
                     }

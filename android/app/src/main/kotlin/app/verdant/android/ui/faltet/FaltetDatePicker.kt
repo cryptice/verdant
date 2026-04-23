@@ -36,7 +36,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
 import app.verdant.android.ui.theme.FaltetInk
@@ -65,7 +65,7 @@ fun FaltetDatePicker(
             text = buildAnnotatedString {
                 append(label.uppercase())
                 if (required) {
-                    withStyle(SpanStyle(color = FaltetClay)) { append(" *") }
+                    withStyle(SpanStyle(color = FaltetAccent)) { append(" *") }
                 }
             },
             fontFamily = FontFamily.Monospace,
@@ -101,7 +101,7 @@ fun FaltetDatePicker(
             Icon(
                 imageVector = Icons.Default.CalendarMonth,
                 contentDescription = null,
-                tint = FaltetClay,
+                tint = FaltetAccent,
                 modifier = Modifier.size(18.dp),
             )
         }
@@ -118,7 +118,7 @@ fun FaltetDatePicker(
                         onValueChange(picked)
                     }
                     dialogOpen = false
-                }) { Text("Välj", color = FaltetClay) }
+                }) { Text("Välj", color = FaltetAccent) }
             },
             dismissButton = {
                 TextButton(onClick = { dialogOpen = false }) { Text("Avbryt") }

@@ -55,7 +55,7 @@ import app.verdant.android.ui.faltet.FaltetSectionHeader
 import app.verdant.android.ui.faltet.PhotoPlaceholder
 import app.verdant.android.ui.faltet.PhotoTone
 import app.verdant.android.ui.theme.FaltetBerry
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
 import app.verdant.android.ui.theme.FaltetInk
@@ -225,7 +225,7 @@ fun PlantedSpeciesDetailScreen(
                             },
                             modifier = Modifier.fillMaxWidth(),
                             enabled = count in 1..item.count && !actionSubmitting,
-                            colors = if (isDestructive) ButtonDefaults.buttonColors(containerColor = FaltetClay)
+                            colors = if (isDestructive) ButtonDefaults.buttonColors(containerColor = FaltetAccent)
                                      else ButtonDefaults.buttonColors(),
                         ) {
                             Text(label)
@@ -408,7 +408,7 @@ private fun statusColor(status: String?): androidx.compose.ui.graphics.Color = w
     "SEEDED" -> FaltetMustard
     "POTTED_UP" -> FaltetSky
     "PLANTED_OUT", "GROWING" -> FaltetSage
-    "HARVESTED" -> FaltetClay
+    "HARVESTED" -> FaltetAccent
     "RECOVERED" -> FaltetBerry
     "REMOVED" -> FaltetInkLine40
     else -> FaltetForest

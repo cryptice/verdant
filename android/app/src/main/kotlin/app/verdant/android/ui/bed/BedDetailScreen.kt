@@ -66,6 +66,7 @@ import app.verdant.android.ui.faltet.FaltetSectionHeader
 import app.verdant.android.ui.faltet.Field
 import app.verdant.android.ui.faltet.PhotoPlaceholder
 import app.verdant.android.ui.faltet.PhotoTone
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetClay
 import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
@@ -396,7 +397,7 @@ fun BedDetailScreen(
                         },
                         modifier = Modifier.size(36.dp),
                     ) {
-                        Icon(Icons.Default.Edit, "Redigera", tint = FaltetClay, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Default.Edit, "Redigera", tint = FaltetAccent, modifier = Modifier.size(18.dp))
                     }
                     IconButton(
                         onClick = { showDeleteDialog = true },

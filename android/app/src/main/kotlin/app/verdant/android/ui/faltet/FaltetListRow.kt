@@ -24,7 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetCream
 import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
@@ -121,7 +121,7 @@ private fun FaltetListRowPreview_Full() {
                 Modifier
                     .size(10.dp)
                     .drawBehind {
-                        drawCircle(FaltetClay)
+                        drawCircle(FaltetAccent)
                     },
             )
         },

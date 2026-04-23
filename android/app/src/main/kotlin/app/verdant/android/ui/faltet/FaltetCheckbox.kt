@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetCream
 import app.verdant.android.ui.theme.FaltetInkLine40
 
@@ -24,7 +24,7 @@ fun FaltetCheckbox(
         checked = checked,
         onCheckedChange = onCheckedChange,
         colors = CheckboxDefaults.colors(
-            checkedColor = FaltetClay,
+            checkedColor = FaltetAccent,
             uncheckedColor = FaltetInkLine40,
             checkmarkColor = FaltetCream,
         ),

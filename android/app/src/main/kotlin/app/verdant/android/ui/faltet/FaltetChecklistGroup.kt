@@ -25,7 +25,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
 import app.verdant.android.ui.theme.FaltetInk
@@ -48,7 +48,7 @@ fun <T : Any> FaltetChecklistGroup(
             text = buildAnnotatedString {
                 append(label.uppercase())
                 if (required) {
-                    withStyle(SpanStyle(color = FaltetClay)) { append(" *") }
+                    withStyle(SpanStyle(color = FaltetAccent)) { append(" *") }
                 }
             },
             fontFamily = FontFamily.Monospace,
@@ -64,7 +64,7 @@ fun <T : Any> FaltetChecklistGroup(
                 fontFamily = FontFamily.Monospace,
                 fontSize = 10.sp,
                 letterSpacing = 1.4.sp,
-                color = FaltetClay,
+                color = FaltetAccent,
                 textAlign = TextAlign.End,
                 modifier = Modifier
                     .fillMaxWidth()

@@ -43,7 +43,7 @@ import app.verdant.android.ui.faltet.FaltetScopeToggle
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.Field
 import app.verdant.android.ui.supplies.SupplyUsageBottomSheet
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -214,7 +214,7 @@ fun SowActivityScreen(
             text = { Text("Vill du registrera förbrukning av jord eller krukor?") },
             confirmButton = {
                 TextButton(onClick = { showSupplySheet = true }) {
-                    Text("Registrera förbrukning", color = FaltetClay)
+                    Text("Registrera förbrukning", color = FaltetAccent)
                 }
             },
             dismissButton = {

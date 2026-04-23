@@ -42,6 +42,7 @@ import app.verdant.android.ui.faltet.FaltetLoadingState
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.FaltetSectionHeader
 import app.verdant.android.ui.theme.FaltetBerry
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetClay
 import app.verdant.android.ui.theme.FaltetMustard
 import app.verdant.android.ui.theme.FaltetSage
@@ -103,7 +104,7 @@ class TaskListViewModel @Inject constructor(
 private fun taskDotColor(activityType: String): Color = when (activityType) {
     "SOW" -> FaltetMustard
     "PLANT" -> FaltetSage
-    "HARVEST" -> FaltetClay
+    "HARVEST" -> FaltetAccent
     "FERTILIZE" -> FaltetBerry
     else -> FaltetSky
 }
@@ -235,7 +236,7 @@ fun TaskListScreen(
                                     Icon(
                                         imageVector = Icons.Default.Delete,
                                         contentDescription = "Ta bort",
-                                        tint = FaltetClay,
+                                        tint = FaltetAccent,
                                         modifier = Modifier.size(18.dp),
                                     )
                                 }
@@ -280,7 +281,7 @@ private fun TaskListScreenPreview() {
             meta = "${today.plusDays(3).format(svDateFormatter)} · Dahlia",
             leading = {
                 androidx.compose.foundation.layout.Box(
-                    Modifier.size(10.dp).drawBehind { drawCircle(FaltetClay) }
+                    Modifier.size(10.dp).drawBehind { drawCircle(FaltetAccent) }
                 )
             },
             onClick = {},

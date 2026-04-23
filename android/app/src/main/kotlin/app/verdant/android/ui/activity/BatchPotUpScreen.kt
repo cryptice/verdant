@@ -47,7 +47,7 @@ import app.verdant.android.ui.faltet.FaltetListRow
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.Field
 import app.verdant.android.ui.supplies.SupplyUsageBottomSheet
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -151,7 +151,7 @@ fun BatchPotUpScreen(
             text = { Text("Vill du registrera förbrukning av jord eller krukor?") },
             confirmButton = {
                 TextButton(onClick = { showSupplySheet = true }) {
-                    Text("Registrera förbrukning", color = FaltetClay)
+                    Text("Registrera förbrukning", color = FaltetAccent)
                 }
             },
             dismissButton = {
@@ -203,7 +203,7 @@ fun BatchPotUpScreen(
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowBack,
                         "Tillbaka",
-                        tint = FaltetClay,
+                        tint = FaltetAccent,
                         modifier = Modifier.size(18.dp),
                     )
                 }
@@ -318,7 +318,7 @@ private fun BatchPotUpScreenPreview_Detail() {
         mastheadCenter = "Cosmos bipinnatus",
         mastheadRight = {
             IconButton(onClick = {}, modifier = Modifier.size(36.dp)) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Tillbaka", tint = FaltetClay, modifier = Modifier.size(18.dp))
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Tillbaka", tint = FaltetAccent, modifier = Modifier.size(18.dp))
             }
         },
         bottomBar = {

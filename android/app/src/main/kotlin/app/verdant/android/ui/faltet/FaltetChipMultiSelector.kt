@@ -22,7 +22,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetCream
 import app.verdant.android.ui.theme.FaltetForest
 import app.verdant.android.ui.theme.FaltetInkLine40
@@ -43,7 +43,7 @@ fun <T : Any> FaltetChipMultiSelector(
             text = buildAnnotatedString {
                 append(label.uppercase())
                 if (required) {
-                    withStyle(SpanStyle(color = FaltetClay)) { append(" *") }
+                    withStyle(SpanStyle(color = FaltetAccent)) { append(" *") }
                 }
             },
             fontFamily = FontFamily.Monospace,
@@ -71,14 +71,14 @@ fun <T : Any> FaltetChipMultiSelector(
                     colors = FilterChipDefaults.filterChipColors(
                         containerColor = FaltetCream,
                         labelColor = FaltetForest,
-                        selectedContainerColor = FaltetClay,
+                        selectedContainerColor = FaltetAccent,
                         selectedLabelColor = FaltetCream,
                     ),
                     border = FilterChipDefaults.filterChipBorder(
                         enabled = true,
                         selected = isSelected,
                         borderColor = FaltetInkLine40,
-                        selectedBorderColor = FaltetClay,
+                        selectedBorderColor = FaltetAccent,
                         borderWidth = 1.dp,
                         selectedBorderWidth = 0.dp,
                     ),

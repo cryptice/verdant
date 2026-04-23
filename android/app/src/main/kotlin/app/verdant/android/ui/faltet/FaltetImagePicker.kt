@@ -40,7 +40,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetCream
 import app.verdant.android.ui.theme.FaltetForest
 import app.verdant.android.ui.theme.FaltetInk
@@ -91,7 +91,7 @@ fun FaltetImagePicker(
                     onClick = { cameraLauncher.launch(null) },
                     shape = RectangleShape,
                     border = BorderStroke(1.dp, FaltetInkLine40),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = FaltetClay),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = FaltetAccent),
                     modifier = Modifier.weight(1f),
                 ) {
                     Icon(Icons.Default.PhotoCamera, null, Modifier.size(16.dp))
@@ -102,7 +102,7 @@ fun FaltetImagePicker(
                     onClick = { galleryLauncher.launch("image/*") },
                     shape = RectangleShape,
                     border = BorderStroke(1.dp, FaltetInkLine40),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = FaltetClay),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = FaltetAccent),
                     modifier = Modifier.weight(1f),
                 ) {
                     Icon(Icons.Default.Image, null, Modifier.size(16.dp))
@@ -131,7 +131,7 @@ fun FaltetImagePicker(
                         .size(32.dp)
                         .background(FaltetCream.copy(alpha = 0.8f)),
                 ) {
-                    Icon(Icons.Default.Close, "Ta bort bild", tint = FaltetClay, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.Close, "Ta bort bild", tint = FaltetAccent, modifier = Modifier.size(18.dp))
                 }
             }
         }

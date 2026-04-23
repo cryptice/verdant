@@ -39,7 +39,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import app.verdant.android.ui.activity.*
 import app.verdant.android.ui.auth.AuthScreen
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetCream
 import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
@@ -237,7 +237,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                         Text(
                             buildAnnotatedString {
                                 withStyle(SpanStyle(color = FaltetInk)) { append("Verdant") }
-                                withStyle(SpanStyle(color = FaltetClay)) { append(".") }
+                                withStyle(SpanStyle(color = FaltetAccent)) { append(".") }
                             },
                             fontFamily = FaltetDisplay,
                             fontStyle = FontStyle.Italic,
@@ -339,8 +339,8 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                                 )
                             },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = FaltetClay,
-                                selectedTextColor = FaltetClay,
+                                selectedIconColor = FaltetAccent,
+                                selectedTextColor = FaltetAccent,
                                 unselectedIconColor = FaltetForest,
                                 unselectedTextColor = FaltetForest,
                                 indicatorColor = Color.Transparent,
@@ -364,8 +364,8 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                                 )
                             },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = FaltetClay,
-                                selectedTextColor = FaltetClay,
+                                selectedIconColor = FaltetAccent,
+                                selectedTextColor = FaltetAccent,
                                 unselectedIconColor = FaltetForest,
                                 unselectedTextColor = FaltetForest,
                                 indicatorColor = Color.Transparent,
@@ -389,8 +389,8 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                                 )
                             },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = FaltetClay,
-                                selectedTextColor = FaltetClay,
+                                selectedIconColor = FaltetAccent,
+                                selectedTextColor = FaltetAccent,
                                 unselectedIconColor = FaltetForest,
                                 unselectedTextColor = FaltetForest,
                                 indicatorColor = Color.Transparent,
@@ -807,7 +807,7 @@ private fun DrawerItem(
             fontFamily = FaltetDisplay,
             fontStyle = FontStyle.Italic,
             fontSize = 18.sp,
-            color = if (active) FaltetClay else FaltetInk,
+            color = if (active) FaltetAccent else FaltetInk,
             modifier = Modifier.weight(1f),
         )
         if (active) {
@@ -815,7 +815,7 @@ private fun DrawerItem(
                 text = "●",
                 fontFamily = FaltetDisplay,
                 fontSize = 16.sp,
-                color = FaltetClay,
+                color = FaltetAccent,
             )
         }
     }

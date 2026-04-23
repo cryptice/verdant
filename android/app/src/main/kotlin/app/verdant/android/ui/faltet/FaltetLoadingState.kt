@@ -11,7 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetCream
 
 @Composable
@@ -23,7 +23,7 @@ fun FaltetLoadingState(modifier: Modifier = Modifier) {
         contentAlignment = Alignment.Center,
     ) {
         CircularProgressIndicator(
-            color = FaltetClay,
+            color = FaltetAccent,
             strokeWidth = 2.dp,
             modifier = Modifier.size(28.dp),
         )
