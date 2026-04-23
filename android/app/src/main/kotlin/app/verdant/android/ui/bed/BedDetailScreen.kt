@@ -27,7 +27,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -64,6 +63,7 @@ import app.verdant.android.ui.faltet.FaltetLoadingState
 import app.verdant.android.ui.faltet.FaltetMetadataRow
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.FaltetSectionHeader
+import app.verdant.android.ui.faltet.Field
 import app.verdant.android.ui.faltet.PhotoPlaceholder
 import app.verdant.android.ui.faltet.PhotoTone
 import app.verdant.android.ui.theme.FaltetClay
@@ -222,21 +222,16 @@ fun BedDetailScreen(
                     modifier = Modifier.verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    OutlinedTextField(
+                    Field(
+                        label = "Namn",
                         value = editName,
                         onValueChange = { editName = it },
-                        label = { Text("Namn") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true
+                        required = true,
                     )
-                    OutlinedTextField(
+                    Field(
+                        label = "Beskrivning (valfri)",
                         value = editDescription,
                         onValueChange = { editDescription = it },
-                        label = { Text("Beskrivning (valfri)") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        minLines = 2
                     )
 
                     // Conditions section in edit dialog
