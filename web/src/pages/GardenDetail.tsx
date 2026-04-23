@@ -218,13 +218,15 @@ export function GardenDetail() {
             onClick={() => { resetNewBed(); setShowNewBed(true) }}
             style={{
               background: 'transparent',
-              border: 'none',
-              fontFamily: 'var(--font-display)',
-              fontStyle: 'italic',
-              fontSize: 16,
+              border: '1px solid var(--color-accent)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 11,
+              letterSpacing: 1.6,
+              textTransform: 'uppercase',
               color: 'var(--color-accent)',
               cursor: 'pointer',
-              padding: 0,
+              padding: '6px 14px',
+              whiteSpace: 'nowrap',
             }}
           >
             {t('garden.newBed')}
