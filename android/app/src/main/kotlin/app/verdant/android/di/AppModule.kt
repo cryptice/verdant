@@ -2,6 +2,7 @@ package app.verdant.android.di
 
 import app.verdant.android.BuildConfig
 import app.verdant.android.data.AppError
+import app.verdant.android.data.OrgStore
 import app.verdant.android.data.SessionManager
 import app.verdant.android.data.TokenStore
 import app.verdant.android.data.api.VerdantApi
@@ -23,22 +24,24 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(tokenStore: TokenStore, sessionManager: SessionManager): OkHttpClient {
+    fun provideOkHttpClient(
+        tokenStore: TokenStore,
+        orgStore: OrgStore,
+        sessionManager: SessionManager,
+    ): OkHttpClient {
         return OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(90, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
             // OkHttp interceptors are inherently synchronous, so runBlocking is the
-            // standard approach for accessing coroutine-based token stores here.
+            // standard approach for accessing coroutine-based token/org stores here.
             .addInterceptor { chain ->
                 val token = runBlocking { tokenStore.getToken() }
-                val request = if (token != null) {
-                    chain.request().newBuilder()
-                        .addHeader("Authorization", "Bearer $token")
-                        .build()
-                } else {
-                    chain.request()
-                }
+                val orgId = runBlocking { orgStore.getOrgId() }
+                val request = chain.request().newBuilder().apply {
+                    if (token != null) addHeader("Authorization", "Bearer $token")
+                    if (orgId != null) addHeader("X-Organization-Id", orgId.toString())
+                }.build()
 
                 val response = try {
                     chain.proceed(request)

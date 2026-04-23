@@ -8,12 +8,14 @@ import javax.inject.Singleton
 @Singleton
 class SessionManager @Inject constructor(
     private val tokenStore: TokenStore,
+    private val orgStore: OrgStore,
 ) {
     private val _expired = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val expired = _expired.asSharedFlow()
 
     suspend fun onUnauthorized() {
         tokenStore.clear()
+        orgStore.clear()
         _expired.tryEmit(Unit)
     }
 }

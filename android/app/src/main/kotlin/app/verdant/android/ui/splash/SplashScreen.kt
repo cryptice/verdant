@@ -48,8 +48,15 @@ fun SplashScreen(
         Log.d(TAG, "Splash started, checking stored token...")
         val existingToken = viewModel.tokenStore.getToken()
         if (existingToken != null) {
-            Log.d(TAG, "Stored token found, navigating to dashboard")
-            onNavigateToDashboard()
+            Log.d(TAG, "Stored token found, refreshing user + org…")
+            try {
+                viewModel.authRepository.refreshUser()
+                Log.d(TAG, "User refresh succeeded, navigating to dashboard")
+                onNavigateToDashboard()
+            } catch (e: Exception) {
+                Log.w(TAG, "User refresh failed (${e.javaClass.simpleName}); navigating to dashboard anyway")
+                onNavigateToDashboard()
+            }
             return@LaunchedEffect
         }
         Log.d(TAG, "No stored token, attempting silent Google sign-in...")
