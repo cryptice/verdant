@@ -1,6 +1,8 @@
 package app.verdant.android.data
 
-sealed class AppError(override val message: String) : Exception(message) {
+import java.io.IOException
+
+sealed class AppError(override val message: String) : IOException(message) {
     class Network(message: String = "No internet connection. Check your network and try again.") : AppError(message)
     class Unauthorized(message: String = "Your session has expired. Please sign in again.") : AppError(message)
     class NotFound(message: String = "The requested item was not found.") : AppError(message)
