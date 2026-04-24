@@ -68,7 +68,7 @@ export function PlantedSpeciesList() {
                 <div>
                   <div style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>{p.speciesName}</div>
                   {p.scientificName && (
-                    <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 9, color: 'var(--color-sage)' }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13, color: 'var(--color-sage)' }}>
                       {p.scientificName}
                     </div>
                   )}
