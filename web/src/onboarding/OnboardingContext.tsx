@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, useMemo, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { api } from '../api/client'
@@ -53,10 +53,19 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [activeTour, setActiveTour] = useState<PageTooltipConfig | null>(null)
   const [lastCompletedStepId, setLastCompletedStepId] = useState<string | null>(null)
 
+  // Track the "suppressed" signal in a ref so completeStep's closure always
+  // sees the latest value without having to be recreated (and re-running the
+  // auto-complete effect below every time it flips).
+  const suppressedRef = useRef(false)
+
   // Sync state when user data changes (e.g., on login)
   useEffect(() => {
     setState(parseOnboardingState(user?.onboarding))
   }, [user?.onboarding])
+
+  useEffect(() => {
+    suppressedRef.current = state.dismissed || minimized
+  }, [state.dismissed, minimized])
 
   const syncToBackend = useCallback((s: OnboardingState) => {
     api.user.updateOnboarding({ completedSteps: s.completedSteps, dismissed: s.dismissed }).catch(() => {
@@ -71,6 +80,9 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       syncToBackend(updated)
       return updated
     })
+    // If onboarding is dismissed or minimized, just record the completion
+    // silently — don't re-open the drawer or flash a toast.
+    if (suppressedRef.current) return
     setLastCompletedStepId(stepId)
     setDrawerOpen(true)
     setTimeout(() => setLastCompletedStepId(null), 3000)
