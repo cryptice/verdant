@@ -149,37 +149,34 @@ export function GardenDetail() {
 
       <div style={{ padding: '28px 40px' }}>
         {/* Hero */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 40, alignItems: 'start' }}>
-          <div>
-            <h1
+        <div>
+          <h1
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 80,
+              fontWeight: 300,
+              letterSpacing: -1.5,
+              lineHeight: 1,
+              margin: 0,
+              fontVariationSettings: '"SOFT" 100, "opsz" 144',
+            }}
+          >
+            {garden.emoji && <span style={{ marginRight: 16 }}>{garden.emoji}</span>}
+            {garden.name}<span style={{ color: 'var(--color-accent)' }}>.</span>
+          </h1>
+          {garden.description && (
+            <p
               style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 80,
-                fontWeight: 300,
-                letterSpacing: -1.5,
-                lineHeight: 1,
-                margin: 0,
-                fontVariationSettings: '"SOFT" 100, "opsz" 144',
+                marginTop: 16,
+                fontFamily: 'Georgia, var(--font-display)',
+                fontSize: 15,
+                lineHeight: 1.6,
+                color: 'var(--color-forest)',
               }}
             >
-              {garden.emoji && <span style={{ marginRight: 16 }}>{garden.emoji}</span>}
-              {garden.name}<span style={{ color: 'var(--color-accent)' }}>.</span>
-            </h1>
-            {garden.description && (
-              <p
-                style={{
-                  marginTop: 16,
-                  fontFamily: 'Georgia, var(--font-display)',
-                  fontSize: 15,
-                  lineHeight: 1.6,
-                  color: 'var(--color-forest)',
-                }}
-              >
-                {garden.description}
-              </p>
-            )}
-          </div>
-          <PhotoPlaceholder tone="sage" aspect="tall" label={garden.name.toUpperCase()} />
+              {garden.description}
+            </p>
+          )}
         </div>
 
         {/* Stats band */}
@@ -363,6 +360,11 @@ export function GardenDetail() {
             <span style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-mono)' }}>→</span>
           </Link>
         ))}
+
+        {/* Garden layout — photo placeholder */}
+        <div style={{ marginTop: 48, maxWidth: 420 }}>
+          <PhotoPlaceholder tone="sage" aspect="tall" label={garden.name.toUpperCase()} />
+        </div>
       </div>
 
       {/* Edit garden dialog */}
