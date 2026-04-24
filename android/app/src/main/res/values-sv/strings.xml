@@ -502,6 +502,7 @@
     <string name="bed_aspect_sw">Sydv\u00E4st</string>
     <string name="bed_aspect_w">V\u00E4ster</string>
     <string name="bed_aspect_nw">Nordv\u00E4st</string>
+    <string name="bed_aspect_unobstructed">Fri horisont</string>
     <string name="bed_irrigation_drip">Droppbevattning</string>
     <string name="bed_irrigation_sprinkler">Spridare</string>
     <string name="bed_irrigation_soaker_hose">Droppslang</string>

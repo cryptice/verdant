@@ -325,7 +325,8 @@
         "S": "Söder",
         "SW": "Sydväst",
         "W": "Väster",
-        "NW": "Nordväst"
+        "NW": "Nordväst",
+        "UNOBSTRUCTED": "Fri horisont"
       },
       "irrigationTypes": {
         "DRIP": "Droppbevattning",

@@ -149,7 +149,8 @@ object BedAspect {
     const val SW = "SW"
     const val W = "W"
     const val NW = "NW"
-    val values = listOf(FLAT, N, NE, E, SE, S, SW, W, NW)
+    const val UNOBSTRUCTED = "UNOBSTRUCTED"
+    val values = listOf(FLAT, N, NE, E, SE, S, SW, W, NW, UNOBSTRUCTED)
 }
 
 object BedIrrigationType {

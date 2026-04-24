@@ -504,6 +504,7 @@
     <string name="bed_aspect_sw">SW</string>
     <string name="bed_aspect_w">W</string>
     <string name="bed_aspect_nw">NW</string>
+    <string name="bed_aspect_unobstructed">Unobstructed</string>
     <string name="bed_irrigation_drip">Drip</string>
     <string name="bed_irrigation_sprinkler">Sprinkler</string>
     <string name="bed_irrigation_soaker_hose">Soaker hose</string>

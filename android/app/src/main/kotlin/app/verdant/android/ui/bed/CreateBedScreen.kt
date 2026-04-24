@@ -454,6 +454,7 @@ fun bedAspectLabel(value: String): String = when (value) {
     BedAspect.SW -> stringResource(R.string.bed_aspect_sw)
     BedAspect.W -> stringResource(R.string.bed_aspect_w)
     BedAspect.NW -> stringResource(R.string.bed_aspect_nw)
+    BedAspect.UNOBSTRUCTED -> stringResource(R.string.bed_aspect_unobstructed)
     else -> value
 }
 
