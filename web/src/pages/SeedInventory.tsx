@@ -114,12 +114,12 @@ export function SeedInventory() {
     setEditProviderId(item.speciesProviderId ?? '')
   }
 
-  if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
-  if (error) return <ErrorDisplay error={error} onRetry={refetch} />
+  const [page, setPage] = useState(0)
+  const pageSize = 50
 
+  // Group batches by speciesId (computed every render so the effect below can
+  // watch the group count without depending on loading/error state).
   const items = data ?? []
-
-  // Group batches by speciesId
   const grouped = new Map<number, SeedInventoryResponse[]>()
   for (const item of items) {
     const group = grouped.get(item.speciesId) ?? []
@@ -128,9 +128,10 @@ export function SeedInventory() {
   }
   const groupEntries = Array.from(grouped.entries())
 
-  const [page, setPage] = useState(0)
-  const pageSize = 50
   useEffect(() => { setPage(0) }, [groupEntries.length])
+
+  if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
+  if (error) return <ErrorDisplay error={error} onRetry={refetch} />
 
   return (
     <div>
