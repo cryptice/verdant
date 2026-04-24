@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
-import { Masthead, Chip, Rule } from '../components/faltet'
+import { Masthead, Chip } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { useOnboarding } from '../onboarding/OnboardingContext'
@@ -172,7 +172,7 @@ export function PlantDetail() {
         </div>
 
         {/* Event timeline section */}
-        <div style={{ marginTop: 40, display: 'flex', alignItems: 'baseline', gap: 12 }}>
+        <div style={{ marginTop: 40, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
           <h2
             style={{
               fontFamily: 'var(--font-display)',
@@ -185,26 +185,26 @@ export function PlantDetail() {
           >
             {t('plant.events')}<span style={{ color: 'var(--color-accent)' }}>.</span>
           </h2>
-          <Rule inline variant="ink" />
-          <button onClick={() => setShowAddEvent(true)} className="btn-secondary">
-            + {t('plant.addEvent')}
-          </button>
-          <button
-            onClick={() => setShowDelete(true)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              fontFamily: 'var(--font-mono)',
-              fontSize: 10,
-              letterSpacing: 1.4,
-              textTransform: 'uppercase',
-              color: 'var(--color-accent)',
-              cursor: 'pointer',
-              marginLeft: 'auto',
-            }}
-          >
-            → {t('plant.deletePlant')}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+            <button onClick={() => setShowAddEvent(true)} className="btn-secondary">
+              + {t('plant.addEvent')}
+            </button>
+            <button
+              onClick={() => setShowDelete(true)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10,
+                letterSpacing: 1.4,
+                textTransform: 'uppercase',
+                color: 'var(--color-accent)',
+                cursor: 'pointer',
+              }}
+            >
+              → {t('plant.deletePlant')}
+            </button>
+          </div>
         </div>
 
         {events && events.length === 0 && (

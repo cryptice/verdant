@@ -244,7 +244,7 @@ export function ProductionTargets() {
         </div>
 
         {targets.length === 0 && (
-          <div style={{ padding: '40px 0', textAlign: 'center', borderBottom: '1px solid var(--color-ink)', borderTop: '1px solid var(--color-ink)' }}>
+          <div className="empty-state">
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7 }}>
               {t('targets.noTargets')}
             </div>

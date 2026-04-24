@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api, type WorkflowStepResponse, type SupplyTypeResponse } from '../api/client'
-import { Masthead, Field, Rule } from '../components/faltet'
+import { Masthead, Field } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 
@@ -414,7 +414,7 @@ export function WorkflowTemplateEdit() {
         </div>
 
         {/* § Steg. heading */}
-        <div style={{ marginTop: 40, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ marginTop: 40, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <h2
             style={{
               fontFamily: 'var(--font-display)',
@@ -427,7 +427,6 @@ export function WorkflowTemplateEdit() {
           >
             {t('workflows.steps')}<span style={{ color: 'var(--color-accent)' }}>.</span>
           </h2>
-          <Rule inline variant="ink" />
           <button
             className="btn-secondary"
             onClick={() => setShowAddStep(true)}

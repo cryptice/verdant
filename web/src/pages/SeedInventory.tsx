@@ -168,7 +168,7 @@ export function SeedInventory() {
       />
       <div style={{ padding: '28px 40px' }}>
         {items.length === 0 && (
-          <div style={{ padding: '40px 22px', textAlign: 'center', borderBottom: '1px solid var(--color-ink)', borderTop: '1px solid var(--color-ink)' }}>
+          <div className="empty-state">
             <div style={{ ...HEADER_STYLE, opacity: 1, marginBottom: 16 }}>{t('seeds.noBatchesTitle')}</div>
             <p style={{ fontFamily: 'var(--font-display)', fontSize: 16, color: 'var(--color-forest)', marginBottom: 20 }}>{t('seeds.noBatchesHint')}</p>
             <button onClick={() => setShowAdd(true)} className="btn-primary">{t('seeds.addSeeds')}</button>

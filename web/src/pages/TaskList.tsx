@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api, type ScheduledTaskResponse } from '../api/client'
-import { Masthead, Rule } from '../components/faltet'
+import { Masthead } from '../components/faltet'
 import { Dialog } from '../components/Dialog'
 
 type ActivityFilter = 'harvest' | 'sowing' | 'watering' | 'planting' | 'maintenance'
@@ -232,7 +232,7 @@ export function TaskList() {
 
 function SectionHeader({ title, count }: { title: string; count: number }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 10 }}>
+    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
       <h2
         style={{
           fontFamily: 'var(--font-display)',
@@ -245,7 +245,6 @@ function SectionHeader({ title, count }: { title: string; count: number }) {
       >
         {title}<span style={{ color: 'var(--color-accent)' }}>.</span>
       </h2>
-      <Rule inline variant="ink" />
       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase' }}>
         {count}
       </span>

@@ -200,11 +200,8 @@ export function GardenDetail() {
 
         {/* Stats band */}
         <div
+          className="stats-band"
           style={{
-            margin: '40px 0',
-            padding: '22px 28px',
-            background: 'var(--color-paper)',
-            borderTop: '3px solid var(--color-accent)',
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
             gap: 18,

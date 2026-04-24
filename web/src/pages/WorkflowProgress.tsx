@@ -195,7 +195,7 @@ export function WorkflowProgress() {
             ))}
 
             {workflow.steps.length === 0 && (
-              <div style={{ padding: '60px 22px', textAlign: 'center', borderTop: '1px solid var(--color-ink)', borderBottom: '1px solid var(--color-ink)' }}>
+              <div className="empty-state">
                 <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7 }}>
                   {t('workflows.progress.empty')}
                 </div>
@@ -320,7 +320,7 @@ function StepLedger({
 
   if (steps.length === 0) {
     return (
-      <div style={{ padding: '40px 22px', textAlign: 'center', borderTop: '1px solid var(--color-ink)', borderBottom: '1px solid var(--color-ink)' }}>
+      <div className="empty-state">
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7 }}>
           {t('workflows.progress.empty')}
         </div>

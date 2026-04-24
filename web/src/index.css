@@ -85,8 +85,13 @@ body {
   &:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 
-/* Bed-card entry on the garden list. Paper surface + subtle ink border, with
-   an accent top stripe that reveals on hover to mark the interaction target. */
+/* Fältet grouping surfaces. Each uses a paper background + a mustard top
+   stripe instead of ink rules, so sections read as distinct units without
+   the app sprouting horizontal lines on every block. */
+
+/* List/grid entry (e.g. bed card, supply card). Muted border with an accent
+   top stripe that saturates on hover. */
+.list-tile,
 .bed-card {
   display: flex;
   flex-direction: column;
@@ -100,9 +105,27 @@ body {
   color: var(--color-ink);
   transition: border-color 120ms ease-out, transform 120ms ease-out;
 }
+.list-tile:hover,
 .bed-card:hover {
   border-top-color: var(--color-accent);
   transform: translateY(-1px);
+}
+
+/* Stats band — paper surface with an accent stripe. Replaces the old
+   top-and-bottom ink rules that made every page feel table-like. */
+.stats-band {
+  margin: 40px 0;
+  padding: 22px 28px;
+  background: var(--color-paper);
+  border-top: 3px solid var(--color-accent);
+}
+
+/* Empty-state callout used by ledgers, list pages, and card indexes. */
+.empty-state {
+  padding: 40px 22px;
+  text-align: center;
+  background: var(--color-paper);
+  border-top: 3px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
 }
 
 @utility card {

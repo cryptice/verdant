@@ -37,14 +37,7 @@ export function Ledger<T>({
 
   if (rows.length === 0) {
     return (
-      <div
-        style={{
-          padding: '40px 22px',
-          textAlign: 'center',
-          borderBottom: '1px solid var(--color-ink)',
-          borderTop: '1px solid var(--color-ink)',
-        }}
-      >
+      <div className="empty-state">
         <div
           style={{
             fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4,

@@ -256,7 +256,7 @@ export function PestDiseaseLog() {
         </div>
 
         {sortedLogs.length === 0 && (
-          <div style={{ padding: '40px 22px', textAlign: 'center', borderBottom: '1px solid var(--color-ink)', borderTop: '1px solid var(--color-ink)' }}>
+          <div className="empty-state">
             <div style={{ ...HEADER_STYLE, marginBottom: 6 }}>{t('pestDisease.noEntries')}</div>
           </div>
         )}

@@ -248,7 +248,7 @@ export function VarietyTrials() {
         </div>
 
         {trials.length === 0 && (
-          <div style={{ padding: '40px 22px', textAlign: 'center', borderBottom: '1px solid var(--color-ink)', borderTop: '1px solid var(--color-ink)' }}>
+          <div className="empty-state">
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7, marginBottom: 6 }}>
               {tr('trials.noTrials')}
             </div>

@@ -207,11 +207,8 @@ export function BedDetail() {
 
         {/* Stats band */}
         <div
+          className="stats-band"
           style={{
-            margin: '40px 0',
-            padding: '20px 0',
-            borderTop: '1px solid var(--color-ink)',
-            borderBottom: '1px solid var(--color-ink)',
             display: 'grid',
             gridTemplateColumns: 'repeat(5, 1fr)',
             gap: 18,

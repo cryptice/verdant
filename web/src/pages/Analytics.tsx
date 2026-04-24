@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type SpeciesResponse } from '../api/client'
-import { Masthead, Chip, Rule } from '../components/faltet'
+import { Masthead, Chip } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 
@@ -218,18 +218,17 @@ export function Analytics() {
 
 function SectionHeading({ title }: { title: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 14 }}>
+    <div style={{ marginBottom: 14 }}>
       <h2 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 30, fontWeight: 300, margin: 0, fontVariationSettings: '"SOFT" 100, "opsz" 144' }}>
         {title}<span style={{ color: 'var(--color-accent)' }}>.</span>
       </h2>
-      <Rule inline variant="ink" />
     </div>
   )
 }
 
 function EmptyBlock({ label }: { label: string }) {
   return (
-    <div style={{ padding: '40px 22px', textAlign: 'center', borderTop: '1px solid var(--color-ink)', borderBottom: '1px solid var(--color-ink)' }}>
+    <div className="empty-state">
       <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7 }}>
         {label}
       </div>
