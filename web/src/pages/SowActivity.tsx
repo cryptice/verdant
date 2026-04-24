@@ -261,14 +261,27 @@ export function SowActivity() {
             </div>
           )}
 
-          {speciesId && !sowInTray && (
-            <label style={{ display: 'block' }}>
-              <span style={selectLabelStyle}>{t('sow.bedLabel')}</span>
-              <select value={bedId} onChange={e => setBedId(e.target.value)} style={selectStyle}>
-                <option value="">{t('sow.selectBed')}</option>
-                {beds?.map(b => <option key={b.id} value={b.id}>{b.gardenName} — {b.name}</option>)}
-              </select>
-            </label>
+          {speciesId && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 28px' }}>
+              {!sowInTray && (
+                <label style={{ display: 'block' }}>
+                  <span style={selectLabelStyle}>{t('sow.bedLabel')}</span>
+                  <select value={bedId} onChange={e => setBedId(e.target.value)} style={selectStyle}>
+                    <option value="">{t('sow.selectBed')}</option>
+                    {beds?.map(b => <option key={b.id} value={b.id}>{b.gardenName} — {b.name}</option>)}
+                  </select>
+                </label>
+              )}
+              <div style={sowInTray ? { gridColumn: '1 / -1' } : undefined}>
+                <span style={selectLabelStyle}>{t('sow.seedCount')}</span>
+                <input
+                  type="number"
+                  value={seedCount}
+                  onChange={e => setSeedCount(e.target.value)}
+                  style={{ ...selectStyle, fontFamily: 'var(--font-mono)', fontSize: 20 }}
+                />
+              </div>
+            </div>
           )}
 
           {!speciesId && (
@@ -276,20 +289,6 @@ export function SowActivity() {
               {t('sow.selectSpecies')}
             </p>
           )}
-        </div>
-
-
-        <div style={{ marginTop: 28, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 28px' }}>
-          {/* Seed count */}
-          <div>
-            <span style={selectLabelStyle}>{t('sow.seedCount')}</span>
-            <input
-              type="number"
-              value={seedCount}
-              onChange={e => setSeedCount(e.target.value)}
-              style={{ ...selectStyle, fontFamily: 'var(--font-mono)', fontSize: 20 }}
-            />
-          </div>
         </div>
 
         {/* Notes */}
