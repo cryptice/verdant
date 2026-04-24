@@ -25,6 +25,10 @@ RUN gradle dependencies --no-daemon -q
 # Stage 4: Run backend tests (reuses cached dependencies)
 FROM deps AS test
 COPY backend/src/ src/
+# Ryuk (Testcontainers reaper) can't bind its mapped port reliably under Cloud
+# Build's nested-container networking. The build VM is torn down after each run,
+# so the reaper is unnecessary here.
+ENV TESTCONTAINERS_RYUK_DISABLED=true
 RUN gradle test --no-daemon
 
 # Stage 5: Build backend
