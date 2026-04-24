@@ -449,11 +449,11 @@ export function GardenDetail() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="field-label">{t('bed.conditions.lengthMeters')}</label>
-              <input type="number" step="0.1" min="0" value={bedLength} onChange={e => setBedLength(e.target.value)} placeholder="—" className="input" />
+              <input type="number" step="0.1" min="0" value={bedLength} onChange={e => setBedLength(e.target.value)} placeholder="—" className="input w-full" />
             </div>
             <div>
               <label className="field-label">{t('bed.conditions.widthMeters')}</label>
-              <input type="number" step="0.1" min="0" value={bedWidth} onChange={e => setBedWidth(e.target.value)} placeholder="—" className="input" />
+              <input type="number" step="0.1" min="0" value={bedWidth} onChange={e => setBedWidth(e.target.value)} placeholder="—" className="input w-full" />
             </div>
           </div>
 
