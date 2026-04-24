@@ -43,7 +43,9 @@ export function SeedInventory() {
 
   const [showAdd, setShowAdd] = useState(false)
   const [addSpecies, setAddSpecies] = useState<SpeciesResponse | null>(null)
-  const [addQuantity, setAddQuantity] = useState('')
+  const [addPerPackage, setAddPerPackage] = useState('')
+  const [addPackages, setAddPackages] = useState('')
+  const addQuantity = (Number(addPerPackage) || 0) * (Number(addPackages) || 0)
   const [addCollection, setAddCollection] = useState('')
   const [addExpiration, setAddExpiration] = useState('')
   const [addCostUnit, setAddCostUnit] = useState('')
@@ -63,7 +65,7 @@ export function SeedInventory() {
   const createMut = useMutation({
     mutationFn: () => api.inventory.create({
       speciesId: addSpecies!.id,
-      quantity: Number(addQuantity),
+      quantity: addQuantity,
       collectionDate: addCollection || undefined,
       expirationDate: addExpiration || undefined,
       costPerUnitSek: addCostUnit ? Math.round(Number(addCostUnit) * 100) : undefined,
@@ -72,7 +74,7 @@ export function SeedInventory() {
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['seed-inventory'] })
-      setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration('')
+      setShowAdd(false); setAddSpecies(null); setAddPerPackage(''); setAddPackages(''); setAddCollection(''); setAddExpiration('')
       setAddCostUnit(''); setAddCostPackage(''); setAddUnitType('SEED'); setAddProviderId('')
       completeStep('add_seeds')
     },
@@ -288,19 +290,19 @@ export function SeedInventory() {
 
       <Dialog
         open={showAdd}
-        onClose={() => { setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration(''); setAddCostUnit(''); setAddCostPackage(''); setAddUnitType('SEED'); setAddProviderId('') }}
+        onClose={() => { setShowAdd(false); setAddSpecies(null); setAddPerPackage(''); setAddPackages(''); setAddCollection(''); setAddExpiration(''); setAddCostUnit(''); setAddCostPackage(''); setAddUnitType('SEED'); setAddProviderId('') }}
         title={t('seeds.addSeedsTitle')}
         actions={
           <>
             <button
-              onClick={() => { setShowAdd(false); setAddSpecies(null); setAddQuantity(''); setAddCollection(''); setAddExpiration(''); setAddCostUnit(''); setAddCostPackage(''); setAddUnitType('SEED'); setAddProviderId('') }}
+              onClick={() => { setShowAdd(false); setAddSpecies(null); setAddPerPackage(''); setAddPackages(''); setAddCollection(''); setAddExpiration(''); setAddCostUnit(''); setAddCostPackage(''); setAddUnitType('SEED'); setAddProviderId('') }}
               className="px-4 py-2 text-sm text-text-secondary"
             >
               {t('common.cancel')}
             </button>
             <button
               onClick={() => createMut.mutate()}
-              disabled={!addSpecies || !addQuantity || !addUnitType || createMut.isPending}
+              disabled={!addSpecies || !addPerPackage || !addPackages || !addUnitType || createMut.isPending}
               className="btn-primary text-sm"
             >
               {createMut.isPending ? t('species.adding') : t('common.add')}
@@ -327,15 +329,24 @@ export function SeedInventory() {
               ))}
             </select>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="field-label">{t('seeds.quantityLabel')}</label>
-              <input type="number" value={addQuantity} onChange={e => {
+              <label className="field-label">{t('seeds.perPackageLabel')}</label>
+              <input type="number" min="0" value={addPerPackage} onChange={e => {
                 const v = e.target.value
-                setAddQuantity(v)
-                const qty = Number(v)
+                setAddPerPackage(v)
+                const qty = (Number(v) || 0) * (Number(addPackages) || 0)
                 if (addCostPackage && qty) setAddCostUnit(String(Math.round((Number(addCostPackage) / qty) * 100) / 100))
               }} placeholder="e.g. 50" className="input w-full" />
+            </div>
+            <div>
+              <label className="field-label">{t('seeds.packagesLabel')}</label>
+              <input type="number" min="0" value={addPackages} onChange={e => {
+                const v = e.target.value
+                setAddPackages(v)
+                const qty = (Number(addPerPackage) || 0) * (Number(v) || 0)
+                if (addCostPackage && qty) setAddCostUnit(String(Math.round((Number(addCostPackage) / qty) * 100) / 100))
+              }} placeholder="e.g. 2" className="input w-full" />
             </div>
             <div>
               <label className="field-label">{t('seeds.unitType')} *</label>
@@ -347,6 +358,11 @@ export function SeedInventory() {
               </select>
             </div>
           </div>
+          {addQuantity > 0 && (
+            <p className="text-xs text-text-secondary -mt-2">
+              {t('seeds.totalLabel')}: {addQuantity}
+            </p>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="field-label">{t('seeds.collectionDate')}</label>
@@ -363,8 +379,7 @@ export function SeedInventory() {
               <input type="number" value={addCostUnit} onChange={e => {
                 const v = e.target.value
                 setAddCostUnit(v)
-                const qty = Number(addQuantity)
-                setAddCostPackage(v && qty ? String(Math.round(Number(v) * qty)) : '')
+                setAddCostPackage(v && addQuantity ? String(Math.round(Number(v) * addQuantity)) : '')
               }} placeholder="e.g. 2" className="input w-full" />
             </div>
             <div>
@@ -372,8 +387,7 @@ export function SeedInventory() {
               <input type="number" value={addCostPackage} onChange={e => {
                 const v = e.target.value
                 setAddCostPackage(v)
-                const qty = Number(addQuantity)
-                setAddCostUnit(v && qty ? String(Math.round((Number(v) / qty) * 100) / 100) : '')
+                setAddCostUnit(v && addQuantity ? String(Math.round((Number(v) / addQuantity) * 100) / 100) : '')
               }} placeholder="e.g. 100" className="input w-full" />
             </div>
           </div>
