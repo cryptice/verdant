@@ -147,7 +147,7 @@ export function GardenDetail() {
         }
         center={t('garden.masthead.center')}
         right={
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
             {allGardens && allGardens.length === 1 && (
               <Link to="/gardens?new=1" className="btn-secondary">
                 {t('dashboard.newGarden')}
