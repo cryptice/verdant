@@ -25,9 +25,10 @@
   --color-text-secondary: var(--color-forest);
   --color-text-muted:     color-mix(in srgb, var(--color-forest) 60%, transparent);
   /* Accent — primary interactive highlight (active states, decorative accents, affordances).
-     Clay is reserved for destructive semantics only (errors, delete). */
-  --color-accent:         var(--color-mustard);
-  --color-accent-hover:   color-mix(in srgb, var(--color-mustard) 85%, var(--color-ink));
+     Shifted deeper than --color-mustard so italic accent text stays legible
+     against cream/paper. Clay is reserved for destructive semantics only. */
+  --color-accent:         #9A6E18;
+  --color-accent-hover:   color-mix(in srgb, var(--color-accent) 85%, var(--color-ink));
   --color-accent-light:   var(--color-paper);
   --color-warm:           var(--color-paper);
   --color-error:          var(--color-clay);
@@ -165,7 +166,7 @@ select {
   background-size: 12px 8px;
 }
 select:focus {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%23C89A2B' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'><polyline points='1,1.5 6,6.5 11,1.5'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%239A6E18' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'><polyline points='1,1.5 6,6.5 11,1.5'/></svg>");
 }
 
 /* Preserved from the pre-Fältet CSS — used across ~54 form pages. Restyled to the

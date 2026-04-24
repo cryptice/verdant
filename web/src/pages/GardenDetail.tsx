@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
-import { Masthead, Chip, Stat, PhotoPlaceholder } from '../components/faltet'
+import { Masthead, Chip, Stat } from '../components/faltet'
 import { Dialog } from '../components/Dialog'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
@@ -328,11 +328,6 @@ export function GardenDetail() {
           >
             {harvestStemsThisYear} st
           </div>
-        </div>
-
-        {/* Garden layout — photo placeholder */}
-        <div style={{ marginTop: 48, maxWidth: 420 }}>
-          <PhotoPlaceholder tone="sage" aspect="tall" label={garden.name.toUpperCase()} />
         </div>
 
         {/* Danger callout — full-width, very bottom */}

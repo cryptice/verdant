@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
-import { Masthead, Stat, Rule, PhotoPlaceholder, Chip } from '../components/faltet'
+import { Masthead, Stat, Rule, Chip } from '../components/faltet'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
 export function Dashboard() {
@@ -80,16 +80,8 @@ export function Dashboard() {
       )}
 
       <div style={{ padding: '28px 40px' }}>
-        {/* Hero — asymmetric 2fr / 1fr */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '2fr 1fr',
-            gap: 40,
-            alignItems: 'center',
-          }}
-          className="dashboard-hero"
-        >
+        {/* Hero */}
+        <div className="dashboard-hero">
           <Stat
             size="large"
             value={activeBedCount}
@@ -97,7 +89,6 @@ export function Dashboard() {
             label={t('dashboard.hero.label')}
             hue="sage"
           />
-          <PhotoPlaceholder tone="sage" aspect="wide" label={t('dashboard.hero.photoLabel')} />
         </div>
 
         <div style={{ margin: '28px 0' }}>
