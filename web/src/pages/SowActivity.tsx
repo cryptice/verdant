@@ -165,75 +165,78 @@ export function SowActivity() {
       <div style={{ padding: '28px 40px', paddingBottom: 120 }}>
         <OnboardingHint />
 
-        <div data-onboarding="sow-species">
-          {isGroupTask && task ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-7 gap-y-5">
+          {/* Species */}
+          <div data-onboarding="sow-species">
+            {isGroupTask && task ? (
+              <div>
+                <span style={selectLabelStyle}>{t('common.speciesLabel')}</span>
+                <select
+                  value={speciesId}
+                  onChange={e => {
+                    const sp = allSpecies?.find(s => s.id === Number(e.target.value)) ?? null
+                    setSelectedSpecies(sp)
+                  }}
+                  style={selectStyle}
+                >
+                  <option value="">{t('sow.selectSpecies')}</option>
+                  {task.acceptableSpecies.map(entry => (
+                    <option key={entry.speciesId} value={entry.speciesId}>{entry.speciesName}</option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <SpeciesAutocomplete
+                value={selectedSpecies}
+                onChange={s => { setSelectedSpecies(s); setSeedBatchId('') }}
+              />
+            )}
+          </div>
+
+          {/* Stock (seed batch) */}
+          {speciesId ? (
             <div>
-              <span style={selectLabelStyle}>{t('common.speciesLabel')}</span>
-              <select
-                value={speciesId}
-                onChange={e => {
-                  const sp = allSpecies?.find(s => s.id === Number(e.target.value)) ?? null
-                  setSelectedSpecies(sp)
-                }}
-                style={selectStyle}
-              >
-                <option value="">{t('sow.selectSpecies')}</option>
-                {task.acceptableSpecies.map(entry => (
-                  <option key={entry.speciesId} value={entry.speciesId}>{entry.speciesName}</option>
-                ))}
-              </select>
+              <label style={{ display: 'block' }}>
+                <span style={selectLabelStyle}>{t('sow.seedBatch')}</span>
+                <select value={seedBatchId} onChange={e => setSeedBatchId(e.target.value)} style={selectStyle}>
+                  <option value="">{t('sow.seedBatchNone')}</option>
+                  {seedBatches?.map(b => {
+                    const unitLabel = b.unitType ? t(`unitTypes.${b.unitType}`) : ''
+                    const parts = [
+                      unitLabel ? `${b.quantity} ${unitLabel.toLowerCase()}` : String(b.quantity),
+                      b.expirationDate ? `${t('seeds.expires')} ${b.expirationDate}` : null,
+                    ]
+                    return (
+                      <option key={b.id} value={b.id}>
+                        {parts.filter(Boolean).join(' · ')}
+                      </option>
+                    )
+                  })}
+                </select>
+                {seedBatches && seedBatches.length === 0 && (
+                  <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13, color: 'var(--color-forest)', marginTop: 6 }}>
+                    <Trans
+                      i18nKey="sow.noSeedStock"
+                      components={{
+                        1: (
+                          <Link
+                            to={`/seed-stock?add=1&speciesId=${speciesId}`}
+                            style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}
+                          />
+                        ),
+                      }}
+                    />
+                  </p>
+                )}
+              </label>
             </div>
           ) : (
-            <SpeciesAutocomplete
-              value={selectedSpecies}
-              onChange={s => { setSelectedSpecies(s); setSeedBatchId('') }}
-            />
+            <div />
           )}
-        </div>
 
-        {/* Seed batch — shown once a species is picked */}
-        {speciesId && (
-          <div style={{ marginTop: 20 }}>
-            <label style={{ display: 'block' }}>
-              <span style={selectLabelStyle}>{t('sow.seedBatch')}</span>
-              <select value={seedBatchId} onChange={e => setSeedBatchId(e.target.value)} style={selectStyle}>
-                <option value="">{t('sow.seedBatchNone')}</option>
-                {seedBatches?.map(b => {
-                  const unitLabel = b.unitType ? t(`unitTypes.${b.unitType}`) : ''
-                  const parts = [
-                    unitLabel ? `${b.quantity} ${unitLabel.toLowerCase()}` : String(b.quantity),
-                    b.expirationDate ? `${t('seeds.expires')} ${b.expirationDate}` : null,
-                  ]
-                  return (
-                    <option key={b.id} value={b.id}>
-                      {parts.filter(Boolean).join(' · ')}
-                    </option>
-                  )
-                })}
-              </select>
-              {seedBatches && seedBatches.length === 0 && (
-                <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13, color: 'var(--color-forest)', marginTop: 6 }}>
-                  <Trans
-                    i18nKey="sow.noSeedStock"
-                    components={{
-                      1: (
-                        <Link
-                          to={`/seed-stock?add=1&speciesId=${speciesId}`}
-                          style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}
-                        />
-                      ),
-                    }}
-                  />
-                </p>
-              )}
-            </label>
-          </div>
-        )}
-
-        <div style={{ marginTop: 28 }} data-onboarding="sow-location">
-          {/* Destination toggle — only shown when no preset bed and a species is selected */}
+          {/* Destination toggle — full-width row */}
           {speciesId && !presetBedId && (
-            <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
+            <div className="md:col-span-2" style={{ display: 'flex', gap: 16 }}>
               <button
                 type="button"
                 onClick={() => setSowInTray(false)}
@@ -271,46 +274,48 @@ export function SowActivity() {
             </div>
           )}
 
+          {/* Bed */}
+          {speciesId && !sowInTray && (
+            <label style={{ display: 'block' }} data-onboarding="sow-location">
+              <span style={selectLabelStyle}>{t('sow.bedLabel')}</span>
+              <select value={bedId} onChange={e => setBedId(e.target.value)} style={selectStyle}>
+                <option value="">{t('sow.selectBed')}</option>
+                {beds?.map(b => <option key={b.id} value={b.id}>{b.gardenName} — {b.name}</option>)}
+              </select>
+            </label>
+          )}
+
+          {/* Number */}
           {speciesId && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 28px' }}>
-              {!sowInTray && (
-                <label style={{ display: 'block' }}>
-                  <span style={selectLabelStyle}>{t('sow.bedLabel')}</span>
-                  <select value={bedId} onChange={e => setBedId(e.target.value)} style={selectStyle}>
-                    <option value="">{t('sow.selectBed')}</option>
-                    {beds?.map(b => <option key={b.id} value={b.id}>{b.gardenName} — {b.name}</option>)}
-                  </select>
-                </label>
-              )}
-              <div style={sowInTray ? { gridColumn: '1 / -1' } : undefined}>
-                <span style={selectLabelStyle}>{t('sow.seedCount')}</span>
-                <input
-                  type="number"
-                  value={seedCount}
-                  onChange={e => setSeedCount(e.target.value)}
-                  style={{ ...selectStyle, fontFamily: 'var(--font-mono)', fontSize: 20 }}
-                />
-              </div>
+            <div className={sowInTray ? 'md:col-span-2' : ''}>
+              <span style={selectLabelStyle}>{t('sow.seedCount')}</span>
+              <input
+                type="number"
+                value={seedCount}
+                onChange={e => setSeedCount(e.target.value)}
+                style={{ ...selectStyle, fontFamily: 'var(--font-mono)', fontSize: 20 }}
+              />
             </div>
           )}
 
+          {/* Fallback when no species is picked yet */}
           {!speciesId && (
-            <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-forest)', opacity: 0.6 }}>
+            <p className="md:col-span-2" style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-forest)', opacity: 0.6 }}>
               {t('sow.selectSpecies')}
             </p>
           )}
-        </div>
 
-        {/* Notes */}
-        <div style={{ marginTop: 28, border: '1px solid var(--color-ink)', background: 'var(--color-paper)', padding: '14px 16px' }}>
-          <div style={selectLabelStyle}>{t('common.notesLabel')}</div>
-          <textarea
-            value={notes}
-            onChange={e => setNotes(e.target.value)}
-            placeholder={t('common.optional')}
-            rows={3}
-            style={{ width: '100%', minHeight: 80, background: 'transparent', border: 'none', outline: 'none', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 16, resize: 'vertical', boxSizing: 'border-box' }}
-          />
+          {/* Notes — full-width */}
+          <div className="md:col-span-2" style={{ border: '1px solid var(--color-ink)', background: 'var(--color-paper)', padding: '14px 16px' }}>
+            <div style={selectLabelStyle}>{t('common.notesLabel')}</div>
+            <textarea
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder={t('common.optional')}
+              rows={3}
+              style={{ width: '100%', minHeight: 80, background: 'transparent', border: 'none', outline: 'none', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 16, resize: 'vertical', boxSizing: 'border-box' }}
+            />
+          </div>
         </div>
 
         {sowMut.error && (
@@ -325,7 +330,7 @@ export function SowActivity() {
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.6, marginBottom: 12 }}>
               {t('sow.recentSeedStock')}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1.5">
               {allSeedStock
                 .filter(s => s.quantity > 0)
                 .slice(0, 10)
