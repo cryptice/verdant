@@ -190,7 +190,7 @@ export function SeasonList() {
         </div>
       )}
 
-      <div style={{ padding: '28px 40px' }}>
+      <div className="page-body">
         <Ledger
           columns={[
             {

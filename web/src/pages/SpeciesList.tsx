@@ -103,7 +103,7 @@ export function SpeciesList() {
       />
       <OnboardingHint />
 
-      <div style={{ padding: '28px 40px' }}>
+      <div className="page-body">
         <div style={{ marginBottom: 16 }}>
           <input
             type="search"

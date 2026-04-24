@@ -113,7 +113,7 @@ export function TaskList() {
         }
       />
 
-      <div style={{ padding: '28px 40px' }}>
+      <div className="page-body">
         {/* Filter pills */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
           {FILTERS.map((a) => {

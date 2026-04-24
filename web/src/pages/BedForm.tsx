@@ -104,7 +104,7 @@ export function BedForm() {
         center={t('form.masthead.center')}
       />
 
-      <div style={{ padding: '28px 40px', paddingBottom: 120 }}>
+      <div className="page-body-tight">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 28px' }}>
           <Field
             label={t('common.nameLabel')}

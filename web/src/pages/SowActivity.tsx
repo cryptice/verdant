@@ -162,7 +162,7 @@ export function SowActivity() {
         center={t('sowing.masthead.center')}
       />
 
-      <div style={{ padding: '28px 40px', paddingBottom: 120 }}>
+      <div className="page-body-tight">
         <OnboardingHint />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-7 gap-y-5">

@@ -232,7 +232,7 @@ export function VarietyTrials() {
         }
       />
       <OnboardingHint />
-      <div style={{ padding: '28px 40px' }}>
+      <div className="page-body">
         {/* Season filter */}
         <div style={{ marginBottom: 22 }}>
           <select

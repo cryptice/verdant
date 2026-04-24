@@ -166,7 +166,7 @@ export function GardenDetail() {
         }
       />
 
-      <div style={{ padding: '28px 40px' }}>
+      <div className="page-body">
         {/* Hero */}
         <div>
           <h1

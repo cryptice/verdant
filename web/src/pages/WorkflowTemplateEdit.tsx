@@ -396,7 +396,7 @@ export function WorkflowTemplateEdit() {
         center={t('workflows.masthead.center')}
       />
 
-      <div style={{ padding: '28px 40px', paddingBottom: 120 }}>
+      <div className="page-body-tight">
         {/* Template-level fields */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 28px' }}>
           <Field

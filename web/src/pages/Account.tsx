@@ -35,7 +35,7 @@ export function Account() {
         center={t('account.masthead.center')}
       />
 
-      <div style={{ padding: '28px 40px', paddingBottom: 80 }}>
+      <div className="page-body" style={{ paddingBottom: 80 }}>
         {/* User info row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 40 }}>
           {user.avatarUrl ? (

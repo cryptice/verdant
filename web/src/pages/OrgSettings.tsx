@@ -69,7 +69,7 @@ export function OrgSettings() {
         center={t('orgSettings.masthead.center')}
       />
 
-      <div style={{ padding: '28px 40px', paddingBottom: 80 }}>
+      <div className="page-body" style={{ paddingBottom: 80 }}>
 
         {/* Org info fields — owners only */}
         {isOwner && (

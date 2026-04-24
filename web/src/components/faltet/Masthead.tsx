@@ -11,6 +11,7 @@ export function Masthead({
 }) {
   return (
     <div
+      className="faltet-masthead"
       style={{
         display: 'grid',
         gridTemplateColumns: '1fr auto 1fr',

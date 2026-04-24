@@ -41,7 +41,7 @@ export function GardenForm() {
         center={t('form.masthead.center')}
       />
 
-      <div style={{ padding: '28px 40px', paddingBottom: 120 }}>
+      <div className="page-body-tight">
         <OnboardingHint />
 
         <div data-onboarding="garden-form">

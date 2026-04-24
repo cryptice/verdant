@@ -42,7 +42,7 @@ export function PlantedSpeciesDetail() {
         }
       />
 
-      <div style={{ padding: '28px 40px' }}>
+      <div className="page-body">
         {/* Hero */}
         <h1
           style={{

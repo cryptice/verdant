@@ -207,7 +207,7 @@ export function BouquetRecipes() {
         }
       />
 
-      <div style={{ padding: '28px 40px' }}>
+      <div className="page-body">
         {recipes.length === 0 && (
           isActive && !isStepComplete('create_bouquet') ? (
             <div className="bg-accent-light/50 border border-accent/15 rounded-2xl px-6 py-6 text-center">

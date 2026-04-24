@@ -140,7 +140,7 @@ export function CustomerList() {
       />
       <OnboardingHint />
 
-      <div style={{ padding: '28px 40px' }}>
+      <div className="page-body">
         <LedgerFilters
           options={ALL_CHANNELS.map(ch => ({
             id: ch,

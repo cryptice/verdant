@@ -106,7 +106,7 @@ export function WorkflowProgress() {
     <div>
       <Masthead left={mastheadLeft} center={t('workflows.progress.masthead.center')} />
 
-      <div style={{ padding: '28px 40px' }}>
+      <div className="page-body">
         {/* Species selector */}
         <div style={{ marginBottom: 32 }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7, marginBottom: 4 }}>

@@ -166,7 +166,7 @@ export function SeedInventory() {
           </button>
         }
       />
-      <div style={{ padding: '28px 40px' }}>
+      <div className="page-body">
         {items.length === 0 && (
           <div className="empty-state">
             <div style={{ ...HEADER_STYLE, opacity: 1, marginBottom: 16 }}>{t('seeds.noBatchesTitle')}</div>

@@ -130,7 +130,7 @@ export function PlantDetail() {
         }
       />
 
-      <div style={{ padding: '28px 40px' }}>
+      <div className="page-body">
         {/* Hero */}
         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 40, alignItems: 'start' }}>
           <div>

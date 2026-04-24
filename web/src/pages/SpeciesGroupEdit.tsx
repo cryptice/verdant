@@ -102,7 +102,7 @@ export function SpeciesGroupEdit() {
         center={t('form.masthead.center')}
       />
 
-      <div style={{ padding: '28px 40px', paddingBottom: 120 }}>
+      <div className="page-body-tight">
         {/* Group name */}
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
           <div style={{ flex: 1 }}>

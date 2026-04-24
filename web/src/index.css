@@ -129,6 +129,49 @@ body {
   border-top: 3px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
 }
 
+/* Shared page content wrapper — comfortable desktop padding that tightens on
+   mobile. Apply via className="page-body" instead of the old inline
+   padding: '28px 40px' pattern. */
+.page-body {
+  padding: 28px 40px;
+}
+.page-body-tight {
+  padding: 28px 40px 120px;
+}
+
+/* Generic fluid form rows for pages that use fixed repeat(2,1fr) / repeat(3,1fr)
+   grids but want to collapse on mobile. */
+.fluid-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.fluid-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+
+@media (max-width: 768px) {
+  .page-body, .page-body-tight { padding-left: 16px !important; padding-right: 16px !important; }
+  .page-body-tight { padding-bottom: 120px !important; }
+  .faltet-masthead {
+    /* Leave room for the mobile burger icon (fixed top-left ~10px + 38px wide). */
+    padding-left: 56px !important;
+    grid-template-columns: 1fr !important;
+    gap: 6px;
+  }
+  .faltet-masthead > *:nth-child(2) {
+    /* Decorative italic center title; hide on mobile. */
+    display: none;
+  }
+  .faltet-masthead > *:nth-child(3) {
+    /* Right-hand actions flow under the breadcrumb on narrow screens. */
+    text-align: left !important;
+  }
+  .fluid-grid-2, .fluid-grid-3 { grid-template-columns: 1fr !important; }
+
+  /* Any inline grid-template-columns inside a page body collapses to a single
+     column on narrow viewports unless the element opts out with .keep-cols.
+     This catches most form/hero 2-column layouts without edits per page. */
+  .page-body [style*="grid-template-columns"]:not(.keep-cols),
+  .page-body-tight [style*="grid-template-columns"]:not(.keep-cols) {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 /* Dashboard mobile — override the inline 3-col grid + fixed horizontal paddings
    on narrow viewports. Inline styles take precedence, so !important is required. */
 @media (max-width: 768px) {

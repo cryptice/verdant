@@ -80,7 +80,7 @@ export function Dashboard() {
         </div>
       )}
 
-      <div className="dashboard-body" style={{ padding: '28px 40px' }}>
+      <div className="dashboard-body page-body">
         {/* Hero */}
         <div className="dashboard-hero">
           <Stat

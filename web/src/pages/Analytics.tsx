@@ -55,7 +55,7 @@ export function Analytics() {
     <div>
       <Masthead left={t('nav.analytics')} center={t('analytics.masthead.center')} />
 
-      <div style={{ padding: '28px 40px', display: 'flex', flexDirection: 'column', gap: 40 }}>
+      <div className="page-body" style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
 
         {/* § Season overview */}
         <section>

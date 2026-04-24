@@ -142,7 +142,7 @@ export function BedDetail() {
         }
       />
 
-      <div style={{ padding: '28px 40px' }}>
+      <div className="page-body">
         {/* Alphabetical prev/next nav within the same garden */}
         {(prevBed || nextBed) && (
           <div

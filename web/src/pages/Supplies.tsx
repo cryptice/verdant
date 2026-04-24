@@ -556,7 +556,7 @@ export function Supplies() {
         }
       />
 
-      <div style={{ padding: '28px 40px' }}>
+      <div className="page-body">
         {CATEGORIES.map(cat => {
           const items = pagedGrouped.get(cat) ?? []
           const allExpanded = items.length > 0 && items.every(item => expanded.has(item.type.id))

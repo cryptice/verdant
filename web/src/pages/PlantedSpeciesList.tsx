@@ -34,7 +34,7 @@ export function PlantedSpeciesList() {
       />
       <OnboardingHint />
 
-      <div data-onboarding="plant-actions" style={{ padding: '28px 40px' }}>
+      <div data-onboarding="plant-actions" className="page-body">
         <input
           aria-label={t('common.searchSpecies')}
           value={search}

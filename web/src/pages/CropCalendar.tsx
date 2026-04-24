@@ -178,7 +178,7 @@ export function CropCalendar() {
     <div>
       <Masthead left={t('nav.calendar')} center={t('calendar.masthead.center')} />
 
-      <div style={{ padding: '28px 40px' }}>
+      <div className="page-body">
         {/* Season selector */}
         <div style={{ marginBottom: 28, display: 'flex', alignItems: 'flex-end', gap: 14 }}>
           <div>

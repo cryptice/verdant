@@ -126,7 +126,7 @@ export function ApplySupply() {
         center={t('form.masthead.center')}
       />
 
-      <div style={{ padding: '28px 40px', paddingBottom: 120 }}>
+      <div className="page-body-tight">
         {/* § Applicera på */}
         <SectionLabel>§ {t('supplyApplication.targetLabel')}</SectionLabel>
         <div style={{ marginTop: 8 }}><Rule variant="soft" /></div>
