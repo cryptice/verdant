@@ -41,7 +41,7 @@ function barStyle(range: [number, number], color: string, top: number): React.CS
 }
 
 const selectStyle: React.CSSProperties = {
-  background: 'transparent',
+  backgroundColor: 'transparent',
   border: 'none',
   borderBottom: '1px solid var(--color-ink)',
   borderRadius: 0,

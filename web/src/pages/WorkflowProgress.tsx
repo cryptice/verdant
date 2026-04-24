@@ -26,7 +26,7 @@ function eventTypeTone(eventType: string | null | undefined): 'mustard' | 'clay'
 }
 
 const selectStyle: React.CSSProperties = {
-  background: 'transparent',
+  backgroundColor: 'transparent',
   border: 'none',
   borderBottom: '1px solid var(--color-ink)',
   borderRadius: 0,

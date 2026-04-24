@@ -22,7 +22,7 @@ const selectLabelStyle: React.CSSProperties = {
 const selectStyle: React.CSSProperties = {
   display: 'block',
   width: '100%',
-  background: 'transparent',
+  backgroundColor: 'transparent',
   border: 'none',
   borderBottom: '1px solid var(--color-ink)',
   borderRadius: 0,
