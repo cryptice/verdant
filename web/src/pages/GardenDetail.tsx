@@ -141,7 +141,10 @@ export function GardenDetail() {
       <Masthead
         left={
           <span>
-            {t('nav.gardens')} /{' '}
+            <Link to="/gardens" style={{ color: 'inherit', textDecoration: 'none' }}>
+              {t('nav.gardens')}
+            </Link>
+            {' / '}
             <span style={{ color: 'var(--color-accent)' }}>{garden.name}</span>
           </span>
         }

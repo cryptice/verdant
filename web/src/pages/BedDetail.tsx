@@ -18,6 +18,20 @@ export function BedDetail() {
     queryFn: () => api.gardens.get(bed!.gardenId),
     enabled: !!bed,
   })
+  const { data: siblings = [] } = useQuery({
+    queryKey: ['garden-beds', bed?.gardenId],
+    queryFn: () => api.gardens.beds(bed!.gardenId),
+    enabled: !!bed,
+  })
+
+  // Alphabetical prev/next navigation within the same garden.
+  const sortedSiblings = [...siblings].sort((a, b) => a.name.localeCompare(b.name))
+  const currentIdx = sortedSiblings.findIndex((s) => s.id === bedId)
+  const prevBed = currentIdx > 0 ? sortedSiblings[currentIdx - 1] : null
+  const nextBed =
+    currentIdx >= 0 && currentIdx < sortedSiblings.length - 1
+      ? sortedSiblings[currentIdx + 1]
+      : null
 
   const [modalSpecies, setModalSpecies] = useState<number | null>(null)
 
@@ -39,7 +53,16 @@ export function BedDetail() {
       <Masthead
         left={
           <span>
-            {t('nav.gardens')} / {garden?.name ?? '…'} /{' '}
+            <Link to="/gardens" style={{ color: 'inherit', textDecoration: 'none' }}>
+              {t('nav.gardens')}
+            </Link>
+            {' / '}
+            {garden ? (
+              <Link to={`/garden/${garden.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                {garden.name}
+              </Link>
+            ) : '…'}
+            {' / '}
             <span style={{ color: 'var(--color-accent)' }}>{bed.name}</span>
           </span>
         }
@@ -47,6 +70,33 @@ export function BedDetail() {
       />
 
       <div style={{ padding: '28px 40px' }}>
+        {/* Alphabetical prev/next nav within the same garden */}
+        {(prevBed || nextBed) && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: 20,
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+            }}
+          >
+            {prevBed ? (
+              <Link to={`/bed/${prevBed.id}`} style={{ color: 'var(--color-accent)', textDecoration: 'none' }}>
+                ← {prevBed.name}
+              </Link>
+            ) : <span />}
+            {nextBed ? (
+              <Link to={`/bed/${nextBed.id}`} style={{ color: 'var(--color-accent)', textDecoration: 'none' }}>
+                {nextBed.name} →
+              </Link>
+            ) : <span />}
+          </div>
+        )}
+
         {/* Hero row */}
         <div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
