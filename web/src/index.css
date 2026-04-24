@@ -186,17 +186,13 @@ body {
   }
   .dashboard-columns {
     grid-template-columns: 1fr !important;
-    gap: 20px !important;
+    gap: 28px !important;
   }
   .dashboard-columns > section {
-    padding: 0 !important;
+    padding: 16px 18px !important;
+    background: var(--color-paper);
     border-right: none !important;
-    border-bottom: 1px solid color-mix(in srgb, var(--color-ink) 25%, transparent);
-    padding-bottom: 18px !important;
-  }
-  .dashboard-columns > section:last-child {
-    border-bottom: none;
-    padding-bottom: 0 !important;
+    border-top: 3px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
   }
 }
 

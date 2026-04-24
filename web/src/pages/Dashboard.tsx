@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
-import { Masthead, Stat, Rule, Chip } from '../components/faltet'
+import { Masthead, Stat, Chip } from '../components/faltet'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
 export function Dashboard() {
@@ -81,8 +81,9 @@ export function Dashboard() {
       )}
 
       <div className="dashboard-body page-body">
-        {/* Hero */}
-        <div className="dashboard-hero">
+        {/* Hero — wrapped as a stats-band so the accent stripe + paper surface
+            replaces the old full-width ink rule that used to sit below it. */}
+        <div className="stats-band dashboard-hero" style={{ margin: '0 0 28px' }}>
           <Stat
             size="large"
             value={activeBedCount}
@@ -90,10 +91,6 @@ export function Dashboard() {
             label={t('dashboard.hero.label')}
             hue="sage"
           />
-        </div>
-
-        <div style={{ margin: '28px 0' }}>
-          <Rule variant="ink" />
         </div>
 
         {/* Three content columns */}
@@ -249,10 +246,6 @@ export function Dashboard() {
           </section>
         </div>
 
-        <div style={{ margin: '28px 0 16px' }}>
-          <Rule variant="ink" />
-        </div>
-
         {/* Harvest totals band — dark ink bg + cream text + butter decorative circle */}
         <div
           style={{
@@ -261,6 +254,7 @@ export function Dashboard() {
             padding: '22px 28px',
             position: 'relative',
             overflow: 'hidden',
+            marginTop: 28,
           }}
         >
           {/* Decorative butter circle top-right */}
@@ -319,10 +313,9 @@ function ColumnHeader({ title, right }: { title: string; right?: React.ReactNode
       style={{
         display: 'flex',
         alignItems: 'center',
+        justifyContent: 'space-between',
         gap: 10,
-        padding: '0 0 10px',
-        borderBottom: '1px solid var(--color-ink)',
-        marginBottom: 6,
+        marginBottom: 12,
       }}
     >
       <span
@@ -336,7 +329,6 @@ function ColumnHeader({ title, right }: { title: string; right?: React.ReactNode
         {title}
         <span style={{ color: 'var(--color-accent)' }}>.</span>
       </span>
-      <Rule inline variant="soft" />
       {right}
     </div>
   )
