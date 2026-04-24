@@ -4,7 +4,7 @@ steps:
   # run inside the image build. Instead we stand up a real Postgres here and
   # point @QuarkusTest classes at it via system properties.
   - id: 'postgres-up'
-    name: 'docker'
+    name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
     args:
       - '-c'
@@ -15,13 +15,17 @@ steps:
           -e POSTGRES_PASSWORD=test \
           -e POSTGRES_DB=verdant \
           postgres:17
-        for i in $(seq 1 30); do
+        i=0
+        while [ $i -lt 30 ]; do
           if docker exec pg-test pg_isready -U test -d verdant; then
-            echo "postgres ready"; exit 0
+            echo "postgres ready"
+            exit 0
           fi
+          i=$((i + 1))
           sleep 1
         done
-        echo "postgres did not become ready in 30s"; exit 1
+        echo "postgres did not become ready in 30s"
+        exit 1
 
   # Test step 2: run the backend test suite against the sidecar.
   # Quarkus reads these env vars via its standard config convention. Because the
