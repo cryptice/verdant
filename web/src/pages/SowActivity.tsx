@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api, type SpeciesResponse } from '../api/client'
-import { Masthead, Rule } from '../components/faltet'
+import { Masthead } from '../components/faltet'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
@@ -32,14 +32,6 @@ const selectStyle: React.CSSProperties = {
   fontWeight: 300,
   color: 'var(--color-ink)',
   outline: 'none',
-}
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.6 }}>
-      {children}
-    </div>
-  )
 }
 
 export function SowActivity() {
@@ -173,11 +165,7 @@ export function SowActivity() {
       <div style={{ padding: '28px 40px', paddingBottom: 120 }}>
         <OnboardingHint />
 
-        {/* § 1. Art */}
-        <SectionLabel>§ 1. {t('sowing.section.species')}</SectionLabel>
-        <div style={{ marginTop: 8 }}><Rule variant="soft" /></div>
-
-        <div style={{ marginTop: 14 }} data-onboarding="sow-species">
+        <div data-onboarding="sow-species">
           {isGroupTask && task ? (
             <div>
               <span style={selectLabelStyle}>{t('common.speciesLabel')}</span>
@@ -232,13 +220,7 @@ export function SowActivity() {
           </div>
         )}
 
-        {/* § 2. Bädd */}
-        <div style={{ marginTop: 28 }}>
-          <SectionLabel>§ 2. {t('sowing.section.bed')}</SectionLabel>
-          <div style={{ marginTop: 8 }}><Rule variant="soft" /></div>
-        </div>
-
-        <div style={{ marginTop: 14 }} data-onboarding="sow-location">
+        <div style={{ marginTop: 28 }} data-onboarding="sow-location">
           {/* Destination toggle — only shown when no preset bed and a species is selected */}
           {speciesId && !presetBedId && (
             <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
@@ -296,13 +278,8 @@ export function SowActivity() {
           )}
         </div>
 
-        {/* § 3. Detaljer */}
-        <div style={{ marginTop: 28 }}>
-          <SectionLabel>§ 3. {t('sowing.section.details')}</SectionLabel>
-          <div style={{ marginTop: 8 }}><Rule variant="soft" /></div>
-        </div>
 
-        <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 28px' }}>
+        <div style={{ marginTop: 28, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 28px' }}>
           {/* Seed count */}
           <div>
             <span style={selectLabelStyle}>{t('sow.seedCount')}</span>
