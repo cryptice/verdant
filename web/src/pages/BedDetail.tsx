@@ -111,11 +111,17 @@ export function BedDetail() {
             <Link
               to={`/sow?bedId=${bedId}`}
               style={{
-                fontFamily: 'var(--font-display)',
-                fontStyle: 'italic',
-                fontSize: 16,
-                color: 'var(--color-accent)',
+                display: 'inline-block',
+                background: 'var(--color-accent)',
+                color: 'var(--color-cream)',
+                border: '1px solid var(--color-accent)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 11,
+                letterSpacing: 1.6,
+                textTransform: 'uppercase',
                 textDecoration: 'none',
+                padding: '7px 16px',
+                whiteSpace: 'nowrap',
               }}
             >
               + {t('bed.plants.sow')}
@@ -206,112 +212,64 @@ export function BedDetail() {
           </button>
         ))}
 
-        {/* Bottom row — harvest card + danger callout */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 22, marginTop: 40 }}>
-          {/* Harvest card — TODO: wire to real harvest stats when available */}
+        {/* Harvest card — TODO: wire to real harvest stats when available */}
+        <div
+          style={{
+            background: 'var(--color-ink)',
+            color: 'var(--color-cream)',
+            padding: '22px 28px',
+            position: 'relative',
+            overflow: 'hidden',
+            marginTop: 40,
+          }}
+        >
           <div
             style={{
-              background: 'var(--color-ink)',
-              color: 'var(--color-cream)',
-              padding: '22px 28px',
-              position: 'relative',
-              overflow: 'hidden',
+              position: 'absolute',
+              top: -40,
+              right: -40,
+              width: 140,
+              height: 140,
+              borderRadius: '50%',
+              background: 'var(--color-butter)',
+              opacity: 0.2,
+            }}
+          />
+          <div
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontStyle: 'italic',
+              fontSize: 26,
+              fontVariationSettings: '"SOFT" 100, "opsz" 144',
             }}
           >
-            <div
-              style={{
-                position: 'absolute',
-                top: -40,
-                right: -40,
-                width: 140,
-                height: 140,
-                borderRadius: '50%',
-                background: 'var(--color-butter)',
-                opacity: 0.2,
-              }}
-            />
-            <div
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontStyle: 'italic',
-                fontSize: 26,
-                fontVariationSettings: '"SOFT" 100, "opsz" 144',
-              }}
-            >
-              {t('bed.harvest.headline', { stems: 142 })}{' '}
-              <span style={{ color: 'var(--color-blush)' }}>{t('bed.harvest.season', { year: 2025 })}</span>.
-            </div>
-            <div
-              style={{
-                marginTop: 12,
-                fontFamily: 'var(--font-mono)',
-                fontSize: 10,
-                letterSpacing: 1.4,
-                textTransform: 'uppercase',
-                display: 'flex',
-                gap: 18,
-              }}
-            >
-              <span style={{ color: 'var(--color-sage)' }}>{t('bed.harvest.bestWeek', { week: 32 })}</span>
-              <span style={{ color: 'var(--color-blush)' }}>+24 % vs 2024 ▲</span>
-            </div>
+            {t('bed.harvest.headline', { stems: 142 })}{' '}
+            <span style={{ color: 'var(--color-blush)' }}>{t('bed.harvest.season', { year: 2025 })}</span>.
           </div>
-
-          {/* Danger callout */}
           <div
             style={{
-              border: '1px solid color-mix(in srgb, var(--color-accent) 40%, transparent)',
-              padding: '22px 28px',
+              marginTop: 12,
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+              display: 'flex',
+              gap: 18,
             }}
           >
-            <div
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 10,
-                letterSpacing: 1.4,
-                textTransform: 'uppercase',
-                color: 'var(--color-accent)',
-                marginBottom: 10,
-              }}
-            >
-              {t('bed.danger.title')}
-            </div>
-            <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 15, margin: 0 }}>
-              {t('bed.danger.warning')}
-            </p>
-            <button
-              onClick={() => {
-                if (window.confirm(t('bed.danger.confirm') ?? '')) {
-                  api.beds.delete(bedId)
-                }
-              }}
-              style={{
-                marginTop: 10,
-                background: 'transparent',
-                border: 'none',
-                fontFamily: 'var(--font-mono)',
-                fontSize: 10,
-                letterSpacing: 1.4,
-                textTransform: 'uppercase',
-                color: 'var(--color-accent)',
-                cursor: 'pointer',
-                padding: 0,
-              }}
-            >
-              → {t('bed.danger.delete', { id: String(bedId).padStart(2, '0') })}
-            </button>
+            <span style={{ color: 'var(--color-sage)' }}>{t('bed.harvest.bestWeek', { week: 32 })}</span>
+            <span style={{ color: 'var(--color-blush)' }}>+24 % vs 2024 ▲</span>
           </div>
         </div>
 
-        {/* Bed layout — photo + dimensions */}
-        <div style={{ marginTop: 48, maxWidth: 420 }}>
+        {/* Bed layout — photo + dimensions side-by-side */}
+        <div style={{ marginTop: 48, display: 'grid', gridTemplateColumns: '260px 1fr', gap: 22, alignItems: 'start' }}>
           <PhotoPlaceholder tone="sage" aspect="tall" label={bed.name.toUpperCase()} />
           <div
             style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
               gap: 0,
-              marginTop: 12,
               border: '1px solid var(--color-ink)',
             }}
           >
@@ -320,6 +278,52 @@ export function BedDetail() {
             <MetaCell label={t('bed.meta.orient')} value={bed.aspect ?? '—'} />
             <MetaCell label={t('bed.meta.area')} value={`${area} m²`} />
           </div>
+        </div>
+
+        {/* Danger callout */}
+        <div
+          style={{
+            marginTop: 48,
+            border: '1px solid color-mix(in srgb, var(--color-accent) 40%, transparent)',
+            padding: '22px 28px',
+          }}
+        >
+          <div
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+              color: 'var(--color-accent)',
+              marginBottom: 10,
+            }}
+          >
+            {t('bed.danger.title')}
+          </div>
+          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 15, margin: 0 }}>
+            {t('bed.danger.warning')}
+          </p>
+          <button
+            onClick={() => {
+              if (window.confirm(t('bed.danger.confirm') ?? '')) {
+                api.beds.delete(bedId)
+              }
+            }}
+            style={{
+              marginTop: 10,
+              background: 'transparent',
+              border: 'none',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+              color: 'var(--color-accent)',
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            → {t('bed.danger.delete', { id: String(bedId).padStart(2, '0') })}
+          </button>
         </div>
       </div>
 
@@ -390,7 +394,7 @@ function SectionHeader({
           {meta}
         </span>
       )}
-      {actions}
+      {actions && <div style={{ marginLeft: 'auto' }}>{actions}</div>}
     </div>
   )
 }
