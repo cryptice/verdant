@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
-import { Masthead, Chip, Stat, PhotoPlaceholder, Rule } from '../components/faltet'
+import { Masthead, Chip, Stat, PhotoPlaceholder } from '../components/faltet'
 import { Dialog } from '../components/Dialog'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
@@ -202,9 +202,9 @@ export function GardenDetail() {
         <div
           style={{
             margin: '40px 0',
-            padding: '20px 0',
-            borderTop: '1px solid var(--color-ink)',
-            borderBottom: '1px solid var(--color-ink)',
+            padding: '22px 28px',
+            background: 'var(--color-paper)',
+            borderTop: '3px solid var(--color-accent)',
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
             gap: 18,
@@ -216,7 +216,7 @@ export function GardenDetail() {
         </div>
 
         {/* Beds section heading */}
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginTop: 40, marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginTop: 40, marginBottom: 14 }}>
           <h2
             style={{
               fontFamily: 'var(--font-display)',
@@ -229,7 +229,6 @@ export function GardenDetail() {
           >
             {t('garden.beds')}<span style={{ color: 'var(--color-accent)' }}>.</span>
           </h2>
-          <Rule inline variant="ink" />
           <button
             onClick={() => { resetNewBed(); setShowNewBed(true) }}
             style={{
@@ -262,16 +261,7 @@ export function GardenDetail() {
               <Link
                 key={bed.id}
                 to={`/bed/${bed.id}`}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 10,
-                  padding: '14px 16px',
-                  border: '1px solid color-mix(in srgb, var(--color-ink) 25%, transparent)',
-                  textDecoration: 'none',
-                  color: 'var(--color-ink)',
-                  minHeight: 92,
-                }}
+                className="bed-card"
               >
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
                   <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, lineHeight: 1.1 }}>{bed.name}</span>
