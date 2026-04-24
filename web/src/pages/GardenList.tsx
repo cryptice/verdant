@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { Masthead, Ledger } from '../components/faltet'
@@ -57,6 +57,16 @@ export function GardenList() {
     setGardenEmoji(defaultIcon)
     setShowNewGarden(true)
   }
+
+  // Deep-link: /gardens?new=1 auto-opens the new-garden dialog (used by the
+  // GardenDetail page for single-garden users who skip the index via sidebar).
+  const [searchParams, setSearchParams] = useSearchParams()
+  useEffect(() => {
+    if (searchParams.get('new') !== '1') return
+    openNewGarden()
+    setSearchParams({}, { replace: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
 
   // Compute bed count per garden from the beds list
   const bedCountByGarden = new Map<number, number>()

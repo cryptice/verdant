@@ -32,6 +32,15 @@ export function GardenDetail() {
     queryFn: () => api.gardens.beds(gardenId),
   })
 
+  // Used to decide whether to surface a "+ New garden" shortcut here — when the
+  // user only has this one garden, the sidebar skips the Gardens index, so the
+  // create-garden affordance would otherwise be unreachable.
+  const { data: allGardens } = useQuery({
+    queryKey: ['gardens'],
+    queryFn: api.gardens.list,
+    staleTime: 60_000,
+  })
+
   // Edit garden state
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState('')
@@ -138,12 +147,19 @@ export function GardenDetail() {
         }
         center={t('garden.masthead.center')}
         right={
-          <button
-            onClick={() => { setEditName(garden.name); setEditDesc(garden.description ?? ''); setEditEmoji(garden.emoji ?? ''); setEditing(true) }}
-            className="btn-secondary"
-          >
-            {t('common.edit')}
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {allGardens && allGardens.length === 1 && (
+              <Link to="/gardens?new=1" className="btn-secondary">
+                {t('dashboard.newGarden')}
+              </Link>
+            )}
+            <button
+              onClick={() => { setEditName(garden.name); setEditDesc(garden.description ?? ''); setEditEmoji(garden.emoji ?? ''); setEditing(true) }}
+              className="btn-secondary"
+            >
+              {t('common.edit')}
+            </button>
+          </div>
         }
       />
 
