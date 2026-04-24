@@ -19,7 +19,13 @@ class WeatherIngestionServiceTest {
     private val weather: DailyWeatherRepository = mock()
     private val smhi: SmhiClient = mock()
 
-    private val service = WeatherIngestionService(gardens, weather, smhi)
+    private val service = WeatherIngestionService(gardens, weather, smhi).apply {
+        // Zero the throttles — production defaults sleep 25ms per backfill day
+        // (~1095 days ≈ 27s) plus 250ms between scheduled gardens.
+        forecastThrottleMs = 0
+        actualsThrottleMs = 0
+        backfillThrottleMs = 0
+    }
 
     private fun makeGarden(
         id: Long,

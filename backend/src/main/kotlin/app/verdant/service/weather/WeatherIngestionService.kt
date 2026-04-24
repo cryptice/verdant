@@ -22,6 +22,12 @@ class WeatherIngestionService(
     // is not on the classpath in M1; revisit if context propagation is needed.
     private val backfillExecutor = Executors.newSingleThreadExecutor()
 
+    // Throttles between upstream requests. Exposed as internal vars so tests can zero them out.
+    internal var forecastThrottleMs: Long = 250
+    internal var actualsThrottleMs: Long = 250
+    internal var backfillThrottleMs: Long = 25
+    internal var backfillYears: Long = 3
+
     @Scheduled(cron = "0 0 */6 * * ?")
     fun refreshForecasts() {
         val all = gardens.findAllWithCoordinates()
@@ -33,7 +39,7 @@ class WeatherIngestionService(
                     weather.upsert(rows)
                 }
                 evaluateAlerts(g.id)
-                Thread.sleep(250)
+                if (forecastThrottleMs > 0) Thread.sleep(forecastThrottleMs)
             }.onFailure { log.warn("Forecast refresh failed for garden ${g.id}", it) }
         }
     }
@@ -47,7 +53,7 @@ class WeatherIngestionService(
             runCatching {
                 val row = smhi.fetchActual(g.latitude!!, g.longitude!!, g.id!!, yesterday) ?: return@runCatching
                 weather.upsert(listOf(row))
-                Thread.sleep(250)
+                if (actualsThrottleMs > 0) Thread.sleep(actualsThrottleMs)
             }.onFailure { log.warn("Actuals refresh failed for garden ${g.id}", it) }
         }
     }
@@ -58,7 +64,7 @@ class WeatherIngestionService(
         val lon = g.longitude ?: return
         gardens.setBackfillStatus(gardenId, "RUNNING")
         runCatching {
-            val start = LocalDate.now().minusYears(3)
+            val start = LocalDate.now().minusYears(backfillYears)
             val end = LocalDate.now().minusDays(1)
             val rows = mutableListOf<app.verdant.entity.DailyWeather>()
             var d = start
@@ -67,11 +73,13 @@ class WeatherIngestionService(
                 if (row != null) rows += row
                 if (rows.size >= 500) { weather.upsert(rows); rows.clear() }
                 d = d.plusDays(1)
-                try {
-                    Thread.sleep(25)
-                } catch (e: InterruptedException) {
-                    Thread.currentThread().interrupt()
-                    throw e
+                if (backfillThrottleMs > 0) {
+                    try {
+                        Thread.sleep(backfillThrottleMs)
+                    } catch (e: InterruptedException) {
+                        Thread.currentThread().interrupt()
+                        throw e
+                    }
                 }
             }
             if (rows.isNotEmpty()) weather.upsert(rows)
