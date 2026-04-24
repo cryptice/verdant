@@ -30,26 +30,25 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun searchAll(query: String, limit: Int = 20): List<Species> =
-        ds.connection.use { conn ->
+    fun searchAll(query: String, limit: Int = 20): List<Species> {
+        val patterns = tokenize(query)
+        if (patterns.isEmpty()) return emptyList()
+        return ds.connection.use { conn ->
+            val arr = conn.createArrayOf("text", patterns)
             conn.prepareStatement(
                 """SELECT * FROM species
-                   WHERE common_name ILIKE ? OR common_name_sv ILIKE ? OR variant_name ILIKE ? OR variant_name_sv ILIKE ? OR scientific_name ILIKE ?
+                   WHERE concat_ws(' ', common_name, common_name_sv, variant_name, variant_name_sv, scientific_name) ILIKE ALL (?)
                    ORDER BY common_name_sv, common_name
                    LIMIT ?"""
             ).use { ps ->
-                val pattern = "%$query%"
-                ps.setString(1, pattern)
-                ps.setString(2, pattern)
-                ps.setString(3, pattern)
-                ps.setString(4, pattern)
-                ps.setString(5, pattern)
-                ps.setInt(6, limit)
+                ps.setArray(1, arr)
+                ps.setInt(2, limit)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toSpecies()) }
                 }
             }
         }
+    }
 
     fun findByGroupId(groupId: Long): List<Species> =
         ds.connection.use { conn ->
@@ -78,28 +77,31 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
             }
         }
 
-    fun searchByOrgId(orgId: Long, query: String, limit: Int = 20): List<Species> =
-        ds.connection.use { conn ->
+    fun searchByOrgId(orgId: Long, query: String, limit: Int = 20): List<Species> {
+        val patterns = tokenize(query)
+        if (patterns.isEmpty()) return emptyList()
+        return ds.connection.use { conn ->
+            val arr = conn.createArrayOf("text", patterns)
             conn.prepareStatement(
                 """SELECT * FROM species
                    WHERE (org_id = ? OR org_id IS NULL)
-                     AND (common_name ILIKE ? OR common_name_sv ILIKE ? OR variant_name ILIKE ? OR variant_name_sv ILIKE ? OR scientific_name ILIKE ?)
+                     AND concat_ws(' ', common_name, common_name_sv, variant_name, variant_name_sv, scientific_name) ILIKE ALL (?)
                    ORDER BY common_name_sv, common_name
                    LIMIT ?"""
             ).use { ps ->
-                val pattern = "%$query%"
                 ps.setLong(1, orgId)
-                ps.setString(2, pattern)
-                ps.setString(3, pattern)
-                ps.setString(4, pattern)
-                ps.setString(5, pattern)
-                ps.setString(6, pattern)
-                ps.setInt(7, limit)
+                ps.setArray(2, arr)
+                ps.setInt(3, limit)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toSpecies()) }
                 }
             }
         }
+    }
+
+    /** Split the user's free-form query into whitespace-separated tokens and wrap each in SQL LIKE wildcards. */
+    private fun tokenize(query: String): Array<String> =
+        query.trim().split(Regex("\\s+")).filter { it.isNotBlank() }.map { "%$it%" }.toTypedArray()
 
     fun persist(species: Species): Species {
         ds.connection.use { conn ->

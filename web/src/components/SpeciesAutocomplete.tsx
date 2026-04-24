@@ -59,7 +59,13 @@ export function SpeciesAutocomplete({ value, onChange, onGroupSelect, placeholde
     : results
 
   const filteredGroups = showGroups && debouncedSearch && groups
-    ? groups.filter(g => g.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
+    ? (() => {
+        const tokens = debouncedSearch.toLowerCase().split(/\s+/).filter(Boolean)
+        return groups.filter(g => {
+          const hay = g.name.toLowerCase()
+          return tokens.every(tok => hay.includes(tok))
+        })
+      })()
     : []
 
   // Auto-clear when no results remain (e.g. all matching species already added to group)
