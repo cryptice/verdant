@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../auth/AuthContext'
+import { api } from '../../api/client'
 
 type NavItem = { to: string; label: string; advanced?: boolean }
 type NavGroup = { header: string; items: NavItem[] }
@@ -11,12 +13,25 @@ function useGroups(): NavGroup[] {
   const { user } = useAuth()
   const showAdvanced = user?.advancedMode ?? false
 
+  // Substitute the generic "Gardens" link with a direct link to the user's
+  // sole garden (by name) when they only have one.
+  const { data: gardens } = useQuery({
+    queryKey: ['gardens'],
+    queryFn: api.gardens.list,
+    enabled: !!user,
+    staleTime: 60_000,
+  })
+  const gardensItem: NavItem =
+    gardens && gardens.length === 1
+      ? { to: `/garden/${gardens[0].id}`, label: gardens[0].name }
+      : { to: '/gardens', label: t('nav.gardens') }
+
   const allGroups: NavGroup[] = [
     {
       header: t('sidebar.groups.odling'),
       items: [
         { to: '/',               label: t('nav.dashboard') },
-        { to: '/gardens',        label: t('nav.gardens') },
+        gardensItem,
         { to: '/species',        label: t('nav.species') },
         { to: '/species-groups', label: t('nav.speciesGroups') },
         { to: '/plants',         label: t('nav.plants') },
