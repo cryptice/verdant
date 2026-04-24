@@ -71,13 +71,13 @@ export function SpeciesEditModal({
               border: '1px solid var(--color-ink)',
               boxShadow: '24px 24px 0 rgba(30,36,29,0.15)',
               ...(isMobile
-                ? { left: 0, right: 0, bottom: 0, maxHeight: '86vh', overflowY: 'auto' }
+                ? { left: 0, right: 0, bottom: 0, maxHeight: '96vh', overflowY: 'auto' }
                 : {
                     left: '50%',
                     top: '50%',
                     transform: 'translate(-50%, -50%)',
                     width: 760,
-                    maxHeight: '86vh',
+                    maxHeight: '96vh',
                     overflowY: 'auto',
                   }),
             }}
