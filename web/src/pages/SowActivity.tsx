@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { api, type SpeciesResponse } from '../api/client'
 import { Masthead } from '../components/faltet'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
@@ -213,7 +213,17 @@ export function SowActivity() {
               </select>
               {seedBatches && seedBatches.length === 0 && (
                 <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13, color: 'var(--color-forest)', marginTop: 6 }}>
-                  {t('sow.noSeedStock')}
+                  <Trans
+                    i18nKey="sow.noSeedStock"
+                    components={{
+                      1: (
+                        <Link
+                          to={`/seed-stock?add=1&speciesId=${speciesId}`}
+                          style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}
+                        />
+                      ),
+                    }}
+                  />
                 </p>
               )}
             </label>

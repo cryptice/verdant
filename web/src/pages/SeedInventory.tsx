@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api, type SeedInventoryResponse, type SpeciesResponse } from '../api/client'
 import { Masthead, LedgerPagination } from '../components/faltet'
@@ -24,6 +24,7 @@ const HEADER_STYLE: React.CSSProperties = {
 export function SeedInventory() {
   const qc = useQueryClient()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { t } = useTranslation()
   const { completeStep } = useOnboarding()
 
@@ -52,6 +53,25 @@ export function SeedInventory() {
   const [addCostPackage, setAddCostPackage] = useState('')
   const [addUnitType, setAddUnitType] = useState('SEED')
   const [addProviderId, setAddProviderId] = useState<number | ''>('')
+
+  // Deep-link: /seed-stock?add=1&speciesId=N opens the dialog preselected to
+  // that species (e.g. from the sow page hint). Clear the query so reopening
+  // the page isn't sticky.
+  useEffect(() => {
+    if (searchParams.get('add') !== '1') return
+    const idParam = searchParams.get('speciesId')
+    const id = idParam ? Number(idParam) : NaN
+    const sp = Number.isFinite(id) ? species?.find(s => s.id === id) ?? null : null
+    if (idParam && !species) return // wait for species list
+    setShowAdd(true)
+    setAddSpecies(sp)
+    if (sp) {
+      setAddProviderId(sp.providers.length > 0 ? sp.providers[0].id : '')
+      setAddUnitType(sp.defaultUnitType ?? 'SEED')
+    }
+    setSearchParams({}, { replace: true })
+  }, [searchParams, species, setSearchParams])
+
   const [deleteItem, setDeleteItem] = useState<SeedInventoryResponse | null>(null)
   const [editItem, setEditItem] = useState<SeedInventoryResponse | null>(null)
   const [editQuantity, setEditQuantity] = useState('')
