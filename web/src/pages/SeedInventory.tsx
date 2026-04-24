@@ -335,18 +335,13 @@ export function SeedInventory() {
               <input type="number" min="0" value={addPerPackage} onChange={e => {
                 const v = e.target.value
                 setAddPerPackage(v)
-                const qty = (Number(v) || 0) * (Number(addPackages) || 0)
-                if (addCostPackage && qty) setAddCostUnit(String(Math.round((Number(addCostPackage) / qty) * 100) / 100))
+                const per = Number(v) || 0
+                if (addCostPackage && per) setAddCostUnit(String(Math.round((Number(addCostPackage) / per) * 100) / 100))
               }} placeholder="e.g. 50" className="input w-full" />
             </div>
             <div>
               <label className="field-label">{t('seeds.packagesLabel')}</label>
-              <input type="number" min="0" value={addPackages} onChange={e => {
-                const v = e.target.value
-                setAddPackages(v)
-                const qty = (Number(addPerPackage) || 0) * (Number(v) || 0)
-                if (addCostPackage && qty) setAddCostUnit(String(Math.round((Number(addCostPackage) / qty) * 100) / 100))
-              }} placeholder="e.g. 2" className="input w-full" />
+              <input type="number" min="0" value={addPackages} onChange={e => setAddPackages(e.target.value)} placeholder="e.g. 2" className="input w-full" />
             </div>
             <div>
               <label className="field-label">{t('seeds.unitType')} *</label>
@@ -377,7 +372,8 @@ export function SeedInventory() {
               <input type="number" value={addCostUnit} onChange={e => {
                 const v = e.target.value
                 setAddCostUnit(v)
-                setAddCostPackage(v && addQuantity ? String(Math.round(Number(v) * addQuantity)) : '')
+                const per = Number(addPerPackage) || 0
+                setAddCostPackage(v && per ? String(Math.round(Number(v) * per * 100) / 100) : '')
               }} placeholder="e.g. 2" className="input w-full" />
             </div>
             <div>
@@ -385,7 +381,8 @@ export function SeedInventory() {
               <input type="number" value={addCostPackage} onChange={e => {
                 const v = e.target.value
                 setAddCostPackage(v)
-                setAddCostUnit(v && addQuantity ? String(Math.round((Number(v) / addQuantity) * 100) / 100) : '')
+                const per = Number(addPerPackage) || 0
+                setAddCostUnit(v && per ? String(Math.round((Number(v) / per) * 100) / 100) : '')
               }} placeholder="e.g. 100" className="input w-full" />
             </div>
           </div>
