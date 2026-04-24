@@ -287,36 +287,42 @@ export function GardenDetail() {
         )}
 
         {/* Bed rows */}
-        {sortedBeds.map((bed) => (
-          <Link
-            key={bed.id}
-            to={`/bed/${bed.id}`}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1.5fr auto 40px',
-              gap: 18,
-              padding: '14px 0',
-              borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
-              alignItems: 'center',
-              textDecoration: 'none',
-              color: 'var(--color-ink)',
-            }}
-          >
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>{bed.name}</span>
-            <div style={{ display: 'flex', gap: 6 }}>
-              {bed.sunExposure && (
-                <Chip tone="sage">{t(`bed.conditions.sunExposures.${bed.sunExposure}`)}</Chip>
-              )}
-              {bed.drainage && (
-                <Chip tone="sky">{t(`bed.conditions.drainages.${bed.drainage}`)}</Chip>
-              )}
-              {bed.protection && (
-                <Chip tone="berry">{t(`bed.conditions.protections.${bed.protection}`)}</Chip>
-              )}
-            </div>
-            <span style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-mono)' }}>→</span>
-          </Link>
-        ))}
+        {sortedBeds.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {sortedBeds.map((bed) => (
+              <Link
+                key={bed.id}
+                to={`/bed/${bed.id}`}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                  padding: '14px 16px',
+                  border: '1px solid color-mix(in srgb, var(--color-ink) 25%, transparent)',
+                  textDecoration: 'none',
+                  color: 'var(--color-ink)',
+                  minHeight: 92,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, lineHeight: 1.1 }}>{bed.name}</span>
+                  <span style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-mono)', fontSize: 14 }}>→</span>
+                </div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 'auto' }}>
+                  {bed.sunExposure && (
+                    <Chip tone="sage">{t(`bed.conditions.sunExposures.${bed.sunExposure}`)}</Chip>
+                  )}
+                  {bed.drainage && (
+                    <Chip tone="sky">{t(`bed.conditions.drainages.${bed.drainage}`)}</Chip>
+                  )}
+                  {bed.protection && (
+                    <Chip tone="berry">{t(`bed.conditions.protections.${bed.protection}`)}</Chip>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
 
         {/* Garden layout — photo placeholder */}
         <div style={{ marginTop: 48, maxWidth: 420 }}>
