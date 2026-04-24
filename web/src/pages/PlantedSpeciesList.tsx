@@ -6,6 +6,7 @@ import { api } from '../api/client'
 import { Masthead, Ledger } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
+import { matchesAllTokens } from '../utils/search'
 
 export function PlantedSpeciesList() {
   const navigate = useNavigate()
@@ -18,10 +19,7 @@ export function PlantedSpeciesList() {
   const [search, setSearch] = useState('')
 
   const filtered = useMemo(() =>
-    data?.filter(s =>
-      s.speciesName.toLowerCase().includes(search.toLowerCase()) ||
-      (s.scientificName?.toLowerCase().includes(search.toLowerCase()))
-    ) ?? [],
+    data?.filter(s => matchesAllTokens([s.speciesName, s.scientificName], search)) ?? [],
     [data, search]
   )
 

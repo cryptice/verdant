@@ -8,6 +8,7 @@ import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import type { LedgerFilterOption } from '../components/faltet'
+import { matchesAllTokens } from '../utils/search'
 
 const ALL_TYPES = ['ANNUAL', 'PERENNIAL', 'BULB', 'TUBER'] as const
 type PlantType = typeof ALL_TYPES[number]
@@ -20,10 +21,10 @@ const PLANT_TYPE_TONE: Record<PlantType, LedgerFilterOption<PlantType>['tone']> 
 }
 
 function matchesQuery(s: SpeciesResponse, q: string) {
-  if (!q) return true
-  const lower = q.toLowerCase()
-  return [s.commonName, s.commonNameSv, s.variantName, s.variantNameSv, s.scientificName]
-    .some(v => v?.toLowerCase().includes(lower))
+  return matchesAllTokens(
+    [s.commonName, s.commonNameSv, s.variantName, s.variantNameSv, s.scientificName],
+    q,
+  )
 }
 
 export function SpeciesList() {
