@@ -215,58 +215,8 @@ export function GardenDetail() {
           <Stat size="medium" value={harvestStemsThisYear} unit="st" label={t('garden.stats.harvested')} hue="clay" />
         </div>
 
-        {/* Harvest card */}
-        <div
-          style={{
-            background: 'var(--color-ink)',
-            color: 'var(--color-cream)',
-            padding: '22px 28px',
-            position: 'relative',
-            overflow: 'hidden',
-            marginTop: 40,
-          }}
-        >
-          <div
-            style={{
-              position: 'absolute',
-              top: -40,
-              right: -40,
-              width: 140,
-              height: 140,
-              borderRadius: '50%',
-              background: 'var(--color-blush)',
-              opacity: 0.2,
-            }}
-          />
-          <div
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontStyle: 'italic',
-              fontSize: 26,
-              fontVariationSettings: '"SOFT" 100, "opsz" 144',
-            }}
-          >
-            {t('garden.stats.harvested')}{' '}
-            <span style={{ color: 'var(--color-blush)' }}>
-              {new Date().getFullYear()}
-            </span>.
-          </div>
-          <div
-            style={{
-              marginTop: 12,
-              fontFamily: 'var(--font-mono)',
-              fontSize: 10,
-              letterSpacing: 1.4,
-              textTransform: 'uppercase',
-              color: 'var(--color-sage)',
-            }}
-          >
-            {harvestStemsThisYear} st
-          </div>
-        </div>
-
         {/* Beds section heading */}
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginTop: 48, marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginTop: 40, marginBottom: 14 }}>
           <h2
             style={{
               fontFamily: 'var(--font-display)',
@@ -342,6 +292,56 @@ export function GardenDetail() {
             ))}
           </div>
         )}
+
+        {/* Harvest card */}
+        <div
+          style={{
+            background: 'var(--color-ink)',
+            color: 'var(--color-cream)',
+            padding: '22px 28px',
+            position: 'relative',
+            overflow: 'hidden',
+            marginTop: 40,
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: -40,
+              right: -40,
+              width: 140,
+              height: 140,
+              borderRadius: '50%',
+              background: 'var(--color-blush)',
+              opacity: 0.2,
+            }}
+          />
+          <div
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontStyle: 'italic',
+              fontSize: 26,
+              fontVariationSettings: '"SOFT" 100, "opsz" 144',
+            }}
+          >
+            {t('garden.stats.harvested')}{' '}
+            <span style={{ color: 'var(--color-blush)' }}>
+              {new Date().getFullYear()}
+            </span>.
+          </div>
+          <div
+            style={{
+              marginTop: 12,
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+              color: 'var(--color-sage)',
+            }}
+          >
+            {harvestStemsThisYear} st
+          </div>
+        </div>
 
         {/* Garden layout — photo placeholder */}
         <div style={{ marginTop: 48, maxWidth: 420 }}>

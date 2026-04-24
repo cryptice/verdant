@@ -145,12 +145,12 @@ export function BedDetail() {
           }}
         >
           <Stat size="medium" value={activePlants.length} label={t('bed.stats.active')} hue="sage" />
-          {/* TODO: wire to real harvest data when available */}
-          <Stat size="medium" value={142} unit="st" label={t('bed.stats.harvested')} hue="clay" />
+          {/* Harvest totals, days-to-harvest and utilization aren't wired yet;
+             show a dash instead of mocked numbers. */}
+          <Stat size="medium" value="—" label={t('bed.stats.harvested')} hue="clay" />
           <Stat size="medium" value="—" label={t('bed.stats.daysToHarvest')} hue="mustard" />
           <Stat size="medium" value={plants?.length ?? 0} label={t('bed.stats.plants')} hue="sky" />
-          {/* TODO: wire to real utilization when available */}
-          <Stat size="medium" value={0} unit="%" label={t('bed.stats.utilization')} hue="berry" />
+          <Stat size="medium" value="—" label={t('bed.stats.utilization')} hue="berry" />
         </div>
 
         {/* Plantor section */}
@@ -293,22 +293,8 @@ export function BedDetail() {
               fontVariationSettings: '"SOFT" 100, "opsz" 144',
             }}
           >
-            {t('bed.harvest.headline', { stems: 142 })}{' '}
-            <span style={{ color: 'var(--color-blush)' }}>{t('bed.harvest.season', { year: 2025 })}</span>.
-          </div>
-          <div
-            style={{
-              marginTop: 12,
-              fontFamily: 'var(--font-mono)',
-              fontSize: 10,
-              letterSpacing: 1.4,
-              textTransform: 'uppercase',
-              display: 'flex',
-              gap: 18,
-            }}
-          >
-            <span style={{ color: 'var(--color-sage)' }}>{t('bed.harvest.bestWeek', { week: 32 })}</span>
-            <span style={{ color: 'var(--color-blush)' }}>+24 % vs 2024 ▲</span>
+            {t('bed.harvest.headline', { stems: 0 })}{' '}
+            <span style={{ color: 'var(--color-blush)' }}>{t('bed.harvest.season', { year: new Date().getFullYear() })}</span>.
           </div>
         </div>
 
