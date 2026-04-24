@@ -7,6 +7,8 @@ import type { OnboardingStep, OnboardingState, OnboardingSection, PageTooltipCon
 
 interface OnboardingContextValue {
   isActive: boolean
+  enabled: boolean
+  setEnabled: (enabled: boolean) => void
   completedCount: number
   totalCount: number
   isStepComplete: (stepId: string) => boolean
@@ -24,6 +26,8 @@ interface OnboardingContextValue {
   lastCompletedStepId: string | null
   getHintsForRoute: (pathname: string) => OnboardingStep[]
 }
+
+const ENABLED_KEY = 'verdant-onboarding-enabled'
 
 const OnboardingContext = createContext<OnboardingContextValue | null>(null)
 
@@ -48,10 +52,29 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<OnboardingState>(() =>
     parseOnboardingState(user?.onboarding)
   )
-  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [drawerOpen, setDrawerOpenInternal] = useState(false)
   const [minimized, setMinimized] = useState(false)
   const [activeTour, setActiveTour] = useState<PageTooltipConfig | null>(null)
   const [lastCompletedStepId, setLastCompletedStepId] = useState<string | null>(null)
+
+  // Onboarding is disabled by default — the user can re-enable it from the
+  // Account page. Persisted in localStorage so the choice sticks per device.
+  const [enabled, setEnabledState] = useState<boolean>(
+    () => typeof window !== 'undefined' && localStorage.getItem(ENABLED_KEY) === 'true',
+  )
+  const setEnabled = useCallback((next: boolean) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(ENABLED_KEY, next ? 'true' : 'false')
+    }
+    setEnabledState(next)
+  }, [])
+
+  // Ignore drawer-open calls while onboarding is disabled so nothing can
+  // pop the drawer back up behind the user's back.
+  const setDrawerOpen = useCallback((open: boolean) => {
+    if (open && !enabled) return
+    setDrawerOpenInternal(open)
+  }, [enabled])
 
   // Track the "suppressed" signal in a ref so completeStep's closure always
   // sees the latest value without having to be recreated (and re-running the
@@ -64,8 +87,8 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   }, [user?.onboarding])
 
   useEffect(() => {
-    suppressedRef.current = state.dismissed || minimized
-  }, [state.dismissed, minimized])
+    suppressedRef.current = !enabled || state.dismissed || minimized
+  }, [enabled, state.dismissed, minimized])
 
   const syncToBackend = useCallback((s: OnboardingState) => {
     api.user.updateOnboarding({ completedSteps: s.completedSteps, dismissed: s.dismissed }).catch(() => {
@@ -153,7 +176,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
   const completedCount = state.completedSteps.length
   const totalCount = ONBOARDING_STEPS.length
-  const isActive = !state.dismissed && completedCount < totalCount
+  const isActive = enabled && !state.dismissed && completedCount < totalCount
 
   const getHintsForRoute = useCallback((pathname: string) => {
     if (!isActive) return []
@@ -163,7 +186,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   }, [isActive, state.completedSteps])
 
   const value = useMemo<OnboardingContextValue>(() => ({
-    isActive, completedCount, totalCount,
+    isActive, enabled, setEnabled, completedCount, totalCount,
     isStepComplete, isStepBlocked, sectionProgress,
     completeStep, startStep,
     minimizeForSession, dismissPermanently,
@@ -171,9 +194,9 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     activeTour, clearActiveTour,
     minimized, lastCompletedStepId,
     getHintsForRoute,
-  }), [isActive, completedCount, totalCount, isStepComplete, isStepBlocked, sectionProgress,
+  }), [isActive, enabled, setEnabled, completedCount, totalCount, isStepComplete, isStepBlocked, sectionProgress,
        completeStep, startStep, minimizeForSession, dismissPermanently,
-       drawerOpen, activeTour, clearActiveTour, minimized, lastCompletedStepId, getHintsForRoute])
+       drawerOpen, setDrawerOpen, activeTour, clearActiveTour, minimized, lastCompletedStepId, getHintsForRoute])
 
   return (
     <OnboardingContext.Provider value={value}>

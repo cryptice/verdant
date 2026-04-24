@@ -6,10 +6,12 @@ import { api, downloadDataExport } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
 import { Masthead } from '../components/faltet'
 import { Dialog } from '../components/Dialog'
+import { useOnboarding } from '../onboarding/OnboardingContext'
 
 export function Account() {
   const { user, logout, refreshUser } = useAuth()
   const { t, i18n } = useTranslation()
+  const { enabled: onboardingEnabled, setEnabled: setOnboardingEnabled, setDrawerOpen: setOnboardingDrawerOpen } = useOnboarding()
   const [showDelete, setShowDelete] = useState(false)
 
   const advancedModeMut = useMutation({
@@ -121,6 +123,58 @@ export function Account() {
               <option value="en">English</option>
             </select>
           </div>
+        </div>
+
+        {/* Onboarding toggle */}
+        <div style={{ marginTop: 28 }}>
+          <span
+            style={{
+              display: 'block',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 9,
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+              color: 'var(--color-forest)',
+              opacity: 0.7,
+              marginBottom: 8,
+            }}
+          >
+            {t('account.onboarding.label')}
+          </span>
+          {onboardingEnabled ? (
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontStyle: 'italic' }}>
+                {t('account.onboarding.enabled')}
+              </span>
+              <button
+                onClick={() => setOnboardingDrawerOpen(true)}
+                className="btn-secondary"
+              >
+                {t('account.onboarding.open')}
+              </button>
+              <button
+                onClick={() => setOnboardingEnabled(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10,
+                  letterSpacing: 1.4,
+                  textTransform: 'uppercase',
+                  color: 'var(--color-forest)',
+                  opacity: 0.7,
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
+              >
+                {t('account.onboarding.disable')}
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => setOnboardingEnabled(true)} className="btn-secondary">
+              {t('account.onboarding.enable')}
+            </button>
+          )}
         </div>
 
         {/* Actions row */}

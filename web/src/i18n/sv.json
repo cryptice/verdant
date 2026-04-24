@@ -175,6 +175,13 @@
     "advancedModeDescription": "Visa avancerade funktioner som statistik, sortförsök, successioner och marknadsplats",
     "downloadMyData": "Ladda ner mina uppgifter",
     "exportingData": "Exporterar…",
+    "onboarding": {
+      "label": "Guidad rundtur",
+      "enabled": "Guidad rundtur är aktiverad.",
+      "enable": "Aktivera guidad rundtur",
+      "disable": "Inaktivera",
+      "open": "Öppna"
+    },
     "masthead": {
       "center": "— Konto —"
     }

@@ -175,6 +175,13 @@
     "advancedModeDescription": "Show advanced features like analytics, variety trials, successions, and marketplace",
     "downloadMyData": "Download my data",
     "exportingData": "Exporting…",
+    "onboarding": {
+      "label": "Guided tour",
+      "enabled": "Guided tour is enabled.",
+      "enable": "Enable guided tour",
+      "disable": "Disable",
+      "open": "Open"
+    },
     "masthead": {
       "center": "— Account —"
     }
