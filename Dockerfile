@@ -22,22 +22,15 @@ COPY backend/build.gradle.kts backend/settings.gradle.kts backend/gradle.propert
 COPY backend/gradle/ gradle/
 RUN gradle dependencies --no-daemon -q
 
-# Stage 4: Run backend tests (reuses cached dependencies)
-FROM deps AS test
+# Stage 4: Build backend (tests run in a dedicated Cloud Build step that has
+# Docker access — Kaniko does not, so Testcontainers/Dev Services cannot run here)
+FROM deps AS build
 COPY backend/src/ src/
-# Ryuk (Testcontainers reaper) can't bind its mapped port reliably under Cloud
-# Build's nested-container networking. The build VM is torn down after each run,
-# so the reaper is unnecessary here.
-ENV TESTCONTAINERS_RYUK_DISABLED=true
-RUN gradle test --no-daemon
-
-# Stage 5: Build backend
-FROM test AS build
 COPY --from=web /web/dist/ src/main/resources/META-INF/resources/
 COPY --from=admin /admin/dist/ src/main/resources/META-INF/resources/admin/
-RUN gradle quarkusBuild --no-daemon -Dquarkus.profile=prod && rm -rf /root/.kotlin /tmp/kotlin-daemon*
+RUN gradle quarkusBuild --no-daemon -Dquarkus.profile=prod -x test && rm -rf /root/.kotlin /tmp/kotlin-daemon*
 
-# Stage 6: Run
+# Stage 5: Run
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 

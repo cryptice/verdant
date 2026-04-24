@@ -1,5 +1,44 @@
 steps:
-  - name: 'gcr.io/kaniko-project/executor:latest'
+  # Test step 1: start a Postgres sidecar on the cloudbuild network.
+  # Kaniko has no Docker daemon, so Testcontainers / Quarkus Dev Services cannot
+  # run inside the image build. Instead we stand up a real Postgres here and
+  # point @QuarkusTest classes at it via system properties.
+  - id: 'postgres-up'
+    name: 'docker'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -e
+        docker run -d --name pg-test --network cloudbuild \
+          -e POSTGRES_USER=test \
+          -e POSTGRES_PASSWORD=test \
+          -e POSTGRES_DB=verdant \
+          postgres:17
+        for i in $(seq 1 30); do
+          if docker exec pg-test pg_isready -U test -d verdant; then
+            echo "postgres ready"; exit 0
+          fi
+          sleep 1
+        done
+        echo "postgres did not become ready in 30s"; exit 1
+
+  # Test step 2: run the backend test suite against the sidecar.
+  # Quarkus reads these env vars via its standard config convention. Because the
+  # JDBC URL is set, Dev Services auto-disables — tests talk to pg-test directly.
+  - id: 'backend-test'
+    name: 'gradle:8.12-jdk21'
+    dir: 'backend'
+    entrypoint: 'gradle'
+    args: ['test', '--no-daemon']
+    env:
+      - 'QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://pg-test:5432/verdant'
+      - 'QUARKUS_DATASOURCE_USERNAME=test'
+      - 'QUARKUS_DATASOURCE_PASSWORD=test'
+    waitFor: ['postgres-up']
+
+  - id: 'image-build'
+    name: 'gcr.io/kaniko-project/executor:latest'
     args:
       - '--destination=europe-north1-docker.pkg.dev/$PROJECT_ID/verdant/verdant-api'
       - '--cache=true'
@@ -11,6 +50,7 @@ steps:
       - '--build-arg=VITE_GOOGLE_CLIENT_ID'
     secretEnv:
       - 'VITE_GOOGLE_CLIENT_ID'
+    waitFor: ['backend-test']
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
