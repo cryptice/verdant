@@ -358,11 +358,9 @@ export function SeedInventory() {
               </select>
             </div>
           </div>
-          {addQuantity > 0 && (
-            <p className="text-xs text-text-secondary -mt-2">
-              {t('seeds.totalLabel')}: {addQuantity}
-            </p>
-          )}
+          <p className="text-xs text-text-secondary -mt-2">
+            {t('seeds.totalLabel')}: {addQuantity} {t(`unitTypes.${addUnitType || 'SEED'}`).toLowerCase()}
+          </p>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="field-label">{t('seeds.collectionDate')}</label>
