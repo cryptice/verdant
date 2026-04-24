@@ -46,6 +46,7 @@ export function Dashboard() {
 
       {isActive && (
         <div
+          className="dashboard-onboarding"
           style={{
             margin: '16px 40px 0',
             padding: '14px 18px',
@@ -79,7 +80,7 @@ export function Dashboard() {
         </div>
       )}
 
-      <div style={{ padding: '28px 40px' }}>
+      <div className="dashboard-body" style={{ padding: '28px 40px' }}>
         {/* Hero */}
         <div className="dashboard-hero">
           <Stat

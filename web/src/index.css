@@ -129,6 +129,34 @@ body {
   border-top: 3px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
 }
 
+/* Dashboard mobile — override the inline 3-col grid + fixed horizontal paddings
+   on narrow viewports. Inline styles take precedence, so !important is required. */
+@media (max-width: 768px) {
+  .dashboard-body {
+    padding: 20px 16px !important;
+  }
+  .dashboard-onboarding {
+    margin: 16px 16px 0 !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  .dashboard-columns {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+  .dashboard-columns > section {
+    padding: 0 !important;
+    border-right: none !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-ink) 25%, transparent);
+    padding-bottom: 18px !important;
+  }
+  .dashboard-columns > section:last-child {
+    border-bottom: none;
+    padding-bottom: 0 !important;
+  }
+}
+
 @utility card {
   background-color: var(--color-paper);
   border: 1px solid var(--color-ink);
