@@ -196,96 +196,53 @@ export function GardenDetail() {
           <Stat size="medium" value={harvestStemsThisYear} unit="st" label={t('garden.stats.harvested')} hue="clay" />
         </div>
 
-        {/* Bottom row — harvest card + danger callout */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 22, marginTop: 40 }}>
-          {/* Harvest card */}
+        {/* Harvest card */}
+        <div
+          style={{
+            background: 'var(--color-ink)',
+            color: 'var(--color-cream)',
+            padding: '22px 28px',
+            position: 'relative',
+            overflow: 'hidden',
+            marginTop: 40,
+          }}
+        >
           <div
             style={{
-              background: 'var(--color-ink)',
-              color: 'var(--color-cream)',
-              padding: '22px 28px',
-              position: 'relative',
-              overflow: 'hidden',
+              position: 'absolute',
+              top: -40,
+              right: -40,
+              width: 140,
+              height: 140,
+              borderRadius: '50%',
+              background: 'var(--color-blush)',
+              opacity: 0.2,
+            }}
+          />
+          <div
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontStyle: 'italic',
+              fontSize: 26,
+              fontVariationSettings: '"SOFT" 100, "opsz" 144',
             }}
           >
-            <div
-              style={{
-                position: 'absolute',
-                top: -40,
-                right: -40,
-                width: 140,
-                height: 140,
-                borderRadius: '50%',
-                background: 'var(--color-blush)',
-                opacity: 0.2,
-              }}
-            />
-            <div
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontStyle: 'italic',
-                fontSize: 26,
-                fontVariationSettings: '"SOFT" 100, "opsz" 144',
-              }}
-            >
-              {t('garden.stats.harvested')}{' '}
-              <span style={{ color: 'var(--color-blush)' }}>
-                {new Date().getFullYear()}
-              </span>.
-            </div>
-            <div
-              style={{
-                marginTop: 12,
-                fontFamily: 'var(--font-mono)',
-                fontSize: 10,
-                letterSpacing: 1.4,
-                textTransform: 'uppercase',
-                color: 'var(--color-sage)',
-              }}
-            >
-              {harvestStemsThisYear} st
-            </div>
+            {t('garden.stats.harvested')}{' '}
+            <span style={{ color: 'var(--color-blush)' }}>
+              {new Date().getFullYear()}
+            </span>.
           </div>
-
-          {/* Danger callout */}
           <div
             style={{
-              border: '1px solid color-mix(in srgb, var(--color-accent) 40%, transparent)',
-              padding: '22px 28px',
+              marginTop: 12,
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+              color: 'var(--color-sage)',
             }}
           >
-            <div
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 10,
-                letterSpacing: 1.4,
-                textTransform: 'uppercase',
-                color: 'var(--color-accent)',
-                marginBottom: 10,
-              }}
-            >
-              {t('garden.danger.title')}
-            </div>
-            <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 15, margin: 0 }}>
-              {t('garden.danger.warning')}
-            </p>
-            <button
-              onClick={() => setShowDelete(true)}
-              style={{
-                marginTop: 10,
-                background: 'transparent',
-                border: 'none',
-                fontFamily: 'var(--font-mono)',
-                fontSize: 10,
-                letterSpacing: 1.4,
-                textTransform: 'uppercase',
-                color: 'var(--color-accent)',
-                cursor: 'pointer',
-                padding: 0,
-              }}
-            >
-              → {t('garden.danger.delete')}
-            </button>
+            {harvestStemsThisYear} st
           </div>
         </div>
 
@@ -364,6 +321,48 @@ export function GardenDetail() {
         {/* Garden layout — photo placeholder */}
         <div style={{ marginTop: 48, maxWidth: 420 }}>
           <PhotoPlaceholder tone="sage" aspect="tall" label={garden.name.toUpperCase()} />
+        </div>
+
+        {/* Danger callout — full-width, very bottom */}
+        <div
+          style={{
+            marginTop: 48,
+            border: '1px solid color-mix(in srgb, var(--color-accent) 40%, transparent)',
+            padding: '22px 28px',
+          }}
+        >
+          <div
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+              color: 'var(--color-accent)',
+              marginBottom: 10,
+            }}
+          >
+            {t('garden.danger.title')}
+          </div>
+          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 15, margin: 0 }}>
+            {t('garden.danger.warning')}
+          </p>
+          <button
+            onClick={() => setShowDelete(true)}
+            style={{
+              marginTop: 10,
+              background: 'transparent',
+              border: 'none',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10,
+              letterSpacing: 1.4,
+              textTransform: 'uppercase',
+              color: 'var(--color-accent)',
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            → {t('garden.danger.delete')}
+          </button>
         </div>
       </div>
 
