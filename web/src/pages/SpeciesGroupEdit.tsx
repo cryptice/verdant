@@ -187,7 +187,7 @@ export function SpeciesGroupEdit() {
       </div>
 
       {/* Sticky footer */}
-      <div style={{ position: 'sticky', bottom: 0, background: 'var(--color-cream)', borderTop: '1px solid var(--color-ink)', padding: '14px 40px', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+      <div className="sticky-footer">
         <button className="btn-secondary" onClick={() => navigate('/species-groups')}>
           {t('common.cancel')}
         </button>

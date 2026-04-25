@@ -121,6 +121,29 @@ body {
   border-top: 3px solid var(--color-accent);
 }
 
+/* Sticky form footer — the cancel/submit bar that lives at the bottom of
+   page-body-tight forms. Absorbs the bottom safe-area inset so the buttons
+   sit above the home-indicator on iOS. */
+.sticky-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--color-cream);
+  border-top: 1px solid var(--color-ink);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 40px;
+  padding-left: max(40px, env(safe-area-inset-left));
+  padding-right: max(40px, env(safe-area-inset-right));
+  padding-bottom: max(14px, env(safe-area-inset-bottom));
+}
+@media (max-width: 768px) {
+  .sticky-footer {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+}
+
 /* Empty-state callout used by ledgers, list pages, and card indexes. */
 .empty-state {
   padding: 40px 22px;
@@ -129,14 +152,29 @@ body {
   border-top: 3px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
 }
 
+/* Safe-area insets — keep content out from under the device camera notch,
+   home-indicator bar, and rounded screen corners. The Masthead sits at the
+   top so it absorbs the top inset; sticky footers and the body absorb the
+   bottom + side insets. */
+.faltet-masthead {
+  padding-top: calc(14px + env(safe-area-inset-top)) !important;
+  padding-left: calc(22px + env(safe-area-inset-left));
+  padding-right: calc(22px + env(safe-area-inset-right));
+}
+
 /* Shared page content wrapper — comfortable desktop padding that tightens on
    mobile. Apply via className="page-body" instead of the old inline
    padding: '28px 40px' pattern. */
 .page-body {
   padding: 28px 40px;
+  padding-left: max(40px, env(safe-area-inset-left));
+  padding-right: max(40px, env(safe-area-inset-right));
 }
 .page-body-tight {
   padding: 28px 40px 120px;
+  padding-left: max(40px, env(safe-area-inset-left));
+  padding-right: max(40px, env(safe-area-inset-right));
+  padding-bottom: max(120px, calc(120px + env(safe-area-inset-bottom)));
 }
 
 /* Generic fluid form rows for pages that use fixed repeat(2,1fr) / repeat(3,1fr)
@@ -145,11 +183,19 @@ body {
 .fluid-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
 
 @media (max-width: 768px) {
-  .page-body, .page-body-tight { padding-left: 16px !important; padding-right: 16px !important; }
-  .page-body-tight { padding-bottom: 120px !important; }
+  .page-body, .page-body-tight {
+    padding-left: max(16px, env(safe-area-inset-left)) !important;
+    padding-right: max(16px, env(safe-area-inset-right)) !important;
+  }
+  .page-body-tight {
+    padding-bottom: max(120px, calc(120px + env(safe-area-inset-bottom))) !important;
+  }
   .faltet-masthead {
-    /* Leave room for the mobile burger icon (fixed top-left ~10px + 38px wide). */
-    padding-left: 56px !important;
+    /* Leave room for the mobile burger icon (fixed top-left ~10px + 38px wide).
+       Add the left safe-area inset so the burger and breadcrumb both clear
+       rounded corners / notches on iOS. */
+    padding-left: calc(56px + env(safe-area-inset-left)) !important;
+    padding-right: calc(16px + env(safe-area-inset-right)) !important;
     grid-template-columns: 1fr !important;
     gap: 6px;
   }

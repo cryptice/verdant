@@ -195,8 +195,8 @@ export function Sidebar() {
         className="md:hidden"
         style={{
           position: 'fixed',
-          top: 10,
-          left: 10,
+          top: 'calc(10px + env(safe-area-inset-top))',
+          left: 'calc(10px + env(safe-area-inset-left))',
           zIndex: 30,
           background: 'var(--color-cream)',
           border: '1px solid var(--color-ink)',
