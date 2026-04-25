@@ -3,6 +3,7 @@ package app.verdant.android.ui.plants
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -47,12 +48,10 @@ import app.verdant.android.data.model.ScheduledTaskResponse
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
-import app.verdant.android.ui.faltet.FaltetHero
 import app.verdant.android.ui.faltet.FaltetListRow
 import app.verdant.android.ui.faltet.FaltetLoadingState
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.FaltetSectionHeader
-import app.verdant.android.ui.faltet.PhotoPlaceholder
 import app.verdant.android.ui.faltet.PhotoTone
 import app.verdant.android.ui.theme.FaltetBerry
 import app.verdant.android.ui.theme.FaltetAccent
@@ -78,6 +77,7 @@ data class PlantedSpeciesDetailState(
     val tasks: List<ScheduledTaskResponse> = emptyList(),
     val locations: List<PlantLocationGroup> = emptyList(),
     val beds: List<BedWithGardenResponse> = emptyList(),
+    val trayEvents: List<app.verdant.android.data.model.SpeciesEventSummaryEntry> = emptyList(),
     val error: String? = null,
 )
 
@@ -128,12 +128,16 @@ class PlantedSpeciesDetailViewModel @Inject constructor(
                 val name = summary?.let {
                     it.variantName?.let { v -> "${it.speciesName} – $v" } ?: it.speciesName
                 } ?: tasks.firstOrNull()?.speciesName ?: ""
+                val trayEvents = runCatching { repo.getSpeciesEventSummary(speciesId, trayOnly = true) }
+                    .onFailure { Log.e(TAG, "Failed to load species event summary", it) }
+                    .getOrDefault(emptyList())
                 _uiState.value = PlantedSpeciesDetailState(
                     isLoading = false,
                     speciesName = name,
                     tasks = tasks,
                     locations = locations,
                     beds = beds,
+                    trayEvents = trayEvents,
                 )
             } catch (e: Exception) {
                 _uiState.value = PlantedSpeciesDetailState(isLoading = false, error = e.message)
@@ -170,6 +174,7 @@ fun PlantedSpeciesDetailScreen(
     var selectedTargetBedId by remember { mutableStateOf<Long?>(null) }
     var bedExpanded by remember { mutableStateOf(false) }
     var plantOutMode by remember { mutableStateOf(false) }
+    var trayExpanded by remember { mutableStateOf(false) }
 
     val dismissModal: () -> Unit = {
         selectedSubItem = null
@@ -322,17 +327,27 @@ fun PlantedSpeciesDetailScreen(
             else -> {
                 LazyColumn(Modifier.fillMaxSize().padding(padding)) {
                     item {
-                        FaltetHero(
-                            title = uiState.speciesName,
-                            subtitle = "${aggregateCount} plantor",
-                            leading = {
-                                PhotoPlaceholder(
-                                    label = uiState.speciesName,
-                                    tone = PhotoTone.Sage,
-                                    modifier = Modifier.fillMaxSize(),
-                                )
-                            },
-                        )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 18.dp, vertical = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            Text(
+                                text = uiState.speciesName,
+                                fontFamily = FaltetDisplay,
+                                fontStyle = FontStyle.Italic,
+                                fontSize = 24.sp,
+                                color = FaltetInk,
+                            )
+                            Text(
+                                text = "${aggregateCount} plantor".uppercase(),
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 10.sp,
+                                letterSpacing = 1.4.sp,
+                                color = FaltetForest,
+                            )
+                        }
                     }
 
                     if (byStatus.isEmpty() || byStatus.all { it.second.isEmpty() }) {
@@ -345,11 +360,9 @@ fun PlantedSpeciesDetailScreen(
                                 FaltetSectionHeader(label = statusLabelSv(status))
                             }
                             items(locations, key = { loc -> "loc_${status}_${loc.bedId}_${loc.year}" }) { loc ->
-                                val locationLabel = if (loc.bedId == null) {
-                                    "Bricka"
-                                } else {
+                                val isTray = loc.bedId == null
+                                val locationLabel = if (isTray) "Bricka" else
                                     listOfNotNull(loc.gardenName, loc.bedName).joinToString(" / ")
-                                }
                                 FaltetListRow(
                                     leading = {
                                         Box(
@@ -380,10 +393,23 @@ fun PlantedSpeciesDetailScreen(
                                         }
                                     } else null,
                                     onClick = {
-                                        selectedSubItem = loc
-                                        actionCount = loc.count.toString()
+                                        if (isTray) {
+                                            trayExpanded = !trayExpanded
+                                        } else {
+                                            selectedSubItem = loc
+                                            actionCount = loc.count.toString()
+                                        }
                                     },
                                 )
+                                if (isTray && trayExpanded) {
+                                    TrayEventsExpansion(
+                                        events = uiState.trayEvents,
+                                        onAct = {
+                                            selectedSubItem = loc
+                                            actionCount = loc.count.toString()
+                                        },
+                                    )
+                                }
                             }
                         }
                     }
@@ -393,6 +419,80 @@ fun PlantedSpeciesDetailScreen(
             }
         }
     }
+}
+
+@Composable
+private fun TrayEventsExpansion(
+    events: List<app.verdant.android.data.model.SpeciesEventSummaryEntry>,
+    onAct: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 40.dp, end = 18.dp, top = 6.dp, bottom = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        if (events.isEmpty()) {
+            Text(
+                text = "Inga händelser registrerade.",
+                fontFamily = FontFamily.Monospace,
+                fontSize = 10.sp,
+                letterSpacing = 1.2.sp,
+                color = FaltetForest,
+            )
+        } else {
+            events.forEach { e ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "${e.count} st",
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 11.sp,
+                        color = FaltetInk,
+                        modifier = Modifier.width(60.dp),
+                    )
+                    Text(
+                        text = eventLabelSv(e.eventType),
+                        fontFamily = FaltetDisplay,
+                        fontStyle = FontStyle.Italic,
+                        fontSize = 14.sp,
+                        color = FaltetInk,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        text = e.eventDate,
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 10.sp,
+                        letterSpacing = 1.2.sp,
+                        color = FaltetForest,
+                    )
+                }
+            }
+        }
+        TextButton(onClick = onAct, modifier = Modifier.padding(top = 4.dp)) {
+            Text("Åtgärd", color = FaltetAccent, fontSize = 12.sp)
+        }
+    }
+}
+
+private fun eventLabelSv(eventType: String): String = when (eventType) {
+    "SEEDED" -> "Sådda"
+    "POTTED_UP" -> "Skolade om"
+    "PLANTED_OUT" -> "Utplanterade"
+    "HARVESTED" -> "Skördade"
+    "RECOVERED" -> "Återhämtade"
+    "REMOVED" -> "Borttagna"
+    "NOTE" -> "Notering"
+    "BUDDING" -> "Knoppar"
+    "FIRST_BLOOM" -> "Första blomman"
+    "PEAK_BLOOM" -> "Toppblomning"
+    "LAST_BLOOM" -> "Sista blomman"
+    "LIFTED" -> "Uppgrävda"
+    "DIVIDED" -> "Delade"
+    "STORED" -> "Lagrade"
+    "PINCHED" -> "Toppade"
+    "DISBUDDED" -> "Knopprensade"
+    "APPLIED_SUPPLY" -> "Gödslade"
+    else -> eventType
 }
 
 private fun statusLabelSv(status: String): String = when (status) {

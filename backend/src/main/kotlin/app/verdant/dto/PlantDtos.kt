@@ -120,6 +120,12 @@ data class TraySummaryEntry(
     val count: Int,
 )
 
+data class SpeciesEventSummaryEntry(
+    val eventType: String,
+    val eventDate: java.time.LocalDate,
+    val count: Int,
+)
+
 data class PlantLocationGroup(
     val gardenName: String?,
     val bedName: String?,

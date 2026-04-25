@@ -240,7 +240,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
     val hideChrome = currentRoute in listOf(Screen.Splash.route, Screen.Auth.route, Screen.OrgRequired.route)
     val showTopBar = currentRoute == Screen.MyWorld.route
     val showBottomBar = currentRoute in listOf(
-        Screen.Dashboard.route, Screen.MyWorld.route, Screen.TaskList.route, Screen.GardenDetail.route,
+        Screen.Dashboard.route, Screen.MyWorld.route, Screen.PlantedSpeciesList.route, Screen.TaskList.route, Screen.GardenDetail.route,
     )
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -381,16 +381,16 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                         )
 
                         NavigationBarItem(
-                            selected = myWorldSelected,
+                            selected = currentRoute == Screen.PlantedSpeciesList.route,
                             onClick = {
-                                navController.navigate(myWorldRoute) {
+                                navController.navigate(Screen.PlantedSpeciesList.route) {
                                     popUpTo(Screen.Dashboard.route)
                                 }
                             },
-                            icon = { Icon(Icons.Default.Eco, contentDescription = myWorldLabel) },
+                            icon = { Icon(Icons.Default.Yard, contentDescription = stringResource(R.string.plants)) },
                             label = {
                                 Text(
-                                    text = myWorldLabel.uppercase(),
+                                    text = stringResource(R.string.plants).uppercase(),
                                     fontFamily = FontFamily.Monospace,
                                     fontSize = 9.sp,
                                     letterSpacing = 1.4.sp,

@@ -606,6 +606,12 @@ data class SpeciesPlantSummary(
     @SerializedName("totalPlantCount") val totalPlantCount: Int,
 )
 
+data class SpeciesEventSummaryEntry(
+    @SerializedName("eventType") val eventType: String,
+    @SerializedName("eventDate") val eventDate: String,
+    @SerializedName("count") val count: Int,
+)
+
 data class PlantLocationGroup(
     @SerializedName("gardenName") val gardenName: String?,
     @SerializedName("bedName") val bedName: String?,

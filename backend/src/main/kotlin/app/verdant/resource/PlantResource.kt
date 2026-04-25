@@ -101,6 +101,13 @@ class PlantResource(
     fun speciesLocations(@PathParam("speciesId") speciesId: Long) =
         plantService.getSpeciesLocations(orgContext.orgId, speciesId)
 
+    @GET
+    @Path("/plants/species/{speciesId}/events")
+    fun speciesEvents(
+        @PathParam("speciesId") speciesId: Long,
+        @QueryParam("trayOnly") @DefaultValue("false") trayOnly: Boolean,
+    ) = plantService.getSpeciesEventSummary(orgContext.orgId, speciesId, trayOnly)
+
     // ── Plant Events ──
 
     @GET

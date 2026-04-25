@@ -194,6 +194,35 @@ class PlantRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    /** Aggregate plant events for a species, optionally limited to tray plants
+     *  (bed_id IS NULL). Returns rows of (eventType, eventDate, plantCount sum). */
+    fun speciesEventSummary(orgId: Long, speciesId: Long, trayOnly: Boolean = false): List<app.verdant.dto.SpeciesEventSummaryEntry> =
+        ds.connection.use { conn ->
+            val sql = buildString {
+                append("""SELECT pe.event_type, pe.event_date, COALESCE(SUM(pe.plant_count), COUNT(*))::int as count
+                          FROM plant_event pe
+                          JOIN plant p ON pe.plant_id = p.id
+                          WHERE p.org_id = ? AND p.species_id = ?""")
+                if (trayOnly) append(" AND p.bed_id IS NULL")
+                append(" GROUP BY pe.event_type, pe.event_date ORDER BY pe.event_date, pe.event_type")
+            }
+            conn.prepareStatement(sql).use { ps ->
+                ps.setLong(1, orgId)
+                ps.setLong(2, speciesId)
+                ps.executeQuery().use { rs ->
+                    buildList {
+                        while (rs.next()) add(
+                            app.verdant.dto.SpeciesEventSummaryEntry(
+                                eventType = rs.getString("event_type"),
+                                eventDate = rs.getDate("event_date").toLocalDate(),
+                                count = rs.getInt("count"),
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
     fun delete(id: Long) {
         ds.connection.use { conn ->
             conn.prepareStatement("DELETE FROM plant WHERE id = ?").use { ps ->

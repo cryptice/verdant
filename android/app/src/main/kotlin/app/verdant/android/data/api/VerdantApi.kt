@@ -100,6 +100,12 @@ interface VerdantApi {
     @GET("api/plants/species/{speciesId}/locations")
     suspend fun getSpeciesLocations(@Path("speciesId") speciesId: Long): List<PlantLocationGroup>
 
+    @GET("api/plants/species/{speciesId}/events")
+    suspend fun getSpeciesEventSummary(
+        @Path("speciesId") speciesId: Long,
+        @retrofit2.http.Query("trayOnly") trayOnly: Boolean = false,
+    ): List<SpeciesEventSummaryEntry>
+
     // ── Plant Events ──
 
     @GET("api/plants/{id}/events")

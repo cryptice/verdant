@@ -124,7 +124,6 @@ fun MyVerdantWorldScreen(
         mastheadRight = {
             TextButton(onClick = onSow) { Text("Så", fontSize = 12.sp) }
         },
-        fab = { FaltetFab(onClick = onCreateGarden, contentDescription = "Skapa trädgård") },
     ) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
@@ -141,6 +140,11 @@ fun MyVerdantWorldScreen(
                 headline = "Inga trädgårdar",
                 subtitle = "Skapa din första trädgård.",
                 modifier = Modifier.padding(padding),
+                action = {
+                    androidx.compose.material3.Button(onClick = onCreateGarden) {
+                        Text("+ Skapa trädgård")
+                    }
+                },
             )
             else -> {
                 val dashboard = uiState.dashboard!!
@@ -148,12 +152,18 @@ fun MyVerdantWorldScreen(
                     item { FaltetSectionHeader(label = "Trädgårdar") }
                     if (dashboard.gardens.isEmpty()) {
                         item {
-                            Text(
-                                text = "Inga trädgårdar ännu",
-                                fontSize = 14.sp,
-                                color = FaltetForest,
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
-                            )
+                            ) {
+                                Text(
+                                    text = "Inga trädgårdar ännu",
+                                    fontSize = 14.sp,
+                                    color = FaltetForest,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                TextButton(onClick = onCreateGarden) { Text("+ Skapa") }
+                            }
                         }
                     } else {
                         items(dashboard.gardens, key = { "garden_${it.id}" }) { garden ->

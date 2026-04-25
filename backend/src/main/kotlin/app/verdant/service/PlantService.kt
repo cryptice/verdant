@@ -303,6 +303,9 @@ class PlantService(
 
     fun getSpeciesLocations(orgId: Long, speciesId: Long) = plantRepository.speciesLocations(orgId, speciesId)
 
+    fun getSpeciesEventSummary(orgId: Long, speciesId: Long, trayOnly: Boolean) =
+        plantRepository.speciesEventSummary(orgId, speciesId, trayOnly)
+
     // ── Stats ──
 
     fun getHarvestStats(orgId: Long): List<HarvestStatRow> {
