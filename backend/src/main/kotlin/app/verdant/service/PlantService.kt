@@ -133,6 +133,7 @@ class PlantService(
             PlantGroupResponse(
                 speciesId = row["speciesId"] as? Long ?: 0,
                 speciesName = row["speciesName"] as? String,
+                variantName = row["variantName"] as? String,
                 bedId = row["bedId"] as? Long,
                 bedName = row["bedName"] as? String,
                 gardenName = row["gardenName"] as? String,

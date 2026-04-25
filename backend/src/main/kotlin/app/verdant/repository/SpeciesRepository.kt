@@ -218,14 +218,19 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
         if (ids.isEmpty()) return emptyMap()
         val placeholders = ids.joinToString(",") { "?" }
         return ds.connection.use { conn ->
-            conn.prepareStatement("SELECT id, common_name, variant_name FROM species WHERE id IN ($placeholders)").use { ps ->
+            conn.prepareStatement(
+                """SELECT id,
+                          COALESCE(common_name_sv, common_name) AS name,
+                          COALESCE(variant_name_sv, variant_name) AS variant
+                   FROM species WHERE id IN ($placeholders)"""
+            ).use { ps ->
                 ids.forEachIndexed { i, id -> ps.setLong(i + 1, id) }
                 ps.executeQuery().use { rs ->
                     buildMap {
                         while (rs.next()) {
-                            val name = rs.getString("common_name")
-                            val variant = rs.getString("variant_name")
-                            put(rs.getLong("id"), if (variant != null) "$name — $variant" else name)
+                            val name = rs.getString("name")
+                            val variant = rs.getString("variant")
+                            put(rs.getLong("id"), if (variant != null) "$name – $variant" else name)
                         }
                     }
                 }

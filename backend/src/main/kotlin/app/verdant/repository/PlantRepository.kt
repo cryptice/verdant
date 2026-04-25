@@ -238,7 +238,9 @@ class PlantRepository(private val ds: AgroalDataSource) {
     fun findGroupedBySpecies(orgId: Long, status: PlantStatus, trayOnly: Boolean = false): List<Map<String, Any?>> =
         ds.connection.use { conn ->
             val sql = buildString {
-                append("""SELECT p.species_id, COALESCE(s.common_name_sv, s.common_name) as species_name,
+                append("""SELECT p.species_id,
+                          COALESCE(s.common_name_sv, s.common_name) as species_name,
+                          COALESCE(s.variant_name_sv, s.variant_name) as variant_name,
                           p.bed_id, b.name as bed_name, g.name as garden_name,
                           p.planted_date, p.status, COUNT(*) as count
                    FROM plant p
@@ -247,7 +249,7 @@ class PlantRepository(private val ds: AgroalDataSource) {
                    LEFT JOIN garden g ON b.garden_id = g.id
                    WHERE p.org_id = ? AND p.status = ?""")
                 if (trayOnly) append(" AND p.bed_id IS NULL")
-                append(" GROUP BY p.species_id, s.common_name_sv, s.common_name, p.bed_id, b.name, g.name, p.planted_date, p.status")
+                append(" GROUP BY p.species_id, s.common_name_sv, s.common_name, s.variant_name_sv, s.variant_name, p.bed_id, b.name, g.name, p.planted_date, p.status")
                 append(" ORDER BY p.planted_date DESC")
             }
             conn.prepareStatement(sql).use { ps ->
@@ -258,6 +260,7 @@ class PlantRepository(private val ds: AgroalDataSource) {
                         while (rs.next()) add(mapOf(
                             "speciesId" to (rs.getObject("species_id") as? Long),
                             "speciesName" to rs.getString("species_name"),
+                            "variantName" to rs.getString("variant_name"),
                             "bedId" to (rs.getObject("bed_id") as? Long),
                             "bedName" to rs.getString("bed_name"),
                             "gardenName" to rs.getString("garden_name"),

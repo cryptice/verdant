@@ -103,6 +103,7 @@ data class BatchEventResponse(
 data class PlantGroupResponse(
     val speciesId: Long,
     val speciesName: String?,
+    val variantName: String?,
     val bedId: Long?,
     val bedName: String?,
     val gardenName: String?,
