@@ -131,6 +131,7 @@ class DevResource(
     fun wipeUserData(): Response {
         val tables = listOf(
             "plant_event", "plant",
+            "bouquet_item", "bouquet",
             "bouquet_recipe_item", "bouquet_recipe",
             "succession_schedule", "production_target", "scheduled_task",
             "seed_inventory", "variety_trial", "pest_disease_log",

@@ -56,6 +56,7 @@ function useGroups(): NavGroup[] {
         { to: '/analytics?tab=harvest', label: t('nav.harvest'),  advanced: true },
         { to: '/customers',             label: t('nav.customers') },
         { to: '/bouquets',              label: t('nav.bouquets'), advanced: true },
+        { to: '/bouquet-recipes',       label: t('nav.bouquetRecipes'), advanced: true },
       ],
     },
     {

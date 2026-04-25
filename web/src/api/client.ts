@@ -235,6 +235,26 @@ export interface BouquetRecipeItemResponse {
   stemCount: number; role: string; notes?: string
 }
 
+// Bouquet (instance — built from a recipe or freeform)
+export interface BouquetResponse {
+  id: number
+  sourceRecipeId?: number
+  sourceRecipeName?: string
+  name: string
+  description?: string
+  imageUrl?: string
+  priceSek?: number
+  assembledAt: string
+  notes?: string
+  items: BouquetItemResponse[]
+  createdAt: string
+  updatedAt: string
+}
+export interface BouquetItemResponse {
+  id: number; speciesId: number; speciesName: string
+  stemCount: number; role: string; notes?: string
+}
+
 // Succession Schedule
 export interface SuccessionScheduleResponse {
   id: number; seasonId: number; speciesId: number; speciesName: string
@@ -545,6 +565,14 @@ export const api = {
     create: (data: Record<string, unknown>) => apiRequest<BouquetRecipeResponse>('/api/bouquet-recipes', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: number, data: Record<string, unknown>) => apiRequest<BouquetRecipeResponse>(`/api/bouquet-recipes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: number) => apiRequest<void>(`/api/bouquet-recipes/${id}`, { method: 'DELETE' }),
+  },
+
+  bouquets: {
+    list: () => apiRequest<BouquetResponse[]>('/api/bouquets'),
+    get: (id: number) => apiRequest<BouquetResponse>(`/api/bouquets/${id}`),
+    create: (data: Record<string, unknown>) => apiRequest<BouquetResponse>('/api/bouquets', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: Record<string, unknown>) => apiRequest<BouquetResponse>(`/api/bouquets/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: number) => apiRequest<void>(`/api/bouquets/${id}`, { method: 'DELETE' }),
   },
 
   successionSchedules: {

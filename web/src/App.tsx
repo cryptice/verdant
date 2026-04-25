@@ -25,6 +25,7 @@ import { CustomerList } from './pages/CustomerList'
 import { PestDiseaseLog } from './pages/PestDiseaseLog'
 import { VarietyTrials } from './pages/VarietyTrials'
 import { BouquetRecipes } from './pages/BouquetRecipes'
+import { Bouquets } from './pages/Bouquets'
 import { CropCalendar } from './pages/CropCalendar'
 import { SuccessionSchedules } from './pages/SuccessionSchedules'
 import { ProductionTargets } from './pages/ProductionTargets'
@@ -97,7 +98,8 @@ export function App() {
         <Route path="customers" element={<CustomerList />} />
         <Route path="pest-disease" element={<PestDiseaseLog />} />
         <Route path="trials" element={<VarietyTrials />} />
-        <Route path="bouquets" element={<BouquetRecipes />} />
+        <Route path="bouquets" element={<Bouquets />} />
+        <Route path="bouquet-recipes" element={<BouquetRecipes />} />
         <Route path="calendar" element={<CropCalendar />} />
         <Route path="successions" element={<SuccessionSchedules />} />
         <Route path="targets" element={<ProductionTargets />} />
