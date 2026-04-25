@@ -228,6 +228,7 @@ data class TraySummaryEntry(
 data class PlantGroupResponse(
     @SerializedName("speciesId") val speciesId: Long,
     @SerializedName("speciesName") val speciesName: String?,
+    @SerializedName("variantName") val variantName: String? = null,
     @SerializedName("bedId") val bedId: Long?,
     @SerializedName("bedName") val bedName: String?,
     @SerializedName("gardenName") val gardenName: String?,

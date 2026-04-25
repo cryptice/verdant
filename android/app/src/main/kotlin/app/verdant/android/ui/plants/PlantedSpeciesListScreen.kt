@@ -161,7 +161,7 @@ fun PlantedSpeciesListScreen(
             val tokens = searchQuery.trim().lowercase().split(Regex("\\s+")).filter { it.isNotEmpty() }
             if (tokens.isEmpty()) uiState.species
             else uiState.species.filter { item ->
-                val haystack = listOfNotNull(item.speciesName, item.scientificName)
+                val haystack = listOfNotNull(item.speciesName, item.variantName, item.scientificName)
                     .joinToString(" ").lowercase()
                 tokens.all { haystack.contains(it) }
             }
@@ -189,9 +189,9 @@ fun PlantedSpeciesListScreen(
                             placeholder = "SÖK ART",
                         )
                     }
-                    items(filtered, key = { it.speciesId }) { species ->
+                    items(filtered) { species ->
                         FaltetListRow(
-                            title = species.speciesName,
+                            title = species.variantName?.let { "${species.speciesName} – $it" } ?: species.speciesName,
                             meta = species.scientificName,
                             stat = {
                                 Row(verticalAlignment = Alignment.Bottom) {

@@ -146,7 +146,7 @@ fun BatchPlantOutScreen(
 
     FaltetScreenScaffold(
         mastheadLeft = "",
-        mastheadCenter = if (selectedGroup == null) "Välj grupp" else selectedGroup!!.speciesName ?: "Okänd art",
+        mastheadCenter = if (selectedGroup == null) "Välj grupp" else (selectedGroup!!.variantName?.let { "${selectedGroup!!.speciesName} – $it" } ?: selectedGroup!!.speciesName ?: "Okänd art"),
         mastheadRight = if (selectedGroup != null) {
             {
                 IconButton(
@@ -190,7 +190,7 @@ fun BatchPlantOutScreen(
                         key = { "${it.speciesId}_${it.status}_${it.plantedDate ?: ""}" },
                     ) { group ->
                         FaltetListRow(
-                            title = group.speciesName ?: "Okänd art",
+                            title = (group.variantName?.let { "${group.speciesName} – $it" } ?: group.speciesName ?: "Okänd art"),
                             meta = "${statusLabelSv(group.status)} · ${group.count} plantor",
                             onClick = {
                                 selectedGroup = group
@@ -253,7 +253,7 @@ private fun BatchPlantOutScreenPreview_List() {
         LazyColumn(Modifier.fillMaxSize().padding(padding)) {
             items(previewGroups, key = { "${it.speciesId}_${it.status}_${it.plantedDate ?: ""}" }) { group ->
                 FaltetListRow(
-                    title = group.speciesName ?: "Okänd art",
+                    title = (group.variantName?.let { "${group.speciesName} – $it" } ?: group.speciesName ?: "Okänd art"),
                     meta = "${statusLabelSv(group.status)} · ${group.count} plantor",
                     onClick = {},
                 )

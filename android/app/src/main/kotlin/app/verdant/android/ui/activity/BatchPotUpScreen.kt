@@ -193,7 +193,7 @@ fun BatchPotUpScreen(
 
     FaltetScreenScaffold(
         mastheadLeft = "",
-        mastheadCenter = if (selectedGroup == null) "Välj grupp" else selectedGroup!!.speciesName ?: "Okänd art",
+        mastheadCenter = if (selectedGroup == null) "Välj grupp" else (selectedGroup!!.variantName?.let { "${selectedGroup!!.speciesName} – $it" } ?: selectedGroup!!.speciesName ?: "Okänd art"),
         mastheadRight = if (selectedGroup != null) {
             {
                 IconButton(
@@ -234,7 +234,7 @@ fun BatchPotUpScreen(
                 LazyColumn(Modifier.fillMaxSize().padding(padding)) {
                     items(uiState.groups, key = { "${it.speciesId}_${it.plantedDate}" }) { group ->
                         FaltetListRow(
-                            title = group.speciesName ?: "Okänd art",
+                            title = (group.variantName?.let { "${group.speciesName} – $it" } ?: group.speciesName ?: "Okänd art"),
                             meta = "${formattedDate(group.plantedDate)} · ${group.count} frön i brätte",
                             onClick = {
                                 selectedGroup = group
@@ -299,7 +299,7 @@ private fun BatchPotUpScreenPreview_List() {
         LazyColumn(Modifier.fillMaxSize().padding(padding)) {
             items(previewGroups, key = { "${it.speciesId}_${it.plantedDate}" }) { group ->
                 FaltetListRow(
-                    title = group.speciesName ?: "Okänd art",
+                    title = (group.variantName?.let { "${group.speciesName} – $it" } ?: group.speciesName ?: "Okänd art"),
                     meta = "${formattedDate(group.plantedDate)} · ${group.count} frön i brätte",
                     onClick = {},
                 )

@@ -123,10 +123,11 @@ class PlantedSpeciesDetailViewModel @Inject constructor(
                 val tasks = repo.getTasks().filter {
                     it.speciesId == speciesId && it.status == "PENDING"
                 }
-                // Resolve species name from tasks or locations summary
-                val name = tasks.firstOrNull()?.speciesName
-                    ?: repo.getSpeciesPlantSummary().find { it.speciesId == speciesId }?.speciesName
-                    ?: ""
+                // Resolve species name (with variant) from species summary, falling back to task data
+                val summary = repo.getSpeciesPlantSummary().find { it.speciesId == speciesId }
+                val name = summary?.let {
+                    it.variantName?.let { v -> "${it.speciesName} – $v" } ?: it.speciesName
+                } ?: tasks.firstOrNull()?.speciesName ?: ""
                 _uiState.value = PlantedSpeciesDetailState(
                     isLoading = false,
                     speciesName = name,
