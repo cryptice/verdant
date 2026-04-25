@@ -121,9 +121,8 @@ body {
   border-top: 3px solid var(--color-accent);
 }
 
-/* Mobile floating action button — bottom-right circle, visible only at
-   ≤768px. Used on list pages where the desktop "+ New X" masthead button
-   gets hidden via .hide-on-mobile. */
+/* Mobile floating action button — bottom-right circle. Visible by default
+   (mobile-first); hidden on viewports ≥769px via the desktop media query. */
 .mobile-fab {
   position: fixed;
   right: calc(20px + env(safe-area-inset-right));
@@ -139,15 +138,19 @@ body {
   font-size: 28px;
   line-height: 1;
   cursor: pointer;
-  display: none;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 14px rgba(30, 36, 29, 0.25);
 }
 .mobile-fab:hover { background: var(--color-accent-hover); }
 
+.hide-on-mobile { display: inline-block; }
+
+@media (min-width: 769px) {
+  .mobile-fab { display: none; }
+}
 @media (max-width: 768px) {
-  .mobile-fab { display: inline-flex; }
   .hide-on-mobile { display: none !important; }
 }
 
