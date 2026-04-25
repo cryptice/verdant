@@ -175,7 +175,7 @@ export interface HarvestStatRow {
 export interface TraySummaryEntry { speciesId?: number; speciesName: string; variantName?: string; status: string; count: number }
 
 export interface SpeciesPlantSummary {
-  speciesId: number; speciesName: string; scientificName?: string
+  speciesId: number; speciesName: string; variantName?: string; scientificName?: string
   activePlantCount: number; totalPlantCount: number
 }
 
@@ -187,7 +187,7 @@ export interface PlantLocationGroup {
 export interface FrequentCommentResponse { id: number; text: string; useCount: number }
 
 export interface PlantGroupResponse {
-  speciesId: number; speciesName: string; bedId?: number; bedName?: string
+  speciesId: number; speciesName: string; variantName?: string; bedId?: number; bedName?: string
   gardenName?: string; plantedDate?: string; status: string; count: number
 }
 

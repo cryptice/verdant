@@ -19,7 +19,7 @@ export function PlantedSpeciesList() {
   const [search, setSearch] = useState('')
 
   const filtered = useMemo(() =>
-    data?.filter(s => matchesAllTokens([s.speciesName, s.scientificName], search)) ?? [],
+    data?.filter(s => matchesAllTokens([s.speciesName, s.variantName, s.scientificName], search)) ?? [],
     [data, search]
   )
 
@@ -64,7 +64,7 @@ export function PlantedSpeciesList() {
               width: '1.5fr',
               render: (p) => (
                 <div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>{p.speciesName}</div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>{p.variantName ? `${p.speciesName} – ${p.variantName}` : p.speciesName}</div>
                   {p.scientificName && (
                     <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 13, color: 'var(--color-sage)' }}>
                       {p.scientificName}
