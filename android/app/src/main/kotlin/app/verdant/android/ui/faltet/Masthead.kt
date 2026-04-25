@@ -31,6 +31,10 @@ fun Masthead(
         modifier = modifier
             .fillMaxWidth()
             .background(FaltetCream)
+            // Push the masthead content below the status bar / camera notch.
+            // Background extends all the way to the top edge so the cream
+            // bleeds into the system bar instead of leaving an awkward strip.
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
             .drawBehind {
                 drawLine(
                     color = FaltetInk,
