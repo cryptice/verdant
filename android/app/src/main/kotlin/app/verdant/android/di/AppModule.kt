@@ -2,6 +2,7 @@ package app.verdant.android.di
 
 import app.verdant.android.BuildConfig
 import app.verdant.android.data.AppError
+import app.verdant.android.data.BackendStore
 import app.verdant.android.data.OrgStore
 import app.verdant.android.data.SessionManager
 import app.verdant.android.data.TokenStore
@@ -11,6 +12,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.runBlocking
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 import okhttp3.logging.HttpLoggingInterceptor
@@ -28,11 +30,28 @@ object AppModule {
         tokenStore: TokenStore,
         orgStore: OrgStore,
         sessionManager: SessionManager,
+        backendStore: BackendStore,
     ): OkHttpClient {
         return OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(90, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
+            // Backend URL rewrite — when "use local backend" is set the request
+            // host/scheme/port get swapped to LOCAL_API_BASE_URL on every call,
+            // so toggling the preference takes effect without rebuilding Retrofit.
+            .addInterceptor { chain ->
+                val req = chain.request()
+                val newReq = if (runBlocking { backendStore.getUseLocal() }) {
+                    val local = BuildConfig.LOCAL_API_BASE_URL.toHttpUrl()
+                    val rewritten = req.url.newBuilder()
+                        .scheme(local.scheme)
+                        .host(local.host)
+                        .port(local.port)
+                        .build()
+                    req.newBuilder().url(rewritten).build()
+                } else req
+                chain.proceed(newReq)
+            }
             // OkHttp interceptors are inherently synchronous, so runBlocking is the
             // standard approach for accessing coroutine-based token/org stores here.
             .addInterceptor { chain ->

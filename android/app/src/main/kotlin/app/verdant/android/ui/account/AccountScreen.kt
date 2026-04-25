@@ -9,6 +9,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -24,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.BuildConfig
+import app.verdant.android.data.BackendStore
 import app.verdant.android.data.model.UpdateUserRequest
 import app.verdant.android.data.model.UserResponse
 import app.verdant.android.data.repository.AuthRepository
@@ -49,18 +52,29 @@ data class AccountState(
     val isLoading: Boolean = true,
     val user: UserResponse? = null,
     val signedOut: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val useLocalBackend: Boolean = false,
 )
+
+private const val DEV_EMAIL = "erik@l2c.se"
 
 @HiltViewModel
 class AccountViewModel @Inject constructor(
     private val gardenRepository: GardenRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val backendStore: BackendStore,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AccountState())
     val uiState = _uiState.asStateFlow()
 
-    init { load() }
+    init {
+        load()
+        viewModelScope.launch {
+            backendStore.useLocal.collect { value ->
+                _uiState.value = _uiState.value.copy(useLocalBackend = value)
+            }
+        }
+    }
 
     fun load() {
         viewModelScope.launch {
@@ -92,6 +106,10 @@ class AccountViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(error = e.message)
             }
         }
+    }
+
+    fun setUseLocalBackend(value: Boolean) {
+        viewModelScope.launch { backendStore.setUseLocal(value) }
     }
 
     fun deleteAccount() {
@@ -180,6 +198,21 @@ fun AccountScreen(
                             modifier = Modifier.padding(horizontal = 18.dp),
                         )
                         Spacer(Modifier.height(8.dp))
+                    }
+                    if (user.email == DEV_EMAIL) {
+                        item {
+                            FaltetSectionHeader(label = "Utveckling")
+                            FaltetListRow(
+                                title = "Använd lokal backend",
+                                meta = if (uiState.useLocalBackend) BuildConfig.LOCAL_API_BASE_URL else BuildConfig.API_BASE_URL,
+                                actions = {
+                                    Switch(
+                                        checked = uiState.useLocalBackend,
+                                        onCheckedChange = { viewModel.setUseLocalBackend(it) },
+                                    )
+                                },
+                            )
+                        }
                     }
                     item {
                         FaltetSectionHeader(label = "Konto")

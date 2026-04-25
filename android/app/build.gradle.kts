@@ -51,11 +51,15 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        val apiBaseUrl = envGet("android", "api-base-url").ifBlank { "http://10.0.2.2:8081/" }
+        // Production-by-default. Erik can flip to the local emulator backend
+        // at runtime from the Account screen toggle.
+        val apiBaseUrl = envGet("android", "api-base-url").ifBlank { "https://verdantplanner.com/" }
+        val localApiBaseUrl = envGet("android", "local-api-base-url").ifBlank { "http://10.0.2.2:8081/" }
         val webClientId = envGet("android", "google-web-client-id")
         val mapsApiKey = envGet("android", "maps-api-key")
 
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+        buildConfigField("String", "LOCAL_API_BASE_URL", "\"$localApiBaseUrl\"")
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$webClientId\"")
         buildConfigField("String", "MAPS_API_KEY", "\"$mapsApiKey\"")
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
