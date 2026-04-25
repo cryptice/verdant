@@ -108,14 +108,13 @@ private fun SpeciesResponse.displayName(): String {
 }
 
 private fun SpeciesResponse.matchesQuery(query: String): Boolean {
-    if (query.isBlank()) return true
-    val q = query.lowercase()
-    return commonName.lowercase().contains(q) ||
-        (commonNameSv?.lowercase()?.contains(q) == true) ||
-        (variantName?.lowercase()?.contains(q) == true) ||
-        (variantNameSv?.lowercase()?.contains(q) == true) ||
-        (scientificName?.lowercase()?.contains(q) == true) ||
-        groups.any { it.name.lowercase().contains(q) }
+    val tokens = query.trim().lowercase().split(Regex("\\s+")).filter { it.isNotEmpty() }
+    if (tokens.isEmpty()) return true
+    val haystack = listOfNotNull(
+        commonName, commonNameSv, variantName, variantNameSv, scientificName,
+    ).joinToString(" ").lowercase() +
+        " " + groups.joinToString(" ") { it.name }.lowercase()
+    return tokens.all { haystack.contains(it) }
 }
 
 private fun categoryColor(groups: List<SpeciesGroupRef>): Color {
@@ -170,7 +169,7 @@ fun SpeciesListScreen(
     }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Sort",
+        mastheadLeft = "",
         mastheadCenter = "Sorter",
         fab = { FaltetFab(onClick = onAddSpecies, contentDescription = "Lägg till sort") },
     ) { padding ->
@@ -221,7 +220,7 @@ fun SpeciesListScreen(
 @Composable
 private fun SpeciesListScreenPreview() {
     FaltetScreenScaffold(
-        mastheadLeft = "§ Sort",
+        mastheadLeft = "",
         mastheadCenter = "Sorter",
     ) { padding ->
         FaltetEmptyState(

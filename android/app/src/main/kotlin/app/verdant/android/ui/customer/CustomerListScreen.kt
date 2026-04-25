@@ -135,7 +135,7 @@ fun CustomerListScreen(
     var editing by remember { mutableStateOf<CustomerResponse?>(null) }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Kund",
+        mastheadLeft = "",
         mastheadCenter = "Kunder",
         fab = {
             FaltetFab(

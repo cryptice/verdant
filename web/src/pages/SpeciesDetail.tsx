@@ -23,6 +23,38 @@ export function SpeciesDetail() {
     },
   })
 
+  const copyMut = useMutation({
+    mutationFn: async () => {
+      const full = await api.species.get(speciesId)
+      return api.species.create({
+        commonName: full.commonName,
+        commonNameSv: full.commonNameSv,
+        variantName: full.variantName ? `${full.variantName} (kopia)` : '(kopia)',
+        variantNameSv: full.variantNameSv ? `${full.variantNameSv} (kopia)` : undefined,
+        scientificName: full.scientificName,
+        germinationTimeDaysMin: full.germinationTimeDaysMin,
+        germinationTimeDaysMax: full.germinationTimeDaysMax,
+        daysToHarvestMin: full.daysToHarvestMin,
+        daysToHarvestMax: full.daysToHarvestMax,
+        sowingDepthMm: full.sowingDepthMm,
+        heightCmMin: full.heightCmMin,
+        heightCmMax: full.heightCmMax,
+        germinationRate: full.germinationRate,
+        bloomMonths: full.bloomMonths,
+        sowingMonths: full.sowingMonths,
+        costPerSeedCents: full.costPerSeedCents,
+        expectedStemsPerPlant: full.expectedStemsPerPlant,
+        expectedVaseLifeDays: full.expectedVaseLifeDays,
+        plantType: full.plantType,
+        defaultUnitType: full.defaultUnitType,
+      })
+    },
+    onSuccess: (created) => {
+      qc.invalidateQueries({ queryKey: ['species'] })
+      navigate(`/species/${created.id}`)
+    },
+  })
+
   return (
     <div>
       <Masthead
@@ -51,21 +83,39 @@ export function SpeciesDetail() {
         <Rule variant="soft" />
         <div style={{ marginTop: 22, display: 'flex', justifyContent: 'flex-end' }}>
           {!confirmDelete ? (
-            <button
-              onClick={() => setConfirmDelete(true)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                fontFamily: 'var(--font-mono)',
-                fontSize: 10,
-                letterSpacing: 1.4,
-                textTransform: 'uppercase',
-                color: 'var(--color-accent)',
-                cursor: 'pointer',
-              }}
-            >
-              ↵ {t('species.delete.trigger')}
-            </button>
+            <div style={{ display: 'flex', gap: 18 }}>
+              <button
+                onClick={() => copyMut.mutate()}
+                disabled={copyMut.isPending}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10,
+                  letterSpacing: 1.4,
+                  textTransform: 'uppercase',
+                  color: 'var(--color-accent)',
+                  cursor: 'pointer',
+                }}
+              >
+                ⎘ {copyMut.isPending ? t('common.loading') : t('species.copy')}
+              </button>
+              <button
+                onClick={() => setConfirmDelete(true)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10,
+                  letterSpacing: 1.4,
+                  textTransform: 'uppercase',
+                  color: 'var(--color-accent)',
+                  cursor: 'pointer',
+                }}
+              >
+                ↵ {t('species.delete.trigger')}
+              </button>
+            </div>
           ) : (
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               <span

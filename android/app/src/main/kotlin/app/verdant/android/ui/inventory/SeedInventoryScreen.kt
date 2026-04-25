@@ -110,7 +110,7 @@ fun SeedInventoryScreen(
     }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Inventarie",
+        mastheadLeft = "",
         mastheadCenter = stringResource(R.string.seed_inventory),
     ) { padding ->
         when {

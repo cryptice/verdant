@@ -215,7 +215,7 @@ fun SeasonSelectorScreen(
     }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Plan",
+        mastheadLeft = "",
         mastheadCenter = "Säsonger",
         fab = { FaltetFab(onClick = openCreate, contentDescription = "Skapa säsong") },
     ) { padding ->

@@ -511,7 +511,7 @@ fun AddSpeciesScreen(
     }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Art",
+        mastheadLeft = "",
         mastheadCenter = if (isEdit) uiState.existingSpecies?.commonName ?: "Redigera art" else "Ny art",
         mastheadRight = {
             IconButton(onClick = { tryBack() }, modifier = Modifier.size(36.dp)) {

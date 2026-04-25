@@ -209,6 +209,7 @@ data class BatchSowRequest(
     @SerializedName("seedCount") val seedCount: Int,
     @SerializedName("notes") val notes: String? = null,
     @SerializedName("imageBase64") val imageBase64: String? = null,
+    @SerializedName("plantedDate") val plantedDate: String? = null,
 )
 
 data class BatchSowResponse(

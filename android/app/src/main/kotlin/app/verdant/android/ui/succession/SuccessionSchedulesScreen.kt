@@ -223,7 +223,7 @@ fun SuccessionSchedulesScreen(
     }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Plan",
+        mastheadLeft = "",
         mastheadCenter = "Successioner",
         fab = {
             FaltetFab(
@@ -486,7 +486,7 @@ private fun SuccessionDialog(
 @Composable
 private fun SuccessionSchedulesScreenPreview() {
     FaltetScreenScaffold(
-        mastheadLeft = "§ Plan",
+        mastheadLeft = "",
         mastheadCenter = "Successioner",
     ) { padding ->
         FaltetEmptyState(

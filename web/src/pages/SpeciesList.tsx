@@ -81,6 +81,38 @@ export function SpeciesList() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['species'] }); setDeleteItem(null) },
   })
 
+  const copyMut = useMutation({
+    mutationFn: async (s: SpeciesResponse) => {
+      const full = await api.species.get(s.id)
+      return api.species.create({
+        commonName: full.commonName,
+        commonNameSv: full.commonNameSv,
+        variantName: full.variantName ? `${full.variantName} (kopia)` : '(kopia)',
+        variantNameSv: full.variantNameSv ? `${full.variantNameSv} (kopia)` : undefined,
+        scientificName: full.scientificName,
+        germinationTimeDaysMin: full.germinationTimeDaysMin,
+        germinationTimeDaysMax: full.germinationTimeDaysMax,
+        daysToHarvestMin: full.daysToHarvestMin,
+        daysToHarvestMax: full.daysToHarvestMax,
+        sowingDepthMm: full.sowingDepthMm,
+        heightCmMin: full.heightCmMin,
+        heightCmMax: full.heightCmMax,
+        germinationRate: full.germinationRate,
+        bloomMonths: full.bloomMonths,
+        sowingMonths: full.sowingMonths,
+        costPerSeedCents: full.costPerSeedCents,
+        expectedStemsPerPlant: full.expectedStemsPerPlant,
+        expectedVaseLifeDays: full.expectedVaseLifeDays,
+        plantType: full.plantType,
+        defaultUnitType: full.defaultUnitType,
+      })
+    },
+    onSuccess: (created) => {
+      qc.invalidateQueries({ queryKey: ['species'] })
+      navigate(`/species/${created.id}`)
+    },
+  })
+
   if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
 
@@ -186,6 +218,32 @@ export function SpeciesList() {
                 if (!pt) return null
                 return <Chip tone={PLANT_TYPE_TONE[pt]}>{t(`plantType.${pt}`)}</Chip>
               },
+            },
+            {
+              key: 'copy',
+              label: '',
+              width: '40px',
+              align: 'right',
+              render: (s: SpeciesResponse) => (
+                <button
+                  type="button"
+                  aria-label={t('species.copy')}
+                  title={t('species.copy')}
+                  onClick={(e) => { e.stopPropagation(); copyMut.mutate(s) }}
+                  disabled={copyMut.isPending}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--color-accent)',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 14,
+                    padding: 4,
+                  }}
+                >
+                  ⎘
+                </button>
+              ),
             },
             {
               key: 'goto',

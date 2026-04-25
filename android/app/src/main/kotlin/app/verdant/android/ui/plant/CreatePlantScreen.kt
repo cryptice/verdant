@@ -135,7 +135,7 @@ fun CreatePlantScreen(
     }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Planta",
+        mastheadLeft = "",
         mastheadCenter = "Ny planta",
         bottomBar = {
             FaltetFormSubmitBar(
@@ -228,7 +228,7 @@ fun CreatePlantScreen(
 private fun CreatePlantScreenPreview() {
     val snackbarHostState = remember { SnackbarHostState() }
     FaltetScreenScaffold(
-        mastheadLeft = "§ Planta",
+        mastheadLeft = "",
         mastheadCenter = "Ny planta",
         bottomBar = {
             FaltetFormSubmitBar(

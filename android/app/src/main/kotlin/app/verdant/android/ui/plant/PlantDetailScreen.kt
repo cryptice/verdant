@@ -188,7 +188,7 @@ fun PlantDetailScreen(
     }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Planta",
+        mastheadLeft = "",
         mastheadCenter = uiState.plant?.name ?: "",
         mastheadRight = {
             if (uiState.plant != null) {

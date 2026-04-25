@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -91,6 +92,7 @@ class MyWorldViewModel @Inject constructor(
 fun MyVerdantWorldScreen(
     onGardenClick: (Long) -> Unit,
     onCreateGarden: () -> Unit,
+    onSow: () -> Unit = {},
     viewModel: MyWorldViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -101,8 +103,11 @@ fun MyVerdantWorldScreen(
     }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Min värld",
+        mastheadLeft = "",
         mastheadCenter = "Trädgårdar",
+        mastheadRight = {
+            TextButton(onClick = onSow) { Text("Så", fontSize = 12.sp) }
+        },
         fab = { FaltetFab(onClick = onCreateGarden, contentDescription = "Skapa trädgård") },
     ) { padding ->
         when {
@@ -161,8 +166,24 @@ fun MyVerdantWorldScreen(
                         }
                     }
 
+                    item { FaltetSectionHeader(label = "Plantor i brätten") }
+                    if (uiState.trayPlants.isEmpty()) {
+                        item {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
+                            ) {
+                                Text(
+                                    text = "Inga sådder i brätten ännu.",
+                                    fontSize = 14.sp,
+                                    color = FaltetForest,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                TextButton(onClick = onSow) { Text("+ Ny sådd") }
+                            }
+                        }
+                    }
                     if (uiState.trayPlants.isNotEmpty()) {
-                        item { FaltetSectionHeader(label = "Plantor i brätten") }
                         items(uiState.trayPlants, key = { "tray_${it.speciesName}_${it.status}" }) { entry ->
                             FaltetListRow(
                                 title = entry.speciesName,
@@ -248,7 +269,7 @@ private fun MyVerdantWorldScreenPreview() {
     val uiState = MyWorldState(isLoading = false, dashboard = dashboard, trayPlants = trayPlants, harvestStats = harvestStats)
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Min värld",
+        mastheadLeft = "",
         mastheadCenter = "Trädgårdar",
         fab = { FaltetFab(onClick = {}, contentDescription = "Skapa trädgård") },
     ) { padding ->

@@ -302,7 +302,7 @@ fun PlantedSpeciesDetailScreen(
     }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Art",
+        mastheadLeft = "",
         mastheadCenter = uiState.speciesName,
     ) { padding ->
         when {

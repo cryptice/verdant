@@ -184,7 +184,7 @@ fun TaskListScreen(
     val groups = remember(uiState.tasks) { groupTasks(uiState.tasks) }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Arbete",
+        mastheadLeft = "",
         mastheadCenter = "Uppgifter",
         fab = { FaltetFab(onClick = onCreateTask, contentDescription = "Lägg till uppgift") },
     ) { padding ->

@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,6 +34,7 @@ fun Masthead(
     modifier: Modifier = Modifier,
 ) {
     val drawerOpen = LocalDrawerOpen.current
+    val accountOpen = LocalAccountOpen.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
@@ -82,7 +84,14 @@ fun Masthead(
             modifier = Modifier.weight(2f),
         )
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-            right?.invoke()
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                right?.invoke()
+                if (accountOpen != null) {
+                    IconButton(onClick = accountOpen) {
+                        Icon(Icons.Default.AccountCircle, contentDescription = "Konto", tint = FaltetForest)
+                    }
+                }
+            }
         }
     }
 }

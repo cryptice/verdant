@@ -192,7 +192,7 @@ fun BatchPotUpScreen(
     LaunchedEffect(uiState.error) { uiState.error?.let { snackbarHostState.showSnackbar(it) } }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Skola om",
+        mastheadLeft = "",
         mastheadCenter = if (selectedGroup == null) "Välj grupp" else selectedGroup!!.speciesName ?: "Okänd art",
         mastheadRight = if (selectedGroup != null) {
             {
@@ -290,7 +290,7 @@ private fun BatchPotUpScreenPreview_List() {
         PlantGroupResponse(speciesId = 3L, speciesName = "Lathyrus odoratus", bedId = null, bedName = null, gardenName = null, plantedDate = "2026-02-28", status = "SEEDED", count = 60),
     )
     FaltetScreenScaffold(
-        mastheadLeft = "§ Skola om",
+        mastheadLeft = "",
         mastheadCenter = "Välj grupp",
         mastheadRight = null,
         bottomBar = {},
@@ -314,7 +314,7 @@ private fun BatchPotUpScreenPreview_List() {
 private fun BatchPotUpScreenPreview_Detail() {
     val snackbarHostState = remember { SnackbarHostState() }
     FaltetScreenScaffold(
-        mastheadLeft = "§ Skola om",
+        mastheadLeft = "",
         mastheadCenter = "Cosmos bipinnatus",
         mastheadRight = {
             IconButton(onClick = {}, modifier = Modifier.size(36.dp)) {

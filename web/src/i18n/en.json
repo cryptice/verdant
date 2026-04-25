@@ -387,6 +387,7 @@
   "species": {
     "title": "Species",
     "newSpecies": "+ New species",
+    "copy": "Copy species",
     "noSpeciesFound": "No species found.",
     "noSpeciesFoundDropdown": "No species found",
     "addSpeciesTitle": "Add Species",

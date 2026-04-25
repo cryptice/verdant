@@ -387,6 +387,7 @@
   "species": {
     "title": "Arter",
     "newSpecies": "+ Ny art",
+    "copy": "Kopiera art",
     "noSpeciesFound": "Inga arter hittades.",
     "noSpeciesFoundDropdown": "Inga arter hittades",
     "addSpeciesTitle": "Lägg till art",

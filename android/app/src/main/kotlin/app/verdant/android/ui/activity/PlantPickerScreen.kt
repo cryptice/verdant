@@ -79,10 +79,13 @@ fun PlantPickerScreen(
     val uiState by viewModel.uiState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
 
-    val filteredPlants = uiState.plants.filter {
-        searchQuery.isBlank() ||
-            it.name.contains(searchQuery, ignoreCase = true) ||
-            (it.speciesName?.contains(searchQuery, ignoreCase = true) == true)
+    val filteredPlants = run {
+        val tokens = searchQuery.trim().lowercase().split(Regex("\\s+")).filter { it.isNotEmpty() }
+        if (tokens.isEmpty()) uiState.plants
+        else uiState.plants.filter { plant ->
+            val haystack = listOfNotNull(plant.name, plant.speciesName).joinToString(" ").lowercase()
+            tokens.all { haystack.contains(it) }
+        }
     }
 
     Scaffold(

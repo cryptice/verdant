@@ -162,7 +162,7 @@ fun BouquetRecipesScreen(
     var editing by remember { mutableStateOf<BouquetRecipeResponse?>(null) }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Bukett",
+        mastheadLeft = "",
         mastheadCenter = "Recept",
         fab = {
             FaltetFab(
@@ -465,7 +465,7 @@ private fun ItemEditor(
 @Composable
 private fun BouquetRecipesScreenPreview() {
     FaltetScreenScaffold(
-        mastheadLeft = "§ Bukett",
+        mastheadLeft = "",
         mastheadCenter = "Recept",
     ) { padding ->
         FaltetEmptyState(

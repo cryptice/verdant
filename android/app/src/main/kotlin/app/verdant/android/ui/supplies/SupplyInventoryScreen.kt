@@ -225,7 +225,7 @@ fun SupplyInventoryScreen(
     }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Inventarie",
+        mastheadLeft = "",
         mastheadCenter = "Förnödenheter",
     ) { padding ->
         when {

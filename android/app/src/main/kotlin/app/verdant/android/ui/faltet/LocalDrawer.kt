@@ -10,3 +10,10 @@ import androidx.compose.runtime.staticCompositionLocalOf
  * simply not rendered.
  */
 val LocalDrawerOpen = staticCompositionLocalOf<(() -> Unit)?> { null }
+
+/**
+ * Hoists a navigate-to-Account callback so the Masthead always renders an
+ * account icon at the top-right. NavGraph provides this; if absent the icon
+ * is omitted.
+ */
+val LocalAccountOpen = staticCompositionLocalOf<(() -> Unit)?> { null }

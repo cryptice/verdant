@@ -68,6 +68,9 @@ data class BatchSowRequest(
     @field:Size(max = 2000)
     val notes: String? = null,
     val imageBase64: String? = null,
+    /** When set, the plants are recorded as if they were sown on this date
+     *  rather than today. Used for backdating when registering existing plants. */
+    val plantedDate: java.time.LocalDate? = null,
 )
 
 data class BatchSowResponse(

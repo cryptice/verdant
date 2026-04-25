@@ -84,7 +84,7 @@ class PlantService(
             throw BadRequestException("name must not exceed 255 characters")
         }
         if (request.bedId != null) checkBedOwnership(request.bedId, orgId)
-        val today = java.time.LocalDate.now()
+        val today = request.plantedDate ?: java.time.LocalDate.now()
         val plantIds = mutableListOf<Long>()
         // Upload image once if provided
         var imageUrl: String? = null

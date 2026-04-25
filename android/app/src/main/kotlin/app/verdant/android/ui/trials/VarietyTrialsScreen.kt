@@ -170,7 +170,7 @@ fun VarietyTrialsScreen(
     var editing by remember { mutableStateOf<VarietyTrialResponse?>(null) }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Forskning",
+        mastheadLeft = "",
         mastheadCenter = "Försök",
         fab = {
             FaltetFab(

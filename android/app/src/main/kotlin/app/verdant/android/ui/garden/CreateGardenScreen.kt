@@ -297,7 +297,7 @@ fun CreateGardenScreen(
     val canSubmit = viewModel.gardenName.isNotBlank() && !viewModel.isCreating
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Trädgård",
+        mastheadLeft = "",
         mastheadCenter = mastheadCenter,
         bottomBar = {
             when (viewModel.currentStep) {
@@ -799,7 +799,7 @@ private fun BedEditorStep(
 private fun CreateGardenScreenPreview() {
     val snackbarHostState = remember { SnackbarHostState() }
     FaltetScreenScaffold(
-        mastheadLeft = "§ Trädgård",
+        mastheadLeft = "",
         mastheadCenter = "Ny trädgård",
         bottomBar = {
             FaltetFormSubmitBar(

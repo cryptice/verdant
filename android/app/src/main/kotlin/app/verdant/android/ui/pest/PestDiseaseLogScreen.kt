@@ -176,7 +176,7 @@ fun PestDiseaseLogScreen(
     }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Hälsa",
+        mastheadLeft = "",
         mastheadCenter = "Skadedjur & sjukdomar",
         fab = {
             FaltetFab(
@@ -473,7 +473,7 @@ private fun <T> ChipRow(
 @Composable
 private fun PestDiseaseLogScreenPreview() {
     FaltetScreenScaffold(
-        mastheadLeft = "§ Hälsa",
+        mastheadLeft = "",
         mastheadCenter = "Skadedjur & sjukdomar",
     ) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding)) {

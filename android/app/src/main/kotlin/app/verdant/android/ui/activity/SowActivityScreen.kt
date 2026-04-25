@@ -36,6 +36,7 @@ import app.verdant.android.data.model.ScheduledTaskResponse
 import app.verdant.android.data.model.SeedInventoryResponse
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.ui.faltet.FaltetDatePicker
 import app.verdant.android.ui.faltet.FaltetDropdown
 import app.verdant.android.ui.faltet.FaltetFormSubmitBar
 import app.verdant.android.ui.faltet.FaltetImagePicker
@@ -103,7 +104,7 @@ class SowActivityViewModel @Inject constructor(
         }
     }
 
-    fun sow(bedId: Long?, speciesId: Long, name: String, seedCount: Int?, notes: String?, imageBase64: String?, seedBatchId: Long?) {
+    fun sow(bedId: Long?, speciesId: Long, name: String, seedCount: Int?, notes: String?, imageBase64: String?, seedBatchId: Long?, sowDate: java.time.LocalDate?) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
@@ -116,6 +117,7 @@ class SowActivityViewModel @Inject constructor(
                         seedCount = count,
                         notes = notes,
                         imageBase64 = imageBase64,
+                        plantedDate = sowDate?.toString(),
                     )
                 )
                 // Decrement seed inventory
@@ -149,7 +151,7 @@ private enum class SowDestination { TRAY, BED }
 @Composable
 fun SowActivityScreen(
     onBack: () -> Unit,
-    onSowComplete: () -> Unit = onBack,
+    onSowComplete: (gardenId: Long?) -> Unit = { onBack() },
     viewModel: SowActivityViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -167,6 +169,7 @@ fun SowActivityScreen(
     var notes by remember { mutableStateOf("") }
     var photoBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var imageBase64 by remember { mutableStateOf<String?>(null) }
+    var sowDate by remember { mutableStateOf<java.time.LocalDate?>(java.time.LocalDate.now()) }
 
     // Resolve preselected species/bed once species list is loaded
     LaunchedEffect(uiState.species) {
@@ -208,8 +211,9 @@ fun SowActivityScreen(
     }
 
     if (uiState.created) {
+        val completedGardenId = if (destination == SowDestination.BED) selectedBed?.gardenId else null
         AlertDialog(
-            onDismissRequest = { onSowComplete() },
+            onDismissRequest = { onSowComplete(completedGardenId) },
             title = { Text("Sådd") },
             text = { Text("Vill du registrera förbrukning av jord eller krukor?") },
             confirmButton = {
@@ -218,7 +222,7 @@ fun SowActivityScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { onSowComplete() }) { Text("Hoppa över") }
+                TextButton(onClick = { onSowComplete(completedGardenId) }) { Text("Hoppa över") }
             },
         )
     }
@@ -237,6 +241,7 @@ fun SowActivityScreen(
             notes = notes.ifBlank { null },
             imageBase64 = imageBase64,
             seedBatchId = selectedSeedBatch?.id,
+            sowDate = sowDate,
         )
     }
 
@@ -245,7 +250,7 @@ fun SowActivityScreen(
     LaunchedEffect(uiState.created) { if (uiState.created) { /* nav handled by dialog dismiss */ } }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Sådd",
+        mastheadLeft = "",
         mastheadCenter = "Såaktivitet",
         bottomBar = {
             FaltetFormSubmitBar(
@@ -272,6 +277,14 @@ fun SowActivityScreen(
                     onSelectedChange = { selectedSpecies = it },
                     labelFor = { speciesDisplayName(it) },
                     searchable = true,
+                    required = true,
+                )
+            }
+            item {
+                FaltetDatePicker(
+                    label = "Sådatum",
+                    value = sowDate,
+                    onValueChange = { sowDate = it },
                     required = true,
                 )
             }
@@ -371,7 +384,7 @@ private fun SowActivityScreenPreview() {
         createdAt = "",
     )
     FaltetScreenScaffold(
-        mastheadLeft = "§ Sådd",
+        mastheadLeft = "",
         mastheadCenter = "Såaktivitet",
         bottomBar = {
             FaltetFormSubmitBar(

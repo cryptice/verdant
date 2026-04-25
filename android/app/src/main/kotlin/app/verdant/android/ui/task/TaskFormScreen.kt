@@ -156,7 +156,7 @@ fun TaskFormScreen(
     LaunchedEffect(uiState.saved) { if (uiState.saved) onBack() }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Arbete",
+        mastheadLeft = "",
         mastheadCenter = if (isEdit) (existing?.let { it.speciesName ?: "Uppgift" } ?: "Uppgift") else "Ny uppgift",
         bottomBar = {
             FaltetFormSubmitBar(
@@ -242,7 +242,7 @@ fun TaskFormScreen(
 private fun TaskFormScreenPreview() {
     val snackbarHostState = remember { SnackbarHostState() }
     FaltetScreenScaffold(
-        mastheadLeft = "§ Arbete",
+        mastheadLeft = "",
         mastheadCenter = "Ny uppgift",
         bottomBar = {
             FaltetFormSubmitBar(

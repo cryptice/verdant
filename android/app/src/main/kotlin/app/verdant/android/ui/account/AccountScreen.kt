@@ -161,7 +161,7 @@ fun AccountScreen(
     }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Konto",
+        mastheadLeft = "",
         mastheadCenter = "Konto",
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->

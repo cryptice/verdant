@@ -107,7 +107,7 @@ fun AnalyticsScreen(
     var selectedSpecies by remember { mutableStateOf<SpeciesResponse?>(null) }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Analys",
+        mastheadLeft = "",
         mastheadCenter = "Analys",
         mastheadRight = {
             IconButton(onClick = onBack, modifier = Modifier.size(36.dp)) {
@@ -261,7 +261,7 @@ fun AnalyticsScreen(
 @Composable
 private fun AnalyticsScreenSasonerPreview() {
     FaltetScreenScaffold(
-        mastheadLeft = "§ Analys",
+        mastheadLeft = "",
         mastheadCenter = "Analys",
     ) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding)) {

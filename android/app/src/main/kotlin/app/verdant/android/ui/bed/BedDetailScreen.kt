@@ -216,7 +216,8 @@ fun BedDetailScreen(
     onPlantFromTray: (Long) -> Unit = {},
     onFertilize: (Long) -> Unit = {},
     onGardenClick: (Long) -> Unit = {},
-    onBedNavigate: (Long) -> Unit = {},
+    onBedCopied: (Long) -> Unit = {},
+    openEditOnStart: Boolean = false,
     viewModel: BedDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -248,6 +249,29 @@ fun BedDetailScreen(
 
     LaunchedEffect(uiState.deleted) {
         if (uiState.deleted) onBack()
+    }
+
+    var didAutoOpenEdit by remember { mutableStateOf(false) }
+    LaunchedEffect(uiState.bed) {
+        val bed = uiState.bed
+        if (openEditOnStart && !didAutoOpenEdit && bed != null) {
+            editName = bed.name
+            editDescription = bed.description ?: ""
+            editSoilType = bed.soilType
+            editSoilPhText = bed.soilPh?.toString() ?: ""
+            editSunExposure = bed.sunExposure
+            editSunDirections = bed.sunDirections?.toSet() ?: emptySet()
+            editDrainage = bed.drainage
+            editIrrigationType = bed.irrigationType
+            editProtection = bed.protection
+            editRaisedBed = bed.raisedBed
+            editConditionsExpanded = listOf(
+                bed.soilType, bed.soilPh, bed.sunExposure, bed.drainage,
+                bed.sunDirections, bed.irrigationType, bed.protection, bed.raisedBed,
+            ).any { it != null }
+            editing = true
+            didAutoOpenEdit = true
+        }
     }
 
     if (editing) {
@@ -437,7 +461,7 @@ fun BedDetailScreen(
                         Icon(Icons.Default.Edit, "Redigera", tint = FaltetAccent, modifier = Modifier.size(18.dp))
                     }
                     IconButton(
-                        onClick = { viewModel.copy(onBedNavigate) },
+                        onClick = { viewModel.copy(onBedCopied) },
                         modifier = Modifier.size(36.dp),
                     ) {
                         Icon(Icons.Default.ContentCopy, "Kopiera", tint = FaltetAccent, modifier = Modifier.size(18.dp))

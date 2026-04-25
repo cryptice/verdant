@@ -204,7 +204,7 @@ fun ApplySupplyScreen(
     }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Gödsling",
+        mastheadLeft = "",
         mastheadCenter = "Applicera förnödenhet",
         bottomBar = {
             FaltetFormSubmitBar(
@@ -339,7 +339,7 @@ private fun ApplySupplyScreenPreview() {
     )
     val selectedObjects = previewPlants.toSet()
     FaltetScreenScaffold(
-        mastheadLeft = "§ Gödsling",
+        mastheadLeft = "",
         mastheadCenter = "Applicera förnödenhet",
         bottomBar = {
             FaltetFormSubmitBar(

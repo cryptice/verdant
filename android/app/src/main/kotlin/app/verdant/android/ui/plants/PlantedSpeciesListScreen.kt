@@ -67,6 +67,9 @@ class PlantedSpeciesListViewModel @Inject constructor(
     fun load() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            // Load the primary list first so the screen has something to show.
+            // The supporting lists (species + supplies, used only by the voice
+            // overlay) are loaded after — failures there must never block the UI.
             try {
                 val species = repo.getSpeciesPlantSummary()
                 _uiState.value = _uiState.value.copy(species = species, error = null)
@@ -74,20 +77,13 @@ class PlantedSpeciesListViewModel @Inject constructor(
                 Log.e("PlantedSpeciesList", "species-summary failed", e)
                 _uiState.value = _uiState.value.copy(error = e.message ?: e.javaClass.simpleName)
             } finally {
-                // Always flip the spinner off, even on cancellation, so the
-                // screen can recover instead of getting stuck on a permanent
-                // loading state.
                 _uiState.value = _uiState.value.copy(isLoading = false)
             }
-        }
-        viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(speciesList = repo.getSpecies())
             } catch (e: Exception) {
                 Log.w("PlantedSpeciesList", "species list failed", e)
             }
-        }
-        viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(supplyList = repo.getSupplyInventory())
             } catch (e: Exception) {
@@ -161,18 +157,17 @@ fun PlantedSpeciesListScreen(
         },
     ) {
         val filtered = remember(uiState.species, searchQuery) {
-            if (searchQuery.isBlank()) uiState.species
-            else {
-                val q = searchQuery.lowercase()
-                uiState.species.filter {
-                    it.speciesName.lowercase().contains(q) ||
-                        (it.scientificName?.lowercase()?.contains(q) == true)
-                }
+            val tokens = searchQuery.trim().lowercase().split(Regex("\\s+")).filter { it.isNotEmpty() }
+            if (tokens.isEmpty()) uiState.species
+            else uiState.species.filter { item ->
+                val haystack = listOfNotNull(item.speciesName, item.scientificName)
+                    .joinToString(" ").lowercase()
+                tokens.all { haystack.contains(it) }
             }
         }
 
         FaltetScreenScaffold(
-            mastheadLeft = "§ Odling",
+            mastheadLeft = "",
             mastheadCenter = "Växter",
         ) { padding ->
             when {

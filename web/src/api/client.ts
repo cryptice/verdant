@@ -447,7 +447,7 @@ export const api = {
       apiRequest<void>(`/api/plants/${plantId}/events/${eventId}`, { method: 'DELETE' }),
     batchSow: (data: {
       bedId?: number; speciesId: number; name: string; seedCount: number
-      notes?: string; imageBase64?: string
+      notes?: string; imageBase64?: string; plantedDate?: string
     }) => apiRequest<{ plantIds: number[]; count: number }>('/api/plants/batch-sow', { method: 'POST', body: JSON.stringify(data) }),
     traySummary: () => apiRequest<TraySummaryEntry[]>('/api/plants/tray-summary'),
     groups: (status: string, trayOnly?: boolean) =>

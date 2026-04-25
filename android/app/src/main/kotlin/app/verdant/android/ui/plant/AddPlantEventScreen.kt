@@ -211,7 +211,7 @@ fun AddPlantEventScreen(
     }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Händelse",
+        mastheadLeft = "",
         mastheadCenter = "Händelse",
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
@@ -424,7 +424,7 @@ private fun AddPlantEventScreenPreview_Harvested() {
     val canSubmit = eventType != null
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Händelse",
+        mastheadLeft = "",
         mastheadCenter = "Händelse",
         bottomBar = {
             FaltetFormSubmitBar(

@@ -23,7 +23,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
 
     fun findAll(): List<Species> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM species ORDER BY common_name").use { ps ->
+            conn.prepareStatement("SELECT * FROM species ORDER BY COALESCE(common_name_sv, common_name), COALESCE(variant_name_sv, variant_name)").use { ps ->
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.toSpecies()) }
                 }
@@ -38,7 +38,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
             conn.prepareStatement(
                 """SELECT * FROM species
                    WHERE concat_ws(' ', common_name, common_name_sv, variant_name, variant_name_sv, scientific_name) ILIKE ALL (?)
-                   ORDER BY common_name_sv, common_name
+                   ORDER BY COALESCE(common_name_sv, common_name), COALESCE(variant_name_sv, variant_name)
                    LIMIT ?"""
             ).use { ps ->
                 ps.setArray(1, arr)
@@ -67,7 +67,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
 
     fun findByOrgId(orgId: Long, limit: Int = 50, offset: Int = 0): List<Species> =
         ds.connection.use { conn ->
-            conn.prepareStatement("SELECT * FROM species WHERE org_id = ? OR org_id IS NULL ORDER BY common_name LIMIT ? OFFSET ?").use { ps ->
+            conn.prepareStatement("SELECT * FROM species WHERE org_id = ? OR org_id IS NULL ORDER BY COALESCE(common_name_sv, common_name), COALESCE(variant_name_sv, variant_name) LIMIT ? OFFSET ?").use { ps ->
                 ps.setLong(1, orgId)
                 ps.setInt(2, limit)
                 ps.setInt(3, offset)
@@ -86,7 +86,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 """SELECT * FROM species
                    WHERE (org_id = ? OR org_id IS NULL)
                      AND concat_ws(' ', common_name, common_name_sv, variant_name, variant_name_sv, scientific_name) ILIKE ALL (?)
-                   ORDER BY common_name_sv, common_name
+                   ORDER BY COALESCE(common_name_sv, common_name), COALESCE(variant_name_sv, variant_name)
                    LIMIT ?"""
             ).use { ps ->
                 ps.setLong(1, orgId)

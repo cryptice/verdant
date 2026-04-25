@@ -160,7 +160,7 @@ fun CreateBedScreen(
     }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Bädd",
+        mastheadLeft = "",
         mastheadCenter = "Ny bädd",
         bottomBar = {
             FaltetFormSubmitBar(
@@ -458,7 +458,7 @@ private fun CreateBedScreenPreview() {
     // Populated form state with a pH error for visual inspection
     val snackbarHostState = remember { SnackbarHostState() }
     FaltetScreenScaffold(
-        mastheadLeft = "§ Bädd",
+        mastheadLeft = "",
         mastheadCenter = "Ny bädd",
         bottomBar = {
             FaltetFormSubmitBar(

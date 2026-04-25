@@ -147,7 +147,7 @@ fun PotUpActivityScreen(
     LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
 
     ActivityScaffold(
-        mastheadLeft = "§ Skola om",
+        mastheadLeft = "",
         mastheadCenter = uiState.plant?.name ?: "",
         submitLabel = "Skola om",
         onSubmit = {
@@ -206,7 +206,7 @@ fun PlantActivityScreen(
     LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
 
     ActivityScaffold(
-        mastheadLeft = "§ Plantera ut",
+        mastheadLeft = "",
         mastheadCenter = uiState.plant?.name ?: "",
         submitLabel = "Plantera ut",
         onSubmit = {
@@ -267,7 +267,7 @@ fun HarvestActivityScreen(
     LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
 
     ActivityScaffold(
-        mastheadLeft = "§ Skörda",
+        mastheadLeft = "",
         mastheadCenter = uiState.plant?.name ?: "",
         submitLabel = "Skörda",
         onSubmit = {
@@ -344,7 +344,7 @@ fun RecoverActivityScreen(
     LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
 
     ActivityScaffold(
-        mastheadLeft = "§ Återhämta",
+        mastheadLeft = "",
         mastheadCenter = uiState.plant?.name ?: "",
         submitLabel = "Återhämta",
         onSubmit = {
@@ -403,7 +403,7 @@ fun DiscardActivityScreen(
     LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
 
     ActivityScaffold(
-        mastheadLeft = "§ Kassera",
+        mastheadLeft = "",
         mastheadCenter = uiState.plant?.name ?: "",
         submitLabel = "Kassera",
         onSubmit = {
@@ -543,7 +543,7 @@ private fun FrequentCommentsField(
 private fun HarvestActivityScreenPreview() {
     val snackbarHostState = remember { SnackbarHostState() }
     ActivityScaffold(
-        mastheadLeft = "§ Skörda",
+        mastheadLeft = "",
         mastheadCenter = "Cosmos #1",
         submitLabel = "Skörda",
         onSubmit = {},

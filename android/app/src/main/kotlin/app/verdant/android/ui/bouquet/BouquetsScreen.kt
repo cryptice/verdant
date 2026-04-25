@@ -193,7 +193,7 @@ fun BouquetsScreen(
     }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Försäljning",
+        mastheadLeft = "",
         mastheadCenter = "Buketter",
         mastheadRight = {
             TextButton(onClick = onOpenRecipes) { Text("Recept", fontSize = 12.sp) }

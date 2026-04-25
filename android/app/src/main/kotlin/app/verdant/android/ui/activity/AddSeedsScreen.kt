@@ -131,7 +131,7 @@ fun AddSeedsScreen(
     LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Inventarie",
+        mastheadLeft = "",
         mastheadCenter = "Lägg till frön",
         bottomBar = {
             FaltetFormSubmitBar(
@@ -249,7 +249,7 @@ private fun AddSeedsScreenPreview() {
         ),
     )
     FaltetScreenScaffold(
-        mastheadLeft = "§ Inventarie",
+        mastheadLeft = "",
         mastheadCenter = "Lägg till frön",
         bottomBar = {
             FaltetFormSubmitBar(
