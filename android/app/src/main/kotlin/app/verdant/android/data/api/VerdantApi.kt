@@ -283,6 +283,23 @@ interface VerdantApi {
     @DELETE("api/bouquet-recipes/{id}")
     suspend fun deleteBouquetRecipe(@Path("id") id: Long)
 
+    // ── Bouquets (instances) ──
+
+    @GET("api/bouquets")
+    suspend fun getBouquets(): List<BouquetResponse>
+
+    @GET("api/bouquets/{id}")
+    suspend fun getBouquet(@Path("id") id: Long): BouquetResponse
+
+    @POST("api/bouquets")
+    suspend fun createBouquet(@Body request: CreateBouquetRequest): BouquetResponse
+
+    @PUT("api/bouquets/{id}")
+    suspend fun updateBouquet(@Path("id") id: Long, @Body request: UpdateBouquetRequest): BouquetResponse
+
+    @DELETE("api/bouquets/{id}")
+    suspend fun deleteBouquet(@Path("id") id: Long)
+
     // ── Analytics ──
 
     @GET("api/analytics/seasons")

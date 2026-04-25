@@ -72,6 +72,7 @@ import app.verdant.android.ui.succession.SuccessionSchedulesScreen
 import app.verdant.android.ui.targets.ProductionTargetsScreen
 import app.verdant.android.ui.trials.VarietyTrialsScreen
 import app.verdant.android.ui.bouquet.BouquetRecipesScreen
+import app.verdant.android.ui.bouquet.BouquetsScreen
 import app.verdant.android.ui.analytics.AnalyticsScreen
 
 sealed class Screen(val route: String) {
@@ -132,6 +133,7 @@ sealed class Screen(val route: String) {
     data object Targets : Screen("targets")
     data object Trials : Screen("trials")
     data object Bouquets : Screen("bouquets")
+    data object BouquetRecipes : Screen("bouquet-recipes")
     data object Analytics : Screen("analytics")
 
     // Activity screens
@@ -303,6 +305,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                         DrawerSection("§ Skörd & Försäljning")
                         DrawerItem("Kunder", Screen.Customers.route, currentRoute, navController, scope, drawerState)
                         DrawerItem("Buketter", Screen.Bouquets.route, currentRoute, navController, scope, drawerState)
+                        DrawerItem("Bukettrecept", Screen.BouquetRecipes.route, currentRoute, navController, scope, drawerState)
 
                         // Section 4 — § ANALYS
                         DrawerSection("§ Analys")
@@ -578,6 +581,9 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                 VarietyTrialsScreen(onBack = { navController.popBackStack() })
             }
             composable(Screen.Bouquets.route) {
+                BouquetsScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Screen.BouquetRecipes.route) {
                 BouquetRecipesScreen(onBack = { navController.popBackStack() })
             }
             composable(Screen.Analytics.route) {

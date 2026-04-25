@@ -131,6 +131,13 @@ class GardenRepository @Inject constructor(private val api: VerdantApi) {
     suspend fun updateBouquetRecipe(id: Long, request: UpdateBouquetRecipeRequest) = api.updateBouquetRecipe(id, request)
     suspend fun deleteBouquetRecipe(id: Long) = api.deleteBouquetRecipe(id)
 
+    // Bouquets (instances)
+    suspend fun getBouquets() = api.getBouquets()
+    suspend fun getBouquet(id: Long) = api.getBouquet(id)
+    suspend fun createBouquet(request: CreateBouquetRequest) = api.createBouquet(request)
+    suspend fun updateBouquet(id: Long, request: UpdateBouquetRequest) = api.updateBouquet(id, request)
+    suspend fun deleteBouquet(id: Long) = api.deleteBouquet(id)
+
     // Analytics
     suspend fun getSeasonSummaries() = api.getSeasonSummaries()
     suspend fun getSpeciesComparison(speciesId: Long) = api.getSpeciesComparison(speciesId)
