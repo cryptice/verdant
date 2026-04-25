@@ -15,6 +15,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
@@ -93,9 +96,22 @@ fun MyVerdantWorldScreen(
     onGardenClick: (Long) -> Unit,
     onCreateGarden: () -> Unit,
     onSow: () -> Unit = {},
+    onTrayAction: (action: String, speciesId: Long) -> Unit = { _, _ -> },
     viewModel: MyWorldViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var trayActionTarget by remember { mutableStateOf<TraySummaryEntry?>(null) }
+
+    trayActionTarget?.let { entry ->
+        app.verdant.android.ui.dashboard.TrayActionDialog(
+            entry = entry,
+            onDismiss = { trayActionTarget = null },
+            onAction = { action ->
+                trayActionTarget = null
+                entry.speciesId?.let { onTrayAction(action, it) }
+            },
+        )
+    }
 
     LifecycleResumeEffect(Unit) {
         viewModel.refresh()
@@ -186,7 +202,7 @@ fun MyVerdantWorldScreen(
                     if (uiState.trayPlants.isNotEmpty()) {
                         items(uiState.trayPlants) { entry ->
                             FaltetListRow(
-                                title = entry.speciesName,
+                                title = entry.variantName?.let { "${entry.speciesName} – $it" } ?: entry.speciesName,
                                 meta = trayStatusLabelSv(entry.status),
                                 stat = {
                                     Row(verticalAlignment = Alignment.Bottom) {
@@ -205,6 +221,7 @@ fun MyVerdantWorldScreen(
                                         )
                                     }
                                 },
+                                onClick = if (entry.speciesId != null) ({ trayActionTarget = entry }) else null,
                             )
                         }
                     }
@@ -290,7 +307,7 @@ private fun MyVerdantWorldScreenPreview() {
             item { FaltetSectionHeader(label = "Plantor i brätten") }
             items(uiState.trayPlants) { entry ->
                 FaltetListRow(
-                    title = entry.speciesName,
+                    title = entry.variantName?.let { "${entry.speciesName} – $it" } ?: entry.speciesName,
                     meta = trayStatusLabelSv(entry.status),
                     stat = {
                         Row(verticalAlignment = Alignment.Bottom) {

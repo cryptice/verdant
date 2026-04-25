@@ -148,11 +148,24 @@ fun GardenDetailScreen(
     onBack: () -> Unit,
     onBedClick: (Long) -> Unit,
     onCreateBed: (Long) -> Unit,
+    onTrayAction: (action: String, speciesId: Long) -> Unit = { _, _ -> },
     viewModel: GardenDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var trayActionTarget by remember { mutableStateOf<app.verdant.android.data.model.TraySummaryEntry?>(null) }
+
+    trayActionTarget?.let { entry ->
+        app.verdant.android.ui.dashboard.TrayActionDialog(
+            entry = entry,
+            onDismiss = { trayActionTarget = null },
+            onAction = { action ->
+                trayActionTarget = null
+                entry.speciesId?.let { onTrayAction(action, it) }
+            },
+        )
+    }
 
     // Refresh whenever this screen comes back to the foreground (e.g. after
     // popping back from CreateBed) so newly added beds show up.
@@ -246,7 +259,7 @@ fun GardenDetailScreen(
                         item { FaltetSectionHeader(label = "Plantor i brätten") }
                         items(uiState.trayPlants) { entry ->
                             app.verdant.android.ui.faltet.FaltetListRow(
-                                title = entry.speciesName,
+                                title = entry.variantName?.let { "${entry.speciesName} – $it" } ?: entry.speciesName,
                                 meta = trayStatusLabelSv(entry.status),
                                 stat = {
                                     Row(verticalAlignment = Alignment.Bottom) {
@@ -265,6 +278,7 @@ fun GardenDetailScreen(
                                         )
                                     }
                                 },
+                                onClick = if (entry.speciesId != null) ({ trayActionTarget = entry }) else null,
                             )
                         }
                     }

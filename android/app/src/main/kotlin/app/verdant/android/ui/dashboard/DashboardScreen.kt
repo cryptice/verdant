@@ -18,6 +18,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
@@ -99,9 +102,22 @@ class DashboardViewModel @Inject constructor(
 fun DashboardScreen(
     onTaskClick: (ScheduledTaskResponse) -> Unit = {},
     onOpenTasks: () -> Unit = {},
+    onTrayAction: (action: String, speciesId: Long) -> Unit = { _, _ -> },
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var trayActionTarget by remember { mutableStateOf<TraySummaryEntry?>(null) }
+
+    trayActionTarget?.let { entry ->
+        TrayActionDialog(
+            entry = entry,
+            onDismiss = { trayActionTarget = null },
+            onAction = { action ->
+                trayActionTarget = null
+                entry.speciesId?.let { onTrayAction(action, it) }
+            },
+        )
+    }
 
     LifecycleResumeEffect(Unit) {
         viewModel.refresh()
@@ -178,7 +194,7 @@ fun DashboardScreen(
                     } else {
                         items(uiState.trayPlants.take(6)) { entry ->
                             FaltetListRow(
-                                title = entry.speciesName,
+                                title = entry.variantName?.let { "${entry.speciesName} – $it" } ?: entry.speciesName,
                                 meta = trayStatusLabelSv(entry.status),
                                 stat = {
                                     Row(verticalAlignment = Alignment.Bottom) {
@@ -197,6 +213,7 @@ fun DashboardScreen(
                                         )
                                     }
                                 },
+                                onClick = if (entry.speciesId != null) ({ trayActionTarget = entry }) else null,
                             )
                         }
                     }
@@ -252,6 +269,41 @@ private fun HeroStat(value: Int, label: String) {
             color = FaltetForest,
         )
     }
+}
+
+@Composable
+fun TrayActionDialog(
+    entry: TraySummaryEntry,
+    onDismiss: () -> Unit,
+    onAction: (action: String) -> Unit,
+) {
+    val title = entry.variantName?.let { "${entry.speciesName} – $it" } ?: entry.speciesName
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            androidx.compose.foundation.layout.Column {
+                Text(
+                    text = "${entry.count} st · ${trayStatusLabelSv(entry.status)}",
+                    fontSize = 12.sp,
+                    color = FaltetForest,
+                )
+                androidx.compose.foundation.layout.Spacer(Modifier.height(12.dp))
+                androidx.compose.material3.TextButton(onClick = { onAction("POT_UP") }) {
+                    Text("Skola om", color = FaltetAccent)
+                }
+                androidx.compose.material3.TextButton(onClick = { onAction("PLANT") }) {
+                    Text("Plantera ut", color = FaltetAccent)
+                }
+                androidx.compose.material3.TextButton(onClick = { onAction("DISCARD") }) {
+                    Text("Kassera", color = FaltetAccent)
+                }
+            }
+        },
+        confirmButton = {
+            androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Avbryt") }
+        },
+    )
 }
 
 @Composable

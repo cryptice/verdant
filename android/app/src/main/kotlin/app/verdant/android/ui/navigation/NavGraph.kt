@@ -496,6 +496,13 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                         }
                     },
                     onOpenTasks = { navController.navigate(Screen.TaskList.route) },
+                    onTrayAction = { action, speciesId ->
+                        when (action) {
+                            "POT_UP" -> navController.navigate(Screen.BatchPotUp.create(speciesId = speciesId))
+                            "PLANT" -> navController.navigate("activity/plant-picker/SEEDED,POTTED_UP/plant-out?speciesId=$speciesId")
+                            "DISCARD" -> navController.navigate("activity/plant-picker/SEEDED,POTTED_UP,PLANTED_OUT,GROWING,HARVESTED,RECOVERED/discard?speciesId=$speciesId")
+                        }
+                    },
                 )
             }
             composable(Screen.MyWorld.route) {
@@ -503,6 +510,13 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                     onGardenClick = { gardenId -> navController.navigate(Screen.GardenDetail.create(gardenId)) },
                     onCreateGarden = { navController.navigate(Screen.CreateGarden.route) },
                     onSow = { navController.navigate(Screen.Sow.create()) },
+                    onTrayAction = { action, speciesId ->
+                        when (action) {
+                            "POT_UP" -> navController.navigate(Screen.BatchPotUp.create(speciesId = speciesId))
+                            "PLANT" -> navController.navigate("activity/plant-picker/SEEDED,POTTED_UP/plant-out?speciesId=$speciesId")
+                            "DISCARD" -> navController.navigate("activity/plant-picker/SEEDED,POTTED_UP,PLANTED_OUT,GROWING,HARVESTED,RECOVERED/discard?speciesId=$speciesId")
+                        }
+                    },
                 )
             }
             composable(Screen.CreateGarden.route) {
@@ -518,7 +532,14 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                 GardenDetailScreen(
                     onBack = { navController.popBackStack() },
                     onBedClick = { bedId -> navController.navigate(Screen.BedDetail.create(bedId)) },
-                    onCreateBed = { gardenId -> navController.navigate(Screen.CreateBed.create(gardenId)) }
+                    onCreateBed = { gardenId -> navController.navigate(Screen.CreateBed.create(gardenId)) },
+                    onTrayAction = { action, speciesId ->
+                        when (action) {
+                            "POT_UP" -> navController.navigate(Screen.BatchPotUp.create(speciesId = speciesId))
+                            "PLANT" -> navController.navigate("activity/plant-picker/SEEDED,POTTED_UP/plant-out?speciesId=$speciesId")
+                            "DISCARD" -> navController.navigate("activity/plant-picker/SEEDED,POTTED_UP,PLANTED_OUT,GROWING,HARVESTED,RECOVERED/discard?speciesId=$speciesId")
+                        }
+                    },
                 )
             }
             composable(
