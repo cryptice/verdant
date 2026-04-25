@@ -4,6 +4,10 @@ package app.verdant.android.ui.faltet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,6 +32,7 @@ fun Masthead(
     onLeftClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
+    val drawerOpen = LocalDrawerOpen.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
@@ -45,8 +50,15 @@ fun Masthead(
                     strokeWidth = 1.dp.toPx(),
                 )
             }
-            .padding(horizontal = 22.dp, vertical = 14.dp),
+            .padding(end = 22.dp, top = 6.dp, bottom = 6.dp),
     ) {
+        if (drawerOpen != null) {
+            IconButton(onClick = drawerOpen, modifier = Modifier.padding(start = 6.dp)) {
+                Icon(Icons.Default.Menu, contentDescription = null, tint = FaltetForest)
+            }
+        } else {
+            Spacer(Modifier.width(22.dp))
+        }
         val leftMod = if (onLeftClick != null) {
             Modifier.weight(1f).clickable(onClick = onLeftClick)
         } else {

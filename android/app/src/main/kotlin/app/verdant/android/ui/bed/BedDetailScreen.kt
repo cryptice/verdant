@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
@@ -52,6 +53,7 @@ import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.BedResponse
 import app.verdant.android.data.model.PlantResponse
 import app.verdant.android.data.model.SupplyApplicationResponse
+import app.verdant.android.data.model.CreateBedRequest
 import app.verdant.android.data.model.UpdateBedRequest
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
@@ -175,6 +177,34 @@ class BedDetailViewModel @Inject constructor(
             }
         }
     }
+
+    /** Duplicate the bed (same conditions, new name "{old} (kopia)") and emit
+     *  the new bed id via [onCopied] so the screen can navigate there. */
+    fun copy(onCopied: (Long) -> Unit) {
+        val source = _uiState.value.bed ?: return
+        viewModelScope.launch {
+            try {
+                val created = gardenRepository.createBed(
+                    source.gardenId,
+                    CreateBedRequest(
+                        name = "${source.name} (kopia)",
+                        description = source.description,
+                        soilType = source.soilType,
+                        soilPh = source.soilPh,
+                        sunExposure = source.sunExposure,
+                        drainage = source.drainage,
+                        sunDirections = source.sunDirections,
+                        irrigationType = source.irrigationType,
+                        protection = source.protection,
+                        raisedBed = source.raisedBed,
+                    )
+                )
+                onCopied(created.id)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(error = e.message)
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -186,6 +216,7 @@ fun BedDetailScreen(
     onPlantFromTray: (Long) -> Unit = {},
     onFertilize: (Long) -> Unit = {},
     onGardenClick: (Long) -> Unit = {},
+    onBedNavigate: (Long) -> Unit = {},
     viewModel: BedDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -404,6 +435,12 @@ fun BedDetailScreen(
                         modifier = Modifier.size(36.dp),
                     ) {
                         Icon(Icons.Default.Edit, "Redigera", tint = FaltetAccent, modifier = Modifier.size(18.dp))
+                    }
+                    IconButton(
+                        onClick = { viewModel.copy(onBedNavigate) },
+                        modifier = Modifier.size(36.dp),
+                    ) {
+                        Icon(Icons.Default.ContentCopy, "Kopiera", tint = FaltetAccent, modifier = Modifier.size(18.dp))
                     }
                     IconButton(
                         onClick = { showDeleteDialog = true },

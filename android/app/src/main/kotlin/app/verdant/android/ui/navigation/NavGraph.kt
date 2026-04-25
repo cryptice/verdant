@@ -321,20 +321,14 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
             }
         }
     ) {
+        // Hoist the drawer-open callback so every Masthead can render the
+        // burger automatically without each screen wiring it through.
+        val openDrawer: (() -> Unit)? = if (hideChrome) null else { { scope.launch { drawerState.open() } } }
+        androidx.compose.runtime.CompositionLocalProvider(
+            app.verdant.android.ui.faltet.LocalDrawerOpen provides openDrawer
+        ) {
         Scaffold(
-            topBar = {
-                if (showTopBar) {
-                    TopAppBar(
-                        title = { Text(stringResource(R.string.app_name)) },
-                        navigationIcon = {
-                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                                Icon(Icons.Default.Menu, contentDescription = stringResource(R.string.menu))
-                            }
-                        },
-                        colors = verdantTopAppBarColors()
-                    )
-                }
-            },
+            topBar = {},
             bottomBar = {
                 if (!hideChrome) {
                     NavigationBar(
@@ -497,6 +491,11 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                     onPlantFromTray = { bedId -> navController.navigate(Screen.BatchPlantOut.create(bedId)) },
                     onFertilize = { bedId -> navController.navigate(Screen.ApplySupply.create(bedId)) },
                     onGardenClick = { gardenId -> navController.navigate(Screen.GardenDetail.create(gardenId)) },
+                    onBedNavigate = { newBedId ->
+                        navController.navigate(Screen.BedDetail.create(newBedId)) {
+                            popUpTo(Screen.BedDetail.route) { inclusive = true }
+                        }
+                    },
                 )
             }
             composable(
@@ -791,6 +790,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                     onBack = { navController.popBackStack() }
                 )
             }
+        }
         }
         }
     }
