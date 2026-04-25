@@ -131,9 +131,9 @@ export function BouquetRecipes() {
   if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
 
-  const formatPrice = (cents?: number) => {
-    if (cents == null) return '—'
-    return `${(cents / 100).toFixed(2)} kr`
+  const formatPrice = (sek?: number) => {
+    if (sek == null) return '—'
+    return `${sek} kr`
   }
 
   const recipes = data ?? []
