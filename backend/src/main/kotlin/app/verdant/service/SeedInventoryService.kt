@@ -26,9 +26,7 @@ class SeedInventoryService(
         } else {
             repo.findByOrgId(orgId, limit, offset)
         }
-        val speciesNames = items.map { it.speciesId }.distinct().associateWith { id ->
-            speciesRepo.findById(id)?.commonName ?: "Unknown"
-        }
+        val speciesNames = speciesRepo.findNamesByIds(items.map { it.speciesId }.toSet())
         val providerNames = resolveProviderNames(items.mapNotNull { it.speciesProviderId }.distinct())
         return items.map { it.toResponse(speciesNames[it.speciesId] ?: "Unknown", providerNames) }
     }
@@ -50,7 +48,9 @@ class SeedInventoryService(
             )
         )
         val providerNames = resolveProviderNames(listOfNotNull(inventory.speciesProviderId))
-        return inventory.toResponse(species.commonName, providerNames)
+        val speciesName = speciesRepo.findNamesByIds(setOf(inventory.speciesId))[inventory.speciesId]
+            ?: species.commonName
+        return inventory.toResponse(speciesName, providerNames)
     }
 
     fun updateInventory(id: Long, request: UpdateSeedInventoryRequest, orgId: Long): SeedInventoryResponse {
@@ -63,7 +63,7 @@ class SeedInventoryService(
             speciesProviderId = if (request.speciesProviderId != null) request.speciesProviderId else inventory.speciesProviderId,
         )
         repo.update(updated)
-        val speciesName = speciesRepo.findById(updated.speciesId)?.commonName ?: "Unknown"
+        val speciesName = speciesRepo.findNamesByIds(setOf(updated.speciesId))[updated.speciesId] ?: "Unknown"
         val providerNames = resolveProviderNames(listOfNotNull(updated.speciesProviderId))
         return updated.toResponse(speciesName, providerNames)
     }
@@ -75,7 +75,7 @@ class SeedInventoryService(
             throw BadRequestException("Insufficient seeds (have ${inventory.quantity}, need ${request.quantity})")
         }
         val updated = repo.findById(id)!!
-        val speciesName = speciesRepo.findById(updated.speciesId)?.commonName ?: "Unknown"
+        val speciesName = speciesRepo.findNamesByIds(setOf(updated.speciesId))[updated.speciesId] ?: "Unknown"
         val providerNames = resolveProviderNames(listOfNotNull(updated.speciesProviderId))
         return updated.toResponse(speciesName, providerNames)
     }

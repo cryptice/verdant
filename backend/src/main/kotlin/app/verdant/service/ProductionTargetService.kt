@@ -15,7 +15,7 @@ class ProductionTargetService(
     private val speciesRepo: SpeciesRepository,
 ) {
     private fun resolveSpeciesName(speciesId: Long): String? =
-        speciesRepo.findById(speciesId)?.commonName
+        speciesRepo.findNamesByIds(setOf(speciesId))[speciesId]
 
     fun getTargetsForUser(orgId: Long, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<ProductionTargetResponse> {
         val targets = if (seasonId != null) {
@@ -100,7 +100,7 @@ class ProductionTargetService(
         return ProductionForecastResponse(
             targetId = target.id!!,
             speciesId = target.speciesId,
-            speciesName = species.commonName,
+            speciesName = resolveSpeciesName(target.speciesId) ?: species.commonName,
             totalWeeks = weeks,
             totalStemsNeeded = totalStemsNeeded,
             stemsPerPlant = stemsPerPlant,

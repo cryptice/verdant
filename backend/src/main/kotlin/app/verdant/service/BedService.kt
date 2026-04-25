@@ -116,7 +116,8 @@ class BedService(
                           s.name AS season_name,
                           s.year AS season_year,
                           sp.id AS species_id,
-                          sp.common_name AS species_name,
+                          COALESCE(sp.common_name_sv, sp.common_name) AS species_name,
+                          COALESCE(sp.variant_name_sv, sp.variant_name) AS variant_name,
                           COUNT(DISTINCT p.id) AS plant_count,
                           COALESCE(SUM(pe.stem_count), 0) AS total_stems,
                           MAX(p.status) AS status
@@ -125,21 +126,23 @@ class BedService(
                    LEFT JOIN season s ON p.season_id = s.id
                    LEFT JOIN plant_event pe ON pe.plant_id = p.id AND pe.event_type = 'HARVESTED'
                    WHERE p.bed_id = ?
-                   GROUP BY p.season_id, s.name, s.year, sp.id, sp.common_name
-                   ORDER BY s.year DESC NULLS LAST, s.name, sp.common_name"""
+                   GROUP BY p.season_id, s.name, s.year, sp.id, sp.common_name_sv, sp.common_name, sp.variant_name_sv, sp.variant_name
+                   ORDER BY s.year DESC NULLS LAST, s.name, species_name"""
             ).use { ps ->
                 ps.setLong(1, bedId)
                 ps.executeQuery().use { rs ->
                     buildList {
                         while (rs.next()) {
                             val seasonId = rs.getLong("season_id").takeIf { !rs.wasNull() }
+                            val name = rs.getString("species_name")
+                            val variant = rs.getString("variant_name")
                             add(
                                 Row(
                                     seasonId = seasonId,
                                     seasonName = rs.getString("season_name"),
                                     year = rs.getInt("season_year").takeIf { !rs.wasNull() },
                                     speciesId = rs.getLong("species_id"),
-                                    speciesName = rs.getString("species_name"),
+                                    speciesName = if (variant != null) "$name – $variant" else name,
                                     plantCount = rs.getInt("plant_count"),
                                     totalStemsHarvested = rs.getInt("total_stems"),
                                     status = rs.getString("status"),

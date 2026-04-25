@@ -13,7 +13,7 @@ class VarietyTrialService(
     private val speciesRepo: SpeciesRepository,
 ) {
     private fun resolveSpeciesName(speciesId: Long): String? =
-        speciesRepo.findById(speciesId)?.commonName
+        speciesRepo.findNamesByIds(setOf(speciesId))[speciesId]
 
     fun getTrialsForUser(orgId: Long, seasonId: Long? = null, limit: Int = 50, offset: Int = 0): List<VarietyTrialResponse> {
         val trials = if (seasonId != null) {

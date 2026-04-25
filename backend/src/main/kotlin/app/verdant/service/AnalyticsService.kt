@@ -1,11 +1,15 @@
 package app.verdant.service
 
 import app.verdant.dto.*
+import app.verdant.repository.SpeciesRepository
 import io.agroal.api.AgroalDataSource
 import jakarta.enterprise.context.ApplicationScoped
 
 @ApplicationScoped
-class AnalyticsService(private val ds: AgroalDataSource) {
+class AnalyticsService(
+    private val ds: AgroalDataSource,
+    private val speciesRepo: SpeciesRepository,
+) {
 
     fun getSeasonSummaries(orgId: Long): List<SeasonSummaryResponse> {
         data class SpeciesRow(
@@ -26,7 +30,8 @@ class AnalyticsService(private val ds: AgroalDataSource) {
                           s.name AS season_name,
                           s.year,
                           sp.id AS species_id,
-                          sp.common_name AS species_name,
+                          COALESCE(sp.common_name_sv, sp.common_name) AS species_name,
+                          COALESCE(sp.variant_name_sv, sp.variant_name) AS variant_name,
                           COUNT(DISTINCT p.id) AS plant_count,
                           COALESCE(SUM(pe.stem_count), 0) AS stems_harvested,
                           AVG(pe.stem_length_cm) AS avg_stem_length,
@@ -36,25 +41,29 @@ class AnalyticsService(private val ds: AgroalDataSource) {
                    JOIN species sp ON p.species_id = sp.id
                    LEFT JOIN plant_event pe ON pe.plant_id = p.id AND pe.event_type = 'HARVESTED'
                    WHERE p.org_id = ?
-                   GROUP BY s.id, s.name, s.year, sp.id, sp.common_name
+                   GROUP BY s.id, s.name, s.year, sp.id, sp.common_name_sv, sp.common_name, sp.variant_name_sv, sp.variant_name
                    ORDER BY s.year DESC, s.name, stems_harvested DESC"""
             ).use { ps ->
                 ps.setLong(1, orgId)
                 ps.executeQuery().use { rs ->
                     buildList {
-                        while (rs.next()) add(
+                        while (rs.next()) {
+                            val name = rs.getString("species_name")
+                            val variant = rs.getString("variant_name")
+                            add(
                             SpeciesRow(
                                 seasonId = rs.getLong("season_id"),
                                 seasonName = rs.getString("season_name"),
                                 year = rs.getInt("year"),
                                 speciesId = rs.getLong("species_id"),
-                                speciesName = rs.getString("species_name"),
+                                speciesName = if (variant != null) "$name – $variant" else name,
                                 plantCount = rs.getInt("plant_count"),
                                 stemsHarvested = rs.getInt("stems_harvested"),
                                 avgStemLength = rs.getDouble("avg_stem_length").takeIf { !rs.wasNull() },
                                 avgVaseLife = rs.getDouble("avg_vase_life").takeIf { !rs.wasNull() },
                             )
                         )
+                        }
                     }
                 }
             }
@@ -164,7 +173,8 @@ class AnalyticsService(private val ds: AgroalDataSource) {
 
         val rows = ds.connection.use { conn ->
             conn.prepareStatement(
-                """SELECT sp.common_name AS species_name,
+                """SELECT COALESCE(sp.common_name_sv, sp.common_name) AS species_name,
+                          COALESCE(sp.variant_name_sv, sp.variant_name) AS variant_name,
                           s.id AS season_id,
                           s.name AS season_name,
                           s.year,
@@ -177,16 +187,19 @@ class AnalyticsService(private val ds: AgroalDataSource) {
                    JOIN species sp ON p.species_id = sp.id
                    LEFT JOIN plant_event pe ON pe.plant_id = p.id AND pe.event_type = 'HARVESTED'
                    WHERE p.org_id = ? AND sp.id = ?
-                   GROUP BY sp.common_name, s.id, s.name, s.year
+                   GROUP BY sp.common_name_sv, sp.common_name, sp.variant_name_sv, sp.variant_name, s.id, s.name, s.year
                    ORDER BY s.year"""
             ).use { ps ->
                 ps.setLong(1, orgId)
                 ps.setLong(2, speciesId)
                 ps.executeQuery().use { rs ->
                     buildList {
-                        while (rs.next()) add(
+                        while (rs.next()) {
+                            val name = rs.getString("species_name")
+                            val variant = rs.getString("variant_name")
+                            add(
                             Row(
-                                speciesName = rs.getString("species_name"),
+                                speciesName = if (variant != null) "$name – $variant" else name,
                                 seasonId = rs.getLong("season_id"),
                                 seasonName = rs.getString("season_name"),
                                 year = rs.getInt("year"),
@@ -196,19 +209,15 @@ class AnalyticsService(private val ds: AgroalDataSource) {
                                 avgVaseLife = rs.getDouble("avg_vase_life").takeIf { !rs.wasNull() },
                             )
                         )
+                        }
                     }
                 }
             }
         }
 
-        val speciesName = rows.firstOrNull()?.speciesName ?: ds.connection.use { conn ->
-            conn.prepareStatement("SELECT common_name FROM species WHERE id = ?").use { ps ->
-                ps.setLong(1, speciesId)
-                ps.executeQuery().use { rs ->
-                    if (rs.next()) rs.getString("common_name") else "Unknown"
-                }
-            }
-        }
+        val speciesName = rows.firstOrNull()?.speciesName
+            ?: speciesRepo.findNamesByIds(setOf(speciesId))[speciesId]
+            ?: "Unknown"
 
         return SpeciesComparisonResponse(
             speciesId = speciesId,
