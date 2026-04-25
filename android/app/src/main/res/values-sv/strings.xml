@@ -475,7 +475,6 @@
     <string name="bed_soil_ph_error">pH m\u00E5ste vara mellan 3,0 och 9,0</string>
     <string name="bed_sun_exposure">Soll\u00E4ge</string>
     <string name="bed_drainage">Dr\u00E4nering</string>
-    <string name="bed_aspect">V\u00E4derstreck</string>
     <string name="bed_irrigation">Bevattning</string>
     <string name="bed_protection">Skydd</string>
     <string name="bed_raised_bed">Uph\u00F6jd b\u00E4dd</string>
@@ -493,16 +492,6 @@
     <string name="bed_drainage_moderate">M\u00E5ttlig</string>
     <string name="bed_drainage_good">Bra</string>
     <string name="bed_drainage_sharp">Snabbdr\u00E4nerad</string>
-    <string name="bed_aspect_flat">Plant</string>
-    <string name="bed_aspect_n">Norr</string>
-    <string name="bed_aspect_ne">Nord\u00F6st</string>
-    <string name="bed_aspect_e">\u00D6ster</string>
-    <string name="bed_aspect_se">Syd\u00F6st</string>
-    <string name="bed_aspect_s">Söder</string>
-    <string name="bed_aspect_sw">Sydv\u00E4st</string>
-    <string name="bed_aspect_w">V\u00E4ster</string>
-    <string name="bed_aspect_nw">Nordv\u00E4st</string>
-    <string name="bed_aspect_unobstructed">Fri horisont</string>
     <string name="bed_irrigation_drip">Droppbevattning</string>
     <string name="bed_irrigation_sprinkler">Spridare</string>
     <string name="bed_irrigation_soaker_hose">Droppslang</string>

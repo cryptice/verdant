@@ -294,7 +294,7 @@
       "soilPh": "pH",
       "sunExposure": "Solläge",
       "drainage": "Dränering",
-      "aspect": "Väderstreck",
+      "sunDirections": "Sol från väderstreck",
       "irrigationType": "Bevattning",
       "protection": "Skydd",
       "raisedBed": "Upphöjd bädd",
@@ -323,17 +323,15 @@
         "GOOD": "Bra",
         "SHARP": "Snabbdränerad"
       },
-      "aspects": {
-        "FLAT": "Plant",
-        "N": "Norr",
-        "NE": "Nordöst",
-        "E": "Öster",
-        "SE": "Sydöst",
-        "S": "Söder",
-        "SW": "Sydväst",
-        "W": "Väster",
-        "NW": "Nordväst",
-        "UNOBSTRUCTED": "Fri horisont"
+      "compass": {
+        "N": "N",
+        "NE": "NÖ",
+        "E": "Ö",
+        "SE": "SÖ",
+        "S": "S",
+        "SW": "SV",
+        "W": "V",
+        "NW": "NV"
       },
       "irrigationTypes": {
         "DRIP": "Droppbevattning",

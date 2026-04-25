@@ -4,12 +4,12 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { Masthead, Field, Rule } from '../components/faltet'
+import { SunDirectionPicker } from '../components/SunDirectionPicker'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
 const SOIL_TYPES = ['SANDY', 'LOAMY', 'CLAY', 'SILTY', 'PEATY', 'CHALKY'] as const
 const SUN_EXPOSURES = ['FULL_SUN', 'PARTIAL_SUN', 'PARTIAL_SHADE', 'FULL_SHADE'] as const
 const DRAINAGES = ['POOR', 'MODERATE', 'GOOD', 'SHARP'] as const
-const ASPECTS = ['FLAT', 'N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'UNOBSTRUCTED'] as const
 const IRRIGATION_TYPES = ['DRIP', 'SPRINKLER', 'SOAKER_HOSE', 'MANUAL', 'NONE'] as const
 const PROTECTIONS = ['OPEN_FIELD', 'ROW_COVER', 'LOW_TUNNEL', 'HIGH_TUNNEL', 'GREENHOUSE', 'COLDFRAME'] as const
 
@@ -55,7 +55,7 @@ export function BedForm() {
   const [soilType, setSoilType] = useState('')
   const [soilPh, setSoilPh] = useState('')
   const [sunExposure, setSunExposure] = useState('')
-  const [aspect, setAspect] = useState('')
+  const [sunDirections, setSunDirections] = useState<string[]>([])
   const [drainage, setDrainage] = useState('')
   const [irrigationType, setIrrigationType] = useState('')
   const [protection, setProtection] = useState('')
@@ -79,7 +79,7 @@ export function BedForm() {
       soilPh: phNum,
       sunExposure: sunExposure || undefined,
       drainage: drainage || undefined,
-      aspect: aspect || undefined,
+      sunDirections: sunDirections.length > 0 ? sunDirections : undefined,
       irrigationType: irrigationType || undefined,
       protection: protection || undefined,
       raisedBed,
@@ -199,16 +199,11 @@ export function BedForm() {
                 </select>
               </label>
 
-              {/* Aspect */}
-              <label style={{ display: 'block' }}>
-                <span style={selectLabelStyle}>{t('bed.conditions.aspect')}</span>
-                <select value={aspect} onChange={(e) => setAspect(e.target.value)} style={selectStyle}>
-                  <option value="">{t('common.select')}</option>
-                  {ASPECTS.map((v) => (
-                    <option key={v} value={v}>{t(`bed.conditions.aspects.${v}`)}</option>
-                  ))}
-                </select>
-              </label>
+              {/* Sun directions — multi-select compass */}
+              <div>
+                <span style={selectLabelStyle}>{t('bed.conditions.sunDirections')}</span>
+                <SunDirectionPicker value={sunDirections} onChange={setSunDirections} />
+              </div>
 
               {/* Drainage */}
               <label style={{ display: 'block' }}>

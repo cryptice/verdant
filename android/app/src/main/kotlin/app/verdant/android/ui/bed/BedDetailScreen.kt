@@ -80,6 +80,7 @@ import javax.inject.Inject
 data class BedDetailState(
     val isLoading: Boolean = true,
     val bed: BedResponse? = null,
+    val gardenName: String? = null,
     val plants: List<PlantResponse> = emptyList(),
     val applications: List<SupplyApplicationResponse> = emptyList(),
     val error: String? = null,
@@ -107,7 +108,10 @@ class BedDetailViewModel @Inject constructor(
                 val bed = gardenRepository.getBed(bedId)
                 val plants = gardenRepository.getPlants(bedId)
                 val applications = runCatching { gardenRepository.listSupplyApplicationsByBed(bedId, 10) }.getOrDefault(emptyList())
-                _uiState.value = _uiState.value.copy(isLoading = false, bed = bed, plants = plants, applications = applications)
+                val gardenName = runCatching { gardenRepository.getGarden(bed.gardenId).name }.getOrNull()
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false, bed = bed, plants = plants, applications = applications, gardenName = gardenName,
+                )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
             }
@@ -121,7 +125,7 @@ class BedDetailViewModel @Inject constructor(
         soilPh: Double?,
         sunExposure: String?,
         drainage: String?,
-        aspect: String?,
+        sunDirections: Set<String>,
         irrigationType: String?,
         protection: String?,
         raisedBed: Boolean?
@@ -137,7 +141,7 @@ class BedDetailViewModel @Inject constructor(
                         soilPh = soilPh,
                         sunExposure = sunExposure,
                         drainage = drainage,
-                        aspect = aspect,
+                        sunDirections = sunDirections.toList(),
                         irrigationType = irrigationType,
                         protection = protection,
                         raisedBed = raisedBed
@@ -181,6 +185,7 @@ fun BedDetailScreen(
     onSowInBed: (Long) -> Unit = {},
     onPlantFromTray: (Long) -> Unit = {},
     onFertilize: (Long) -> Unit = {},
+    onGardenClick: (Long) -> Unit = {},
     viewModel: BedDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -200,7 +205,7 @@ fun BedDetailScreen(
     var editSoilType by remember { mutableStateOf<String?>(null) }
     var editSoilPhText by remember { mutableStateOf("") }
     var editSunExposure by remember { mutableStateOf<String?>(null) }
-    var editAspect by remember { mutableStateOf<String?>(null) }
+    var editSunDirections by remember { mutableStateOf<Set<String>>(emptySet()) }
     var editDrainage by remember { mutableStateOf<String?>(null) }
     var editIrrigationType by remember { mutableStateOf<String?>(null) }
     var editProtection by remember { mutableStateOf<String?>(null) }
@@ -273,8 +278,8 @@ fun BedDetailScreen(
                                         soilPhError = editSoilPhError,
                                         sunExposure = editSunExposure,
                                         onSunExposureChange = { editSunExposure = it },
-                                        aspect = editAspect,
-                                        onAspectChange = { editAspect = it },
+                                        sunDirections = editSunDirections,
+                                        onSunDirectionsChange = { editSunDirections = it },
                                         drainage = editDrainage,
                                         onDrainageChange = { editDrainage = it },
                                         irrigationType = editIrrigationType,
@@ -300,7 +305,7 @@ fun BedDetailScreen(
                             soilPh = editSoilPhText.toDoubleOrNull(),
                             sunExposure = editSunExposure,
                             drainage = editDrainage,
-                            aspect = editAspect,
+                            sunDirections = editSunDirections,
                             irrigationType = editIrrigationType,
                             protection = editProtection,
                             raisedBed = editRaisedBed
@@ -369,7 +374,8 @@ fun BedDetailScreen(
     }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Bädd",
+        mastheadLeft = uiState.gardenName?.let { "← $it" } ?: "§ Bädd",
+        onMastheadLeftClick = uiState.bed?.gardenId?.let { gid -> { onGardenClick(gid) } },
         mastheadCenter = uiState.bed?.name ?: "",
         mastheadRight = {
             if (uiState.bed != null) {
@@ -382,16 +388,16 @@ fun BedDetailScreen(
                                 editSoilType = bed.soilType
                                 editSoilPhText = bed.soilPh?.toString() ?: ""
                                 editSunExposure = bed.sunExposure
-                                editAspect = bed.aspect
+                                editSunDirections = bed.sunDirections.toSet()
                                 editDrainage = bed.drainage
                                 editIrrigationType = bed.irrigationType
                                 editProtection = bed.protection
                                 editRaisedBed = bed.raisedBed
                                 editConditionsExpanded = listOf(
                                     bed.soilType, bed.soilPh?.toString(), bed.sunExposure,
-                                    bed.aspect, bed.drainage, bed.irrigationType, bed.protection,
+                                    bed.drainage, bed.irrigationType, bed.protection,
                                     bed.raisedBed?.toString()
-                                ).any { it != null }
+                                ).any { it != null } || bed.sunDirections.isNotEmpty()
                                 editing = true
                             }
                         },
@@ -448,10 +454,10 @@ fun BedDetailScreen(
                     val hasAnyCondition = listOf(
                         bed.soilType, bed.soilPh?.toString(), bed.drainage,
                         bed.raisedBed?.toString(),
-                        bed.sunExposure, bed.aspect,
+                        bed.sunExposure,
                         bed.irrigationType,
                         bed.protection,
-                    ).any { it != null }
+                    ).any { it != null } || bed.sunDirections.isNotEmpty()
                     if (hasAnyCondition) {
                         item { FaltetSectionHeader(label = "Villkor") }
                         item {
@@ -470,15 +476,16 @@ fun BedDetailScreen(
                             )
                         }
                         item {
+                            val sunDirSummary = bed.sunDirections.joinToString(" · ").ifBlank { null }
                             ConditionGroup(
                                 title = "Exponering",
                                 summary = listOfNotNull(
                                     bed.sunExposure?.let { bedSunExposureLabel(it) },
-                                    bed.aspect?.let { bedAspectLabel(it) },
+                                    sunDirSummary,
                                 ).joinToString(" · ").takeIf { it.isNotBlank() },
                                 fields = listOf(
                                     "Sol" to bed.sunExposure?.let { bedSunExposureLabel(it) },
-                                    "Väderstreck" to bed.aspect?.let { bedAspectLabel(it) },
+                                    "Sol från" to sunDirSummary,
                                 ),
                             )
                         }

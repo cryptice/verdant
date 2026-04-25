@@ -294,7 +294,7 @@
       "soilPh": "pH",
       "sunExposure": "Sun exposure",
       "drainage": "Drainage",
-      "aspect": "Aspect",
+      "sunDirections": "Sun from directions",
       "irrigationType": "Irrigation",
       "protection": "Protection",
       "raisedBed": "Raised bed",
@@ -323,17 +323,15 @@
         "GOOD": "Good",
         "SHARP": "Sharp"
       },
-      "aspects": {
-        "FLAT": "Flat",
-        "N": "North",
-        "NE": "Northeast",
-        "E": "East",
-        "SE": "Southeast",
-        "S": "South",
-        "SW": "Southwest",
-        "W": "West",
-        "NW": "Northwest",
-        "UNOBSTRUCTED": "Unobstructed"
+      "compass": {
+        "N": "N",
+        "NE": "NE",
+        "E": "E",
+        "SE": "SE",
+        "S": "S",
+        "SW": "SW",
+        "W": "W",
+        "NW": "NW"
       },
       "irrigationTypes": {
         "DRIP": "Drip",

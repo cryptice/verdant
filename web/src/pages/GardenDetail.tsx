@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { Masthead, Chip, Stat } from '../components/faltet'
 import { Dialog } from '../components/Dialog'
+import { SunDirectionPicker } from '../components/SunDirectionPicker'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
 const GARDEN_ICONS = [
@@ -72,7 +73,7 @@ export function GardenDetail() {
   const [newSoilType, setNewSoilType] = useState('')
   const [newSoilPh, setNewSoilPh] = useState('')
   const [newSunExposure, setNewSunExposure] = useState('')
-  const [newAspect, setNewAspect] = useState('')
+  const [newSunDirections, setNewSunDirections] = useState<string[]>([])
   const [newDrainage, setNewDrainage] = useState('')
   const [newIrrigationType, setNewIrrigationType] = useState('')
   const [newProtection, setNewProtection] = useState('')
@@ -84,7 +85,7 @@ export function GardenDetail() {
   function resetNewBed() {
     setBedName(''); setBedDescription(''); setBedLength(''); setBedWidth('')
     setNewBedConditionsOpen(false); setNewSoilType(''); setNewSoilPh('')
-    setNewSunExposure(''); setNewAspect(''); setNewDrainage('')
+    setNewSunExposure(''); setNewSunDirections([]); setNewDrainage('')
     setNewIrrigationType(''); setNewProtection(''); setNewRaisedBed(false)
   }
 
@@ -98,7 +99,7 @@ export function GardenDetail() {
       soilPh: newPhNum,
       sunExposure: newSunExposure || undefined,
       drainage: newDrainage || undefined,
-      aspect: newAspect || undefined,
+      sunDirections: newSunDirections.length > 0 ? newSunDirections : undefined,
       irrigationType: newIrrigationType || undefined,
       protection: newProtection || undefined,
       raisedBed: newRaisedBed,
@@ -132,7 +133,6 @@ export function GardenDetail() {
   const SOIL_TYPES = ['SANDY', 'LOAMY', 'CLAY', 'SILTY', 'PEATY', 'CHALKY'] as const
   const SUN_EXPOSURES = ['FULL_SUN', 'PARTIAL_SUN', 'PARTIAL_SHADE', 'FULL_SHADE'] as const
   const DRAINAGES = ['POOR', 'MODERATE', 'GOOD', 'SHARP'] as const
-  const ASPECTS = ['FLAT', 'N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'UNOBSTRUCTED'] as const
   const IRRIGATION_TYPES = ['DRIP', 'SPRINKLER', 'SOAKER_HOSE', 'MANUAL', 'NONE'] as const
   const PROTECTIONS = ['OPEN_FIELD', 'ROW_COVER', 'LOW_TUNNEL', 'HIGH_TUNNEL', 'GREENHOUSE', 'COLDFRAME'] as const
 
@@ -497,11 +497,8 @@ export function GardenDetail() {
                     </select>
                   </div>
                   <div>
-                    <label className="field-label">{t('bed.conditions.aspect')}</label>
-                    <select value={newAspect} onChange={e => setNewAspect(e.target.value)} className="input">
-                      <option value="">{t('common.select')}</option>
-                      {ASPECTS.map(v => <option key={v} value={v}>{t(`bed.conditions.aspects.${v}`)}</option>)}
-                    </select>
+                    <label className="field-label">{t('bed.conditions.sunDirections')}</label>
+                    <SunDirectionPicker value={newSunDirections} onChange={setNewSunDirections} />
                   </div>
                   <div>
                     <label className="field-label">{t('bed.conditions.drainage')}</label>

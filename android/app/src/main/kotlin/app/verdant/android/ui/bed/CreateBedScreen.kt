@@ -32,7 +32,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
-import app.verdant.android.data.model.BedAspect
+import app.verdant.android.data.model.CompassDirection
 import app.verdant.android.data.model.BedDrainage
 import app.verdant.android.data.model.BedIrrigationType
 import app.verdant.android.data.model.BedProtection
@@ -40,6 +40,7 @@ import app.verdant.android.data.model.BedSoilType
 import app.verdant.android.data.model.BedSunExposure
 import app.verdant.android.data.model.CreateBedRequest
 import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.ui.faltet.FaltetChipMultiSelector
 import app.verdant.android.ui.faltet.FaltetChipSelector
 import app.verdant.android.ui.faltet.FaltetFormSubmitBar
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
@@ -72,7 +73,7 @@ class CreateBedViewModel @Inject constructor(
         soilPh: Double?,
         sunExposure: String?,
         drainage: String?,
-        aspect: String?,
+        sunDirections: Set<String>,
         irrigationType: String?,
         protection: String?,
         raisedBed: Boolean?
@@ -89,7 +90,7 @@ class CreateBedViewModel @Inject constructor(
                         soilPh = soilPh,
                         sunExposure = sunExposure,
                         drainage = drainage,
-                        aspect = aspect,
+                        sunDirections = sunDirections.toList(),
                         irrigationType = irrigationType,
                         protection = protection,
                         raisedBed = raisedBed
@@ -118,7 +119,7 @@ fun CreateBedScreen(
     var soilPhText by remember { mutableStateOf("") }
     var drainage by remember { mutableStateOf<String?>(null) }
     var sunExposure by remember { mutableStateOf<String?>(null) }
-    var aspect by remember { mutableStateOf<String?>(null) }
+    var sunDirections by remember { mutableStateOf<Set<String>>(emptySet()) }
     var irrigationType by remember { mutableStateOf<String?>(null) }
     var protection by remember { mutableStateOf<String?>(null) }
     var raisedBed by remember { mutableStateOf<Boolean?>(null) }
@@ -139,7 +140,7 @@ fun CreateBedScreen(
                 soilType = soilType,
                 soilPh = phValue,
                 sunExposure = sunExposure,
-                aspect = aspect,
+                sunDirections = sunDirections,
                 drainage = drainage,
                 irrigationType = irrigationType,
                 protection = protection,
@@ -231,12 +232,12 @@ fun CreateBedScreen(
                 )
             }
             item {
-                FaltetChipSelector(
-                    label = "Väderstreck",
-                    options = BedAspect.values,
-                    selected = aspect,
-                    onSelectedChange = { aspect = it },
-                    labelFor = { bedAspectLabelStr(it) },
+                FaltetChipMultiSelector(
+                    label = "Sol från väderstreck",
+                    options = CompassDirection.values,
+                    selected = sunDirections,
+                    onSelectedChange = { sunDirections = it },
+                    labelFor = { it },
                 )
             }
             item {
@@ -281,8 +282,8 @@ fun BedConditionsFields(
     soilPhError: Boolean,
     sunExposure: String?,
     onSunExposureChange: (String?) -> Unit,
-    aspect: String?,
-    onAspectChange: (String?) -> Unit,
+    sunDirections: Set<String>,
+    onSunDirectionsChange: (Set<String>) -> Unit,
     drainage: String?,
     onDrainageChange: (String?) -> Unit,
     irrigationType: String?,
@@ -306,12 +307,12 @@ fun BedConditionsFields(
         onSelectedChange = onSunExposureChange,
         labelFor = { bedSunExposureLabelStr(it) },
     )
-    FaltetChipSelector(
-        label = "Väderstreck",
-        options = BedAspect.values,
-        selected = aspect,
-        onSelectedChange = onAspectChange,
-        labelFor = { bedAspectLabelStr(it) },
+    FaltetChipMultiSelector(
+        label = "Sol från väderstreck",
+        options = CompassDirection.values,
+        selected = sunDirections,
+        onSelectedChange = onSunDirectionsChange,
+        labelFor = { it },
     )
     FaltetChipSelector(
         label = "Dränering",
@@ -381,19 +382,6 @@ fun bedDrainageLabelStr(value: String): String = when (value) {
     else -> value
 }
 
-fun bedAspectLabelStr(value: String): String = when (value) {
-    BedAspect.FLAT -> "Plant"
-    BedAspect.N -> "N"
-    BedAspect.NE -> "NO"
-    BedAspect.E -> "O"
-    BedAspect.SE -> "SO"
-    BedAspect.S -> "S"
-    BedAspect.SW -> "SV"
-    BedAspect.W -> "V"
-    BedAspect.NW -> "NV"
-    else -> value
-}
-
 fun bedIrrigationTypeLabelStr(value: String): String = when (value) {
     BedIrrigationType.DRIP -> "Droppbevattning"
     BedIrrigationType.SPRINKLER -> "Spridare"
@@ -440,21 +428,6 @@ fun bedDrainageLabel(value: String): String = when (value) {
     BedDrainage.MODERATE -> stringResource(R.string.bed_drainage_moderate)
     BedDrainage.GOOD -> stringResource(R.string.bed_drainage_good)
     BedDrainage.SHARP -> stringResource(R.string.bed_drainage_sharp)
-    else -> value
-}
-
-@Composable
-fun bedAspectLabel(value: String): String = when (value) {
-    BedAspect.FLAT -> stringResource(R.string.bed_aspect_flat)
-    BedAspect.N -> stringResource(R.string.bed_aspect_n)
-    BedAspect.NE -> stringResource(R.string.bed_aspect_ne)
-    BedAspect.E -> stringResource(R.string.bed_aspect_e)
-    BedAspect.SE -> stringResource(R.string.bed_aspect_se)
-    BedAspect.S -> stringResource(R.string.bed_aspect_s)
-    BedAspect.SW -> stringResource(R.string.bed_aspect_sw)
-    BedAspect.W -> stringResource(R.string.bed_aspect_w)
-    BedAspect.NW -> stringResource(R.string.bed_aspect_nw)
-    BedAspect.UNOBSTRUCTED -> stringResource(R.string.bed_aspect_unobstructed)
     else -> value
 }
 

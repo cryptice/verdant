@@ -14,6 +14,7 @@ fun FaltetScreenScaffold(
     mastheadLeft: String,
     mastheadCenter: String,
     mastheadRight: @Composable (() -> Unit)? = null,
+    onMastheadLeftClick: (() -> Unit)? = null,
     topBar: @Composable () -> Unit = {},
     bottomBar: @Composable () -> Unit = {},
     fab: @Composable (() -> Unit)? = null,
@@ -25,7 +26,12 @@ fun FaltetScreenScaffold(
         topBar = {
             Column {
                 topBar()
-                Masthead(left = mastheadLeft, center = mastheadCenter, right = mastheadRight)
+                Masthead(
+                    left = mastheadLeft,
+                    center = mastheadCenter,
+                    right = mastheadRight,
+                    onLeftClick = onMastheadLeftClick,
+                )
             }
         },
         bottomBar = bottomBar,

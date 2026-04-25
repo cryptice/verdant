@@ -477,7 +477,6 @@
     <string name="bed_soil_ph_error">pH must be between 3.0 and 9.0</string>
     <string name="bed_sun_exposure">Sun exposure</string>
     <string name="bed_drainage">Drainage</string>
-    <string name="bed_aspect">Aspect</string>
     <string name="bed_irrigation">Irrigation</string>
     <string name="bed_protection">Protection</string>
     <string name="bed_raised_bed">Raised bed</string>
@@ -495,16 +494,6 @@
     <string name="bed_drainage_moderate">Moderate</string>
     <string name="bed_drainage_good">Good</string>
     <string name="bed_drainage_sharp">Sharp</string>
-    <string name="bed_aspect_flat">Flat</string>
-    <string name="bed_aspect_n">N</string>
-    <string name="bed_aspect_ne">NE</string>
-    <string name="bed_aspect_e">E</string>
-    <string name="bed_aspect_se">SE</string>
-    <string name="bed_aspect_s">S</string>
-    <string name="bed_aspect_sw">SW</string>
-    <string name="bed_aspect_w">W</string>
-    <string name="bed_aspect_nw">NW</string>
-    <string name="bed_aspect_unobstructed">Unobstructed</string>
     <string name="bed_irrigation_drip">Drip</string>
     <string name="bed_irrigation_sprinkler">Sprinkler</string>
     <string name="bed_irrigation_soaker_hose">Soaker hose</string>

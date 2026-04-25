@@ -76,7 +76,7 @@ data class BedResponse(
     @SerializedName("soilPh") val soilPh: Double? = null,
     @SerializedName("sunExposure") val sunExposure: String? = null,
     @SerializedName("drainage") val drainage: String? = null,
-    @SerializedName("aspect") val aspect: String? = null,
+    @SerializedName("sunDirections") val sunDirections: List<String> = emptyList(),
     @SerializedName("irrigationType") val irrigationType: String? = null,
     @SerializedName("protection") val protection: String? = null,
     @SerializedName("raisedBed") val raisedBed: Boolean? = null,
@@ -92,7 +92,7 @@ data class CreateBedRequest(
     @SerializedName("soilPh") val soilPh: Double? = null,
     @SerializedName("sunExposure") val sunExposure: String? = null,
     @SerializedName("drainage") val drainage: String? = null,
-    @SerializedName("aspect") val aspect: String? = null,
+    @SerializedName("sunDirections") val sunDirections: List<String> = emptyList(),
     @SerializedName("irrigationType") val irrigationType: String? = null,
     @SerializedName("protection") val protection: String? = null,
     @SerializedName("raisedBed") val raisedBed: Boolean? = null
@@ -106,7 +106,7 @@ data class UpdateBedRequest(
     @SerializedName("soilPh") val soilPh: Double? = null,
     @SerializedName("sunExposure") val sunExposure: String? = null,
     @SerializedName("drainage") val drainage: String? = null,
-    @SerializedName("aspect") val aspect: String? = null,
+    @SerializedName("sunDirections") val sunDirections: List<String> = emptyList(),
     @SerializedName("irrigationType") val irrigationType: String? = null,
     @SerializedName("protection") val protection: String? = null,
     @SerializedName("raisedBed") val raisedBed: Boolean? = null
@@ -139,8 +139,7 @@ object BedDrainage {
     val values = listOf(POOR, MODERATE, GOOD, SHARP)
 }
 
-object BedAspect {
-    const val FLAT = "FLAT"
+object CompassDirection {
     const val N = "N"
     const val NE = "NE"
     const val E = "E"
@@ -149,8 +148,7 @@ object BedAspect {
     const val SW = "SW"
     const val W = "W"
     const val NW = "NW"
-    const val UNOBSTRUCTED = "UNOBSTRUCTED"
-    val values = listOf(FLAT, N, NE, E, SE, S, SW, W, NW, UNOBSTRUCTED)
+    val values = listOf(N, NE, E, SE, S, SW, W, NW)
 }
 
 object BedIrrigationType {

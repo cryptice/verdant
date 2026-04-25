@@ -6,11 +6,11 @@ import { api, type PlantResponse } from '../api/client'
 import { Masthead, Chip, Stat, PhotoPlaceholder } from '../components/faltet'
 import { SpeciesEditModal } from '../components/faltet/SpeciesEditModal'
 import { Dialog } from '../components/Dialog'
+import { SunDirectionPicker } from '../components/SunDirectionPicker'
 
 const SOIL_TYPES = ['SANDY', 'LOAMY', 'CLAY', 'SILTY', 'PEATY', 'CHALKY'] as const
 const SUN_EXPOSURES = ['FULL_SUN', 'PARTIAL_SUN', 'PARTIAL_SHADE', 'FULL_SHADE'] as const
 const DRAINAGES = ['POOR', 'MODERATE', 'GOOD', 'SHARP'] as const
-const ASPECTS = ['FLAT', 'N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'UNOBSTRUCTED'] as const
 const IRRIGATION_TYPES = ['DRIP', 'SPRINKLER', 'SOAKER_HOSE', 'MANUAL', 'NONE'] as const
 const PROTECTIONS = ['OPEN_FIELD', 'ROW_COVER', 'LOW_TUNNEL', 'HIGH_TUNNEL', 'GREENHOUSE', 'COLDFRAME'] as const
 
@@ -54,7 +54,7 @@ export function BedDetail() {
   const [editSoilType, setEditSoilType] = useState('')
   const [editSoilPh, setEditSoilPh] = useState('')
   const [editSunExposure, setEditSunExposure] = useState('')
-  const [editAspect, setEditAspect] = useState('')
+  const [editSunDirections, setEditSunDirections] = useState<string[]>([])
   const [editDrainage, setEditDrainage] = useState('')
   const [editIrrigationType, setEditIrrigationType] = useState('')
   const [editProtection, setEditProtection] = useState('')
@@ -72,7 +72,7 @@ export function BedDetail() {
     setEditSoilType(bed.soilType ?? '')
     setEditSoilPh(bed.soilPh != null ? String(bed.soilPh) : '')
     setEditSunExposure(bed.sunExposure ?? '')
-    setEditAspect(bed.aspect ?? '')
+    setEditSunDirections(bed.sunDirections ?? [])
     setEditDrainage(bed.drainage ?? '')
     setEditIrrigationType(bed.irrigationType ?? '')
     setEditProtection(bed.protection ?? '')
@@ -91,7 +91,7 @@ export function BedDetail() {
       soilPh: editPhNum,
       sunExposure: editSunExposure || undefined,
       drainage: editDrainage || undefined,
-      aspect: editAspect || undefined,
+      sunDirections: editSunDirections.length > 0 ? editSunDirections : undefined,
       irrigationType: editIrrigationType || undefined,
       protection: editProtection || undefined,
       raisedBed: editRaisedBed,
@@ -324,7 +324,7 @@ export function BedDetail() {
           >
             <MetaCell label={t('bed.meta.length')} value={bed.lengthMeters ? `${bed.lengthMeters} m` : '—'} />
             <MetaCell label={t('bed.meta.width')} value={bed.widthMeters ? `${bed.widthMeters} m` : '—'} />
-            <MetaCell label={t('bed.meta.orient')} value={bed.aspect ?? '—'} />
+            <MetaCell label={t('bed.meta.orient')} value={bed.sunDirections && bed.sunDirections.length > 0 ? bed.sunDirections.join(' · ') : '—'} />
             <MetaCell label={t('bed.meta.area')} value={`${area} m²`} />
           </div>
         </div>
@@ -448,11 +448,8 @@ export function BedDetail() {
                     </select>
                   </div>
                   <div>
-                    <label className="field-label">{t('bed.conditions.aspect')}</label>
-                    <select value={editAspect} onChange={e => setEditAspect(e.target.value)} className="input">
-                      <option value="">{t('common.select')}</option>
-                      {ASPECTS.map(v => <option key={v} value={v}>{t(`bed.conditions.aspects.${v}`)}</option>)}
-                    </select>
+                    <label className="field-label">{t('bed.conditions.sunDirections')}</label>
+                    <SunDirectionPicker value={editSunDirections} onChange={setEditSunDirections} />
                   </div>
                   <div>
                     <label className="field-label">{t('bed.conditions.drainage')}</label>

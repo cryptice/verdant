@@ -286,7 +286,7 @@ class DataExportService(
                     soilPh = bed.soilPh,
                     sunExposure = bed.sunExposure?.name,
                     drainage = bed.drainage?.name,
-                    aspect = bed.aspect?.name,
+                    sunDirections = bed.sunDirections.map { it.name },
                     irrigationType = bed.irrigationType?.name,
                     protection = bed.protection?.name,
                     raisedBed = bed.raisedBed,

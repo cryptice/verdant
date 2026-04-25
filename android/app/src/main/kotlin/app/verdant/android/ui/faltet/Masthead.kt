@@ -2,6 +2,7 @@
 package app.verdant.android.ui.faltet
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +25,7 @@ fun Masthead(
     left: String,
     center: String,
     right: @Composable (() -> Unit)? = null,
+    onLeftClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -45,13 +47,18 @@ fun Masthead(
             }
             .padding(horizontal = 22.dp, vertical = 14.dp),
     ) {
+        val leftMod = if (onLeftClick != null) {
+            Modifier.weight(1f).clickable(onClick = onLeftClick)
+        } else {
+            Modifier.weight(1f)
+        }
         Text(
             text = left.uppercase(),
             fontFamily = FontFamily.Monospace,
             fontSize = 10.sp,
             letterSpacing = 1.8.sp,
             color = FaltetForest,
-            modifier = Modifier.weight(1f),
+            modifier = leftMod,
         )
         Text(
             text = center,

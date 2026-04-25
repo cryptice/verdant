@@ -469,7 +469,8 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                     onPlantClick = { plantId -> navController.navigate(Screen.PlantDetail.create(plantId)) },
                     onSowInBed = { bedId -> navController.navigate(Screen.Sow.create(bedId = bedId)) },
                     onPlantFromTray = { bedId -> navController.navigate(Screen.BatchPlantOut.create(bedId)) },
-                    onFertilize = { bedId -> navController.navigate(Screen.ApplySupply.create(bedId)) }
+                    onFertilize = { bedId -> navController.navigate(Screen.ApplySupply.create(bedId)) },
+                    onGardenClick = { gardenId -> navController.navigate(Screen.GardenDetail.create(gardenId)) },
                 )
             }
             composable(

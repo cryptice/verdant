@@ -64,7 +64,7 @@ class BedRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """INSERT INTO bed (name, description, garden_id, boundary_json, length_meters, width_meters,
-                                    soil_type, soil_ph, sun_exposure, drainage, aspect, irrigation_type, protection, raised_bed,
+                                    soil_type, soil_ph, sun_exposure, drainage, sun_directions, irrigation_type, protection, raised_bed,
                                     created_at, updated_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
                 arrayOf("id")
@@ -79,7 +79,11 @@ class BedRepository(private val ds: AgroalDataSource) {
                 bed.soilPh?.let { ps.setDouble(8, it) } ?: ps.setNull(8, java.sql.Types.DOUBLE)
                 ps.setString(9, bed.sunExposure?.name)
                 ps.setString(10, bed.drainage?.name)
-                ps.setString(11, bed.aspect?.name)
+                if (bed.sunDirections.isEmpty()) {
+                    ps.setNull(11, java.sql.Types.ARRAY)
+                } else {
+                    ps.setArray(11, conn.createArrayOf("text", bed.sunDirections.map { it.name }.toTypedArray()))
+                }
                 ps.setString(12, bed.irrigationType?.name)
                 ps.setString(13, bed.protection?.name)
                 bed.raisedBed?.let { ps.setBoolean(14, it) } ?: ps.setNull(14, java.sql.Types.BOOLEAN)
@@ -97,7 +101,7 @@ class BedRepository(private val ds: AgroalDataSource) {
             conn.prepareStatement(
                 """UPDATE bed SET name = ?, description = ?, boundary_json = ?,
                                   length_meters = ?, width_meters = ?,
-                                  soil_type = ?, soil_ph = ?, sun_exposure = ?, drainage = ?, aspect = ?,
+                                  soil_type = ?, soil_ph = ?, sun_exposure = ?, drainage = ?, sun_directions = ?,
                                   irrigation_type = ?, protection = ?, raised_bed = ?,
                                   updated_at = now()
                    WHERE id = ?"""
@@ -111,7 +115,11 @@ class BedRepository(private val ds: AgroalDataSource) {
                 bed.soilPh?.let { ps.setDouble(7, it) } ?: ps.setNull(7, java.sql.Types.DOUBLE)
                 ps.setString(8, bed.sunExposure?.name)
                 ps.setString(9, bed.drainage?.name)
-                ps.setString(10, bed.aspect?.name)
+                if (bed.sunDirections.isEmpty()) {
+                    ps.setNull(10, java.sql.Types.ARRAY)
+                } else {
+                    ps.setArray(10, conn.createArrayOf("text", bed.sunDirections.map { it.name }.toTypedArray()))
+                }
                 ps.setString(11, bed.irrigationType?.name)
                 ps.setString(12, bed.protection?.name)
                 bed.raisedBed?.let { ps.setBoolean(13, it) } ?: ps.setNull(13, java.sql.Types.BOOLEAN)
@@ -143,7 +151,9 @@ class BedRepository(private val ds: AgroalDataSource) {
         soilPh = getDouble("soil_ph").takeIf { !wasNull() },
         sunExposure = getString("sun_exposure")?.let { SunExposure.valueOf(it) },
         drainage = getString("drainage")?.let { Drainage.valueOf(it) },
-        aspect = getString("aspect")?.let { Aspect.valueOf(it) },
+        sunDirections = (getArray("sun_directions")?.array as? Array<*>)
+            ?.mapNotNull { (it as? String)?.let { v -> CompassDirection.valueOf(v) } }
+            ?: emptyList(),
         irrigationType = getString("irrigation_type")?.let { IrrigationType.valueOf(it) },
         protection = getString("protection")?.let { Protection.valueOf(it) },
         raisedBed = getBoolean("raised_bed").takeIf { !wasNull() },
