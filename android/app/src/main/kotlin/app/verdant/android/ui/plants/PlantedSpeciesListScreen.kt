@@ -1,5 +1,6 @@
 package app.verdant.android.ui.plants
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -65,24 +66,33 @@ class PlantedSpeciesListViewModel @Inject constructor(
 
     fun load() {
         viewModelScope.launch {
-            val showLoading = _uiState.value.species.isEmpty()
-            if (showLoading) _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
                 val species = repo.getSpeciesPlantSummary()
-                _uiState.value = _uiState.value.copy(isLoading = false, species = species, error = null)
+                _uiState.value = _uiState.value.copy(species = species, error = null)
             } catch (e: Exception) {
-                if (showLoading) _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
+                Log.e("PlantedSpeciesList", "species-summary failed", e)
+                _uiState.value = _uiState.value.copy(error = e.message ?: e.javaClass.simpleName)
+            } finally {
+                // Always flip the spinner off, even on cancellation, so the
+                // screen can recover instead of getting stuck on a permanent
+                // loading state.
+                _uiState.value = _uiState.value.copy(isLoading = false)
             }
         }
         viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(speciesList = repo.getSpecies())
-            } catch (_: Exception) { }
+            } catch (e: Exception) {
+                Log.w("PlantedSpeciesList", "species list failed", e)
+            }
         }
         viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(supplyList = repo.getSupplyInventory())
-            } catch (_: Exception) { }
+            } catch (e: Exception) {
+                Log.w("PlantedSpeciesList", "supply list failed", e)
+            }
         }
     }
 
