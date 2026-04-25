@@ -188,7 +188,9 @@ export function SeedInventory() {
             {groupEntries.slice(page * pageSize, (page + 1) * pageSize).map(([speciesId, batches], i) => {
               const globalIndex = page * pageSize + i
               const sp = species?.find(s => s.id === speciesId)
-              const speciesDisplayName = sp?.commonNameSv ?? sp?.commonName ?? batches[0].speciesName
+              const baseName = sp?.commonNameSv ?? sp?.commonName ?? batches[0].speciesName
+              const variant = sp?.variantNameSv ?? sp?.variantName
+              const speciesDisplayName = variant ? `${baseName} – ${variant}` : baseName
               const scientificName = sp?.scientificName
               const totalQuantity = batches.reduce((sum, b) => sum + (b.quantity ?? 0), 0)
               const isExpanded = expanded.has(speciesId)

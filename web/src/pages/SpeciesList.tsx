@@ -186,18 +186,22 @@ export function SpeciesList() {
               key: 'name',
               label: t('species.col.species'),
               width: '1.5fr',
-              render: (s: SpeciesResponse) => (
-                <div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>
-                    {s.commonNameSv ?? s.commonName}
-                  </div>
-                  {s.scientificName && (
-                    <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 9, color: 'var(--color-sage)' }}>
-                      {s.scientificName}
+              render: (s: SpeciesResponse) => {
+                const baseName = i18n.language === 'sv' ? (s.commonNameSv ?? s.commonName) : s.commonName
+                const variant = i18n.language === 'sv' ? (s.variantNameSv ?? s.variantName) : s.variantName
+                return (
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>
+                      {variant ? `${baseName} – ${variant}` : baseName}
                     </div>
-                  )}
-                </div>
-              ),
+                    {s.scientificName && (
+                      <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 9, color: 'var(--color-sage)' }}>
+                        {s.scientificName}
+                      </div>
+                    )}
+                  </div>
+                )
+              },
             },
             {
               key: 'variant',

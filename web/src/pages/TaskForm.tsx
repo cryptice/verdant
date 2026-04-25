@@ -248,7 +248,16 @@ export function TaskForm() {
                   </div>
                 )}
                 <div style={{ fontFamily: 'var(--font-display)', fontSize: 16, color: 'var(--color-forest)' }}>
-                  {existing.acceptableSpecies.map(s => s.speciesName).join(', ')}
+                  {existing.acceptableSpecies.map(s => {
+                    const lang = i18n.language
+                    const baseName = lang === 'sv'
+                      ? (s.commonNameSv ?? s.commonName ?? s.speciesName)
+                      : (s.commonName ?? s.speciesName)
+                    const variant = lang === 'sv'
+                      ? (s.variantNameSv ?? s.variantName)
+                      : s.variantName
+                    return variant ? `${baseName} – ${variant}` : baseName
+                  }).join(', ')}
                 </div>
               </div>
             ) : isGroupMode ? (

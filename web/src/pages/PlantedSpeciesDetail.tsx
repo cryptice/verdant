@@ -30,6 +30,9 @@ export function PlantedSpeciesDetail() {
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
 
   const rows = locations ?? []
+  const displayName = summary
+    ? (summary.variantName ? `${summary.speciesName} – ${summary.variantName}` : summary.speciesName)
+    : t('species.title')
 
   return (
     <div>
@@ -37,7 +40,7 @@ export function PlantedSpeciesDetail() {
         left={
           <span>
             {t('nav.plants')} /{' '}
-            <span style={{ color: 'var(--color-accent)' }}>{summary?.speciesName ?? t('species.title')}</span>
+            <span style={{ color: 'var(--color-accent)' }}>{displayName}</span>
           </span>
         }
       />
@@ -54,7 +57,7 @@ export function PlantedSpeciesDetail() {
             fontVariationSettings: '"SOFT" 100, "opsz" 144',
           }}
         >
-          {summary?.speciesName ?? t('species.title')}
+          {displayName}
           <span style={{ color: 'var(--color-accent)' }}>.</span>
         </h1>
         {summary?.scientificName && (

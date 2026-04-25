@@ -180,9 +180,19 @@ export function SowActivity() {
                   style={selectStyle}
                 >
                   <option value="">{t('sow.selectSpecies')}</option>
-                  {task.acceptableSpecies.map(entry => (
-                    <option key={entry.speciesId} value={entry.speciesId}>{entry.speciesName}</option>
-                  ))}
+                  {task.acceptableSpecies.map(entry => {
+                    const lang = i18n.language
+                    const baseName = lang === 'sv'
+                      ? (entry.commonNameSv ?? entry.commonName ?? entry.speciesName)
+                      : (entry.commonName ?? entry.speciesName)
+                    const variant = lang === 'sv'
+                      ? (entry.variantNameSv ?? entry.variantName)
+                      : entry.variantName
+                    const label = variant ? `${baseName} – ${variant}` : baseName
+                    return (
+                      <option key={entry.speciesId} value={entry.speciesId}>{label}</option>
+                    )
+                  })}
                 </select>
               </div>
             ) : (
