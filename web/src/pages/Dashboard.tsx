@@ -1,14 +1,19 @@
 // web/src/pages/Dashboard.tsx
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { Masthead, Stat, Chip } from '../components/faltet'
+import { TrayActionDialog, type TrayActionEntry } from '../components/TrayActionDialog'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
 export function Dashboard() {
   const { t } = useTranslation()
   const { isActive, completedCount, totalCount, setDrawerOpen } = useOnboarding()
+
+  const [trayDialogOpen, setTrayDialogOpen] = useState(false)
+  const [activeTrayEntry, setActiveTrayEntry] = useState<TrayActionEntry | null>(null)
 
   const { data: dashboard } = useQuery({
     queryKey: ['dashboard'],
@@ -105,37 +110,70 @@ export function Dashboard() {
           {/* Column 1 — Tray summary */}
           <section style={{ padding: '0 22px 0 0', borderRight: '1px solid var(--color-ink)' }}>
             <ColumnHeader title={t('dashboard.trays.title')} />
-            {trays?.slice(0, 6).map((row, i) => (
-              <div
-                key={i}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1.5fr 60px 80px',
-                  gap: 10,
-                  padding: '10px 0',
-                  borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
-                  fontFamily: 'var(--font-display)',
-                  fontSize: 16,
-                }}
-              >
-                <span>{row.variantName ? `${row.speciesName} – ${row.variantName}` : row.speciesName}</span>
-                <span style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
-                  {row.count}
-                </span>
-                <span
+            {trays?.slice(0, 6).map((row, i) => {
+              const clickable = row.speciesId != null
+              const handleClick = () => {
+                if (!clickable) return
+                setActiveTrayEntry({
+                  speciesId: row.speciesId!,
+                  speciesName: row.speciesName,
+                  variantName: row.variantName,
+                  status: row.status,
+                  count: row.count,
+                })
+                setTrayDialogOpen(true)
+              }
+              return (
+                <div
+                  key={i}
+                  role={clickable ? 'button' : undefined}
+                  tabIndex={clickable ? 0 : undefined}
+                  onClick={handleClick}
+                  onKeyDown={(e) => {
+                    if (clickable && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault()
+                      handleClick()
+                    }
+                  }}
                   style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 10,
-                    textAlign: 'right',
-                    textTransform: 'uppercase',
-                    letterSpacing: 1.2,
-                    color: 'var(--color-forest)',
+                    display: 'grid',
+                    gridTemplateColumns: '1.5fr 60px 80px',
+                    gap: 10,
+                    padding: '10px 0',
+                    borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 16,
+                    cursor: clickable ? 'pointer' : 'default',
+                    opacity: clickable ? 1 : 0.6,
+                    transition: 'background 120ms',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (clickable) e.currentTarget.style.background =
+                      'color-mix(in srgb, var(--color-ink) 4%, transparent)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent'
                   }}
                 >
-                  {row.status}
-                </span>
-              </div>
-            ))}
+                  <span>{row.variantName ? `${row.speciesName} – ${row.variantName}` : row.speciesName}</span>
+                  <span style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                    {row.count}
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 10,
+                      textAlign: 'right',
+                      textTransform: 'uppercase',
+                      letterSpacing: 1.2,
+                      color: 'var(--color-forest)',
+                    }}
+                  >
+                    {row.status}
+                  </span>
+                </div>
+              )
+            })}
             {(!trays || trays.length === 0) && (
               <p
                 style={{
@@ -303,6 +341,12 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+
+      <TrayActionDialog
+        open={trayDialogOpen}
+        entry={activeTrayEntry}
+        onClose={() => setTrayDialogOpen(false)}
+      />
     </div>
   )
 }
