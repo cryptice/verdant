@@ -285,7 +285,7 @@ fun BedDetailScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    "Villkor",
+                                    "Förhållanden",
                                     style = MaterialTheme.typography.labelMedium,
                                     modifier = Modifier.weight(1f)
                                 )
@@ -487,7 +487,7 @@ fun BedDetailScreen(
                         )
                     }
 
-                    // Villkor section
+                    // Förhållanden section
                     val hasAnyCondition = listOf(
                         bed.soilType, bed.soilPh?.toString(), bed.drainage,
                         bed.raisedBed?.toString(),
@@ -496,7 +496,7 @@ fun BedDetailScreen(
                         bed.protection,
                     ).any { it != null } || !bed.sunDirections.isNullOrEmpty()
                     if (hasAnyCondition) {
-                        item { FaltetSectionHeader(label = "Villkor") }
+                        item { FaltetSectionHeader(label = "Förhållanden") }
                         item {
                             ConditionGroup(
                                 title = "Jord",

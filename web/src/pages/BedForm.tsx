@@ -137,7 +137,7 @@ export function BedForm() {
           </div>
         </div>
 
-        {/* § Villkor — collapsible conditions section */}
+        {/* § Förhållanden — collapsible conditions section */}
         <div style={{ marginTop: 28 }}>
           <button
             type="button"
