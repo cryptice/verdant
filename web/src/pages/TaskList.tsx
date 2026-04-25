@@ -114,33 +114,11 @@ export function TaskList() {
         }
       />
 
-      {/* Mobile FAB — replaces the top button at narrow viewports.
-          Styles inline + a media-query class so the rule cannot be lost
-          to any CSS-tooling reorder. */}
+      {/* Mobile FAB — replaces the top button at narrow viewports */}
       <button
         onClick={() => navigate('/task/new')}
         className="mobile-fab"
         aria-label={t('tasks.newTask')}
-        style={{
-          position: 'fixed',
-          right: 'calc(20px + env(safe-area-inset-right))',
-          bottom: 'calc(20px + env(safe-area-inset-bottom))',
-          zIndex: 35,
-          width: 56,
-          height: 56,
-          borderRadius: 999,
-          border: 'none',
-          background: 'var(--color-accent)',
-          color: 'var(--color-cream)',
-          fontFamily: 'var(--font-mono)',
-          fontSize: 28,
-          lineHeight: 1,
-          cursor: 'pointer',
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 4px 14px rgba(30, 36, 29, 0.25)',
-        }}
       >
         +
       </button>
