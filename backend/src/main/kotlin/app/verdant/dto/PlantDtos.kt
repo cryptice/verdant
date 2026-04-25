@@ -111,6 +111,7 @@ data class PlantGroupResponse(
 )
 
 data class TraySummaryEntry(
+    val speciesId: Long?,
     val speciesName: String,
     val status: String,
     val count: Int,

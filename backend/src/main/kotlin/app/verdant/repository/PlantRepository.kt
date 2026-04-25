@@ -203,11 +203,14 @@ class PlantRepository(private val ds: AgroalDataSource) {
     fun traySummary(orgId: Long): List<app.verdant.dto.TraySummaryEntry> =
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """SELECT COALESCE(s.common_name_sv, s.common_name) as species_name, p.status, COUNT(*) as count
+                """SELECT s.id AS species_id,
+                          COALESCE(s.common_name_sv, s.common_name) as species_name,
+                          p.status,
+                          COUNT(*) as count
                    FROM plant p
                    LEFT JOIN species s ON p.species_id = s.id
                    WHERE p.org_id = ? AND p.bed_id IS NULL AND p.status != 'REMOVED'
-                   GROUP BY s.common_name_sv, s.common_name, p.status
+                   GROUP BY s.id, s.common_name_sv, s.common_name, p.status
                    ORDER BY species_name, p.status"""
             ).use { ps ->
                 ps.setLong(1, orgId)
@@ -215,6 +218,7 @@ class PlantRepository(private val ds: AgroalDataSource) {
                     buildList {
                         while (rs.next()) add(
                             app.verdant.dto.TraySummaryEntry(
+                                speciesId = rs.getObject("species_id") as? Long,
                                 speciesName = rs.getString("species_name") ?: "Unknown",
                                 status = rs.getString("status"),
                                 count = rs.getInt("count"),
