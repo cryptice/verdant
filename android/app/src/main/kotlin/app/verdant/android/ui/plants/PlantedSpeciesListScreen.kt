@@ -163,7 +163,7 @@ fun PlantedSpeciesListScreen(
 
         FaltetScreenScaffold(
             mastheadLeft = "§ Odling",
-            mastheadCenter = "Utplanterade",
+            mastheadCenter = "Växter",
         ) { padding ->
             when {
                 uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))

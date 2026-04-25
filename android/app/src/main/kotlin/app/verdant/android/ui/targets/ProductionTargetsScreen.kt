@@ -185,7 +185,7 @@ fun ProductionTargetsScreen(
 
     FaltetScreenScaffold(
         mastheadLeft = "§ Plan",
-        mastheadCenter = "Produktionsmål",
+        mastheadCenter = "Mål",
         fab = { FaltetFab(onClick = { showDialog = true }, contentDescription = "Nytt mål") },
     ) { padding ->
         when {

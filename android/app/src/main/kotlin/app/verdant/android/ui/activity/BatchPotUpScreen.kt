@@ -147,7 +147,7 @@ fun BatchPotUpScreen(
     if (uiState.created) {
         AlertDialog(
             onDismissRequest = { onBack() },
-            title = { Text("Kruka upp") },
+            title = { Text("Skola om") },
             text = { Text("Vill du registrera förbrukning av jord eller krukor?") },
             confirmButton = {
                 TextButton(onClick = { showSupplySheet = true }) {
@@ -192,7 +192,7 @@ fun BatchPotUpScreen(
     LaunchedEffect(uiState.error) { uiState.error?.let { snackbarHostState.showSnackbar(it) } }
 
     FaltetScreenScaffold(
-        mastheadLeft = "§ Kruka upp",
+        mastheadLeft = "§ Skola om",
         mastheadCenter = if (selectedGroup == null) "Välj grupp" else selectedGroup!!.speciesName ?: "Okänd art",
         mastheadRight = if (selectedGroup != null) {
             {
@@ -212,7 +212,7 @@ fun BatchPotUpScreen(
         bottomBar = if (selectedGroup != null) {
             {
                 FaltetFormSubmitBar(
-                    label = "Kruka upp",
+                    label = "Skola om",
                     onClick = submitAction,
                     enabled = canSubmit,
                     submitting = uiState.submitting,
@@ -290,7 +290,7 @@ private fun BatchPotUpScreenPreview_List() {
         PlantGroupResponse(speciesId = 3L, speciesName = "Lathyrus odoratus", bedId = null, bedName = null, gardenName = null, plantedDate = "2026-02-28", status = "SEEDED", count = 60),
     )
     FaltetScreenScaffold(
-        mastheadLeft = "§ Kruka upp",
+        mastheadLeft = "§ Skola om",
         mastheadCenter = "Välj grupp",
         mastheadRight = null,
         bottomBar = {},
@@ -314,7 +314,7 @@ private fun BatchPotUpScreenPreview_List() {
 private fun BatchPotUpScreenPreview_Detail() {
     val snackbarHostState = remember { SnackbarHostState() }
     FaltetScreenScaffold(
-        mastheadLeft = "§ Kruka upp",
+        mastheadLeft = "§ Skola om",
         mastheadCenter = "Cosmos bipinnatus",
         mastheadRight = {
             IconButton(onClick = {}, modifier = Modifier.size(36.dp)) {
@@ -323,7 +323,7 @@ private fun BatchPotUpScreenPreview_Detail() {
         },
         bottomBar = {
             FaltetFormSubmitBar(
-                label = "Kruka upp",
+                label = "Skola om",
                 onClick = {},
                 enabled = true,
                 submitting = false,

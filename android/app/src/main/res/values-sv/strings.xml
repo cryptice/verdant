@@ -34,7 +34,7 @@
     <string name="activity_add_species">L\u00E4gg till art</string>
     <string name="activity_add_seeds">L\u00E4gg till fr\u00F6n</string>
     <string name="activity_sow">S\u00E5</string>
-    <string name="activity_pot_up">Kruka om</string>
+    <string name="activity_pot_up">Skola om</string>
     <string name="activity_plant">Plantera</string>
     <string name="activity_harvest">Sk\u00F6rda</string>
     <string name="activity_recover">\u00C5terh\u00E4mta</string>
@@ -142,12 +142,12 @@
     <string name="event_note">Anteckning</string>
 
     <!-- Activity Screens -->
-    <string name="pot_up">Kruka om</string>
+    <string name="pot_up">Skola om</string>
     <string name="plant_out">Plantera ut</string>
     <string name="harvest">Sk\u00F6rda</string>
     <string name="recover">\u00C5terh\u00E4mta</string>
     <string name="discard">Kassera</string>
-    <string name="record_pot_up">Registrera omkrukning</string>
+    <string name="record_pot_up">Registrera omskolning</string>
     <string name="record_planting">Registrera plantering</string>
     <string name="harvest_count">Sk\u00F6rdeantal</string>
     <string name="record_harvest">Registrera sk\u00F6rd</string>
@@ -331,7 +331,7 @@
     <!-- Voice -->
     <string name="voice_action_sow">S\u00E5</string>
     <string name="voice_action_soak">Bl\u00F6tl\u00E4gg</string>
-    <string name="voice_action_pot_up">Omplantera</string>
+    <string name="voice_action_pot_up">Skola om</string>
     <string name="voice_action_plant">Plantera ut</string>
     <string name="voice_action_harvest">Sk\u00F6rda</string>
     <string name="voice_use">Anv\u00E4nd</string>

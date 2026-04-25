@@ -132,7 +132,7 @@ private val eventTypes = listOf(
 
 private fun eventTypeLabelSvStr(type: String): String = when (type) {
     "SEEDED" -> "Sått"
-    "POTTED_UP" -> "Omplanterad"
+    "POTTED_UP" -> "Skola omd"
     "PLANTED_OUT" -> "Utplanterad"
     "HARVESTED" -> "Skördad"
     "RECOVERED" -> "Återhämtad"

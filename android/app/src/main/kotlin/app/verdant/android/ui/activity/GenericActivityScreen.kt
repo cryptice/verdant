@@ -147,9 +147,9 @@ fun PotUpActivityScreen(
     LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
 
     ActivityScaffold(
-        mastheadLeft = "§ Kruka upp",
+        mastheadLeft = "§ Skola om",
         mastheadCenter = uiState.plant?.name ?: "",
-        submitLabel = "Kruka upp",
+        submitLabel = "Skola om",
         onSubmit = {
             viewModel.submitEvent(
                 "POTTED_UP",

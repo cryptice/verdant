@@ -83,7 +83,7 @@
   },
   "status": {
     "SEEDED": "Sådd",
-    "POTTED_UP": "Omplantat",
+    "POTTED_UP": "Omskolad",
     "PLANTED_OUT": "Planterat ut",
     "GROWING": "Växer",
     "HARVESTED": "Skördat",
@@ -92,7 +92,7 @@
   },
   "eventType": {
     "SEEDED": "Sådd",
-    "POTTED_UP": "Omplantat",
+    "POTTED_UP": "Omskolad",
     "PLANTED_OUT": "Planterat ut",
     "GROWING": "Växer",
     "HARVESTED": "Skördat",
@@ -113,7 +113,7 @@
   "activityType": {
     "SOW": "Så",
     "SOAK": "Blötlägg",
-    "POT_UP": "Omplantera",
+    "POT_UP": "Skola om",
     "PLANT": "Plantera ut",
     "HARVEST": "Skörda",
     "RECOVER": "Återhämta",
@@ -855,8 +855,8 @@
           "Trädgård — En fysisk plats där du odlar, med en eller flera bäddar.",
           "Bädd — Ett odlingsområde i en trädgård. Kan ha mått för skörd-per-yta-beräkningar.",
           "Art — En växtsort med namn, svenskt namn, variant och vetenskapligt namn. Innehåller odlings- och produktionsdata.",
-          "Planta — En individuell planta eller grupp som går genom livscykelstadier: Sådd → Omplantering → Utplantering → Växer → Skördad.",
-          "Plantahändelse — En tidsstamplad händelse: sådd, omplantering, blomning, skörd m.m. Skördehändelser inkluderar stjälkantal, längd, kvalitet och destination."
+          "Planta — En individuell planta eller grupp som går genom livscykelstadier: Sådd → Omskolning → Utplantering → Växer → Skördad.",
+          "Plantahändelse — En tidsstamplad händelse: sådd, omskolning, blomning, skörd m.m. Skördehändelser inkluderar stjälkantal, längd, kvalitet och destination."
         ]
       },
       "dashboard": {
@@ -914,7 +914,7 @@
         "body": [
           "Varje planta har en tidslinje med händelser. Klicka på en planta för full historik.",
           "## Livscykelhändelser",
-          "- Sådd, Omplantering, Utplantering — tillväxtstadier",
+          "- Sådd, Omskolning, Utplantering — tillväxtstadier",
           "- Knoppning, Första blomning, Full blomning, Sista blomning — blomningsmilstolpar",
           "- Toppning, Avknoppning — beskärningsåtgärder",
           "- Skörd — med stjälkantal, längd, kvalitetsgrad (A/B/C) och kunddestination",
@@ -927,7 +927,7 @@
         "title": "Uppgifter",
         "body": [
           "Schemalägg trädgårdsaktiviteter med deadlines och följ framsteg.",
-          "- Aktivitetstyp: Så, Omplantera, Plantera ut, Skörda, Återhämta eller Kasta",
+          "- Aktivitetstyp: Så, Skola om, Plantera ut, Skörda, Återhämta eller Kasta",
           "- Målantal och återstående antal — minskas när du utför uppgiften",
           "- Filtrerbart per säsong",
           "- Förfallna uppgifter markeras i rött, dagens i orange",
@@ -1047,7 +1047,7 @@
           "## Steg 7: Börja så",
           "Gå till Uppgifter och klicka Utför på en såuppgift. Välj bädd, bekräfta antal och så.",
           "## Steg 8: Följ tillväxten",
-          "Lägg till händelser: Omplantering, Utplantering, Knoppning, Första blomning, Toppning.",
+          "Lägg till händelser: Omskolning, Utplantering, Knoppning, Första blomning, Toppning.",
           "## Steg 9: Registrera skördar",
           "Lägg till Skördehändelser med stjälkantal, längd, kvalitetsgrad och kunddestination.",
           "## Steg 10: Utvärdera säsongen",
@@ -1088,7 +1088,7 @@
       "browse_species": "Utforska arter",
       "add_seeds": "Lägg till utsäde",
       "sow_seeds": "Så dina första frön",
-      "pot_up": "Kruka om en planta",
+      "pot_up": "Skola om en planta",
       "plant_out": "Plantera ut i en bädd",
       "record_harvest": "Registrera en skörd",
       "add_customer": "Lägg till en kund",
@@ -1181,7 +1181,7 @@
         }
       },
       "potUp": {
-        "title": "Kruka om plantor",
+        "title": "Skola om plantor",
         "description": "Från plantlistan, välj en sådd planta och använd kruka om-åtgärden för att flytta den till en kruka."
       },
       "plantOut": {

@@ -185,7 +185,7 @@ fun PlantedSpeciesDetailScreen(
         val actions: List<Pair<String, String>> = buildList {
             when (item.status) {
                 "SEEDED" -> {
-                    if (item.bedId == null) add("POTTED_UP" to "Kruka upp")
+                    if (item.bedId == null) add("POTTED_UP" to "Skola om")
                     add("PLANTED_OUT" to "Plantera ut")
                 }
                 "POTTED_UP" -> add("PLANTED_OUT" to "Plantera ut")

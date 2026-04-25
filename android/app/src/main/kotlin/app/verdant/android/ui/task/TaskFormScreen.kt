@@ -107,7 +107,7 @@ class TaskFormViewModel @Inject constructor(
 
 private fun activityTypeLabelSvStr(name: String): String = when (name) {
     Activity.SOW.name -> "Så"
-    Activity.POT_UP.name -> "Potta upp"
+    Activity.POT_UP.name -> "Skola om"
     Activity.PLANT.name -> "Plantera"
     Activity.HARVEST.name -> "Skörda"
     Activity.RECOVER.name -> "Återhämta"

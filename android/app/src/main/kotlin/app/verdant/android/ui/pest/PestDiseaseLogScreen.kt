@@ -177,7 +177,7 @@ fun PestDiseaseLogScreen(
 
     FaltetScreenScaffold(
         mastheadLeft = "§ Hälsa",
-        mastheadCenter = "Skadegörare",
+        mastheadCenter = "Skadedjur & sjukdomar",
         fab = {
             FaltetFab(
                 onClick = { editing = null; showDialog = true },
@@ -474,7 +474,7 @@ private fun <T> ChipRow(
 private fun PestDiseaseLogScreenPreview() {
     FaltetScreenScaffold(
         mastheadLeft = "§ Hälsa",
-        mastheadCenter = "Skadegörare",
+        mastheadCenter = "Skadedjur & sjukdomar",
     ) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding)) {
             items(

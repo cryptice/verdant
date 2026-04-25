@@ -263,13 +263,13 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                         // Section 1 — § ODLING
                         DrawerSection("§ Odling")
                         DrawerItem("Översikt", Screen.MyWorld.route, currentRoute, navController, scope, drawerState)
-                        DrawerItem("Plantor", Screen.PlantedSpeciesList.route, currentRoute, navController, scope, drawerState)
+                        DrawerItem("Växter", Screen.PlantedSpeciesList.route, currentRoute, navController, scope, drawerState)
 
                         // Section 2 — § UPPGIFTER
                         DrawerSection("§ Uppgifter")
                         DrawerItem("Uppgifter", Screen.TaskList.route, currentRoute, navController, scope, drawerState)
-                        DrawerItem("Frölager", Screen.SeedInventory.route, currentRoute, navController, scope, drawerState)
-                        DrawerItem("Förbrukning", Screen.Supplies.route, currentRoute, navController, scope, drawerState)
+                        DrawerItem("Utsäde", Screen.SeedInventory.route, currentRoute, navController, scope, drawerState)
+                        DrawerItem("Utrustning & förbrukning", Screen.Supplies.route, currentRoute, navController, scope, drawerState)
                         DrawerItem("Successioner", Screen.Successions.route, currentRoute, navController, scope, drawerState)
                         DrawerItem("Mål", Screen.Targets.route, currentRoute, navController, scope, drawerState)
 
@@ -281,7 +281,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                         // Section 4 — § ANALYS
                         DrawerSection("§ Analys")
                         DrawerItem("Försök", Screen.Trials.route, currentRoute, navController, scope, drawerState)
-                        DrawerItem("Skadedjur", Screen.PestDiseaseLog.route, currentRoute, navController, scope, drawerState)
+                        DrawerItem("Skadedjur & sjukdomar", Screen.PestDiseaseLog.route, currentRoute, navController, scope, drawerState)
                         DrawerItem("Analys", Screen.Analytics.route, currentRoute, navController, scope, drawerState)
                     }
 

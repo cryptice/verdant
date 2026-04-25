@@ -171,7 +171,7 @@ fun VarietyTrialsScreen(
 
     FaltetScreenScaffold(
         mastheadLeft = "§ Forskning",
-        mastheadCenter = "Sortförsök",
+        mastheadCenter = "Försök",
         fab = {
             FaltetFab(
                 onClick = { editing = null; showDialog = true },
