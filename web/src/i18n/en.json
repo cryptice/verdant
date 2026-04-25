@@ -153,7 +153,23 @@
       "photoLabel": "NORTH FIELD · JULY"
     },
     "trays": {
-      "title": "Trays"
+      "title": "Trays",
+      "action": {
+        "chooseAction": "Take action on {{species}}",
+        "potUpTitle": "Pot up {{species}}",
+        "plantOutTitle": "Plant out {{species}}",
+        "discardTitle": "Discard {{species}}",
+        "potUp": "Pot up",
+        "plantOut": "Plant out",
+        "discard": "Discard",
+        "count": "Count",
+        "countError": "Count must be between 1 and {{max}}",
+        "targetBed": "Target bed",
+        "targetBedRequired": "Target bed is required",
+        "selectBed": "Select a bed",
+        "notes": "Notes",
+        "discardConfirm": "Discard {{count}} {{species}} plants from the tray?"
+      }
     },
     "tasks": {
       "title": "Tasks"

@@ -153,7 +153,23 @@
       "photoLabel": "NORRA FÄLTET · JULI"
     },
     "trays": {
-      "title": "Brickor"
+      "title": "Brickor",
+      "action": {
+        "chooseAction": "Vidta åtgärd för {{species}}",
+        "potUpTitle": "Skola om {{species}}",
+        "plantOutTitle": "Plantera ut {{species}}",
+        "discardTitle": "Kassera {{species}}",
+        "potUp": "Skola om",
+        "plantOut": "Plantera ut",
+        "discard": "Kassera",
+        "count": "Antal",
+        "countError": "Antal måste vara mellan 1 och {{max}}",
+        "targetBed": "Målbädd",
+        "targetBedRequired": "Målbädd krävs",
+        "selectBed": "Välj en bädd",
+        "notes": "Anteckningar",
+        "discardConfirm": "Kassera {{count}} plantor av {{species}} från brättet?"
+      }
     },
     "tasks": {
       "title": "Uppgifter"
