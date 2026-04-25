@@ -168,6 +168,7 @@ class BouquetsViewModel @Inject constructor(
 @Composable
 fun BouquetsScreen(
     onBack: () -> Unit,
+    onOpenRecipes: () -> Unit = {},
     viewModel: BouquetsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -194,6 +195,9 @@ fun BouquetsScreen(
     FaltetScreenScaffold(
         mastheadLeft = "§ Försäljning",
         mastheadCenter = "Buketter",
+        mastheadRight = {
+            TextButton(onClick = onOpenRecipes) { Text("Recept", fontSize = 12.sp) }
+        },
         fab = {
             FaltetFab(
                 onClick = { editorTarget = EditorTarget(existing = null) },

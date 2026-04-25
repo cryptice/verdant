@@ -581,7 +581,10 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                 VarietyTrialsScreen(onBack = { navController.popBackStack() })
             }
             composable(Screen.Bouquets.route) {
-                BouquetsScreen(onBack = { navController.popBackStack() })
+                BouquetsScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenRecipes = { navController.navigate(Screen.BouquetRecipes.route) },
+                )
             }
             composable(Screen.BouquetRecipes.route) {
                 BouquetRecipesScreen(onBack = { navController.popBackStack() })

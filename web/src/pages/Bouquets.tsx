@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import { api, type BouquetResponse, type SpeciesResponse } from '../api/client'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
@@ -206,7 +207,14 @@ export function Bouquets() {
       <Masthead
         left={t('nav.bouquets')}
         center=""
-        right={<button onClick={openAdd} className="btn-primary">{t('bouquets.build')}</button>}
+        right={
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
+            <Link to="/bouquet-recipes" className="btn-secondary">
+              {t('nav.bouquetRecipes')}
+            </Link>
+            <button onClick={openAdd} className="btn-primary">{t('bouquets.build')}</button>
+          </div>
+        }
       />
       <div className="page-body">
         {list.length === 0 ? (
