@@ -118,7 +118,7 @@ export function Dashboard() {
                   fontSize: 16,
                 }}
               >
-                <span>{row.speciesName}</span>
+                <span>{row.variantName ? `${row.speciesName} – ${row.variantName}` : row.speciesName}</span>
                 <span style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
                   {row.count}
                 </span>

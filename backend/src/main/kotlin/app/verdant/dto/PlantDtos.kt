@@ -52,6 +52,7 @@ data class UpdatePlantRequest(
 data class SpeciesPlantSummary(
     val speciesId: Long,
     val speciesName: String,
+    val variantName: String?,
     val scientificName: String?,
     val activePlantCount: Int,
     val totalPlantCount: Int,
@@ -113,6 +114,7 @@ data class PlantGroupResponse(
 data class TraySummaryEntry(
     val speciesId: Long?,
     val speciesName: String,
+    val variantName: String?,
     val status: String,
     val count: Int,
 )

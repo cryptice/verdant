@@ -218,7 +218,9 @@ data class BatchSowResponse(
 )
 
 data class TraySummaryEntry(
+    @SerializedName("speciesId") val speciesId: Long? = null,
     @SerializedName("speciesName") val speciesName: String,
+    @SerializedName("variantName") val variantName: String? = null,
     @SerializedName("status") val status: String,
     @SerializedName("count") val count: Int,
 )
@@ -597,6 +599,7 @@ data class DecrementSeedInventoryRequest(
 data class SpeciesPlantSummary(
     @SerializedName("speciesId") val speciesId: Long,
     @SerializedName("speciesName") val speciesName: String,
+    @SerializedName("variantName") val variantName: String? = null,
     @SerializedName("scientificName") val scientificName: String?,
     @SerializedName("activePlantCount") val activePlantCount: Int,
     @SerializedName("totalPlantCount") val totalPlantCount: Int,

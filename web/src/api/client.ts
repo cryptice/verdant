@@ -172,7 +172,7 @@ export interface HarvestStatRow {
   species: string; totalWeightGrams: number; totalQuantity: number; totalStems: number; harvestCount: number
 }
 
-export interface TraySummaryEntry { speciesName: string; status: string; count: number }
+export interface TraySummaryEntry { speciesId?: number; speciesName: string; variantName?: string; status: string; count: number }
 
 export interface SpeciesPlantSummary {
   speciesId: number; speciesName: string; scientificName?: string
