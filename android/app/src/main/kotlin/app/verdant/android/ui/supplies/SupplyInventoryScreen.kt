@@ -351,9 +351,9 @@ private fun SupplyTypeFaltetRow(
                             batch.notes?.let { notes ->
                                 Text(text = notes, fontSize = 12.sp, color = FaltetForest)
                             }
-                            batch.costSek?.let { cost ->
+                            batch.costCents?.let { cost ->
                                 Text(
-                                    text = "${cost / 100.0} kr",
+                                    text = "%.2f kr".format(cost / 100.0),
                                     fontFamily = FontFamily.Monospace,
                                     fontSize = 12.sp,
                                     color = FaltetForest,

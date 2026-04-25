@@ -14,7 +14,7 @@ data class SeedInventoryResponse(
     val quantity: Int,
     val collectionDate: LocalDate?,
     val expirationDate: LocalDate?,
-    val costPerUnitSek: Int?,
+    val costPerUnitCents: Int?,
     val unitType: String?,
     val seasonId: Long?,
     val speciesProviderId: Long?,
@@ -30,7 +30,7 @@ data class CreateSeedInventoryRequest(
     val collectionDate: LocalDate? = null,
     val expirationDate: LocalDate? = null,
     @field:Min(0)
-    val costPerUnitSek: Int? = null,
+    val costPerUnitCents: Int? = null,
     @field:NotBlank @field:Size(max = 255)
     val unitType: String,
     val seasonId: Long? = null,
@@ -43,7 +43,7 @@ data class UpdateSeedInventoryRequest(
     val collectionDate: LocalDate? = null,
     val expirationDate: LocalDate? = null,
     @field:Min(0)
-    val costPerUnitSek: Int? = null,
+    val costPerUnitCents: Int? = null,
     @field:Size(max = 255)
     val unitType: String? = null,
     val seasonId: Long? = null,

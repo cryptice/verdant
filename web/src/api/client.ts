@@ -132,7 +132,7 @@ export interface SpeciesResponse {
   daysToHarvestMin?: number; daysToHarvestMax?: number; sowingDepthMm?: number
   heightCmMin?: number; heightCmMax?: number; germinationRate?: number
   bloomMonths?: string; sowingMonths?: string
-  costPerSeedSek?: number; expectedStemsPerPlant?: number
+  costPerSeedCents?: number; expectedStemsPerPlant?: number
   expectedVaseLifeDays?: number; plantType?: string; defaultUnitType?: string
   photos: { id: number; imageUrl: string; sortOrder: number }[]
   tags: { id: number; name: string }[]
@@ -145,7 +145,7 @@ export interface SpeciesResponse {
 export interface SeedInventoryResponse {
   id: number; speciesId: number; speciesName: string
   quantity: number; collectionDate?: string; expirationDate?: string
-  costPerUnitSek?: number; unitType?: string; seasonId?: number
+  costPerUnitCents?: number; unitType?: string; seasonId?: number
   speciesProviderId?: number; providerName?: string
   createdAt: string
 }
@@ -226,7 +226,7 @@ export interface VarietyTrialResponse {
 // Bouquet Recipe
 export interface BouquetRecipeResponse {
   id: number; name: string; description?: string
-  imageUrl?: string; priceSek?: number
+  imageUrl?: string; priceCents?: number
   items: BouquetRecipeItemResponse[]
   createdAt: string; updatedAt: string
 }
@@ -243,7 +243,7 @@ export interface BouquetResponse {
   name: string
   description?: string
   imageUrl?: string
-  priceSek?: number
+  priceCents?: number
   assembledAt: string
   notes?: string
   items: BouquetItemResponse[]
@@ -326,7 +326,7 @@ export interface SupplyTypeResponse {
 export interface SupplyInventoryResponse {
   id: number; supplyTypeId: number; supplyTypeName: string
   category: string; unit: string; properties: Record<string, unknown>
-  quantity: number; costSek?: number; seasonId?: number
+  quantity: number; costCents?: number; seasonId?: number
   notes?: string; createdAt: string
 }
 
@@ -490,9 +490,9 @@ export const api = {
   inventory: {
     list: (speciesId?: number) =>
       apiRequest<SeedInventoryResponse[]>(`/api/seed-stock${speciesId ? `?speciesId=${speciesId}` : ''}`),
-    create: (data: { speciesId: number; quantity: number; collectionDate?: string; expirationDate?: string; costPerUnitSek?: number; unitType?: string; speciesProviderId?: number }) =>
+    create: (data: { speciesId: number; quantity: number; collectionDate?: string; expirationDate?: string; costPerUnitCents?: number; unitType?: string; speciesProviderId?: number }) =>
       apiRequest<SeedInventoryResponse>('/api/seed-stock', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: number, data: { quantity?: number; collectionDate?: string; expirationDate?: string; costPerUnitSek?: number; unitType?: string; speciesProviderId?: number }) =>
+    update: (id: number, data: { quantity?: number; collectionDate?: string; expirationDate?: string; costPerUnitCents?: number; unitType?: string; speciesProviderId?: number }) =>
       apiRequest<SeedInventoryResponse>(`/api/seed-stock/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     decrement: (id: number, quantity: number) =>
       apiRequest<void>(`/api/seed-stock/${id}/decrement`, { method: 'POST', body: JSON.stringify({ quantity }) }),
@@ -616,7 +616,7 @@ export const api = {
       apiRequest<SupplyTypeResponse>(`/api/supplies/types/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     deleteType: (id: number) => apiRequest<void>(`/api/supplies/types/${id}`, { method: 'DELETE' }),
     list: () => apiRequest<SupplyInventoryResponse[]>('/api/supplies'),
-    create: (data: { supplyTypeId: number; quantity: number; costSek?: number; seasonId?: number; notes?: string }) =>
+    create: (data: { supplyTypeId: number; quantity: number; costCents?: number; seasonId?: number; notes?: string }) =>
       apiRequest<SupplyInventoryResponse>('/api/supplies', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: number, data: Record<string, unknown>) =>
       apiRequest<SupplyInventoryResponse>(`/api/supplies/${id}`, { method: 'PUT', body: JSON.stringify(data) }),

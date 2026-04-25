@@ -11,7 +11,7 @@ data class Bouquet(
     val name: String,
     val description: String? = null,
     val imageUrl: String? = null,
-    val priceSek: Int? = null,
+    val priceCents: Int? = null,
     val assembledAt: Instant = Instant.now(),
     val notes: String? = null,
     val createdAt: Instant = Instant.now(),

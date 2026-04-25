@@ -206,10 +206,10 @@ fun BouquetRecipesScreen(
                                     .border(1.dp, FaltetInk),
                             )
                         },
-                        stat = recipe.priceSek?.let { price ->
+                        stat = recipe.priceCents?.let { cents ->
                             {
                                 Text(
-                                    text = "$price KR",
+                                    text = "%.2f KR".format(cents / 100.0),
                                     fontFamily = FaltetDisplay,
                                     fontSize = 16.sp,
                                     color = FaltetInk,
@@ -231,13 +231,13 @@ fun BouquetRecipesScreen(
             species = uiState.species,
             saving = uiState.saving,
             onDismiss = { showDialog = false },
-            onSave = { name, priceSek, items ->
+            onSave = { name, priceCents, items ->
                 if (editing != null) {
                     viewModel.update(
                         editing!!.id,
                         UpdateBouquetRecipeRequest(
                             name = name,
-                            priceSek = priceSek,
+                            priceCents = priceCents,
                             items = items,
                         ),
                     )
@@ -245,7 +245,7 @@ fun BouquetRecipesScreen(
                     viewModel.create(
                         CreateBouquetRecipeRequest(
                             name = name,
-                            priceSek = priceSek,
+                            priceCents = priceCents,
                             items = items,
                         ),
                     )
@@ -281,11 +281,11 @@ private fun BouquetDialog(
     species: List<SpeciesResponse>,
     saving: Boolean,
     onDismiss: () -> Unit,
-    onSave: (name: String, priceSek: Int?, items: List<CreateBouquetRecipeItemRequest>) -> Unit,
+    onSave: (name: String, priceCents: Int?, items: List<CreateBouquetRecipeItemRequest>) -> Unit,
     onDelete: (() -> Unit)?,
 ) {
     var name by remember { mutableStateOf(existing?.name ?: "") }
-    var price by remember { mutableStateOf(existing?.priceSek?.toString() ?: "") }
+    var price by remember { mutableStateOf(existing?.priceCents?.let { (it / 100.0).toString() } ?: "") }
     val itemsState = remember {
         mutableStateListOf<EditableItem>().apply {
             existing?.items?.forEach {
@@ -313,7 +313,7 @@ private fun BouquetDialog(
                 )
                 OutlinedTextField(
                     value = price,
-                    onValueChange = { price = it.filter { c -> c.isDigit() } },
+                    onValueChange = { price = it.filter { c -> c.isDigit() || c == '.' || c == ',' } },
                     label = { Text(stringResource(R.string.recipe_price)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -355,7 +355,7 @@ private fun BouquetDialog(
                 onClick = {
                     onSave(
                         name,
-                        price.toIntOrNull(),
+                        price.replace(',', '.').toDoubleOrNull()?.let { (it * 100).toInt() },
                         itemsState.map {
                             CreateBouquetRecipeItemRequest(
                                 speciesId = it.speciesId!!,

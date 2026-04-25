@@ -75,7 +75,7 @@ export function BouquetRecipes() {
   const openEdit = (recipe: BouquetRecipeResponse) => {
     setFormName(recipe.name)
     setFormDescription(recipe.description ?? '')
-    setFormPrice(recipe.priceSek != null ? String(recipe.priceSek) : '')
+    setFormPrice(recipe.priceCents != null ? String(recipe.priceCents / 100) : '')
     setFormItems(recipe.items.map(item => ({
       species: { id: item.speciesId, commonName: item.speciesName } as SpeciesResponse,
       stemCount: String(item.stemCount),
@@ -100,7 +100,7 @@ export function BouquetRecipes() {
   const buildPayload = () => ({
     name: formName,
     description: formDescription || undefined,
-    priceSek: formPrice ? Number(formPrice) : undefined,
+    priceCents: formPrice ? Math.round(Number(formPrice) * 100) : undefined,
     items: formItems
       .filter(item => item.species)
       .map(item => ({
@@ -131,9 +131,9 @@ export function BouquetRecipes() {
   if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
 
-  const formatPrice = (sek?: number) => {
-    if (sek == null) return '—'
-    return `${sek} kr`
+  const formatPrice = (cents?: number) => {
+    if (cents == null) return '—'
+    return `${(cents / 100).toFixed(2)} kr`
   }
 
   const recipes = data ?? []
@@ -274,7 +274,7 @@ export function BouquetRecipes() {
                     )}
                   </div>
                   <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--color-accent)' }}>
-                    {formatPrice(recipe.priceSek)}
+                    {formatPrice(recipe.priceCents)}
                   </span>
                   <span style={{ fontVariantNumeric: 'tabular-nums' }}>{recipe.items.length}</span>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>

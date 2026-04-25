@@ -40,7 +40,7 @@ data class SpeciesResponse(
     val groups: List<SpeciesGroupResponse>,
     val tags: List<SpeciesTagResponse>,
     val providers: List<SpeciesProviderResponse>,
-    val costPerSeedSek: Int?,
+    val costPerSeedCents: Int?,
     val expectedStemsPerPlant: Int?,
     val expectedVaseLifeDays: Int?,
     val plantType: String?,
@@ -90,7 +90,7 @@ data class CreateSpeciesRequest(
     @field:Size(max = 100)
     val tagIds: List<Long>? = null,
     @field:Min(0)
-    val costPerSeedSek: Int? = null,
+    val costPerSeedCents: Int? = null,
     @field:Min(0)
     val expectedStemsPerPlant: Int? = null,
     @field:Min(0)
@@ -142,7 +142,7 @@ data class UpdateSpeciesRequest(
     @field:Size(max = 100)
     val tagIds: List<Long>? = null,
     @field:Min(0)
-    val costPerSeedSek: Int? = null,
+    val costPerSeedCents: Int? = null,
     @field:Min(0)
     val expectedStemsPerPlant: Int? = null,
     @field:Min(0)
@@ -224,7 +224,7 @@ data class SpeciesProviderResponse(
     val imageFrontUrl: String?,
     val imageBackUrl: String?,
     val productUrl: String?,
-    val costPerUnitSek: Int?,
+    val costPerUnitCents: Int?,
     val unitType: String?,
 )
 
@@ -236,7 +236,7 @@ data class AddSpeciesProviderRequest(
     @field:Size(max = 255)
     val productUrl: String? = null,
     @field:Min(0)
-    val costPerUnitSek: Int? = null,
+    val costPerUnitCents: Int? = null,
     @field:Size(max = 255)
     val unitType: String? = null,
 )
@@ -247,7 +247,7 @@ data class UpdateSpeciesProviderRequest(
     @field:Size(max = 255)
     val productUrl: String? = null,
     @field:Min(0)
-    val costPerUnitSek: Int? = null,
+    val costPerUnitCents: Int? = null,
     @field:Size(max = 255)
     val unitType: String? = null,
 )
@@ -263,7 +263,7 @@ data class SpeciesExportProvider(
     val imageFrontUrl: String? = null,
     val imageBackUrl: String? = null,
     val productUrl: String? = null,
-    val costPerUnitSek: Int? = null,
+    val costPerUnitCents: Int? = null,
     val unitType: String? = null,
 )
 
@@ -290,7 +290,7 @@ data class SpeciesExportEntry(
     val groupNames: List<String> = emptyList(),
     val tagNames: List<String> = emptyList(),
     val providers: List<SpeciesExportProvider> = emptyList(),
-    val costPerSeedSek: Int? = null,
+    val costPerSeedCents: Int? = null,
     val expectedStemsPerPlant: Int? = null,
     val expectedVaseLifeDays: Int? = null,
     val plantType: String? = null,

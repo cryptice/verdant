@@ -119,7 +119,7 @@ class BouquetsViewModel @Inject constructor(
         existing: BouquetResponse?,
         sourceRecipeId: Long?,
         name: String,
-        priceSek: Int?,
+        priceCents: Int?,
         items: List<CreateBouquetItemRequest>,
         onDone: () -> Unit,
     ) {
@@ -131,7 +131,7 @@ class BouquetsViewModel @Inject constructor(
                         CreateBouquetRequest(
                             sourceRecipeId = sourceRecipeId,
                             name = name,
-                            priceSek = priceSek,
+                            priceCents = priceCents,
                             items = items,
                         )
                     )
@@ -141,7 +141,7 @@ class BouquetsViewModel @Inject constructor(
                         UpdateBouquetRequest(
                             sourceRecipeId = sourceRecipeId,
                             name = name,
-                            priceSek = priceSek,
+                            priceCents = priceCents,
                             items = items,
                         )
                     )
@@ -225,7 +225,7 @@ fun BouquetsScreen(
                             b.assembledAt.take(10),
                             b.sourceRecipeName?.let { "från $it" },
                             "${b.items.sumOf { it.stemCount }} st",
-                            b.priceSek?.let { "$it kr" },
+                            b.priceCents?.let { "%.2f kr".format(it / 100.0) },
                         ).joinToString(" · "),
                         onClick = { editorTarget = EditorTarget(existing = b) },
                     )
@@ -251,12 +251,12 @@ private fun BouquetEditorDialog(
     species: List<SpeciesResponse>,
     saving: Boolean,
     onDismiss: () -> Unit,
-    onSave: (sourceRecipeId: Long?, name: String, priceSek: Int?, items: List<CreateBouquetItemRequest>) -> Unit,
+    onSave: (sourceRecipeId: Long?, name: String, priceCents: Int?, items: List<CreateBouquetItemRequest>) -> Unit,
     onDelete: (() -> Unit)?,
 ) {
     var sourceRecipeId by remember { mutableStateOf(existing?.sourceRecipeId) }
     var name by remember { mutableStateOf(existing?.name ?: "") }
-    var price by remember { mutableStateOf(existing?.priceSek?.toString() ?: "") }
+    var price by remember { mutableStateOf(existing?.priceCents?.let { (it / 100.0).toString() } ?: "") }
     val itemsState = remember {
         mutableStateListOf<BouquetEditableItem>().apply {
             existing?.items?.forEach { add(BouquetEditableItem(it.speciesId, it.stemCount.toString(), it.role)) }
@@ -266,7 +266,7 @@ private fun BouquetEditorDialog(
     fun seedFromRecipe(recipe: BouquetRecipeResponse) {
         sourceRecipeId = recipe.id
         if (name.isBlank()) name = recipe.name
-        if (price.isBlank()) recipe.priceSek?.let { price = it.toString() }
+        if (price.isBlank()) recipe.priceCents?.let { price = (it / 100.0).toString() }
         itemsState.clear()
         recipe.items.forEach { itemsState.add(BouquetEditableItem(it.speciesId, it.stemCount.toString(), it.role)) }
     }
@@ -302,7 +302,7 @@ private fun BouquetEditorDialog(
                 )
                 OutlinedTextField(
                     value = price,
-                    onValueChange = { price = it.filter { c -> c.isDigit() } },
+                    onValueChange = { price = it.filter { c -> c.isDigit() || c == '.' || c == ',' } },
                     label = { Text("Pris (SEK)") },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -345,7 +345,7 @@ private fun BouquetEditorDialog(
                     onSave(
                         sourceRecipeId,
                         name,
-                        price.toIntOrNull(),
+                        price.replace(',', '.').toDoubleOrNull()?.let { (it * 100).toInt() },
                         itemsState.map {
                             CreateBouquetItemRequest(
                                 speciesId = it.speciesId!!,

@@ -37,7 +37,7 @@ class BouquetRepository(private val ds: AgroalDataSource) {
     fun persist(bouquet: Bouquet): Bouquet {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO bouquet (org_id, source_recipe_id, name, description, image_url, price_sek, assembled_at, notes, created_at, updated_at)
+                """INSERT INTO bouquet (org_id, source_recipe_id, name, description, image_url, price_cents, assembled_at, notes, created_at, updated_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
@@ -46,7 +46,7 @@ class BouquetRepository(private val ds: AgroalDataSource) {
                 ps.setString(3, bouquet.name)
                 ps.setString(4, bouquet.description)
                 ps.setString(5, bouquet.imageUrl)
-                ps.setObject(6, bouquet.priceSek)
+                ps.setObject(6, bouquet.priceCents)
                 ps.setTimestamp(7, Timestamp.from(bouquet.assembledAt))
                 ps.setString(8, bouquet.notes)
                 ps.executeUpdate()
@@ -63,14 +63,14 @@ class BouquetRepository(private val ds: AgroalDataSource) {
             conn.prepareStatement(
                 """UPDATE bouquet
                    SET source_recipe_id = ?, name = ?, description = ?, image_url = ?,
-                       price_sek = ?, assembled_at = ?, notes = ?, updated_at = now()
+                       price_cents = ?, assembled_at = ?, notes = ?, updated_at = now()
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setObject(1, bouquet.sourceRecipeId)
                 ps.setString(2, bouquet.name)
                 ps.setString(3, bouquet.description)
                 ps.setString(4, bouquet.imageUrl)
-                ps.setObject(5, bouquet.priceSek)
+                ps.setObject(5, bouquet.priceCents)
                 ps.setTimestamp(6, Timestamp.from(bouquet.assembledAt))
                 ps.setString(7, bouquet.notes)
                 ps.setLong(8, bouquet.id!!)
@@ -138,7 +138,7 @@ class BouquetRepository(private val ds: AgroalDataSource) {
         name = getString("name"),
         description = getString("description"),
         imageUrl = getString("image_url"),
-        priceSek = getObject("price_sek") as? Int,
+        priceCents = getObject("price_cents") as? Int,
         assembledAt = getTimestamp("assembled_at").toInstant(),
         notes = getString("notes"),
         createdAt = getTimestamp("created_at").toInstant(),

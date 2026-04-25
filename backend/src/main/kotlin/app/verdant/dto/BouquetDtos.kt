@@ -15,7 +15,7 @@ data class BouquetResponse(
     val name: String,
     val description: String?,
     val imageUrl: String?,
-    val priceSek: Int?,
+    val priceCents: Int?,
     val assembledAt: Instant,
     val notes: String?,
     val items: List<BouquetItemResponse>,
@@ -39,7 +39,7 @@ data class CreateBouquetRequest(
     @field:Size(max = 2000)
     val description: String? = null,
     @field:Min(0)
-    val priceSek: Int? = null,
+    val priceCents: Int? = null,
     val assembledAt: Instant? = null,
     @field:Size(max = 2000)
     val notes: String? = null,
@@ -65,7 +65,7 @@ data class UpdateBouquetRequest(
     @field:Size(max = 2000)
     val description: String? = null,
     @field:Min(0)
-    val priceSek: Int? = null,
+    val priceCents: Int? = null,
     val assembledAt: Instant? = null,
     @field:Size(max = 2000)
     val notes: String? = null,

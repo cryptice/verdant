@@ -72,7 +72,7 @@ class DataExportService(
                 quantity = item.quantity,
                 collectionDate = item.collectionDate,
                 expirationDate = item.expirationDate,
-                costPerUnitSek = item.costPerUnitSek,
+                costPerUnitCents = item.costPerUnitCents,
                 unitType = item.unitType.name,
                 seasonId = item.seasonId,
                 speciesProviderId = item.speciesProviderId,
@@ -204,7 +204,7 @@ class DataExportService(
                 name = recipe.name,
                 description = recipe.description,
                 imageUrl = recipe.imageUrl,
-                priceSek = recipe.priceSek,
+                priceCents = recipe.priceCents,
                 items = items.map { item ->
                     BouquetRecipeItemResponse(
                         id = item.id!!,

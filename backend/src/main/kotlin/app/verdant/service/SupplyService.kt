@@ -71,7 +71,7 @@ class SupplyService(
                 orgId = orgId,
                 supplyTypeId = request.supplyTypeId,
                 quantity = request.quantity,
-                costSek = request.costSek,
+                costCents = request.costCents,
                 seasonId = request.seasonId,
                 notes = request.notes,
             )
@@ -84,7 +84,7 @@ class SupplyService(
         if (item.orgId != orgId) throw NotFoundException("Supply inventory not found")
         val updated = item.copy(
             quantity = request.quantity ?: item.quantity,
-            costSek = request.costSek ?: item.costSek,
+            costCents = request.costCents ?: item.costCents,
             seasonId = request.seasonId ?: item.seasonId,
             notes = request.notes ?: item.notes,
         )
@@ -121,7 +121,7 @@ class SupplyService(
                 unit = type?.unit?.name ?: "COUNT",
                 properties = type?.let { parseProperties(it.properties) } ?: emptyMap(),
                 quantity = item.quantity,
-                costSek = item.costSek,
+                costCents = item.costCents,
                 seasonId = item.seasonId,
                 notes = item.notes,
                 createdAt = item.createdAt,

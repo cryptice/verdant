@@ -40,7 +40,7 @@ class BouquetService(
                 sourceRecipeId = request.sourceRecipeId,
                 name = request.name,
                 description = request.description,
-                priceSek = request.priceSek,
+                priceCents = request.priceCents,
                 assembledAt = request.assembledAt ?: Instant.now(),
                 notes = request.notes,
             )
@@ -72,7 +72,7 @@ class BouquetService(
             sourceRecipeId = request.sourceRecipeId ?: bouquet.sourceRecipeId,
             name = request.name ?: bouquet.name,
             description = request.description ?: bouquet.description,
-            priceSek = request.priceSek ?: bouquet.priceSek,
+            priceCents = request.priceCents ?: bouquet.priceCents,
             assembledAt = request.assembledAt ?: bouquet.assembledAt,
             notes = request.notes ?: bouquet.notes,
         )
@@ -112,7 +112,7 @@ class BouquetService(
             name = name,
             description = description,
             imageUrl = imageUrl,
-            priceSek = priceSek,
+            priceCents = priceCents,
             assembledAt = assembledAt,
             notes = notes,
             items = items.map { item ->

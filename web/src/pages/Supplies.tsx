@@ -73,9 +73,9 @@ function displayTypeName(type: { name: string; category: string; properties: Rec
   return type.name || deriveTypeName(type.category, type.properties, t)
 }
 
-function formatCost(costSek?: number): string {
-  if (costSek == null) return ''
-  return `${(costSek / 100).toFixed(2)} kr`
+function formatCost(costCents?: number): string {
+  if (costCents == null) return ''
+  return `${(costCents / 100).toFixed(2)} kr`
 }
 
 function formatTypeLabel(type: SupplyTypeResponse, t: (key: string) => string): string {
@@ -437,13 +437,13 @@ export function Supplies() {
       const totalQuantity = isPackageMode
         ? Number(batchPackageSize) * Number(batchPackageCount)
         : Number(batchQuantity)
-      const totalCostSek = isPackageMode && batchCost
+      const totalCostCents = isPackageMode && batchCost
         ? Math.round(Number(batchCost) * 100 * Number(batchPackageCount))
         : batchCost ? Math.round(Number(batchCost) * 100) : undefined
       return api.supplies.create({
         supplyTypeId: batchTypeId as number,
         quantity: totalQuantity,
-        costSek: totalCostSek,
+        costCents: totalCostCents,
         seasonId: batchSeasonId !== '' ? batchSeasonId as number : undefined,
         notes: batchNotes || undefined,
       })
@@ -476,7 +476,7 @@ export function Supplies() {
   const updateBatchMut = useMutation({
     mutationFn: () => api.supplies.update(editBatch!.id, {
       quantity: Number(editBatchQuantity),
-      costSek: editBatchCost ? Math.round(Number(editBatchCost) * 100) : undefined,
+      costCents: editBatchCost ? Math.round(Number(editBatchCost) * 100) : undefined,
       seasonId: editBatchSeasonId !== '' ? editBatchSeasonId : undefined,
       notes: editBatchNotes || undefined,
     }),
@@ -826,15 +826,15 @@ export function Supplies() {
                                     }}>
                                       {formatUnit(batch.quantity, batch.unit, t)}
                                     </span>
-                                    {batch.costSek != null && (
+                                    {batch.costCents != null && (
                                       <span style={{
                                         fontFamily: 'var(--font-mono)',
                                         fontSize: 10,
                                         color: 'var(--color-forest)',
                                         opacity: 0.7,
                                       }}>
-                                        {formatCost(batch.costSek)}
-                                        {batch.quantity > 0 && ` (${formatCost(Math.round(batch.costSek / batch.quantity))}/${t(`supplyUnit.${batch.unit}`)})`}
+                                        {formatCost(batch.costCents)}
+                                        {batch.quantity > 0 && ` (${formatCost(Math.round(batch.costCents / batch.quantity))}/${t(`supplyUnit.${batch.unit}`)})`}
                                       </span>
                                     )}
                                     {seasonName && (
@@ -881,7 +881,7 @@ export function Supplies() {
                                       onClick={() => {
                                         setEditBatch(batch)
                                         setEditBatchQuantity(String(batch.quantity))
-                                        setEditBatchCost(batch.costSek != null ? String(batch.costSek / 100) : '')
+                                        setEditBatchCost(batch.costCents != null ? String(batch.costCents / 100) : '')
                                         setEditBatchSeasonId(batch.seasonId ?? '')
                                         setEditBatchNotes(batch.notes ?? '')
                                         setMutError(null)

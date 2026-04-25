@@ -49,7 +49,7 @@ class SpeciesProviderRepository(private val ds: AgroalDataSource) {
     fun persist(sp: SpeciesProvider): SpeciesProvider {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO species_provider (species_id, provider_id, image_front_url, image_back_url, product_url, cost_per_unit_sek, unit_type, created_at)
+                """INSERT INTO species_provider (species_id, provider_id, image_front_url, image_back_url, product_url, cost_per_unit_cents, unit_type, created_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
@@ -58,7 +58,7 @@ class SpeciesProviderRepository(private val ds: AgroalDataSource) {
                 ps.setString(3, sp.imageFrontUrl)
                 ps.setString(4, sp.imageBackUrl)
                 ps.setString(5, sp.productUrl)
-                ps.setObject(6, sp.costPerUnitSek)
+                ps.setObject(6, sp.costPerUnitCents)
                 ps.setString(7, sp.unitType.name)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
@@ -72,13 +72,13 @@ class SpeciesProviderRepository(private val ds: AgroalDataSource) {
     fun update(sp: SpeciesProvider) {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """UPDATE species_provider SET image_front_url = ?, image_back_url = ?, product_url = ?, cost_per_unit_sek = ?, unit_type = ?
+                """UPDATE species_provider SET image_front_url = ?, image_back_url = ?, product_url = ?, cost_per_unit_cents = ?, unit_type = ?
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setString(1, sp.imageFrontUrl)
                 ps.setString(2, sp.imageBackUrl)
                 ps.setString(3, sp.productUrl)
-                ps.setObject(4, sp.costPerUnitSek)
+                ps.setObject(4, sp.costPerUnitCents)
                 ps.setString(5, sp.unitType.name)
                 ps.setLong(6, sp.id!!)
                 ps.executeUpdate()
@@ -112,7 +112,7 @@ class SpeciesProviderRepository(private val ds: AgroalDataSource) {
         imageFrontUrl = getString("image_front_url"),
         imageBackUrl = getString("image_back_url"),
         productUrl = getString("product_url"),
-        costPerUnitSek = getObject("cost_per_unit_sek") as? Int,
+        costPerUnitCents = getObject("cost_per_unit_cents") as? Int,
         unitType = getString("unit_type")?.let { UnitType.valueOf(it) } ?: UnitType.SEED,
         createdAt = getTimestamp("created_at").toInstant(),
     )

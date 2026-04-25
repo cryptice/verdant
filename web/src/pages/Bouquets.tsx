@@ -60,7 +60,7 @@ export function Bouquets() {
     if (!r) return
     setFormRecipeId(recipeId)
     if (!formName) setFormName(r.name)
-    if (!formPrice && r.priceSek != null) setFormPrice(String(r.priceSek))
+    if (!formPrice && r.priceCents != null) setFormPrice(String(r.priceCents / 100))
     setFormItems(r.items.map(it => ({
       species: null,
       speciesName: it.speciesName,
@@ -73,7 +73,7 @@ export function Bouquets() {
   const openEdit = (b: BouquetResponse) => {
     setFormRecipeId(b.sourceRecipeId ?? '')
     setFormName(b.name)
-    setFormPrice(b.priceSek != null ? String(b.priceSek) : '')
+    setFormPrice(b.priceCents != null ? String(b.priceCents / 100) : '')
     setFormAssembled(b.assembledAt.slice(0, 10))
     setFormNotes(b.notes ?? '')
     setFormItems(b.items.map(it => ({
@@ -96,7 +96,7 @@ export function Bouquets() {
   const buildPayload = () => ({
     sourceRecipeId: formRecipeId === '' ? null : Number(formRecipeId),
     name: formName.trim(),
-    priceSek: formPrice ? Number(formPrice) : undefined,
+    priceCents: formPrice ? Math.round(Number(formPrice) * 100) : undefined,
     assembledAt: new Date(formAssembled).toISOString(),
     notes: formNotes || undefined,
     items: formItems
@@ -227,7 +227,7 @@ export function Bouquets() {
               <button key={b.id} onClick={() => openEdit(b)} className="list-tile text-left">
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="font-display text-xl leading-tight">{b.name}</span>
-                  {b.priceSek != null && <span className="font-mono text-xs">{b.priceSek} kr</span>}
+                  {b.priceCents != null && <span className="font-mono text-xs">{(b.priceCents / 100).toFixed(2)} kr</span>}
                 </div>
                 <div className="font-mono text-[10px] uppercase tracking-wider text-text-secondary">{b.assembledAt.slice(0, 10)}</div>
                 {b.sourceRecipeName && <Chip tone="sage">{b.sourceRecipeName}</Chip>}

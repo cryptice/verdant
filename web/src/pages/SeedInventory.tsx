@@ -88,7 +88,7 @@ export function SeedInventory() {
       quantity: addQuantity,
       collectionDate: addCollection || undefined,
       expirationDate: addExpiration || undefined,
-      costPerUnitSek: addCostUnit ? Math.round(Number(addCostUnit) * 100) : undefined,
+      costPerUnitCents: addCostUnit ? Math.round(Number(addCostUnit) * 100) : undefined,
       unitType: addUnitType || undefined,
       speciesProviderId: addProviderId !== '' ? addProviderId : undefined,
     }),
@@ -108,7 +108,7 @@ export function SeedInventory() {
       quantity: Number(editQuantity),
       collectionDate: editCollection || undefined,
       expirationDate: editExpiration || undefined,
-      costPerUnitSek: editCostUnit ? Math.round(Number(editCostUnit) * 100) : undefined,
+      costPerUnitCents: editCostUnit ? Math.round(Number(editCostUnit) * 100) : undefined,
       unitType: editUnitType || undefined,
       speciesProviderId: editProviderId !== '' ? editProviderId : undefined,
     }),
@@ -130,8 +130,8 @@ export function SeedInventory() {
     setEditQuantity(String(item.quantity))
     setEditCollection(item.collectionDate ?? '')
     setEditExpiration(item.expirationDate ?? '')
-    setEditCostUnit(item.costPerUnitSek != null ? String(item.costPerUnitSek / 100) : '')
-    setEditCostPackage(item.costPerUnitSek != null && item.quantity ? String((item.costPerUnitSek * item.quantity / 100).toFixed(2)) : '')
+    setEditCostUnit(item.costPerUnitCents != null ? String(item.costPerUnitCents / 100) : '')
+    setEditCostPackage(item.costPerUnitCents != null && item.quantity ? String((item.costPerUnitCents * item.quantity / 100).toFixed(2)) : '')
     setEditUnitType(item.unitType ?? '')
     setEditProviderId(item.speciesProviderId ?? '')
   }
@@ -280,7 +280,7 @@ export function SeedInventory() {
                               {batch.quantity}
                             </span>
                             <span style={{ fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: 10, textAlign: 'right' }}>
-                              {batch.costPerUnitSek != null ? `${(batch.costPerUnitSek / 100).toFixed(2)} kr` : '—'}
+                              {batch.costPerUnitCents != null ? `${(batch.costPerUnitCents / 100).toFixed(2)} kr` : '—'}
                             </span>
                             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>
                               {batch.expirationDate ?? '—'}

@@ -50,14 +50,14 @@ class SupplyInventoryRepository(private val ds: AgroalDataSource) {
     fun persist(item: SupplyInventory): SupplyInventory {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO supply_inventory (org_id, supply_type_id, quantity, cost_sek, season_id, notes, created_at)
+                """INSERT INTO supply_inventory (org_id, supply_type_id, quantity, cost_cents, season_id, notes, created_at)
                    VALUES (?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setLong(1, item.orgId)
                 ps.setLong(2, item.supplyTypeId)
                 ps.setBigDecimal(3, item.quantity)
-                ps.setObject(4, item.costSek)
+                ps.setObject(4, item.costCents)
                 ps.setObject(5, item.seasonId)
                 ps.setString(6, item.notes)
                 ps.executeUpdate()
@@ -72,11 +72,11 @@ class SupplyInventoryRepository(private val ds: AgroalDataSource) {
     fun update(item: SupplyInventory) {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """UPDATE supply_inventory SET quantity = ?, cost_sek = ?, season_id = ?, notes = ?
+                """UPDATE supply_inventory SET quantity = ?, cost_cents = ?, season_id = ?, notes = ?
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setBigDecimal(1, item.quantity)
-                ps.setObject(2, item.costSek)
+                ps.setObject(2, item.costCents)
                 ps.setObject(3, item.seasonId)
                 ps.setString(4, item.notes)
                 ps.setLong(5, item.id!!)
@@ -112,7 +112,7 @@ class SupplyInventoryRepository(private val ds: AgroalDataSource) {
         orgId = getLong("org_id"),
         supplyTypeId = getLong("supply_type_id"),
         quantity = getBigDecimal("quantity"),
-        costSek = getObject("cost_sek") as? Int,
+        costCents = getObject("cost_cents") as? Int,
         seasonId = getObject("season_id") as? Long,
         notes = getString("notes"),
         createdAt = getTimestamp("created_at").toInstant(),

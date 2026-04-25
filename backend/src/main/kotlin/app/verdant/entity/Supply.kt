@@ -22,7 +22,7 @@ data class SupplyInventory(
     val orgId: Long,
     val supplyTypeId: Long,
     val quantity: BigDecimal,
-    val costSek: Int? = null,
+    val costCents: Int? = null,
     val seasonId: Long? = null,
     val notes: String? = null,
     val createdAt: Instant = Instant.now(),

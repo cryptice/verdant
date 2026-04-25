@@ -8,7 +8,7 @@ data class BouquetRecipe(
     val name: String,
     val description: String? = null,
     val imageUrl: String? = null,
-    val priceSek: Int? = null,
+    val priceCents: Int? = null,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),
 )

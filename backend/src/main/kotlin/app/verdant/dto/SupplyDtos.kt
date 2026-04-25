@@ -44,7 +44,7 @@ data class SupplyInventoryResponse(
     val unit: String,
     val properties: Map<String, Any?>,
     val quantity: BigDecimal,
-    val costSek: Int?,
+    val costCents: Int?,
     val seasonId: Long?,
     val notes: String?,
     val createdAt: Instant,
@@ -56,7 +56,7 @@ data class CreateSupplyInventoryRequest(
     @field:NotNull
     val quantity: BigDecimal,
     @field:Min(0)
-    val costSek: Int? = null,
+    val costCents: Int? = null,
     val seasonId: Long? = null,
     @field:Size(max = 2000)
     val notes: String? = null,
@@ -65,7 +65,7 @@ data class CreateSupplyInventoryRequest(
 data class UpdateSupplyInventoryRequest(
     val quantity: BigDecimal? = null,
     @field:Min(0)
-    val costSek: Int? = null,
+    val costCents: Int? = null,
     val seasonId: Long? = null,
     @field:Size(max = 2000)
     val notes: String? = null,

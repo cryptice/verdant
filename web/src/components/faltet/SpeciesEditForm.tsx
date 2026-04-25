@@ -13,16 +13,31 @@ export function SpeciesEditForm({ speciesId, onSaved }: { speciesId: number; onS
   })
 
   const [draft, setDraft] = useState<Record<string, unknown>>({})
+  const CENTS_FIELDS = new Set(['costPerSeedCents'])
   const value = (k: string): string => {
     if (k in draft) return String(draft[k] ?? '')
     const sp = species as Record<string, unknown> | undefined
     const v = sp?.[k]
-    return v != null ? String(v) : ''
+    if (v == null) return ''
+    if (CENTS_FIELDS.has(k) && typeof v === 'number') return String(v / 100)
+    return String(v)
   }
   const set = (k: string, v: string) => setDraft((d) => ({ ...d, [k]: v }))
 
+  const buildPayload = () => {
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(draft)) {
+      if (CENTS_FIELDS.has(k) && v !== '' && v != null) {
+        out[k] = Math.round(Number(v) * 100)
+      } else {
+        out[k] = v
+      }
+    }
+    return out
+  }
+
   const saveMut = useMutation({
-    mutationFn: () => api.species.update(speciesId, draft),
+    mutationFn: () => api.species.update(speciesId, buildPayload()),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['species', speciesId] })
       onSaved?.()
@@ -124,7 +139,7 @@ export function SpeciesEditForm({ speciesId, onSaved }: { speciesId: number; onS
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 28px' }}>
         <Field label={t('speciesDetail.stemsPerPlant')} editable value={value('expectedStemsPerPlant')} onChange={(v) => set('expectedStemsPerPlant', v)} accent="sage" />
         <Field label={t('speciesDetail.vaseLife')} editable value={value('expectedVaseLifeDays')} onChange={(v) => set('expectedVaseLifeDays', v)} accent="sky" />
-        <Field label={t('speciesDetail.costPerSeed')} editable value={value('costPerSeedSek')} onChange={(v) => set('costPerSeedSek', v)} accent="mustard" />
+        <Field label={t('speciesDetail.costPerSeed')} editable value={value('costPerSeedCents')} onChange={(v) => set('costPerSeedCents', v)} accent="mustard" />
         <Field label={t('speciesDetail.germinationRate')} editable value={value('germinationRate')} onChange={(v) => set('germinationRate', v)} accent="clay" />
       </div>
 

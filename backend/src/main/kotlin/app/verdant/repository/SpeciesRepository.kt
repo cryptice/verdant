@@ -109,7 +109,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 """INSERT INTO species (org_id, common_name, variant_name, common_name_sv, variant_name_sv, scientific_name, image_front_url, image_back_url,
                    germination_time_days_min, germination_time_days_max, days_to_harvest_min, days_to_harvest_max, sowing_depth_mm,
                    growing_positions, soils, height_cm_min, height_cm_max, bloom_months, sowing_months, germination_rate,
-                   cost_per_seed_sek, expected_stems_per_plant, expected_vase_life_days, plant_type, default_unit_type, workflow_template_id, created_at)
+                   cost_per_seed_cents, expected_stems_per_plant, expected_vase_life_days, plant_type, default_unit_type, workflow_template_id, created_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
@@ -133,7 +133,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 ps.setString(18, species.bloomMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
                 ps.setString(19, species.sowingMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
                 ps.setObject(20, species.germinationRate)
-                ps.setObject(21, species.costPerSeedSek)
+                ps.setObject(21, species.costPerSeedCents)
                 ps.setObject(22, species.expectedStemsPerPlant)
                 ps.setObject(23, species.expectedVaseLifeDays)
                 ps.setString(24, species.plantType.name)
@@ -156,7 +156,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                    germination_time_days_min = ?, germination_time_days_max = ?, days_to_harvest_min = ?, days_to_harvest_max = ?,
                    sowing_depth_mm = ?, growing_positions = ?, soils = ?, height_cm_min = ?, height_cm_max = ?,
                    bloom_months = ?, sowing_months = ?, germination_rate = ?,
-                   cost_per_seed_sek = ?, expected_stems_per_plant = ?, expected_vase_life_days = ?, plant_type = ?, default_unit_type = ?,
+                   cost_per_seed_cents = ?, expected_stems_per_plant = ?, expected_vase_life_days = ?, plant_type = ?, default_unit_type = ?,
                    workflow_template_id = ?
                    WHERE id = ?"""
             ).use { ps ->
@@ -179,7 +179,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
                 ps.setString(17, species.bloomMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
                 ps.setString(18, species.sowingMonths.takeIf { it.isNotEmpty() }?.joinToString(","))
                 ps.setObject(19, species.germinationRate)
-                ps.setObject(20, species.costPerSeedSek)
+                ps.setObject(20, species.costPerSeedCents)
                 ps.setObject(21, species.expectedStemsPerPlant)
                 ps.setObject(22, species.expectedVaseLifeDays)
                 ps.setString(23, species.plantType.name)
@@ -311,7 +311,7 @@ class SpeciesRepository(private val ds: AgroalDataSource) {
         bloomMonths = getString("bloom_months")?.split(",")?.map { it.toInt() } ?: emptyList(),
         sowingMonths = getString("sowing_months")?.split(",")?.map { it.toInt() } ?: emptyList(),
         germinationRate = getObject("germination_rate") as? Int,
-        costPerSeedSek = getObject("cost_per_seed_sek") as? Int,
+        costPerSeedCents = getObject("cost_per_seed_cents") as? Int,
         expectedStemsPerPlant = getObject("expected_stems_per_plant") as? Int,
         expectedVaseLifeDays = getObject("expected_vase_life_days") as? Int,
         plantType = getString("plant_type")?.let { PlantType.valueOf(it) } ?: PlantType.ANNUAL,

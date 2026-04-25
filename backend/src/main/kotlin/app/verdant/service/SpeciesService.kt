@@ -72,7 +72,7 @@ class SpeciesService(
                 bloomMonths = request.bloomMonths ?: emptyList(),
                 sowingMonths = request.sowingMonths ?: emptyList(),
                 germinationRate = request.germinationRate,
-                costPerSeedSek = request.costPerSeedSek,
+                costPerSeedCents = request.costPerSeedCents,
                 expectedStemsPerPlant = request.expectedStemsPerPlant,
                 expectedVaseLifeDays = request.expectedVaseLifeDays,
                 plantType = request.plantType?.let { PlantType.valueOf(it) } ?: PlantType.ANNUAL,
@@ -120,7 +120,7 @@ class SpeciesService(
             bloomMonths = request.bloomMonths ?: species.bloomMonths,
             sowingMonths = request.sowingMonths ?: species.sowingMonths,
             germinationRate = request.germinationRate ?: species.germinationRate,
-            costPerSeedSek = request.costPerSeedSek ?: species.costPerSeedSek,
+            costPerSeedCents = request.costPerSeedCents ?: species.costPerSeedCents,
             expectedStemsPerPlant = request.expectedStemsPerPlant ?: species.expectedStemsPerPlant,
             expectedVaseLifeDays = request.expectedVaseLifeDays ?: species.expectedVaseLifeDays,
             plantType = request.plantType?.let { PlantType.valueOf(it) } ?: species.plantType,
@@ -188,7 +188,7 @@ class SpeciesService(
                 bloomMonths = request.bloomMonths ?: emptyList(),
                 sowingMonths = request.sowingMonths ?: emptyList(),
                 germinationRate = request.germinationRate,
-                costPerSeedSek = request.costPerSeedSek,
+                costPerSeedCents = request.costPerSeedCents,
                 expectedStemsPerPlant = request.expectedStemsPerPlant,
                 expectedVaseLifeDays = request.expectedVaseLifeDays,
                 plantType = request.plantType?.let { PlantType.valueOf(it) } ?: PlantType.ANNUAL,
@@ -232,7 +232,7 @@ class SpeciesService(
             bloomMonths = request.bloomMonths ?: species.bloomMonths,
             sowingMonths = request.sowingMonths ?: species.sowingMonths,
             germinationRate = request.germinationRate ?: species.germinationRate,
-            costPerSeedSek = request.costPerSeedSek ?: species.costPerSeedSek,
+            costPerSeedCents = request.costPerSeedCents ?: species.costPerSeedCents,
             expectedStemsPerPlant = request.expectedStemsPerPlant ?: species.expectedStemsPerPlant,
             expectedVaseLifeDays = request.expectedVaseLifeDays ?: species.expectedVaseLifeDays,
             plantType = request.plantType?.let { PlantType.valueOf(it) } ?: species.plantType,
@@ -351,7 +351,7 @@ class SpeciesService(
                     imageFrontUrl = sp.imageFrontUrl,
                     imageBackUrl = sp.imageBackUrl,
                     productUrl = sp.productUrl,
-                    costPerUnitSek = sp.costPerUnitSek,
+                    costPerUnitCents = sp.costPerUnitCents,
                     unitType = sp.unitType.name,
                 )
             }
@@ -378,7 +378,7 @@ class SpeciesService(
                 groupNames = groupRepository.findGroupIdsBySpeciesId(species.id!!).mapNotNull { groups[it]?.name },
                 tagNames = tagIds.mapNotNull { tags[it]?.name },
                 providers = speciesProviders,
-                costPerSeedSek = species.costPerSeedSek,
+                costPerSeedCents = species.costPerSeedCents,
                 expectedStemsPerPlant = species.expectedStemsPerPlant,
                 expectedVaseLifeDays = species.expectedVaseLifeDays,
                 plantType = species.plantType.name,
@@ -430,7 +430,7 @@ class SpeciesService(
                                     imageFrontUrl = ep.imageFrontUrl,
                                     imageBackUrl = ep.imageBackUrl,
                                     productUrl = ep.productUrl,
-                                    costPerUnitSek = ep.costPerUnitSek,
+                                    costPerUnitCents = ep.costPerUnitCents,
                                     unitType = ep.unitType?.let { UnitType.valueOf(it) } ?: UnitType.SEED,
                                 )
                             )
@@ -480,7 +480,7 @@ class SpeciesService(
                     bloomMonths = entry.bloomMonths,
                     sowingMonths = entry.sowingMonths,
                     germinationRate = entry.germinationRate,
-                    costPerSeedSek = entry.costPerSeedSek,
+                    costPerSeedCents = entry.costPerSeedCents,
                     expectedStemsPerPlant = entry.expectedStemsPerPlant,
                     expectedVaseLifeDays = entry.expectedVaseLifeDays,
                     plantType = entry.plantType?.let { PlantType.valueOf(it) } ?: PlantType.ANNUAL,
@@ -509,7 +509,7 @@ class SpeciesService(
                         imageFrontUrl = ep.imageFrontUrl,
                         imageBackUrl = ep.imageBackUrl,
                         productUrl = ep.productUrl,
-                        costPerUnitSek = ep.costPerUnitSek,
+                        costPerUnitCents = ep.costPerUnitCents,
                         unitType = ep.unitType?.let { UnitType.valueOf(it) } ?: UnitType.SEED,
                     )
                 )
@@ -618,7 +618,7 @@ class SpeciesService(
             imageFrontUrl = imageFrontUrl,
             imageBackUrl = imageBackUrl,
             productUrl = productUrl,
-            costPerUnitSek = costPerUnitSek,
+            costPerUnitCents = costPerUnitCents,
             unitType = unitType.name,
         )
     }
@@ -651,7 +651,7 @@ class SpeciesService(
                     imageFrontUrl = sp.imageFrontUrl,
                     imageBackUrl = sp.imageBackUrl,
                     productUrl = sp.productUrl,
-                    costPerUnitSek = sp.costPerUnitSek,
+                    costPerUnitCents = sp.costPerUnitCents,
                     unitType = sp.unitType.name,
                 )
             }
@@ -706,7 +706,7 @@ class SpeciesService(
             },
             tags = tagIds.mapNotNull { tags[it]?.let { t -> SpeciesTagResponse(t.id!!, t.name) } },
             providers = providers,
-            costPerSeedSek = costPerSeedSek,
+            costPerSeedCents = costPerSeedCents,
             expectedStemsPerPlant = expectedStemsPerPlant,
             expectedVaseLifeDays = expectedVaseLifeDays,
             plantType = plantType.name,
