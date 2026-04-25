@@ -148,7 +148,7 @@ body {
 .hide-on-mobile { display: inline-block; }
 
 @media (min-width: 769px) {
-  .mobile-fab { display: none; }
+  .mobile-fab { display: none !important; }
 }
 @media (max-width: 768px) {
   .hide-on-mobile { display: none !important; }
