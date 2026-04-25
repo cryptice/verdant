@@ -1,6 +1,14 @@
 package app.verdant.android.ui.dashboard
 
 import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Spa
+import androidx.compose.material.icons.filled.Yard
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +18,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -213,7 +223,7 @@ fun DashboardScreen(
                                         )
                                     }
                                 },
-                                onClick = if (entry.speciesId != null) ({ trayActionTarget = entry }) else null,
+                                onClick = { trayActionTarget = entry },
                             )
                         }
                     }
@@ -278,32 +288,144 @@ fun TrayActionDialog(
     onAction: (action: String) -> Unit,
 ) {
     val title = entry.variantName?.let { "${entry.speciesName} – $it" } ?: entry.speciesName
-    androidx.compose.material3.AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            androidx.compose.foundation.layout.Column {
-                Text(
-                    text = "${entry.count} st · ${trayStatusLabelSv(entry.status)}",
-                    fontSize = 12.sp,
-                    color = FaltetForest,
+    val hasSpeciesId = entry.speciesId != null
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        androidx.compose.foundation.layout.Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    app.verdant.android.ui.theme.FaltetCream,
+                    androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
                 )
-                androidx.compose.foundation.layout.Spacer(Modifier.height(12.dp))
-                androidx.compose.material3.TextButton(onClick = { onAction("POT_UP") }) {
-                    Text("Skola om", color = FaltetAccent)
-                }
-                androidx.compose.material3.TextButton(onClick = { onAction("PLANT") }) {
-                    Text("Plantera ut", color = FaltetAccent)
-                }
-                androidx.compose.material3.TextButton(onClick = { onAction("DISCARD") }) {
-                    Text("Kassera", color = FaltetAccent)
+                .border(
+                    1.dp,
+                    FaltetInk,
+                    androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                )
+                .padding(24.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
+        ) {
+            Text(
+                text = "${entry.count} ST · ${trayStatusLabelSv(entry.status).uppercase()}",
+                fontFamily = FontFamily.Monospace,
+                fontSize = 9.sp,
+                letterSpacing = 1.8.sp,
+                color = FaltetForest,
+            )
+            Text(
+                text = title,
+                fontFamily = FaltetDisplay,
+                fontStyle = FontStyle.Italic,
+                fontSize = 26.sp,
+                color = FaltetInk,
+            )
+            if (!hasSpeciesId) {
+                Text(
+                    text = "Servern måste startas om för att aktivera åtgärder.",
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 10.sp,
+                    letterSpacing = 1.2.sp,
+                    color = FaltetAccent,
+                )
+            }
+            TrayActionCard(
+                icon = androidx.compose.material.icons.Icons.Default.Spa,
+                title = "Skola om",
+                subtitle = "Flytta till större krukor",
+                enabled = hasSpeciesId,
+                onClick = { onAction("POT_UP") },
+            )
+            TrayActionCard(
+                icon = androidx.compose.material.icons.Icons.Default.Yard,
+                title = "Plantera ut",
+                subtitle = "Plantera ut i en bädd",
+                enabled = hasSpeciesId,
+                onClick = { onAction("PLANT") },
+            )
+            TrayActionCard(
+                icon = androidx.compose.material.icons.Icons.Default.DeleteOutline,
+                title = "Kassera",
+                subtitle = "Markera som borttagna",
+                enabled = hasSpeciesId,
+                onClick = { onAction("DISCARD") },
+            )
+            androidx.compose.foundation.layout.Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = androidx.compose.ui.Alignment.CenterEnd,
+            ) {
+                androidx.compose.material3.TextButton(onClick = onDismiss) {
+                    Text("Avbryt", color = FaltetForest)
                 }
             }
-        },
-        confirmButton = {
-            androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Avbryt") }
-        },
-    )
+        }
+    }
+}
+
+@Composable
+private fun TrayActionCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val contentColor = if (enabled) FaltetAccent else FaltetForest.copy(alpha = 0.4f)
+    val titleColor = if (enabled) FaltetInk else FaltetInk.copy(alpha = 0.4f)
+    val subtitleColor = if (enabled) FaltetForest else FaltetForest.copy(alpha = 0.4f)
+    androidx.compose.foundation.layout.Row(
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                1.dp,
+                if (enabled) FaltetInk else FaltetInk.copy(alpha = 0.3f),
+                androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+            )
+            .then(
+                if (enabled) Modifier.clickable(onClick = onClick)
+                else Modifier,
+            )
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+    ) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier
+                .size(44.dp)
+                .background(
+                    contentColor.copy(alpha = if (enabled) 0.12f else 0.06f),
+                    androidx.compose.foundation.shape.CircleShape,
+                ),
+            contentAlignment = androidx.compose.ui.Alignment.Center,
+        ) {
+            androidx.compose.material3.Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(22.dp),
+            )
+        }
+        androidx.compose.foundation.layout.Spacer(Modifier.width(14.dp))
+        androidx.compose.foundation.layout.Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                fontFamily = FaltetDisplay,
+                fontStyle = FontStyle.Italic,
+                fontSize = 20.sp,
+                color = titleColor,
+            )
+            Text(
+                text = subtitle,
+                fontFamily = FontFamily.Monospace,
+                fontSize = 10.sp,
+                letterSpacing = 1.2.sp,
+                color = subtitleColor,
+            )
+        }
+        androidx.compose.material3.Icon(
+            imageVector = androidx.compose.material.icons.Icons.Default.ChevronRight,
+            contentDescription = null,
+            tint = contentColor,
+        )
+    }
 }
 
 @Composable

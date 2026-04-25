@@ -278,7 +278,7 @@ fun GardenDetailScreen(
                                         )
                                     }
                                 },
-                                onClick = if (entry.speciesId != null) ({ trayActionTarget = entry }) else null,
+                                onClick = { trayActionTarget = entry },
                             )
                         }
                     }
