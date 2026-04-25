@@ -56,11 +56,20 @@ fun <T : Any> FaltetDropdown(
     searchable: Boolean = true,
     placeholder: String = "Välj…",
     required: Boolean = false,
+    autoOpen: Boolean = false,
 ) {
     var sheetOpen by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
+    var didAutoOpen by remember { mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(autoOpen, options.size) {
+        if (autoOpen && !didAutoOpen && selected == null && options.isNotEmpty()) {
+            sheetOpen = true
+            query = ""
+            didAutoOpen = true
+        }
+    }
 
     Column(modifier) {
         Text(
@@ -122,7 +131,12 @@ fun <T : Any> FaltetDropdown(
             }
             Column(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
                 if (searchable) {
-                    FaltetSearchField(value = query, onValueChange = { query = it }, placeholder = "SÖK")
+                    FaltetSearchField(
+                        value = query,
+                        onValueChange = { query = it },
+                        placeholder = "SÖK",
+                        autoFocus = true,
+                    )
                 }
                 LazyColumn {
                     items(filtered) { option ->

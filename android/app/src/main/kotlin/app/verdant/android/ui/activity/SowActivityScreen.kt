@@ -1,11 +1,21 @@
 package app.verdant.android.ui.activity
 
 import android.graphics.Bitmap
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHost
@@ -23,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -213,18 +224,10 @@ fun SowActivityScreen(
 
     if (uiState.created) {
         val completedGardenId = if (destination == SowDestination.BED) selectedBed?.gardenId else null
-        AlertDialog(
-            onDismissRequest = { onSowComplete(completedGardenId) },
-            title = { Text("Sådd") },
-            text = { Text("Vill du registrera förbrukning av jord eller krukor?") },
-            confirmButton = {
-                TextButton(onClick = { showSupplySheet = true }) {
-                    Text("Registrera förbrukning", color = FaltetAccent)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { onSowComplete(completedGardenId) }) { Text("Hoppa över") }
-            },
+        SowCompletionDialog(
+            onDismiss = { onSowComplete(completedGardenId) },
+            onRegisterSupplies = { showSupplySheet = true },
+            onSkip = { onSowComplete(completedGardenId) },
         )
     }
 
@@ -279,6 +282,7 @@ fun SowActivityScreen(
                     labelFor = { speciesDisplayName(it) },
                     searchable = true,
                     required = true,
+                    autoOpen = viewModel.preselectedSpeciesId == null && viewModel.taskId == null,
                 )
             }
             item {
@@ -354,6 +358,127 @@ fun SowActivityScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun SowCompletionDialog(
+    onDismiss: () -> Unit,
+    onRegisterSupplies: () -> Unit,
+    onSkip: () -> Unit,
+) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        androidx.compose.foundation.layout.Column(
+            modifier = androidx.compose.ui.Modifier
+                .fillMaxWidth()
+                .background(
+                    app.verdant.android.ui.theme.FaltetCream,
+                    androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                )
+                .border(
+                    1.dp,
+                    app.verdant.android.ui.theme.FaltetInk,
+                    androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                )
+                .padding(24.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
+        ) {
+            Text(
+                text = "SÅDD",
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                fontSize = 9.sp,
+                letterSpacing = 1.8.sp,
+                color = app.verdant.android.ui.theme.FaltetForest,
+            )
+            Text(
+                text = "Registrera förbrukning?",
+                fontFamily = app.verdant.android.ui.theme.FaltetDisplay,
+                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                fontSize = 26.sp,
+                color = app.verdant.android.ui.theme.FaltetInk,
+            )
+            Text(
+                text = "Lägg till jord, krukor eller annan förbrukning som användes.",
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                fontSize = 10.sp,
+                letterSpacing = 1.2.sp,
+                color = app.verdant.android.ui.theme.FaltetForest,
+            )
+            SowCompletionCard(
+                icon = androidx.compose.material.icons.Icons.Default.Inventory2,
+                title = "Registrera förbrukning",
+                subtitle = "Dra av jord, krukor eller etiketter",
+                onClick = onRegisterSupplies,
+            )
+            SowCompletionCard(
+                icon = androidx.compose.material.icons.Icons.Default.Close,
+                title = "Hoppa över",
+                subtitle = "Spara utan att registrera förbrukning",
+                onClick = onSkip,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SowCompletionCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+) {
+    androidx.compose.foundation.layout.Row(
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+        modifier = androidx.compose.ui.Modifier
+            .fillMaxWidth()
+            .border(
+                1.dp,
+                app.verdant.android.ui.theme.FaltetInk,
+                androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+    ) {
+        androidx.compose.foundation.layout.Box(
+            modifier = androidx.compose.ui.Modifier
+                .size(44.dp)
+                .background(
+                    FaltetAccent.copy(alpha = 0.12f),
+                    androidx.compose.foundation.shape.CircleShape,
+                ),
+            contentAlignment = androidx.compose.ui.Alignment.Center,
+        ) {
+            androidx.compose.material3.Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = FaltetAccent,
+                modifier = androidx.compose.ui.Modifier.size(22.dp),
+            )
+        }
+        androidx.compose.foundation.layout.Spacer(androidx.compose.ui.Modifier.width(14.dp))
+        androidx.compose.foundation.layout.Column(
+            modifier = androidx.compose.ui.Modifier.weight(1f),
+        ) {
+            Text(
+                text = title,
+                fontFamily = app.verdant.android.ui.theme.FaltetDisplay,
+                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                fontSize = 20.sp,
+                color = app.verdant.android.ui.theme.FaltetInk,
+            )
+            Text(
+                text = subtitle,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                fontSize = 10.sp,
+                letterSpacing = 1.2.sp,
+                color = app.verdant.android.ui.theme.FaltetForest,
+            )
+        }
+        androidx.compose.material3.Icon(
+            imageVector = androidx.compose.material.icons.Icons.Default.ChevronRight,
+            contentDescription = null,
+            tint = FaltetAccent,
+        )
     }
 }
 

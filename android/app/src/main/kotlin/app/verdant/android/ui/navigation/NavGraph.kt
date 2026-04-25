@@ -264,9 +264,9 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                 drawerContentColor = FaltetInk,
             ) {
                 Column(modifier = Modifier.fillMaxHeight().padding(top = 24.dp)) {
-                    // Wordmark header
+                    // Wordmark header + close button
                     Row(
-                        modifier = Modifier.padding(horizontal = 18.dp),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
@@ -278,7 +278,15 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                             fontStyle = FontStyle.Italic,
                             fontWeight = FontWeight.W300,
                             fontSize = 26.sp,
+                            modifier = Modifier.weight(1f),
                         )
+                        IconButton(onClick = { scope.launch { drawerState.close() } }) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Stäng meny",
+                                tint = FaltetForest,
+                            )
+                        }
                     }
                     Text(
                         text = "Est. 2026".uppercase(),
