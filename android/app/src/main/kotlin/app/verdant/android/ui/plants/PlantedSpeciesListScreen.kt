@@ -31,6 +31,7 @@ import app.verdant.android.data.model.BatchSowRequest
 import app.verdant.android.data.model.SpeciesPlantSummary
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.SupplyInventoryResponse
+import app.verdant.android.data.model.sortedBySwedishName
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
@@ -80,7 +81,7 @@ class PlantedSpeciesListViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(isLoading = false)
             }
             try {
-                _uiState.value = _uiState.value.copy(speciesList = repo.getSpecies())
+                _uiState.value = _uiState.value.copy(speciesList = repo.getSpecies().sortedBySwedishName())
             } catch (e: Exception) {
                 Log.w("PlantedSpeciesList", "species list failed", e)
             }

@@ -244,7 +244,7 @@ fun GardenDetailScreen(
                     }
                     if (uiState.trayPlants.isNotEmpty()) {
                         item { FaltetSectionHeader(label = "Plantor i brätten") }
-                        items(uiState.trayPlants, key = { "tray_${it.speciesName}_${it.status}" }) { entry ->
+                        items(uiState.trayPlants) { entry ->
                             app.verdant.android.ui.faltet.FaltetListRow(
                                 title = entry.speciesName,
                                 meta = trayStatusLabelSv(entry.status),

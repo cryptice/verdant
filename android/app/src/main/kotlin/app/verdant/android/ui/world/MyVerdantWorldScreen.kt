@@ -184,7 +184,7 @@ fun MyVerdantWorldScreen(
                         }
                     }
                     if (uiState.trayPlants.isNotEmpty()) {
-                        items(uiState.trayPlants, key = { "tray_${it.speciesName}_${it.status}" }) { entry ->
+                        items(uiState.trayPlants) { entry ->
                             FaltetListRow(
                                 title = entry.speciesName,
                                 meta = trayStatusLabelSv(entry.status),
@@ -288,7 +288,7 @@ private fun MyVerdantWorldScreenPreview() {
                 )
             }
             item { FaltetSectionHeader(label = "Plantor i brätten") }
-            items(uiState.trayPlants, key = { "tray_${it.speciesName}_${it.status}" }) { entry ->
+            items(uiState.trayPlants) { entry ->
                 FaltetListRow(
                     title = entry.speciesName,
                     meta = trayStatusLabelSv(entry.status),

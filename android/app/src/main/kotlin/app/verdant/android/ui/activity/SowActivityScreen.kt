@@ -28,6 +28,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.BatchSowRequest
+import app.verdant.android.data.model.sortedBySwedishName
 import app.verdant.android.data.model.BedWithGardenResponse
 import app.verdant.android.data.model.CompleteTaskPartiallyRequest
 import app.verdant.android.data.model.DecrementSeedInventoryRequest
@@ -81,7 +82,7 @@ class SowActivityViewModel @Inject constructor(
     private fun loadData() {
         viewModelScope.launch {
             try {
-                val species = repo.getSpecies()
+                val species = repo.getSpecies().sortedBySwedishName()
                 val beds = repo.getAllBeds()
                 val comments = repo.getFrequentComments().map { it.text }
                 val task = taskId?.let { repo.getTask(it) }

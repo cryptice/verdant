@@ -25,6 +25,7 @@ import androidx.lifecycle.viewModelScope
 import android.util.Log
 import app.verdant.android.data.model.CreateSeedInventoryRequest
 import app.verdant.android.data.model.SpeciesResponse
+import app.verdant.android.data.model.sortedBySwedishName
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.faltet.FaltetDatePicker
 import app.verdant.android.ui.faltet.FaltetDropdown
@@ -59,7 +60,7 @@ class AddSeedsViewModel @Inject constructor(
     private fun loadData() {
         viewModelScope.launch {
             try {
-                val species = repo.getSpecies()
+                val species = repo.getSpecies().sortedBySwedishName()
                 _uiState.value = _uiState.value.copy(species = species)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load species", e)

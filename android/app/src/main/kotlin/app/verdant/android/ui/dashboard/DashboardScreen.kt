@@ -176,7 +176,7 @@ fun DashboardScreen(
                     if (uiState.trayPlants.isEmpty()) {
                         item { InlineMuted("—") }
                     } else {
-                        items(uiState.trayPlants.take(6), key = { "tray_${it.speciesName}_${it.status}" }) { entry ->
+                        items(uiState.trayPlants.take(6)) { entry ->
                             FaltetListRow(
                                 title = entry.speciesName,
                                 meta = trayStatusLabelSv(entry.status),

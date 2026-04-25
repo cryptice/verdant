@@ -30,6 +30,7 @@ import app.verdant.android.data.model.SpeciesComparisonResponse
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.SeasonSummaryResponse
 import app.verdant.android.data.model.YieldPerBedResponse
+import app.verdant.android.data.model.sortedBySwedishName
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetDropdown
@@ -71,7 +72,7 @@ class AnalyticsViewModel @Inject constructor(
             try {
                 val summaries = repo.getSeasonSummaries()
                 val beds = repo.getYieldPerBed()
-                val species = repo.getSpecies()
+                val species = repo.getSpecies().sortedBySwedishName()
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     seasonSummaries = summaries,

@@ -24,6 +24,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
 import app.verdant.android.data.model.*
+import app.verdant.android.data.model.sortedBySwedishName
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
@@ -71,7 +72,7 @@ class PestDiseaseLogViewModel @Inject constructor(
                 val seasons = repo.getSeasons()
                 val active = seasons.firstOrNull { it.isActive }
                 val items = repo.getPestDiseaseLogs(active?.id)
-                val species = repo.getSpecies()
+                val species = repo.getSpecies().sortedBySwedishName()
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     items = items,

@@ -125,7 +125,7 @@ fun <T : Any> FaltetDropdown(
                     FaltetSearchField(value = query, onValueChange = { query = it }, placeholder = "SÖK")
                 }
                 LazyColumn {
-                    items(filtered, key = { labelFor(it) }) { option ->
+                    items(filtered) { option ->
                         FaltetListRow(
                             title = labelFor(option),
                             onClick = {

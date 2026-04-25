@@ -55,6 +55,7 @@ import app.verdant.android.data.model.ProductionForecastResponse
 import app.verdant.android.data.model.ProductionTargetResponse
 import app.verdant.android.data.model.SeasonResponse
 import app.verdant.android.data.model.SpeciesResponse
+import app.verdant.android.data.model.sortedBySwedishName
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
@@ -104,7 +105,7 @@ class TargetsViewModel @Inject constructor(
                 val seasons = repo.getSeasons()
                 val active = seasons.firstOrNull { it.isActive }
                 val items = repo.getProductionTargets(active?.id)
-                val species = repo.getSpecies()
+                val species = repo.getSpecies().sortedBySwedishName()
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     items = items,

@@ -64,6 +64,7 @@ import app.verdant.android.data.model.CreateBouquetRequest
 import app.verdant.android.data.model.ItemRole
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.UpdateBouquetRequest
+import app.verdant.android.data.model.sortedBySwedishName
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
@@ -102,7 +103,7 @@ class BouquetsViewModel @Inject constructor(
             try {
                 val bouquets = repo.getBouquets()
                 val recipes = runCatching { repo.getBouquetRecipes() }.getOrDefault(emptyList())
-                val species = runCatching { repo.getSpecies() }.getOrDefault(emptyList())
+                val species = runCatching { repo.getSpecies().sortedBySwedishName() }.getOrDefault(emptyList())
                 _uiState.value = BouquetsState(
                     isLoading = false,
                     bouquets = bouquets,

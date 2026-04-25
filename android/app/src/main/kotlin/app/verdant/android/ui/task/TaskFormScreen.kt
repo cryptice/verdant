@@ -27,6 +27,7 @@ import app.verdant.android.data.model.CreateScheduledTaskRequest
 import app.verdant.android.data.model.ScheduledTaskResponse
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.UpdateScheduledTaskRequest
+import app.verdant.android.data.model.sortedBySwedishName
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.activity.Activity
 import app.verdant.android.ui.faltet.FaltetDatePicker
@@ -67,7 +68,7 @@ class TaskFormViewModel @Inject constructor(
     private fun loadData() {
         viewModelScope.launch {
             try {
-                val species = repo.getSpecies()
+                val species = repo.getSpecies().sortedBySwedishName()
                 val task = taskId?.let { repo.getTask(it) }
                 _uiState.value = _uiState.value.copy(species = species, existingTask = task)
             } catch (e: Exception) {
