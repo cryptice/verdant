@@ -388,7 +388,7 @@ fun BedDetailScreen(
                                 editSoilType = bed.soilType
                                 editSoilPhText = bed.soilPh?.toString() ?: ""
                                 editSunExposure = bed.sunExposure
-                                editSunDirections = bed.sunDirections.toSet()
+                                editSunDirections = bed.sunDirections?.toSet() ?: emptySet()
                                 editDrainage = bed.drainage
                                 editIrrigationType = bed.irrigationType
                                 editProtection = bed.protection
@@ -397,7 +397,7 @@ fun BedDetailScreen(
                                     bed.soilType, bed.soilPh?.toString(), bed.sunExposure,
                                     bed.drainage, bed.irrigationType, bed.protection,
                                     bed.raisedBed?.toString()
-                                ).any { it != null } || bed.sunDirections.isNotEmpty()
+                                ).any { it != null } || !bed.sunDirections.isNullOrEmpty()
                                 editing = true
                             }
                         },
@@ -457,7 +457,7 @@ fun BedDetailScreen(
                         bed.sunExposure,
                         bed.irrigationType,
                         bed.protection,
-                    ).any { it != null } || bed.sunDirections.isNotEmpty()
+                    ).any { it != null } || !bed.sunDirections.isNullOrEmpty()
                     if (hasAnyCondition) {
                         item { FaltetSectionHeader(label = "Villkor") }
                         item {
@@ -476,7 +476,7 @@ fun BedDetailScreen(
                             )
                         }
                         item {
-                            val sunDirSummary = bed.sunDirections.joinToString(" · ").ifBlank { null }
+                            val sunDirSummary = bed.sunDirections?.joinToString(" · ")?.ifBlank { null }
                             ConditionGroup(
                                 title = "Exponering",
                                 summary = listOfNotNull(

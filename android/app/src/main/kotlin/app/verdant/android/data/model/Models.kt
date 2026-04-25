@@ -76,7 +76,7 @@ data class BedResponse(
     @SerializedName("soilPh") val soilPh: Double? = null,
     @SerializedName("sunExposure") val sunExposure: String? = null,
     @SerializedName("drainage") val drainage: String? = null,
-    @SerializedName("sunDirections") val sunDirections: List<String> = emptyList(),
+    @SerializedName("sunDirections") val sunDirections: List<String>? = null,
     @SerializedName("irrigationType") val irrigationType: String? = null,
     @SerializedName("protection") val protection: String? = null,
     @SerializedName("raisedBed") val raisedBed: Boolean? = null,
@@ -92,7 +92,7 @@ data class CreateBedRequest(
     @SerializedName("soilPh") val soilPh: Double? = null,
     @SerializedName("sunExposure") val sunExposure: String? = null,
     @SerializedName("drainage") val drainage: String? = null,
-    @SerializedName("sunDirections") val sunDirections: List<String> = emptyList(),
+    @SerializedName("sunDirections") val sunDirections: List<String>? = null,
     @SerializedName("irrigationType") val irrigationType: String? = null,
     @SerializedName("protection") val protection: String? = null,
     @SerializedName("raisedBed") val raisedBed: Boolean? = null
@@ -106,7 +106,7 @@ data class UpdateBedRequest(
     @SerializedName("soilPh") val soilPh: Double? = null,
     @SerializedName("sunExposure") val sunExposure: String? = null,
     @SerializedName("drainage") val drainage: String? = null,
-    @SerializedName("sunDirections") val sunDirections: List<String> = emptyList(),
+    @SerializedName("sunDirections") val sunDirections: List<String>? = null,
     @SerializedName("irrigationType") val irrigationType: String? = null,
     @SerializedName("protection") val protection: String? = null,
     @SerializedName("raisedBed") val raisedBed: Boolean? = null

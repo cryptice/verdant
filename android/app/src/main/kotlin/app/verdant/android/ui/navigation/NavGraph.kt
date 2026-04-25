@@ -35,6 +35,8 @@ import app.verdant.android.data.SessionManager
 import app.verdant.android.ui.account.AccountScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import app.verdant.android.ui.activity.*
@@ -197,7 +199,19 @@ sealed class Screen(val route: String) {
 @HiltViewModel
 class NavViewModel @Inject constructor(
     val sessionManager: SessionManager,
-) : ViewModel()
+    private val gardenRepository: app.verdant.android.data.repository.GardenRepository,
+) : ViewModel() {
+    private val _gardens = kotlinx.coroutines.flow.MutableStateFlow<List<app.verdant.android.data.model.GardenResponse>>(emptyList())
+    val gardens = _gardens.asStateFlow()
+
+    init { refreshGardens() }
+
+    fun refreshGardens() {
+        viewModelScope.launch {
+            runCatching { gardenRepository.getGardens() }.onSuccess { _gardens.value = it }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -206,9 +220,21 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
+    // When the user has exactly one garden, the "My world" entry collapses into
+    // a direct shortcut to that garden's detail screen — same UX as the web
+    // sidebar.
+    val gardens by viewModel.gardens.collectAsState()
+    val soleGarden = gardens.singleOrNull()
+    val myWorldLabel = soleGarden?.name ?: stringResource(R.string.my_world)
+    val myWorldRoute = soleGarden?.let { Screen.GardenDetail.create(it.id) } ?: Screen.MyWorld.route
+    val myWorldSelected = currentRoute == Screen.MyWorld.route ||
+        (soleGarden != null && currentRoute == Screen.GardenDetail.route)
+
     val hideChrome = currentRoute in listOf(Screen.Splash.route, Screen.Auth.route, Screen.OrgRequired.route)
     val showTopBar = currentRoute == Screen.MyWorld.route
-    val showBottomBar = currentRoute in listOf(Screen.MyWorld.route, Screen.PlantedSpeciesList.route, Screen.TaskList.route)
+    val showBottomBar = currentRoute in listOf(
+        Screen.MyWorld.route, Screen.PlantedSpeciesList.route, Screen.TaskList.route, Screen.GardenDetail.route,
+    )
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -262,7 +288,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                     Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
                         // Section 1 — § ODLING
                         DrawerSection("§ Odling")
-                        DrawerItem("Översikt", Screen.MyWorld.route, currentRoute, navController, scope, drawerState)
+                        DrawerItem(myWorldLabel, myWorldRoute, currentRoute, navController, scope, drawerState)
                         DrawerItem("Växter", Screen.PlantedSpeciesList.route, currentRoute, navController, scope, drawerState)
 
                         // Section 2 — § UPPGIFTER
@@ -325,16 +351,16 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                             }
                     ) {
                         NavigationBarItem(
-                            selected = currentRoute == Screen.MyWorld.route,
+                            selected = myWorldSelected,
                             onClick = {
-                                navController.navigate(Screen.MyWorld.route) {
+                                navController.navigate(myWorldRoute) {
                                     popUpTo(Screen.MyWorld.route) { inclusive = true }
                                 }
                             },
-                            icon = { Icon(Icons.Default.Eco, contentDescription = stringResource(R.string.my_world)) },
+                            icon = { Icon(Icons.Default.Eco, contentDescription = myWorldLabel) },
                             label = {
                                 Text(
-                                    text = stringResource(R.string.my_world).uppercase(),
+                                    text = myWorldLabel.uppercase(),
                                     fontFamily = FontFamily.Monospace,
                                     fontSize = 9.sp,
                                     letterSpacing = 1.4.sp,
