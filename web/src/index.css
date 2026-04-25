@@ -121,6 +121,36 @@ body {
   border-top: 3px solid var(--color-accent);
 }
 
+/* Mobile floating action button — bottom-right circle, visible only at
+   ≤768px. Used on list pages where the desktop "+ New X" masthead button
+   gets hidden via .hide-on-mobile. */
+.mobile-fab {
+  position: fixed;
+  right: calc(20px + env(safe-area-inset-right));
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  z-index: 35;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  border: none;
+  background: var(--color-accent);
+  color: var(--color-cream);
+  font-family: var(--font-mono);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(30, 36, 29, 0.25);
+}
+.mobile-fab:hover { background: var(--color-accent-hover); }
+
+@media (max-width: 768px) {
+  .mobile-fab { display: inline-flex; }
+  .hide-on-mobile { display: none !important; }
+}
+
 /* Sticky form footer — the cancel/submit bar that lives at the bottom of
    page-body-tight forms. Absorbs the bottom safe-area inset so the buttons
    sit above the home-indicator on iOS. */

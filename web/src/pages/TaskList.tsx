@@ -96,6 +96,7 @@ export function TaskList() {
         right={
           <button
             onClick={() => navigate('/task/new')}
+            className="hide-on-mobile"
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: 10,
@@ -112,6 +113,15 @@ export function TaskList() {
           </button>
         }
       />
+
+      {/* Mobile FAB — replaces the top button at narrow viewports */}
+      <button
+        onClick={() => navigate('/task/new')}
+        className="mobile-fab"
+        aria-label={t('tasks.newTask')}
+      >
+        +
+      </button>
 
       <div className="page-body">
         {/* Filter pills */}
