@@ -138,12 +138,12 @@ export function Sidebar() {
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
         {topGroups.map((group) => (
-          <GroupBlock key={group.header} group={group} currentPath={currentPath} />
+          <GroupBlock key={group.header} group={group} currentPath={currentPath} onNavigate={() => setDrawerOpen(false)} />
         ))}
 
         {accountGroup && (
           <div style={{ marginTop: 'auto' }}>
-            <GroupBlock group={accountGroup} currentPath={currentPath} />
+            <GroupBlock group={accountGroup} currentPath={currentPath} onNavigate={() => setDrawerOpen(false)} />
           </div>
         )}
       </div>
@@ -238,7 +238,7 @@ export function Sidebar() {
   )
 }
 
-function GroupBlock({ group, currentPath }: { group: NavGroup; currentPath: string }) {
+function GroupBlock({ group, currentPath, onNavigate }: { group: NavGroup; currentPath: string; onNavigate: () => void }) {
   return (
     <div style={{ marginBottom: 18 }}>
       <div
@@ -267,6 +267,7 @@ function GroupBlock({ group, currentPath }: { group: NavGroup; currentPath: stri
           <Link
             key={item.to}
             to={item.to}
+            onClick={onNavigate}
             style={{
               display: 'flex',
               alignItems: 'center',
