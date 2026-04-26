@@ -750,6 +750,8 @@ private fun eventLabelSv(eventType: String): String = when (eventType) {
     "PINCHED" -> "Toppade"
     "DISBUDDED" -> "Knopprensade"
     "APPLIED_SUPPLY" -> "Gödslade"
+    "WATERED" -> "Vattnade"
+    "MOVED" -> "Flyttade"
     else -> eventType
 }
 

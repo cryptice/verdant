@@ -271,7 +271,8 @@ class PlantService(
             )
             PlantEventType.NOTE, PlantEventType.BUDDING, PlantEventType.FIRST_BLOOM,
             PlantEventType.PEAK_BLOOM, PlantEventType.LAST_BLOOM, PlantEventType.DIVIDED,
-            PlantEventType.PINCHED, PlantEventType.DISBUDDED, PlantEventType.APPLIED_SUPPLY -> plant
+            PlantEventType.PINCHED, PlantEventType.DISBUDDED, PlantEventType.APPLIED_SUPPLY,
+            PlantEventType.WATERED, PlantEventType.MOVED -> plant
         }
 
         if (updatedPlant !== plant) {

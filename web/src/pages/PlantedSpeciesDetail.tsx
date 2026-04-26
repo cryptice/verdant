@@ -37,6 +37,8 @@ const EVENT_LABEL_SV: Record<string, string> = {
   PINCHED: 'Toppade',
   DISBUDDED: 'Knopprensade',
   APPLIED_SUPPLY: 'Gödslade',
+  WATERED: 'Vattnade',
+  MOVED: 'Flyttade',
 }
 
 const STATUS_COLOR: Record<string, string> = {
