@@ -184,6 +184,11 @@ export interface PlantLocationGroup {
   status: string; count: number; year: number
 }
 
+export interface SpeciesEventSummaryEntry {
+  eventType: string; eventDate: string
+  currentStatus?: string; count: number
+}
+
 export interface FrequentCommentResponse { id: number; text: string; useCount: number }
 
 export interface PlantGroupResponse {
@@ -459,6 +464,26 @@ export const api = {
     speciesSummary: () => apiRequest<SpeciesPlantSummary[]>('/api/plants/species-summary'),
     speciesLocations: (speciesId: number) =>
       apiRequest<PlantLocationGroup[]>(`/api/plants/species/${speciesId}/locations`),
+    speciesEvents: (speciesId: number, trayOnly = false) =>
+      apiRequest<SpeciesEventSummaryEntry[]>(
+        `/api/plants/species/${speciesId}/events?trayOnly=${trayOnly}`,
+      ),
+    updateSpeciesEventDate: (
+      speciesId: number,
+      data: { eventType: string; oldDate: string; newDate: string; currentStatus?: string; trayOnly?: boolean },
+    ) =>
+      apiRequest<{ updated: number }>(
+        `/api/plants/species/${speciesId}/events/date`,
+        { method: 'PATCH', body: JSON.stringify(data) },
+      ),
+    deleteSpeciesEvent: (
+      speciesId: number,
+      data: { eventType: string; eventDate: string; count: number; currentStatus?: string; trayOnly?: boolean },
+    ) =>
+      apiRequest<{ eventsDeleted: number; plantsRemoved: number }>(
+        `/api/plants/species/${speciesId}/events/delete`,
+        { method: 'POST', body: JSON.stringify(data) },
+      ),
   },
 
   species: {
