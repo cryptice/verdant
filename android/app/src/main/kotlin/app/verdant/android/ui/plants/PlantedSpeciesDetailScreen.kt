@@ -368,65 +368,22 @@ fun PlantedSpeciesDetailScreen(
                     } else {
                         byStatus.forEach { (status, locations) ->
                             if (locations.isEmpty()) return@forEach
-                            item(key = "status_${status}") {
-                                FaltetSectionHeader(label = statusLabelSv(status))
-                            }
-                            items(locations, key = { loc -> "loc_${status}_${loc.bedId}_${loc.year}" }) { loc ->
-                                val isTray = loc.bedId == null
-                                val locationLabel = if (isTray) "Bricka" else
-                                    listOfNotNull(loc.gardenName, loc.bedName).joinToString(" / ")
-                                FaltetListRow(
-                                    leading = {
-                                        Box(
-                                            Modifier
-                                                .size(10.dp)
-                                                .drawBehind { drawCircle(statusColor(loc.status)) },
-                                        )
+                            item(key = "card_${status}") {
+                                StatusSectionCard(
+                                    status = status,
+                                    locations = locations,
+                                    expandedTrayStatuses = expandedTrayStatuses.value,
+                                    trayEvents = uiState.trayEvents,
+                                    onTrayToggle = { s ->
+                                        expandedTrayStatuses.value =
+                                            if (s in expandedTrayStatuses.value) expandedTrayStatuses.value - s
+                                            else expandedTrayStatuses.value + s
                                     },
-                                    title = locationLabel.ifBlank { "—" },
-                                    meta = loc.year.toString(),
-                                    stat = if (loc.count > 1) {
-                                        {
-                                            Row(verticalAlignment = Alignment.Bottom) {
-                                                Text(
-                                                    text = loc.count.toString(),
-                                                    fontFamily = FontFamily.Monospace,
-                                                    fontSize = 16.sp,
-                                                    color = FaltetInk,
-                                                )
-                                                Text(
-                                                    text = " ST",
-                                                    fontFamily = FontFamily.Monospace,
-                                                    fontSize = 9.sp,
-                                                    letterSpacing = 1.2.sp,
-                                                    color = FaltetForest,
-                                                )
-                                            }
-                                        }
-                                    } else null,
-                                    onClick = {
-                                        if (isTray) {
-                                            expandedTrayStatuses.value =
-                                                if (loc.status in expandedTrayStatuses.value)
-                                                    expandedTrayStatuses.value - loc.status
-                                                else
-                                                    expandedTrayStatuses.value + loc.status
-                                        } else {
-                                            selectedSubItem = loc
-                                            actionCount = loc.count.toString()
-                                        }
+                                    onAct = { loc ->
+                                        selectedSubItem = loc
+                                        actionCount = loc.count.toString()
                                     },
                                 )
-                                if (isTray && loc.status in expandedTrayStatuses.value) {
-                                    TrayEventsExpansion(
-                                        allEvents = uiState.trayEvents,
-                                        currentStatus = loc.status,
-                                        onAct = {
-                                            selectedSubItem = loc
-                                            actionCount = loc.count.toString()
-                                        },
-                                    )
-                                }
                             }
                         }
                     }
@@ -462,7 +419,7 @@ private fun TrayEventsExpansion(
             )
         }
         .filter { it.current > 0 }
-        .sortedWith(compareBy({ it.date }, { it.type }))
+        .sortedWith(compareByDescending<Row> { it.date }.thenByDescending { it.type })
 
     Column(
         modifier = Modifier
@@ -470,6 +427,9 @@ private fun TrayEventsExpansion(
             .padding(start = 40.dp, end = 18.dp, top = 6.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
+        var showAll by remember(currentStatus, rows.size) { mutableStateOf(false) }
+        val visibleRows = if (rows.size <= 3 || showAll) rows else rows.take(3)
+
         if (rows.isEmpty()) {
             Text(
                 text = "Inga händelser registrerade.",
@@ -479,86 +439,184 @@ private fun TrayEventsExpansion(
                 color = FaltetForest,
             )
         } else {
-            rows.forEach { e ->
+            visibleRows.forEachIndexed { index, e ->
+                val isLatest = index == 0
                 val countLabel = if (e.current < e.total) "${e.current} (${e.total}) st"
                     else "${e.current} st"
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = countLabel,
                         fontFamily = FontFamily.Monospace,
-                        fontSize = 11.sp,
-                        color = FaltetInk,
+                        fontSize = if (isLatest) 13.sp else 11.sp,
+                        color = if (isLatest) FaltetAccent else FaltetInk,
+                        fontWeight = if (isLatest) androidx.compose.ui.text.font.FontWeight.SemiBold
+                            else androidx.compose.ui.text.font.FontWeight.Normal,
                         modifier = Modifier.width(80.dp),
                     )
                     Text(
                         text = eventLabelSv(e.type),
                         fontFamily = FaltetDisplay,
                         fontStyle = FontStyle.Italic,
-                        fontSize = 14.sp,
+                        fontSize = if (isLatest) 17.sp else 14.sp,
                         color = FaltetInk,
                         modifier = Modifier.weight(1f),
                     )
                     Text(
                         text = e.date,
                         fontFamily = FontFamily.Monospace,
+                        fontSize = if (isLatest) 11.sp else 10.sp,
+                        letterSpacing = 1.2.sp,
+                        color = if (isLatest) FaltetInk else FaltetForest,
+                    )
+                }
+            }
+            if (rows.size > 3) {
+                TextButton(
+                    onClick = { showAll = !showAll },
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 0.dp, vertical = 0.dp),
+                ) {
+                    Text(
+                        text = if (showAll) "Visa färre" else "Visa ${rows.size - 3} till",
+                        fontFamily = FontFamily.Monospace,
                         fontSize = 10.sp,
                         letterSpacing = 1.2.sp,
-                        color = FaltetForest,
+                        color = FaltetAccent,
                     )
                 }
             }
         }
         Spacer(Modifier.height(4.dp))
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(
-                    1.dp,
-                    FaltetInk,
-                    androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-                )
-                .clickable(onClick = onAct)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .background(
-                        FaltetAccent.copy(alpha = 0.12f),
-                        androidx.compose.foundation.shape.CircleShape,
-                    ),
-                contentAlignment = Alignment.Center,
+            Button(
+                onClick = onAct,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = FaltetAccent,
+                    contentColor = androidx.compose.ui.graphics.Color.White,
+                ),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 18.dp, vertical = 8.dp),
+                modifier = Modifier.height(36.dp),
             ) {
                 Icon(
                     imageVector = Icons.Default.Bolt,
                     contentDescription = null,
-                    tint = FaltetAccent,
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(14.dp),
                 )
-            }
-            Spacer(Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
+                Spacer(Modifier.width(6.dp))
                 Text(
                     text = "Åtgärd",
-                    fontFamily = FaltetDisplay,
-                    fontStyle = FontStyle.Italic,
-                    fontSize = 18.sp,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 11.sp,
+                    letterSpacing = 1.2.sp,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatusSectionCard(
+    status: String,
+    locations: List<PlantLocationGroup>,
+    expandedTrayStatuses: Set<String>,
+    trayEvents: List<app.verdant.android.data.model.SpeciesEventSummaryEntry>,
+    onTrayToggle: (String) -> Unit,
+    onAct: (PlantLocationGroup) -> Unit,
+) {
+    val totalCount = locations.sumOf { it.count }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp, vertical = 8.dp)
+            .border(
+                1.dp,
+                FaltetInk,
+                androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
+            )
+            .background(
+                app.verdant.android.ui.theme.FaltetCream,
+                androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
+            ),
+    ) {
+        // Card header — status name + dot + total count
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+        ) {
+            Box(
+                Modifier
+                    .size(10.dp)
+                    .drawBehind { drawCircle(statusColor(status)) },
+            )
+            Spacer(Modifier.width(10.dp))
+            Text(
+                text = statusLabelPluralSv(status).uppercase(),
+                fontFamily = FontFamily.Monospace,
+                fontSize = 10.sp,
+                letterSpacing = 1.4.sp,
+                color = FaltetForest,
+                modifier = Modifier.weight(1f),
+            )
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    text = totalCount.toString(),
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 16.sp,
                     color = FaltetInk,
                 )
                 Text(
-                    text = "Skola om · plantera ut · kassera",
+                    text = " ST",
                     fontFamily = FontFamily.Monospace,
                     fontSize = 9.sp,
                     letterSpacing = 1.2.sp,
                     color = FaltetForest,
                 )
             }
-            Icon(
-                imageVector = Icons.Default.ChevronRight,
-                contentDescription = null,
-                tint = FaltetAccent,
+        }
+        // Locations list inside the card
+        locations.forEach { loc ->
+            val isTray = loc.bedId == null
+            val locationLabel = if (isTray) "Bricka" else
+                listOfNotNull(loc.gardenName, loc.bedName).joinToString(" / ")
+            FaltetListRow(
+                title = locationLabel.ifBlank { "—" },
+                meta = loc.year.toString(),
+                stat = if (locations.size > 1) {
+                    {
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Text(
+                                text = loc.count.toString(),
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 14.sp,
+                                color = FaltetInk,
+                            )
+                            Text(
+                                text = " ST",
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 9.sp,
+                                letterSpacing = 1.2.sp,
+                                color = FaltetForest,
+                            )
+                        }
+                    }
+                } else null,
+                onClick = {
+                    if (isTray) onTrayToggle(loc.status)
+                    else onAct(loc)
+                },
             )
+            if (isTray && loc.status in expandedTrayStatuses) {
+                TrayEventsExpansion(
+                    allEvents = trayEvents,
+                    currentStatus = loc.status,
+                    onAct = { onAct(loc) },
+                )
+            }
         }
     }
 }
@@ -582,6 +640,16 @@ private fun eventLabelSv(eventType: String): String = when (eventType) {
     "DISBUDDED" -> "Knopprensade"
     "APPLIED_SUPPLY" -> "Gödslade"
     else -> eventType
+}
+
+private fun statusLabelPluralSv(status: String): String = when (status) {
+    "SEEDED" -> "Sådda"
+    "POTTED_UP" -> "Omskolade"
+    "PLANTED_OUT", "GROWING" -> "Utplanterade"
+    "HARVESTED" -> "Skördade"
+    "RECOVERED" -> "Återhämtade"
+    "REMOVED" -> "Borttagna"
+    else -> status
 }
 
 private fun statusLabelSv(status: String): String = when (status) {

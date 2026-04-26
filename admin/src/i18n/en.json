@@ -131,6 +131,8 @@
     "saveChanges": "Save Changes",
     "seedProviderImages": "Seed Provider & Images",
     "basicInfo": "Basic Information",
+    "copy": "Copy species",
+    "copying": "Copying...",
     "copyToEnglish": "Copy to English",
     "commonNameSv": "Common Name (Swedish) *",
     "commonNameEn": "Common Name (English)",

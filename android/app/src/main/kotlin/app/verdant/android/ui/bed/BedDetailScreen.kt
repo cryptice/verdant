@@ -59,15 +59,12 @@ import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetFab
-import app.verdant.android.ui.faltet.FaltetHero
 import app.verdant.android.ui.faltet.FaltetListRow
 import app.verdant.android.ui.faltet.FaltetLoadingState
 import app.verdant.android.ui.faltet.FaltetMetadataRow
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.FaltetSectionHeader
 import app.verdant.android.ui.faltet.Field
-import app.verdant.android.ui.faltet.PhotoPlaceholder
-import app.verdant.android.ui.faltet.PhotoTone
 import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetClay
 import app.verdant.android.ui.theme.FaltetDisplay
@@ -178,16 +175,18 @@ class BedDetailViewModel @Inject constructor(
         }
     }
 
-    /** Duplicate the bed (same conditions, new name "{old} (kopia)") and emit
-     *  the new bed id via [onCopied] so the screen can navigate there. */
+    /** Duplicate the bed (same conditions). If the source name ends with
+     *  `#<n>`, the new name uses the same stem with the next free number
+     *  (`Bed #1` → `Bed #2`); otherwise we fall back to `{old} (kopia)`. */
     fun copy(onCopied: (Long) -> Unit) {
         val source = _uiState.value.bed ?: return
         viewModelScope.launch {
             try {
+                val newName = nextCopyName(source.name, source.gardenId)
                 val created = gardenRepository.createBed(
                     source.gardenId,
                     CreateBedRequest(
-                        name = "${source.name} (kopia)",
+                        name = newName,
                         description = source.description,
                         soilType = source.soilType,
                         soilPh = source.soilPh,
@@ -204,6 +203,19 @@ class BedDetailViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(error = e.message)
             }
         }
+    }
+
+    /** If [sourceName] matches `<stem>#<n>`, return `<stem>#<max+1>` where
+     *  `max` is the highest number found among sibling beds in the same
+     *  garden that share the stem. Otherwise return `<sourceName> (kopia)`. */
+    private suspend fun nextCopyName(sourceName: String, gardenId: Long): String {
+        val match = Regex("^(.*?)#(\\d+)\\s*$").matchEntire(sourceName) ?: return "$sourceName (kopia)"
+        val stem = match.groupValues[1]
+        val siblings = runCatching { gardenRepository.getBeds(gardenId) }.getOrDefault(emptyList())
+        val pattern = Regex("^${Regex.escape(stem)}#(\\d+)\\s*$")
+        val highest = siblings.mapNotNull { pattern.matchEntire(it.name)?.groupValues?.get(1)?.toIntOrNull() }
+            .maxOrNull() ?: 0
+        return "$stem#${highest + 1}"
     }
 }
 
@@ -355,7 +367,7 @@ fun BedDetailScreen(
                     onClick = {
                         viewModel.update(
                             name = editName,
-                            description = editDescription.ifBlank { null },
+                            description = editDescription,
                             soilType = editSoilType,
                             soilPh = editSoilPhText.toDoubleOrNull(),
                             sunExposure = editSunExposure,
@@ -498,17 +510,29 @@ fun BedDetailScreen(
                 val bed = uiState.bed!!
                 LazyColumn(Modifier.fillMaxSize().padding(padding)) {
                     item {
-                        FaltetHero(
-                            title = bed.name,
-                            subtitle = bed.description,
-                            leading = {
-                                PhotoPlaceholder(
-                                    label = bed.name,
-                                    tone = PhotoTone.Sage,
-                                    modifier = Modifier.fillMaxSize(),
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 18.dp, vertical = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            Text(
+                                text = bed.name,
+                                fontFamily = FaltetDisplay,
+                                fontStyle = FontStyle.Italic,
+                                fontSize = 24.sp,
+                                color = FaltetInk,
+                            )
+                            if (!bed.description.isNullOrBlank()) {
+                                Text(
+                                    text = bed.description!!,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 10.sp,
+                                    letterSpacing = 1.4.sp,
+                                    color = FaltetForest,
                                 )
-                            },
-                        )
+                            }
+                        }
                     }
 
                     // Förhållanden section

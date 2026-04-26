@@ -61,6 +61,42 @@ export function SpeciesListPage() {
     placeholderData: (prev) => prev,
   })
 
+  const copyMutation = useMutation({
+    mutationFn: async (s: Species) => {
+      const full = await api.admin.getSpeciesById(s.id)
+      return api.admin.createSpecies({
+        commonName: full.commonName,
+        commonNameSv: full.commonNameSv,
+        variantName: full.variantName ? `${full.variantName} (kopia)` : '(kopia)',
+        variantNameSv: full.variantNameSv ? `${full.variantNameSv} (kopia)` : undefined,
+        scientificName: full.scientificName,
+        germinationTimeDaysMin: full.germinationTimeDaysMin,
+        germinationTimeDaysMax: full.germinationTimeDaysMax,
+        daysToHarvestMin: full.daysToHarvestMin,
+        daysToHarvestMax: full.daysToHarvestMax,
+        sowingDepthMm: full.sowingDepthMm,
+        growingPositions: full.growingPositions,
+        soils: full.soils,
+        heightCmMin: full.heightCmMin,
+        heightCmMax: full.heightCmMax,
+        bloomMonths: full.bloomMonths,
+        sowingMonths: full.sowingMonths,
+        germinationRate: full.germinationRate,
+        tagIds: full.tags.map(tag => tag.id),
+        costPerSeedSek: full.costPerSeedSek,
+        expectedStemsPerPlant: full.expectedStemsPerPlant,
+        expectedVaseLifeDays: full.expectedVaseLifeDays,
+        plantType: full.plantType,
+        defaultUnitType: full.defaultUnitType,
+        workflowTemplateId: full.workflowTemplateId,
+      })
+    },
+    onSuccess: (created) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'species'] })
+      navigate(`/species/${created.id}`)
+    },
+  })
+
   const handleExport = async () => {
     setExporting(true)
     try {
@@ -176,6 +212,7 @@ export function SpeciesListPage() {
               <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">{t('species.group')}</th>
               <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">{t('species.type')}</th>
               <th className="text-left px-4 py-2 text-xs font-medium text-[#787774] uppercase tracking-wider">{t('species.providersCol')}</th>
+              <th className="w-10 px-2 py-2"></th>
             </tr>
           </thead>
           <tbody>
@@ -207,6 +244,20 @@ export function SpeciesListPage() {
                   ) : (
                     <span className="text-[#A5A29C]">—</span>
                   )}
+                </td>
+                <td className="px-2 py-2.5 text-right" onClick={e => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    onClick={() => copyMutation.mutate(s)}
+                    disabled={copyMutation.isPending}
+                    aria-label={t('species.copy')}
+                    title={t('species.copy')}
+                    className="p-1 text-[#787774] hover:text-[#2EAADC] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
                 </td>
               </tr>
             ))}
@@ -424,6 +475,42 @@ export function SpeciesDetailPage() {
     }
   })
 
+  const copyMutation = useMutation({
+    mutationFn: async () => {
+      if (!species) throw new Error('Species not loaded')
+      return api.admin.createSpecies({
+        commonName: species.commonName,
+        commonNameSv: species.commonNameSv,
+        variantName: species.variantName ? `${species.variantName} (kopia)` : '(kopia)',
+        variantNameSv: species.variantNameSv ? `${species.variantNameSv} (kopia)` : undefined,
+        scientificName: species.scientificName,
+        germinationTimeDaysMin: species.germinationTimeDaysMin,
+        germinationTimeDaysMax: species.germinationTimeDaysMax,
+        daysToHarvestMin: species.daysToHarvestMin,
+        daysToHarvestMax: species.daysToHarvestMax,
+        sowingDepthMm: species.sowingDepthMm,
+        growingPositions: species.growingPositions,
+        soils: species.soils,
+        heightCmMin: species.heightCmMin,
+        heightCmMax: species.heightCmMax,
+        bloomMonths: species.bloomMonths,
+        sowingMonths: species.sowingMonths,
+        germinationRate: species.germinationRate,
+        tagIds: species.tags.map(tag => tag.id),
+        costPerSeedSek: species.costPerSeedSek,
+        expectedStemsPerPlant: species.expectedStemsPerPlant,
+        expectedVaseLifeDays: species.expectedVaseLifeDays,
+        plantType: species.plantType,
+        defaultUnitType: species.defaultUnitType,
+        workflowTemplateId: species.workflowTemplateId,
+      })
+    },
+    onSuccess: (created) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'species'] })
+      navigate(`/species/${created.id}`)
+    },
+  })
+
   const addProviderMutation = useMutation({
     mutationFn: (req: AddSpeciesProviderRequest) => api.admin.addSpeciesProvider(speciesId, req),
     onSuccess: () => {
@@ -468,6 +555,16 @@ export function SpeciesDetailPage() {
           {species.scientificName && <p className="text-sm text-[#A5A29C] italic">{species.scientificName}</p>}
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => copyMutation.mutate()}
+            disabled={copyMutation.isPending}
+            className="px-3 py-1.5 border border-[#E9E9E7] text-[#37352F] rounded-md hover:bg-[#F0F0EE] transition-colors text-sm disabled:opacity-50 inline-flex items-center gap-1.5"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            {copyMutation.isPending ? t('species.copying') : t('species.copy')}
+          </button>
           <button
             onClick={() => navigate(`/species/${speciesId}/edit`)}
             className="px-3 py-1.5 bg-[#2EAADC] text-white rounded-md hover:bg-[#2898C4] transition-colors text-sm font-medium"

@@ -70,7 +70,9 @@ class BedService(
         if (garden.orgId != orgId) throw NotFoundException("Bed not found")
         val updated = bed.copy(
             name = request.name ?: bed.name,
-            description = request.description ?: bed.description,
+            // Empty/blank string means "clear" — null means "not in request, keep"
+            description = if (request.description == null) bed.description
+                else request.description.ifBlank { null },
             boundaryJson = request.boundaryJson ?: bed.boundaryJson,
             lengthMeters = request.lengthMeters ?: bed.lengthMeters,
             widthMeters = request.widthMeters ?: bed.widthMeters,
