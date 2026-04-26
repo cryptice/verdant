@@ -306,6 +306,19 @@ class PlantService(
     fun getSpeciesEventSummary(orgId: Long, speciesId: Long, trayOnly: Boolean) =
         plantRepository.speciesEventSummary(orgId, speciesId, trayOnly)
 
+    fun updateSpeciesEventDate(orgId: Long, speciesId: Long, request: UpdateSpeciesEventDateRequest): UpdateSpeciesEventDateResponse {
+        val updated = plantRepository.updateSpeciesEventDate(
+            orgId = orgId,
+            speciesId = speciesId,
+            eventType = request.eventType,
+            oldDate = request.oldDate,
+            newDate = request.newDate,
+            currentStatus = request.currentStatus,
+            trayOnly = request.trayOnly,
+        )
+        return UpdateSpeciesEventDateResponse(updated)
+    }
+
     // ── Stats ──
 
     fun getHarvestStats(orgId: Long): List<HarvestStatRow> {

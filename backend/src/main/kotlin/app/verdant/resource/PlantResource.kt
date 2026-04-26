@@ -108,6 +108,13 @@ class PlantResource(
         @QueryParam("trayOnly") @DefaultValue("false") trayOnly: Boolean,
     ) = plantService.getSpeciesEventSummary(orgContext.orgId, speciesId, trayOnly)
 
+    @PATCH
+    @Path("/plants/species/{speciesId}/events/date")
+    fun updateSpeciesEventDate(
+        @PathParam("speciesId") speciesId: Long,
+        request: UpdateSpeciesEventDateRequest,
+    ) = plantService.updateSpeciesEventDate(orgContext.orgId, speciesId, request)
+
     // ── Plant Events ──
 
     @GET

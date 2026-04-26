@@ -613,6 +613,18 @@ data class SpeciesEventSummaryEntry(
     @SerializedName("count") val count: Int,
 )
 
+data class UpdateSpeciesEventDateRequest(
+    @SerializedName("eventType") val eventType: String,
+    @SerializedName("oldDate") val oldDate: String,
+    @SerializedName("newDate") val newDate: String,
+    @SerializedName("currentStatus") val currentStatus: String? = null,
+    @SerializedName("trayOnly") val trayOnly: Boolean = false,
+)
+
+data class UpdateSpeciesEventDateResponse(
+    @SerializedName("updated") val updated: Int,
+)
+
 data class PlantLocationGroup(
     @SerializedName("gardenName") val gardenName: String?,
     @SerializedName("bedName") val bedName: String?,

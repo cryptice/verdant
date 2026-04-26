@@ -226,6 +226,38 @@ class PlantRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    /** Move a slice of events for a species to a new date. Returns the number
+     *  of plant_event rows updated. */
+    fun updateSpeciesEventDate(
+        orgId: Long,
+        speciesId: Long,
+        eventType: String,
+        oldDate: java.time.LocalDate,
+        newDate: java.time.LocalDate,
+        currentStatus: String?,
+        trayOnly: Boolean,
+    ): Int = ds.connection.use { conn ->
+        val sql = buildString {
+            append("""UPDATE plant_event pe SET event_date = ?
+                      FROM plant p
+                      WHERE pe.plant_id = p.id
+                        AND p.org_id = ? AND p.species_id = ?
+                        AND pe.event_type = ? AND pe.event_date = ?""")
+            if (currentStatus != null) append(" AND p.status = ?")
+            if (trayOnly) append(" AND p.bed_id IS NULL")
+        }
+        conn.prepareStatement(sql).use { ps ->
+            var i = 1
+            ps.setObject(i++, java.sql.Date.valueOf(newDate))
+            ps.setLong(i++, orgId)
+            ps.setLong(i++, speciesId)
+            ps.setString(i++, eventType)
+            ps.setObject(i++, java.sql.Date.valueOf(oldDate))
+            if (currentStatus != null) ps.setString(i++, currentStatus)
+            ps.executeUpdate()
+        }
+    }
+
     fun delete(id: Long) {
         ds.connection.use { conn ->
             conn.prepareStatement("DELETE FROM plant WHERE id = ?").use { ps ->

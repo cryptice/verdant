@@ -106,6 +106,12 @@ interface VerdantApi {
         @retrofit2.http.Query("trayOnly") trayOnly: Boolean = false,
     ): List<SpeciesEventSummaryEntry>
 
+    @retrofit2.http.PATCH("api/plants/species/{speciesId}/events/date")
+    suspend fun updateSpeciesEventDate(
+        @Path("speciesId") speciesId: Long,
+        @retrofit2.http.Body request: UpdateSpeciesEventDateRequest,
+    ): UpdateSpeciesEventDateResponse
+
     // ── Plant Events ──
 
     @GET("api/plants/{id}/events")

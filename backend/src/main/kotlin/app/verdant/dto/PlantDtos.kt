@@ -120,6 +120,20 @@ data class TraySummaryEntry(
     val count: Int,
 )
 
+/** Re-date all plant_event rows matching a species/eventType/oldDate slice.
+ *  When trayOnly=true, only events for plants currently with bed_id IS NULL
+ *  are updated. When currentStatus is set, restricts to plants currently in
+ *  that status. */
+data class UpdateSpeciesEventDateRequest(
+    val eventType: String,
+    val oldDate: java.time.LocalDate,
+    val newDate: java.time.LocalDate,
+    val currentStatus: String? = null,
+    val trayOnly: Boolean = false,
+)
+
+data class UpdateSpeciesEventDateResponse(val updated: Int)
+
 data class SpeciesEventSummaryEntry(
     val eventType: String,
     val eventDate: java.time.LocalDate,

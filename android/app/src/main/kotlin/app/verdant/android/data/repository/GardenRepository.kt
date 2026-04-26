@@ -41,6 +41,8 @@ class GardenRepository @Inject constructor(private val api: VerdantApi) {
     suspend fun getSpeciesLocations(speciesId: Long) = api.getSpeciesLocations(speciesId)
     suspend fun getSpeciesEventSummary(speciesId: Long, trayOnly: Boolean = false) =
         api.getSpeciesEventSummary(speciesId, trayOnly)
+    suspend fun updateSpeciesEventDate(speciesId: Long, request: UpdateSpeciesEventDateRequest) =
+        api.updateSpeciesEventDate(speciesId, request)
 
     // Plant Events
     suspend fun getPlantEvents(plantId: Long) = api.getPlantEvents(plantId)

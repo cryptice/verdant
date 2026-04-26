@@ -99,6 +99,32 @@ class PlantedSpeciesDetailViewModel @Inject constructor(
 
     init { load() }
 
+    fun updateEventDate(
+        eventType: String,
+        oldDate: String,
+        newDate: java.time.LocalDate,
+        currentStatus: String,
+        trayOnly: Boolean = true,
+    ) {
+        viewModelScope.launch {
+            try {
+                repo.updateSpeciesEventDate(
+                    speciesId,
+                    app.verdant.android.data.model.UpdateSpeciesEventDateRequest(
+                        eventType = eventType,
+                        oldDate = oldDate,
+                        newDate = newDate.toString(),
+                        currentStatus = currentStatus,
+                        trayOnly = trayOnly,
+                    ),
+                )
+                load()
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to update event date", e)
+            }
+        }
+    }
+
     fun batchEvent(item: PlantLocationGroup, eventType: String, count: Int, targetBedId: Long? = null, onDone: () -> Unit) {
         viewModelScope.launch {
             try {
@@ -182,10 +208,27 @@ fun PlantedSpeciesDetailScreen(
     var bedExpanded by remember { mutableStateOf(false) }
     var plantOutMode by remember { mutableStateOf(false) }
     val expandedTrayStatuses = remember { mutableStateOf<Set<String>>(emptySet()) }
+    var editDateTarget by remember {
+        mutableStateOf<Triple<String, String, String>?>(null)
+    } // (eventType, oldDate, currentStatus)
     androidx.compose.runtime.LaunchedEffect(uiState.locations) {
         // Default-expand every tray row so the events show without an extra tap.
         expandedTrayStatuses.value = uiState.locations.filter { it.bedId == null }
             .map { it.status }.toSet()
+    }
+
+    editDateTarget?.let { (eventType, oldDate, currentStatus) ->
+        EditEventDateDialog(
+            initialDate = runCatching { java.time.LocalDate.parse(oldDate) }.getOrNull()
+                ?: java.time.LocalDate.now(),
+            onDismiss = { editDateTarget = null },
+            onConfirm = { newDate ->
+                editDateTarget = null
+                if (newDate.toString() != oldDate) {
+                    viewModel.updateEventDate(eventType, oldDate, newDate, currentStatus)
+                }
+            },
+        )
     }
 
     val dismissModal: () -> Unit = {
@@ -383,6 +426,9 @@ fun PlantedSpeciesDetailScreen(
                                         selectedSubItem = loc
                                         actionCount = loc.count.toString()
                                     },
+                                    onEditEventDate = { eventType, oldDate, currentStatus ->
+                                        editDateTarget = Triple(eventType, oldDate, currentStatus)
+                                    },
                                 )
                             }
                         }
@@ -400,6 +446,7 @@ private fun TrayEventsExpansion(
     allEvents: List<app.verdant.android.data.model.SpeciesEventSummaryEntry>,
     currentStatus: String,
     onAct: () -> Unit,
+    onEditEventDate: (eventType: String, oldDate: String, currentStatus: String) -> Unit,
 ) {
     // Show only the events whose plants are currently in this row's status,
     // collapsed across (eventType, eventDate). For each event, also report
@@ -443,7 +490,13 @@ private fun TrayEventsExpansion(
                 val isLatest = index == 0
                 val countLabel = if (e.current < e.total) "${e.current} (${e.total}) st"
                     else "${e.current} st"
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onEditEventDate(e.type, e.date, currentStatus) }
+                        .padding(vertical = 2.dp),
+                ) {
                     Text(
                         text = countLabel,
                         fontFamily = FontFamily.Monospace,
@@ -466,7 +519,7 @@ private fun TrayEventsExpansion(
                         fontFamily = FontFamily.Monospace,
                         fontSize = if (isLatest) 11.sp else 10.sp,
                         letterSpacing = 1.2.sp,
-                        color = if (isLatest) FaltetInk else FaltetForest,
+                        color = if (isLatest) FaltetAccent else FaltetForest,
                     )
                 }
             }
@@ -525,6 +578,7 @@ private fun StatusSectionCard(
     trayEvents: List<app.verdant.android.data.model.SpeciesEventSummaryEntry>,
     onTrayToggle: (String) -> Unit,
     onAct: (PlantLocationGroup) -> Unit,
+    onEditEventDate: (eventType: String, oldDate: String, currentStatus: String) -> Unit,
 ) {
     val totalCount = locations.sumOf { it.count }
     Column(
@@ -615,6 +669,7 @@ private fun StatusSectionCard(
                     allEvents = trayEvents,
                     currentStatus = loc.status,
                     onAct = { onAct(loc) },
+                    onEditEventDate = onEditEventDate,
                 )
             }
         }
@@ -707,5 +762,37 @@ private fun StatusDotsPreview() {
                     .drawBehind { drawCircle(statusColor(status)) },
             )
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EditEventDateDialog(
+    initialDate: java.time.LocalDate,
+    onDismiss: () -> Unit,
+    onConfirm: (java.time.LocalDate) -> Unit,
+) {
+    val state = androidx.compose.material3.rememberDatePickerState(
+        initialSelectedDateMillis = initialDate.atStartOfDay(java.time.ZoneOffset.UTC)
+            .toInstant().toEpochMilli(),
+    )
+    androidx.compose.material3.DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = {
+                val millis = state.selectedDateMillis
+                if (millis != null) {
+                    val picked = java.time.Instant.ofEpochMilli(millis)
+                        .atZone(java.time.ZoneOffset.UTC)
+                        .toLocalDate()
+                    onConfirm(picked)
+                } else {
+                    onDismiss()
+                }
+            }) { Text("Spara", color = FaltetAccent) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Avbryt") } },
+    ) {
+        androidx.compose.material3.DatePicker(state = state)
     }
 }
