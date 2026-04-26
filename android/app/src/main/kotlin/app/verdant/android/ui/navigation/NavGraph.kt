@@ -342,9 +342,11 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
         // burger automatically without each screen wiring it through.
         val openDrawer: (() -> Unit)? = if (hideChrome) null else { { scope.launch { drawerState.open() } } }
         val openAccount: (() -> Unit)? = if (hideChrome) null else { { navController.navigate(Screen.Account.route) } }
+        val openDashboard: (() -> Unit)? = if (hideChrome) null else { { navController.navigate(Screen.Dashboard.route) } }
         androidx.compose.runtime.CompositionLocalProvider(
             app.verdant.android.ui.faltet.LocalDrawerOpen provides openDrawer,
             app.verdant.android.ui.faltet.LocalAccountOpen provides openAccount,
+            app.verdant.android.ui.faltet.LocalDashboardOpen provides openDashboard,
         ) {
         Scaffold(
             topBar = {},
@@ -364,19 +366,21 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                             }
                     ) {
                         NavigationBarItem(
-                            selected = currentRoute == Screen.Dashboard.route,
+                            selected = myWorldSelected,
                             onClick = {
-                                navController.navigate(Screen.Dashboard.route) {
-                                    popUpTo(Screen.Dashboard.route) { inclusive = true }
+                                navController.navigate(myWorldRoute) {
+                                    popUpTo(Screen.Dashboard.route)
                                 }
                             },
-                            icon = { Icon(Icons.Default.Dashboard, contentDescription = "Översikt") },
+                            icon = { Icon(Icons.Default.Eco, contentDescription = myWorldLabel) },
                             label = {
                                 Text(
-                                    text = "ÖVERSIKT",
+                                    text = myWorldLabel.take(12).uppercase(),
                                     fontFamily = FontFamily.Monospace,
                                     fontSize = 9.sp,
                                     letterSpacing = 1.4.sp,
+                                    maxLines = 1,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                                 )
                             },
                             colors = NavigationBarItemDefaults.colors(

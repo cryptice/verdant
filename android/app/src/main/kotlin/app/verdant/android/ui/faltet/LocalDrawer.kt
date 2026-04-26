@@ -17,3 +17,10 @@ val LocalDrawerOpen = staticCompositionLocalOf<(() -> Unit)?> { null }
  * is omitted.
  */
 val LocalAccountOpen = staticCompositionLocalOf<(() -> Unit)?> { null }
+
+/**
+ * Hoists a navigate-to-Dashboard callback so the Masthead can render a
+ * dashboard icon next to the burger. NavGraph provides this; if absent the
+ * icon is omitted.
+ */
+val LocalDashboardOpen = staticCompositionLocalOf<(() -> Unit)?> { null }

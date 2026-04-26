@@ -226,11 +226,6 @@ fun GardenDetailScreen(
                 }
             }
         },
-        fab = {
-            uiState.garden?.let { garden ->
-                FaltetFab(onClick = { onCreateBed(garden.id) }, contentDescription = "Skapa bädd")
-            }
-        },
     ) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
@@ -246,13 +241,42 @@ fun GardenDetailScreen(
                 modifier = Modifier.padding(padding),
             )
             else -> {
+                // Group beds by `<stem>#<n>` stem; groups with 2+ beds collapse
+                // behind a header row, solos render unchanged.
+                val groupedBeds = remember(uiState.beds) { groupBedsByStem(uiState.beds) }
                 LazyColumn(Modifier.fillMaxSize().padding(padding)) {
-                    item { FaltetSectionHeader(label = "Bäddar") }
+                    item {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth().padding(end = 12.dp),
+                        ) {
+                            Box(Modifier.weight(1f)) {
+                                FaltetSectionHeader(label = "Bäddar")
+                            }
+                            uiState.garden?.let { garden ->
+                                TextButton(onClick = { onCreateBed(garden.id) }) {
+                                    Text("+ Lägg till bädd", color = FaltetAccent, fontSize = 12.sp)
+                                }
+                            }
+                        }
+                    }
                     if (uiState.beds.isEmpty()) {
                         item { InlineEmpty("Inga bäddar ännu. Tryck + för att skapa.") }
                     } else {
-                        items(uiState.beds, key = { it.id }) { bed ->
-                            BedRow(bed = bed, onClick = { onBedClick(bed.id) })
+                        val grouped = groupedBeds
+                        grouped.forEach { entry ->
+                            when (entry) {
+                                is BedListEntry.Solo -> item(key = "bed_${entry.bed.id}") {
+                                    BedRow(bed = entry.bed, onClick = { onBedClick(entry.bed.id) })
+                                }
+                                is BedListEntry.Group -> item(key = "group_${entry.stem}") {
+                                    BedGroupRow(
+                                        stem = entry.stem,
+                                        beds = entry.beds,
+                                        onBedClick = onBedClick,
+                                    )
+                                }
+                            }
                         }
                     }
                     if (uiState.trayPlants.isNotEmpty()) {
@@ -400,6 +424,137 @@ private fun BedRow(bed: BedResponse, onClick: () -> Unit) {
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
+        }
+    }
+}
+
+private sealed interface BedListEntry {
+    data class Solo(val bed: BedResponse) : BedListEntry
+    data class Group(val stem: String, val beds: List<BedResponse>) : BedListEntry
+}
+
+private val STEM_PATTERN = Regex("^(.*?)#(\\d+)\\s*$")
+
+private fun stemOf(name: String): String? = STEM_PATTERN.matchEntire(name)
+    ?.groupValues?.get(1)?.trim()?.takeIf { it.isNotEmpty() }
+
+/** Bucket beds by their `<stem>#<n>` stem. Stems with 2+ beds become groups,
+ *  preserving the original list order. Solo beds stay in place. */
+private fun groupBedsByStem(beds: List<BedResponse>): List<BedListEntry> {
+    val byStem = beds.groupBy { stemOf(it.name) }
+    val seen = mutableSetOf<String>()
+    val result = mutableListOf<BedListEntry>()
+    for (bed in beds) {
+        val stem = stemOf(bed.name)
+        if (stem == null) {
+            result.add(BedListEntry.Solo(bed))
+            continue
+        }
+        if (stem in seen) continue
+        val members = byStem[stem]!!.sortedBy {
+            STEM_PATTERN.matchEntire(it.name)?.groupValues?.get(2)?.toIntOrNull() ?: 0
+        }
+        if (members.size >= 2) {
+            result.add(BedListEntry.Group(stem, members))
+            seen.add(stem)
+        } else {
+            result.add(BedListEntry.Solo(bed))
+        }
+    }
+    return result
+}
+
+@Composable
+private fun BedGroupRow(
+    stem: String,
+    beds: List<BedResponse>,
+    onBedClick: (Long) -> Unit,
+) {
+    var expanded by remember(stem) { mutableStateOf(false) }
+    Column {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 64.dp)
+                .clickable { expanded = !expanded }
+                .drawBehind {
+                    drawLine(
+                        color = FaltetInkLine20,
+                        start = Offset(0f, size.height),
+                        end = Offset(size.width, size.height),
+                        strokeWidth = 1.dp.toPx(),
+                    )
+                }
+                .padding(horizontal = 18.dp, vertical = 14.dp),
+        ) {
+            Text(
+                text = stem,
+                fontFamily = FaltetDisplay,
+                fontStyle = FontStyle.Italic,
+                fontSize = 18.sp,
+                color = FaltetInk,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = "${beds.size} ST",
+                fontFamily = FontFamily.Monospace,
+                fontSize = 11.sp,
+                letterSpacing = 1.2.sp,
+                color = FaltetForest,
+            )
+            Spacer(Modifier.width(10.dp))
+            Text(
+                text = if (expanded) "▾" else "▸",
+                fontFamily = FontFamily.Monospace,
+                fontSize = 12.sp,
+                color = FaltetAccent,
+            )
+        }
+        if (expanded) {
+            beds.forEach { bed ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp)
+                        .clickable { onBedClick(bed.id) }
+                        .drawBehind {
+                            drawLine(
+                                color = FaltetInkLine20,
+                                start = Offset(0f, size.height),
+                                end = Offset(size.width, size.height),
+                                strokeWidth = 1.dp.toPx(),
+                            )
+                        }
+                        .padding(start = 36.dp, end = 18.dp, top = 10.dp, bottom = 10.dp),
+                ) {
+                    Text(
+                        text = bed.name,
+                        fontFamily = FaltetDisplay,
+                        fontStyle = FontStyle.Italic,
+                        fontSize = 16.sp,
+                        color = FaltetInk,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    if (!bed.description.isNullOrBlank()) {
+                        Spacer(Modifier.width(10.dp))
+                        Text(
+                            text = bed.description!!.uppercase(),
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 10.sp,
+                            letterSpacing = 1.2.sp,
+                            color = FaltetForest,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
         }
     }
 }

@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,6 +36,7 @@ fun Masthead(
 ) {
     val drawerOpen = LocalDrawerOpen.current
     val accountOpen = LocalAccountOpen.current
+    val dashboardOpen = LocalDashboardOpen.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
@@ -57,6 +59,11 @@ fun Masthead(
         if (drawerOpen != null) {
             IconButton(onClick = drawerOpen, modifier = Modifier.padding(start = 6.dp)) {
                 Icon(Icons.Default.Menu, contentDescription = null, tint = FaltetForest)
+            }
+            if (dashboardOpen != null) {
+                IconButton(onClick = dashboardOpen) {
+                    Icon(Icons.Default.Dashboard, contentDescription = "Översikt", tint = FaltetForest)
+                }
             }
         } else {
             Spacer(Modifier.width(22.dp))
