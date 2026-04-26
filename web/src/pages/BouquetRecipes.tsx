@@ -332,7 +332,12 @@ export function BouquetRecipes() {
         )}
       </div>
 
-      <Dialog open={showAdd} onClose={() => { setShowAdd(false); resetForm() }} title={t('bouquets.new')} actions={
+      <Dialog
+        open={showAdd}
+        onClose={() => { setShowAdd(false); resetForm() }}
+        title={t('bouquets.new')}
+        isDirty={formName.trim().length > 0 || formDescription.trim().length > 0 || formPrice.trim().length > 0 || formItems.length > 0}
+        actions={
         <>
           <button onClick={() => { setShowAdd(false); resetForm() }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
           <button

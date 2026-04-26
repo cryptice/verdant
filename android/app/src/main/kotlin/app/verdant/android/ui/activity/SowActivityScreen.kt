@@ -183,6 +183,12 @@ fun SowActivityScreen(
     var imageBase64 by remember { mutableStateOf<String?>(null) }
     var sowDate by remember { mutableStateOf<java.time.LocalDate?>(java.time.LocalDate.now()) }
 
+    val isDirty = selectedSpecies != null || countText.isNotBlank() || notes.isNotBlank() ||
+        imageBase64 != null || selectedBed != null
+    val unsavedGuard = app.verdant.android.ui.faltet.rememberUnsavedChangesGuard(isDirty)
+    unsavedGuard.InterceptBack(onBack)
+    unsavedGuard.RenderConfirmDialog()
+
     // Resolve preselected species/bed once species list is loaded
     LaunchedEffect(uiState.species) {
         if (selectedSpecies == null && viewModel.preselectedSpeciesId != null) {

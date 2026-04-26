@@ -244,6 +244,7 @@ export function Bouquets() {
         open={showAdd}
         onClose={() => { setShowAdd(false); resetForm() }}
         title={t('bouquets.buildTitle')}
+        isDirty={formName.trim().length > 0 || formNotes.trim().length > 0 || formPrice.trim().length > 0 || formItems.length > 0 || formRecipeId !== ''}
         actions={<>
           <button onClick={() => { setShowAdd(false); resetForm() }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
           <button onClick={() => createMut.mutate()} disabled={!formIsValid || createMut.isPending} className="btn-primary text-sm">{createMut.isPending ? t('common.saving') : t('common.save')}</button>

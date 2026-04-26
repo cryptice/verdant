@@ -323,8 +323,14 @@ private fun EditGardenDialog(
     var editDescription by remember { mutableStateOf(garden.description ?: "") }
     var editEmoji by remember { mutableStateOf(garden.emoji ?: "") }
 
+    val editDirty = editName != garden.name ||
+        editDescription != (garden.description ?: "") ||
+        editEmoji != (garden.emoji ?: "")
+    val editGuard = app.verdant.android.ui.faltet.rememberUnsavedChangesGuard(editDirty)
+    editGuard.RenderConfirmDialog()
+
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = editGuard.requestDismiss(onDismiss),
         title = { Text("Redigera trädgård") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {

@@ -286,9 +286,25 @@ fun BedDetailScreen(
         }
     }
 
+    val source = uiState.bed
+    val editDirty = editing && source != null && (
+        editName != source.name ||
+            editDescription != (source.description ?: "") ||
+            editSoilType != source.soilType ||
+            editSoilPhText != (source.soilPh?.toString() ?: "") ||
+            editSunExposure != source.sunExposure ||
+            editSunDirections != (source.sunDirections?.toSet() ?: emptySet<String>()) ||
+            editDrainage != source.drainage ||
+            editIrrigationType != source.irrigationType ||
+            editProtection != source.protection ||
+            editRaisedBed != source.raisedBed
+    )
+    val editGuard = app.verdant.android.ui.faltet.rememberUnsavedChangesGuard(editDirty)
+    editGuard.RenderConfirmDialog()
+
     if (editing) {
         AlertDialog(
-            onDismissRequest = { editing = false },
+            onDismissRequest = editGuard.requestDismiss { editing = false },
             title = { Text("Redigera bädd") },
             text = {
                 Column(

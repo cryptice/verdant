@@ -130,6 +130,12 @@ fun RegisterPlantsScreen(
     var seedDate by remember { mutableStateOf<LocalDate?>(LocalDate.now()) }
     var notes by remember { mutableStateOf("") }
 
+    val isDirty = selectedSpecies != null || notes.isNotBlank() ||
+        (countText.toIntOrNull() ?: 0) != 1
+    val unsavedGuard = app.verdant.android.ui.faltet.rememberUnsavedChangesGuard(isDirty)
+    unsavedGuard.InterceptBack(onBack)
+    unsavedGuard.RenderConfirmDialog()
+
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(uiState.error) { uiState.error?.let { snackbarHostState.showSnackbar(it) } }
 
