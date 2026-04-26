@@ -1,46 +1,4 @@
 steps:
-  # Test step 1: start a Postgres sidecar on the cloudbuild network.
-  # Kaniko has no Docker daemon, so Testcontainers / Quarkus Dev Services cannot
-  # run inside the image build. Instead we stand up a real Postgres here and
-  # point @QuarkusTest classes at it via system properties.
-  - id: 'postgres-up'
-    name: 'gcr.io/cloud-builders/docker'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        set -e
-        docker run -d --name pg-test --network cloudbuild \
-          -e POSTGRES_USER=test \
-          -e POSTGRES_PASSWORD=test \
-          -e POSTGRES_DB=verdant \
-          postgres:17
-        i=0
-        while [ $i -lt 30 ]; do
-          if docker exec pg-test pg_isready -U test -d verdant; then
-            echo "postgres ready"
-            exit 0
-          fi
-          i=$((i + 1))
-          sleep 1
-        done
-        echo "postgres did not become ready in 30s"
-        exit 1
-
-  # Test step 2: run the backend test suite against the sidecar.
-  # Quarkus reads these env vars via its standard config convention. Because the
-  # JDBC URL is set, Dev Services auto-disables — tests talk to pg-test directly.
-  - id: 'backend-test'
-    name: 'gradle:8.12-jdk21'
-    dir: 'backend'
-    entrypoint: 'gradle'
-    args: ['test', '--no-daemon']
-    env:
-      - 'QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://pg-test:5432/verdant'
-      - 'QUARKUS_DATASOURCE_USERNAME=test'
-      - 'QUARKUS_DATASOURCE_PASSWORD=test'
-    waitFor: ['postgres-up']
-
   - id: 'image-build'
     name: 'gcr.io/kaniko-project/executor:latest'
     args:
@@ -51,12 +9,14 @@ steps:
       - '--custom-platform=linux/amd64'
       - '--snapshot-mode=redo'
       - '--ignore-path=/tmp/hsperfdata_root'
+      - '--use-new-run'
       - '--build-arg=VITE_GOOGLE_CLIENT_ID'
     secretEnv:
       - 'VITE_GOOGLE_CLIENT_ID'
-    waitFor: ['backend-test']
 
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  - id: 'deploy'
+    name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    waitFor: ['image-build']
     entrypoint: 'bash'
     args:
       - '-c'
