@@ -306,6 +306,20 @@ class PlantService(
     fun getSpeciesEventSummary(orgId: Long, speciesId: Long, trayOnly: Boolean) =
         plantRepository.speciesEventSummary(orgId, speciesId, trayOnly)
 
+    fun deleteSpeciesEvent(orgId: Long, speciesId: Long, request: DeleteSpeciesEventRequest): DeleteSpeciesEventResponse {
+        if (request.count <= 0) throw BadRequestException("count must be > 0")
+        val (events, plants) = plantRepository.deleteSpeciesEventForCount(
+            orgId = orgId,
+            speciesId = speciesId,
+            eventType = request.eventType,
+            eventDate = request.eventDate,
+            count = request.count,
+            currentStatus = request.currentStatus,
+            trayOnly = request.trayOnly,
+        )
+        return DeleteSpeciesEventResponse(eventsDeleted = events, plantsRemoved = plants)
+    }
+
     fun updateSpeciesEventDate(orgId: Long, speciesId: Long, request: UpdateSpeciesEventDateRequest): UpdateSpeciesEventDateResponse {
         val updated = plantRepository.updateSpeciesEventDate(
             orgId = orgId,

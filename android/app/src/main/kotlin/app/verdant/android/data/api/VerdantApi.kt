@@ -112,6 +112,12 @@ interface VerdantApi {
         @retrofit2.http.Body request: UpdateSpeciesEventDateRequest,
     ): UpdateSpeciesEventDateResponse
 
+    @POST("api/plants/species/{speciesId}/events/delete")
+    suspend fun deleteSpeciesEvent(
+        @Path("speciesId") speciesId: Long,
+        @Body request: DeleteSpeciesEventRequest,
+    ): DeleteSpeciesEventResponse
+
     // ── Plant Events ──
 
     @GET("api/plants/{id}/events")

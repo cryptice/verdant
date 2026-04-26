@@ -134,6 +134,23 @@ data class UpdateSpeciesEventDateRequest(
 
 data class UpdateSpeciesEventDateResponse(val updated: Int)
 
+/** Delete the (eventType, eventDate) plant_event row for [count] plants
+ *  that match the species/currentStatus/trayOnly slice. Plants that have
+ *  no events left after the deletion are marked REMOVED so they vanish
+ *  from active views while preserving the audit trail. */
+data class DeleteSpeciesEventRequest(
+    val eventType: String,
+    val eventDate: java.time.LocalDate,
+    val count: Int,
+    val currentStatus: String? = null,
+    val trayOnly: Boolean = false,
+)
+
+data class DeleteSpeciesEventResponse(
+    val eventsDeleted: Int,
+    val plantsRemoved: Int,
+)
+
 data class SpeciesEventSummaryEntry(
     val eventType: String,
     val eventDate: java.time.LocalDate,

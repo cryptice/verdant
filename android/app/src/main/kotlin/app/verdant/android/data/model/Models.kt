@@ -625,6 +625,19 @@ data class UpdateSpeciesEventDateResponse(
     @SerializedName("updated") val updated: Int,
 )
 
+data class DeleteSpeciesEventRequest(
+    @SerializedName("eventType") val eventType: String,
+    @SerializedName("eventDate") val eventDate: String,
+    @SerializedName("count") val count: Int,
+    @SerializedName("currentStatus") val currentStatus: String? = null,
+    @SerializedName("trayOnly") val trayOnly: Boolean = false,
+)
+
+data class DeleteSpeciesEventResponse(
+    @SerializedName("eventsDeleted") val eventsDeleted: Int,
+    @SerializedName("plantsRemoved") val plantsRemoved: Int,
+)
+
 data class PlantLocationGroup(
     @SerializedName("gardenName") val gardenName: String?,
     @SerializedName("bedName") val bedName: String?,

@@ -99,6 +99,32 @@ class PlantedSpeciesDetailViewModel @Inject constructor(
 
     init { load() }
 
+    fun deleteEvent(
+        eventType: String,
+        eventDate: String,
+        count: Int,
+        currentStatus: String,
+        trayOnly: Boolean = true,
+    ) {
+        viewModelScope.launch {
+            try {
+                repo.deleteSpeciesEvent(
+                    speciesId,
+                    app.verdant.android.data.model.DeleteSpeciesEventRequest(
+                        eventType = eventType,
+                        eventDate = eventDate,
+                        count = count,
+                        currentStatus = currentStatus,
+                        trayOnly = trayOnly,
+                    ),
+                )
+                load()
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to delete event", e)
+            }
+        }
+    }
+
     fun updateEventDate(
         eventType: String,
         oldDate: String,
@@ -208,25 +234,55 @@ fun PlantedSpeciesDetailScreen(
     var bedExpanded by remember { mutableStateOf(false) }
     var plantOutMode by remember { mutableStateOf(false) }
     val expandedTrayStatuses = remember { mutableStateOf<Set<String>>(emptySet()) }
-    var editDateTarget by remember {
-        mutableStateOf<Triple<String, String, String>?>(null)
-    } // (eventType, oldDate, currentStatus)
+    // (eventType, oldDate, currentStatus, currentCount)
+    data class EventTarget(val type: String, val date: String, val status: String, val current: Int)
+    var eventChooserTarget by remember { mutableStateOf<EventTarget?>(null) }
+    var editDateTarget by remember { mutableStateOf<EventTarget?>(null) }
+    var deleteEventTarget by remember { mutableStateOf<EventTarget?>(null) }
     androidx.compose.runtime.LaunchedEffect(uiState.locations) {
         // Default-expand every tray row so the events show without an extra tap.
         expandedTrayStatuses.value = uiState.locations.filter { it.bedId == null }
             .map { it.status }.toSet()
     }
 
-    editDateTarget?.let { (eventType, oldDate, currentStatus) ->
+    eventChooserTarget?.let { t ->
+        EventChooserDialog(
+            eventLabel = eventLabelSv(t.type),
+            date = t.date,
+            count = t.current,
+            onDismiss = { eventChooserTarget = null },
+            onEditDate = {
+                eventChooserTarget = null
+                editDateTarget = t
+            },
+            onDelete = {
+                eventChooserTarget = null
+                deleteEventTarget = t
+            },
+        )
+    }
+    editDateTarget?.let { t ->
         EditEventDateDialog(
-            initialDate = runCatching { java.time.LocalDate.parse(oldDate) }.getOrNull()
+            initialDate = runCatching { java.time.LocalDate.parse(t.date) }.getOrNull()
                 ?: java.time.LocalDate.now(),
             onDismiss = { editDateTarget = null },
             onConfirm = { newDate ->
                 editDateTarget = null
-                if (newDate.toString() != oldDate) {
-                    viewModel.updateEventDate(eventType, oldDate, newDate, currentStatus)
+                if (newDate.toString() != t.date) {
+                    viewModel.updateEventDate(t.type, t.date, newDate, t.status)
                 }
+            },
+        )
+    }
+    deleteEventTarget?.let { t ->
+        DeleteEventDialog(
+            eventLabel = eventLabelSv(t.type),
+            date = t.date,
+            maxCount = t.current,
+            onDismiss = { deleteEventTarget = null },
+            onConfirm = { count ->
+                deleteEventTarget = null
+                if (count > 0) viewModel.deleteEvent(t.type, t.date, count, t.status)
             },
         )
     }
@@ -426,8 +482,8 @@ fun PlantedSpeciesDetailScreen(
                                         selectedSubItem = loc
                                         actionCount = loc.count.toString()
                                     },
-                                    onEditEventDate = { eventType, oldDate, currentStatus ->
-                                        editDateTarget = Triple(eventType, oldDate, currentStatus)
+                                    onEventTap = { eventType, oldDate, currentStatus, current ->
+                                        eventChooserTarget = EventTarget(eventType, oldDate, currentStatus, current)
                                     },
                                 )
                             }
@@ -446,7 +502,7 @@ private fun TrayEventsExpansion(
     allEvents: List<app.verdant.android.data.model.SpeciesEventSummaryEntry>,
     currentStatus: String,
     onAct: () -> Unit,
-    onEditEventDate: (eventType: String, oldDate: String, currentStatus: String) -> Unit,
+    onEventTap: (eventType: String, oldDate: String, currentStatus: String, currentCount: Int) -> Unit,
 ) {
     // Show only the events whose plants are currently in this row's status,
     // collapsed across (eventType, eventDate). For each event, also report
@@ -494,7 +550,7 @@ private fun TrayEventsExpansion(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onEditEventDate(e.type, e.date, currentStatus) }
+                        .clickable { onEventTap(e.type, e.date, currentStatus, e.current) }
                         .padding(vertical = 2.dp),
                 ) {
                     Text(
@@ -578,7 +634,7 @@ private fun StatusSectionCard(
     trayEvents: List<app.verdant.android.data.model.SpeciesEventSummaryEntry>,
     onTrayToggle: (String) -> Unit,
     onAct: (PlantLocationGroup) -> Unit,
-    onEditEventDate: (eventType: String, oldDate: String, currentStatus: String) -> Unit,
+    onEventTap: (eventType: String, oldDate: String, currentStatus: String, currentCount: Int) -> Unit,
 ) {
     val totalCount = locations.sumOf { it.count }
     Column(
@@ -669,7 +725,7 @@ private fun StatusSectionCard(
                     allEvents = trayEvents,
                     currentStatus = loc.status,
                     onAct = { onAct(loc) },
-                    onEditEventDate = onEditEventDate,
+                    onEventTap = onEventTap,
                 )
             }
         }
@@ -795,4 +851,91 @@ private fun EditEventDateDialog(
     ) {
         androidx.compose.material3.DatePicker(state = state)
     }
+}
+
+@Composable
+private fun EventChooserDialog(
+    eventLabel: String,
+    date: String,
+    count: Int,
+    onDismiss: () -> Unit,
+    onEditDate: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("$eventLabel · $date") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = "$count plantor",
+                    fontSize = 12.sp,
+                    color = FaltetForest,
+                )
+                Spacer(Modifier.height(8.dp))
+                TextButton(onClick = onEditDate) {
+                    Text("Ändra datum", color = FaltetAccent)
+                }
+                TextButton(onClick = onDelete) {
+                    Text("Ta bort händelse…", color = FaltetAccent)
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Avbryt") } },
+    )
+}
+
+@Composable
+private fun DeleteEventDialog(
+    eventLabel: String,
+    date: String,
+    maxCount: Int,
+    onDismiss: () -> Unit,
+    onConfirm: (count: Int) -> Unit,
+) {
+    var countText by remember { mutableStateOf(maxCount.toString()) }
+    val parsed = countText.toIntOrNull()
+    val valid = parsed != null && parsed in 1..maxCount
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Ta bort händelse") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = "$eventLabel · $date",
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 11.sp,
+                    letterSpacing = 1.2.sp,
+                    color = FaltetForest,
+                )
+                Text(
+                    text = "Antal plantor (max $maxCount):",
+                    fontSize = 13.sp,
+                    color = FaltetInk,
+                )
+                androidx.compose.material3.OutlinedTextField(
+                    value = countText,
+                    onValueChange = { countText = it.filter { c -> c.isDigit() } },
+                    singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
+                    ),
+                )
+                Text(
+                    text = "Plantor som blir kvar utan händelser markeras som borttagna.",
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 10.sp,
+                    letterSpacing = 1.2.sp,
+                    color = FaltetForest,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { if (valid) onConfirm(parsed!!) },
+                enabled = valid,
+            ) { Text("Ta bort", color = if (valid) FaltetAccent else FaltetForest) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Avbryt") } },
+    )
 }

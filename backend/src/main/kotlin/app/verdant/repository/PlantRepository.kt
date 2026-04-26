@@ -258,6 +258,79 @@ class PlantRepository(private val ds: AgroalDataSource) {
         }
     }
 
+    /** Delete one (eventType, eventDate) plant_event per plant for up to
+     *  [count] plants matching the species/currentStatus/trayOnly filter.
+     *  Plants whose remaining event count is zero are marked REMOVED.
+     *  Returns (eventsDeleted, plantsRemoved). */
+    fun deleteSpeciesEventForCount(
+        orgId: Long,
+        speciesId: Long,
+        eventType: String,
+        eventDate: java.time.LocalDate,
+        count: Int,
+        currentStatus: String?,
+        trayOnly: Boolean,
+    ): Pair<Int, Int> = ds.connection.use { conn ->
+        // 1. pick up to [count] matching plant ids
+        val pickSql = buildString {
+            append("""SELECT DISTINCT p.id FROM plant p
+                      JOIN plant_event pe ON pe.plant_id = p.id
+                      WHERE p.org_id = ? AND p.species_id = ?
+                        AND pe.event_type = ? AND pe.event_date = ?""")
+            if (currentStatus != null) append(" AND p.status = ?")
+            if (trayOnly) append(" AND p.bed_id IS NULL")
+            append(" LIMIT ?")
+        }
+        val plantIds = mutableListOf<Long>()
+        conn.prepareStatement(pickSql).use { ps ->
+            var i = 1
+            ps.setLong(i++, orgId)
+            ps.setLong(i++, speciesId)
+            ps.setString(i++, eventType)
+            ps.setObject(i++, java.sql.Date.valueOf(eventDate))
+            if (currentStatus != null) ps.setString(i++, currentStatus)
+            ps.setInt(i++, count)
+            ps.executeQuery().use { rs ->
+                while (rs.next()) plantIds.add(rs.getLong(1))
+            }
+        }
+        if (plantIds.isEmpty()) return@use 0 to 0
+
+        val placeholders = plantIds.joinToString(",") { "?" }
+
+        // 2. delete one matching plant_event per plant
+        var eventsDeleted = 0
+        for (plantId in plantIds) {
+            conn.prepareStatement(
+                """DELETE FROM plant_event
+                   WHERE id = (
+                     SELECT id FROM plant_event
+                     WHERE plant_id = ? AND event_type = ? AND event_date = ?
+                     LIMIT 1
+                   )"""
+            ).use { ps ->
+                ps.setLong(1, plantId)
+                ps.setString(2, eventType)
+                ps.setObject(3, java.sql.Date.valueOf(eventDate))
+                eventsDeleted += ps.executeUpdate()
+            }
+        }
+
+        // 3. mark plants with no remaining events as REMOVED
+        var plantsRemoved = 0
+        conn.prepareStatement(
+            """UPDATE plant SET status = 'REMOVED', updated_at = now()
+               WHERE id IN ($placeholders)
+                 AND status <> 'REMOVED'
+                 AND NOT EXISTS (SELECT 1 FROM plant_event pe WHERE pe.plant_id = plant.id)"""
+        ).use { ps ->
+            plantIds.forEachIndexed { idx, id -> ps.setLong(idx + 1, id) }
+            plantsRemoved = ps.executeUpdate()
+        }
+
+        eventsDeleted to plantsRemoved
+    }
+
     fun delete(id: Long) {
         ds.connection.use { conn ->
             conn.prepareStatement("DELETE FROM plant WHERE id = ?").use { ps ->

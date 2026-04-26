@@ -43,6 +43,8 @@ class GardenRepository @Inject constructor(private val api: VerdantApi) {
         api.getSpeciesEventSummary(speciesId, trayOnly)
     suspend fun updateSpeciesEventDate(speciesId: Long, request: UpdateSpeciesEventDateRequest) =
         api.updateSpeciesEventDate(speciesId, request)
+    suspend fun deleteSpeciesEvent(speciesId: Long, request: DeleteSpeciesEventRequest) =
+        api.deleteSpeciesEvent(speciesId, request)
 
     // Plant Events
     suspend fun getPlantEvents(plantId: Long) = api.getPlantEvents(plantId)

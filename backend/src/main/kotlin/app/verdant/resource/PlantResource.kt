@@ -115,6 +115,13 @@ class PlantResource(
         request: UpdateSpeciesEventDateRequest,
     ) = plantService.updateSpeciesEventDate(orgContext.orgId, speciesId, request)
 
+    @POST
+    @Path("/plants/species/{speciesId}/events/delete")
+    fun deleteSpeciesEvent(
+        @PathParam("speciesId") speciesId: Long,
+        request: DeleteSpeciesEventRequest,
+    ) = plantService.deleteSpeciesEvent(orgContext.orgId, speciesId, request)
+
     // ── Plant Events ──
 
     @GET
