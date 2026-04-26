@@ -395,4 +395,21 @@ interface VerdantApi {
 
     @GET("api/workflows/species-steps/{stepId}/plants")
     suspend fun getPlantsAtStep(@Path("stepId") stepId: Long, @Query("speciesId") speciesId: Long): List<Long>
+
+    // ── Tray locations ──
+
+    @GET("api/tray-locations")
+    suspend fun getTrayLocations(): List<TrayLocationResponse>
+
+    @POST("api/tray-locations")
+    suspend fun createTrayLocation(@Body request: CreateTrayLocationRequest): TrayLocationResponse
+
+    @retrofit2.http.PATCH("api/tray-locations/{id}")
+    suspend fun updateTrayLocation(
+        @Path("id") id: Long,
+        @Body request: UpdateTrayLocationRequest,
+    ): TrayLocationResponse
+
+    @retrofit2.http.DELETE("api/tray-locations/{id}")
+    suspend fun deleteTrayLocation(@Path("id") id: Long): Response<Unit>
 }

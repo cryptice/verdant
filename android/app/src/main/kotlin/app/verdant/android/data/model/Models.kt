@@ -223,6 +223,23 @@ data class TraySummaryEntry(
     @SerializedName("variantName") val variantName: String? = null,
     @SerializedName("status") val status: String,
     @SerializedName("count") val count: Int,
+    @SerializedName("trayLocationId") val trayLocationId: Long? = null,
+    @SerializedName("trayLocationName") val trayLocationName: String? = null,
+)
+
+data class TrayLocationResponse(
+    @SerializedName("id") val id: Long,
+    @SerializedName("name") val name: String,
+    @SerializedName("activePlantCount") val activePlantCount: Int,
+    @SerializedName("createdAt") val createdAt: String,
+)
+
+data class CreateTrayLocationRequest(
+    @SerializedName("name") val name: String,
+)
+
+data class UpdateTrayLocationRequest(
+    @SerializedName("name") val name: String? = null,
 )
 
 data class PlantGroupResponse(
