@@ -353,7 +353,7 @@ private fun InlineEmpty(text: String) {
 
 private fun trayStatusLabelSv(status: String): String = when (status) {
     "SEEDED" -> "Sådd"
-    "POTTED_UP" -> "Krukad"
+    "POTTED_UP" -> "Omskolad"
     "PLANTED_OUT", "GROWING" -> "Växer"
     "HARVESTED" -> "Skördad"
     "RECOVERED" -> "Återhämtad"

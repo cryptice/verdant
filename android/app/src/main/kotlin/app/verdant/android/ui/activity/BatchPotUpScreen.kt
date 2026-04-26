@@ -226,7 +226,7 @@ fun BatchPotUpScreen(
         if (selectedGroup == null) {
             if (uiState.groups.isEmpty()) {
                 FaltetEmptyState(
-                    headline = "Inga grupper att kruka upp",
+                    headline = "Inga grupper att skola om",
                     subtitle = "Så först några frön i brätten.",
                     modifier = Modifier.padding(padding),
                 )
@@ -253,7 +253,7 @@ fun BatchPotUpScreen(
             ) {
                 item {
                     Field(
-                        label = "Antal att kruka upp",
+                        label = "Antal att skola om",
                         value = countText,
                         onValueChange = { countText = it.filter { c -> c.isDigit() }; countError = null },
                         keyboardType = KeyboardType.Number,
@@ -338,7 +338,7 @@ private fun BatchPotUpScreenPreview_Detail() {
         ) {
             item {
                 Field(
-                    label = "Antal att kruka upp",
+                    label = "Antal att skola om",
                     value = "24",
                     onValueChange = {},
                     keyboardType = KeyboardType.Number,

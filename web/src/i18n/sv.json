@@ -1138,7 +1138,7 @@
       "add_seeds": "Lägg till ditt utsäde för att hålla koll på vad du har tillgängligt.",
       "sow_seeds": "Så frön i en bädd eller bricka för att börja odla.",
       "pot_up": "Välj en sådd planta och kruka om den.",
-      "plant_out": "Flytta en krukad planta ut i en trädgårdsbädd.",
+      "plant_out": "Flytta en omskolad planta ut i en trädgårdsbädd.",
       "record_harvest": "Registrera en skörd från en av dina växande plantor.",
       "add_customer": "Lägg till din första kund för att spåra vem som köper dina blommor.",
       "create_bouquet": "Designa ett bukettrecept med dina favoritblommor.",
@@ -1211,7 +1211,7 @@
       },
       "plantOut": {
         "title": "Plantera ut",
-        "description": "Välj en krukad planta och plantera ut den i en bädd i din trädgård."
+        "description": "Välj en omskolad planta och plantera ut den i en bädd i din trädgård."
       },
       "recordHarvest": {
         "title": "Registrera en skörd",

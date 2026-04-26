@@ -180,7 +180,7 @@ fun BatchPlantOutScreen(
             if (uiState.groups.isEmpty()) {
                 FaltetEmptyState(
                     headline = "Inga plantor att plantera ut",
-                    subtitle = "Så eller kruka upp först.",
+                    subtitle = "Så eller skola om först.",
                     modifier = Modifier.padding(padding),
                 )
             } else {
@@ -323,7 +323,7 @@ private fun BatchPlantOutScreenPreview_Detail() {
 
 private fun statusLabelSv(status: String?): String = when (status) {
     "SEEDED" -> "Sådd"
-    "POTTED_UP" -> "Krukad"
+    "POTTED_UP" -> "Omskolad"
     "PLANTED_OUT", "GROWING" -> "Utplanterad"
     "HARVESTED" -> "Skördad"
     null -> "—"

@@ -667,7 +667,7 @@ private fun InlineEmpty(text: String) {
 
 private fun statusLabelSv(status: String?): String = when (status) {
     "SEEDED" -> "Sådd"
-    "POTTED_UP" -> "Krukad"
+    "POTTED_UP" -> "Omskolad"
     "PLANTED_OUT", "GROWING" -> "Utplanterad"
     "HARVESTED" -> "Skördad"
     "RECOVERED" -> "Återhämtad"

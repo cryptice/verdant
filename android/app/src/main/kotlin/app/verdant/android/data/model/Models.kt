@@ -609,6 +609,7 @@ data class SpeciesPlantSummary(
 data class SpeciesEventSummaryEntry(
     @SerializedName("eventType") val eventType: String,
     @SerializedName("eventDate") val eventDate: String,
+    @SerializedName("currentStatus") val currentStatus: String? = null,
     @SerializedName("count") val count: Int,
 )
 

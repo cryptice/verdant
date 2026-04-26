@@ -123,6 +123,10 @@ data class TraySummaryEntry(
 data class SpeciesEventSummaryEntry(
     val eventType: String,
     val eventDate: java.time.LocalDate,
+    /** Current status of the plants this row aggregates. Lets the UI filter
+     *  the events shown for a specific status row (e.g. only the events
+     *  belonging to plants that are still SEEDED). */
+    val currentStatus: String,
     val count: Int,
 )
 

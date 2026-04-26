@@ -199,12 +199,14 @@ class PlantRepository(private val ds: AgroalDataSource) {
     fun speciesEventSummary(orgId: Long, speciesId: Long, trayOnly: Boolean = false): List<app.verdant.dto.SpeciesEventSummaryEntry> =
         ds.connection.use { conn ->
             val sql = buildString {
-                append("""SELECT pe.event_type, pe.event_date, COALESCE(SUM(pe.plant_count), COUNT(*))::int as count
+                append("""SELECT pe.event_type, pe.event_date, p.status as current_status,
+                                 COALESCE(SUM(pe.plant_count), COUNT(*))::int as count
                           FROM plant_event pe
                           JOIN plant p ON pe.plant_id = p.id
                           WHERE p.org_id = ? AND p.species_id = ?""")
                 if (trayOnly) append(" AND p.bed_id IS NULL")
-                append(" GROUP BY pe.event_type, pe.event_date ORDER BY pe.event_date, pe.event_type")
+                append(" GROUP BY pe.event_type, pe.event_date, p.status")
+                append(" ORDER BY pe.event_date, pe.event_type, p.status")
             }
             conn.prepareStatement(sql).use { ps ->
                 ps.setLong(1, orgId)
@@ -215,6 +217,7 @@ class PlantRepository(private val ds: AgroalDataSource) {
                             app.verdant.dto.SpeciesEventSummaryEntry(
                                 eventType = rs.getString("event_type"),
                                 eventDate = rs.getDate("event_date").toLocalDate(),
+                                currentStatus = rs.getString("current_status"),
                                 count = rs.getInt("count"),
                             )
                         )

@@ -261,7 +261,7 @@ fun PlantDetailScreen(
                     }
 
                     item {
-                        val stages = listOf("SÅDD", "KRUKAD", "UTPLANTERAD", "SKÖRDAD")
+                        val stages = listOf("SÅDD", "OMSKOLAD", "UTPLANTERAD", "SKÖRDAD")
                         val currentIdx = when (plant.status) {
                             "SEEDED" -> 0
                             "POTTED_UP" -> 1
@@ -367,7 +367,7 @@ private fun eventToneColor(type: String?): androidx.compose.ui.graphics.Color = 
 
 private fun eventTypeLabelSv(type: String?): String = when (type) {
     "SEEDED", "SOWED" -> "Sådd"
-    "POTTED_UP" -> "Krukad"
+    "POTTED_UP" -> "Omskolad"
     "PLANTED_OUT" -> "Utplanterad"
     "HARVESTED" -> "Skördad"
     "FERTILIZED" -> "Gödslad"
@@ -415,7 +415,7 @@ private fun InlineEmpty(text: String) {
 @Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
 @Composable
 private fun WorkflowStripPreview() {
-    val stages = listOf("SÅDD", "KRUKAD", "UTPLANTERAD", "SKÖRDAD")
+    val stages = listOf("SÅDD", "OMSKOLAD", "UTPLANTERAD", "SKÖRDAD")
     val currentIdx = 1
     Text(
         text = buildAnnotatedString {

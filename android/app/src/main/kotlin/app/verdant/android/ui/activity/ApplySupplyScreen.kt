@@ -414,7 +414,7 @@ private fun ApplySupplyScreenPreview() {
 
 private fun statusLabelSv(status: String?): String = when (status) {
     "SEEDED" -> "Sådd"
-    "POTTED_UP" -> "Krukad"
+    "POTTED_UP" -> "Omskolad"
     "PLANTED_OUT", "GROWING" -> "Utplanterad"
     "HARVESTED" -> "Skördad"
     null -> "—"

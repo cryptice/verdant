@@ -1,6 +1,13 @@
 package app.verdant.android.ui.plants
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.width
@@ -174,7 +181,12 @@ fun PlantedSpeciesDetailScreen(
     var selectedTargetBedId by remember { mutableStateOf<Long?>(null) }
     var bedExpanded by remember { mutableStateOf(false) }
     var plantOutMode by remember { mutableStateOf(false) }
-    var trayExpanded by remember { mutableStateOf(false) }
+    val expandedTrayStatuses = remember { mutableStateOf<Set<String>>(emptySet()) }
+    androidx.compose.runtime.LaunchedEffect(uiState.locations) {
+        // Default-expand every tray row so the events show without an extra tap.
+        expandedTrayStatuses.value = uiState.locations.filter { it.bedId == null }
+            .map { it.status }.toSet()
+    }
 
     val dismissModal: () -> Unit = {
         selectedSubItem = null
@@ -394,16 +406,21 @@ fun PlantedSpeciesDetailScreen(
                                     } else null,
                                     onClick = {
                                         if (isTray) {
-                                            trayExpanded = !trayExpanded
+                                            expandedTrayStatuses.value =
+                                                if (loc.status in expandedTrayStatuses.value)
+                                                    expandedTrayStatuses.value - loc.status
+                                                else
+                                                    expandedTrayStatuses.value + loc.status
                                         } else {
                                             selectedSubItem = loc
                                             actionCount = loc.count.toString()
                                         }
                                     },
                                 )
-                                if (isTray && trayExpanded) {
+                                if (isTray && loc.status in expandedTrayStatuses.value) {
                                     TrayEventsExpansion(
-                                        events = uiState.trayEvents,
+                                        allEvents = uiState.trayEvents,
+                                        currentStatus = loc.status,
                                         onAct = {
                                             selectedSubItem = loc
                                             actionCount = loc.count.toString()
@@ -423,16 +440,37 @@ fun PlantedSpeciesDetailScreen(
 
 @Composable
 private fun TrayEventsExpansion(
-    events: List<app.verdant.android.data.model.SpeciesEventSummaryEntry>,
+    allEvents: List<app.verdant.android.data.model.SpeciesEventSummaryEntry>,
+    currentStatus: String,
     onAct: () -> Unit,
 ) {
+    // Show only the events whose plants are currently in this row's status,
+    // collapsed across (eventType, eventDate). For each event, also report
+    // the species-wide total (across all current statuses) so the user can
+    // see e.g. "5 (10) Sådda" — 5 of the 10 originally sown are still
+    // SEEDED, the others moved on.
+    data class Row(val type: String, val date: String, val current: Int, val total: Int)
+    val rows = allEvents
+        .groupBy { it.eventType to it.eventDate }
+        .map { (key, entries) ->
+            val (type, date) = key
+            Row(
+                type = type,
+                date = date,
+                current = entries.filter { it.currentStatus == currentStatus }.sumOf { it.count },
+                total = entries.sumOf { it.count },
+            )
+        }
+        .filter { it.current > 0 }
+        .sortedWith(compareBy({ it.date }, { it.type }))
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 40.dp, end = 18.dp, top = 6.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        if (events.isEmpty()) {
+        if (rows.isEmpty()) {
             Text(
                 text = "Inga händelser registrerade.",
                 fontFamily = FontFamily.Monospace,
@@ -441,17 +479,19 @@ private fun TrayEventsExpansion(
                 color = FaltetForest,
             )
         } else {
-            events.forEach { e ->
+            rows.forEach { e ->
+                val countLabel = if (e.current < e.total) "${e.current} (${e.total}) st"
+                    else "${e.current} st"
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "${e.count} st",
+                        text = countLabel,
                         fontFamily = FontFamily.Monospace,
                         fontSize = 11.sp,
                         color = FaltetInk,
-                        modifier = Modifier.width(60.dp),
+                        modifier = Modifier.width(80.dp),
                     )
                     Text(
-                        text = eventLabelSv(e.eventType),
+                        text = eventLabelSv(e.type),
                         fontFamily = FaltetDisplay,
                         fontStyle = FontStyle.Italic,
                         fontSize = 14.sp,
@@ -459,7 +499,7 @@ private fun TrayEventsExpansion(
                         modifier = Modifier.weight(1f),
                     )
                     Text(
-                        text = e.eventDate,
+                        text = e.date,
                         fontFamily = FontFamily.Monospace,
                         fontSize = 10.sp,
                         letterSpacing = 1.2.sp,
@@ -468,15 +508,64 @@ private fun TrayEventsExpansion(
                 }
             }
         }
-        TextButton(onClick = onAct, modifier = Modifier.padding(top = 4.dp)) {
-            Text("Åtgärd", color = FaltetAccent, fontSize = 12.sp)
+        Spacer(Modifier.height(4.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(
+                    1.dp,
+                    FaltetInk,
+                    androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                )
+                .clickable(onClick = onAct)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .background(
+                        FaltetAccent.copy(alpha = 0.12f),
+                        androidx.compose.foundation.shape.CircleShape,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Bolt,
+                    contentDescription = null,
+                    tint = FaltetAccent,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Åtgärd",
+                    fontFamily = FaltetDisplay,
+                    fontStyle = FontStyle.Italic,
+                    fontSize = 18.sp,
+                    color = FaltetInk,
+                )
+                Text(
+                    text = "Skola om · plantera ut · kassera",
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 9.sp,
+                    letterSpacing = 1.2.sp,
+                    color = FaltetForest,
+                )
+            }
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = FaltetAccent,
+            )
         }
     }
 }
 
 private fun eventLabelSv(eventType: String): String = when (eventType) {
     "SEEDED" -> "Sådda"
-    "POTTED_UP" -> "Skolade om"
+    "POTTED_UP" -> "Omskolade"
     "PLANTED_OUT" -> "Utplanterade"
     "HARVESTED" -> "Skördade"
     "RECOVERED" -> "Återhämtade"
@@ -497,7 +586,7 @@ private fun eventLabelSv(eventType: String): String = when (eventType) {
 
 private fun statusLabelSv(status: String): String = when (status) {
     "SEEDED" -> "Sådd"
-    "POTTED_UP" -> "Krukad"
+    "POTTED_UP" -> "Omskolad"
     "PLANTED_OUT", "GROWING" -> "Utplanterad"
     "HARVESTED" -> "Skördad"
     "RECOVERED" -> "Återhämtad"
