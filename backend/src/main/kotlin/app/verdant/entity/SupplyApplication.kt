@@ -10,7 +10,7 @@ data class SupplyApplication(
     val orgId: Long,
     val bedId: Long? = null,
     val trayLocationId: Long? = null,
-    val supplyInventoryId: Long,
+    val supplyInventoryId: Long? = null,
     val supplyTypeId: Long,
     val quantity: BigDecimal,
     val targetScope: SupplyApplicationScope,

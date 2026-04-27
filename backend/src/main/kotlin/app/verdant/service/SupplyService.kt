@@ -30,6 +30,7 @@ class SupplyService(
                 category = request.category,
                 unit = request.unit,
                 properties = objectMapper.writeValueAsString(request.properties),
+                inexhaustible = request.inexhaustible,
             )
         )
         return type.toResponse()
@@ -43,6 +44,7 @@ class SupplyService(
             category = request.category ?: type.category,
             unit = request.unit ?: type.unit,
             properties = if (request.properties != null) objectMapper.writeValueAsString(request.properties) else type.properties,
+            inexhaustible = request.inexhaustible ?: type.inexhaustible,
         )
         typeRepository.update(updated)
         return updated.toResponse()
@@ -135,6 +137,7 @@ class SupplyService(
         category = category.name,
         unit = unit.name,
         properties = parseProperties(properties),
+        inexhaustible = inexhaustible,
         createdAt = createdAt,
     )
 

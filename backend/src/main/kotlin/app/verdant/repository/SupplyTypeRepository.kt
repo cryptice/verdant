@@ -45,8 +45,8 @@ class SupplyTypeRepository(private val ds: AgroalDataSource) {
     fun persist(type: SupplyType): SupplyType {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO supply_type (org_id, name, category, unit, properties, created_at)
-                   VALUES (?, ?, ?, ?, ?, now())""",
+                """INSERT INTO supply_type (org_id, name, category, unit, properties, inexhaustible, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setLong(1, type.orgId)
@@ -54,6 +54,7 @@ class SupplyTypeRepository(private val ds: AgroalDataSource) {
                 ps.setString(3, type.category.name)
                 ps.setString(4, type.unit.name)
                 ps.setObject(5, type.properties, java.sql.Types.OTHER)
+                ps.setBoolean(6, type.inexhaustible)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -66,14 +67,15 @@ class SupplyTypeRepository(private val ds: AgroalDataSource) {
     fun update(type: SupplyType) {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """UPDATE supply_type SET name = ?, category = ?, unit = ?, properties = ?
+                """UPDATE supply_type SET name = ?, category = ?, unit = ?, properties = ?, inexhaustible = ?
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setString(1, type.name)
                 ps.setString(2, type.category.name)
                 ps.setString(3, type.unit.name)
                 ps.setObject(4, type.properties, java.sql.Types.OTHER)
-                ps.setLong(5, type.id!!)
+                ps.setBoolean(5, type.inexhaustible)
+                ps.setLong(6, type.id!!)
                 ps.executeUpdate()
             }
         }
@@ -96,6 +98,7 @@ class SupplyTypeRepository(private val ds: AgroalDataSource) {
         category = SupplyCategory.valueOf(getString("category")),
         unit = SupplyUnit.valueOf(getString("unit")),
         properties = getString("properties") ?: "{}",
+        inexhaustible = getBoolean("inexhaustible"),
         createdAt = getTimestamp("created_at").toInstant(),
     )
 }

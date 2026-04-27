@@ -15,6 +15,7 @@ data class SupplyTypeResponse(
     val category: String,
     val unit: String,
     val properties: Map<String, Any?>,
+    val inexhaustible: Boolean,
     val createdAt: Instant,
 )
 
@@ -26,6 +27,7 @@ data class CreateSupplyTypeRequest(
     @field:NotNull
     val unit: SupplyUnit,
     val properties: Map<String, Any?> = emptyMap(),
+    val inexhaustible: Boolean = false,
 )
 
 data class UpdateSupplyTypeRequest(
@@ -34,6 +36,7 @@ data class UpdateSupplyTypeRequest(
     val category: SupplyCategory? = null,
     val unit: SupplyUnit? = null,
     val properties: Map<String, Any?>? = null,
+    val inexhaustible: Boolean? = null,
 )
 
 data class SupplyInventoryResponse(

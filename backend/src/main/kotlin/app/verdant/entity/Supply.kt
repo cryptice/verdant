@@ -14,6 +14,7 @@ data class SupplyType(
     val category: SupplyCategory,
     val unit: SupplyUnit,
     val properties: String = "{}",
+    val inexhaustible: Boolean = false,
     val createdAt: Instant = Instant.now(),
 )
 

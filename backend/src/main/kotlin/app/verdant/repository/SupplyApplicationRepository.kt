@@ -22,7 +22,7 @@ class SupplyApplicationRepository(private val ds: AgroalDataSource) {
                 ps.setLong(1, app.orgId)
                 app.bedId?.let { ps.setLong(2, it) } ?: ps.setNull(2, java.sql.Types.BIGINT)
                 app.trayLocationId?.let { ps.setLong(3, it) } ?: ps.setNull(3, java.sql.Types.BIGINT)
-                ps.setLong(4, app.supplyInventoryId)
+                app.supplyInventoryId?.let { ps.setLong(4, it) } ?: ps.setNull(4, java.sql.Types.BIGINT)
                 ps.setLong(5, app.supplyTypeId)
                 ps.setBigDecimal(6, app.quantity)
                 ps.setString(7, app.targetScope.name)
@@ -110,7 +110,7 @@ class SupplyApplicationRepository(private val ds: AgroalDataSource) {
         orgId = getLong("org_id"),
         bedId = getLong("bed_id").takeIf { !wasNull() },
         trayLocationId = getLong("tray_location_id").takeIf { !wasNull() },
-        supplyInventoryId = getLong("supply_inventory_id"),
+        supplyInventoryId = getLong("supply_inventory_id").takeIf { !wasNull() },
         supplyTypeId = getLong("supply_type_id"),
         quantity = getBigDecimal("quantity"),
         targetScope = SupplyApplicationScope.valueOf(getString("target_scope")),

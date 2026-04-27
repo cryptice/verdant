@@ -82,9 +82,26 @@ class SupplyApplicationService(
             if (loc.orgId != orgId) throw NotFoundException("Tray location not found")
         }
 
-        val inventory = inventoryRepo.findById(request.supplyInventoryId)
-            ?: throw NotFoundException("Supply inventory not found")
-        if (inventory.orgId != orgId) throw NotFoundException("Supply inventory not found")
+        // Supply selection: exactly one of supplyInventoryId / supplyTypeId.
+        if ((request.supplyInventoryId == null) == (request.supplyTypeId == null))
+            throw BadRequestException("Provide exactly one of supplyInventoryId or supplyTypeId")
+
+        val inventory = request.supplyInventoryId?.let { invId ->
+            val inv = inventoryRepo.findById(invId)
+                ?: throw NotFoundException("Supply inventory not found")
+            if (inv.orgId != orgId) throw NotFoundException("Supply inventory not found")
+            inv
+        }
+        val resolvedTypeId: Long = if (inventory != null) {
+            inventory.supplyTypeId
+        } else {
+            val type = supplyTypeRepo.findById(request.supplyTypeId!!)
+                ?: throw NotFoundException("Supply type not found")
+            if (type.orgId != orgId) throw NotFoundException("Supply type not found")
+            if (!type.inexhaustible)
+                throw BadRequestException("supplyTypeId only accepted for inexhaustible types")
+            type.id!!
+        }
 
         // 3. Plant resolution
         val targetPlants = when {
@@ -110,10 +127,12 @@ class SupplyApplicationService(
                 throw BadRequestException("Workflow step does not match any target plant's species")
         }
 
-        // 5. Decrement inventory
-        if (request.quantity > inventory.quantity)
-            throw BadRequestException("Insufficient quantity")
-        inventoryRepo.decrementQuantity(inventory.id!!, request.quantity)
+        // 5. Decrement inventory (skipped for inexhaustible types)
+        if (inventory != null) {
+            if (request.quantity > inventory.quantity)
+                throw BadRequestException("Insufficient quantity")
+            inventoryRepo.decrementQuantity(inventory.id!!, request.quantity)
+        }
 
         // 6. Insert the application
         val persisted = applicationRepo.insert(
@@ -121,8 +140,8 @@ class SupplyApplicationService(
                 orgId = orgId,
                 bedId = bedId,
                 trayLocationId = trayLocationId,
-                supplyInventoryId = inventory.id,
-                supplyTypeId = inventory.supplyTypeId,
+                supplyInventoryId = inventory?.id,
+                supplyTypeId = resolvedTypeId,
                 quantity = request.quantity,
                 targetScope = scope,
                 appliedBy = userId,
