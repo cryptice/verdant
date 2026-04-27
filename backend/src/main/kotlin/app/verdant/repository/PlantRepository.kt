@@ -86,8 +86,8 @@ class PlantRepository(private val ds: AgroalDataSource) {
     fun persist(plant: Plant): Plant {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO plant (name, species_id, planted_date, status, seed_count, surviving_count, bed_id, org_id, season_id, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
+                """INSERT INTO plant (name, species_id, planted_date, status, seed_count, surviving_count, bed_id, tray_location_id, org_id, season_id, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setString(1, plant.name)
@@ -97,8 +97,9 @@ class PlantRepository(private val ds: AgroalDataSource) {
                 ps.setObject(5, plant.seedCount)
                 ps.setObject(6, plant.survivingCount)
                 ps.setObject(7, plant.bedId)
-                ps.setLong(8, plant.orgId)
-                ps.setObject(9, plant.seasonId)
+                ps.setObject(8, plant.trayLocationId)
+                ps.setLong(9, plant.orgId)
+                ps.setObject(10, plant.seasonId)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -112,7 +113,7 @@ class PlantRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """UPDATE plant SET name = ?, species_id = ?, planted_date = ?, status = ?,
-                   seed_count = ?, surviving_count = ?, bed_id = ?, season_id = ?, updated_at = now()
+                   seed_count = ?, surviving_count = ?, bed_id = ?, tray_location_id = ?, season_id = ?, updated_at = now()
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setString(1, plant.name)
@@ -122,8 +123,9 @@ class PlantRepository(private val ds: AgroalDataSource) {
                 ps.setObject(5, plant.seedCount)
                 ps.setObject(6, plant.survivingCount)
                 ps.setObject(7, plant.bedId)
-                ps.setObject(8, plant.seasonId)
-                ps.setLong(9, plant.id!!)
+                ps.setObject(8, plant.trayLocationId)
+                ps.setObject(9, plant.seasonId)
+                ps.setLong(10, plant.id!!)
                 ps.executeUpdate()
             }
         }
@@ -454,6 +456,7 @@ class PlantRepository(private val ds: AgroalDataSource) {
         seedCount = getObject("seed_count") as? Int,
         survivingCount = getObject("surviving_count") as? Int,
         bedId = getObject("bed_id") as? Long,
+        trayLocationId = getObject("tray_location_id") as? Long,
         orgId = getLong("org_id"),
         seasonId = getObject("season_id") as? Long,
         createdAt = getTimestamp("created_at").toInstant(),

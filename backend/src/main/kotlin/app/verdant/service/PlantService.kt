@@ -20,6 +20,7 @@ class PlantService(
     private val speciesRepository: SpeciesRepository,
     private val storageService: StorageService,
     private val workflowRepository: WorkflowRepository,
+    private val trayLocationRepository: app.verdant.repository.TrayLocationRepository,
 ) {
     private fun checkBedOwnership(bedId: Long, orgId: Long) {
         val bed = bedRepository.findById(bedId) ?: throw NotFoundException("Bed not found")
@@ -84,6 +85,14 @@ class PlantService(
             throw BadRequestException("name must not exceed 255 characters")
         }
         if (request.bedId != null) checkBedOwnership(request.bedId, orgId)
+        if (request.bedId != null && request.trayLocationId != null) {
+            throw BadRequestException("bedId and trayLocationId are mutually exclusive")
+        }
+        if (request.trayLocationId != null) {
+            val loc = trayLocationRepository.findById(request.trayLocationId)
+                ?: throw NotFoundException("Tray location not found")
+            if (loc.orgId != orgId) throw NotFoundException("Tray location not found")
+        }
         val today = request.plantedDate ?: java.time.LocalDate.now()
         val plantIds = mutableListOf<Long>()
         // Upload image once if provided
@@ -98,6 +107,7 @@ class PlantService(
                     seedCount = 1,
                     survivingCount = 1,
                     bedId = request.bedId,
+                    trayLocationId = if (request.bedId == null) request.trayLocationId else null,
                     orgId = orgId,
                 )
             )

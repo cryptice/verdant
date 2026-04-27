@@ -60,6 +60,9 @@ data class SpeciesPlantSummary(
 
 data class BatchSowRequest(
     val bedId: Long? = null,
+    /** Tray location for the new plants. Mutually exclusive with bedId.
+     *  Null means "no tray location" (legacy / single-location accounts). */
+    val trayLocationId: Long? = null,
     @field:NotNull
     val speciesId: Long,
     @field:NotBlank @field:Size(max = 255)
