@@ -412,4 +412,19 @@ interface VerdantApi {
 
     @retrofit2.http.DELETE("api/tray-locations/{id}")
     suspend fun deleteTrayLocation(@Path("id") id: Long): Response<Unit>
+
+    @POST("api/tray-locations/{id}/water")
+    suspend fun waterTrayLocation(@Path("id") id: Long): BulkLocationActionResponse
+
+    @POST("api/tray-locations/{id}/note")
+    suspend fun noteTrayLocation(
+        @Path("id") id: Long,
+        @Body request: BulkLocationNoteRequest,
+    ): BulkLocationActionResponse
+
+    @POST("api/tray-locations/{id}/move")
+    suspend fun moveTrayLocation(
+        @Path("id") id: Long,
+        @Body request: MoveTrayLocationRequest,
+    ): BulkLocationActionResponse
 }

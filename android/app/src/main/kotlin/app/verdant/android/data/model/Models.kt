@@ -243,6 +243,21 @@ data class UpdateTrayLocationRequest(
     @SerializedName("name") val name: String? = null,
 )
 
+data class BulkLocationActionResponse(
+    @SerializedName("plantsAffected") val plantsAffected: Int,
+)
+
+data class BulkLocationNoteRequest(
+    @SerializedName("text") val text: String,
+)
+
+data class MoveTrayLocationRequest(
+    @SerializedName("targetLocationId") val targetLocationId: Long? = null,
+    @SerializedName("count") val count: Int = -1,
+    @SerializedName("speciesId") val speciesId: Long? = null,
+    @SerializedName("status") val status: String? = null,
+)
+
 data class PlantGroupResponse(
     @SerializedName("speciesId") val speciesId: Long,
     @SerializedName("speciesName") val speciesName: String?,

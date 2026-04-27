@@ -662,6 +662,15 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                 )
             }
 
+            composable(
+                Screen.TrayLocationDetail.route,
+                arguments = listOf(navArgument("locationId") { type = NavType.LongType }),
+            ) {
+                app.verdant.android.ui.location.TrayLocationDetailScreen(
+                    onBack = { navController.popBackStack() },
+                )
+            }
+
             // ── Parity screens ──
 
             composable(Screen.PestDiseaseLog.route) {

@@ -1,0 +1,428 @@
+package app.verdant.android.ui.location
+
+import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import app.verdant.android.data.model.MoveTrayLocationRequest
+import app.verdant.android.data.model.TrayLocationResponse
+import app.verdant.android.data.model.TraySummaryEntry
+import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.ui.common.ConnectionErrorState
+import app.verdant.android.ui.faltet.FaltetDropdown
+import app.verdant.android.ui.faltet.FaltetEmptyState
+import app.verdant.android.ui.faltet.FaltetListRow
+import app.verdant.android.ui.faltet.FaltetLoadingState
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.faltet.FaltetSectionHeader
+import app.verdant.android.ui.theme.FaltetAccent
+import app.verdant.android.ui.theme.FaltetForest
+import app.verdant.android.ui.theme.FaltetInk
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+private const val TAG = "TrayLocationDetailScreen"
+
+data class TrayLocationDetailState(
+    val isLoading: Boolean = true,
+    val location: TrayLocationResponse? = null,
+    val allLocations: List<TrayLocationResponse> = emptyList(),
+    val entries: List<TraySummaryEntry> = emptyList(),
+    val totalCount: Int = 0,
+    val acting: Boolean = false,
+    val error: String? = null,
+    val info: String? = null,
+)
+
+@HiltViewModel
+class TrayLocationDetailViewModel @Inject constructor(
+    private val repo: GardenRepository,
+    savedStateHandle: SavedStateHandle,
+) : ViewModel() {
+    private val locationId: Long = savedStateHandle.get<Long>("locationId")
+        ?: error("locationId missing")
+
+    private val _uiState = MutableStateFlow(TrayLocationDetailState())
+    val uiState = _uiState.asStateFlow()
+
+    init { refresh() }
+
+    fun refresh() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            try {
+                val all = repo.getTrayLocations()
+                val loc = all.firstOrNull { it.id == locationId }
+                val summary = repo.getTraySummary().filter { it.trayLocationId == locationId }
+                _uiState.value = TrayLocationDetailState(
+                    isLoading = false,
+                    location = loc,
+                    allLocations = all,
+                    entries = summary,
+                    totalCount = summary.sumOf { it.count },
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load location detail", e)
+                _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
+            }
+        }
+    }
+
+    fun water() = bulk("Vattnade") { repo.waterTrayLocation(locationId).plantsAffected }
+
+    fun note(text: String) = bulk("Anteckning sparad") {
+        repo.noteTrayLocation(locationId, text).plantsAffected
+    }
+
+    fun move(targetId: Long?, count: Int, speciesId: Long?, status: String?) = bulk("Flyttade") {
+        repo.moveTrayLocation(
+            locationId,
+            MoveTrayLocationRequest(
+                targetLocationId = targetId,
+                count = count,
+                speciesId = speciesId,
+                status = status,
+            ),
+        ).plantsAffected
+    }
+
+    private fun bulk(verb: String, call: suspend () -> Int) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(acting = true, error = null, info = null)
+            try {
+                val n = call()
+                _uiState.value = _uiState.value.copy(acting = false, info = "$verb · $n plantor")
+                refresh()
+            } catch (e: Exception) {
+                Log.e(TAG, "bulk action failed", e)
+                _uiState.value = _uiState.value.copy(acting = false, error = e.message)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TrayLocationDetailScreen(
+    onBack: () -> Unit,
+    viewModel: TrayLocationDetailViewModel = hiltViewModel(),
+) {
+    val ui by viewModel.uiState.collectAsState()
+    var showWaterConfirm by remember { mutableStateOf(false) }
+    var showNoteDialog by remember { mutableStateOf(false) }
+    var showMoveAllDialog by remember { mutableStateOf(false) }
+    var partialMoveTarget by remember { mutableStateOf<TraySummaryEntry?>(null) }
+
+    LaunchedEffect(ui.info) {
+        if (ui.info != null) {
+            kotlinx.coroutines.delay(1500)
+        }
+    }
+
+    FaltetScreenScaffold(
+        mastheadLeft = "",
+        mastheadCenter = ui.location?.name ?: "Plats",
+    ) { padding ->
+        when {
+            ui.isLoading -> FaltetLoadingState(Modifier.padding(padding))
+            ui.error != null && ui.location == null -> Box(
+                Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center,
+            ) {
+                ConnectionErrorState(onRetry = { viewModel.refresh() })
+            }
+            ui.location == null -> FaltetEmptyState(
+                headline = "Plats saknas",
+                subtitle = "Den här platsen finns inte längre.",
+                modifier = Modifier.padding(padding),
+            )
+            else -> LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            text = "${ui.totalCount} ST",
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 12.sp,
+                            color = FaltetForest,
+                            modifier = Modifier.weight(1f),
+                        )
+                        ui.info?.let {
+                            Text(
+                                text = it,
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 10.sp,
+                                color = FaltetAccent,
+                            )
+                        }
+                    }
+                }
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        ActionButton(
+                            label = "Vattna alla",
+                            enabled = !ui.acting && ui.totalCount > 0,
+                            onClick = { showWaterConfirm = true },
+                        )
+                        ActionButton(
+                            label = "Anteckna",
+                            enabled = !ui.acting && ui.totalCount > 0,
+                            onClick = { showNoteDialog = true },
+                        )
+                        ActionButton(
+                            label = "Flytta",
+                            enabled = !ui.acting && ui.totalCount > 0,
+                            onClick = { showMoveAllDialog = true },
+                        )
+                    }
+                }
+                item { FaltetSectionHeader(label = "Plantor") }
+                if (ui.entries.isEmpty()) {
+                    item {
+                        Text(
+                            text = "—",
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 12.sp,
+                            color = FaltetForest,
+                            modifier = Modifier.padding(vertical = 8.dp),
+                        )
+                    }
+                } else {
+                    items(ui.entries, key = { "${it.speciesId}_${it.status}" }) { entry ->
+                        FaltetListRow(
+                            title = entry.variantName?.let { "${entry.speciesName} – $it" } ?: entry.speciesName,
+                            meta = trayStatusLabelSv(entry.status),
+                            stat = {
+                                Row(verticalAlignment = Alignment.Bottom) {
+                                    Text(
+                                        text = entry.count.toString(),
+                                        fontFamily = FontFamily.Monospace,
+                                        fontSize = 16.sp,
+                                        color = FaltetInk,
+                                    )
+                                    Text(
+                                        text = " ST",
+                                        fontFamily = FontFamily.Monospace,
+                                        fontSize = 9.sp,
+                                        color = FaltetForest,
+                                    )
+                                }
+                            },
+                            onClick = { partialMoveTarget = entry },
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    if (showWaterConfirm) {
+        ConfirmActionDialog(
+            title = "Vattna alla?",
+            text = "Vattnar ${ui.totalCount} plantor i ${ui.location?.name}.",
+            confirmLabel = "Vattna",
+            onConfirm = { viewModel.water(); showWaterConfirm = false },
+            onDismiss = { showWaterConfirm = false },
+        )
+    }
+    if (showNoteDialog) {
+        NoteDialog(
+            onDismiss = { showNoteDialog = false },
+            onSubmit = { text -> viewModel.note(text); showNoteDialog = false },
+        )
+    }
+    if (showMoveAllDialog) {
+        MoveDialog(
+            allLocations = ui.allLocations.filter { it.id != ui.location?.id },
+            sourceCount = ui.totalCount,
+            initialTitle = "Alla i ${ui.location?.name}",
+            onDismiss = { showMoveAllDialog = false },
+            onConfirm = { targetId, count ->
+                viewModel.move(targetId, count, null, null)
+                showMoveAllDialog = false
+            },
+        )
+    }
+    partialMoveTarget?.let { entry ->
+        MoveDialog(
+            allLocations = ui.allLocations.filter { it.id != ui.location?.id },
+            sourceCount = entry.count,
+            initialTitle = entry.variantName?.let { "${entry.speciesName} – $it" } ?: entry.speciesName,
+            onDismiss = { partialMoveTarget = null },
+            onConfirm = { targetId, count ->
+                viewModel.move(targetId, count, entry.speciesId, entry.status)
+                partialMoveTarget = null
+            },
+        )
+    }
+}
+
+@Composable
+private fun ActionButton(
+    label: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    TextButton(onClick = onClick, enabled = enabled) {
+        Text(label, color = FaltetAccent, fontSize = 12.sp)
+    }
+}
+
+@Composable
+private fun ConfirmActionDialog(
+    title: String,
+    text: String,
+    confirmLabel: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = { Text(text) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) { Text(confirmLabel, color = FaltetAccent) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Avbryt", color = FaltetForest) }
+        },
+    )
+}
+
+@Composable
+private fun NoteDialog(
+    onDismiss: () -> Unit,
+    onSubmit: (String) -> Unit,
+) {
+    var text by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Anteckna") },
+        text = {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                label = { Text("Anteckning") },
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSubmit(text.trim()) },
+                enabled = text.trim().isNotEmpty(),
+            ) { Text("Spara", color = FaltetAccent) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Avbryt", color = FaltetForest) }
+        },
+    )
+}
+
+@Composable
+private fun MoveDialog(
+    allLocations: List<TrayLocationResponse>,
+    sourceCount: Int,
+    initialTitle: String,
+    onDismiss: () -> Unit,
+    onConfirm: (targetId: Long?, count: Int) -> Unit,
+) {
+    var target by remember { mutableStateOf<TrayLocationResponse?>(null) }
+    var detach by remember { mutableStateOf(false) }
+    var countText by remember { mutableStateOf(sourceCount.toString()) }
+    val count = countText.toIntOrNull() ?: 0
+    val canSubmit = count in 1..sourceCount && (detach || target != null)
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Flytta plantor") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(initialTitle, fontSize = 12.sp, color = FaltetForest)
+                FaltetDropdown(
+                    label = "Mål",
+                    options = allLocations,
+                    selected = target,
+                    onSelectedChange = { target = it; detach = false },
+                    labelFor = { it.name },
+                    searchable = false,
+                    required = !detach,
+                )
+                TextButton(onClick = { detach = !detach; if (detach) target = null }) {
+                    Text(
+                        text = if (detach) "✓ Inget mål (utan plats)" else "Eller: ta bort plats",
+                        color = FaltetAccent,
+                        fontSize = 12.sp,
+                    )
+                }
+                OutlinedTextField(
+                    value = countText,
+                    onValueChange = { v -> countText = v.filter { it.isDigit() } },
+                    label = { Text("Antal (max $sourceCount)") },
+                    singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                    ),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(target?.id, count) },
+                enabled = canSubmit,
+            ) { Text("Flytta", color = FaltetAccent) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Avbryt", color = FaltetForest) }
+        },
+    )
+}
+
+private fun trayStatusLabelSv(status: String): String = when (status) {
+    "SEEDED" -> "Sådd"
+    "POTTED_UP" -> "Omskolad"
+    "PLANTED_OUT", "GROWING" -> "Växer"
+    "HARVESTED" -> "Skördad"
+    "RECOVERED" -> "Återhämtad"
+    "REMOVED" -> "Borttagen"
+    else -> status
+}
