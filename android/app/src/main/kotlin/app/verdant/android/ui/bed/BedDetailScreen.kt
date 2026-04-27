@@ -192,6 +192,19 @@ class BedDetailViewModel @Inject constructor(
         }
     }
 
+    fun water() {
+        viewModelScope.launch {
+            try {
+                val r = gardenRepository.waterBed(bedId)
+                _uiState.value = _uiState.value.copy(
+                    toastMessage = "Vattnade · ${r.plantsAffected} plantor",
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(toastMessage = "Kunde inte vattna")
+            }
+        }
+    }
+
     fun consumeToast() {
         _uiState.value = _uiState.value.copy(toastMessage = null)
     }
@@ -456,6 +469,11 @@ fun BedDetailScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     ) { Text("Gödsla") }
+                    androidx.compose.material3.OutlinedButton(
+                        onClick = { showAddDialog = false; viewModel.water() },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) { Text("Vattna") }
                     androidx.compose.material3.OutlinedButton(
                         onClick = { showAddDialog = false; viewModel.weed() },
                         modifier = Modifier.fillMaxWidth(),

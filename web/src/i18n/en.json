@@ -64,6 +64,8 @@
     "image": "Image",
     "group": "Group",
     "clear": "Clear",
+    "showMore": "Show more",
+    "showLess": "Show less",
     "ledger": {
       "empty": "No rows yet",
       "filterClear": "Clear filters"

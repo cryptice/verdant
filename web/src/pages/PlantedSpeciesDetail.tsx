@@ -19,13 +19,14 @@ const STATUS_LABEL_PLURAL_SV: Record<string, string> = {
   REMOVED: 'Borttagna',
 }
 
-function labelForEventRow(e: { type: string; fromLoc?: string | null; toLoc?: string | null }): string {
+function labelForEventRow(e: { type: string; fromLoc?: string | null; toLoc?: string | null; notes?: string | null }): string {
   if (e.type === 'MOVED') {
     if (e.fromLoc && e.toLoc) return `Flyttade · ${e.fromLoc} → ${e.toLoc}`
     if (e.toLoc) return `Flyttade · till ${e.toLoc}`
     if (e.fromLoc) return `Flyttade · ut ur ${e.fromLoc}`
     return 'Flyttade'
   }
+  if (e.type === 'NOTE' && e.notes) return e.notes
   return EVENT_LABEL_SV[e.type] ?? e.type
 }
 
@@ -636,7 +637,7 @@ function TrayEventsExpansion({
                 {e.date}
               </span>
             </div>
-            {e.notes && (
+            {e.notes && e.type !== 'NOTE' && (
               <div
                 style={{
                   marginLeft: 102,

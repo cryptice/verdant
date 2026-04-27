@@ -716,6 +716,7 @@ private fun TrayEventsExpansion(
                                 "Flyttade · till ${e.toLoc}"
                             e.type == "MOVED" && e.fromLoc != null ->
                                 "Flyttade · ut ur ${e.fromLoc}"
+                            e.type == "NOTE" && !e.notes.isNullOrBlank() -> e.notes
                             else -> eventLabelSv(e.type)
                         }
                         Text(
@@ -734,7 +735,7 @@ private fun TrayEventsExpansion(
                             color = if (isLatest) FaltetAccent else FaltetForest,
                         )
                     }
-                    if (!e.notes.isNullOrBlank()) {
+                    if (!e.notes.isNullOrBlank() && e.type != "NOTE") {
                         Text(
                             text = "“${e.notes}”",
                             fontFamily = FaltetDisplay,

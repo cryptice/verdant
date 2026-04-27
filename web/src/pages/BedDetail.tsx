@@ -94,6 +94,12 @@ export function BedDetail() {
     onError: () => setToast('Kunde inte rensa ogräs'),
   })
 
+  const waterBedMut = useMutation({
+    mutationFn: () => api.beds.water(bedId),
+    onSuccess: (r) => setToast(`Vattnade · ${r.plantsAffected} plantor`),
+    onError: () => setToast('Kunde inte vattna'),
+  })
+
   const updateMut = useMutation({
     mutationFn: () => api.beds.update(bedId, {
       name: editName,
@@ -242,6 +248,14 @@ export function BedDetail() {
           meta={`${uniqueSpeciesCount} ${t('bed.plants.metaSuffix')}`}
           actions={
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button
+                onClick={() => waterBedMut.mutate()}
+                disabled={waterBedMut.isPending}
+                className="btn-secondary"
+                style={{ whiteSpace: 'nowrap' }}
+              >
+                {waterBedMut.isPending ? '…' : 'Vattna'}
+              </button>
               <button
                 onClick={() => weedMut.mutate()}
                 disabled={weedMut.isPending}

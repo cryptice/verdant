@@ -87,6 +87,10 @@ class PlantResource(
     @Path("/beds/{id}/weed")
     fun weedBed(@PathParam("id") id: Long) = plantService.weedBed(id, orgContext.orgId)
 
+    @POST
+    @Path("/beds/{id}/water")
+    fun waterBed(@PathParam("id") id: Long) = plantService.waterBed(id, orgContext.orgId)
+
     @PUT
     @Path("/plants/{id}")
     fun update(@PathParam("id") id: Long, @Valid request: UpdatePlantRequest) =

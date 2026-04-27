@@ -23,7 +23,14 @@ class PlantService(
     private val trayLocationRepository: app.verdant.repository.TrayLocationRepository,
 ) {
     @Transactional
-    fun weedBed(bedId: Long, orgId: Long): BulkLocationActionResponse {
+    fun weedBed(bedId: Long, orgId: Long): BulkLocationActionResponse =
+        bulkBedEvent(bedId, orgId, PlantEventType.WEEDED)
+
+    @Transactional
+    fun waterBed(bedId: Long, orgId: Long): BulkLocationActionResponse =
+        bulkBedEvent(bedId, orgId, PlantEventType.WATERED)
+
+    private fun bulkBedEvent(bedId: Long, orgId: Long, eventType: PlantEventType): BulkLocationActionResponse {
         checkBedOwnership(bedId, orgId)
         val plants = plantRepository.findByBedId(bedId)
             .filter { it.status != PlantStatus.REMOVED }
@@ -32,7 +39,7 @@ class PlantService(
             plantEventRepository.persist(
                 PlantEvent(
                     plantId = plant.id!!,
-                    eventType = PlantEventType.WEEDED,
+                    eventType = eventType,
                     eventDate = today,
                     plantCount = 1,
                 )

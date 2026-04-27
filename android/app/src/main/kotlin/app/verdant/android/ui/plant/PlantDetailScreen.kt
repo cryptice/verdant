@@ -160,6 +160,7 @@ fun PlantDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var eventsExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(refreshKey) {
         if (refreshKey == true) viewModel.refresh()
@@ -296,11 +297,37 @@ fun PlantDetailScreen(
                         item { FaltetSectionHeader(label = "Händelser") }
                         item { InlineEmpty("Inga händelser ännu.") }
                     } else {
-                        eventsByMonth.forEach { (yearMonth, events) ->
-                            item(key = "header_${yearMonth}") {
+                        val totalEvents = eventsByMonth.sumOf { it.second.size }
+                        val visibleByMonth = if (eventsExpanded || totalEvents <= 1) {
+                            eventsByMonth
+                        } else {
+                            // Show only the latest event (top of the first month group)
+                            eventsByMonth.firstOrNull()
+                                ?.let { (ym, evts) -> listOf(ym to evts.take(1)) }
+                                ?: emptyList()
+                        }
+                        if (totalEvents > 1) {
+                            item(key = "events_toggle") {
+                                androidx.compose.material3.TextButton(
+                                    onClick = { eventsExpanded = !eventsExpanded },
+                                ) {
+                                    androidx.compose.material3.Text(
+                                        text = if (eventsExpanded)
+                                            "Visa färre"
+                                        else
+                                            "Visa fler (${totalEvents - 1})",
+                                        fontFamily = FontFamily.Monospace,
+                                        fontSize = 11.sp,
+                                        color = FaltetAccent,
+                                    )
+                                }
+                            }
+                        }
+                        visibleByMonth.forEach { (yearMonth, events) ->
+                            item(key = "header_${yearMonth}_${eventsExpanded}") {
                                 FaltetSectionHeader(label = monthLabelSv(yearMonth))
                             }
-                            items(events, key = { it.id }) { event ->
+                            items(events, key = { "ev_${it.id}" }) { event ->
                                 FaltetListRow(
                                     leading = {
                                         Box(

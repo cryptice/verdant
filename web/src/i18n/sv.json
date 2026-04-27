@@ -64,6 +64,8 @@
     "image": "Bild",
     "group": "Grupp",
     "clear": "Rensa",
+    "showMore": "Visa fler",
+    "showLess": "Visa färre",
     "ledger": {
       "empty": "Inga rader än",
       "filterClear": "Rensa filter"

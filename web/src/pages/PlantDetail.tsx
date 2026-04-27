@@ -47,6 +47,7 @@ export function PlantDetail() {
 
   const [showDelete, setShowDelete] = useState(false)
   const [showAddEvent, setShowAddEvent] = useState(false)
+  const [eventsExpanded, setEventsExpanded] = useState(false)
   const [eventType, setEventType] = useState('NOTE')
   const [eventNotes, setEventNotes] = useState('')
   const [eventCount, setEventCount] = useState('')
@@ -221,7 +222,32 @@ export function PlantDetail() {
         )}
 
         <div style={{ marginTop: 14 }}>
-          {[...(events ?? [])].reverse().map((ev) => (
+          {(() => {
+            const ordered = [...(events ?? [])].reverse()
+            const total = ordered.length
+            const visible = eventsExpanded || total <= 1 ? ordered : ordered.slice(0, 1)
+            return <>
+              {total > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setEventsExpanded(v => !v)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--color-accent)',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 11,
+                    letterSpacing: 1.4,
+                    textTransform: 'uppercase',
+                    cursor: 'pointer',
+                    padding: '4px 0',
+                    marginBottom: 4,
+                  }}
+                >
+                  {eventsExpanded ? t('common.showLess') : `${t('common.showMore')} (${total - 1})`}
+                </button>
+              )}
+              {visible.map((ev) => (
             <div
               key={ev.id}
               style={{
@@ -332,7 +358,9 @@ export function PlantDetail() {
                 )}
               </div>
             </div>
-          ))}
+              ))}
+            </>
+          })()}
         </div>
       </div>
 

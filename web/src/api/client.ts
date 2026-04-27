@@ -462,6 +462,8 @@ export const api = {
     history: (id: number) => apiRequest<BedHistoryEntry[]>(`/api/beds/${id}/history`),
     weed: (id: number) =>
       apiRequest<BulkLocationActionResponse>(`/api/beds/${id}/weed`, { method: 'POST' }),
+    water: (id: number) =>
+      apiRequest<BulkLocationActionResponse>(`/api/beds/${id}/water`, { method: 'POST' }),
   },
 
   plants: {
