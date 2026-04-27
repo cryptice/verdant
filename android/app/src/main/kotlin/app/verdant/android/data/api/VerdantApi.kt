@@ -386,6 +386,12 @@ interface VerdantApi {
     @POST("api/supplies/types")
     suspend fun createSupplyType(@Body request: CreateSupplyTypeRequest): SupplyTypeResponse
 
+    @PUT("api/supplies/types/{id}")
+    suspend fun updateSupplyType(@Path("id") id: Long, @Body request: UpdateSupplyTypeRequest): SupplyTypeResponse
+
+    @DELETE("api/supplies/types/{id}")
+    suspend fun deleteSupplyType(@Path("id") id: Long): Response<Unit>
+
     @POST("api/supplies/{id}/decrement")
     suspend fun decrementSupply(@Path("id") id: Long, @Body request: DecrementSupplyRequest): Response<Unit>
 

@@ -63,6 +63,7 @@ class ApplySupplyViewModel @Inject constructor(
         val scope: String = SupplyApplicationScope.BED,
         val selectedPlantIds: Set<Long> = emptySet(),
         val selectedInventoryId: Long? = null,
+        val selectedInexhaustibleTypeId: Long? = null,
         val quantity: String = "",
         val notes: String = "",
         val showAllCategories: Boolean = false,
@@ -84,8 +85,18 @@ class ApplySupplyViewModel @Inject constructor(
             val plants = runCatching { repo.getBedPlants(bedId) }.getOrDefault(emptyList())
             val inv = runCatching { repo.getSupplyInventory() }.getOrDefault(emptyList())
             val types = runCatching { repo.getSupplyTypes() }.getOrDefault(emptyList())
-            val initialLot = suggestedSupplyTypeId?.let { stid ->
-                inv.firstOrNull { it.supplyTypeId == stid && it.quantity > 0 }?.id
+            // Q11: prefer the largest finite lot; fall back to inexhaustible row.
+            var initialLot: Long? = null
+            var initialInexhaustibleType: Long? = null
+            if (suggestedSupplyTypeId != null) {
+                val lot = inv.filter { it.supplyTypeId == suggestedSupplyTypeId && it.quantity > 0 }
+                    .maxByOrNull { it.quantity }
+                if (lot != null) {
+                    initialLot = lot.id
+                } else {
+                    val type = types.firstOrNull { it.id == suggestedSupplyTypeId && it.inexhaustible }
+                    initialInexhaustibleType = type?.id
+                }
             }
             _uiState.update { s ->
                 s.copy(
@@ -95,6 +106,7 @@ class ApplySupplyViewModel @Inject constructor(
                     scope = if (initialPlantIds.isNotEmpty()) SupplyApplicationScope.PLANTS else SupplyApplicationScope.BED,
                     selectedPlantIds = initialPlantIds.toSet(),
                     selectedInventoryId = initialLot,
+                    selectedInexhaustibleTypeId = initialInexhaustibleType,
                     quantity = suggestedQuantity?.toString().orEmpty(),
                 )
             }
@@ -108,7 +120,12 @@ class ApplySupplyViewModel @Inject constructor(
         s.copy(selectedPlantIds = next)
     }
 
-    fun setInventoryId(id: Long?) = _uiState.update { it.copy(selectedInventoryId = id) }
+    fun setInventoryId(id: Long?) = _uiState.update {
+        it.copy(selectedInventoryId = id, selectedInexhaustibleTypeId = null)
+    }
+    fun setInexhaustibleTypeId(id: Long?) = _uiState.update {
+        it.copy(selectedInexhaustibleTypeId = id, selectedInventoryId = null)
+    }
     fun setQuantity(q: String) = _uiState.update { it.copy(quantity = q) }
     fun setNotes(n: String) = _uiState.update { it.copy(notes = n) }
     fun setShowAllCategories(show: Boolean) = _uiState.update { it.copy(showAllCategories = show) }
@@ -116,7 +133,8 @@ class ApplySupplyViewModel @Inject constructor(
     fun submit(bedId: Long, workflowStepId: Long?, onDone: () -> Unit) {
         val s = _uiState.value
         val q = s.quantity.toDoubleOrNull() ?: 0.0
-        if (s.selectedInventoryId == null || q <= 0 ||
+        val noSupply = s.selectedInventoryId == null && s.selectedInexhaustibleTypeId == null
+        if (noSupply || q <= 0 ||
             (s.scope == SupplyApplicationScope.PLANTS && s.selectedPlantIds.isEmpty())
         ) return
         _uiState.update { it.copy(saving = true, error = null) }
@@ -126,6 +144,7 @@ class ApplySupplyViewModel @Inject constructor(
                     CreateSupplyApplicationRequest(
                         bedId = bedId,
                         supplyInventoryId = s.selectedInventoryId,
+                        supplyTypeId = s.selectedInexhaustibleTypeId,
                         quantity = q,
                         targetScope = s.scope,
                         plantIds = if (s.scope == SupplyApplicationScope.PLANTS) s.selectedPlantIds.toList() else null,
@@ -145,6 +164,20 @@ class ApplySupplyViewModel @Inject constructor(
 
 private enum class Scope { BED, PLANTS }
 
+private sealed class SupplySelection {
+    abstract val label: String
+
+    data class Lot(val inv: SupplyInventoryResponse) : SupplySelection() {
+        override val label: String
+            get() = "${inv.supplyTypeName} · ${app.verdant.android.ui.supplies.formatQuantity(inv.quantity, inv.unit)}"
+    }
+
+    data class Inexhaustible(val type: SupplyTypeResponse) : SupplySelection() {
+        override val label: String
+            get() = "${type.name} · obegränsad"
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ApplySupplyScreen(
@@ -161,22 +194,44 @@ fun ApplySupplyScreen(
 
     val scope = if (state.scope == SupplyApplicationScope.BED) Scope.BED else Scope.PLANTS
 
-    val visibleInventory = remember(state.inventory, state.supplyTypes, state.showAllCategories) {
-        state.inventory.filter { inv ->
-            if (inv.quantity <= 0.0) return@filter false
-            if (state.showAllCategories) return@filter true
-            val type = state.supplyTypes.find { it.id == inv.supplyTypeId }
-            type?.category == "FERTILIZER"
+    val supplyOptions = remember(state.inventory, state.supplyTypes, state.showAllCategories) {
+        val typesById = state.supplyTypes.associateBy { it.id }
+        val matchesCategory = { category: String ->
+            state.showAllCategories || category == "FERTILIZER"
+        }
+        val lots = state.inventory
+            .filter { it.quantity > 0.0 }
+            .filter { matchesCategory(it.category) }
+            .map { SupplySelection.Lot(it) }
+        val seenInexhaustibleTypeIds = mutableSetOf<Long>()
+        val typeRows = state.supplyTypes
+            .filter { it.inexhaustible && matchesCategory(it.category) }
+            .map { SupplySelection.Inexhaustible(it) }
+            .also { typeRows -> typeRows.forEach { seenInexhaustibleTypeIds.add(it.type.id) } }
+        // Stable ordering: by display name
+        (lots + typeRows).sortedBy { it.label.lowercase() }
+            .also { _ -> typesById /* silence unused warning */ }
+    }
+
+    val selectedSelection: SupplySelection? = remember(
+        state.selectedInventoryId, state.selectedInexhaustibleTypeId, supplyOptions,
+    ) {
+        when {
+            state.selectedInventoryId != null ->
+                supplyOptions.firstOrNull { it is SupplySelection.Lot && it.inv.id == state.selectedInventoryId }
+            state.selectedInexhaustibleTypeId != null ->
+                supplyOptions.firstOrNull { it is SupplySelection.Inexhaustible && it.type.id == state.selectedInexhaustibleTypeId }
+            else -> null
         }
     }
 
-    val selectedLot = state.inventory.find { it.id == state.selectedInventoryId }
+    val selectedLot = (selectedSelection as? SupplySelection.Lot)?.inv
     val quantityNum = state.quantity.toDoubleOrNull() ?: 0.0
     val quantityExceeds = selectedLot != null && quantityNum > selectedLot.quantity
 
     var quantityError by remember { mutableStateOf<String?>(null) }
 
-    val canSubmit = state.selectedInventoryId != null &&
+    val canSubmit = selectedSelection != null &&
         quantityNum > 0 &&
         !quantityExceeds &&
         (state.scope == SupplyApplicationScope.BED || state.selectedPlantIds.isNotEmpty()) &&
@@ -276,10 +331,15 @@ fun ApplySupplyScreen(
             item {
                 FaltetDropdown(
                     label = "Material",
-                    options = visibleInventory,
-                    selected = selectedLot,
-                    onSelectedChange = { vm.setInventoryId(it.id) },
-                    labelFor = { "${it.supplyTypeName} · ${app.verdant.android.ui.supplies.formatQuantity(it.quantity, it.unit)}" },
+                    options = supplyOptions,
+                    selected = selectedSelection,
+                    onSelectedChange = { sel ->
+                        when (sel) {
+                            is SupplySelection.Lot -> vm.setInventoryId(sel.inv.id)
+                            is SupplySelection.Inexhaustible -> vm.setInexhaustibleTypeId(sel.type.id)
+                        }
+                    },
+                    labelFor = { it.label },
                     searchable = true,
                     required = true,
                 )

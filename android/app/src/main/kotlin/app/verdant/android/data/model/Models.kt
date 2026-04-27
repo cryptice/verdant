@@ -1161,6 +1161,7 @@ data class SupplyTypeResponse(
     @SerializedName("category") val category: String,
     @SerializedName("unit") val unit: String,
     @SerializedName("properties") val properties: Map<String, Any?>,
+    @SerializedName("inexhaustible") val inexhaustible: Boolean = false,
     @SerializedName("createdAt") val createdAt: String,
 )
 
@@ -1197,6 +1198,15 @@ data class CreateSupplyTypeRequest(
     @SerializedName("category") val category: String,
     @SerializedName("unit") val unit: String,
     @SerializedName("properties") val properties: Map<String, Any?> = emptyMap(),
+    @SerializedName("inexhaustible") val inexhaustible: Boolean = false,
+)
+
+data class UpdateSupplyTypeRequest(
+    @SerializedName("name") val name: String? = null,
+    @SerializedName("category") val category: String? = null,
+    @SerializedName("unit") val unit: String? = null,
+    @SerializedName("properties") val properties: Map<String, Any?>? = null,
+    @SerializedName("inexhaustible") val inexhaustible: Boolean? = null,
 )
 
 data class CreateSupplyInventoryRequest(
@@ -1211,7 +1221,7 @@ data class SupplyApplicationResponse(
     @SerializedName("id") val id: Long,
     @SerializedName("bedId") val bedId: Long?,
     @SerializedName("trayLocationId") val trayLocationId: Long? = null,
-    @SerializedName("supplyInventoryId") val supplyInventoryId: Long,
+    @SerializedName("supplyInventoryId") val supplyInventoryId: Long?,
     @SerializedName("supplyTypeId") val supplyTypeId: Long,
     @SerializedName("supplyTypeName") val supplyTypeName: String,
     @SerializedName("supplyUnit") val supplyUnit: String,
@@ -1227,7 +1237,8 @@ data class SupplyApplicationResponse(
 data class CreateSupplyApplicationRequest(
     @SerializedName("bedId") val bedId: Long? = null,
     @SerializedName("trayLocationId") val trayLocationId: Long? = null,
-    @SerializedName("supplyInventoryId") val supplyInventoryId: Long,
+    @SerializedName("supplyInventoryId") val supplyInventoryId: Long? = null,
+    @SerializedName("supplyTypeId") val supplyTypeId: Long? = null,
     @SerializedName("quantity") val quantity: Double,
     @SerializedName("targetScope") val targetScope: String,
     @SerializedName("plantIds") val plantIds: List<Long>? = null,

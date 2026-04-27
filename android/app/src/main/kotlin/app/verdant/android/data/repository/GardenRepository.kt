@@ -104,6 +104,9 @@ class GardenRepository @Inject constructor(private val api: VerdantApi) {
         api.createSupplyInventory(request)
     suspend fun createSupplyType(request: CreateSupplyTypeRequest) =
         api.createSupplyType(request)
+    suspend fun updateSupplyType(id: Long, request: UpdateSupplyTypeRequest) =
+        api.updateSupplyType(id, request)
+    suspend fun deleteSupplyType(id: Long) = api.deleteSupplyType(id)
 
     // Supply Applications
     suspend fun createSupplyApplication(req: CreateSupplyApplicationRequest) = api.createSupplyApplication(req)

@@ -2,6 +2,7 @@ package app.verdant.android.ui.supplies
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -143,17 +144,60 @@ class SupplyInventoryViewModel @Inject constructor(
         name: String,
         category: String,
         unit: String,
+        inexhaustible: Boolean,
         onCreated: (SupplyTypeResponse) -> Unit,
     ) {
         viewModelScope.launch {
             try {
                 val created = repo.createSupplyType(
-                    CreateSupplyTypeRequest(name = name, category = category, unit = unit)
+                    CreateSupplyTypeRequest(
+                        name = name, category = category, unit = unit, inexhaustible = inexhaustible
+                    )
                 )
                 _uiState.value = _uiState.value.copy(types = (_uiState.value.types + created).sortedBy { it.name })
                 onCreated(created)
+                // Refresh so an inexhaustible-only type shows up in the inventory list.
+                if (inexhaustible) refresh()
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to create supply type", e)
+                _uiState.value = _uiState.value.copy(error = e.message)
+            }
+        }
+    }
+
+    fun updateSupplyType(
+        id: Long,
+        name: String,
+        category: String,
+        unit: String,
+        inexhaustible: Boolean,
+        onDone: () -> Unit,
+    ) {
+        viewModelScope.launch {
+            try {
+                repo.updateSupplyType(
+                    id,
+                    app.verdant.android.data.model.UpdateSupplyTypeRequest(
+                        name = name, category = category, unit = unit, inexhaustible = inexhaustible,
+                    ),
+                )
+                refresh()
+                onDone()
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to update supply type", e)
+                _uiState.value = _uiState.value.copy(error = e.message)
+            }
+        }
+    }
+
+    fun deleteSupplyType(id: Long, onDone: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                repo.deleteSupplyType(id)
+                refresh()
+                onDone()
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to delete supply type", e)
                 _uiState.value = _uiState.value.copy(error = e.message)
             }
         }
@@ -210,6 +254,7 @@ data class SupplyTypeGroup(
     val unit: String,
     val totalQuantity: Double,
     val batches: List<SupplyInventoryResponse>,
+    val inexhaustible: Boolean = false,
 )
 
 private fun categoryIcon(category: String): ImageVector = when (category) {
@@ -240,6 +285,7 @@ fun SupplyInventoryScreen(
     var useAmount by remember { mutableStateOf("") }
     var showAddDialog by remember { mutableStateOf(false) }
     var showAddTypeDialog by remember { mutableStateOf(false) }
+    var editTypeTarget by remember { mutableStateOf<SupplyTypeResponse?>(null) }
 
     if (useDialogBatch != null) {
         val batch = useDialogBatch!!
@@ -298,10 +344,29 @@ fun SupplyInventoryScreen(
     if (showAddTypeDialog) {
         AddSupplyTypeDialog(
             onDismiss = { showAddTypeDialog = false },
-            onSubmit = { name, category, unit ->
-                viewModel.createSupplyType(name, category, unit) { _ ->
+            onSubmit = { name, category, unit, inexhaustible ->
+                viewModel.createSupplyType(name, category, unit, inexhaustible) { _ ->
                     showAddTypeDialog = false
+                    if (inexhaustible) {
+                        // Per spec Q9: when the new type is inexhaustible, the parent
+                        // "Add inventory" dialog has nothing left to do — close it too.
+                        showAddDialog = false
+                    }
                 }
+            },
+        )
+    }
+    editTypeTarget?.let { type ->
+        EditSupplyTypeDialog(
+            type = type,
+            onDismiss = { editTypeTarget = null },
+            onSave = { name, category, unit, inexhaustible ->
+                viewModel.updateSupplyType(type.id, name, category, unit, inexhaustible) {
+                    editTypeTarget = null
+                }
+            },
+            onDelete = {
+                viewModel.deleteSupplyType(type.id) { editTypeTarget = null }
             },
         )
     }
@@ -321,7 +386,7 @@ fun SupplyInventoryScreen(
             ) {
                 ConnectionErrorState(onRetry = { viewModel.refresh() })
             }
-            uiState.items.isEmpty() -> FaltetEmptyState(
+            uiState.items.isEmpty() && uiState.types.none { it.inexhaustible } -> FaltetEmptyState(
                 headline = "Inget material",
                 subtitle = "Lägg till ditt första material.",
                 modifier = Modifier.padding(padding),
@@ -332,23 +397,40 @@ fun SupplyInventoryScreen(
                 },
             )
             else -> {
-                val grouped = remember(uiState.items) {
-                    uiState.items
-                        .groupBy { it.category }
-                        .toSortedMap(compareBy { CATEGORY_ORDER.indexOf(it).takeIf { i -> i >= 0 } ?: Int.MAX_VALUE })
-                        .mapValues { (_, items) ->
-                            items.groupBy { it.supplyTypeId }
-                                .map { (typeId, batches) ->
-                                    SupplyTypeGroup(
-                                        supplyTypeId = typeId,
-                                        name = batches.first().supplyTypeName,
-                                        unit = batches.first().unit,
-                                        totalQuantity = batches.sumOf { it.quantity },
-                                        batches = batches.sortedByDescending { it.quantity },
-                                    )
-                                }
-                                .sortedBy { it.name }
-                        }
+                val grouped = remember(uiState.items, uiState.types) {
+                    val byCategory: MutableMap<String, MutableList<SupplyTypeGroup>> = mutableMapOf()
+                    val typesById = uiState.types.associateBy { it.id }
+                    // 1. inventory-backed groups
+                    uiState.items.groupBy { it.supplyTypeId }.forEach { (typeId, batches) ->
+                        val type = typesById[typeId]
+                        val first = batches.first()
+                        byCategory.getOrPut(first.category) { mutableListOf() }.add(
+                            SupplyTypeGroup(
+                                supplyTypeId = typeId,
+                                name = first.supplyTypeName,
+                                unit = first.unit,
+                                totalQuantity = batches.sumOf { it.quantity },
+                                batches = batches.sortedByDescending { it.quantity },
+                                inexhaustible = type?.inexhaustible == true,
+                            )
+                        )
+                    }
+                    // 2. inexhaustible types with no inventory rows
+                    val seen = uiState.items.map { it.supplyTypeId }.toSet()
+                    uiState.types.filter { it.inexhaustible && it.id !in seen }.forEach { type ->
+                        byCategory.getOrPut(type.category) { mutableListOf() }.add(
+                            SupplyTypeGroup(
+                                supplyTypeId = type.id,
+                                name = type.name,
+                                unit = type.unit,
+                                totalQuantity = 0.0,
+                                batches = emptyList(),
+                                inexhaustible = true,
+                            )
+                        )
+                    }
+                    byCategory.toSortedMap(compareBy { CATEGORY_ORDER.indexOf(it).takeIf { i -> i >= 0 } ?: Int.MAX_VALUE })
+                        .mapValues { (_, list) -> list.sortedBy { it.name } }
                 }
                 LazyColumn(Modifier.fillMaxSize().padding(padding)) {
                     grouped.forEach { (category, typeGroups) ->
@@ -364,6 +446,10 @@ fun SupplyInventoryScreen(
                                     useDialogBatch = batch
                                     useAmount = formatQuantity(batch.quantity, "").trim()
                                 },
+                                onLongClick = {
+                                    uiState.types.firstOrNull { it.id == typeGroup.supplyTypeId }
+                                        ?.let { editTypeTarget = it }
+                                },
                             )
                         }
                     }
@@ -374,15 +460,28 @@ fun SupplyInventoryScreen(
     }
 }
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 private fun SupplyTypeFaltetRow(
     group: SupplyTypeGroup,
     category: String,
     isDecrementing: Long?,
     onUseBatch: (SupplyInventoryResponse) -> Unit,
+    onLongClick: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    Column {
+    val canExpand = group.batches.isNotEmpty()
+    val statText = when {
+        group.inexhaustible && group.batches.isEmpty() -> "obegränsad"
+        group.inexhaustible -> "${formatQuantity(group.totalQuantity, group.unit)} · obegränsad"
+        else -> formatQuantity(group.totalQuantity, group.unit)
+    }
+    Column(
+        modifier = Modifier.combinedClickable(
+            onClick = { if (canExpand) expanded = !expanded },
+            onLongClick = onLongClick,
+        ),
+    ) {
         FaltetListRow(
             title = group.name,
             meta = categoryLabelSv(category),
@@ -396,21 +495,23 @@ private fun SupplyTypeFaltetRow(
             },
             stat = {
                 Text(
-                    text = formatQuantity(group.totalQuantity, group.unit),
+                    text = statText,
                     fontFamily = FontFamily.Monospace,
                     fontSize = 14.sp,
-                    color = FaltetInk,
+                    color = if (group.inexhaustible) FaltetAccent else FaltetInk,
                 )
             },
-            actions = {
-                Icon(
-                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    contentDescription = if (expanded) "Dölj" else "Visa",
-                    tint = FaltetForest,
-                    modifier = Modifier.size(18.dp),
-                )
-            },
-            onClick = { expanded = !expanded },
+            actions = if (canExpand) {
+                {
+                    Icon(
+                        imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = if (expanded) "Dölj" else "Visa",
+                        tint = FaltetForest,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            } else null,
+            onClick = if (canExpand) ({ expanded = !expanded }) else null,
         )
         AnimatedVisibility(visible = expanded) {
             Column(Modifier.fillMaxWidth()) {
@@ -560,11 +661,12 @@ private fun AddSupplyDialog(
 @Composable
 private fun AddSupplyTypeDialog(
     onDismiss: () -> Unit,
-    onSubmit: (name: String, category: String, unit: String) -> Unit,
+    onSubmit: (name: String, category: String, unit: String, inexhaustible: Boolean) -> Unit,
 ) {
     var name by remember { mutableStateOf("") }
     var category by remember { mutableStateOf<String?>("FERTILIZER") }
     var unit by remember { mutableStateOf<String?>("LITERS") }
+    var inexhaustible by remember { mutableStateOf(false) }
 
     val canSubmit = name.trim().isNotBlank() && category != null && unit != null
 
@@ -598,16 +700,127 @@ private fun AddSupplyTypeDialog(
                     searchable = false,
                     required = true,
                 )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    androidx.compose.material3.Switch(
+                        checked = inexhaustible,
+                        onCheckedChange = { inexhaustible = it },
+                    )
+                    androidx.compose.foundation.layout.Spacer(Modifier.size(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("Obegränsad", fontSize = 14.sp)
+                        Text(
+                            "Behöver inte spåras (t.ex. egen hästgödsel).",
+                            fontSize = 11.sp,
+                            color = FaltetForest,
+                        )
+                    }
+                }
             }
         },
         confirmButton = {
             TextButton(
                 enabled = canSubmit,
-                onClick = { onSubmit(name.trim(), category!!, unit!!) },
+                onClick = { onSubmit(name.trim(), category!!, unit!!, inexhaustible) },
             ) { Text("Spara", color = FaltetAccent) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Avbryt", color = FaltetForest) }
         },
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EditSupplyTypeDialog(
+    type: SupplyTypeResponse,
+    onDismiss: () -> Unit,
+    onSave: (name: String, category: String, unit: String, inexhaustible: Boolean) -> Unit,
+    onDelete: () -> Unit,
+) {
+    var name by remember(type.id) { mutableStateOf(type.name) }
+    var category by remember(type.id) { mutableStateOf<String?>(type.category) }
+    var unit by remember(type.id) { mutableStateOf<String?>(type.unit) }
+    var inexhaustible by remember(type.id) { mutableStateOf(type.inexhaustible) }
+    var confirmDelete by remember { mutableStateOf(false) }
+
+    val canSave = name.trim().isNotBlank() && category != null && unit != null && (
+        name.trim() != type.name || category != type.category ||
+            unit != type.unit || inexhaustible != type.inexhaustible
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Redigera typ") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Namn") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                FaltetDropdown(
+                    label = "Kategori",
+                    options = SUPPLY_CATEGORIES,
+                    selected = category,
+                    onSelectedChange = { category = it },
+                    labelFor = { categoryLabelSv(it) },
+                    searchable = false,
+                    required = true,
+                )
+                FaltetDropdown(
+                    label = "Enhet",
+                    options = SUPPLY_UNITS,
+                    selected = unit,
+                    onSelectedChange = { unit = it },
+                    labelFor = { unitLabelSv(it) },
+                    searchable = false,
+                    required = true,
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    androidx.compose.material3.Switch(
+                        checked = inexhaustible,
+                        onCheckedChange = { inexhaustible = it },
+                    )
+                    androidx.compose.foundation.layout.Spacer(Modifier.size(12.dp))
+                    Text("Obegränsad", fontSize = 14.sp, modifier = Modifier.weight(1f))
+                }
+                TextButton(onClick = { confirmDelete = true }) {
+                    Text("Ta bort typ", color = FaltetAccent)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = canSave,
+                onClick = { onSave(name.trim(), category!!, unit!!, inexhaustible) },
+            ) { Text("Spara", color = FaltetAccent) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Avbryt", color = FaltetForest) }
+        },
+    )
+
+    if (confirmDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = { Text("Ta bort typ?") },
+            text = { Text("${type.name} tas bort. Befintliga registreringar finns kvar.") },
+            confirmButton = {
+                TextButton(onClick = { confirmDelete = false; onDelete() }) {
+                    Text("Ta bort", color = FaltetAccent)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDelete = false }) { Text("Avbryt", color = FaltetForest) }
+            },
+        )
+    }
 }
