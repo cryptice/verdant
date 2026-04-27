@@ -6,11 +6,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -76,18 +81,6 @@ class TrayLocationsViewModel @Inject constructor(
             try { repo.createTrayLocation(name); refresh() } catch (e: Exception) { Log.e(TAG, "create", e) }
         }
     }
-
-    fun rename(id: Long, name: String) {
-        viewModelScope.launch {
-            try { repo.updateTrayLocation(id, name); refresh() } catch (e: Exception) { Log.e(TAG, "rename", e) }
-        }
-    }
-
-    fun delete(id: Long) {
-        viewModelScope.launch {
-            try { repo.deleteTrayLocation(id); refresh() } catch (e: Exception) { Log.e(TAG, "delete", e) }
-        }
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -99,15 +92,21 @@ fun TrayLocationsScreen(
 ) {
     val ui by viewModel.uiState.collectAsState()
     var showAdd by remember { mutableStateOf(false) }
-    var editing by remember { mutableStateOf<TrayLocationResponse?>(null) }
-    var deleting by remember { mutableStateOf<TrayLocationResponse?>(null) }
 
     FaltetScreenScaffold(
         mastheadLeft = "",
         mastheadCenter = "Platser",
         mastheadRight = {
-            TextButton(onClick = { showAdd = true }) {
-                Text("+ Ny plats", color = FaltetAccent, fontSize = 12.sp)
+            IconButton(
+                onClick = { showAdd = true },
+                modifier = Modifier.size(36.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Ny plats",
+                    tint = FaltetAccent,
+                    modifier = Modifier.size(18.dp),
+                )
             }
         },
     ) { padding ->
@@ -130,7 +129,7 @@ fun TrayLocationsScreen(
                     FaltetListRow(
                         title = loc.name,
                         meta = "${loc.activePlantCount} aktiva plantor",
-                        onClick = { editing = loc },
+                        onClick = { onLocationClick(loc.id) },
                     )
                 }
             }
@@ -143,36 +142,6 @@ fun TrayLocationsScreen(
             initial = "",
             onDismiss = { showAdd = false },
             onConfirm = { name -> viewModel.create(name); showAdd = false },
-        )
-    }
-    editing?.let { loc ->
-        EditLocationDialog(
-            loc = loc,
-            onDismiss = { editing = null },
-            onRename = { newName -> viewModel.rename(loc.id, newName); editing = null },
-            onDelete = { editing = null; deleting = loc },
-        )
-    }
-    deleting?.let { loc ->
-        AlertDialog(
-            onDismissRequest = { deleting = null },
-            title = { Text("Ta bort plats") },
-            text = {
-                Text(
-                    if (loc.activePlantCount > 0)
-                        "${loc.activePlantCount} plantor i ${loc.name} blir utan plats. Fortsätt?"
-                    else
-                        "Ta bort ${loc.name}?"
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = { viewModel.delete(loc.id); deleting = null }) {
-                    Text("Ta bort", color = FaltetAccent)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { deleting = null }) { Text("Avbryt", color = FaltetForest) }
-            },
         )
     }
 }
@@ -212,42 +181,3 @@ private fun NameDialog(
     )
 }
 
-@Composable
-private fun EditLocationDialog(
-    loc: TrayLocationResponse,
-    onDismiss: () -> Unit,
-    onRename: (String) -> Unit,
-    onDelete: () -> Unit,
-) {
-    var name by remember(loc.id) { mutableStateOf(loc.name) }
-    val guard = app.verdant.android.ui.faltet.rememberUnsavedChangesGuard(
-        isDirty = name.trim() != loc.name && name.trim().isNotEmpty(),
-    )
-    guard.RenderConfirmDialog()
-    AlertDialog(
-        onDismissRequest = guard.requestDismiss(onDismiss),
-        title = { Text("Redigera plats") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Namn") },
-                    singleLine = true,
-                )
-                TextButton(onClick = onDelete) {
-                    Text("Ta bort plats", color = FaltetAccent)
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onRename(name.trim()) },
-                enabled = name.trim().isNotEmpty() && name != loc.name,
-            ) { Text("Spara", color = FaltetAccent) }
-        },
-        dismissButton = {
-            TextButton(onClick = guard.requestDismiss(onDismiss)) { Text("Avbryt", color = FaltetForest) }
-        },
-    )
-}

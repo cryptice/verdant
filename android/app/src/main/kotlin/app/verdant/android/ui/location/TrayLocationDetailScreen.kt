@@ -9,7 +9,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
@@ -119,6 +124,20 @@ class TrayLocationDetailViewModel @Inject constructor(
         ).plantsAffected
     }
 
+    fun rename(newName: String) {
+        viewModelScope.launch {
+            try { repo.updateTrayLocation(locationId, newName); refresh() }
+            catch (e: Exception) { Log.e(TAG, "rename failed", e) }
+        }
+    }
+
+    fun delete(onDeleted: () -> Unit) {
+        viewModelScope.launch {
+            try { repo.deleteTrayLocation(locationId); onDeleted() }
+            catch (e: Exception) { Log.e(TAG, "delete failed", e) }
+        }
+    }
+
     private fun bulk(verb: String, call: suspend () -> Int) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(acting = true, error = null, info = null)
@@ -138,6 +157,8 @@ class TrayLocationDetailViewModel @Inject constructor(
 @Composable
 fun TrayLocationDetailScreen(
     onBack: () -> Unit,
+    onSpeciesClick: (Long) -> Unit = {},
+    onDeleted: () -> Unit = onBack,
     viewModel: TrayLocationDetailViewModel = hiltViewModel(),
 ) {
     val ui by viewModel.uiState.collectAsState()
@@ -145,6 +166,8 @@ fun TrayLocationDetailScreen(
     var showNoteDialog by remember { mutableStateOf(false) }
     var moveMode by remember { mutableStateOf(false) }
     var partialMoveTarget by remember { mutableStateOf<TraySummaryEntry?>(null) }
+    var showEditDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
 
     LaunchedEffect(ui.info) {
         if (ui.info != null) {
@@ -155,6 +178,21 @@ fun TrayLocationDetailScreen(
     FaltetScreenScaffold(
         mastheadLeft = "",
         mastheadCenter = ui.location?.name ?: "Plats",
+        mastheadRight = {
+            if (ui.location != null) {
+                IconButton(
+                    onClick = { showEditDialog = true },
+                    modifier = Modifier.size(36.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = "Redigera plats",
+                        tint = FaltetForest,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            }
+        },
     ) { padding ->
         when {
             ui.isLoading -> FaltetLoadingState(Modifier.padding(padding))
@@ -270,7 +308,10 @@ fun TrayLocationDetailScreen(
                                     )
                                 }
                             },
-                            onClick = if (moveMode) ({ partialMoveTarget = entry }) else null,
+                            onClick = {
+                                if (moveMode) partialMoveTarget = entry
+                                else entry.speciesId?.let(onSpeciesClick)
+                            },
                         )
                     }
                 }
@@ -306,6 +347,88 @@ fun TrayLocationDetailScreen(
             },
         )
     }
+
+    if (showEditDialog && ui.location != null) {
+        EditLocationDialog(
+            initialName = ui.location!!.name,
+            onDismiss = { showEditDialog = false },
+            onRename = { newName ->
+                viewModel.rename(newName)
+                showEditDialog = false
+            },
+            onDelete = {
+                showEditDialog = false
+                showDeleteConfirm = true
+            },
+        )
+    }
+
+    if (showDeleteConfirm && ui.location != null) {
+        val loc = ui.location!!
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("Ta bort plats") },
+            text = {
+                Text(
+                    if (loc.activePlantCount > 0)
+                        "${loc.activePlantCount} plantor i ${loc.name} blir utan plats. Fortsätt?"
+                    else
+                        "Ta bort ${loc.name}?"
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteConfirm = false
+                    viewModel.delete(onDeleted)
+                }) { Text("Ta bort", color = FaltetAccent) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text("Avbryt", color = FaltetForest)
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun EditLocationDialog(
+    initialName: String,
+    onDismiss: () -> Unit,
+    onRename: (String) -> Unit,
+    onDelete: () -> Unit,
+) {
+    var name by remember(initialName) { mutableStateOf(initialName) }
+    val guard = app.verdant.android.ui.faltet.rememberUnsavedChangesGuard(
+        isDirty = name.trim() != initialName && name.trim().isNotEmpty(),
+    )
+    guard.RenderConfirmDialog()
+    AlertDialog(
+        onDismissRequest = guard.requestDismiss(onDismiss),
+        title = { Text("Redigera plats") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Namn") },
+                    singleLine = true,
+                )
+                TextButton(onClick = onDelete) {
+                    Text("Ta bort plats", color = FaltetAccent)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onRename(name.trim()) },
+                enabled = name.trim().isNotEmpty() && name.trim() != initialName,
+            ) { Text("Spara", color = FaltetAccent) }
+        },
+        dismissButton = {
+            TextButton(onClick = guard.requestDismiss(onDismiss)) { Text("Avbryt", color = FaltetForest) }
+        },
+    )
 }
 
 @Composable

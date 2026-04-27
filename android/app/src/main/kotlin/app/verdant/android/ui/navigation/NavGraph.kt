@@ -671,6 +671,10 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
             ) {
                 app.verdant.android.ui.location.TrayLocationDetailScreen(
                     onBack = { navController.popBackStack() },
+                    onSpeciesClick = { speciesId ->
+                        navController.navigate(Screen.PlantedSpeciesDetail.create(speciesId))
+                    },
+                    onDeleted = { navController.popBackStack() },
                 )
             }
 

@@ -32,6 +32,9 @@ export function TrayLocationDetail() {
   const [moveMode, setMoveMode] = useState(false)
   const [partialMove, setPartialMove] = useState<TraySummaryEntry | null>(null)
   const [info, setInfo] = useState<string | null>(null)
+  const [showEdit, setShowEdit] = useState(false)
+  const [showDelete, setShowDelete] = useState(false)
+  const [editName, setEditName] = useState('')
 
   const noteText = useState('')
   const [noteValue, setNoteValue] = noteText
@@ -54,6 +57,18 @@ export function TrayLocationDetail() {
       api.trayLocations.move(locationId, req),
     onSuccess: (r) => { setInfo(`Flyttade · ${r.plantsAffected} plantor`); refresh() },
   })
+  const renameMut = useMutation({
+    mutationFn: (newName: string) => api.trayLocations.update(locationId, newName),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['tray-locations'] }); setShowEdit(false) },
+  })
+  const deleteMut = useMutation({
+    mutationFn: () => api.trayLocations.delete(locationId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['tray-locations'] })
+      qc.invalidateQueries({ queryKey: ['tray-summary'] })
+      navigate('/tray-locations')
+    },
+  })
 
   if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />
@@ -73,7 +88,30 @@ export function TrayLocationDetail() {
 
   return (
     <div>
-      <Masthead left="Platser" center={`— ${location.name} —`} />
+      <Masthead
+        left="Platser"
+        center={`— ${location.name} —`}
+        right={
+          <button
+            onClick={() => { setEditName(location.name); setShowEdit(true) }}
+            aria-label="Redigera plats"
+            title="Redigera plats"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--color-forest)',
+              cursor: 'pointer',
+              fontSize: 18,
+              padding: 4,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            ✎
+          </button>
+        }
+      />
 
       <div className="page-body">
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginBottom: 16 }}>
@@ -128,11 +166,17 @@ export function TrayLocationDetail() {
           <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-forest)' }}>—</p>
         ) : (
           <div>
-            {entries.map((e) => (
+            {entries.map((e) => {
+              const clickable = moveMode || e.speciesId != null
+              const handleClick = () => {
+                if (moveMode) setPartialMove(e)
+                else if (e.speciesId != null) navigate(`/species/${e.speciesId}/plants`)
+              }
+              return (
               <button
                 key={`${e.speciesId}_${e.status}`}
-                onClick={() => moveMode && setPartialMove(e)}
-                disabled={!moveMode}
+                onClick={handleClick}
+                disabled={!clickable}
                 style={{
                   display: 'grid',
                   gridTemplateColumns: '1.5fr 80px 80px',
@@ -143,7 +187,7 @@ export function TrayLocationDetail() {
                   background: 'transparent',
                   border: 'none',
                   borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
-                  cursor: moveMode ? 'pointer' : 'default',
+                  cursor: clickable ? 'pointer' : 'default',
                   fontFamily: 'var(--font-display)',
                   fontSize: 16,
                 }}
@@ -154,7 +198,8 @@ export function TrayLocationDetail() {
                   {e.status}
                 </span>
               </button>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
@@ -227,6 +272,67 @@ export function TrayLocationDetail() {
           setMoveMode(false)
         }}
       />
+
+      <Dialog
+        open={showEdit}
+        onClose={() => setShowEdit(false)}
+        title="Redigera plats"
+        actions={
+          <>
+            <button onClick={() => setShowEdit(false)} className="px-4 py-2 text-sm text-text-secondary">Avbryt</button>
+            <button
+              onClick={() => renameMut.mutate(editName.trim())}
+              disabled={!editName.trim() || editName.trim() === location.name || renameMut.isPending}
+              className="btn-primary text-sm"
+            >
+              {renameMut.isPending ? 'Sparar…' : 'Spara'}
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <div>
+            <label className="field-label">Namn *</label>
+            <input
+              type="text"
+              autoFocus
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              className="input w-full"
+            />
+          </div>
+          <button
+            onClick={() => { setShowEdit(false); setShowDelete(true) }}
+            className="text-sm text-error hover:underline"
+          >
+            Ta bort plats
+          </button>
+        </div>
+      </Dialog>
+
+      <Dialog
+        open={showDelete}
+        onClose={() => setShowDelete(false)}
+        title="Ta bort plats"
+        actions={
+          <>
+            <button onClick={() => setShowDelete(false)} className="px-4 py-2 text-sm text-text-secondary">Avbryt</button>
+            <button
+              onClick={() => deleteMut.mutate()}
+              className="px-4 py-2 text-sm text-error font-semibold"
+              disabled={deleteMut.isPending}
+            >
+              Ta bort
+            </button>
+          </>
+        }
+      >
+        <p className="text-text-secondary">
+          {location.activePlantCount > 0
+            ? `${location.activePlantCount} plantor i ${location.name} blir utan plats. Fortsätt?`
+            : `Ta bort ${location.name}?`}
+        </p>
+      </Dialog>
     </div>
   )
 }
