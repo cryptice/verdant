@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Edit
@@ -437,7 +438,7 @@ fun BedDetailScreen(
         val bedId = uiState.bed?.id ?: 0L
         AlertDialog(
             onDismissRequest = { showAddDialog = false },
-            title = { Text("Lägg till") },
+            title = { Text("Åtgärd") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     androidx.compose.material3.Button(
@@ -537,7 +538,11 @@ fun BedDetailScreen(
         },
         fab = {
             uiState.bed?.let {
-                FaltetFab(onClick = { showAddDialog = true }, contentDescription = "Lägg till planta")
+                FaltetFab(
+                    onClick = { showAddDialog = true },
+                    contentDescription = "Åtgärd",
+                    icon = Icons.Default.Bolt,
+                )
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
