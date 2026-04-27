@@ -315,7 +315,7 @@ private fun TargetDialog(
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Art") },
-                        modifier = Modifier.fillMaxWidth().menuAnchor(),
+                        modifier = Modifier.fillMaxWidth().menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryEditable, true),
                         shape = RoundedCornerShape(12.dp),
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(speciesExpanded) },
                     )
@@ -341,7 +341,7 @@ private fun TargetDialog(
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Säsong") },
-                        modifier = Modifier.fillMaxWidth().menuAnchor(),
+                        modifier = Modifier.fillMaxWidth().menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryEditable, true),
                         shape = RoundedCornerShape(12.dp),
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(seasonExpanded) },
                     )

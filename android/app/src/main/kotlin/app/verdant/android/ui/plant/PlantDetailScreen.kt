@@ -21,7 +21,7 @@ import androidx.compose.material.icons.filled.Grass
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Park
 import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material.icons.filled.StickyNote2
+import androidx.compose.material.icons.automirrored.filled.StickyNote2
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -376,7 +376,7 @@ fun eventTypeIcon(type: String) = when (type) {
     "HARVESTED" -> Icons.Default.Agriculture
     "RECOVERED" -> Icons.Default.Shield
     "REMOVED" -> Icons.Default.Delete
-    "NOTE" -> Icons.Default.StickyNote2
+    "NOTE" -> Icons.AutoMirrored.Filled.StickyNote2
     "APPLIED_SUPPLY" -> Icons.Default.WaterDrop
     else -> Icons.Default.Circle
 }

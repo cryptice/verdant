@@ -292,7 +292,7 @@ private fun TrialDialog(
                         onValueChange = {},
                         readOnly = true,
                         label = { Text(stringResource(R.string.species)) },
-                        modifier = Modifier.menuAnchor(),
+                        modifier = Modifier.menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryEditable, true),
                         shape = RoundedCornerShape(12.dp),
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(speciesExpanded) },
                     )
@@ -318,7 +318,7 @@ private fun TrialDialog(
                         onValueChange = {},
                         readOnly = true,
                         label = { Text(stringResource(R.string.seasons)) },
-                        modifier = Modifier.menuAnchor(),
+                        modifier = Modifier.menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryEditable, true),
                         shape = RoundedCornerShape(12.dp),
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(seasonExpanded) },
                     )

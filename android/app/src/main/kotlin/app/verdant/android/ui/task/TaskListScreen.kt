@@ -33,7 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.ScheduledTaskResponse
-import app.verdant.android.data.repository.GardenRepository
+import app.verdant.android.data.repository.TaskRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetFab
@@ -67,7 +67,7 @@ data class TaskListState(
 
 @HiltViewModel
 class TaskListViewModel @Inject constructor(
-    private val repo: GardenRepository,
+    private val repo: TaskRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TaskListState())
     val uiState = _uiState.asStateFlow()
@@ -79,7 +79,7 @@ class TaskListViewModel @Inject constructor(
             val showLoading = _uiState.value.tasks.isEmpty()
             if (showLoading) _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val tasks = repo.getTasks()
+                val tasks = repo.list()
                 _uiState.value = TaskListState(isLoading = false, tasks = tasks)
             } catch (e: Exception) {
                 if (showLoading) _uiState.value = TaskListState(isLoading = false, error = e.message)
@@ -90,7 +90,7 @@ class TaskListViewModel @Inject constructor(
     fun deleteTask(taskId: Long) {
         viewModelScope.launch {
             try {
-                repo.deleteTask(taskId)
+                repo.delete(taskId)
                 _uiState.value = _uiState.value.copy(
                     tasks = _uiState.value.tasks.filter { it.id != taskId }
                 )

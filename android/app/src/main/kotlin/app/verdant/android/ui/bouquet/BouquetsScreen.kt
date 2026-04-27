@@ -392,7 +392,7 @@ private fun BouquetItemEditor(
                         label = { Text("Art") },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .menuAnchor(),
+                            .menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryEditable, true),
                         shape = RoundedCornerShape(10.dp),
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(speciesExpanded) },
                         singleLine = true,

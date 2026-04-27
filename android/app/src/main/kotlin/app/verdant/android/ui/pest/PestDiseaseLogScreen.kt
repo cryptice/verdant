@@ -364,7 +364,7 @@ private fun PestDiseaseLogDialog(
                         onValueChange = {},
                         readOnly = true,
                         label = { Text(stringResource(R.string.affected_plant)) },
-                        modifier = Modifier.fillMaxWidth().menuAnchor(),
+                        modifier = Modifier.fillMaxWidth().menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryEditable, true),
                         shape = RoundedCornerShape(12.dp),
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(speciesExpanded) },
                     )

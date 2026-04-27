@@ -390,7 +390,7 @@ private fun SuccessionDialog(
                         onValueChange = {},
                         readOnly = true,
                         label = { Text(stringResource(R.string.species)) },
-                        modifier = Modifier.fillMaxSize().menuAnchor(),
+                        modifier = Modifier.fillMaxSize().menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryEditable, true),
                         shape = RoundedCornerShape(12.dp),
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(speciesExpanded) },
                     )

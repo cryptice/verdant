@@ -100,7 +100,7 @@ fun SupplyUsageBottomSheet(
                         onValueChange = {},
                         readOnly = true,
                         placeholder = { Text(stringResource(R.string.select_supply)) },
-                        modifier = Modifier.fillMaxWidth().menuAnchor(),
+                        modifier = Modifier.fillMaxWidth().menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryEditable, true),
                         shape = RoundedCornerShape(12.dp),
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(supplyExpanded) },
                     )

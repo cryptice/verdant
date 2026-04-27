@@ -22,7 +22,7 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Grass
 import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.Label
+import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -262,7 +262,7 @@ private fun categoryIcon(category: String): ImageVector = when (category) {
     "POT" -> Icons.Default.Inventory2
     "FERTILIZER" -> Icons.Default.Science
     "TRAY" -> Icons.Default.Inventory2
-    "LABEL" -> Icons.Default.Label
+    "LABEL" -> Icons.AutoMirrored.Filled.Label
     "OTHER" -> Icons.Default.Category
     else -> Icons.Default.Category
 }

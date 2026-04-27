@@ -134,4 +134,9 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:19.0.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
+
+    // Unit tests
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation("app.cash.turbine:turbine:1.1.0")
 }
