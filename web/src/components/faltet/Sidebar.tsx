@@ -38,6 +38,7 @@ function useGroups(): NavGroup[] {
         { to: '/workflows',      label: t('nav.workflows') },
         { to: '/successions',    label: t('nav.successions'), advanced: true },
         { to: '/seasons',        label: t('nav.seasons') },
+        { to: '/tray-locations', label: t('nav.trayLocations') },
       ],
     },
     {

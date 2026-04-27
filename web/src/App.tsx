@@ -21,6 +21,8 @@ import { SpeciesDetail } from './pages/SpeciesDetail'
 import { SpeciesGroups } from './pages/SpeciesGroups'
 import { SpeciesGroupEdit } from './pages/SpeciesGroupEdit'
 import { SeasonList } from './pages/SeasonList'
+import { TrayLocations } from './pages/TrayLocations'
+import { TrayLocationDetail } from './pages/TrayLocationDetail'
 import { CustomerList } from './pages/CustomerList'
 import { PestDiseaseLog } from './pages/PestDiseaseLog'
 import { VarietyTrials } from './pages/VarietyTrials'
@@ -95,6 +97,8 @@ export function App() {
         <Route path="workflows/:id/edit" element={<WorkflowTemplateEdit />} />
         <Route path="workflows/progress/:speciesId" element={<WorkflowProgress />} />
         <Route path="seasons" element={<SeasonList />} />
+        <Route path="tray-locations" element={<TrayLocations />} />
+        <Route path="tray-locations/:id" element={<TrayLocationDetail />} />
         <Route path="customers" element={<CustomerList />} />
         <Route path="pest-disease" element={<PestDiseaseLog />} />
         <Route path="trials" element={<VarietyTrials />} />
