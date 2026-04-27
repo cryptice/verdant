@@ -92,11 +92,15 @@ class GardenDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(GardenDetailState())
     val uiState = _uiState.asStateFlow()
 
-    init { refresh() }
-
     fun refresh() {
         viewModelScope.launch {
-            _uiState.value = GardenDetailState(isLoading = true)
+            // Only show the spinner on a cold load; otherwise refresh in place
+            // so the existing content stays on screen and there's no flicker.
+            val isColdLoad = _uiState.value.garden == null
+            _uiState.value = _uiState.value.copy(
+                isLoading = isColdLoad,
+                error = null,
+            )
             // Retry up to 3 times with delay — garden may not be visible immediately after creation
             var lastError: Exception? = null
             for (attempt in 1..3) {
@@ -115,7 +119,7 @@ class GardenDetailViewModel @Inject constructor(
                     if (attempt < 3) kotlinx.coroutines.delay(500L * attempt)
                 }
             }
-            _uiState.value = GardenDetailState(isLoading = false, error = lastError?.message)
+            _uiState.value = _uiState.value.copy(isLoading = false, error = lastError?.message)
         }
     }
 
