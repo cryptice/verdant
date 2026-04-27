@@ -84,8 +84,6 @@ class DashboardViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(DashboardState())
     val uiState = _uiState.asStateFlow()
 
-    init { refresh() }
-
     fun waterLocation(locationId: Long) {
         viewModelScope.launch {
             try {

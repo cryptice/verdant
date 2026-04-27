@@ -68,11 +68,10 @@ class SeedInventoryViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SeedInventoryState())
     val uiState = _uiState.asStateFlow()
 
-    init { refresh() }
-
     fun refresh() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            val isColdLoad = _uiState.value.items.isEmpty()
+            _uiState.value = _uiState.value.copy(isLoading = isColdLoad, error = null)
             try {
                 val items = repo.getSeedInventory()
                 _uiState.value = _uiState.value.copy(isLoading = false, items = items)

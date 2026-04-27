@@ -67,8 +67,6 @@ class MyWorldViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(MyWorldState())
     val uiState = _uiState.asStateFlow()
 
-    init { refresh() }
-
     fun refresh() {
         viewModelScope.launch {
             val showLoading = _uiState.value.dashboard == null

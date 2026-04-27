@@ -103,11 +103,12 @@ class BedDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(BedDetailState())
     val uiState = _uiState.asStateFlow()
 
-    init { refresh() }
-
     fun refresh() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            // Cold load shows the spinner; in-place refreshes keep existing
+            // content so the screen doesn't flicker on resume.
+            val isColdLoad = _uiState.value.bed == null
+            _uiState.value = _uiState.value.copy(isLoading = isColdLoad, error = null)
             try {
                 val bed = gardenRepository.getBed(bedId)
                 val plants = gardenRepository.getPlants(bedId)
