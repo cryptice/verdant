@@ -20,3 +20,10 @@ data class UpdateTrayLocationRequest(
     @field:Size(max = 255)
     val name: String? = null,
 )
+
+data class BulkLocationActionResponse(val plantsAffected: Int)
+
+data class BulkLocationNoteRequest(
+    @field:NotBlank @field:Size(max = 2000)
+    val text: String,
+)

@@ -1,16 +1,26 @@
 package app.verdant.service
 
+import app.verdant.dto.BulkLocationActionResponse
+import app.verdant.dto.BulkLocationNoteRequest
 import app.verdant.dto.CreateTrayLocationRequest
 import app.verdant.dto.TrayLocationResponse
 import app.verdant.dto.UpdateTrayLocationRequest
+import app.verdant.entity.PlantEvent
+import app.verdant.entity.PlantEventType
 import app.verdant.entity.TrayLocation
+import app.verdant.repository.PlantEventRepository
+import app.verdant.repository.PlantRepository
 import app.verdant.repository.TrayLocationRepository
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
 import jakarta.ws.rs.NotFoundException
 
 @ApplicationScoped
-class TrayLocationService(private val repo: TrayLocationRepository) {
+class TrayLocationService(
+    private val repo: TrayLocationRepository,
+    private val plantRepository: PlantRepository,
+    private val plantEventRepository: PlantEventRepository,
+) {
 
     fun list(orgId: Long): List<TrayLocationResponse> =
         repo.findByOrgId(orgId).map { it.toResponse() }
@@ -30,12 +40,43 @@ class TrayLocationService(private val repo: TrayLocationRepository) {
         return updated.toResponse()
     }
 
-    /** Slice 1: simple delete. Slice 3 will emit MOVED audit events first. */
     @Transactional
     fun delete(id: Long, orgId: Long) {
         val loc = repo.findById(id) ?: throw NotFoundException("Tray location not found")
         if (loc.orgId != orgId) throw NotFoundException("Tray location not found")
         repo.delete(id)
+    }
+
+    @Transactional
+    fun water(locationId: Long, orgId: Long): BulkLocationActionResponse =
+        bulkEvent(locationId, orgId, PlantEventType.WATERED, notes = null)
+
+    @Transactional
+    fun note(locationId: Long, orgId: Long, request: BulkLocationNoteRequest): BulkLocationActionResponse =
+        bulkEvent(locationId, orgId, PlantEventType.NOTE, notes = request.text)
+
+    private fun bulkEvent(
+        locationId: Long,
+        orgId: Long,
+        eventType: PlantEventType,
+        notes: String?,
+    ): BulkLocationActionResponse {
+        val loc = repo.findById(locationId) ?: throw NotFoundException("Tray location not found")
+        if (loc.orgId != orgId) throw NotFoundException("Tray location not found")
+        val plants = plantRepository.findActiveByTrayLocation(orgId, locationId)
+        val today = java.time.LocalDate.now()
+        plants.forEach { plant ->
+            plantEventRepository.persist(
+                PlantEvent(
+                    plantId = plant.id!!,
+                    eventType = eventType,
+                    eventDate = today,
+                    plantCount = 1,
+                    notes = notes,
+                )
+            )
+        }
+        return BulkLocationActionResponse(plantsAffected = plants.size)
     }
 
     private fun TrayLocation.toResponse() = TrayLocationResponse(

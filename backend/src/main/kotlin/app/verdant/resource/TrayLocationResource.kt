@@ -1,5 +1,6 @@
 package app.verdant.resource
 
+import app.verdant.dto.BulkLocationNoteRequest
 import app.verdant.dto.CreateTrayLocationRequest
 import app.verdant.dto.UpdateTrayLocationRequest
 import app.verdant.filter.OrgContext
@@ -45,4 +46,13 @@ class TrayLocationResource(
         service.delete(id, orgContext.orgId)
         return Response.noContent().build()
     }
+
+    @POST
+    @Path("/{id}/water")
+    fun water(@PathParam("id") id: Long) = service.water(id, orgContext.orgId)
+
+    @POST
+    @Path("/{id}/note")
+    fun note(@PathParam("id") id: Long, @Valid request: BulkLocationNoteRequest) =
+        service.note(id, orgContext.orgId, request)
 }

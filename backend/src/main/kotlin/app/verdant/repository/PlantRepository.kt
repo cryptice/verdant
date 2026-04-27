@@ -453,6 +453,47 @@ class PlantRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    fun findActiveByTrayLocation(orgId: Long, locationId: Long): List<Plant> =
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                """SELECT * FROM plant
+                   WHERE org_id = ? AND tray_location_id = ? AND status <> 'REMOVED'
+                   ORDER BY id"""
+            ).use { ps ->
+                ps.setLong(1, orgId)
+                ps.setLong(2, locationId)
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.toPlant()) }
+                }
+            }
+        }
+
+    fun findActiveByTrayLocationFiltered(
+        orgId: Long,
+        locationId: Long,
+        speciesId: Long?,
+        status: String?,
+        limit: Int,
+    ): List<Plant> = ds.connection.use { conn ->
+        val sql = buildString {
+            append("SELECT * FROM plant WHERE org_id = ? AND tray_location_id = ? AND status <> 'REMOVED'")
+            if (speciesId != null) append(" AND species_id = ?")
+            if (status != null) append(" AND status = ?")
+            append(" ORDER BY id LIMIT ?")
+        }
+        conn.prepareStatement(sql).use { ps ->
+            var i = 1
+            ps.setLong(i++, orgId)
+            ps.setLong(i++, locationId)
+            if (speciesId != null) ps.setLong(i++, speciesId)
+            if (status != null) ps.setString(i++, status)
+            ps.setInt(i, limit)
+            ps.executeQuery().use { rs ->
+                buildList { while (rs.next()) add(rs.toPlant()) }
+            }
+        }
+    }
+
     private fun ResultSet.toPlant() = Plant(
         id = getLong("id"),
         name = getString("name"),
