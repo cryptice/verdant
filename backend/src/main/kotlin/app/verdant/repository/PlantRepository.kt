@@ -350,12 +350,16 @@ class PlantRepository(private val ds: AgroalDataSource) {
                           COALESCE(s.common_name_sv, s.common_name) as species_name,
                           COALESCE(s.variant_name_sv, s.variant_name) as variant_name,
                           p.status,
+                          p.tray_location_id,
+                          tl.name as tray_location_name,
                           COUNT(*) as count
                    FROM plant p
                    LEFT JOIN species s ON p.species_id = s.id
+                   LEFT JOIN tray_location tl ON p.tray_location_id = tl.id
                    WHERE p.org_id = ? AND p.bed_id IS NULL AND p.status != 'REMOVED'
-                   GROUP BY s.id, s.common_name_sv, s.common_name, s.variant_name_sv, s.variant_name, p.status
-                   ORDER BY species_name, variant_name, p.status"""
+                   GROUP BY s.id, s.common_name_sv, s.common_name, s.variant_name_sv, s.variant_name,
+                            p.status, p.tray_location_id, tl.name
+                   ORDER BY tl.name NULLS LAST, species_name, variant_name, p.status"""
             ).use { ps ->
                 ps.setLong(1, orgId)
                 ps.executeQuery().use { rs ->
@@ -367,6 +371,8 @@ class PlantRepository(private val ds: AgroalDataSource) {
                                 variantName = rs.getString("variant_name"),
                                 status = rs.getString("status"),
                                 count = rs.getInt("count"),
+                                trayLocationId = rs.getObject("tray_location_id") as? Long,
+                                trayLocationName = rs.getString("tray_location_name"),
                             )
                         )
                     }

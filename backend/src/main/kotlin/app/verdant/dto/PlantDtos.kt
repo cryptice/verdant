@@ -121,6 +121,8 @@ data class TraySummaryEntry(
     val variantName: String?,
     val status: String,
     val count: Int,
+    val trayLocationId: Long? = null,
+    val trayLocationName: String? = null,
 )
 
 /** Re-date all plant_event rows matching a species/eventType/oldDate slice.
