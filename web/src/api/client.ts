@@ -172,7 +172,27 @@ export interface HarvestStatRow {
   species: string; totalWeightGrams: number; totalQuantity: number; totalStems: number; harvestCount: number
 }
 
-export interface TraySummaryEntry { speciesId?: number; speciesName: string; variantName?: string; status: string; count: number }
+export interface TraySummaryEntry {
+  speciesId?: number; speciesName: string; variantName?: string
+  status: string; count: number
+  trayLocationId?: number | null
+  trayLocationName?: string | null
+}
+
+export interface TrayLocationResponse {
+  id: number
+  name: string
+  activePlantCount: number
+  createdAt: string
+}
+
+export interface BulkLocationActionResponse { plantsAffected: number }
+export interface MoveTrayLocationRequest {
+  targetLocationId?: number | null
+  count: number
+  speciesId?: number | null
+  status?: string | null
+}
 
 export interface SpeciesPlantSummary {
   speciesId: number; speciesName: string; variantName?: string; scientificName?: string
@@ -187,6 +207,8 @@ export interface PlantLocationGroup {
 export interface SpeciesEventSummaryEntry {
   eventType: string; eventDate: string
   currentStatus?: string; count: number
+  fromLocationName?: string | null
+  toLocationName?: string | null
 }
 
 export interface FrequentCommentResponse { id: number; text: string; useCount: number }
@@ -338,7 +360,8 @@ export interface SupplyInventoryResponse {
 // Supply Application
 export interface SupplyApplicationResponse {
   id: number
-  bedId: number
+  bedId: number | null
+  trayLocationId: number | null
   supplyInventoryId: number
   supplyTypeId: number
   supplyTypeName: string
@@ -353,7 +376,8 @@ export interface SupplyApplicationResponse {
 }
 
 export interface CreateSupplyApplicationRequest {
-  bedId: number
+  bedId?: number
+  trayLocationId?: number
   supplyInventoryId: number
   quantity: number
   targetScope: 'BED' | 'PLANTS'
@@ -451,7 +475,8 @@ export const api = {
     deleteEvent: (plantId: number, eventId: number) =>
       apiRequest<void>(`/api/plants/${plantId}/events/${eventId}`, { method: 'DELETE' }),
     batchSow: (data: {
-      bedId?: number; speciesId: number; name: string; seedCount: number
+      bedId?: number; trayLocationId?: number
+      speciesId: number; name: string; seedCount: number
       notes?: string; imageBase64?: string; plantedDate?: string
     }) => apiRequest<{ plantIds: number[]; count: number }>('/api/plants/batch-sow', { method: 'POST', body: JSON.stringify(data) }),
     traySummary: () => apiRequest<TraySummaryEntry[]>('/api/plants/tray-summary'),
@@ -629,8 +654,35 @@ export const api = {
     listByGarden: (gardenId: number, limit = 20) =>
       apiRequest<SupplyApplicationResponse[]>(
         `/api/supply-applications/garden/${gardenId}?limit=${limit}`),
+    listByTrayLocation: (trayLocationId: number, limit = 20) =>
+      apiRequest<SupplyApplicationResponse[]>(
+        `/api/supply-applications/tray-location/${trayLocationId}?limit=${limit}`),
     get: (id: number) =>
       apiRequest<SupplyApplicationResponse>(`/api/supply-applications/${id}`),
+  },
+
+  trayLocations: {
+    list: () => apiRequest<TrayLocationResponse[]>('/api/tray-locations'),
+    create: (name: string) =>
+      apiRequest<TrayLocationResponse>('/api/tray-locations', {
+        method: 'POST', body: JSON.stringify({ name }),
+      }),
+    update: (id: number, name: string) =>
+      apiRequest<TrayLocationResponse>(`/api/tray-locations/${id}`, {
+        method: 'PATCH', body: JSON.stringify({ name }),
+      }),
+    delete: (id: number) =>
+      apiRequest<BulkLocationActionResponse>(`/api/tray-locations/${id}`, { method: 'DELETE' }),
+    water: (id: number) =>
+      apiRequest<BulkLocationActionResponse>(`/api/tray-locations/${id}/water`, { method: 'POST' }),
+    note: (id: number, text: string) =>
+      apiRequest<BulkLocationActionResponse>(`/api/tray-locations/${id}/note`, {
+        method: 'POST', body: JSON.stringify({ text }),
+      }),
+    move: (id: number, request: MoveTrayLocationRequest) =>
+      apiRequest<BulkLocationActionResponse>(`/api/tray-locations/${id}/move`, {
+        method: 'POST', body: JSON.stringify(request),
+      }),
   },
 
   supplies: {
