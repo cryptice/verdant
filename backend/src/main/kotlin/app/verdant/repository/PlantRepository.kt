@@ -83,6 +83,26 @@ class PlantRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    /** Active (non-REMOVED) plants for the org, regardless of bed/tray. */
+    fun countActiveByOrg(orgId: Long): Int = ds.connection.use { conn ->
+        conn.prepareStatement(
+            "SELECT count(*) FROM plant WHERE org_id = ? AND status <> 'REMOVED'"
+        ).use { ps ->
+            ps.setLong(1, orgId)
+            ps.executeQuery().use { rs -> rs.next(); rs.getInt(1) }
+        }
+    }
+
+    /** Distinct species with at least one active plant for the org. */
+    fun countActiveSpeciesByOrg(orgId: Long): Int = ds.connection.use { conn ->
+        conn.prepareStatement(
+            "SELECT count(DISTINCT species_id) FROM plant WHERE org_id = ? AND species_id IS NOT NULL AND status <> 'REMOVED'"
+        ).use { ps ->
+            ps.setLong(1, orgId)
+            ps.executeQuery().use { rs -> rs.next(); rs.getInt(1) }
+        }
+    }
+
     fun persist(plant: Plant): Plant {
         ds.connection.use { conn ->
             conn.prepareStatement(

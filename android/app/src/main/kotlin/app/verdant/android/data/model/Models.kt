@@ -320,7 +320,9 @@ data class GardenSummary(
 data class DashboardStats(
     @SerializedName("totalGardens") val totalGardens: Int,
     @SerializedName("totalBeds") val totalBeds: Int,
-    @SerializedName("totalPlants") val totalPlants: Int
+    @SerializedName("totalPlants") val totalPlants: Int,
+    @SerializedName("totalActivePlants") val totalActivePlants: Int = 0,
+    @SerializedName("totalActiveSpecies") val totalActiveSpecies: Int = 0,
 )
 
 data class LatLng(@SerializedName("lat") val lat: Double, @SerializedName("lng") val lng: Double)

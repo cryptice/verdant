@@ -95,7 +95,11 @@ export interface DashboardResponse {
 export interface GardenSummary {
   id: number; name: string; emoji?: string; bedCount: number; plantCount: number
 }
-export interface DashboardStats { totalGardens: number; totalBeds: number; totalPlants: number }
+export interface DashboardStats {
+  totalGardens: number; totalBeds: number; totalPlants: number
+  totalActivePlants?: number
+  totalActiveSpecies?: number
+}
 
 export interface GardenResponse {
   id: number; name: string; description?: string; emoji?: string

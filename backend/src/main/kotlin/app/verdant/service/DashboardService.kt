@@ -36,7 +36,9 @@ class DashboardService(
             stats = DashboardStats(
                 totalGardens = gardens.size,
                 totalBeds = gardenSummaries.sumOf { it.bedCount },
-                totalPlants = gardenSummaries.sumOf { it.plantCount }
+                totalPlants = gardenSummaries.sumOf { it.plantCount },
+                totalActivePlants = plantRepository.countActiveByOrg(orgId),
+                totalActiveSpecies = plantRepository.countActiveSpeciesByOrg(orgId),
             )
         )
     }

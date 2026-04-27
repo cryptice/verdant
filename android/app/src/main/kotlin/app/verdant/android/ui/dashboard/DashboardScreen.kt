@@ -188,7 +188,13 @@ fun DashboardScreen(
             else -> {
                 val dashboard = uiState.dashboard!!
                 LazyColumn(Modifier.fillMaxSize().padding(padding)) {
-                    item { HeroStat(value = dashboard.stats.totalBeds, label = "Aktiva bäddar") }
+                    item {
+                        HeroStats(
+                            beds = dashboard.stats.totalBeds,
+                            plants = dashboard.stats.totalActivePlants,
+                            species = dashboard.stats.totalActiveSpecies,
+                        )
+                    }
 
                     item {
                         Row(
@@ -331,19 +337,29 @@ fun DashboardScreen(
 }
 
 @Composable
-private fun HeroStat(value: Int, label: String) {
-    Column(
+private fun HeroStats(beds: Int, plants: Int, species: Int) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 18.dp, vertical = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
+        horizontalArrangement = Arrangement.spacedBy(24.dp),
+        verticalAlignment = Alignment.Bottom,
     ) {
+        HeroStatCell(value = beds, label = "Aktiva bäddar", primary = true)
+        HeroStatCell(value = plants, label = "Aktiva plantor")
+        HeroStatCell(value = species, label = "Arter")
+    }
+}
+
+@Composable
+private fun HeroStatCell(value: Int, label: String, primary: Boolean = false) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(
             text = value.toString(),
             fontFamily = FaltetDisplay,
             fontStyle = FontStyle.Italic,
-            fontSize = 64.sp,
-            color = FaltetAccent,
+            fontSize = if (primary) 64.sp else 36.sp,
+            color = if (primary) FaltetAccent else FaltetInk,
         )
         Text(
             text = label.uppercase(),

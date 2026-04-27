@@ -61,6 +61,8 @@ export function Dashboard() {
   })
 
   const activeBedCount = dashboard?.stats.totalBeds ?? beds?.length ?? 0
+  const activePlantCount = dashboard?.stats.totalActivePlants ?? 0
+  const activeSpeciesCount = dashboard?.stats.totalActiveSpecies ?? 0
 
   // Harvest totals: sum totalStems across all species (TODO: wire to season-scoped data)
   const totalStems = harvests?.reduce((acc, h) => acc + h.totalStems, 0) ?? 142
@@ -108,13 +110,28 @@ export function Dashboard() {
       <div className="dashboard-body page-body">
         {/* Hero — wrapped as a stats-band so the accent stripe + paper surface
             replaces the old full-width ink rule that used to sit below it. */}
-        <div className="stats-band dashboard-hero" style={{ margin: '0 0 28px' }}>
+        <div
+          className="stats-band dashboard-hero"
+          style={{ margin: '0 0 28px', display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'flex-end' }}
+        >
           <Stat
             size="large"
             value={activeBedCount}
             unit="×"
             label={t('dashboard.hero.label')}
             hue="sage"
+          />
+          <Stat
+            size="medium"
+            value={activePlantCount}
+            label="Aktiva plantor"
+            hue="mustard"
+          />
+          <Stat
+            size="medium"
+            value={activeSpeciesCount}
+            label="Arter"
+            hue="berry"
           />
         </div>
 

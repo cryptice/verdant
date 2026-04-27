@@ -17,5 +17,7 @@ data class GardenSummary(
 data class DashboardStats(
     val totalGardens: Int,
     val totalBeds: Int,
-    val totalPlants: Int
+    val totalPlants: Int,
+    val totalActivePlants: Int = 0,
+    val totalActiveSpecies: Int = 0,
 )
