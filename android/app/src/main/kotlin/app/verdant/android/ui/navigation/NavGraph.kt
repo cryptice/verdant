@@ -317,7 +317,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                         DrawerSection("§ Uppgifter")
                         DrawerItem("Uppgifter", Screen.TaskList.route, currentRoute, navController, scope, drawerState)
                         DrawerItem("Utsäde", Screen.SeedInventory.route, currentRoute, navController, scope, drawerState)
-                        DrawerItem("Utrustning & förbrukning", Screen.Supplies.route, currentRoute, navController, scope, drawerState)
+                        DrawerItem("Material", Screen.Supplies.route, currentRoute, navController, scope, drawerState)
                         DrawerItem("Successioner", Screen.Successions.route, currentRoute, navController, scope, drawerState)
                         DrawerItem("Mål", Screen.Targets.route, currentRoute, navController, scope, drawerState)
 

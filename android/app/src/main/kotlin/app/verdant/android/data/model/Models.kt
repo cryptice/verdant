@@ -1182,6 +1182,21 @@ data class DecrementSupplyRequest(
     @SerializedName("quantity") val quantity: Double,
 )
 
+data class CreateSupplyTypeRequest(
+    @SerializedName("name") val name: String,
+    @SerializedName("category") val category: String,
+    @SerializedName("unit") val unit: String,
+    @SerializedName("properties") val properties: Map<String, Any?> = emptyMap(),
+)
+
+data class CreateSupplyInventoryRequest(
+    @SerializedName("supplyTypeId") val supplyTypeId: Long,
+    @SerializedName("quantity") val quantity: Double,
+    @SerializedName("costCents") val costCents: Int? = null,
+    @SerializedName("seasonId") val seasonId: Long? = null,
+    @SerializedName("notes") val notes: String? = null,
+)
+
 data class SupplyApplicationResponse(
     @SerializedName("id") val id: Long,
     @SerializedName("bedId") val bedId: Long?,

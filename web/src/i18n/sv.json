@@ -33,7 +33,7 @@
     "analytics": "Analys",
     "guide": "Guide",
     "speciesGroups": "Artgrupper",
-    "supplies": "Utrustning & förbrukning",
+    "supplies": "Material",
     "workflows": "Arbetsflöden",
     "harvest": "Skörd",
     "orgSettings": "Org-inställningar"
@@ -113,7 +113,7 @@
     "STORED": "Lagrat",
     "PINCHED": "Toppad",
     "DISBUDDED": "Avknoppad",
-    "APPLIED_SUPPLY": "Applicerad förnödenhet"
+    "APPLIED_SUPPLY": "Applicerat material"
   },
   "activityType": {
     "SOW": "Så",
@@ -1377,7 +1377,7 @@
     "providers": "Leverantörer"
   },
   "supplies": {
-    "title": "Utrustning & förbrukning",
+    "title": "Material",
     "addBatch": "+ Lägg till parti",
     "newType": "Ny typ",
     "editType": "Redigera typ",
@@ -1476,7 +1476,7 @@
     "wholeBed": "På hela bädden",
     "selectedPlants": "Valda plantor",
     "selectPlants": "Välj plantor",
-    "selectSupply": "Välj förnödenhet",
+    "selectSupply": "Välj material",
     "showAllCategories": "Visa alla kategorier",
     "remaining": "kvar",
     "quantity": "Mängd",
@@ -1485,8 +1485,8 @@
     "noApplications": "Inga applikationer registrerade än",
     "appliedToBed": "Applicerad på bädd",
     "appliedToPlants": "Applicerad på {{count}} plantor",
-    "eventLabel": "Applicerad förnödenhet",
-    "suggestedSupply": "Föreslagen förnödenhet",
+    "eventLabel": "Applicerat material",
+    "suggestedSupply": "Föreslaget material",
     "suggestedQuantity": "Föreslagen mängd"
   },
   "workflows": {

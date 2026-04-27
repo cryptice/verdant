@@ -52,10 +52,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.data.model.CreateSupplyInventoryRequest
+import app.verdant.android.data.model.CreateSupplyTypeRequest
 import app.verdant.android.data.model.SupplyInventoryResponse
+import app.verdant.android.data.model.SupplyTypeResponse
 import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
+import app.verdant.android.ui.faltet.FaltetDropdown
 import app.verdant.android.ui.faltet.FaltetEmptyState
+import app.verdant.android.ui.faltet.FaltetFab
 import app.verdant.android.ui.faltet.FaltetListRow
 import app.verdant.android.ui.faltet.FaltetLoadingState
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
@@ -75,8 +80,10 @@ private const val TAG = "SupplyInventoryScreen"
 data class SupplyInventoryState(
     val isLoading: Boolean = true,
     val items: List<SupplyInventoryResponse> = emptyList(),
+    val types: List<SupplyTypeResponse> = emptyList(),
     val error: String? = null,
     val decrementingId: Long? = null,
+    val saving: Boolean = false,
 )
 
 @HiltViewModel
@@ -95,10 +102,59 @@ class SupplyInventoryViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
                 val items = repo.getSupplyInventory()
-                _uiState.value = _uiState.value.copy(isLoading = false, items = items)
+                val types = runCatching { repo.getSupplyTypes() }.getOrDefault(emptyList())
+                _uiState.value = _uiState.value.copy(isLoading = false, items = items, types = types)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load supply inventory", e)
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
+            }
+        }
+    }
+
+    fun createInventory(
+        supplyTypeId: Long,
+        quantity: Double,
+        costCents: Int?,
+        notes: String?,
+        onDone: () -> Unit,
+    ) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(saving = true)
+            try {
+                repo.createSupplyInventory(
+                    CreateSupplyInventoryRequest(
+                        supplyTypeId = supplyTypeId,
+                        quantity = quantity,
+                        costCents = costCents,
+                        notes = notes,
+                    )
+                )
+                _uiState.value = _uiState.value.copy(saving = false)
+                refresh()
+                onDone()
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to create supply inventory", e)
+                _uiState.value = _uiState.value.copy(saving = false, error = e.message)
+            }
+        }
+    }
+
+    fun createSupplyType(
+        name: String,
+        category: String,
+        unit: String,
+        onCreated: (SupplyTypeResponse) -> Unit,
+    ) {
+        viewModelScope.launch {
+            try {
+                val created = repo.createSupplyType(
+                    CreateSupplyTypeRequest(name = name, category = category, unit = unit)
+                )
+                _uiState.value = _uiState.value.copy(types = (_uiState.value.types + created).sortedBy { it.name })
+                onCreated(created)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to create supply type", e)
+                _uiState.value = _uiState.value.copy(error = e.message)
             }
         }
     }
@@ -182,6 +238,8 @@ fun SupplyInventoryScreen(
 
     var useDialogBatch by remember { mutableStateOf<SupplyInventoryResponse?>(null) }
     var useAmount by remember { mutableStateOf("") }
+    var showAddDialog by remember { mutableStateOf(false) }
+    var showAddTypeDialog by remember { mutableStateOf(false) }
 
     if (useDialogBatch != null) {
         val batch = useDialogBatch!!
@@ -224,9 +282,36 @@ fun SupplyInventoryScreen(
         )
     }
 
+    if (showAddDialog) {
+        AddSupplyDialog(
+            types = uiState.types,
+            saving = uiState.saving,
+            onDismiss = { showAddDialog = false },
+            onSubmit = { typeId, qty, costCents, notes ->
+                viewModel.createInventory(typeId, qty, costCents, notes) {
+                    showAddDialog = false
+                }
+            },
+            onAddType = { showAddTypeDialog = true },
+        )
+    }
+    if (showAddTypeDialog) {
+        AddSupplyTypeDialog(
+            onDismiss = { showAddTypeDialog = false },
+            onSubmit = { name, category, unit ->
+                viewModel.createSupplyType(name, category, unit) { _ ->
+                    showAddTypeDialog = false
+                }
+            },
+        )
+    }
+
     FaltetScreenScaffold(
         mastheadLeft = "",
-        mastheadCenter = "Förnödenheter",
+        mastheadCenter = "Material",
+        fab = {
+            FaltetFab(onClick = { showAddDialog = true }, contentDescription = "Lägg till material")
+        },
     ) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
@@ -237,9 +322,14 @@ fun SupplyInventoryScreen(
                 ConnectionErrorState(onRetry = { viewModel.refresh() })
             }
             uiState.items.isEmpty() -> FaltetEmptyState(
-                headline = "Inga förnödenheter",
-                subtitle = "Lägg till din första inventarierad förnödenhet.",
+                headline = "Inget material",
+                subtitle = "Lägg till ditt första material.",
                 modifier = Modifier.padding(padding),
+                action = {
+                    androidx.compose.material3.Button(onClick = { showAddDialog = true }) {
+                        Text("+ Lägg till material")
+                    }
+                },
             )
             else -> {
                 val grouped = remember(uiState.items) {
@@ -376,4 +466,148 @@ private fun SupplyTypeFaltetRow(
             }
         }
     }
+}
+
+private val SUPPLY_CATEGORIES = listOf("SOIL", "POT", "FERTILIZER", "TRAY", "LABEL", "OTHER")
+private val SUPPLY_UNITS = listOf("COUNT", "LITERS", "KILOGRAMS", "GRAMS", "METERS", "PACKETS")
+
+private fun unitLabelSv(unit: String): String = when (unit) {
+    "COUNT" -> "st"
+    "LITERS" -> "L"
+    "KILOGRAMS" -> "kg"
+    "GRAMS" -> "g"
+    "METERS" -> "m"
+    "PACKETS" -> "påsar"
+    else -> unit
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AddSupplyDialog(
+    types: List<SupplyTypeResponse>,
+    saving: Boolean,
+    onDismiss: () -> Unit,
+    onSubmit: (typeId: Long, quantity: Double, costCents: Int?, notes: String?) -> Unit,
+    onAddType: () -> Unit,
+) {
+    var selectedType by remember { mutableStateOf<SupplyTypeResponse?>(null) }
+    var quantity by remember { mutableStateOf("") }
+    var cost by remember { mutableStateOf("") }
+    var notes by remember { mutableStateOf("") }
+
+    val qty = quantity.toDoubleOrNull()
+    val canSubmit = selectedType != null && qty != null && qty > 0 && !saving
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Lägg till material") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                FaltetDropdown(
+                    label = "Typ",
+                    options = types,
+                    selected = selectedType,
+                    onSelectedChange = { selectedType = it },
+                    labelFor = { "${it.name} · ${categoryLabelSv(it.category)}" },
+                    searchable = true,
+                    required = true,
+                )
+                TextButton(onClick = onAddType) {
+                    Text("+ Ny typ", color = FaltetAccent, fontSize = 12.sp)
+                }
+                OutlinedTextField(
+                    value = quantity,
+                    onValueChange = { quantity = it },
+                    label = { Text("Mängd${selectedType?.unit?.let { " (${unitLabelSv(it)})" } ?: ""}") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = cost,
+                    onValueChange = { cost = it },
+                    label = { Text("Kostnad (kr, valfri)") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = notes,
+                    onValueChange = { notes = it },
+                    label = { Text("Anteckning (valfri)") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = canSubmit,
+                onClick = {
+                    val type = selectedType!!
+                    val q = quantity.toDouble()
+                    val costCents = cost.toDoubleOrNull()?.let { (it * 100).toInt() }
+                    onSubmit(type.id, q, costCents, notes.trim().ifBlank { null })
+                },
+            ) { Text(if (saving) "Sparar…" else "Spara", color = FaltetAccent) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Avbryt", color = FaltetForest) }
+        },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AddSupplyTypeDialog(
+    onDismiss: () -> Unit,
+    onSubmit: (name: String, category: String, unit: String) -> Unit,
+) {
+    var name by remember { mutableStateOf("") }
+    var category by remember { mutableStateOf<String?>("FERTILIZER") }
+    var unit by remember { mutableStateOf<String?>("LITERS") }
+
+    val canSubmit = name.trim().isNotBlank() && category != null && unit != null
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Ny materialtyp") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Namn") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                FaltetDropdown(
+                    label = "Kategori",
+                    options = SUPPLY_CATEGORIES,
+                    selected = category,
+                    onSelectedChange = { category = it },
+                    labelFor = { categoryLabelSv(it) },
+                    searchable = false,
+                    required = true,
+                )
+                FaltetDropdown(
+                    label = "Enhet",
+                    options = SUPPLY_UNITS,
+                    selected = unit,
+                    onSelectedChange = { unit = it },
+                    labelFor = { unitLabelSv(it) },
+                    searchable = false,
+                    required = true,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = canSubmit,
+                onClick = { onSubmit(name.trim(), category!!, unit!!) },
+            ) { Text("Spara", color = FaltetAccent) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Avbryt", color = FaltetForest) }
+        },
+    )
 }

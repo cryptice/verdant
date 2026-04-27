@@ -374,6 +374,12 @@ interface VerdantApi {
     @GET("api/supplies")
     suspend fun getSupplyInventory(): List<SupplyInventoryResponse>
 
+    @POST("api/supplies")
+    suspend fun createSupplyInventory(@Body request: CreateSupplyInventoryRequest): SupplyInventoryResponse
+
+    @POST("api/supplies/types")
+    suspend fun createSupplyType(@Body request: CreateSupplyTypeRequest): SupplyTypeResponse
+
     @POST("api/supplies/{id}/decrement")
     suspend fun decrementSupply(@Path("id") id: Long, @Body request: DecrementSupplyRequest): Response<Unit>
 

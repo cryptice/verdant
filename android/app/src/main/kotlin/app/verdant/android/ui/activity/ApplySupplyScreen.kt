@@ -205,7 +205,7 @@ fun ApplySupplyScreen(
 
     FaltetScreenScaffold(
         mastheadLeft = "",
-        mastheadCenter = "Applicera förnödenhet",
+        mastheadCenter = "Applicera material",
         bottomBar = {
             FaltetFormSubmitBar(
                 label = "Spara",
@@ -275,7 +275,7 @@ fun ApplySupplyScreen(
             }
             item {
                 FaltetDropdown(
-                    label = "Förnödenhet",
+                    label = "Material",
                     options = visibleInventory,
                     selected = selectedLot,
                     onSelectedChange = { vm.setInventoryId(it.id) },
@@ -340,7 +340,7 @@ private fun ApplySupplyScreenPreview() {
     val selectedObjects = previewPlants.toSet()
     FaltetScreenScaffold(
         mastheadLeft = "",
-        mastheadCenter = "Applicera förnödenhet",
+        mastheadCenter = "Applicera material",
         bottomBar = {
             FaltetFormSubmitBar(
                 label = "Spara",
@@ -382,7 +382,7 @@ private fun ApplySupplyScreenPreview() {
             }
             item {
                 FaltetDropdown(
-                    label = "Förnödenhet",
+                    label = "Material",
                     options = emptyList<SupplyInventoryResponse>(),
                     selected = null,
                     onSelectedChange = {},
