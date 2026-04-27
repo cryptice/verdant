@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
@@ -142,7 +143,7 @@ fun TrayLocationDetailScreen(
     val ui by viewModel.uiState.collectAsState()
     var showWaterConfirm by remember { mutableStateOf(false) }
     var showNoteDialog by remember { mutableStateOf(false) }
-    var showMoveAllDialog by remember { mutableStateOf(false) }
+    var moveMode by remember { mutableStateOf(false) }
     var partialMoveTarget by remember { mutableStateOf<TraySummaryEntry?>(null) }
 
     LaunchedEffect(ui.info) {
@@ -196,25 +197,45 @@ fun TrayLocationDetailScreen(
                     }
                 }
                 item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        ActionButton(
-                            label = "Vattna alla",
-                            enabled = !ui.acting && ui.totalCount > 0,
-                            onClick = { showWaterConfirm = true },
-                        )
-                        ActionButton(
-                            label = "Anteckna",
-                            enabled = !ui.acting && ui.totalCount > 0,
-                            onClick = { showNoteDialog = true },
-                        )
-                        ActionButton(
-                            label = "Flytta",
-                            enabled = !ui.acting && ui.totalCount > 0,
-                            onClick = { showMoveAllDialog = true },
-                        )
+                    if (moveMode) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "Tryck en rad för att flytta",
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 11.sp,
+                                color = FaltetAccent,
+                                modifier = Modifier.weight(1f),
+                            )
+                            ActionButton(
+                                label = "Avbryt",
+                                enabled = !ui.acting,
+                                onClick = { moveMode = false },
+                            )
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            ActionButton(
+                                label = "Vattna alla",
+                                enabled = !ui.acting && ui.totalCount > 0,
+                                onClick = { showWaterConfirm = true },
+                            )
+                            ActionButton(
+                                label = "Anteckna",
+                                enabled = !ui.acting && ui.totalCount > 0,
+                                onClick = { showNoteDialog = true },
+                            )
+                            ActionButton(
+                                label = "Flytta",
+                                enabled = !ui.acting && ui.totalCount > 0,
+                                onClick = { moveMode = true },
+                            )
+                        }
                     }
                 }
                 item { FaltetSectionHeader(label = "Plantor") }
@@ -249,7 +270,7 @@ fun TrayLocationDetailScreen(
                                     )
                                 }
                             },
-                            onClick = { partialMoveTarget = entry },
+                            onClick = if (moveMode) ({ partialMoveTarget = entry }) else null,
                         )
                     }
                 }
@@ -272,18 +293,6 @@ fun TrayLocationDetailScreen(
             onSubmit = { text -> viewModel.note(text); showNoteDialog = false },
         )
     }
-    if (showMoveAllDialog) {
-        MoveDialog(
-            allLocations = ui.allLocations.filter { it.id != ui.location?.id },
-            sourceCount = ui.totalCount,
-            initialTitle = "Alla i ${ui.location?.name}",
-            onDismiss = { showMoveAllDialog = false },
-            onConfirm = { targetId, count ->
-                viewModel.move(targetId, count, null, null)
-                showMoveAllDialog = false
-            },
-        )
-    }
     partialMoveTarget?.let { entry ->
         MoveDialog(
             allLocations = ui.allLocations.filter { it.id != ui.location?.id },
@@ -293,6 +302,7 @@ fun TrayLocationDetailScreen(
             onConfirm = { targetId, count ->
                 viewModel.move(targetId, count, entry.speciesId, entry.status)
                 partialMoveTarget = null
+                moveMode = false
             },
         )
     }
@@ -402,15 +412,22 @@ private fun MoveDialog(
                         fontSize = 12.sp,
                     )
                 }
-                OutlinedTextField(
-                    value = countText,
-                    onValueChange = { v -> countText = v.filter { it.isDigit() } },
-                    label = { Text("Antal (max $sourceCount)") },
-                    singleLine = true,
-                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                    ),
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = countText,
+                        onValueChange = { v -> countText = v.filter { it.isDigit() } },
+                        label = { Text("Antal (max $sourceCount)") },
+                        singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                        ),
+                        modifier = Modifier.weight(1f),
+                    )
+                    androidx.compose.foundation.layout.Spacer(Modifier.width(8.dp))
+                    TextButton(onClick = { countText = sourceCount.toString() }) {
+                        Text("Alla", color = FaltetAccent, fontSize = 12.sp)
+                    }
+                }
             }
         },
         confirmButton = {

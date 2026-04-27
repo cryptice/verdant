@@ -29,7 +29,7 @@ export function TrayLocationDetail() {
 
   const [showWaterConfirm, setShowWaterConfirm] = useState(false)
   const [showNote, setShowNote] = useState(false)
-  const [showMoveAll, setShowMoveAll] = useState(false)
+  const [moveMode, setMoveMode] = useState(false)
   const [partialMove, setPartialMove] = useState<TraySummaryEntry | null>(null)
   const [info, setInfo] = useState<string | null>(null)
 
@@ -87,29 +87,38 @@ export function TrayLocationDetail() {
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
-          <button
-            className="btn-secondary"
-            disabled={acting || totalCount === 0}
-            onClick={() => setShowWaterConfirm(true)}
-          >
-            Vattna alla
-          </button>
-          <button
-            className="btn-secondary"
-            disabled={acting || totalCount === 0}
-            onClick={() => { setNoteValue(''); setShowNote(true) }}
-          >
-            Anteckna
-          </button>
-          <button
-            className="btn-secondary"
-            disabled={acting || totalCount === 0}
-            onClick={() => setShowMoveAll(true)}
-          >
-            Flytta
-          </button>
-        </div>
+        {moveMode ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-accent)', flex: 1 }}>
+              Klicka en rad för att flytta
+            </span>
+            <button className="btn-secondary" onClick={() => setMoveMode(false)}>Avbryt</button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
+            <button
+              className="btn-secondary"
+              disabled={acting || totalCount === 0}
+              onClick={() => setShowWaterConfirm(true)}
+            >
+              Vattna alla
+            </button>
+            <button
+              className="btn-secondary"
+              disabled={acting || totalCount === 0}
+              onClick={() => { setNoteValue(''); setShowNote(true) }}
+            >
+              Anteckna
+            </button>
+            <button
+              className="btn-secondary"
+              disabled={acting || totalCount === 0}
+              onClick={() => setMoveMode(true)}
+            >
+              Flytta
+            </button>
+          </div>
+        )}
 
         <h3 style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', marginBottom: 8 }}>
           Plantor
@@ -122,7 +131,8 @@ export function TrayLocationDetail() {
             {entries.map((e) => (
               <button
                 key={`${e.speciesId}_${e.status}`}
-                onClick={() => setPartialMove(e)}
+                onClick={() => moveMode && setPartialMove(e)}
+                disabled={!moveMode}
                 style={{
                   display: 'grid',
                   gridTemplateColumns: '1.5fr 80px 80px',
@@ -133,7 +143,7 @@ export function TrayLocationDetail() {
                   background: 'transparent',
                   border: 'none',
                   borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
-                  cursor: 'pointer',
+                  cursor: moveMode ? 'pointer' : 'default',
                   fontFamily: 'var(--font-display)',
                   fontSize: 16,
                 }}
@@ -199,18 +209,6 @@ export function TrayLocationDetail() {
       </Dialog>
 
       <MoveDialog
-        open={showMoveAll}
-        onClose={() => setShowMoveAll(false)}
-        title={`Alla i ${location.name}`}
-        sourceCount={totalCount}
-        otherLocations={otherLocations}
-        onSubmit={(targetId, count) => {
-          moveMut.mutate({ targetLocationId: targetId, count })
-          setShowMoveAll(false)
-        }}
-      />
-
-      <MoveDialog
         open={partialMove !== null}
         onClose={() => setPartialMove(null)}
         title={partialMove ? (partialMove.variantName ? `${partialMove.speciesName} – ${partialMove.variantName}` : partialMove.speciesName) : ''}
@@ -226,6 +224,7 @@ export function TrayLocationDetail() {
             })
           }
           setPartialMove(null)
+          setMoveMode(false)
         }}
       />
     </div>
@@ -293,14 +292,32 @@ function MoveDialog(props: {
 
         <div>
           <label className="field-label">Antal (max {props.sourceCount})</label>
-          <input
-            type="number"
-            min={1}
-            max={props.sourceCount}
-            value={countText}
-            onChange={(e) => setCountText(e.target.value.replace(/[^0-9]/g, ''))}
-            className="input w-full"
-          />
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <input
+              type="number"
+              min={1}
+              max={props.sourceCount}
+              value={countText}
+              onChange={(e) => setCountText(e.target.value.replace(/[^0-9]/g, ''))}
+              className="input"
+              style={{ flex: 1 }}
+            />
+            <button
+              type="button"
+              onClick={() => setCountText(String(props.sourceCount))}
+              style={{
+                background: 'none',
+                border: '1px solid var(--color-accent)',
+                color: 'var(--color-accent)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 11,
+                padding: '6px 12px',
+                cursor: 'pointer',
+              }}
+            >
+              Alla
+            </button>
+          </div>
         </div>
       </div>
     </Dialog>
