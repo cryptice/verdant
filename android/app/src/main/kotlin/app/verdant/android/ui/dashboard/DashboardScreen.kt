@@ -137,29 +137,17 @@ class DashboardViewModel @Inject constructor(
 fun DashboardScreen(
     onTaskClick: (ScheduledTaskResponse) -> Unit = {},
     onOpenTasks: () -> Unit = {},
-    onTrayAction: (action: String, speciesId: Long) -> Unit = { _, _ -> },
+    onSpeciesClick: (Long) -> Unit = {},
     onOpenTrayLocation: (Long) -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var trayActionTarget by remember { mutableStateOf<TraySummaryEntry?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(uiState.toastMessage) {
         uiState.toastMessage?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.consumeToast()
         }
-    }
-
-    trayActionTarget?.let { entry ->
-        TrayActionDialog(
-            entry = entry,
-            onDismiss = { trayActionTarget = null },
-            onAction = { action ->
-                trayActionTarget = null
-                entry.speciesId?.let { onTrayAction(action, it) }
-            },
-        )
     }
 
     LifecycleResumeEffect(Unit) {
@@ -302,7 +290,7 @@ fun DashboardScreen(
                                             )
                                         }
                                     },
-                                    onClick = { trayActionTarget = entry },
+                                    onClick = { entry.speciesId?.let(onSpeciesClick) },
                                 )
                             }
                         }
@@ -367,153 +355,6 @@ private fun HeroStatCell(value: Int, label: String, primary: Boolean = false) {
             fontSize = 10.sp,
             letterSpacing = 1.4.sp,
             color = FaltetForest,
-        )
-    }
-}
-
-@Composable
-fun TrayActionDialog(
-    entry: TraySummaryEntry,
-    onDismiss: () -> Unit,
-    onAction: (action: String) -> Unit,
-) {
-    val title = entry.variantName?.let { "${entry.speciesName} – $it" } ?: entry.speciesName
-    val hasSpeciesId = entry.speciesId != null
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
-        androidx.compose.foundation.layout.Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    app.verdant.android.ui.theme.FaltetCream,
-                    androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
-                )
-                .border(
-                    1.dp,
-                    FaltetInk,
-                    androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
-                )
-                .padding(24.dp),
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
-        ) {
-            Text(
-                text = "${entry.count} ST · ${trayStatusLabelSv(entry.status).uppercase()}",
-                fontFamily = FontFamily.Monospace,
-                fontSize = 9.sp,
-                letterSpacing = 1.8.sp,
-                color = FaltetForest,
-            )
-            Text(
-                text = title,
-                fontFamily = FaltetDisplay,
-                fontStyle = FontStyle.Italic,
-                fontSize = 26.sp,
-                color = FaltetInk,
-            )
-            if (!hasSpeciesId) {
-                Text(
-                    text = "Servern måste startas om för att aktivera åtgärder.",
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 10.sp,
-                    letterSpacing = 1.2.sp,
-                    color = FaltetAccent,
-                )
-            }
-            TrayActionCard(
-                icon = androidx.compose.material.icons.Icons.Default.Spa,
-                title = "Skola om",
-                subtitle = "Flytta till större krukor",
-                enabled = hasSpeciesId,
-                onClick = { onAction("POT_UP") },
-            )
-            TrayActionCard(
-                icon = androidx.compose.material.icons.Icons.Default.Yard,
-                title = "Plantera ut",
-                subtitle = "Plantera ut i en bädd",
-                enabled = hasSpeciesId,
-                onClick = { onAction("PLANT") },
-            )
-            TrayActionCard(
-                icon = androidx.compose.material.icons.Icons.Default.DeleteOutline,
-                title = "Kassera",
-                subtitle = "Markera som borttagna",
-                enabled = hasSpeciesId,
-                onClick = { onAction("DISCARD") },
-            )
-            androidx.compose.foundation.layout.Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = androidx.compose.ui.Alignment.CenterEnd,
-            ) {
-                androidx.compose.material3.TextButton(onClick = onDismiss) {
-                    Text("Avbryt", color = FaltetForest)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun TrayActionCard(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    subtitle: String,
-    enabled: Boolean,
-    onClick: () -> Unit,
-) {
-    val contentColor = if (enabled) FaltetAccent else FaltetForest.copy(alpha = 0.4f)
-    val titleColor = if (enabled) FaltetInk else FaltetInk.copy(alpha = 0.4f)
-    val subtitleColor = if (enabled) FaltetForest else FaltetForest.copy(alpha = 0.4f)
-    androidx.compose.foundation.layout.Row(
-        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(
-                1.dp,
-                if (enabled) FaltetInk else FaltetInk.copy(alpha = 0.3f),
-                androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-            )
-            .then(
-                if (enabled) Modifier.clickable(onClick = onClick)
-                else Modifier,
-            )
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-    ) {
-        androidx.compose.foundation.layout.Box(
-            modifier = Modifier
-                .size(44.dp)
-                .background(
-                    contentColor.copy(alpha = if (enabled) 0.12f else 0.06f),
-                    androidx.compose.foundation.shape.CircleShape,
-                ),
-            contentAlignment = androidx.compose.ui.Alignment.Center,
-        ) {
-            androidx.compose.material3.Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = contentColor,
-                modifier = Modifier.size(22.dp),
-            )
-        }
-        androidx.compose.foundation.layout.Spacer(Modifier.width(14.dp))
-        androidx.compose.foundation.layout.Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                fontFamily = FaltetDisplay,
-                fontStyle = FontStyle.Italic,
-                fontSize = 20.sp,
-                color = titleColor,
-            )
-            Text(
-                text = subtitle,
-                fontFamily = FontFamily.Monospace,
-                fontSize = 10.sp,
-                letterSpacing = 1.2.sp,
-                color = subtitleColor,
-            )
-        }
-        androidx.compose.material3.Icon(
-            imageVector = androidx.compose.material.icons.Icons.Default.ChevronRight,
-            contentDescription = null,
-            tint = contentColor,
         )
     }
 }

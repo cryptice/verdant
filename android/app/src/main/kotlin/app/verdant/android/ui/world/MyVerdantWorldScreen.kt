@@ -96,22 +96,10 @@ fun MyVerdantWorldScreen(
     onGardenClick: (Long) -> Unit,
     onCreateGarden: () -> Unit,
     onSow: () -> Unit = {},
-    onTrayAction: (action: String, speciesId: Long) -> Unit = { _, _ -> },
+    onSpeciesClick: (Long) -> Unit = {},
     viewModel: MyWorldViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var trayActionTarget by remember { mutableStateOf<TraySummaryEntry?>(null) }
-
-    trayActionTarget?.let { entry ->
-        app.verdant.android.ui.dashboard.TrayActionDialog(
-            entry = entry,
-            onDismiss = { trayActionTarget = null },
-            onAction = { action ->
-                trayActionTarget = null
-                entry.speciesId?.let { onTrayAction(action, it) }
-            },
-        )
-    }
 
     LifecycleResumeEffect(Unit) {
         viewModel.refresh()
@@ -231,7 +219,7 @@ fun MyVerdantWorldScreen(
                                         )
                                     }
                                 },
-                                onClick = { trayActionTarget = entry },
+                                onClick = { entry.speciesId?.let(onSpeciesClick) },
                             )
                         }
                     }

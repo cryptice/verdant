@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import type { TraySummaryEntry } from '../api/client'
 import { Masthead, Stat, Chip } from '../components/faltet'
-import { TrayActionDialog, type TrayActionEntry } from '../components/TrayActionDialog'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
 export function Dashboard() {
@@ -32,8 +31,6 @@ export function Dashboard() {
     onError: () => setToast('Kunde inte vattna'),
   })
 
-  const [trayDialogOpen, setTrayDialogOpen] = useState(false)
-  const [activeTrayEntry, setActiveTrayEntry] = useState<TrayActionEntry | null>(null)
 
   const { data: dashboard } = useQuery({
     queryKey: ['dashboard'],
@@ -223,14 +220,7 @@ export function Dashboard() {
                       const clickable = row.speciesId != null
                       const handleClick = () => {
                         if (!clickable) return
-                        setActiveTrayEntry({
-                          speciesId: row.speciesId!,
-                          speciesName: row.speciesName,
-                          variantName: row.variantName,
-                          status: row.status,
-                          count: row.count,
-                        })
-                        setTrayDialogOpen(true)
+                        navigate(`/species/${row.speciesId}/plants`)
                       }
                       return (
                         <div
@@ -439,12 +429,6 @@ export function Dashboard() {
           </div>
         </div>
       </div>
-
-      <TrayActionDialog
-        open={trayDialogOpen}
-        entry={activeTrayEntry}
-        onClose={() => setTrayDialogOpen(false)}
-      />
 
       {toast && (
         <div
