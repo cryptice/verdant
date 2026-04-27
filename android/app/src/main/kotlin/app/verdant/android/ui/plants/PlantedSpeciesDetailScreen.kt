@@ -152,8 +152,8 @@ class PlantedSpeciesDetailViewModel @Inject constructor(
         }
     }
 
-    fun moveLocation(
-        sourceLocationId: Long,
+    fun moveTrayPlants(
+        sourceLocationId: Long?,
         targetLocationId: Long?,
         status: String,
         count: Int,
@@ -161,14 +161,14 @@ class PlantedSpeciesDetailViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
-                repo.moveTrayLocation(
-                    sourceLocationId,
-                    app.verdant.android.data.model.MoveTrayLocationRequest(
-                        targetLocationId = targetLocationId,
-                        count = count,
+                repo.moveTrayPlants(
+                    app.verdant.android.data.model.MoveTrayPlantsRequest(
+                        fromTrayLocationId = sourceLocationId,
+                        toTrayLocationId = targetLocationId,
                         speciesId = speciesId,
                         status = status,
-                    ),
+                        count = count,
+                    )
                 )
                 load()
                 onDone()
@@ -337,8 +337,9 @@ fun PlantedSpeciesDetailScreen(
     // Dialog 2: action selection for a specific status group
     if (selectedSubItem != null && !plantOutMode && !moveMode) {
         val item = selectedSubItem!!
-        // Plants on a tray location can move to another location or detach.
-        val canMove = item.bedId == null && item.trayLocationId != null
+        // Any tray plant can be moved to a tray location or detached, including
+        // plants currently without a tray_location_id (they can be assigned).
+        val canMove = item.bedId == null
         val actions: List<Pair<String, String>> = buildList {
             when (item.status) {
                 "SEEDED" -> {
@@ -466,11 +467,12 @@ fun PlantedSpeciesDetailScreen(
         val item = selectedSubItem!!
         val count = actionCount.toIntOrNull() ?: 0
         val targetOptions = uiState.trayLocations.filter { it.id != item.trayLocationId }
+        val sourceLabel = item.trayLocationName ?: "Utan plats"
         val canSubmit = (detachLocation || selectedTargetTrayLocationId != null) &&
             count in 1..item.count && !actionSubmitting
         AlertDialog(
             onDismissRequest = dismissModal,
-            title = { Text("Flytta") },
+            title = { Text("Flytta från $sourceLabel") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
@@ -524,8 +526,8 @@ fun PlantedSpeciesDetailScreen(
                     Button(
                         onClick = {
                             actionSubmitting = true
-                            viewModel.moveLocation(
-                                sourceLocationId = item.trayLocationId!!,
+                            viewModel.moveTrayPlants(
+                                sourceLocationId = item.trayLocationId,
                                 targetLocationId = if (detachLocation) null else selectedTargetTrayLocationId,
                                 status = item.status,
                                 count = count.coerceAtMost(item.count),
@@ -843,8 +845,9 @@ private fun StatusSectionCard(
         // Locations list inside the card
         locations.forEach { loc ->
             val isTray = loc.bedId == null
-            val locationLabel = if (isTray) "Bricka" else
-                listOfNotNull(loc.gardenName, loc.bedName).joinToString(" / ")
+            val locationLabel = if (isTray) {
+                loc.trayLocationName?.let { "Bricka · $it" } ?: "Bricka"
+            } else listOfNotNull(loc.gardenName, loc.bedName).joinToString(" / ")
             FaltetListRow(
                 title = locationLabel.ifBlank { "—" },
                 meta = loc.year.toString(),

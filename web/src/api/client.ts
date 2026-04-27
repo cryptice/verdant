@@ -488,6 +488,15 @@ export const api = {
       speciesId: number; bedId?: number; plantedDate?: string; status: string
       eventType: string; count: number; notes?: string; targetBedId?: number
     }) => apiRequest<{ updatedCount: number }>('/api/plants/batch-event', { method: 'POST', body: JSON.stringify(data) }),
+    moveTrayPlants: (data: {
+      fromTrayLocationId: number | null
+      toTrayLocationId: number | null
+      speciesId: number
+      status: string
+      count: number
+    }) => apiRequest<BulkLocationActionResponse>('/api/plants/move-tray', {
+      method: 'POST', body: JSON.stringify(data),
+    }),
     speciesSummary: () => apiRequest<SpeciesPlantSummary[]>('/api/plants/species-summary'),
     speciesLocations: (speciesId: number) =>
       apiRequest<PlantLocationGroup[]>(`/api/plants/species/${speciesId}/locations`),

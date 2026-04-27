@@ -22,6 +22,51 @@ class PlantService(
     private val workflowRepository: WorkflowRepository,
     private val trayLocationRepository: app.verdant.repository.TrayLocationRepository,
 ) {
+    @Transactional
+    fun moveTrayPlants(orgId: Long, request: MoveTrayPlantsRequest): BulkLocationActionResponse {
+        if (request.fromTrayLocationId == null && request.toTrayLocationId == null)
+            throw BadRequestException("fromTrayLocationId and toTrayLocationId cannot both be null")
+        request.fromTrayLocationId?.let { id ->
+            val loc = trayLocationRepository.findById(id) ?: throw NotFoundException("Source location not found")
+            if (loc.orgId != orgId) throw NotFoundException("Source location not found")
+        }
+        request.toTrayLocationId?.let { id ->
+            val loc = trayLocationRepository.findById(id) ?: throw NotFoundException("Target location not found")
+            if (loc.orgId != orgId) throw NotFoundException("Target location not found")
+        }
+        val plants = if (request.fromTrayLocationId != null) {
+            plantRepository.findActiveByTrayLocationFiltered(
+                orgId = orgId,
+                locationId = request.fromTrayLocationId,
+                speciesId = request.speciesId,
+                status = request.status,
+                limit = request.count,
+            )
+        } else {
+            plantRepository.findActiveUnassignedTrayFiltered(
+                orgId = orgId,
+                speciesId = request.speciesId,
+                status = request.status,
+                limit = request.count,
+            )
+        }
+        val today = java.time.LocalDate.now()
+        plants.forEach { plant ->
+            plantRepository.update(plant.copy(trayLocationId = request.toTrayLocationId))
+            plantEventRepository.persist(
+                PlantEvent(
+                    plantId = plant.id!!,
+                    eventType = PlantEventType.MOVED,
+                    eventDate = today,
+                    plantCount = 1,
+                    fromTrayLocationId = request.fromTrayLocationId,
+                    toTrayLocationId = request.toTrayLocationId,
+                )
+            )
+        }
+        return BulkLocationActionResponse(plantsAffected = plants.size)
+    }
+
     private fun checkBedOwnership(bedId: Long, orgId: Long) {
         val bed = bedRepository.findById(bedId) ?: throw NotFoundException("Bed not found")
         val garden = gardenRepository.findById(bed.gardenId) ?: throw NotFoundException("Garden not found")

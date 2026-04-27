@@ -258,6 +258,14 @@ data class MoveTrayLocationRequest(
     @SerializedName("status") val status: String? = null,
 )
 
+data class MoveTrayPlantsRequest(
+    @SerializedName("fromTrayLocationId") val fromTrayLocationId: Long? = null,
+    @SerializedName("toTrayLocationId") val toTrayLocationId: Long? = null,
+    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("status") val status: String,
+    @SerializedName("count") val count: Int,
+)
+
 data class PlantGroupResponse(
     @SerializedName("speciesId") val speciesId: Long,
     @SerializedName("speciesName") val speciesName: String?,

@@ -179,4 +179,6 @@ class GardenRepository @Inject constructor(private val api: VerdantApi) {
         api.noteTrayLocation(id, BulkLocationNoteRequest(text))
     suspend fun moveTrayLocation(id: Long, request: MoveTrayLocationRequest) =
         api.moveTrayLocation(id, request)
+    suspend fun moveTrayPlants(request: MoveTrayPlantsRequest) =
+        api.moveTrayPlants(request)
 }

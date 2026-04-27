@@ -92,12 +92,13 @@ export function PlantedSpeciesDetail() {
   })
 
   const moveMut = useMutation({
-    mutationFn: (vars: { sourceId: number; targetId: number | null; status: string; count: number }) =>
-      api.trayLocations.move(vars.sourceId, {
-        targetLocationId: vars.targetId,
-        count: vars.count,
+    mutationFn: (vars: { sourceId: number | null; targetId: number | null; status: string; count: number }) =>
+      api.plants.moveTrayPlants({
+        fromTrayLocationId: vars.sourceId,
+        toTrayLocationId: vars.targetId,
         speciesId: id,
         status: vars.status,
+        count: vars.count,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['species-locations', id] })
@@ -299,7 +300,7 @@ export function PlantedSpeciesDetail() {
           onClose={() => setMoveTarget(null)}
           onConfirm={(targetId, count) => {
             moveMut.mutate({
-              sourceId: moveTarget.trayLocationId!,
+              sourceId: moveTarget.trayLocationId ?? null,
               targetId,
               status: moveTarget.status,
               count,
@@ -351,7 +352,7 @@ function MovePlantsDialog({
     >
       <div className="space-y-3">
         <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-forest)' }}>
-          {source.trayLocationName ?? 'Bricka'} · {STATUS_LABEL_PLURAL_SV[source.status] ?? source.status}
+          {source.trayLocationName ?? 'Utan plats'} · {STATUS_LABEL_PLURAL_SV[source.status] ?? source.status}
         </p>
         <div>
           <label className="field-label">Mål</label>
@@ -453,7 +454,7 @@ function StatusCard({
           const labelStr = isTray
             ? `Bricka${loc.trayLocationName ? ` · ${loc.trayLocationName}` : ''}`
             : [loc.gardenName, loc.bedName].filter(Boolean).join(' / ')
-          const canMove = isTray && loc.trayLocationId != null
+          const canMove = isTray
           return (
             <div key={`${loc.bedId ?? `tray_${loc.trayLocationId ?? 'none'}`}-${loc.year}-${i}`}>
               <div

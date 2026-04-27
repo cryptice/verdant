@@ -80,6 +80,9 @@ interface VerdantApi {
     @POST("api/plants/batch-event")
     suspend fun batchEvent(@Body request: BatchEventRequest): BatchEventResponse
 
+    @POST("api/plants/move-tray")
+    suspend fun moveTrayPlants(@Body request: MoveTrayPlantsRequest): BulkLocationActionResponse
+
     @PUT("api/plants/{id}")
     suspend fun updatePlant(@Path("id") id: Long, @Body request: UpdatePlantRequest): PlantResponse
 

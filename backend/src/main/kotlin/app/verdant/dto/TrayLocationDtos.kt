@@ -35,3 +35,17 @@ data class MoveTrayLocationRequest(
     val speciesId: Long? = null,
     val status: String? = null,
 )
+
+/** Move tray plants between locations, including the unassigned (null) case
+ *  on either side. [fromTrayLocationId] = null targets plants currently in
+ *  trays without a location; [toTrayLocationId] = null detaches them. */
+data class MoveTrayPlantsRequest(
+    val fromTrayLocationId: Long? = null,
+    val toTrayLocationId: Long? = null,
+    @field:jakarta.validation.constraints.NotNull
+    val speciesId: Long,
+    @field:jakarta.validation.constraints.NotBlank
+    val status: String,
+    @field:jakarta.validation.constraints.Min(1)
+    val count: Int,
+)

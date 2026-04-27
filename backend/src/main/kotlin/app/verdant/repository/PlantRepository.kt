@@ -503,6 +503,31 @@ class PlantRepository(private val ds: AgroalDataSource) {
         }
     }
 
+    /** Active tray plants with no tray_location_id, optionally filtered. */
+    fun findActiveUnassignedTrayFiltered(
+        orgId: Long,
+        speciesId: Long?,
+        status: String?,
+        limit: Int,
+    ): List<Plant> = ds.connection.use { conn ->
+        val sql = buildString {
+            append("SELECT * FROM plant WHERE org_id = ? AND bed_id IS NULL AND tray_location_id IS NULL AND status <> 'REMOVED'")
+            if (speciesId != null) append(" AND species_id = ?")
+            if (status != null) append(" AND status = ?")
+            append(" ORDER BY id LIMIT ?")
+        }
+        conn.prepareStatement(sql).use { ps ->
+            var i = 1
+            ps.setLong(i++, orgId)
+            if (speciesId != null) ps.setLong(i++, speciesId)
+            if (status != null) ps.setString(i++, status)
+            ps.setInt(i, limit)
+            ps.executeQuery().use { rs ->
+                buildList { while (rs.next()) add(rs.toPlant()) }
+            }
+        }
+    }
+
     private fun ResultSet.toPlant() = Plant(
         id = getLong("id"),
         name = getString("name"),
