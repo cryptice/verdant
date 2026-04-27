@@ -202,12 +202,15 @@ class PlantRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             val sql = buildString {
                 append("""SELECT pe.event_type, pe.event_date, p.status as current_status,
+                                 fl.name as from_loc_name, tl.name as to_loc_name,
                                  COALESCE(SUM(pe.plant_count), COUNT(*))::int as count
                           FROM plant_event pe
                           JOIN plant p ON pe.plant_id = p.id
+                          LEFT JOIN tray_location fl ON pe.from_tray_location_id = fl.id
+                          LEFT JOIN tray_location tl ON pe.to_tray_location_id = tl.id
                           WHERE p.org_id = ? AND p.species_id = ?""")
                 if (trayOnly) append(" AND p.bed_id IS NULL")
-                append(" GROUP BY pe.event_type, pe.event_date, p.status")
+                append(" GROUP BY pe.event_type, pe.event_date, p.status, fl.name, tl.name")
                 append(" ORDER BY pe.event_date, pe.event_type, p.status")
             }
             conn.prepareStatement(sql).use { ps ->
@@ -221,6 +224,8 @@ class PlantRepository(private val ds: AgroalDataSource) {
                                 eventDate = rs.getDate("event_date").toLocalDate(),
                                 currentStatus = rs.getString("current_status"),
                                 count = rs.getInt("count"),
+                                fromLocationName = rs.getString("from_loc_name"),
+                                toLocationName = rs.getString("to_loc_name"),
                             )
                         )
                     }

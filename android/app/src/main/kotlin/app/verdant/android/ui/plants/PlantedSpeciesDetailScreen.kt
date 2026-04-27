@@ -509,16 +509,25 @@ private fun TrayEventsExpansion(
     // the species-wide total (across all current statuses) so the user can
     // see e.g. "5 (10) Sådda" — 5 of the 10 originally sown are still
     // SEEDED, the others moved on.
-    data class Row(val type: String, val date: String, val current: Int, val total: Int)
+    data class Row(
+        val type: String,
+        val date: String,
+        val current: Int,
+        val total: Int,
+        val fromLoc: String?,
+        val toLoc: String?,
+    )
     val rows = allEvents
-        .groupBy { it.eventType to it.eventDate }
-        .map { (key, entries) ->
-            val (type, date) = key
+        .groupBy { listOf(it.eventType, it.eventDate, it.fromLocationName, it.toLocationName) }
+        .map { (_, entries) ->
+            val first = entries.first()
             Row(
-                type = type,
-                date = date,
+                type = first.eventType,
+                date = first.eventDate,
                 current = entries.filter { it.currentStatus == currentStatus }.sumOf { it.count },
                 total = entries.sumOf { it.count },
+                fromLoc = first.fromLocationName,
+                toLoc = first.toLocationName,
             )
         }
         .filter { it.current > 0 }
@@ -562,8 +571,17 @@ private fun TrayEventsExpansion(
                             else androidx.compose.ui.text.font.FontWeight.Normal,
                         modifier = Modifier.width(80.dp),
                     )
+                    val displayLabel = when {
+                        e.type == "MOVED" && e.fromLoc != null && e.toLoc != null ->
+                            "Flyttade · ${e.fromLoc} → ${e.toLoc}"
+                        e.type == "MOVED" && e.toLoc != null ->
+                            "Flyttade · till ${e.toLoc}"
+                        e.type == "MOVED" && e.fromLoc != null ->
+                            "Flyttade · ut ur ${e.fromLoc}"
+                        else -> eventLabelSv(e.type)
+                    }
                     Text(
-                        text = eventLabelSv(e.type),
+                        text = displayLabel,
                         fontFamily = FaltetDisplay,
                         fontStyle = FontStyle.Italic,
                         fontSize = if (isLatest) 17.sp else 14.sp,

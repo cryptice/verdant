@@ -644,6 +644,8 @@ data class SpeciesEventSummaryEntry(
     @SerializedName("eventDate") val eventDate: String,
     @SerializedName("currentStatus") val currentStatus: String? = null,
     @SerializedName("count") val count: Int,
+    @SerializedName("fromLocationName") val fromLocationName: String? = null,
+    @SerializedName("toLocationName") val toLocationName: String? = null,
 )
 
 data class UpdateSpeciesEventDateRequest(

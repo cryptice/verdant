@@ -164,6 +164,9 @@ data class SpeciesEventSummaryEntry(
      *  belonging to plants that are still SEEDED). */
     val currentStatus: String,
     val count: Int,
+    /** Set on MOVED rows; null otherwise. */
+    val fromLocationName: String? = null,
+    val toLocationName: String? = null,
 )
 
 data class PlantLocationGroup(
