@@ -62,6 +62,8 @@ import app.verdant.android.ui.faltet.FaltetFab
 import app.verdant.android.ui.faltet.FaltetListRow
 import app.verdant.android.ui.faltet.FaltetLoadingState
 import app.verdant.android.ui.faltet.FaltetMetadataRow
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.FaltetSectionHeader
 import app.verdant.android.ui.faltet.Field
@@ -87,6 +89,7 @@ data class BedDetailState(
     val expandedGroups: Set<String> = emptySet(),
     val scrollIndex: Int = 0,
     val scrollOffset: Int = 0,
+    val toastMessage: String? = null,
 )
 
 @HiltViewModel
@@ -175,6 +178,23 @@ class BedDetailViewModel @Inject constructor(
         }
     }
 
+    fun weed() {
+        viewModelScope.launch {
+            try {
+                val r = gardenRepository.weedBed(bedId)
+                _uiState.value = _uiState.value.copy(
+                    toastMessage = "Rensade ogräs · ${r.plantsAffected} plantor",
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(toastMessage = "Kunde inte rensa ogräs")
+            }
+        }
+    }
+
+    fun consumeToast() {
+        _uiState.value = _uiState.value.copy(toastMessage = null)
+    }
+
     /** Duplicate the bed (same conditions). If the source name ends with
      *  `#<n>`, the new name uses the same stem with the next free number
      *  (`Bed #1` → `Bed #2`); otherwise we fall back to `{old} (kopia)`. */
@@ -241,6 +261,13 @@ fun BedDetailScreen(
     }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showAddDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(uiState.toastMessage) {
+        uiState.toastMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.consumeToast()
+        }
+    }
     var editing by remember { mutableStateOf(false) }
     var editName by remember { mutableStateOf("") }
     var editDescription by remember { mutableStateOf("") }
@@ -428,6 +455,11 @@ fun BedDetailScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     ) { Text("Gödsla") }
+                    androidx.compose.material3.OutlinedButton(
+                        onClick = { showAddDialog = false; viewModel.weed() },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) { Text("Rensa ogräs") }
                 }
             },
             confirmButton = {},
@@ -508,6 +540,7 @@ fun BedDetailScreen(
                 FaltetFab(onClick = { showAddDialog = true }, contentDescription = "Lägg till planta")
             }
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         when {
             uiState.isLoading && uiState.bed == null -> FaltetLoadingState(Modifier.padding(padding))

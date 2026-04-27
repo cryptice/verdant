@@ -907,6 +907,7 @@ private fun eventLabelSv(eventType: String): String = when (eventType) {
     "APPLIED_SUPPLY" -> "Gödslade"
     "WATERED" -> "Vattnade"
     "MOVED" -> "Flyttade"
+    "WEEDED" -> "Rensade ogräs"
     else -> eventType
 }
 

@@ -49,6 +49,7 @@ const EVENT_LABEL_SV: Record<string, string> = {
   APPLIED_SUPPLY: 'Gödslade',
   WATERED: 'Vattnade',
   MOVED: 'Flyttade',
+  WEEDED: 'Rensade ogräs',
 }
 
 const STATUS_COLOR: Record<string, string> = {

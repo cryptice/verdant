@@ -83,6 +83,10 @@ class PlantResource(
     fun moveTrayPlants(@Valid request: MoveTrayPlantsRequest) =
         plantService.moveTrayPlants(orgContext.orgId, request)
 
+    @POST
+    @Path("/beds/{id}/weed")
+    fun weedBed(@PathParam("id") id: Long) = plantService.weedBed(id, orgContext.orgId)
+
     @PUT
     @Path("/plants/{id}")
     fun update(@PathParam("id") id: Long, @Valid request: UpdatePlantRequest) =

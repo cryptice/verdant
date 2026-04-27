@@ -459,6 +459,8 @@ export const api = {
     delete: (id: number) => apiRequest<void>(`/api/beds/${id}`, { method: 'DELETE' }),
     plants: (bedId: number) => apiRequest<PlantResponse[]>(`/api/beds/${bedId}/plants`),
     history: (id: number) => apiRequest<BedHistoryEntry[]>(`/api/beds/${id}/history`),
+    weed: (id: number) =>
+      apiRequest<BulkLocationActionResponse>(`/api/beds/${id}/weed`, { method: 'POST' }),
   },
 
   plants: {

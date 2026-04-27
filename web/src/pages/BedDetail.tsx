@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -80,6 +80,19 @@ export function BedDetail() {
     setEditConditionsOpen(false)
     setEditing(true)
   }
+
+  const [toast, setToast] = useState<string | null>(null)
+  useEffect(() => {
+    if (!toast) return
+    const id = window.setTimeout(() => setToast(null), 2500)
+    return () => window.clearTimeout(id)
+  }, [toast])
+
+  const weedMut = useMutation({
+    mutationFn: () => api.beds.weed(bedId),
+    onSuccess: (r) => setToast(`Rensade ogräs · ${r.plantsAffected} plantor`),
+    onError: () => setToast('Kunde inte rensa ogräs'),
+  })
 
   const updateMut = useMutation({
     mutationFn: () => api.beds.update(bedId, {
@@ -228,24 +241,34 @@ export function BedDetail() {
           title={t('bed.plants.title')}
           meta={`${uniqueSpeciesCount} ${t('bed.plants.metaSuffix')}`}
           actions={
-            <Link
-              to={`/sow?bedId=${bedId}`}
-              style={{
-                display: 'inline-block',
-                background: 'var(--color-accent)',
-                color: 'var(--color-cream)',
-                border: '1px solid var(--color-accent)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: 11,
-                letterSpacing: 1.6,
-                textTransform: 'uppercase',
-                textDecoration: 'none',
-                padding: '7px 16px',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              + {t('bed.plants.sow')}
-            </Link>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button
+                onClick={() => weedMut.mutate()}
+                disabled={weedMut.isPending}
+                className="btn-secondary"
+                style={{ whiteSpace: 'nowrap' }}
+              >
+                {weedMut.isPending ? '…' : 'Rensa ogräs'}
+              </button>
+              <Link
+                to={`/sow?bedId=${bedId}`}
+                style={{
+                  display: 'inline-block',
+                  background: 'var(--color-accent)',
+                  color: 'var(--color-cream)',
+                  border: '1px solid var(--color-accent)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 11,
+                  letterSpacing: 1.6,
+                  textTransform: 'uppercase',
+                  textDecoration: 'none',
+                  padding: '7px 16px',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                + {t('bed.plants.sow')}
+              </Link>
+            </div>
           }
         />
 
@@ -488,6 +511,30 @@ export function BedDetail() {
           </div>
         </div>
       </Dialog>
+
+      {toast && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'var(--color-ink)',
+            color: 'var(--color-cream)',
+            padding: '10px 18px',
+            borderRadius: 8,
+            fontFamily: 'var(--font-mono)',
+            fontSize: 11,
+            letterSpacing: 1.2,
+            boxShadow: '0 6px 24px rgba(0,0,0,0.18)',
+            zIndex: 1000,
+          }}
+        >
+          {toast}
+        </div>
+      )}
     </div>
   )
 }

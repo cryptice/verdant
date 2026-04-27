@@ -23,6 +23,25 @@ class PlantService(
     private val trayLocationRepository: app.verdant.repository.TrayLocationRepository,
 ) {
     @Transactional
+    fun weedBed(bedId: Long, orgId: Long): BulkLocationActionResponse {
+        checkBedOwnership(bedId, orgId)
+        val plants = plantRepository.findByBedId(bedId)
+            .filter { it.status != PlantStatus.REMOVED }
+        val today = java.time.LocalDate.now()
+        plants.forEach { plant ->
+            plantEventRepository.persist(
+                PlantEvent(
+                    plantId = plant.id!!,
+                    eventType = PlantEventType.WEEDED,
+                    eventDate = today,
+                    plantCount = 1,
+                )
+            )
+        }
+        return BulkLocationActionResponse(plantsAffected = plants.size)
+    }
+
+    @Transactional
     fun moveTrayPlants(orgId: Long, request: MoveTrayPlantsRequest): BulkLocationActionResponse {
         if (request.fromTrayLocationId == null && request.toTrayLocationId == null)
             throw BadRequestException("fromTrayLocationId and toTrayLocationId cannot both be null")
@@ -327,7 +346,7 @@ class PlantService(
             PlantEventType.NOTE, PlantEventType.BUDDING, PlantEventType.FIRST_BLOOM,
             PlantEventType.PEAK_BLOOM, PlantEventType.LAST_BLOOM, PlantEventType.DIVIDED,
             PlantEventType.PINCHED, PlantEventType.DISBUDDED, PlantEventType.APPLIED_SUPPLY,
-            PlantEventType.WATERED, PlantEventType.MOVED -> plant
+            PlantEventType.WATERED, PlantEventType.MOVED, PlantEventType.WEEDED -> plant
         }
 
         if (updatedPlant !== plant) {
