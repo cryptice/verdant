@@ -185,8 +185,12 @@ private fun NameDialog(
     onConfirm: (String) -> Unit,
 ) {
     var name by remember { mutableStateOf(initial) }
+    val guard = app.verdant.android.ui.faltet.rememberUnsavedChangesGuard(
+        isDirty = name.trim() != initial.trim() && name.trim().isNotEmpty(),
+    )
+    guard.RenderConfirmDialog()
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = guard.requestDismiss(onDismiss),
         title = { Text(title) },
         text = {
             OutlinedTextField(
@@ -203,7 +207,7 @@ private fun NameDialog(
             ) { Text("Spara", color = FaltetAccent) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Avbryt", color = FaltetForest) }
+            TextButton(onClick = guard.requestDismiss(onDismiss)) { Text("Avbryt", color = FaltetForest) }
         },
     )
 }
@@ -216,8 +220,12 @@ private fun EditLocationDialog(
     onDelete: () -> Unit,
 ) {
     var name by remember(loc.id) { mutableStateOf(loc.name) }
+    val guard = app.verdant.android.ui.faltet.rememberUnsavedChangesGuard(
+        isDirty = name.trim() != loc.name && name.trim().isNotEmpty(),
+    )
+    guard.RenderConfirmDialog()
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = guard.requestDismiss(onDismiss),
         title = { Text("Redigera plats") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -239,7 +247,7 @@ private fun EditLocationDialog(
             ) { Text("Spara", color = FaltetAccent) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Avbryt", color = FaltetForest) }
+            TextButton(onClick = guard.requestDismiss(onDismiss)) { Text("Avbryt", color = FaltetForest) }
         },
     )
 }
