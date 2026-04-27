@@ -329,34 +329,45 @@ private fun HeroStats(beds: Int, plants: Int, species: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 18.dp, vertical = 24.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+            .padding(horizontal = 18.dp, vertical = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        HeroStatCell(value = beds, label = "Bäddar")
-        HeroStatCell(value = plants, label = "Plantor")
-        HeroStatCell(value = species, label = "Arter")
+        HeroStatCell(value = beds, label = "Bäddar", modifier = Modifier.weight(1f))
+        HeroStatCell(value = plants, label = "Plantor", modifier = Modifier.weight(1f))
+        HeroStatCell(value = species, label = "Arter", modifier = Modifier.weight(1f))
     }
 }
 
 @Composable
-private fun HeroStatCell(value: Int, label: String) {
+private fun HeroStatCell(value: Int, label: String, modifier: Modifier = Modifier) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = modifier
+            .border(
+                1.dp,
+                FaltetInk,
+                androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
+            )
+            .background(
+                app.verdant.android.ui.theme.FaltetCream,
+                androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
+            )
+            .padding(horizontal = 12.dp, vertical = 18.dp),
     ) {
         Text(
             text = value.toString(),
             fontFamily = FaltetDisplay,
             fontStyle = FontStyle.Italic,
-            fontSize = 72.sp,
+            fontSize = 36.sp,
             color = FaltetAccent,
         )
         Text(
             text = label.uppercase(),
             fontFamily = FontFamily.Monospace,
-            fontSize = 11.sp,
-            letterSpacing = 1.8.sp,
+            fontSize = 10.sp,
+            letterSpacing = 1.4.sp,
             color = FaltetForest,
         )
     }

@@ -112,9 +112,8 @@ export function Dashboard() {
           style={{
             margin: '0 0 28px',
             display: 'flex',
-            justifyContent: 'space-around',
-            alignItems: 'center',
-            gap: 24,
+            alignItems: 'stretch',
+            gap: 12,
             flexWrap: 'wrap',
           }}
         >
@@ -471,15 +470,27 @@ function groupByLocation(entries: TraySummaryEntry[]): [LocationKey, TraySummary
 
 function CenteredHeroStat({ value, label }: { value: number; label: string }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+    <div
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 6,
+        padding: '20px 16px',
+        border: '1px solid var(--color-ink)',
+        borderRadius: 14,
+        background: 'var(--color-paper)',
+      }}
+    >
       <div
         style={{
           fontFamily: 'var(--font-display)',
           fontStyle: 'italic',
-          fontSize: 96,
-          lineHeight: 0.95,
+          fontSize: 48,
+          lineHeight: 1,
           fontWeight: 300,
-          letterSpacing: -2,
+          letterSpacing: -1,
           color: 'var(--color-accent)',
           fontVariationSettings: '"SOFT" 100, "opsz" 144',
         }}
@@ -489,8 +500,8 @@ function CenteredHeroStat({ value, label }: { value: number; label: string }) {
       <div
         style={{
           fontFamily: 'var(--font-mono)',
-          fontSize: 12,
-          letterSpacing: 1.8,
+          fontSize: 10,
+          letterSpacing: 1.6,
           textTransform: 'uppercase',
           color: 'var(--color-forest)',
           textAlign: 'center',
