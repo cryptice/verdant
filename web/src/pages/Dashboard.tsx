@@ -1,16 +1,24 @@
 // web/src/pages/Dashboard.tsx
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
+import type { TraySummaryEntry } from '../api/client'
 import { Masthead, Stat, Chip } from '../components/faltet'
 import { TrayActionDialog, type TrayActionEntry } from '../components/TrayActionDialog'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
 export function Dashboard() {
   const { t } = useTranslation()
+  const qc = useQueryClient()
+  const navigate = useNavigate()
   const { isActive, completedCount, totalCount, setDrawerOpen } = useOnboarding()
+
+  const waterLocationMut = useMutation({
+    mutationFn: (locId: number) => api.trayLocations.water(locId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tray-summary'] }),
+  })
 
   const [trayDialogOpen, setTrayDialogOpen] = useState(false)
   const [activeTrayEntry, setActiveTrayEntry] = useState<TrayActionEntry | null>(null)
@@ -110,85 +118,146 @@ export function Dashboard() {
           {/* Column 1 — Tray summary */}
           <section style={{ padding: '0 22px 0 0', borderRight: '1px solid var(--color-ink)' }}>
             <ColumnHeader title={t('dashboard.trays.title')} />
-            {trays?.slice(0, 6).map((row, i) => {
-              const clickable = row.speciesId != null
-              const handleClick = () => {
-                if (!clickable) return
-                setActiveTrayEntry({
-                  speciesId: row.speciesId!,
-                  speciesName: row.speciesName,
-                  variantName: row.variantName,
-                  status: row.status,
-                  count: row.count,
-                })
-                setTrayDialogOpen(true)
-              }
-              return (
-                <div
-                  key={i}
-                  role={clickable ? 'button' : undefined}
-                  tabIndex={clickable ? 0 : undefined}
-                  onClick={handleClick}
-                  onKeyDown={(e) => {
-                    if (clickable && (e.key === 'Enter' || e.key === ' ')) {
-                      e.preventDefault()
-                      handleClick()
-                    }
-                  }}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1.5fr 60px 80px',
-                    gap: 10,
-                    padding: '10px 0',
-                    borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
-                    fontFamily: 'var(--font-display)',
-                    fontSize: 16,
-                    cursor: clickable ? 'pointer' : 'default',
-                    opacity: clickable ? 1 : 0.6,
-                    transition: 'background 120ms',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (clickable) e.currentTarget.style.background =
-                      'color-mix(in srgb, var(--color-ink) 4%, transparent)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent'
-                  }}
-                >
-                  <span>{row.variantName ? `${row.speciesName} – ${row.variantName}` : row.speciesName}</span>
-                  <span style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
-                    {row.count}
-                  </span>
-                  <span
+            {(() => {
+              if (!trays || trays.length === 0) {
+                return (
+                  <p
                     style={{
                       fontFamily: 'var(--font-mono)',
                       fontSize: 10,
-                      textAlign: 'right',
+                      letterSpacing: 1.4,
                       textTransform: 'uppercase',
-                      letterSpacing: 1.2,
                       color: 'var(--color-forest)',
+                      opacity: 0.6,
+                      marginTop: 12,
                     }}
                   >
-                    {row.status}
-                  </span>
-                </div>
-              )
-            })}
-            {(!trays || trays.length === 0) && (
-              <p
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 10,
-                  letterSpacing: 1.4,
-                  textTransform: 'uppercase',
-                  color: 'var(--color-forest)',
-                  opacity: 0.6,
-                  marginTop: 12,
-                }}
-              >
-                —
-              </p>
-            )}
+                    —
+                  </p>
+                )
+              }
+              const groups = groupByLocation(trays)
+              return groups.map(([key, entries]) => {
+                const [locId, locName] = key
+                const total = entries.reduce((acc, e) => acc + e.count, 0)
+                return (
+                  <div key={`loc_${locId ?? 'none'}`} style={{ marginTop: 16 }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        marginBottom: 4,
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 10,
+                        letterSpacing: 1.4,
+                        textTransform: 'uppercase',
+                        color: 'var(--color-forest)',
+                      }}
+                    >
+                      <span style={{ flex: 1 }}>{locName ?? 'Utan plats'}</span>
+                      <span>{total} ST</span>
+                      {locId !== null && (
+                        <>
+                          <button
+                            onClick={() => waterLocationMut.mutate(locId)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: 'var(--color-accent)',
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: 11,
+                              cursor: 'pointer',
+                              padding: '0 4px',
+                            }}
+                          >
+                            Vattna
+                          </button>
+                          <button
+                            onClick={() => navigate(`/tray-locations/${locId}`)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: 'var(--color-accent)',
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: 11,
+                              cursor: 'pointer',
+                              padding: '0 4px',
+                            }}
+                          >
+                            Öppna
+                          </button>
+                        </>
+                      )}
+                    </div>
+                    {entries.slice(0, 6).map((row, i) => {
+                      const clickable = row.speciesId != null
+                      const handleClick = () => {
+                        if (!clickable) return
+                        setActiveTrayEntry({
+                          speciesId: row.speciesId!,
+                          speciesName: row.speciesName,
+                          variantName: row.variantName,
+                          status: row.status,
+                          count: row.count,
+                        })
+                        setTrayDialogOpen(true)
+                      }
+                      return (
+                        <div
+                          key={`${locId ?? 'none'}_${i}`}
+                          role={clickable ? 'button' : undefined}
+                          tabIndex={clickable ? 0 : undefined}
+                          onClick={handleClick}
+                          onKeyDown={(e) => {
+                            if (clickable && (e.key === 'Enter' || e.key === ' ')) {
+                              e.preventDefault()
+                              handleClick()
+                            }
+                          }}
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1.5fr 60px 80px',
+                            gap: 10,
+                            padding: '10px 0',
+                            borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                            fontFamily: 'var(--font-display)',
+                            fontSize: 16,
+                            cursor: clickable ? 'pointer' : 'default',
+                            opacity: clickable ? 1 : 0.6,
+                            transition: 'background 120ms',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (clickable) e.currentTarget.style.background =
+                              'color-mix(in srgb, var(--color-ink) 4%, transparent)'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'transparent'
+                          }}
+                        >
+                          <span>{row.variantName ? `${row.speciesName} – ${row.variantName}` : row.speciesName}</span>
+                          <span style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                            {row.count}
+                          </span>
+                          <span
+                            style={{
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: 10,
+                              textAlign: 'right',
+                              textTransform: 'uppercase',
+                              letterSpacing: 1.2,
+                              color: 'var(--color-forest)',
+                            }}
+                          >
+                            {row.status}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })
+            })()}
           </section>
 
           {/* Column 2 — Tasks */}
@@ -349,6 +418,27 @@ export function Dashboard() {
       />
     </div>
   )
+}
+
+type LocationKey = readonly [number | null, string | null]
+
+function groupByLocation(entries: TraySummaryEntry[]): [LocationKey, TraySummaryEntry[]][] {
+  const map = new Map<string, { key: LocationKey; entries: TraySummaryEntry[] }>()
+  for (const e of entries) {
+    const id = e.trayLocationId ?? null
+    const name = e.trayLocationName ?? null
+    const k = `${id ?? 'null'}`
+    const existing = map.get(k)
+    if (existing) existing.entries.push(e)
+    else map.set(k, { key: [id, name] as const, entries: [e] })
+  }
+  return Array.from(map.values())
+    .sort((a, b) => {
+      const an = a.key[1] ?? '￿'
+      const bn = b.key[1] ?? '￿'
+      return an.localeCompare(bn, 'sv')
+    })
+    .map((v) => [v.key, v.entries] as [LocationKey, TraySummaryEntry[]])
 }
 
 function ColumnHeader({ title, right }: { title: string; right?: React.ReactNode }) {
