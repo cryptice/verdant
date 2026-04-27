@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Trans, useTranslation } from 'react-i18next'
 import { api, type SpeciesResponse } from '../api/client'
 import { Masthead } from '../components/faltet'
+import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
@@ -46,6 +47,10 @@ export function SowActivity() {
   const taskId = params.get('taskId') ? Number(params.get('taskId')) : null
 
   const { data: beds } = useQuery({ queryKey: ['beds'], queryFn: api.beds.list })
+  const { data: trayLocations = [] } = useQuery({
+    queryKey: ['tray-locations'],
+    queryFn: () => api.trayLocations.list(),
+  })
   const { data: task } = useQuery({
     queryKey: ['task', taskId],
     queryFn: () => api.tasks.get(taskId!),
@@ -83,8 +88,28 @@ export function SowActivity() {
   const [selectedSpecies, setSelectedSpecies] = useState<SpeciesResponse | null>(null)
   const [bedId, setBedId] = useState(presetBedId ? String(presetBedId) : '')
   const [sowInTray, setSowInTray] = useState(false)
+  const [trayLocationId, setTrayLocationId] = useState<string>('')
+  const [showAddLocation, setShowAddLocation] = useState(false)
+  const [newLocationName, setNewLocationName] = useState('')
   const [seedCount, setSeedCount] = useState('')
   const [notes, setNotes] = useState('')
+
+  // Auto-select on 1 location, clear on >=2 if no choice yet.
+  useEffect(() => {
+    if (trayLocations.length === 1 && !trayLocationId) {
+      setTrayLocationId(String(trayLocations[0].id))
+    }
+  }, [trayLocations, trayLocationId])
+
+  const createLocationMut = useMutation({
+    mutationFn: (name: string) => api.trayLocations.create(name),
+    onSuccess: (loc) => {
+      qc.invalidateQueries({ queryKey: ['tray-locations'] })
+      setTrayLocationId(String(loc.id))
+      setShowAddLocation(false)
+      setNewLocationName('')
+    },
+  })
 
   useEffect(() => {
     if (presetSpecies && !selectedSpecies) setSelectedSpecies(presetSpecies)
@@ -121,6 +146,7 @@ export function SowActivity() {
       const count = Number(seedCount)
       await api.plants.batchSow({
         bedId: sowInTray ? undefined : Number(bedId),
+        trayLocationId: sowInTray && trayLocationId ? Number(trayLocationId) : undefined,
         speciesId: Number(speciesId),
         name,
         seedCount: count,
@@ -146,7 +172,9 @@ export function SowActivity() {
     },
   })
 
-  const valid = speciesId && (sowInTray || bedId) && Number(seedCount) > 0
+  const trayLocationRequired = sowInTray && trayLocations.length >= 2
+  const trayLocationOk = !sowInTray || !trayLocationRequired || trayLocationId !== ''
+  const valid = speciesId && (sowInTray || bedId) && Number(seedCount) > 0 && trayLocationOk
 
   // Build masthead breadcrumb context
   const mastheadLeft = taskId
@@ -295,6 +323,28 @@ export function SowActivity() {
             </label>
           )}
 
+          {/* Tray location — only when sowing to tray with 2+ locations */}
+          {speciesId && sowInTray && trayLocations.length >= 2 && (
+            <div>
+              <span style={selectLabelStyle}>Plats</span>
+              <select
+                value={trayLocationId}
+                onChange={e => setTrayLocationId(e.target.value)}
+                style={selectStyle}
+              >
+                <option value="">Välj plats…</option>
+                {trayLocations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+              </select>
+              <button
+                type="button"
+                onClick={() => { setNewLocationName(''); setShowAddLocation(true) }}
+                style={{ marginTop: 6, background: 'none', border: 'none', color: 'var(--color-accent)', fontFamily: 'var(--font-mono)', fontSize: 11, cursor: 'pointer', padding: 0 }}
+              >
+                + Ny plats
+              </button>
+            </div>
+          )}
+
           {/* Number */}
           {speciesId && (
             <div className={sowInTray ? 'md:col-span-2' : ''}>
@@ -393,6 +443,35 @@ export function SowActivity() {
           </div>
         )}
       </div>
+
+      <Dialog
+        open={showAddLocation}
+        onClose={() => setShowAddLocation(false)}
+        title="Ny plats"
+        actions={
+          <>
+            <button onClick={() => setShowAddLocation(false)} className="px-4 py-2 text-sm text-text-secondary">Avbryt</button>
+            <button
+              onClick={() => createLocationMut.mutate(newLocationName.trim())}
+              disabled={!newLocationName.trim() || createLocationMut.isPending}
+              className="btn-primary text-sm"
+            >
+              {createLocationMut.isPending ? 'Sparar…' : 'Spara'}
+            </button>
+          </>
+        }
+      >
+        <div>
+          <label className="field-label">Namn *</label>
+          <input
+            type="text"
+            autoFocus
+            value={newLocationName}
+            onChange={(e) => setNewLocationName(e.target.value)}
+            className="input w-full"
+          />
+        </div>
+      </Dialog>
 
       {/* Sticky footer */}
       <div className="sticky-footer">
