@@ -202,29 +202,61 @@ fun DashboardScreen(
                     if (uiState.trayPlants.isEmpty()) {
                         item { InlineMuted("—") }
                     } else {
-                        items(uiState.trayPlants.take(6)) { entry ->
-                            FaltetListRow(
-                                title = entry.variantName?.let { "${entry.speciesName} – $it" } ?: entry.speciesName,
-                                meta = trayStatusLabelSv(entry.status),
-                                stat = {
-                                    Row(verticalAlignment = Alignment.Bottom) {
-                                        Text(
-                                            text = entry.count.toString(),
-                                            fontFamily = FontFamily.Monospace,
-                                            fontSize = 16.sp,
-                                            color = FaltetInk,
-                                        )
-                                        Text(
-                                            text = " ST",
-                                            fontFamily = FontFamily.Monospace,
-                                            fontSize = 9.sp,
-                                            letterSpacing = 1.2.sp,
-                                            color = FaltetForest,
-                                        )
-                                    }
-                                },
-                                onClick = { trayActionTarget = entry },
-                            )
+                        val grouped = uiState.trayPlants
+                            .groupBy { it.trayLocationId to it.trayLocationName }
+                            .toList()
+                            .sortedBy { (key, _) -> key.second ?: "￿" }
+                        grouped.forEach { (key, entries) ->
+                            val (locId, locName) = key
+                            val totalCount = entries.sumOf { it.count }
+                            item(key = "loc_${locId ?: "none"}") {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 18.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        text = (locName ?: "Utan plats").uppercase(),
+                                        fontFamily = FontFamily.Monospace,
+                                        fontSize = 10.sp,
+                                        letterSpacing = 1.4.sp,
+                                        color = FaltetForest,
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                    Text(
+                                        text = "$totalCount ST",
+                                        fontFamily = FontFamily.Monospace,
+                                        fontSize = 10.sp,
+                                        letterSpacing = 1.2.sp,
+                                        color = FaltetForest,
+                                    )
+                                }
+                            }
+                            items(entries.take(6)) { entry ->
+                                FaltetListRow(
+                                    title = entry.variantName?.let { "${entry.speciesName} – $it" } ?: entry.speciesName,
+                                    meta = trayStatusLabelSv(entry.status),
+                                    stat = {
+                                        Row(verticalAlignment = Alignment.Bottom) {
+                                            Text(
+                                                text = entry.count.toString(),
+                                                fontFamily = FontFamily.Monospace,
+                                                fontSize = 16.sp,
+                                                color = FaltetInk,
+                                            )
+                                            Text(
+                                                text = " ST",
+                                                fontFamily = FontFamily.Monospace,
+                                                fontSize = 9.sp,
+                                                letterSpacing = 1.2.sp,
+                                                color = FaltetForest,
+                                            )
+                                        }
+                                    },
+                                    onClick = { trayActionTarget = entry },
+                                )
+                            }
                         }
                     }
 
