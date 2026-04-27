@@ -75,6 +75,7 @@ data class SowActivityState(
     val comments: List<String> = emptyList(),
     val seedBatches: List<SeedInventoryResponse> = emptyList(),
     val task: ScheduledTaskResponse? = null,
+    val trayLocations: List<app.verdant.android.data.model.TrayLocationResponse> = emptyList(),
 )
 
 @HiltViewModel
@@ -97,9 +98,27 @@ class SowActivityViewModel @Inject constructor(
                 val beds = repo.getAllBeds()
                 val comments = repo.getFrequentComments().map { it.text }
                 val task = taskId?.let { repo.getTask(it) }
-                _uiState.value = _uiState.value.copy(species = species, beds = beds, comments = comments, task = task)
+                val trayLocations = runCatching { repo.getTrayLocations() }.getOrDefault(emptyList())
+                _uiState.value = _uiState.value.copy(
+                    species = species, beds = beds, comments = comments, task = task,
+                    trayLocations = trayLocations,
+                )
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load sow activity data", e)
+            }
+        }
+    }
+
+    fun createTrayLocation(name: String, onCreated: (app.verdant.android.data.model.TrayLocationResponse) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val created = repo.createTrayLocation(name)
+                _uiState.value = _uiState.value.copy(
+                    trayLocations = (_uiState.value.trayLocations + created).sortedBy { it.name }
+                )
+                onCreated(created)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to create tray location", e)
             }
         }
     }
@@ -116,7 +135,7 @@ class SowActivityViewModel @Inject constructor(
         }
     }
 
-    fun sow(bedId: Long?, speciesId: Long, name: String, seedCount: Int?, notes: String?, imageBase64: String?, seedBatchId: Long?, sowDate: java.time.LocalDate?) {
+    fun sow(bedId: Long?, trayLocationId: Long?, speciesId: Long, name: String, seedCount: Int?, notes: String?, imageBase64: String?, seedBatchId: Long?, sowDate: java.time.LocalDate?) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
@@ -124,6 +143,7 @@ class SowActivityViewModel @Inject constructor(
                 repo.batchSow(
                     BatchSowRequest(
                         bedId = bedId,
+                        trayLocationId = trayLocationId,
                         speciesId = speciesId,
                         name = name,
                         seedCount = count,
@@ -175,6 +195,8 @@ fun SowActivityScreen(
             if (viewModel.preselectedBedId != null) SowDestination.BED else SowDestination.TRAY
         )
     }
+    var selectedTrayLocation by remember { mutableStateOf<app.verdant.android.data.model.TrayLocationResponse?>(null) }
+    var showAddTrayLocation by remember { mutableStateOf(false) }
     var selectedSeedBatch by remember { mutableStateOf<SeedInventoryResponse?>(null) }
     var countText by remember { mutableStateOf("") }
     var countError by remember { mutableStateOf<String?>(null) }
@@ -198,6 +220,12 @@ fun SowActivityScreen(
     LaunchedEffect(uiState.beds) {
         if (selectedBed == null && viewModel.preselectedBedId != null) {
             selectedBed = uiState.beds.find { it.id == viewModel.preselectedBedId }
+        }
+    }
+    LaunchedEffect(uiState.trayLocations) {
+        // Auto-select the only location when there's exactly one. 0 → null, 2+ → user picks.
+        if (selectedTrayLocation == null && uiState.trayLocations.size == 1) {
+            selectedTrayLocation = uiState.trayLocations.first()
         }
     }
 
@@ -227,6 +255,35 @@ fun SowActivityScreen(
             onDismiss = { showSupplySheet = false },
         )
     }
+    if (showAddTrayLocation) {
+        var newLocationName by remember { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = { showAddTrayLocation = false },
+            title = { Text("Ny plats") },
+            text = {
+                androidx.compose.material3.OutlinedTextField(
+                    value = newLocationName,
+                    onValueChange = { newLocationName = it },
+                    label = { Text("Namn") },
+                    singleLine = true,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.createTrayLocation(newLocationName.trim()) { created ->
+                            selectedTrayLocation = created
+                        }
+                        showAddTrayLocation = false
+                    },
+                    enabled = newLocationName.trim().isNotEmpty(),
+                ) { Text("Spara", color = app.verdant.android.ui.theme.FaltetAccent) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddTrayLocation = false }) { Text("Avbryt") }
+            },
+        )
+    }
 
     if (uiState.created) {
         val completedGardenId = if (destination == SowDestination.BED) selectedBed?.gardenId else null
@@ -239,12 +296,15 @@ fun SowActivityScreen(
 
     val canSubmit = selectedSpecies != null &&
         (destination == SowDestination.TRAY || selectedBed != null) &&
+        // Tray destination needs a location picked when 2+ exist.
+        (destination == SowDestination.BED || uiState.trayLocations.size < 2 || selectedTrayLocation != null) &&
         countText.toIntOrNull()?.let { it > 0 } == true &&
         !uiState.isLoading
 
     val submitAction: () -> Unit = {
         viewModel.sow(
             bedId = if (destination == SowDestination.BED) selectedBed?.id else null,
+            trayLocationId = if (destination == SowDestination.TRAY) selectedTrayLocation?.id else null,
             speciesId = selectedSpecies!!.id,
             name = speciesDisplayName(selectedSpecies!!),
             seedCount = countText.toIntOrNull(),
@@ -319,6 +379,26 @@ fun SowActivityScreen(
                         searchable = true,
                         required = true,
                     )
+                }
+            }
+            if (destination == SowDestination.TRAY && uiState.trayLocations.size >= 2) {
+                item {
+                    FaltetDropdown(
+                        label = "Plats",
+                        options = uiState.trayLocations,
+                        selected = selectedTrayLocation,
+                        onSelectedChange = { selectedTrayLocation = it },
+                        labelFor = { it.name },
+                        searchable = false,
+                        required = true,
+                    )
+                    androidx.compose.material3.TextButton(onClick = { showAddTrayLocation = true }) {
+                        androidx.compose.material3.Text(
+                            text = "+ Ny plats",
+                            color = app.verdant.android.ui.theme.FaltetAccent,
+                            fontSize = 12.sp,
+                        )
+                    }
                 }
             }
             if (selectedSpecies != null) {

@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -49,6 +50,7 @@ private const val TAG = "RegisterPlantsScreen"
 
 data class RegisterPlantsState(
     val species: List<SpeciesResponse> = emptyList(),
+    val trayLocations: List<app.verdant.android.data.model.TrayLocationResponse> = emptyList(),
     val isLoading: Boolean = false,
     val created: Boolean = false,
     val error: String? = null,
@@ -66,14 +68,30 @@ class RegisterPlantsViewModel @Inject constructor(
     private fun load() {
         viewModelScope.launch {
             try {
-                _uiState.value = _uiState.value.copy(species = repo.getSpecies().sortedBySwedishName())
+                val species = repo.getSpecies().sortedBySwedishName()
+                val locations = runCatching { repo.getTrayLocations() }.getOrDefault(emptyList())
+                _uiState.value = _uiState.value.copy(species = species, trayLocations = locations)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load species", e)
             }
         }
     }
 
-    fun register(species: SpeciesResponse, count: Int, seedDate: LocalDate, notes: String?) {
+    fun createTrayLocation(name: String, onCreated: (app.verdant.android.data.model.TrayLocationResponse) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val created = repo.createTrayLocation(name)
+                _uiState.value = _uiState.value.copy(
+                    trayLocations = (_uiState.value.trayLocations + created).sortedBy { it.name }
+                )
+                onCreated(created)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to create tray location", e)
+            }
+        }
+    }
+
+    fun register(species: SpeciesResponse, count: Int, seedDate: LocalDate, notes: String?, trayLocationId: Long?) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
@@ -82,6 +100,7 @@ class RegisterPlantsViewModel @Inject constructor(
                 repo.batchSow(
                     BatchSowRequest(
                         speciesId = species.id,
+                        trayLocationId = trayLocationId,
                         name = name,
                         seedCount = count,
                         notes = notes,
@@ -129,6 +148,14 @@ fun RegisterPlantsScreen(
     var countText by remember { mutableStateOf("1") }
     var seedDate by remember { mutableStateOf<LocalDate?>(LocalDate.now()) }
     var notes by remember { mutableStateOf("") }
+    var selectedTrayLocation by remember { mutableStateOf<app.verdant.android.data.model.TrayLocationResponse?>(null) }
+    var showAddTrayLocation by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState.trayLocations) {
+        if (selectedTrayLocation == null && uiState.trayLocations.size == 1) {
+            selectedTrayLocation = uiState.trayLocations.first()
+        }
+    }
 
     val isDirty = selectedSpecies != null || notes.isNotBlank() ||
         (countText.toIntOrNull() ?: 0) != 1
@@ -149,10 +176,40 @@ fun RegisterPlantsScreen(
             },
         )
     }
+    if (showAddTrayLocation) {
+        var newLocationName by remember { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = { showAddTrayLocation = false },
+            title = { Text("Ny plats") },
+            text = {
+                androidx.compose.material3.OutlinedTextField(
+                    value = newLocationName,
+                    onValueChange = { newLocationName = it },
+                    label = { Text("Namn") },
+                    singleLine = true,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.createTrayLocation(newLocationName.trim()) { created ->
+                            selectedTrayLocation = created
+                        }
+                        showAddTrayLocation = false
+                    },
+                    enabled = newLocationName.trim().isNotEmpty(),
+                ) { Text("Spara", color = FaltetAccent) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddTrayLocation = false }) { Text("Avbryt") }
+            },
+        )
+    }
 
     val canSubmit = selectedSpecies != null &&
         (countText.toIntOrNull() ?: 0) > 0 &&
         seedDate != null &&
+        (uiState.trayLocations.size < 2 || selectedTrayLocation != null) &&
         !uiState.isLoading
 
     val submit: () -> Unit = {
@@ -161,6 +218,7 @@ fun RegisterPlantsScreen(
             count = countText.toInt(),
             seedDate = seedDate!!,
             notes = notes.ifBlank { null },
+            trayLocationId = selectedTrayLocation?.id,
         )
     }
 
@@ -192,6 +250,22 @@ fun RegisterPlantsScreen(
                     searchable = true,
                     required = true,
                 )
+            }
+            if (uiState.trayLocations.size >= 2) {
+                item {
+                    FaltetDropdown(
+                        label = "Plats",
+                        options = uiState.trayLocations,
+                        selected = selectedTrayLocation,
+                        onSelectedChange = { selectedTrayLocation = it },
+                        labelFor = { it.name },
+                        searchable = false,
+                        required = true,
+                    )
+                    TextButton(onClick = { showAddTrayLocation = true }) {
+                        Text("+ Ny plats", color = FaltetAccent, fontSize = 12.sp)
+                    }
+                }
             }
             item {
                 Field(

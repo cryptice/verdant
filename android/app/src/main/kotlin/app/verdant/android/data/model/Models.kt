@@ -204,6 +204,7 @@ data class CreatePlantRequest(
 
 data class BatchSowRequest(
     @SerializedName("bedId") val bedId: Long? = null,
+    @SerializedName("trayLocationId") val trayLocationId: Long? = null,
     @SerializedName("speciesId") val speciesId: Long,
     @SerializedName("name") val name: String,
     @SerializedName("seedCount") val seedCount: Int,
