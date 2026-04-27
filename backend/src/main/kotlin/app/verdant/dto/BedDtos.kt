@@ -45,6 +45,16 @@ data class CreateBedRequest(
     val raisedBed: Boolean? = null,
 )
 
+data class BedEventResponse(
+    val id: Long,
+    val bedId: Long,
+    val eventType: String,
+    val eventDate: java.time.LocalDate,
+    val notes: String?,
+    val plantsAffected: Int?,
+    val createdAt: Instant,
+)
+
 data class UpdateBedRequest(
     @field:Size(max = 255)
     val name: String? = null,

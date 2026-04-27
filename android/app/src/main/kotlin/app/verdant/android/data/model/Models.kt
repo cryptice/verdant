@@ -1182,6 +1182,16 @@ data class DecrementSupplyRequest(
     @SerializedName("quantity") val quantity: Double,
 )
 
+data class BedEventResponse(
+    @SerializedName("id") val id: Long,
+    @SerializedName("bedId") val bedId: Long,
+    @SerializedName("eventType") val eventType: String,
+    @SerializedName("eventDate") val eventDate: String,
+    @SerializedName("notes") val notes: String? = null,
+    @SerializedName("plantsAffected") val plantsAffected: Int? = null,
+    @SerializedName("createdAt") val createdAt: String,
+)
+
 data class CreateSupplyTypeRequest(
     @SerializedName("name") val name: String,
     @SerializedName("category") val category: String,

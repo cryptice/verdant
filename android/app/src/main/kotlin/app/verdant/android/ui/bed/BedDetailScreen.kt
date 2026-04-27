@@ -85,6 +85,7 @@ data class BedDetailState(
     val gardenName: String? = null,
     val plants: List<PlantResponse> = emptyList(),
     val applications: List<SupplyApplicationResponse> = emptyList(),
+    val bedEvents: List<app.verdant.android.data.model.BedEventResponse> = emptyList(),
     val error: String? = null,
     val deleted: Boolean = false,
     val expandedGroups: Set<String> = emptySet(),
@@ -111,9 +112,11 @@ class BedDetailViewModel @Inject constructor(
                 val bed = gardenRepository.getBed(bedId)
                 val plants = gardenRepository.getPlants(bedId)
                 val applications = runCatching { gardenRepository.listSupplyApplicationsByBed(bedId, 10) }.getOrDefault(emptyList())
+                val bedEvents = runCatching { gardenRepository.getBedEvents(bedId, 20) }.getOrDefault(emptyList())
                 val gardenName = runCatching { gardenRepository.getGarden(bed.gardenId).name }.getOrNull()
                 _uiState.value = _uiState.value.copy(
-                    isLoading = false, bed = bed, plants = plants, applications = applications, gardenName = gardenName,
+                    isLoading = false, bed = bed, plants = plants, applications = applications,
+                    bedEvents = bedEvents, gardenName = gardenName,
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
@@ -689,6 +692,24 @@ fun BedDetailScreen(
                         }
                     }
 
+                    // Skötsel section — bed-level maintenance log (water, weed, …)
+                    item { FaltetSectionHeader(label = "Skötsel") }
+                    if (uiState.bedEvents.isEmpty()) {
+                        item { InlineEmpty("Inga skötselhändelser ännu.") }
+                    } else {
+                        items(uiState.bedEvents, key = { "be_${it.id}" }) { ev ->
+                            FaltetListRow(
+                                title = bedEventLabelSv(ev.eventType),
+                                meta = buildString {
+                                    append(formattedDate(ev.eventDate.take(10)))
+                                    ev.plantsAffected?.takeIf { it > 0 }?.let { append(" · $it plantor") }
+                                    ev.notes?.takeIf { it.isNotBlank() }?.let { append(" · $it") }
+                                },
+                                metaMaxLines = 2,
+                            )
+                        }
+                    }
+
                     // Gödsling & vatten section
                     item { FaltetSectionHeader(label = "Gödsling & vatten") }
                     if (uiState.applications.isEmpty()) {
@@ -770,6 +791,14 @@ private fun statusLabelSv(status: String?): String = when (status) {
     "REMOVED" -> "Borttagen"
     null -> "—"
     else -> status
+}
+
+private fun bedEventLabelSv(type: String): String = when (type) {
+    "WATERED" -> "Vattnade"
+    "WEEDED" -> "Rensade ogräs"
+    "APPLIED_SUPPLY" -> "Applicerade material"
+    "NOTE" -> "Anteckning"
+    else -> type.lowercase().replaceFirstChar { it.uppercase() }
 }
 
 private fun formattedDate(date: String?): String {

@@ -91,6 +91,13 @@ class PlantResource(
     @Path("/beds/{id}/water")
     fun waterBed(@PathParam("id") id: Long) = plantService.waterBed(id, orgContext.orgId)
 
+    @GET
+    @Path("/beds/{id}/events")
+    fun listBedEvents(
+        @PathParam("id") id: Long,
+        @QueryParam("limit") @DefaultValue("50") limit: Int,
+    ) = plantService.listBedEvents(id, orgContext.orgId, limit.coerceIn(1, 200))
+
     @PUT
     @Path("/plants/{id}")
     fun update(@PathParam("id") id: Long, @Valid request: UpdatePlantRequest) =

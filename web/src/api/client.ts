@@ -191,6 +191,16 @@ export interface TrayLocationResponse {
 }
 
 export interface BulkLocationActionResponse { plantsAffected: number }
+
+export interface BedEventResponse {
+  id: number
+  bedId: number
+  eventType: string
+  eventDate: string
+  notes: string | null
+  plantsAffected: number | null
+  createdAt: string
+}
 export interface MoveTrayLocationRequest {
   targetLocationId?: number | null
   count: number
@@ -464,6 +474,8 @@ export const api = {
       apiRequest<BulkLocationActionResponse>(`/api/beds/${id}/weed`, { method: 'POST' }),
     water: (id: number) =>
       apiRequest<BulkLocationActionResponse>(`/api/beds/${id}/water`, { method: 'POST' }),
+    events: (id: number, limit = 50) =>
+      apiRequest<BedEventResponse[]>(`/api/beds/${id}/events?limit=${limit}`),
   },
 
   plants: {

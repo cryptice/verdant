@@ -14,6 +14,16 @@ const DRAINAGES = ['POOR', 'MODERATE', 'GOOD', 'SHARP'] as const
 const IRRIGATION_TYPES = ['DRIP', 'SPRINKLER', 'SOAKER_HOSE', 'MANUAL', 'NONE'] as const
 const PROTECTIONS = ['OPEN_FIELD', 'ROW_COVER', 'LOW_TUNNEL', 'HIGH_TUNNEL', 'GREENHOUSE', 'COLDFRAME'] as const
 
+function bedEventLabelSv(type: string): string {
+  switch (type) {
+    case 'WATERED': return 'Vattnade'
+    case 'WEEDED': return 'Rensade ogräs'
+    case 'APPLIED_SUPPLY': return 'Applicerade material'
+    case 'NOTE': return 'Anteckning'
+    default: return type[0] + type.slice(1).toLowerCase()
+  }
+}
+
 export function BedDetail() {
   const { id } = useParams<{ id: string }>()
   const bedId = Number(id)
@@ -22,6 +32,10 @@ export function BedDetail() {
 
   const { data: bed } = useQuery({ queryKey: ['bed', bedId], queryFn: () => api.beds.get(bedId) })
   const { data: plants } = useQuery({ queryKey: ['bed-plants', bedId], queryFn: () => api.beds.plants(bedId) })
+  const { data: bedEvents = [] } = useQuery({
+    queryKey: ['bed-events', bedId],
+    queryFn: () => api.beds.events(bedId, 20),
+  })
   const { data: garden } = useQuery({
     queryKey: ['garden', bed?.gardenId],
     queryFn: () => api.gardens.get(bed!.gardenId),
@@ -90,13 +104,19 @@ export function BedDetail() {
 
   const weedMut = useMutation({
     mutationFn: () => api.beds.weed(bedId),
-    onSuccess: (r) => setToast(`Rensade ogräs · ${r.plantsAffected} plantor`),
+    onSuccess: (r) => {
+      setToast(`Rensade ogräs · ${r.plantsAffected} plantor`)
+      qc.invalidateQueries({ queryKey: ['bed-events', bedId] })
+    },
     onError: () => setToast('Kunde inte rensa ogräs'),
   })
 
   const waterBedMut = useMutation({
     mutationFn: () => api.beds.water(bedId),
-    onSuccess: (r) => setToast(`Vattnade · ${r.plantsAffected} plantor`),
+    onSuccess: (r) => {
+      setToast(`Vattnade · ${r.plantsAffected} plantor`)
+      qc.invalidateQueries({ queryKey: ['bed-events', bedId] })
+    },
     onError: () => setToast('Kunde inte vattna'),
   })
 
@@ -311,6 +331,52 @@ export function BedDetail() {
 
         {/* Plant groups — collapsed by (species, status, planted date) */}
         <PlantGroups plants={plants ?? []} onSpeciesClick={setModalSpecies} />
+
+        {/* Skötsel — bed-level maintenance log */}
+        <SectionHeader title="Skötsel" meta={`${bedEvents.length} händelser`} />
+        {bedEvents.length === 0 ? (
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-forest)', margin: '8px 0' }}>
+            Inga skötselhändelser ännu.
+          </p>
+        ) : (
+          <div style={{ marginBottom: 8 }}>
+            {bedEvents.map((ev) => (
+              <div
+                key={ev.id}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 80px',
+                  gap: 12,
+                  padding: '10px 0',
+                  borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                  alignItems: 'baseline',
+                }}
+              >
+                <div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 16 }}>
+                    {bedEventLabelSv(ev.eventType)}
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.2, color: 'var(--color-forest)' }}>
+                    {ev.plantsAffected != null && ev.plantsAffected > 0
+                      ? `${ev.plantsAffected} plantor${ev.notes ? ` · ${ev.notes}` : ''}`
+                      : (ev.notes ?? '—')}
+                  </div>
+                </div>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 10,
+                    letterSpacing: 1.2,
+                    textAlign: 'right',
+                    color: 'var(--color-forest)',
+                  }}
+                >
+                  {ev.eventDate}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Harvest card — TODO: wire to real harvest stats when available */}
         <div

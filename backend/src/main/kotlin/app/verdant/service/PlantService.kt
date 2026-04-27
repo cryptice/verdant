@@ -21,6 +21,7 @@ class PlantService(
     private val storageService: StorageService,
     private val workflowRepository: WorkflowRepository,
     private val trayLocationRepository: app.verdant.repository.TrayLocationRepository,
+    private val bedEventRepository: app.verdant.repository.BedEventRepository,
 ) {
     @Transactional
     fun weedBed(bedId: Long, orgId: Long): BulkLocationActionResponse =
@@ -45,7 +46,32 @@ class PlantService(
                 )
             )
         }
+        // Also record a bed-level event so the bed has a maintenance log
+        // independent of how many plants were in it at the time.
+        bedEventRepository.persist(
+            app.verdant.entity.BedEvent(
+                bedId = bedId,
+                eventType = eventType,
+                eventDate = today,
+                plantsAffected = plants.size,
+            )
+        )
         return BulkLocationActionResponse(plantsAffected = plants.size)
+    }
+
+    fun listBedEvents(bedId: Long, orgId: Long, limit: Int = 50): List<BedEventResponse> {
+        checkBedOwnership(bedId, orgId)
+        return bedEventRepository.findByBedId(bedId, limit).map {
+            BedEventResponse(
+                id = it.id!!,
+                bedId = it.bedId,
+                eventType = it.eventType.name,
+                eventDate = it.eventDate,
+                notes = it.notes,
+                plantsAffected = it.plantsAffected,
+                createdAt = it.createdAt,
+            )
+        }
     }
 
     @Transactional

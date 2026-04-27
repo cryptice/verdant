@@ -89,6 +89,12 @@ interface VerdantApi {
     @POST("api/beds/{id}/water")
     suspend fun waterBed(@Path("id") id: Long): BulkLocationActionResponse
 
+    @GET("api/beds/{id}/events")
+    suspend fun getBedEvents(
+        @Path("id") id: Long,
+        @Query("limit") limit: Int = 50,
+    ): List<BedEventResponse>
+
     @PUT("api/plants/{id}")
     suspend fun updatePlant(@Path("id") id: Long, @Body request: UpdatePlantRequest): PlantResponse
 
