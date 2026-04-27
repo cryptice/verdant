@@ -550,7 +550,7 @@ function TrayEventsExpansion({
     .sort((a, b) => (b.date.localeCompare(a.date)) || a.type.localeCompare(b.type))
 
   const [showAll, setShowAll] = useState(false)
-  const visible = rows.length <= 3 || showAll ? rows : rows.slice(0, 3)
+  const visible = rows.length <= 1 || showAll ? rows : rows.slice(0, 1)
 
   if (rows.length === 0) {
     return (
@@ -653,7 +653,7 @@ function TrayEventsExpansion({
           </div>
         )
       })}
-      {rows.length > 3 && (
+      {rows.length > 1 && (
         <button
           type="button"
           onClick={() => setShowAll((v) => !v)}
@@ -670,7 +670,7 @@ function TrayEventsExpansion({
             padding: 0,
           }}
         >
-          {showAll ? 'Visa färre' : `Visa ${rows.length - 3} till`}
+          {showAll ? 'Visa färre' : `Visa ${rows.length - 1} till`}
         </button>
       )}
     </div>

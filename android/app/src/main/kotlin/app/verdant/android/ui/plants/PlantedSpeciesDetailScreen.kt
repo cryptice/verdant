@@ -678,7 +678,7 @@ private fun TrayEventsExpansion(
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         var showAll by remember(currentStatus, rows.size) { mutableStateOf(false) }
-        val visibleRows = if (rows.size <= 3 || showAll) rows else rows.take(3)
+        val visibleRows = if (rows.size <= 1 || showAll) rows else rows.take(1)
 
         if (rows.isEmpty()) {
             Text(
@@ -747,13 +747,13 @@ private fun TrayEventsExpansion(
                     }
                 }
             }
-            if (rows.size > 3) {
+            if (rows.size > 1) {
                 TextButton(
                     onClick = { showAll = !showAll },
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 0.dp, vertical = 0.dp),
                 ) {
                     Text(
-                        text = if (showAll) "Visa färre" else "Visa ${rows.size - 3} till",
+                        text = if (showAll) "Visa färre" else "Visa ${rows.size - 1} till",
                         fontFamily = FontFamily.Monospace,
                         fontSize = 10.sp,
                         letterSpacing = 1.2.sp,
