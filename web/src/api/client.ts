@@ -215,6 +215,7 @@ export interface SpeciesEventSummaryEntry {
   currentStatus?: string; count: number
   fromLocationName?: string | null
   toLocationName?: string | null
+  notes?: string | null
 }
 
 export interface FrequentCommentResponse { id: number; text: string; useCount: number }

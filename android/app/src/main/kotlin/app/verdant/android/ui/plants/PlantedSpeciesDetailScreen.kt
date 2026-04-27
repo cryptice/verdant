@@ -652,9 +652,10 @@ private fun TrayEventsExpansion(
         val total: Int,
         val fromLoc: String?,
         val toLoc: String?,
+        val notes: String?,
     )
     val rows = allEvents
-        .groupBy { listOf(it.eventType, it.eventDate, it.fromLocationName, it.toLocationName) }
+        .groupBy { listOf(it.eventType, it.eventDate, it.fromLocationName, it.toLocationName, it.notes) }
         .map { (_, entries) ->
             val first = entries.first()
             Row(
@@ -664,6 +665,7 @@ private fun TrayEventsExpansion(
                 total = entries.sumOf { it.count },
                 fromLoc = first.fromLocationName,
                 toLoc = first.toLocationName,
+                notes = first.notes,
             )
         }
         .filter { it.current > 0 }
@@ -691,46 +693,57 @@ private fun TrayEventsExpansion(
                 val isLatest = index == 0
                 val countLabel = if (e.current < e.total) "${e.current} (${e.total}) st"
                     else "${e.current} st"
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onEventTap(e.type, e.date, currentStatus, e.current) }
                         .padding(vertical = 2.dp),
                 ) {
-                    Text(
-                        text = countLabel,
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = if (isLatest) 13.sp else 11.sp,
-                        color = if (isLatest) FaltetAccent else FaltetInk,
-                        fontWeight = if (isLatest) androidx.compose.ui.text.font.FontWeight.SemiBold
-                            else androidx.compose.ui.text.font.FontWeight.Normal,
-                        modifier = Modifier.width(80.dp),
-                    )
-                    val displayLabel = when {
-                        e.type == "MOVED" && e.fromLoc != null && e.toLoc != null ->
-                            "Flyttade · ${e.fromLoc} → ${e.toLoc}"
-                        e.type == "MOVED" && e.toLoc != null ->
-                            "Flyttade · till ${e.toLoc}"
-                        e.type == "MOVED" && e.fromLoc != null ->
-                            "Flyttade · ut ur ${e.fromLoc}"
-                        else -> eventLabelSv(e.type)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = countLabel,
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = if (isLatest) 13.sp else 11.sp,
+                            color = if (isLatest) FaltetAccent else FaltetInk,
+                            fontWeight = if (isLatest) androidx.compose.ui.text.font.FontWeight.SemiBold
+                                else androidx.compose.ui.text.font.FontWeight.Normal,
+                            modifier = Modifier.width(80.dp),
+                        )
+                        val displayLabel = when {
+                            e.type == "MOVED" && e.fromLoc != null && e.toLoc != null ->
+                                "Flyttade · ${e.fromLoc} → ${e.toLoc}"
+                            e.type == "MOVED" && e.toLoc != null ->
+                                "Flyttade · till ${e.toLoc}"
+                            e.type == "MOVED" && e.fromLoc != null ->
+                                "Flyttade · ut ur ${e.fromLoc}"
+                            else -> eventLabelSv(e.type)
+                        }
+                        Text(
+                            text = displayLabel,
+                            fontFamily = FaltetDisplay,
+                            fontStyle = FontStyle.Italic,
+                            fontSize = if (isLatest) 17.sp else 14.sp,
+                            color = FaltetInk,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Text(
+                            text = e.date,
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = if (isLatest) 11.sp else 10.sp,
+                            letterSpacing = 1.2.sp,
+                            color = if (isLatest) FaltetAccent else FaltetForest,
+                        )
                     }
-                    Text(
-                        text = displayLabel,
-                        fontFamily = FaltetDisplay,
-                        fontStyle = FontStyle.Italic,
-                        fontSize = if (isLatest) 17.sp else 14.sp,
-                        color = FaltetInk,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Text(
-                        text = e.date,
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = if (isLatest) 11.sp else 10.sp,
-                        letterSpacing = 1.2.sp,
-                        color = if (isLatest) FaltetAccent else FaltetForest,
-                    )
+                    if (!e.notes.isNullOrBlank()) {
+                        Text(
+                            text = "“${e.notes}”",
+                            fontFamily = FaltetDisplay,
+                            fontStyle = FontStyle.Italic,
+                            fontSize = 13.sp,
+                            color = FaltetForest,
+                            modifier = Modifier.padding(start = 80.dp, top = 2.dp, end = 18.dp),
+                        )
+                    }
                 }
             }
             if (rows.size > 3) {

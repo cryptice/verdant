@@ -167,6 +167,8 @@ data class SpeciesEventSummaryEntry(
     /** Set on MOVED rows; null otherwise. */
     val fromLocationName: String? = null,
     val toLocationName: String? = null,
+    /** Free-text note attached to the event (mainly for NOTE rows). */
+    val notes: String? = null,
 )
 
 data class PlantLocationGroup(

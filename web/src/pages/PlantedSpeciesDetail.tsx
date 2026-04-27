@@ -66,6 +66,7 @@ interface EventRow {
   type: string; date: string; current: number; total: number
   fromLoc?: string | null
   toLoc?: string | null
+  notes?: string | null
 }
 
 interface EventTarget {
@@ -532,11 +533,12 @@ function TrayEventsExpansion({
 }) {
   const grouped = new Map<string, EventRow>()
   for (const e of events) {
-    const key = `${e.eventType}|${e.eventDate}|${e.fromLocationName ?? ''}|${e.toLocationName ?? ''}`
+    const key = `${e.eventType}|${e.eventDate}|${e.fromLocationName ?? ''}|${e.toLocationName ?? ''}|${e.notes ?? ''}`
     const row = grouped.get(key) ?? {
       type: e.eventType, date: e.eventDate, current: 0, total: 0,
       fromLoc: e.fromLocationName ?? null,
       toLoc: e.toLocationName ?? null,
+      notes: e.notes ?? null,
     }
     row.total += e.count
     if (e.currentStatus === currentStatus) row.current += e.count
@@ -573,7 +575,7 @@ function TrayEventsExpansion({
         const countLabel = e.current < e.total ? `${e.current} (${e.total}) st` : `${e.current} st`
         return (
           <div
-            key={`${e.type}-${e.date}`}
+            key={`${e.type}-${e.date}-${i}`}
             role="button"
             tabIndex={0}
             onClick={() =>
@@ -586,46 +588,67 @@ function TrayEventsExpansion({
               }
             }}
             style={{
-              display: 'grid',
-              gridTemplateColumns: '90px 1fr 110px',
-              alignItems: 'center',
-              gap: 12,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
               padding: '6px 0',
               cursor: 'pointer',
               borderRadius: 6,
             }}
           >
-            <span
+            <div
               style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: isLatest ? 13 : 11,
-                fontWeight: isLatest ? 600 : 400,
-                color: isLatest ? 'var(--color-accent)' : 'var(--color-ink)',
+                display: 'grid',
+                gridTemplateColumns: '90px 1fr 110px',
+                alignItems: 'center',
+                gap: 12,
               }}
             >
-              {countLabel}
-            </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontStyle: 'italic',
-                fontSize: isLatest ? 17 : 14,
-                color: 'var(--color-ink)',
-              }}
-            >
-              {labelForEventRow(e)}
-            </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: isLatest ? 11 : 10,
-                letterSpacing: 1.2,
-                textAlign: 'right',
-                color: isLatest ? 'var(--color-accent)' : 'var(--color-forest)',
-              }}
-            >
-              {e.date}
-            </span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: isLatest ? 13 : 11,
+                  fontWeight: isLatest ? 600 : 400,
+                  color: isLatest ? 'var(--color-accent)' : 'var(--color-ink)',
+                }}
+              >
+                {countLabel}
+              </span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontStyle: 'italic',
+                  fontSize: isLatest ? 17 : 14,
+                  color: 'var(--color-ink)',
+                }}
+              >
+                {labelForEventRow(e)}
+              </span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: isLatest ? 11 : 10,
+                  letterSpacing: 1.2,
+                  textAlign: 'right',
+                  color: isLatest ? 'var(--color-accent)' : 'var(--color-forest)',
+                }}
+              >
+                {e.date}
+              </span>
+            </div>
+            {e.notes && (
+              <div
+                style={{
+                  marginLeft: 102,
+                  fontFamily: 'var(--font-display)',
+                  fontStyle: 'italic',
+                  fontSize: 13,
+                  color: 'var(--color-forest)',
+                }}
+              >
+                “{e.notes}”
+              </div>
+            )}
           </div>
         )
       })}
