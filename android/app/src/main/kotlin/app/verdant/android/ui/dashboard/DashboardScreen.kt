@@ -82,6 +82,17 @@ class DashboardViewModel @Inject constructor(
 
     init { refresh() }
 
+    fun waterLocation(locationId: Long) {
+        viewModelScope.launch {
+            try {
+                repo.waterTrayLocation(locationId)
+                refresh()
+            } catch (e: Exception) {
+                Log.e(TAG, "waterLocation failed", e)
+            }
+        }
+    }
+
     fun refresh() {
         viewModelScope.launch {
             val showLoading = _uiState.value.dashboard == null
@@ -113,6 +124,7 @@ fun DashboardScreen(
     onTaskClick: (ScheduledTaskResponse) -> Unit = {},
     onOpenTasks: () -> Unit = {},
     onTrayAction: (action: String, speciesId: Long) -> Unit = { _, _ -> },
+    onOpenTrayLocation: (Long) -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -213,7 +225,7 @@ fun DashboardScreen(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 18.dp, vertical = 8.dp),
+                                        .padding(horizontal = 18.dp, vertical = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Text(
@@ -231,6 +243,14 @@ fun DashboardScreen(
                                         letterSpacing = 1.2.sp,
                                         color = FaltetForest,
                                     )
+                                    if (locId != null) {
+                                        TextButton(onClick = { viewModel.waterLocation(locId) }) {
+                                            Text("Vattna", color = FaltetAccent, fontSize = 11.sp)
+                                        }
+                                        TextButton(onClick = { onOpenTrayLocation(locId) }) {
+                                            Text("Öppna", color = FaltetAccent, fontSize = 11.sp)
+                                        }
+                                    }
                                 }
                             }
                             items(entries.take(6)) { entry ->

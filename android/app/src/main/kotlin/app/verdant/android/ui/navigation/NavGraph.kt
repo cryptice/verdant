@@ -520,6 +520,9 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                             "DISCARD" -> navController.navigate("activity/plant-picker/SEEDED,POTTED_UP,PLANTED_OUT,GROWING,HARVESTED,RECOVERED/discard?speciesId=$speciesId")
                         }
                     },
+                    onOpenTrayLocation = { id ->
+                        navController.navigate(Screen.TrayLocationDetail.create(id))
+                    },
                 )
             }
             composable(Screen.MyWorld.route) {
