@@ -1,5 +1,5 @@
 // web/src/pages/Dashboard.tsx
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -15,9 +15,21 @@ export function Dashboard() {
   const navigate = useNavigate()
   const { isActive, completedCount, totalCount, setDrawerOpen } = useOnboarding()
 
+  const [toast, setToast] = useState<string | null>(null)
+  useEffect(() => {
+    if (!toast) return
+    const id = window.setTimeout(() => setToast(null), 2500)
+    return () => window.clearTimeout(id)
+  }, [toast])
+
   const waterLocationMut = useMutation({
-    mutationFn: (locId: number) => api.trayLocations.water(locId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tray-summary'] }),
+    mutationFn: (vars: { locId: number; locName: string | null }) =>
+      api.trayLocations.water(vars.locId).then((r) => ({ ...r, locName: vars.locName })),
+    onSuccess: (r) => {
+      qc.invalidateQueries({ queryKey: ['tray-summary'] })
+      setToast(r.locName ? `Vattnade · ${r.plantsAffected} plantor i ${r.locName}` : `Vattnade · ${r.plantsAffected} plantor`)
+    },
+    onError: () => setToast('Kunde inte vattna'),
   })
 
   const [trayDialogOpen, setTrayDialogOpen] = useState(false)
@@ -160,7 +172,7 @@ export function Dashboard() {
                       {locId !== null && (
                         <>
                           <button
-                            onClick={() => waterLocationMut.mutate(locId)}
+                            onClick={() => waterLocationMut.mutate({ locId, locName: locName ?? null })}
                             style={{
                               background: 'none',
                               border: 'none',
@@ -416,6 +428,30 @@ export function Dashboard() {
         entry={activeTrayEntry}
         onClose={() => setTrayDialogOpen(false)}
       />
+
+      {toast && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'var(--color-ink)',
+            color: 'var(--color-cream)',
+            padding: '10px 18px',
+            borderRadius: 8,
+            fontFamily: 'var(--font-mono)',
+            fontSize: 11,
+            letterSpacing: 1.2,
+            boxShadow: '0 6px 24px rgba(0,0,0,0.18)',
+            zIndex: 1000,
+          }}
+        >
+          {toast}
+        </div>
+      )}
     </div>
   )
 }

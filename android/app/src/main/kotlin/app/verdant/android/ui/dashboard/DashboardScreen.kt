@@ -23,9 +23,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -70,6 +73,7 @@ data class DashboardState(
     val pendingTasks: List<ScheduledTaskResponse> = emptyList(),
     val trayPlants: List<TraySummaryEntry> = emptyList(),
     val harvestStats: List<HarvestStatRow> = emptyList(),
+    val toastMessage: String? = null,
     val error: String? = null,
 )
 
@@ -85,12 +89,22 @@ class DashboardViewModel @Inject constructor(
     fun waterLocation(locationId: Long) {
         viewModelScope.launch {
             try {
-                repo.waterTrayLocation(locationId)
+                val response = repo.waterTrayLocation(locationId)
+                val name = _uiState.value.trayPlants
+                    .firstOrNull { it.trayLocationId == locationId }?.trayLocationName
+                val msg = if (name != null) "Vattnade · ${response.plantsAffected} plantor i $name"
+                    else "Vattnade · ${response.plantsAffected} plantor"
+                _uiState.value = _uiState.value.copy(toastMessage = msg)
                 refresh()
             } catch (e: Exception) {
                 Log.e(TAG, "waterLocation failed", e)
+                _uiState.value = _uiState.value.copy(toastMessage = "Kunde inte vattna")
             }
         }
+    }
+
+    fun consumeToast() {
+        _uiState.value = _uiState.value.copy(toastMessage = null)
     }
 
     fun refresh() {
@@ -129,6 +143,13 @@ fun DashboardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var trayActionTarget by remember { mutableStateOf<TraySummaryEntry?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(uiState.toastMessage) {
+        uiState.toastMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.consumeToast()
+        }
+    }
 
     trayActionTarget?.let { entry ->
         TrayActionDialog(
@@ -149,6 +170,7 @@ fun DashboardScreen(
     FaltetScreenScaffold(
         mastheadLeft = "",
         mastheadCenter = "Översikt",
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
