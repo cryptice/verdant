@@ -122,7 +122,10 @@
     "PLANT": "Plantera ut",
     "HARVEST": "Skörda",
     "RECOVER": "Återhämta",
-    "DISCARD": "Kasta"
+    "DISCARD": "Kasta",
+    "WATER": "Vattna",
+    "WEED": "Rensa ogräs",
+    "FERTILIZE": "Gödsla"
   },
   "dashboard": {
     "greeting": "Hej, {{name}}",

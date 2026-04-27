@@ -509,6 +509,9 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                             "HARVEST" -> navController.navigate("activity/plant-picker/GROWING/harvest?taskId=${task.id}$speciesParam")
                             "RECOVER" -> navController.navigate("activity/plant-picker/GROWING/recover?taskId=${task.id}$speciesParam")
                             "DISCARD" -> navController.navigate("activity/plant-picker/SEEDED,POTTED_UP,PLANTED_OUT,GROWING,HARVESTED,RECOVERED/discard?taskId=${task.id}$speciesParam")
+                            "WATER", "WEED", "FERTILIZE" -> task.bedId?.let { id ->
+                                navController.navigate(Screen.BedDetail.create(id))
+                            }
                             else -> navController.navigate(Screen.TaskList.route)
                         }
                     },
@@ -749,6 +752,9 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                             "HARVEST" -> navController.navigate("activity/plant-picker/GROWING/harvest?taskId=${task.id}$speciesParam")
                             "RECOVER" -> navController.navigate("activity/plant-picker/GROWING/recover?taskId=${task.id}$speciesParam")
                             "DISCARD" -> navController.navigate("activity/plant-picker/SEEDED,POTTED_UP,PLANTED_OUT,GROWING,HARVESTED,RECOVERED/discard?taskId=${task.id}$speciesParam")
+                            "WATER", "WEED", "FERTILIZE" -> task.bedId?.let { id ->
+                                navController.navigate(Screen.BedDetail.create(id))
+                            }
                         }
                     }
                 )

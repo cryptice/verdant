@@ -122,7 +122,10 @@
     "PLANT": "Plant out",
     "HARVEST": "Harvest",
     "RECOVER": "Recover",
-    "DISCARD": "Discard"
+    "DISCARD": "Discard",
+    "WATER": "Water",
+    "WEED": "Weed",
+    "FERTILIZE": "Fertilize"
   },
   "dashboard": {
     "greeting": "Hello, {{name}}",

@@ -15,6 +15,8 @@ class ScheduledTaskService(
     private val taskRepository: ScheduledTaskRepository,
     private val speciesRepository: SpeciesRepository,
     private val speciesGroupRepository: SpeciesGroupRepository,
+    private val bedRepository: app.verdant.repository.BedRepository,
+    private val gardenRepository: app.verdant.repository.GardenRepository,
 ) {
     private fun checkOwnership(taskId: Long, orgId: Long): ScheduledTask {
         val task = taskRepository.findById(taskId) ?: throw NotFoundException("Task not found")
@@ -37,6 +39,34 @@ class ScheduledTaskService(
     }
 
     fun createTask(request: CreateScheduledTaskRequest, orgId: Long): ScheduledTaskResponse {
+        // Bed-scoped maintenance tasks (WATER, FERTILIZE, WEED) don't carry species.
+        if (request.bedId != null) {
+            if (request.activityType !in BED_ACTIVITY_TYPES)
+                throw BadRequestException("activityType ${request.activityType} cannot target a bed")
+            val bed = bedRepository.findById(request.bedId)
+                ?: throw NotFoundException("Bed not found")
+            val garden = gardenRepository.findById(bed.gardenId)
+                ?: throw NotFoundException("Bed not found")
+            if (garden.orgId != orgId) throw NotFoundException("Bed not found")
+
+            val task = taskRepository.persist(
+                ScheduledTask(
+                    orgId = orgId,
+                    speciesId = null,
+                    bedId = request.bedId,
+                    activityType = request.activityType,
+                    deadline = request.deadline,
+                    targetCount = request.targetCount,
+                    remainingCount = request.targetCount,
+                    notes = request.notes,
+                    seasonId = request.seasonId,
+                    successionScheduleId = null,
+                    originGroupId = null,
+                )
+            )
+            return buildResponses(listOf(task)).first()
+        }
+
         val acceptableSpeciesIds: List<Long>
         var originGroupId: Long? = null
 
@@ -61,7 +91,7 @@ class ScheduledTaskService(
             acceptableSpeciesIds = request.speciesIds
         } else {
             val singleId = request.speciesId ?: request.speciesIds?.firstOrNull()
-                ?: throw BadRequestException("Either speciesId, speciesGroupId, or speciesIds must be provided")
+                ?: throw BadRequestException("Either speciesId, speciesGroupId, speciesIds, or bedId must be provided")
             speciesRepository.findById(singleId) ?: throw NotFoundException("Species not found")
             acceptableSpeciesIds = listOf(singleId)
         }
@@ -83,6 +113,8 @@ class ScheduledTaskService(
         taskRepository.setAcceptableSpecies(task.id!!, acceptableSpeciesIds)
         return buildResponses(listOf(task)).first()
     }
+
+    private val BED_ACTIVITY_TYPES = setOf("WATER", "FERTILIZE", "WEED")
 
     fun updateTask(taskId: Long, request: UpdateScheduledTaskRequest, orgId: Long): ScheduledTaskResponse {
         val task = checkOwnership(taskId, orgId)
@@ -157,12 +189,24 @@ class ScheduledTaskService(
         val groupIds = tasks.mapNotNull { it.originGroupId }.toSet()
         val groupNames = speciesGroupRepository.findNamesByIds(groupIds)
 
+        val bedIds = tasks.mapNotNull { it.bedId }.toSet()
+        val bedsById = if (bedIds.isEmpty()) emptyMap() else
+            bedIds.mapNotNull { bedRepository.findById(it) }.associateBy { it.id!! }
+        val gardenIds = bedsById.values.map { it.gardenId }.toSet()
+        val gardensById = if (gardenIds.isEmpty()) emptyMap() else
+            gardenIds.mapNotNull { gardenRepository.findById(it) }.associateBy { it.id!! }
+
         return tasks.map { task ->
             val myAcceptable = acceptableByTask[task.id] ?: emptyList()
+            val bed = task.bedId?.let { bedsById[it] }
+            val garden = bed?.gardenId?.let { gardensById[it] }
             ScheduledTaskResponse(
                 id = task.id!!,
                 speciesId = task.speciesId,
                 speciesName = task.speciesId?.let { speciesNames[it] },
+                bedId = task.bedId,
+                bedName = bed?.name,
+                gardenName = garden?.name,
                 activityType = task.activityType,
                 deadline = task.deadline,
                 targetCount = task.targetCount,

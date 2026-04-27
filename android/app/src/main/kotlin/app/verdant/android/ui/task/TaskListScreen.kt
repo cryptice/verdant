@@ -101,6 +101,19 @@ class TaskListViewModel @Inject constructor(
     }
 }
 
+private fun taskActivityLabel(activityType: String): String = when (activityType) {
+    "SOW" -> "Så"
+    "POT_UP" -> "Skola om"
+    "PLANT" -> "Plantera"
+    "HARVEST" -> "Skörda"
+    "RECOVER" -> "Återhämta"
+    "DISCARD" -> "Kassera"
+    "WATER" -> "Vattna"
+    "WEED" -> "Rensa ogräs"
+    "FERTILIZE" -> "Gödsla"
+    else -> activityType
+}
+
 private fun taskDotColor(activityType: String): Color = when (activityType) {
     "SOW" -> FaltetMustard
     "PLANT" -> FaltetSage
@@ -208,13 +221,22 @@ fun TaskListScreen(
                     }
                     items(group.tasks, key = { it.id }) { task ->
                         val dotColor = taskDotColor(task.activityType)
-                        val title = task.originGroupName ?: task.speciesName ?: "Uppgift"
+                        val isBedTask = task.bedId != null
+                        val title = when {
+                            isBedTask -> taskActivityLabel(task.activityType)
+                            else -> task.originGroupName ?: task.speciesName ?: "Uppgift"
+                        }
                         val meta = buildString {
                             append(formatDeadline(task.deadline))
-                            val species = task.speciesName
-                            if (species != null && species != title) {
-                                append(" · ")
-                                append(species)
+                            if (isBedTask) {
+                                val bedLabel = listOfNotNull(task.gardenName, task.bedName).joinToString(" · ")
+                                if (bedLabel.isNotBlank()) { append(" · "); append(bedLabel) }
+                            } else {
+                                val species = task.speciesName
+                                if (species != null && species != title) {
+                                    append(" · ")
+                                    append(species)
+                                }
                             }
                         }
                         FaltetListRow(

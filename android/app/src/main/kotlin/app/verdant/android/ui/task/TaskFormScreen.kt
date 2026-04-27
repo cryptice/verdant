@@ -51,6 +51,7 @@ data class TaskFormState(
     val saved: Boolean = false,
     val error: String? = null,
     val species: List<SpeciesResponse> = emptyList(),
+    val beds: List<app.verdant.android.data.model.BedWithGardenResponse> = emptyList(),
     val existingTask: ScheduledTaskResponse? = null,
 )
 
@@ -69,15 +70,23 @@ class TaskFormViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val species = repo.getSpecies().sortedBySwedishName()
+                val beds = runCatching { repo.getAllBeds() }.getOrDefault(emptyList())
                 val task = taskId?.let { repo.getTask(it) }
-                _uiState.value = _uiState.value.copy(species = species, existingTask = task)
+                _uiState.value = _uiState.value.copy(species = species, beds = beds, existingTask = task)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load task form data", e)
             }
         }
     }
 
-    fun save(speciesId: Long, activityType: String, deadline: String, targetCount: Int, notes: String?) {
+    fun save(
+        speciesId: Long?,
+        bedId: Long?,
+        activityType: String,
+        deadline: String,
+        targetCount: Int,
+        notes: String?,
+    ) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
@@ -92,6 +101,7 @@ class TaskFormViewModel @Inject constructor(
                 } else {
                     repo.createTask(CreateScheduledTaskRequest(
                         speciesId = speciesId,
+                        bedId = bedId,
                         activityType = activityType,
                         deadline = deadline,
                         targetCount = targetCount,
@@ -113,8 +123,15 @@ private fun activityTypeLabelSvStr(name: String): String = when (name) {
     Activity.HARVEST.name -> "Skörda"
     Activity.RECOVER.name -> "Återhämta"
     Activity.DISCARD.name -> "Kassera"
+    "WATER" -> "Vattna"
+    "WEED" -> "Rensa ogräs"
+    "FERTILIZE" -> "Gödsla"
     else -> name
 }
+
+private val ACTIVITY_TYPES: List<String> = Activity.entries.map { it.name } +
+    listOf("WATER", "WEED", "FERTILIZE")
+private val BED_ACTIVITY_TYPES: Set<String> = setOf("WATER", "WEED", "FERTILIZE")
 
 private fun speciesDisplayName(s: SpeciesResponse): String {
     val name = s.commonNameSv ?: s.commonName
@@ -134,15 +151,19 @@ fun TaskFormScreen(
 
     var selectedActivityType by remember { mutableStateOf<String?>(null) }
     var selectedSpecies by remember { mutableStateOf<SpeciesResponse?>(null) }
+    var selectedBed by remember { mutableStateOf<app.verdant.android.data.model.BedWithGardenResponse?>(null) }
     var deadline by remember { mutableStateOf<LocalDate?>(null) }
     var targetCountText by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
 
+    val isBedActivity = selectedActivityType in BED_ACTIVITY_TYPES
+
     var prefilled by remember { mutableStateOf(false) }
-    LaunchedEffect(existing, uiState.species) {
+    LaunchedEffect(existing, uiState.species, uiState.beds) {
         if (existing != null && !prefilled && uiState.species.isNotEmpty()) {
             selectedActivityType = existing.activityType
             selectedSpecies = existing.speciesId?.let { id -> uiState.species.find { it.id == id } }
+            selectedBed = existing.bedId?.let { id -> uiState.beds.find { it.id == id } }
             deadline = runCatching { LocalDate.parse(existing.deadline) }.getOrNull()
             targetCountText = existing.targetCount.toString()
             notes = existing.notes ?: ""
@@ -150,7 +171,10 @@ fun TaskFormScreen(
         }
     }
 
-    val canSubmit = selectedActivityType != null && selectedSpecies != null && deadline != null && !uiState.isLoading
+    val canSubmit = selectedActivityType != null &&
+        deadline != null &&
+        !uiState.isLoading &&
+        (if (isBedActivity) selectedBed != null else selectedSpecies != null)
 
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(uiState.error) { uiState.error?.let { snackbarHostState.showSnackbar(it) } }
@@ -164,10 +188,11 @@ fun TaskFormScreen(
                 label = if (isEdit) "Spara" else "Skapa",
                 onClick = {
                     viewModel.save(
-                        speciesId = selectedSpecies!!.id,
+                        speciesId = if (isBedActivity) null else selectedSpecies?.id,
+                        bedId = if (isBedActivity) selectedBed?.id else null,
                         activityType = selectedActivityType!!,
                         deadline = deadline!!.toString(),
-                        targetCount = targetCountText.toIntOrNull() ?: 0,
+                        targetCount = targetCountText.toIntOrNull()?.coerceAtLeast(1) ?: 1,
                         notes = notes.ifBlank { null },
                     )
                 },
@@ -190,7 +215,7 @@ fun TaskFormScreen(
                 item {
                     FaltetDropdown(
                         label = "Aktivitet",
-                        options = Activity.entries.map { it.name },
+                        options = ACTIVITY_TYPES,
                         selected = selectedActivityType,
                         onSelectedChange = { selectedActivityType = it },
                         labelFor = { activityTypeLabelSvStr(it) },
@@ -198,16 +223,30 @@ fun TaskFormScreen(
                         required = true,
                     )
                 }
-                item {
-                    FaltetDropdown(
-                        label = "Art",
-                        options = uiState.species,
-                        selected = selectedSpecies,
-                        onSelectedChange = { selectedSpecies = it },
-                        labelFor = { speciesDisplayName(it) },
-                        searchable = true,
-                        required = true,
-                    )
+                if (isBedActivity) {
+                    item {
+                        FaltetDropdown(
+                            label = "Bädd",
+                            options = uiState.beds,
+                            selected = selectedBed,
+                            onSelectedChange = { selectedBed = it },
+                            labelFor = { "${it.gardenName} · ${it.name}" },
+                            searchable = true,
+                            required = true,
+                        )
+                    }
+                } else {
+                    item {
+                        FaltetDropdown(
+                            label = "Art",
+                            options = uiState.species,
+                            selected = selectedSpecies,
+                            onSelectedChange = { selectedSpecies = it },
+                            labelFor = { speciesDisplayName(it) },
+                            searchable = true,
+                            required = true,
+                        )
+                    }
                 }
                 item {
                     FaltetDatePicker(

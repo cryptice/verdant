@@ -8,7 +8,8 @@ import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
-const activityTypes = ['SOW', 'SOAK', 'POT_UP', 'PLANT', 'HARVEST', 'RECOVER', 'DISCARD']
+const activityTypes = ['SOW', 'SOAK', 'POT_UP', 'PLANT', 'HARVEST', 'RECOVER', 'DISCARD', 'WATER', 'WEED', 'FERTILIZE']
+const BED_ACTIVITY_TYPES = new Set(['WATER', 'WEED', 'FERTILIZE'])
 
 function speciesLabel(s: SpeciesResponse, lang: string) {
   const name = lang === 'sv' ? (s.commonNameSv ?? s.commonName) : s.commonName
@@ -76,6 +77,7 @@ export function TaskForm() {
   const [groupSpecies, setGroupSpecies] = useState<SpeciesResponse[]>([])
   const [checkedSpeciesIds, setCheckedSpeciesIds] = useState<Set<number>>(new Set())
   const [activityType, setActivityType] = useState('SOW')
+  const [selectedBedId, setSelectedBedId] = useState<number | null>(null)
   const [deadline, setDeadline] = useState('')
   const [targetCount, setTargetCount] = useState('')
   const [notes, setNotes] = useState('')
@@ -99,8 +101,16 @@ export function TaskForm() {
       setDeadline(existing.deadline)
       setTargetCount(String(existing.targetCount))
       setNotes(existing.notes ?? '')
+      setSelectedBedId(existing.bedId ?? null)
     }
   }, [existing])
+
+  const isBedActivity = BED_ACTIVITY_TYPES.has(activityType)
+  const { data: beds } = useQuery({
+    queryKey: ['beds'],
+    queryFn: () => api.beds.list(),
+    enabled: isBedActivity,
+  })
 
   useEffect(() => {
     if (presetSpecies && !selectedSpecies) setSelectedSpecies(presetSpecies)
@@ -130,11 +140,22 @@ export function TaskForm() {
   }
 
   const isGroupMode = selectedGroupId !== null
-  const hasSelection = isGroupMode ? checkedSpeciesIds.size > 0 : !!selectedSpecies
+  const hasSelection = isBedActivity
+    ? selectedBedId != null
+    : (isGroupMode ? checkedSpeciesIds.size > 0 : !!selectedSpecies)
   const valid = hasSelection && deadline && Number(targetCount) > 0
 
   const createMut = useMutation({
     mutationFn: () => {
+      if (isBedActivity) {
+        return api.tasks.create({
+          bedId: selectedBedId!,
+          activityType,
+          deadline,
+          targetCount: Number(targetCount),
+          notes: notes || undefined,
+        })
+      }
       if (isGroupMode) {
         return api.tasks.create({
           speciesGroupId: selectedGroupId!,
@@ -234,7 +255,25 @@ export function TaskForm() {
         </div>
 
         <div style={{ marginTop: 14 }}>
-          {/* Species picker */}
+          {/* Bed picker for bed-scoped maintenance */}
+          {isBedActivity ? (
+            <div>
+              <span style={selectLabelStyle}>Bädd *</span>
+              <select
+                value={selectedBedId ?? ''}
+                onChange={e => setSelectedBedId(e.target.value ? Number(e.target.value) : null)}
+                style={selectStyle}
+              >
+                <option value="">{t('common.select')}</option>
+                {(beds ?? []).map(b => (
+                  <option key={b.id} value={b.id}>
+                    {b.gardenName ? `${b.gardenName} · ${b.name}` : b.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+          /* Species picker */
           <div data-onboarding="task-form">
             <span style={selectLabelStyle}>{t('common.speciesLabel')}</span>
             {isEdit && existing ? (
@@ -304,6 +343,7 @@ export function TaskForm() {
               />
             )}
           </div>
+          )}
         </div>
 
         {/* Notes */}

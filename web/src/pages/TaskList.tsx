@@ -187,6 +187,8 @@ export function TaskList() {
                     const params = new URLSearchParams({ taskId: String(drawerTask.id) })
                     if (drawerTask.speciesId) params.set('speciesId', String(drawerTask.speciesId))
                     navigate(`/sow?${params}`)
+                  } else if (drawerTask.bedId != null) {
+                    navigate(`/bed/${drawerTask.bedId}`)
                   }
                   setDrawerTask(null)
                 }}
@@ -298,7 +300,9 @@ function TaskRow({ task, onOpen }: { task: ScheduledTaskResponse; onOpen: () => 
       </span>
       <div>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: 18 }}>
-          {task.speciesName ?? task.activityType}
+          {task.bedId != null
+            ? task.activityType.replace(/_/g, ' ')
+            : (task.speciesName ?? task.activityType)}
         </div>
         {task.originGroupName && (
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7 }}>
@@ -306,7 +310,9 @@ function TaskRow({ task, onOpen }: { task: ScheduledTaskResponse; onOpen: () => 
           </div>
         )}
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7 }}>
-          {task.activityType.replace(/_/g, ' ')}
+          {task.bedId != null
+            ? [task.gardenName, task.bedName].filter(Boolean).join(' · ')
+            : task.activityType.replace(/_/g, ' ')}
         </div>
       </div>
       <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase' }}>

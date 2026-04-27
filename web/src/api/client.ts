@@ -164,7 +164,9 @@ export interface AcceptableSpeciesEntry {
 }
 
 export interface ScheduledTaskResponse {
-  id: number; speciesId: number | null; speciesName: string | null; activityType: string
+  id: number; speciesId: number | null; speciesName: string | null
+  bedId: number | null; bedName: string | null; gardenName: string | null
+  activityType: string
   deadline: string; targetCount: number; remainingCount: number
   status: string; notes?: string; seasonId?: number; successionScheduleId?: number
   originGroupId?: number; originGroupName?: string
@@ -589,6 +591,7 @@ export const api = {
     get: (id: number) => apiRequest<ScheduledTaskResponse>(`/api/tasks/${id}`),
     create: (data: {
       speciesId?: number; speciesGroupId?: number; speciesIds?: number[]
+      bedId?: number
       activityType: string; deadline: string; targetCount: number; notes?: string
     }) => apiRequest<ScheduledTaskResponse>('/api/tasks', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: number, data: {

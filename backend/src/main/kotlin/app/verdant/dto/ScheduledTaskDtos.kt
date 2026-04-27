@@ -11,6 +11,9 @@ data class ScheduledTaskResponse(
     val id: Long,
     val speciesId: Long?,
     val speciesName: String?,
+    val bedId: Long?,
+    val bedName: String?,
+    val gardenName: String?,
     val activityType: String,
     val deadline: LocalDate,
     val targetCount: Int,
@@ -39,6 +42,7 @@ data class CreateScheduledTaskRequest(
     val speciesId: Long? = null,
     val speciesGroupId: Long? = null,
     val speciesIds: List<Long>? = null,
+    val bedId: Long? = null,
     @field:NotBlank @field:Size(max = 255)
     val activityType: String,
     @field:NotNull
