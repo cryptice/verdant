@@ -677,6 +677,8 @@ data class PlantLocationGroup(
     @SerializedName("gardenName") val gardenName: String?,
     @SerializedName("bedName") val bedName: String?,
     @SerializedName("bedId") val bedId: Long?,
+    @SerializedName("trayLocationId") val trayLocationId: Long? = null,
+    @SerializedName("trayLocationName") val trayLocationName: String? = null,
     @SerializedName("status") val status: String,
     @SerializedName("count") val count: Int,
     @SerializedName("year") val year: Int,

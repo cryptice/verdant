@@ -173,6 +173,8 @@ data class PlantLocationGroup(
     val gardenName: String?,
     val bedName: String?,
     val bedId: Long?,
+    val trayLocationId: Long?,
+    val trayLocationName: String?,
     val status: String,
     val count: Int,
     val year: Int,

@@ -168,14 +168,16 @@ class PlantRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """SELECT g.name as garden_name, b.name as bed_name, p.bed_id as bed_id,
+                          p.tray_location_id as tray_location_id, tl.name as tray_location_name,
                           p.status, COUNT(*) as count,
                           EXTRACT(YEAR FROM p.created_at)::int as year
                    FROM plant p
                    LEFT JOIN bed b ON p.bed_id = b.id
                    LEFT JOIN garden g ON b.garden_id = g.id
+                   LEFT JOIN tray_location tl ON p.tray_location_id = tl.id
                    WHERE p.org_id = ? AND p.species_id = ?
-                   GROUP BY g.name, b.name, p.bed_id, p.status, EXTRACT(YEAR FROM p.created_at)
-                   ORDER BY year DESC, g.name, b.name, p.status"""
+                   GROUP BY g.name, b.name, p.bed_id, p.tray_location_id, tl.name, p.status, EXTRACT(YEAR FROM p.created_at)
+                   ORDER BY year DESC, g.name, b.name, tl.name NULLS LAST, p.status"""
             ).use { ps ->
                 ps.setLong(1, orgId)
                 ps.setLong(2, speciesId)
@@ -186,6 +188,8 @@ class PlantRepository(private val ds: AgroalDataSource) {
                                 gardenName = rs.getString("garden_name"),
                                 bedName = rs.getString("bed_name"),
                                 bedId = rs.getObject("bed_id") as? Long,
+                                trayLocationId = rs.getObject("tray_location_id") as? Long,
+                                trayLocationName = rs.getString("tray_location_name"),
                                 status = rs.getString("status"),
                                 count = rs.getInt("count"),
                                 year = rs.getInt("year"),

@@ -84,6 +84,7 @@ data class PlantedSpeciesDetailState(
     val tasks: List<ScheduledTaskResponse> = emptyList(),
     val locations: List<PlantLocationGroup> = emptyList(),
     val beds: List<BedWithGardenResponse> = emptyList(),
+    val trayLocations: List<app.verdant.android.data.model.TrayLocationResponse> = emptyList(),
     val trayEvents: List<app.verdant.android.data.model.SpeciesEventSummaryEntry> = emptyList(),
     val error: String? = null,
 )
@@ -151,6 +152,32 @@ class PlantedSpeciesDetailViewModel @Inject constructor(
         }
     }
 
+    fun moveLocation(
+        sourceLocationId: Long,
+        targetLocationId: Long?,
+        status: String,
+        count: Int,
+        onDone: () -> Unit,
+    ) {
+        viewModelScope.launch {
+            try {
+                repo.moveTrayLocation(
+                    sourceLocationId,
+                    app.verdant.android.data.model.MoveTrayLocationRequest(
+                        targetLocationId = targetLocationId,
+                        count = count,
+                        speciesId = speciesId,
+                        status = status,
+                    ),
+                )
+                load()
+                onDone()
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to move plants", e)
+            }
+        }
+    }
+
     fun batchEvent(item: PlantLocationGroup, eventType: String, count: Int, targetBedId: Long? = null, onDone: () -> Unit) {
         viewModelScope.launch {
             try {
@@ -190,12 +217,15 @@ class PlantedSpeciesDetailViewModel @Inject constructor(
                 val trayEvents = runCatching { repo.getSpeciesEventSummary(speciesId, trayOnly = true) }
                     .onFailure { Log.e(TAG, "Failed to load species event summary", it) }
                     .getOrDefault(emptyList())
+                val trayLocations = runCatching { repo.getTrayLocations() }
+                    .getOrDefault(emptyList())
                 _uiState.value = PlantedSpeciesDetailState(
                     isLoading = false,
                     speciesName = name,
                     tasks = tasks,
                     locations = locations,
                     beds = beds,
+                    trayLocations = trayLocations,
                     trayEvents = trayEvents,
                 )
             } catch (e: Exception) {
@@ -233,6 +263,10 @@ fun PlantedSpeciesDetailScreen(
     var selectedTargetBedId by remember { mutableStateOf<Long?>(null) }
     var bedExpanded by remember { mutableStateOf(false) }
     var plantOutMode by remember { mutableStateOf(false) }
+    var moveMode by remember { mutableStateOf(false) }
+    var selectedTargetTrayLocationId by remember { mutableStateOf<Long?>(null) }
+    var detachLocation by remember { mutableStateOf(false) }
+    var trayLocationExpanded by remember { mutableStateOf(false) }
     val expandedTrayStatuses = remember { mutableStateOf<Set<String>>(emptySet()) }
     // (eventType, oldDate, currentStatus, currentCount)
     data class EventTarget(val type: String, val date: String, val status: String, val current: Int)
@@ -294,11 +328,17 @@ fun PlantedSpeciesDetailScreen(
         selectedTargetBedId = null
         bedExpanded = false
         plantOutMode = false
+        moveMode = false
+        selectedTargetTrayLocationId = null
+        detachLocation = false
+        trayLocationExpanded = false
     }
 
     // Dialog 2: action selection for a specific status group
-    if (selectedSubItem != null && !plantOutMode) {
+    if (selectedSubItem != null && !plantOutMode && !moveMode) {
         val item = selectedSubItem!!
+        // Plants on a tray location can move to another location or detach.
+        val canMove = item.bedId == null && item.trayLocationId != null
         val actions: List<Pair<String, String>> = buildList {
             when (item.status) {
                 "SEEDED" -> {
@@ -312,6 +352,7 @@ fun PlantedSpeciesDetailScreen(
                 }
                 "HARVESTED" -> add("RECOVERED" to "Återhämta")
             }
+            if (canMove) add("MOVE" to "Flytta")
             add("REMOVED" to "Kassera")
         }
         AlertDialog(
@@ -331,12 +372,14 @@ fun PlantedSpeciesDetailScreen(
                         val isDestructive = eventType == "REMOVED"
                         Button(
                             onClick = {
-                                if (eventType == "PLANTED_OUT") {
-                                    plantOutMode = true
-                                } else {
-                                    actionSubmitting = true
-                                    viewModel.batchEvent(item, eventType, count.coerceAtMost(item.count)) {
-                                        dismissModal()
+                                when (eventType) {
+                                    "PLANTED_OUT" -> plantOutMode = true
+                                    "MOVE" -> moveMode = true
+                                    else -> {
+                                        actionSubmitting = true
+                                        viewModel.batchEvent(item, eventType, count.coerceAtMost(item.count)) {
+                                            dismissModal()
+                                        }
                                     }
                                 }
                             },
@@ -412,6 +455,97 @@ fun PlantedSpeciesDetailScreen(
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { plantOutMode = false; selectedTargetBedId = null }) {
+                    Text("Tillbaka")
+                }
+            },
+        )
+    }
+
+    // Dialog 4: tray location picker for "Flytta"
+    if (selectedSubItem != null && moveMode) {
+        val item = selectedSubItem!!
+        val count = actionCount.toIntOrNull() ?: 0
+        val targetOptions = uiState.trayLocations.filter { it.id != item.trayLocationId }
+        val canSubmit = (detachLocation || selectedTargetTrayLocationId != null) &&
+            count in 1..item.count && !actionSubmitting
+        AlertDialog(
+            onDismissRequest = dismissModal,
+            title = { Text("Flytta") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = "Välj plats",
+                        fontSize = 14.sp,
+                        color = FaltetForest,
+                    )
+                    ExposedDropdownMenuBox(
+                        expanded = trayLocationExpanded,
+                        onExpandedChange = { if (!detachLocation) trayLocationExpanded = it },
+                    ) {
+                        val displayText = when {
+                            detachLocation -> "Utan plats"
+                            else -> targetOptions.find { it.id == selectedTargetTrayLocationId }?.name ?: ""
+                        }
+                        OutlinedTextField(
+                            value = displayText,
+                            onValueChange = {},
+                            readOnly = true,
+                            placeholder = { Text("Välj plats") },
+                            modifier = Modifier.fillMaxWidth().menuAnchor(),
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(trayLocationExpanded) },
+                            enabled = !detachLocation,
+                        )
+                        ExposedDropdownMenu(
+                            expanded = trayLocationExpanded,
+                            onDismissRequest = { trayLocationExpanded = false },
+                        ) {
+                            targetOptions.forEach { loc ->
+                                DropdownMenuItem(
+                                    text = { Text(loc.name) },
+                                    onClick = {
+                                        selectedTargetTrayLocationId = loc.id
+                                        detachLocation = false
+                                        trayLocationExpanded = false
+                                    },
+                                )
+                            }
+                        }
+                    }
+                    TextButton(onClick = {
+                        detachLocation = !detachLocation
+                        if (detachLocation) selectedTargetTrayLocationId = null
+                    }) {
+                        Text(
+                            text = if (detachLocation) "✓ Utan plats" else "Eller: utan plats",
+                            color = FaltetAccent,
+                            fontSize = 12.sp,
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            actionSubmitting = true
+                            viewModel.moveLocation(
+                                sourceLocationId = item.trayLocationId!!,
+                                targetLocationId = if (detachLocation) null else selectedTargetTrayLocationId,
+                                status = item.status,
+                                count = count.coerceAtMost(item.count),
+                            ) { dismissModal() }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = canSubmit,
+                    ) {
+                        Text("Flytta")
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = {
+                    moveMode = false
+                    selectedTargetTrayLocationId = null
+                    detachLocation = false
+                    trayLocationExpanded = false
+                }) {
                     Text("Tillbaka")
                 }
             },
