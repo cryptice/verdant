@@ -84,6 +84,28 @@ export function PlantedSpeciesDetail() {
   const [chooserTarget, setChooserTarget] = useState<EventTarget | null>(null)
   const [editTarget, setEditTarget] = useState<EventTarget | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<EventTarget | null>(null)
+  const [moveTarget, setMoveTarget] = useState<PlantLocationGroup | null>(null)
+
+  const { data: trayLocations = [] } = useQuery({
+    queryKey: ['tray-locations'],
+    queryFn: () => api.trayLocations.list(),
+  })
+
+  const moveMut = useMutation({
+    mutationFn: (vars: { sourceId: number; targetId: number | null; status: string; count: number }) =>
+      api.trayLocations.move(vars.sourceId, {
+        targetLocationId: vars.targetId,
+        count: vars.count,
+        speciesId: id,
+        status: vars.status,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['species-locations', id] })
+      qc.invalidateQueries({ queryKey: ['species-events', id] })
+      qc.invalidateQueries({ queryKey: ['tray-summary'] })
+      qc.invalidateQueries({ queryKey: ['tray-locations'] })
+    },
+  })
 
   const { data: summary } = useQuery({
     queryKey: ['species-summary'],
@@ -196,6 +218,7 @@ export function PlantedSpeciesDetail() {
               events={events}
               onBedClick={(bedId) => navigate(`/bed/${bedId}`)}
               onEventTap={(t) => setChooserTarget(t)}
+              onMoveTray={(loc) => setMoveTarget(loc)}
             />
           ))}
         </div>
@@ -268,7 +291,100 @@ export function PlantedSpeciesDetail() {
           }}
         />
       )}
+
+      {moveTarget && (
+        <MovePlantsDialog
+          source={moveTarget}
+          allLocations={trayLocations}
+          onClose={() => setMoveTarget(null)}
+          onConfirm={(targetId, count) => {
+            moveMut.mutate({
+              sourceId: moveTarget.trayLocationId!,
+              targetId,
+              status: moveTarget.status,
+              count,
+            })
+            setMoveTarget(null)
+          }}
+        />
+      )}
     </div>
+  )
+}
+
+function MovePlantsDialog({
+  source,
+  allLocations,
+  onClose,
+  onConfirm,
+}: {
+  source: PlantLocationGroup
+  allLocations: { id: number; name: string }[]
+  onClose: () => void
+  onConfirm: (targetId: number | null, count: number) => void
+}) {
+  const others = allLocations.filter((l) => l.id !== source.trayLocationId)
+  const [targetId, setTargetId] = useState<number | null>(null)
+  const [detach, setDetach] = useState(false)
+  const [countText, setCountText] = useState(String(source.count))
+  const count = parseInt(countText, 10)
+  const validCount = Number.isFinite(count) && count >= 1 && count <= source.count
+  const canSubmit = validCount && (detach || targetId !== null)
+
+  return (
+    <Dialog
+      open
+      onClose={onClose}
+      title="Flytta plantor"
+      actions={
+        <>
+          <button onClick={onClose} className="px-4 py-2 text-sm text-text-secondary">Avbryt</button>
+          <button
+            onClick={() => onConfirm(detach ? null : targetId, count)}
+            disabled={!canSubmit}
+            className="btn-primary text-sm"
+          >
+            Flytta
+          </button>
+        </>
+      }
+    >
+      <div className="space-y-3">
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-forest)' }}>
+          {source.trayLocationName ?? 'Bricka'} · {STATUS_LABEL_PLURAL_SV[source.status] ?? source.status}
+        </p>
+        <div>
+          <label className="field-label">Mål</label>
+          <select
+            className="input w-full"
+            value={detach ? '__detach' : (targetId ?? '')}
+            onChange={(e) => {
+              const v = e.target.value
+              if (v === '__detach') { setDetach(true); setTargetId(null) }
+              else if (v === '') { setDetach(false); setTargetId(null) }
+              else { setDetach(false); setTargetId(Number(v)) }
+            }}
+          >
+            <option value="">Välj…</option>
+            {others.map((l) => (
+              <option key={l.id} value={l.id}>{l.name}</option>
+            ))}
+            <option value="__detach">Ingen plats (utan plats)</option>
+          </select>
+        </div>
+        <div>
+          <label className="field-label">Antal (max {source.count})</label>
+          <input
+            type="number"
+            min={1}
+            max={source.count}
+            value={countText}
+            onChange={(e) => setCountText(e.target.value.replace(/[^0-9]/g, ''))}
+            className="input w-full"
+          />
+        </div>
+      </div>
+    </Dialog>
   )
 }
 
@@ -278,12 +394,14 @@ function StatusCard({
   events,
   onBedClick,
   onEventTap,
+  onMoveTray,
 }: {
   status: string
   locations: PlantLocationGroup[]
   events: SpeciesEventSummaryEntry[]
   onBedClick: (bedId: number) => void
   onEventTap: (target: EventTarget) => void
+  onMoveTray: (loc: PlantLocationGroup) => void
 }) {
   const total = locations.reduce((acc, l) => acc + l.count, 0)
   const label = STATUS_LABEL_PLURAL_SV[status] ?? status
@@ -333,10 +451,11 @@ function StatusCard({
         {locations.map((loc, i) => {
           const isTray = loc.bedId == null
           const labelStr = isTray
-            ? 'Bricka'
+            ? `Bricka${loc.trayLocationName ? ` · ${loc.trayLocationName}` : ''}`
             : [loc.gardenName, loc.bedName].filter(Boolean).join(' / ')
+          const canMove = isTray && loc.trayLocationId != null
           return (
-            <div key={`${loc.bedId ?? 'tray'}-${loc.year}-${i}`}>
+            <div key={`${loc.bedId ?? `tray_${loc.trayLocationId ?? 'none'}`}-${loc.year}-${i}`}>
               <div
                 role="button"
                 tabIndex={0}
@@ -344,7 +463,7 @@ function StatusCard({
                 onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && loc.bedId != null) onBedClick(loc.bedId) }}
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: '1.5fr 80px 60px',
+                  gridTemplateColumns: canMove ? '1.5fr 80px 60px 60px' : '1.5fr 80px 60px',
                   gap: 12,
                   padding: '12px 18px',
                   borderTop: i > 0 ? '1px solid color-mix(in srgb, var(--color-ink) 12%, transparent)' : 'none',
@@ -367,6 +486,23 @@ function StatusCard({
                   {loc.year}
                 </span>
                 <span style={{ textAlign: 'right', alignSelf: 'center' }}>{loc.count}</span>
+                {canMove && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onMoveTray(loc) }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--color-accent)',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 11,
+                      cursor: 'pointer',
+                      textAlign: 'right',
+                      padding: 0,
+                    }}
+                  >
+                    Flytta
+                  </button>
+                )}
               </div>
               {isTray && (
                 <TrayEventsExpansion

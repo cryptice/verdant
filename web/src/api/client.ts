@@ -201,6 +201,8 @@ export interface SpeciesPlantSummary {
 
 export interface PlantLocationGroup {
   gardenName: string; bedName?: string; bedId?: number
+  trayLocationId?: number | null
+  trayLocationName?: string | null
   status: string; count: number; year: number
 }
 
