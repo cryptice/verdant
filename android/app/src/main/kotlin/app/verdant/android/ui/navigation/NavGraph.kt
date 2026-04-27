@@ -128,6 +128,10 @@ sealed class Screen(val route: String) {
 
     // Seasons
     data object Seasons : Screen("seasons")
+    data object TrayLocations : Screen("tray-locations")
+    data object TrayLocationDetail : Screen("tray-locations/{locationId}") {
+        fun create(locationId: Long) = "tray-locations/$locationId"
+    }
 
     // Parity screens
     data object PestDiseaseLog : Screen("pest-disease")
@@ -305,6 +309,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                         DrawerSection("§ Odling")
                         DrawerItem("Översikt", Screen.Dashboard.route, currentRoute, navController, scope, drawerState)
                         DrawerItem(myWorldLabel, myWorldRoute, currentRoute, navController, scope, drawerState)
+                        DrawerItem("Platser", Screen.TrayLocations.route, currentRoute, navController, scope, drawerState)
                         DrawerItem("Växter", Screen.PlantedSpeciesList.route, currentRoute, navController, scope, drawerState)
                         DrawerItem("Arter", Screen.SpeciesList.route, currentRoute, navController, scope, drawerState)
 
@@ -646,6 +651,15 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
 
             composable(Screen.Seasons.route) {
                 SeasonSelectorScreen(onBack = { navController.popBackStack() })
+            }
+
+            // ── Tray locations ──
+
+            composable(Screen.TrayLocations.route) {
+                app.verdant.android.ui.location.TrayLocationsScreen(
+                    onBack = { navController.popBackStack() },
+                    onLocationClick = { id -> navController.navigate(Screen.TrayLocationDetail.create(id)) },
+                )
             }
 
             // ── Parity screens ──
