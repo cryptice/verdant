@@ -10,6 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -233,7 +234,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
     // When the user has exactly one garden, the "My world" entry collapses into
     // a direct shortcut to that garden's detail screen — same UX as the web
     // sidebar.
-    val gardens by viewModel.gardens.collectAsState()
+    val gardens by viewModel.gardens.collectAsStateWithLifecycle()
     val soleGarden = gardens.singleOrNull()
     var showQuickActions by remember { mutableStateOf(false) }
     val myWorldLabel = soleGarden?.name ?: stringResource(R.string.my_world)

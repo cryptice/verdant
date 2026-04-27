@@ -31,7 +31,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -241,7 +241,7 @@ fun PlantedSpeciesDetailScreen(
     onBack: () -> Unit,
     viewModel: PlantedSpeciesDetailViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val statusOrder = listOf("SEEDED", "POTTED_UP", "PLANTED_OUT", "GROWING", "HARVESTED", "RECOVERED", "REMOVED")
     val byStatus: List<Pair<String, List<PlantLocationGroup>>> = remember(uiState.locations) {
@@ -424,7 +424,7 @@ fun PlantedSpeciesDetailScreen(
                             onValueChange = {},
                             readOnly = true,
                             placeholder = { Text("Välj bädd") },
-                            modifier = Modifier.fillMaxWidth().menuAnchor(),
+                            modifier = Modifier.fillMaxWidth().menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryEditable, true),
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(bedExpanded) },
                         )
                         ExposedDropdownMenu(
@@ -493,7 +493,7 @@ fun PlantedSpeciesDetailScreen(
                             onValueChange = {},
                             readOnly = true,
                             placeholder = { Text("Välj plats") },
-                            modifier = Modifier.fillMaxWidth().menuAnchor(),
+                            modifier = Modifier.fillMaxWidth().menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryEditable, true),
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(trayLocationExpanded) },
                             enabled = !detachLocation,
                         )

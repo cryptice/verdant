@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -135,7 +136,7 @@ fun WorkflowProgressScreen(
     onApplySupplyStep: ((bedId: Long, stepId: Long, plantIds: List<Long>, supplyTypeId: Long?, quantity: Double?) -> Unit)? = null,
     viewModel: WorkflowProgressViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var confirmStep by remember { mutableStateOf<SpeciesWorkflowStepResponse?>(null) }
     var completionNotes by remember { mutableStateOf("") }
     var bedPickerStep by remember { mutableStateOf<SpeciesWorkflowStepResponse?>(null) }
