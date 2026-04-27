@@ -8,7 +8,8 @@ enum class SupplyApplicationScope { BED, PLANTS }
 data class SupplyApplication(
     val id: Long? = null,
     val orgId: Long,
-    val bedId: Long,
+    val bedId: Long? = null,
+    val trayLocationId: Long? = null,
     val supplyInventoryId: Long,
     val supplyTypeId: Long,
     val quantity: BigDecimal,

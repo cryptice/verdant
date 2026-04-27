@@ -1154,7 +1154,8 @@ data class DecrementSupplyRequest(
 
 data class SupplyApplicationResponse(
     @SerializedName("id") val id: Long,
-    @SerializedName("bedId") val bedId: Long,
+    @SerializedName("bedId") val bedId: Long?,
+    @SerializedName("trayLocationId") val trayLocationId: Long? = null,
     @SerializedName("supplyInventoryId") val supplyInventoryId: Long,
     @SerializedName("supplyTypeId") val supplyTypeId: Long,
     @SerializedName("supplyTypeName") val supplyTypeName: String,
@@ -1169,7 +1170,8 @@ data class SupplyApplicationResponse(
 )
 
 data class CreateSupplyApplicationRequest(
-    @SerializedName("bedId") val bedId: Long,
+    @SerializedName("bedId") val bedId: Long? = null,
+    @SerializedName("trayLocationId") val trayLocationId: Long? = null,
     @SerializedName("supplyInventoryId") val supplyInventoryId: Long,
     @SerializedName("quantity") val quantity: Double,
     @SerializedName("targetScope") val targetScope: String,

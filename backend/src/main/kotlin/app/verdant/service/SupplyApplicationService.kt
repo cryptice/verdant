@@ -14,6 +14,7 @@ import app.verdant.repository.PlantRepository
 import app.verdant.repository.SupplyApplicationRepository
 import app.verdant.repository.SupplyInventoryRepository
 import app.verdant.repository.SupplyTypeRepository
+import app.verdant.repository.TrayLocationRepository
 import app.verdant.repository.UserRepository
 import app.verdant.repository.WorkflowRepository
 import jakarta.enterprise.context.ApplicationScoped
@@ -34,6 +35,7 @@ class SupplyApplicationService(
     private val userRepo: UserRepository,
     private val bedRepo: BedRepository,
     private val gardenRepo: GardenRepository,
+    private val trayLocationRepo: TrayLocationRepository,
 ) {
     @Transactional
     fun create(request: CreateSupplyApplicationRequest, orgId: Long, userId: Long): SupplyApplicationResponse {
@@ -45,35 +47,59 @@ class SupplyApplicationService(
         }
         if (request.quantity <= BigDecimal.ZERO) throw BadRequestException("quantity must be > 0")
 
-        when (scope) {
-            SupplyApplicationScope.BED -> {
-                if (request.plantIds.isNotEmpty()) throw BadRequestException("plantIds must be empty for BED scope")
-                if (request.workflowStepId != null) throw BadRequestException("workflowStepId not allowed for BED scope")
-            }
-            SupplyApplicationScope.PLANTS -> {
-                if (request.plantIds.isEmpty()) throw BadRequestException("plantIds required for PLANTS scope")
+        // Bed XOR tray location.
+        val bedId = request.bedId
+        val trayLocationId = request.trayLocationId
+        if ((bedId == null) == (trayLocationId == null))
+            throw BadRequestException("Provide exactly one of bedId or trayLocationId")
+
+        if (trayLocationId != null) {
+            // Tray scope: always implicitly PLANTS, plants come from the location.
+            if (scope != SupplyApplicationScope.PLANTS)
+                throw BadRequestException("targetScope must be PLANTS when trayLocationId is set")
+            if (request.plantIds.isNotEmpty())
+                throw BadRequestException("plantIds must be empty when trayLocationId is set")
+        } else {
+            when (scope) {
+                SupplyApplicationScope.BED -> {
+                    if (request.plantIds.isNotEmpty()) throw BadRequestException("plantIds must be empty for BED scope")
+                    if (request.workflowStepId != null) throw BadRequestException("workflowStepId not allowed for BED scope")
+                }
+                SupplyApplicationScope.PLANTS -> {
+                    if (request.plantIds.isEmpty()) throw BadRequestException("plantIds required for PLANTS scope")
+                }
             }
         }
 
         // 2. Authorization chain — fail 404 on any cross-org mismatch
-        val bed = bedRepo.findById(request.bedId) ?: throw NotFoundException("Bed not found")
-        val garden = gardenRepo.findById(bed.gardenId) ?: throw NotFoundException("Bed not found")
-        if (garden.orgId != orgId) throw NotFoundException("Bed not found")
+        if (bedId != null) {
+            val bed = bedRepo.findById(bedId) ?: throw NotFoundException("Bed not found")
+            val garden = gardenRepo.findById(bed.gardenId) ?: throw NotFoundException("Bed not found")
+            if (garden.orgId != orgId) throw NotFoundException("Bed not found")
+        }
+        if (trayLocationId != null) {
+            val loc = trayLocationRepo.findById(trayLocationId) ?: throw NotFoundException("Tray location not found")
+            if (loc.orgId != orgId) throw NotFoundException("Tray location not found")
+        }
 
         val inventory = inventoryRepo.findById(request.supplyInventoryId)
             ?: throw NotFoundException("Supply inventory not found")
         if (inventory.orgId != orgId) throw NotFoundException("Supply inventory not found")
 
-        // 3. Plant validation (PLANTS scope)
-        val targetPlants = if (scope == SupplyApplicationScope.PLANTS) {
-            val plants = plantRepo.findByIds(request.plantIds)
-            if (plants.size != request.plantIds.size) throw BadRequestException("One or more plants not found")
-            plants.forEach { plant ->
-                if (plant.bedId != request.bedId) throw BadRequestException("Plant ${plant.id} not in bed ${request.bedId}")
-                if (plant.status == PlantStatus.REMOVED) throw BadRequestException("Plant ${plant.id} is REMOVED")
+        // 3. Plant resolution
+        val targetPlants = when {
+            trayLocationId != null -> plantRepo.findActiveByTrayLocation(orgId, trayLocationId)
+            scope == SupplyApplicationScope.PLANTS -> {
+                val plants = plantRepo.findByIds(request.plantIds)
+                if (plants.size != request.plantIds.size) throw BadRequestException("One or more plants not found")
+                plants.forEach { plant ->
+                    if (plant.bedId != bedId) throw BadRequestException("Plant ${plant.id} not in bed $bedId")
+                    if (plant.status == PlantStatus.REMOVED) throw BadRequestException("Plant ${plant.id} is REMOVED")
+                }
+                plants
             }
-            plants
-        } else emptyList()
+            else -> emptyList()
+        }
 
         // 4. Workflow step validation
         if (request.workflowStepId != null) {
@@ -93,7 +119,8 @@ class SupplyApplicationService(
         val persisted = applicationRepo.insert(
             SupplyApplication(
                 orgId = orgId,
-                bedId = request.bedId,
+                bedId = bedId,
+                trayLocationId = trayLocationId,
                 supplyInventoryId = inventory.id,
                 supplyTypeId = inventory.supplyTypeId,
                 quantity = request.quantity,
@@ -105,7 +132,7 @@ class SupplyApplicationService(
         )
 
         // 7. Fan out plant events + workflow progress
-        if (scope == SupplyApplicationScope.PLANTS) {
+        if (targetPlants.isNotEmpty()) {
             for (plant in targetPlants) {
                 plantEventRepo.persist(
                     PlantEvent(
@@ -134,6 +161,14 @@ class SupplyApplicationService(
         }
     }
 
+    fun findByTrayLocation(trayLocationId: Long, orgId: Long, limit: Int = 20): List<SupplyApplicationResponse> {
+        val loc = trayLocationRepo.findById(trayLocationId) ?: throw NotFoundException("Tray location not found")
+        if (loc.orgId != orgId) throw NotFoundException("Tray location not found")
+        return applicationRepo.findByTrayLocation(trayLocationId, limit).map {
+            toResponse(it, applicationRepo.findPlantIdsForApplication(it.id!!))
+        }
+    }
+
     fun findByGarden(gardenId: Long, orgId: Long, limit: Int = 20): List<SupplyApplicationResponse> {
         val garden = gardenRepo.findById(gardenId) ?: throw NotFoundException("Garden not found")
         if (garden.orgId != orgId) throw NotFoundException("Garden not found")
@@ -154,6 +189,7 @@ class SupplyApplicationService(
         return SupplyApplicationResponse(
             id = app.id!!,
             bedId = app.bedId,
+            trayLocationId = app.trayLocationId,
             supplyInventoryId = app.supplyInventoryId,
             supplyTypeId = app.supplyTypeId,
             supplyTypeName = type.name,

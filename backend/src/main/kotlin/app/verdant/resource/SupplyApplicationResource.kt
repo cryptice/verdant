@@ -50,4 +50,12 @@ class SupplyApplicationResource(
         @QueryParam("limit") limit: Int?,
     ): List<SupplyApplicationResponse> =
         service.findByGarden(gardenId, orgContext.orgId, (limit ?: 20).coerceIn(1, 100))
+
+    @GET
+    @Path("/tray-location/{trayLocationId}")
+    fun listByTrayLocation(
+        @PathParam("trayLocationId") trayLocationId: Long,
+        @QueryParam("limit") limit: Int?,
+    ): List<SupplyApplicationResponse> =
+        service.findByTrayLocation(trayLocationId, orgContext.orgId, (limit ?: 20).coerceIn(1, 100))
 }

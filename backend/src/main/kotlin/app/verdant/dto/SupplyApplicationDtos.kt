@@ -7,7 +7,8 @@ import java.time.Instant
 
 data class SupplyApplicationResponse(
     val id: Long,
-    val bedId: Long,
+    val bedId: Long?,
+    val trayLocationId: Long?,
     val supplyInventoryId: Long,
     val supplyTypeId: Long,
     val supplyTypeName: String,
@@ -21,8 +22,10 @@ data class SupplyApplicationResponse(
     val plantIds: List<Long>,
 )
 
+/** Exactly one of [bedId] or [trayLocationId] must be set. */
 data class CreateSupplyApplicationRequest(
-    @field:NotNull val bedId: Long,
+    val bedId: Long? = null,
+    val trayLocationId: Long? = null,
     @field:NotNull val supplyInventoryId: Long,
     @field:NotNull @field:DecimalMin("0.01") val quantity: BigDecimal,
     @field:NotNull val targetScope: String,

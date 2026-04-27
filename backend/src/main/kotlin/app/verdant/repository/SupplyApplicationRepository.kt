@@ -14,26 +14,43 @@ class SupplyApplicationRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """INSERT INTO supply_application
-                   (org_id, bed_id, supply_inventory_id, supply_type_id, quantity,
+                   (org_id, bed_id, tray_location_id, supply_inventory_id, supply_type_id, quantity,
                     target_scope, applied_at, applied_by, workflow_step_id, notes)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 arrayOf("id")
             ).use { ps ->
                 ps.setLong(1, app.orgId)
-                ps.setLong(2, app.bedId)
-                ps.setLong(3, app.supplyInventoryId)
-                ps.setLong(4, app.supplyTypeId)
-                ps.setBigDecimal(5, app.quantity)
-                ps.setString(6, app.targetScope.name)
-                ps.setObject(7, app.appliedAt.atOffset(ZoneOffset.UTC))
-                ps.setLong(8, app.appliedBy)
-                app.workflowStepId?.let { ps.setLong(9, it) } ?: ps.setNull(9, java.sql.Types.BIGINT)
-                ps.setString(10, app.notes)
+                app.bedId?.let { ps.setLong(2, it) } ?: ps.setNull(2, java.sql.Types.BIGINT)
+                app.trayLocationId?.let { ps.setLong(3, it) } ?: ps.setNull(3, java.sql.Types.BIGINT)
+                ps.setLong(4, app.supplyInventoryId)
+                ps.setLong(5, app.supplyTypeId)
+                ps.setBigDecimal(6, app.quantity)
+                ps.setString(7, app.targetScope.name)
+                ps.setObject(8, app.appliedAt.atOffset(ZoneOffset.UTC))
+                ps.setLong(9, app.appliedBy)
+                app.workflowStepId?.let { ps.setLong(10, it) } ?: ps.setNull(10, java.sql.Types.BIGINT)
+                ps.setString(11, app.notes)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs -> rs.next(); return app.copy(id = rs.getLong(1)) }
             }
         }
     }
+
+    fun findByTrayLocation(trayLocationId: Long, limit: Int = 20): List<SupplyApplication> =
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                """SELECT * FROM supply_application
+                   WHERE tray_location_id = ?
+                   ORDER BY applied_at DESC
+                   LIMIT ?"""
+            ).use { ps ->
+                ps.setLong(1, trayLocationId)
+                ps.setInt(2, limit)
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.toSupplyApplication()) }
+                }
+            }
+        }
 
     fun findById(id: Long): SupplyApplication? =
         ds.connection.use { conn ->
@@ -91,7 +108,8 @@ class SupplyApplicationRepository(private val ds: AgroalDataSource) {
     private fun ResultSet.toSupplyApplication(): SupplyApplication = SupplyApplication(
         id = getLong("id"),
         orgId = getLong("org_id"),
-        bedId = getLong("bed_id"),
+        bedId = getLong("bed_id").takeIf { !wasNull() },
+        trayLocationId = getLong("tray_location_id").takeIf { !wasNull() },
         supplyInventoryId = getLong("supply_inventory_id"),
         supplyTypeId = getLong("supply_type_id"),
         quantity = getBigDecimal("quantity"),
