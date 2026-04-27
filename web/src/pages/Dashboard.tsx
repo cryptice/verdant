@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import type { TraySummaryEntry } from '../api/client'
-import { Masthead, Stat, Chip } from '../components/faltet'
+import { Masthead, Chip } from '../components/faltet'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
 export function Dashboard() {
@@ -109,27 +109,18 @@ export function Dashboard() {
             replaces the old full-width ink rule that used to sit below it. */}
         <div
           className="stats-band dashboard-hero"
-          style={{ margin: '0 0 28px', display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'flex-end' }}
+          style={{
+            margin: '0 0 28px',
+            display: 'flex',
+            justifyContent: 'space-around',
+            alignItems: 'center',
+            gap: 24,
+            flexWrap: 'wrap',
+          }}
         >
-          <Stat
-            size="large"
-            value={activeBedCount}
-            unit="×"
-            label={t('dashboard.hero.label')}
-            hue="sage"
-          />
-          <Stat
-            size="medium"
-            value={activePlantCount}
-            label="Aktiva plantor"
-            hue="mustard"
-          />
-          <Stat
-            size="medium"
-            value={activeSpeciesCount}
-            label="Arter"
-            hue="berry"
-          />
+          <CenteredHeroStat value={activeBedCount} label="Bäddar" />
+          <CenteredHeroStat value={activePlantCount} label="Plantor" />
+          <CenteredHeroStat value={activeSpeciesCount} label="Arter" />
         </div>
 
         {/* Three content columns */}
@@ -476,6 +467,39 @@ function groupByLocation(entries: TraySummaryEntry[]): [LocationKey, TraySummary
       return an.localeCompare(bn, 'sv')
     })
     .map((v) => [v.key, v.entries] as [LocationKey, TraySummaryEntry[]])
+}
+
+function CenteredHeroStat({ value, label }: { value: number; label: string }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+      <div
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontStyle: 'italic',
+          fontSize: 96,
+          lineHeight: 0.95,
+          fontWeight: 300,
+          letterSpacing: -2,
+          color: 'var(--color-accent)',
+          fontVariationSettings: '"SOFT" 100, "opsz" 144',
+        }}
+      >
+        {value}
+      </div>
+      <div
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: 12,
+          letterSpacing: 1.8,
+          textTransform: 'uppercase',
+          color: 'var(--color-forest)',
+          textAlign: 'center',
+        }}
+      >
+        {label}
+      </div>
+    </div>
+  )
 }
 
 function ColumnHeader({ title, right }: { title: string; right?: React.ReactNode }) {

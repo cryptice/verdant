@@ -330,30 +330,33 @@ private fun HeroStats(beds: Int, plants: Int, species: Int) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 18.dp, vertical = 24.dp),
-        horizontalArrangement = Arrangement.spacedBy(24.dp),
-        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        HeroStatCell(value = beds, label = "Aktiva bäddar", primary = true)
-        HeroStatCell(value = plants, label = "Aktiva plantor")
+        HeroStatCell(value = beds, label = "Bäddar")
+        HeroStatCell(value = plants, label = "Plantor")
         HeroStatCell(value = species, label = "Arter")
     }
 }
 
 @Composable
-private fun HeroStatCell(value: Int, label: String, primary: Boolean = false) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+private fun HeroStatCell(value: Int, label: String) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
         Text(
             text = value.toString(),
             fontFamily = FaltetDisplay,
             fontStyle = FontStyle.Italic,
-            fontSize = if (primary) 64.sp else 36.sp,
-            color = if (primary) FaltetAccent else FaltetInk,
+            fontSize = 72.sp,
+            color = FaltetAccent,
         )
         Text(
             text = label.uppercase(),
             fontFamily = FontFamily.Monospace,
-            fontSize = 10.sp,
-            letterSpacing = 1.4.sp,
+            fontSize = 11.sp,
+            letterSpacing = 1.8.sp,
             color = FaltetForest,
         )
     }
