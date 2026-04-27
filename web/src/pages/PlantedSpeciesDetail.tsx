@@ -19,6 +19,16 @@ const STATUS_LABEL_PLURAL_SV: Record<string, string> = {
   REMOVED: 'Borttagna',
 }
 
+function labelForEventRow(e: { type: string; fromLoc?: string | null; toLoc?: string | null }): string {
+  if (e.type === 'MOVED') {
+    if (e.fromLoc && e.toLoc) return `Flyttade · ${e.fromLoc} → ${e.toLoc}`
+    if (e.toLoc) return `Flyttade · till ${e.toLoc}`
+    if (e.fromLoc) return `Flyttade · ut ur ${e.fromLoc}`
+    return 'Flyttade'
+  }
+  return EVENT_LABEL_SV[e.type] ?? e.type
+}
+
 const EVENT_LABEL_SV: Record<string, string> = {
   SEEDED: 'Sådda',
   POTTED_UP: 'Omskolade',
@@ -51,7 +61,11 @@ const STATUS_COLOR: Record<string, string> = {
   REMOVED: 'var(--color-forest)',
 }
 
-interface EventRow { type: string; date: string; current: number; total: number }
+interface EventRow {
+  type: string; date: string; current: number; total: number
+  fromLoc?: string | null
+  toLoc?: string | null
+}
 
 interface EventTarget {
   eventType: string
@@ -378,10 +392,14 @@ function TrayEventsExpansion({
   currentStatus: string
   onEventTap: (target: EventTarget) => void
 }) {
-  const grouped = new Map<string, { type: string; date: string; current: number; total: number }>()
+  const grouped = new Map<string, EventRow>()
   for (const e of events) {
-    const key = `${e.eventType}|${e.eventDate}`
-    const row = grouped.get(key) ?? { type: e.eventType, date: e.eventDate, current: 0, total: 0 }
+    const key = `${e.eventType}|${e.eventDate}|${e.fromLocationName ?? ''}|${e.toLocationName ?? ''}`
+    const row = grouped.get(key) ?? {
+      type: e.eventType, date: e.eventDate, current: 0, total: 0,
+      fromLoc: e.fromLocationName ?? null,
+      toLoc: e.toLocationName ?? null,
+    }
     row.total += e.count
     if (e.currentStatus === currentStatus) row.current += e.count
     grouped.set(key, row)
@@ -457,7 +475,7 @@ function TrayEventsExpansion({
                 color: 'var(--color-ink)',
               }}
             >
-              {EVENT_LABEL_SV[e.type] ?? e.type}
+              {labelForEventRow(e)}
             </span>
             <span
               style={{
