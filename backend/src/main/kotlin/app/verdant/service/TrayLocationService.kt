@@ -3,6 +3,7 @@ package app.verdant.service
 import app.verdant.dto.BulkLocationActionResponse
 import app.verdant.dto.BulkLocationNoteRequest
 import app.verdant.dto.CreateTrayLocationRequest
+import app.verdant.dto.MoveTrayLocationRequest
 import app.verdant.dto.TrayLocationResponse
 import app.verdant.dto.UpdateTrayLocationRequest
 import app.verdant.entity.PlantEvent
@@ -40,11 +41,60 @@ class TrayLocationService(
         return updated.toResponse()
     }
 
+    /** Emits MOVED audit events (to_tray_location_id = NULL) for every active plant
+     *  before removing the location. The FK is ON DELETE SET NULL so the plants stay. */
     @Transactional
-    fun delete(id: Long, orgId: Long) {
+    fun delete(id: Long, orgId: Long): BulkLocationActionResponse {
         val loc = repo.findById(id) ?: throw NotFoundException("Tray location not found")
         if (loc.orgId != orgId) throw NotFoundException("Tray location not found")
+        val plants = plantRepository.findActiveByTrayLocation(orgId, id)
+        val today = java.time.LocalDate.now()
+        plants.forEach { plant ->
+            plantEventRepository.persist(
+                PlantEvent(
+                    plantId = plant.id!!,
+                    eventType = PlantEventType.MOVED,
+                    eventDate = today,
+                    plantCount = 1,
+                    fromTrayLocationId = id,
+                    toTrayLocationId = null,
+                )
+            )
+        }
         repo.delete(id)
+        return BulkLocationActionResponse(plantsAffected = plants.size)
+    }
+
+    @Transactional
+    fun move(locationId: Long, orgId: Long, request: MoveTrayLocationRequest): BulkLocationActionResponse {
+        val source = repo.findById(locationId) ?: throw NotFoundException("Source location not found")
+        if (source.orgId != orgId) throw NotFoundException("Source location not found")
+        request.targetLocationId?.let { tid ->
+            val target = repo.findById(tid) ?: throw NotFoundException("Target location not found")
+            if (target.orgId != orgId) throw NotFoundException("Target location not found")
+        }
+        val plants = plantRepository.findActiveByTrayLocationFiltered(
+            orgId = orgId,
+            locationId = locationId,
+            speciesId = request.speciesId,
+            status = request.status,
+            limit = if (request.count < 0) Int.MAX_VALUE else request.count,
+        )
+        val today = java.time.LocalDate.now()
+        plants.forEach { plant ->
+            plantRepository.update(plant.copy(trayLocationId = request.targetLocationId))
+            plantEventRepository.persist(
+                PlantEvent(
+                    plantId = plant.id!!,
+                    eventType = PlantEventType.MOVED,
+                    eventDate = today,
+                    plantCount = 1,
+                    fromTrayLocationId = locationId,
+                    toTrayLocationId = request.targetLocationId,
+                )
+            )
+        }
+        return BulkLocationActionResponse(plantsAffected = plants.size)
     }
 
     @Transactional

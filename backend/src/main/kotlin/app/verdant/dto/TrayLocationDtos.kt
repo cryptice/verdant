@@ -27,3 +27,11 @@ data class BulkLocationNoteRequest(
     @field:NotBlank @field:Size(max = 2000)
     val text: String,
 )
+
+/** [count] = -1 means "all matching". [targetLocationId] = null means "detach". */
+data class MoveTrayLocationRequest(
+    val targetLocationId: Long? = null,
+    val count: Int = -1,
+    val speciesId: Long? = null,
+    val status: String? = null,
+)

@@ -20,6 +20,8 @@ data class PlantEvent(
     val vaseLifeDays: Int? = null,
     val harvestDestinationId: Long? = null,
     val supplyApplicationId: Long? = null,
+    val fromTrayLocationId: Long? = null,
+    val toTrayLocationId: Long? = null,
     val createdAt: Instant = Instant.now(),
 )
 
