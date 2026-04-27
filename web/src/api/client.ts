@@ -364,7 +364,9 @@ export interface BedHistorySpecies {
 
 export interface SupplyTypeResponse {
   id: number; name: string; category: string; unit: string
-  properties: Record<string, unknown>; createdAt: string
+  properties: Record<string, unknown>
+  inexhaustible: boolean
+  createdAt: string
 }
 
 export interface SupplyInventoryResponse {
@@ -379,7 +381,7 @@ export interface SupplyApplicationResponse {
   id: number
   bedId: number | null
   trayLocationId: number | null
-  supplyInventoryId: number
+  supplyInventoryId: number | null
   supplyTypeId: number
   supplyTypeName: string
   supplyUnit: 'COUNT' | 'LITERS' | 'KILOGRAMS' | 'GRAMS' | 'METERS' | 'PACKETS'
@@ -395,7 +397,8 @@ export interface SupplyApplicationResponse {
 export interface CreateSupplyApplicationRequest {
   bedId?: number
   trayLocationId?: number
-  supplyInventoryId: number
+  supplyInventoryId?: number
+  supplyTypeId?: number
   quantity: number
   targetScope: 'BED' | 'PLANTS'
   plantIds?: number[]
@@ -719,7 +722,7 @@ export const api = {
 
   supplies: {
     types: () => apiRequest<SupplyTypeResponse[]>('/api/supplies/types'),
-    createType: (data: { name: string; category: string; unit: string; properties?: Record<string, unknown> }) =>
+    createType: (data: { name: string; category: string; unit: string; properties?: Record<string, unknown>; inexhaustible?: boolean }) =>
       apiRequest<SupplyTypeResponse>('/api/supplies/types', { method: 'POST', body: JSON.stringify(data) }),
     updateType: (id: number, data: Record<string, unknown>) =>
       apiRequest<SupplyTypeResponse>(`/api/supplies/types/${id}`, { method: 'PUT', body: JSON.stringify(data) }),

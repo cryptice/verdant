@@ -53,7 +53,8 @@ export function ApplySupply() {
 
   const [scope, setScope] = useState<'BED' | 'PLANTS'>(initialPlantIds.length > 0 ? 'PLANTS' : 'BED')
   const [selectedPlantIds, setSelectedPlantIds] = useState<number[]>(initialPlantIds)
-  const [inventoryId, setInventoryId] = useState<number | null>(null)
+  // Selection: encode as either `lot:<inventoryId>` or `type:<typeId>`.
+  const [selectedKey, setSelectedKey] = useState<string>('')
   const [quantity, setQuantity] = useState<string>(suggestedQuantity != null ? String(suggestedQuantity) : '')
   const [notes, setNotes] = useState('')
   const [showAllCategories, setShowAllCategories] = useState(false)
@@ -73,28 +74,63 @@ export function ApplySupply() {
     queryFn: () => api.supplies.types(),
   })
 
-  // Pick first matching lot when suggestedSupplyTypeId arrives
+  type SupplyOption =
+    | { kind: 'lot'; key: string; label: string; inv: { id: number; quantity: number } }
+    | { kind: 'type'; key: string; label: string; typeId: number }
+
+  const supplyOptions: SupplyOption[] = (() => {
+    const matchesCategory = (cat: string) => showAllCategories || cat === 'FERTILIZER'
+    const lots: SupplyOption[] = (inventory ?? [])
+      .filter(i => i.quantity > 0 && matchesCategory(i.category))
+      .map(i => ({
+        kind: 'lot',
+        key: `lot:${i.id}`,
+        label: `${i.supplyTypeName} · ${i.quantity} ${i.unit.toLowerCase()}`,
+        inv: { id: i.id, quantity: i.quantity },
+      }))
+    const seen = new Set((inventory ?? []).map(i => i.supplyTypeId))
+    void seen
+    const inex: SupplyOption[] = (supplyTypes ?? [])
+      .filter(typ => typ.inexhaustible && matchesCategory(typ.category))
+      .map(typ => ({
+        kind: 'type',
+        key: `type:${typ.id}`,
+        label: `${typ.name} · obegränsad`,
+        typeId: typ.id,
+      }))
+    return [...lots, ...inex].sort((a, b) => a.label.localeCompare(b.label))
+  })()
+
+  // Q11 pre-selection: prefer largest finite lot; fall back to inexhaustible type.
   useEffect(() => {
-    if (suggestedSupplyTypeId && inventory && inventoryId == null) {
-      const firstLot = inventory.find(i => i.supplyTypeId === suggestedSupplyTypeId && i.quantity > 0)
-      if (firstLot) setInventoryId(firstLot.id)
+    if (!suggestedSupplyTypeId || !inventory || !supplyTypes || selectedKey) return
+    const matchingLots = inventory.filter(i => i.supplyTypeId === suggestedSupplyTypeId && i.quantity > 0)
+    if (matchingLots.length > 0) {
+      const biggest = matchingLots.reduce((a, b) => (a.quantity >= b.quantity ? a : b))
+      setSelectedKey(`lot:${biggest.id}`)
+    } else {
+      const type = supplyTypes.find(typ => typ.id === suggestedSupplyTypeId && typ.inexhaustible)
+      if (type) setSelectedKey(`type:${type.id}`)
     }
-  }, [suggestedSupplyTypeId, inventory, inventoryId])
+  }, [suggestedSupplyTypeId, inventory, supplyTypes, selectedKey])
 
-  const selectedLot = inventory?.find(i => i.id === inventoryId)
-  const visibleInventory = (inventory ?? []).filter(i => {
-    if (i.quantity <= 0) return false
-    if (showAllCategories) return true
-    return i.category === 'FERTILIZER'
-  })
-
+  const selectedOpt = supplyOptions.find(o => o.key === selectedKey)
+  const selectedLot = selectedOpt?.kind === 'lot'
+    ? inventory?.find(i => i.id === selectedOpt.inv.id)
+    : undefined
+  const selectedType = selectedOpt?.kind === 'type'
+    ? supplyTypes?.find(st => st.id === selectedOpt.typeId)
+    : selectedLot
+      ? supplyTypes?.find(st => st.id === selectedLot.supplyTypeId)
+      : undefined
   const quantityNum = Number(quantity)
   const quantityExceeds = selectedLot != null && quantityNum > selectedLot.quantity
 
   const createMut = useMutation({
     mutationFn: () => api.supplyApplications.create({
       bedId,
-      supplyInventoryId: inventoryId!,
+      supplyInventoryId: selectedOpt?.kind === 'lot' ? selectedOpt.inv.id : undefined,
+      supplyTypeId: selectedOpt?.kind === 'type' ? selectedOpt.typeId : undefined,
       quantity: quantityNum,
       targetScope: scope,
       plantIds: scope === 'PLANTS' ? selectedPlantIds : undefined,
@@ -109,7 +145,7 @@ export function ApplySupply() {
     },
   })
 
-  const canSubmit = inventoryId != null &&
+  const canSubmit = selectedOpt != null &&
     quantityNum > 0 &&
     !quantityExceeds &&
     (scope === 'BED' || selectedPlantIds.length > 0)
@@ -177,19 +213,14 @@ export function ApplySupply() {
             <label style={{ display: 'block' }}>
               <span style={selectLabelStyle}>{t('supplyApplication.selectSupply')}</span>
               <select
-                value={inventoryId ?? ''}
-                onChange={e => setInventoryId(Number(e.target.value) || null)}
+                value={selectedKey}
+                onChange={e => setSelectedKey(e.target.value)}
                 style={selectStyle}
               >
                 <option value="">{t('common.select')}</option>
-                {visibleInventory.map(i => {
-                  const type = supplyTypes?.find(st => st.id === i.supplyTypeId)
-                  return (
-                    <option key={i.id} value={i.id}>
-                      {type?.name ?? i.supplyTypeName} ({i.quantity.toFixed(2)} {(type?.unit ?? i.unit).toLowerCase()} {t('supplyApplication.remaining')})
-                    </option>
-                  )
-                })}
+                {supplyOptions.map(opt => (
+                  <option key={opt.key} value={opt.key}>{opt.label}</option>
+                ))}
               </select>
             </label>
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7, cursor: 'pointer' }}>
@@ -209,9 +240,9 @@ export function ApplySupply() {
                 onChange={e => setQuantity(e.target.value)}
                 style={{ ...selectStyle, width: 'auto', flex: 1 }}
               />
-              {selectedLot && (
+              {selectedType && (
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-forest)', opacity: 0.7 }}>
-                  {(supplyTypes?.find(st => st.id === selectedLot.supplyTypeId)?.unit ?? selectedLot.unit).toLowerCase()}
+                  {selectedType.unit.toLowerCase()}
                 </span>
               )}
             </div>

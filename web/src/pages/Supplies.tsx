@@ -394,6 +394,8 @@ export function Supplies() {
   // New type dialog
   const [showNewType, setShowNewType] = useState(false)
   const [typeName, setTypeName] = useState('')
+  const [typeInexhaustible, setTypeInexhaustible] = useState(false)
+  const [editTypeInexhaustible, setEditTypeInexhaustible] = useState(false)
   const [typeNameEdited, setTypeNameEdited] = useState(false)
   const [typeCategory, setTypeCategory] = useState('')
   const [typeUnit, setTypeUnit] = useState('')
@@ -401,6 +403,7 @@ export function Supplies() {
 
   const resetTypeForm = () => {
     setTypeName(''); setTypeCategory(''); setTypeUnit(''); setTypeProps({}); setTypeNameEdited(false)
+    setTypeInexhaustible(false)
   }
 
   // Edit type dialog
@@ -458,6 +461,7 @@ export function Supplies() {
       category: typeCategory,
       unit: typeUnit,
       properties: Object.keys(typeProps).length > 0 ? typeProps : undefined,
+      inexhaustible: typeInexhaustible,
     }),
     onSuccess: () => { invalidate(); setShowNewType(false); resetTypeForm(); setMutError(null) },
     onError: (err) => setMutError(err instanceof Error ? err.message : String(err)),
@@ -468,6 +472,7 @@ export function Supplies() {
       name: editTypeName,
       unit: editTypeUnit,
       properties: Object.keys(editTypeProps).length > 0 ? editTypeProps : undefined,
+      inexhaustible: editTypeInexhaustible,
     }),
     onSuccess: () => { invalidate(); setEditType(null); setMutError(null) },
     onError: (err) => setMutError(err instanceof Error ? err.message : String(err)),
@@ -723,15 +728,19 @@ export function Supplies() {
                             </span>
                           </div>
 
-                          {/* Total quantity */}
+                          {/* Total quantity (or obegränsad indicator) */}
                           <div style={{
                             fontFamily: 'var(--font-display)',
                             fontSize: 16,
                             fontVariantNumeric: 'tabular-nums',
-                            color: 'var(--color-ink)',
+                            color: item.type.inexhaustible ? 'var(--color-accent)' : 'var(--color-ink)',
                             textAlign: 'right',
                           }}>
-                            {formatUnit(item.totalQuantity, item.type.unit, t)}
+                            {item.type.inexhaustible && item.batches.length === 0
+                              ? 'obegränsad'
+                              : item.type.inexhaustible
+                                ? `${formatUnit(item.totalQuantity, item.type.unit, t)} · obegränsad`
+                                : formatUnit(item.totalQuantity, item.type.unit, t)}
                           </div>
 
                           {/* Edit pencil */}
@@ -744,6 +753,7 @@ export function Supplies() {
                                 setEditTypeName(item.type.name)
                                 setEditTypeUnit(item.type.unit)
                                 setEditTypeProps(item.type.properties ?? {})
+                                setEditTypeInexhaustible(item.type.inexhaustible)
                                 setMutError(null)
                               }}
                               style={{
@@ -1110,6 +1120,19 @@ export function Supplies() {
               }} t={t} />
             </>
           )}
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
+            <input
+              type="checkbox"
+              checked={typeInexhaustible}
+              onChange={e => setTypeInexhaustible(e.target.checked)}
+            />
+            <span>
+              <span style={{ display: 'block', fontSize: 14 }}>Obegränsad</span>
+              <span style={{ display: 'block', fontSize: 11, color: 'var(--color-forest)' }}>
+                Behöver inte spåras (t.ex. egen hästgödsel).
+              </span>
+            </span>
+          </label>
           {mutError && <p className="text-error text-sm">{mutError}</p>}
         </div>
       </Dialog>
@@ -1154,6 +1177,14 @@ export function Supplies() {
               <CategoryPropertyFields category={editType.category} props={editTypeProps} onChange={setEditTypeProps} t={t} />
             </>
           )}
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <input
+              type="checkbox"
+              checked={editTypeInexhaustible}
+              onChange={e => setEditTypeInexhaustible(e.target.checked)}
+            />
+            <span style={{ fontSize: 14 }}>Obegränsad</span>
+          </label>
           <button
             onClick={() => { setEditType(null); if (editType) { setDeleteType(editType) } }}
             className="text-sm text-error hover:underline"
