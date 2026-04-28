@@ -341,7 +341,7 @@ fun PlantDetailScreen(
                                     title = eventTypeLabelSv(event.eventType),
                                     meta = buildString {
                                         append(formattedDate(event.eventDate))
-                                        event.notes?.takeIf { it.isNotBlank() }?.let { append(" · $it") }
+                                        event.notes?.takeIf { it.isNotBlank() }?.let { append(" · “$it”") }
                                     },
                                     metaMaxLines = 2,
                                     stat = {

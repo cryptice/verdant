@@ -540,7 +540,7 @@ private fun TrayEventsExpansion(
                                 "Flyttade · till ${e.toLoc}"
                             e.type == "MOVED" && e.fromLoc != null ->
                                 "Flyttade · ut ur ${e.fromLoc}"
-                            e.type == "NOTE" && !e.notes.isNullOrBlank() -> e.notes
+                            e.type == "NOTE" && !e.notes.isNullOrBlank() -> "“${e.notes}”"
                             else -> eventLabelSv(e.type)
                         }
                         Text(

@@ -507,7 +507,7 @@ fun BedDetailScreen(
                                 meta = buildString {
                                     append(formattedDate(ev.eventDate.take(10)))
                                     ev.plantsAffected?.takeIf { it > 0 }?.let { append(" · $it plantor") }
-                                    ev.notes?.takeIf { it.isNotBlank() }?.let { append(" · $it") }
+                                    ev.notes?.takeIf { it.isNotBlank() }?.let { append(" · “$it”") }
                                 },
                                 metaMaxLines = 2,
                             )
