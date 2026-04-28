@@ -240,7 +240,10 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        gesturesEnabled = showTopBar,
+        // Edge-swipe from any chrome-having screen — keeps the drawer one
+        // swipe away on detail screens where the back arrow has replaced
+        // the burger.
+        gesturesEnabled = !hideChrome,
         drawerContent = {
             ModalDrawerSheet(
                 drawerContainerColor = FaltetCream,
