@@ -54,7 +54,6 @@ import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetListRow
 import app.verdant.android.ui.faltet.FaltetLoadingState
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
-import app.verdant.android.ui.faltet.FaltetSectionHeader
 import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
@@ -222,28 +221,6 @@ fun TrayLocationDetailScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Text(
-                            text = "${ui.totalCount} ST",
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 12.sp,
-                            color = FaltetForest,
-                            modifier = Modifier.weight(1f),
-                        )
-                        ui.info?.let {
-                            Text(
-                                text = it,
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 10.sp,
-                                color = FaltetAccent,
-                            )
-                        }
-                    }
-                }
-                item {
                     if (moveMode) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -263,34 +240,69 @@ fun TrayLocationDetailScreen(
                             )
                         }
                     } else {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            ActionButton(
-                                label = "Vattna alla",
-                                enabled = !ui.acting && ui.totalCount > 0,
-                                onClick = { showWaterConfirm = true },
-                            )
-                            ActionButton(
-                                label = "Gödsla",
-                                enabled = !ui.acting && ui.totalCount > 0,
-                                onClick = { ui.location?.id?.let(onFertilize) },
-                            )
-                            ActionButton(
-                                label = "Anteckna",
-                                enabled = !ui.acting && ui.totalCount > 0,
-                                onClick = { showNoteDialog = true },
-                            )
-                            ActionButton(
-                                label = "Flytta",
-                                enabled = !ui.acting && ui.totalCount > 0,
-                                onClick = { moveMode = true },
-                            )
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                ActionButton(
+                                    label = "Vattna alla",
+                                    enabled = !ui.acting && ui.totalCount > 0,
+                                    onClick = { showWaterConfirm = true },
+                                    modifier = Modifier.weight(1f),
+                                )
+                                ActionButton(
+                                    label = "Gödsla",
+                                    enabled = !ui.acting && ui.totalCount > 0,
+                                    onClick = { ui.location?.id?.let(onFertilize) },
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                ActionButton(
+                                    label = "Anteckna",
+                                    enabled = !ui.acting && ui.totalCount > 0,
+                                    onClick = { showNoteDialog = true },
+                                    modifier = Modifier.weight(1f),
+                                )
+                                ActionButton(
+                                    label = "Flytta",
+                                    enabled = !ui.acting && ui.totalCount > 0,
+                                    onClick = { moveMode = true },
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
                         }
                     }
                 }
-                item { FaltetSectionHeader(label = "Plantor") }
+                if (!moveMode) {
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "${ui.totalCount} st plantor",
+                                fontFamily = FaltetDisplay,
+                                fontStyle = FontStyle.Italic,
+                                fontSize = 14.sp,
+                                color = FaltetForest,
+                                modifier = Modifier.weight(1f),
+                            )
+                            ui.info?.let {
+                                Text(
+                                    text = it,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 10.sp,
+                                    color = FaltetAccent,
+                                )
+                            }
+                        }
+                    }
+                }
                 if (ui.entries.isEmpty()) {
                     item {
                         Text(
@@ -450,19 +462,28 @@ private fun ActionButton(
     label: String,
     enabled: Boolean,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    // Renders as an italic, underlined link in the accent colour so the
-    // row of actions reads unambiguously as tappable text rather than as
-    // small static labels.
-    TextButton(onClick = onClick, enabled = enabled) {
+    androidx.compose.material3.OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier,
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+        colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+            contentColor = FaltetAccent,
+        ),
+        border = androidx.compose.foundation.BorderStroke(1.dp, FaltetAccent),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+            horizontal = 12.dp,
+            vertical = 10.dp,
+        ),
+    ) {
         Text(
             text = label,
-            color = FaltetAccent,
             fontFamily = FaltetDisplay,
             fontStyle = FontStyle.Italic,
             fontWeight = FontWeight.W500,
             fontSize = 15.sp,
-            textDecoration = TextDecoration.Underline,
         )
     }
 }
