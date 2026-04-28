@@ -165,22 +165,27 @@ sealed class Screen(val route: String) {
     data object Discard : Screen("activity/discard/{plantId}?taskId={taskId}") {
         fun create(plantId: Long) = "activity/discard/$plantId"
     }
-    data object ApplySupply : Screen("activity/apply-supply/{bedId}?plantIds={plantIds}&stepId={stepId}&supplyTypeId={supplyTypeId}&quantity={quantity}") {
+    data object ApplySupply : Screen("activity/apply-supply?bedId={bedId}&trayLocationId={trayLocationId}&plantIds={plantIds}&stepId={stepId}&supplyTypeId={supplyTypeId}&quantity={quantity}") {
         fun create(
-            bedId: Long,
+            bedId: Long? = null,
+            trayLocationId: Long? = null,
             plantIds: List<Long> = emptyList(),
             stepId: Long? = null,
             supplyTypeId: Long? = null,
             quantity: Double? = null,
         ): String {
-            val base = "activity/apply-supply/$bedId"
+            require(bedId != null || trayLocationId != null) {
+                "ApplySupply needs either a bed or a tray location"
+            }
             val params = buildList {
+                if (bedId != null) add("bedId=$bedId")
+                if (trayLocationId != null) add("trayLocationId=$trayLocationId")
                 if (plantIds.isNotEmpty()) add("plantIds=${plantIds.joinToString(",")}")
                 if (stepId != null) add("stepId=$stepId")
                 if (supplyTypeId != null) add("supplyTypeId=$supplyTypeId")
                 if (quantity != null) add("quantity=$quantity")
             }
-            return if (params.isEmpty()) base else "$base?${params.joinToString("&")}"
+            return "activity/apply-supply?${params.joinToString("&")}"
         }
     }
 }

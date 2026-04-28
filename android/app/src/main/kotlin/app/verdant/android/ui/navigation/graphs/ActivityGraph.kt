@@ -147,14 +147,16 @@ fun NavGraphBuilder.activityGraph(navController: NavController) {
     composable(
         Screen.ApplySupply.route,
         arguments = listOf(
-            navArgument("bedId") { type = NavType.LongType },
+            navArgument("bedId") { type = NavType.StringType; nullable = true; defaultValue = null },
+            navArgument("trayLocationId") { type = NavType.StringType; nullable = true; defaultValue = null },
             navArgument("plantIds") { type = NavType.StringType; nullable = true; defaultValue = null },
             navArgument("stepId") { type = NavType.StringType; nullable = true; defaultValue = null },
             navArgument("supplyTypeId") { type = NavType.StringType; nullable = true; defaultValue = null },
             navArgument("quantity") { type = NavType.StringType; nullable = true; defaultValue = null },
         ),
     ) { backStackEntry ->
-        val bedId = backStackEntry.arguments?.getLong("bedId") ?: 0L
+        val bedId = backStackEntry.arguments?.getString("bedId")?.toLongOrNull()
+        val trayLocationId = backStackEntry.arguments?.getString("trayLocationId")?.toLongOrNull()
         val plantIds = backStackEntry.arguments?.getString("plantIds")
             ?.split(",")?.mapNotNull { it.toLongOrNull() } ?: emptyList()
         val stepId = backStackEntry.arguments?.getString("stepId")?.toLongOrNull()
@@ -162,6 +164,7 @@ fun NavGraphBuilder.activityGraph(navController: NavController) {
         val quantity = backStackEntry.arguments?.getString("quantity")?.toDoubleOrNull()
         ApplySupplyScreen(
             bedId = bedId,
+            trayLocationId = trayLocationId,
             initialPlantIds = plantIds,
             suggestedSupplyTypeId = supplyTypeId,
             suggestedQuantity = quantity,

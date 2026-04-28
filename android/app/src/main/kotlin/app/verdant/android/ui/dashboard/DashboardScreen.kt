@@ -151,6 +151,7 @@ fun DashboardScreen(
     onOpenTasks: () -> Unit = {},
     onSpeciesClick: (Long) -> Unit = {},
     onOpenTrayLocation: (Long) -> Unit = {},
+    onFertilizeTrayLocation: (Long) -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -266,6 +267,7 @@ fun DashboardScreen(
                                         expandedTrayKeys[groupKey] = !(expandedTrayKeys[groupKey] == true)
                                     },
                                     onWater = locId?.let { id -> { viewModel.waterLocation(id) } },
+                                    onFertilize = locId?.let { id -> { onFertilizeTrayLocation(id) } },
                                     onOpen = locId?.let { id -> { onOpenTrayLocation(id) } },
                                     onSpeciesClick = onSpeciesClick,
                                 )
@@ -316,6 +318,7 @@ private fun TrayLocationGroup(
     expanded: Boolean,
     onToggleExpanded: () -> Unit,
     onWater: (() -> Unit)?,
+    onFertilize: (() -> Unit)?,
     onOpen: (() -> Unit)?,
     onSpeciesClick: (Long) -> Unit,
 ) {
@@ -358,6 +361,11 @@ private fun TrayLocationGroup(
             if (onWater != null) {
                 TextButton(onClick = onWater) {
                     Text("Vattna", color = FaltetAccent, fontSize = 12.sp)
+                }
+            }
+            if (onFertilize != null) {
+                TextButton(onClick = onFertilize) {
+                    Text("Gödsla", color = FaltetAccent, fontSize = 12.sp)
                 }
             }
             if (onOpen != null) {

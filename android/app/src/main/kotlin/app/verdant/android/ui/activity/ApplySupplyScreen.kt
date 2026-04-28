@@ -80,13 +80,23 @@ class ApplySupplyViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     fun load(
-        bedId: Long,
+        bedId: Long?,
+        trayLocationId: Long?,
         initialPlantIds: List<Long>,
         suggestedSupplyTypeId: Long?,
         suggestedQuantity: Double?,
     ) {
         viewModelScope.launch {
-            val plants = runCatching { plantRepository.listForBed(bedId) }.getOrDefault(emptyList())
+            // Bed-scoped flows show a plant list so the user can switch to
+            // "specific plants" scope. Tray-location-scoped flows always
+            // apply to the whole location; we don't fetch plants there
+            // (PlantResponse doesn't expose trayLocationId, and the UI
+            // doesn't expose the per-plant scope toggle anyway).
+            val plants = if (bedId != null) {
+                runCatching { plantRepository.listForBed(bedId) }.getOrDefault(emptyList())
+            } else {
+                emptyList()
+            }
             val inv = runCatching { supplyRepository.listInventory() }.getOrDefault(emptyList())
             val types = runCatching { supplyRepository.listTypes() }.getOrDefault(emptyList())
             // Q11: prefer the largest finite lot; fall back to inexhaustible row.
@@ -134,7 +144,7 @@ class ApplySupplyViewModel @Inject constructor(
     fun setNotes(n: String) = _uiState.update { it.copy(notes = n) }
     fun setShowAllCategories(show: Boolean) = _uiState.update { it.copy(showAllCategories = show) }
 
-    fun submit(bedId: Long, workflowStepId: Long?, onDone: () -> Unit) {
+    fun submit(bedId: Long?, trayLocationId: Long?, workflowStepId: Long?, onDone: () -> Unit) {
         val s = _uiState.value
         val q = s.quantity.toDoubleOrNull() ?: 0.0
         val noSupply = s.selectedInventoryId == null && s.selectedInexhaustibleTypeId == null
@@ -147,6 +157,7 @@ class ApplySupplyViewModel @Inject constructor(
                 supplyApplicationRepository.create(
                     CreateSupplyApplicationRequest(
                         bedId = bedId,
+                        trayLocationId = trayLocationId,
                         supplyInventoryId = s.selectedInventoryId,
                         supplyTypeId = s.selectedInexhaustibleTypeId,
                         quantity = q,
@@ -185,7 +196,8 @@ private sealed class SupplySelection {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ApplySupplyScreen(
-    bedId: Long,
+    bedId: Long?,
+    trayLocationId: Long?,
     initialPlantIds: List<Long>,
     suggestedSupplyTypeId: Long?,
     suggestedQuantity: Double?,
@@ -193,7 +205,7 @@ fun ApplySupplyScreen(
     onBack: () -> Unit,
     vm: ApplySupplyViewModel = hiltViewModel(),
 ) {
-    LaunchedEffect(Unit) { vm.load(bedId, initialPlantIds, suggestedSupplyTypeId, suggestedQuantity) }
+    LaunchedEffect(Unit) { vm.load(bedId, trayLocationId, initialPlantIds, suggestedSupplyTypeId, suggestedQuantity) }
     val state by vm.uiState.collectAsStateWithLifecycle()
 
     val scope = if (state.scope == SupplyApplicationScope.BED) Scope.BED else Scope.PLANTS
@@ -249,7 +261,7 @@ fun ApplySupplyScreen(
             else -> null
         }
         if (quantityError == null) {
-            vm.submit(bedId, workflowStepId, onBack)
+            vm.submit(bedId, trayLocationId, workflowStepId, onBack)
         }
     }
 
@@ -282,17 +294,22 @@ fun ApplySupplyScreen(
             contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            item {
-                FaltetScopeToggle(
-                    label = "Omfattning",
-                    options = listOf(Scope.BED, Scope.PLANTS),
-                    selected = scope,
-                    onSelectedChange = { vm.setScope(if (it == Scope.BED) SupplyApplicationScope.BED else SupplyApplicationScope.PLANTS) },
-                    labelFor = { if (it == Scope.BED) "Hela bädden" else "Enskilda plantor" },
-                    required = true,
-                )
+            // Tray-location flow always applies to the whole location — no
+            // per-plant selection, so the scope toggle and plant checklist
+            // both drop out.
+            if (trayLocationId == null) {
+                item {
+                    FaltetScopeToggle(
+                        label = "Omfattning",
+                        options = listOf(Scope.BED, Scope.PLANTS),
+                        selected = scope,
+                        onSelectedChange = { vm.setScope(if (it == Scope.BED) SupplyApplicationScope.BED else SupplyApplicationScope.PLANTS) },
+                        labelFor = { if (it == Scope.BED) "Hela bädden" else "Enskilda plantor" },
+                        required = true,
+                    )
+                }
             }
-            if (scope == Scope.PLANTS) {
+            if (trayLocationId == null && scope == Scope.PLANTS) {
                 item {
                     FaltetChecklistGroup(
                         label = "Plantor",
