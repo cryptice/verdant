@@ -70,6 +70,13 @@ data class TaskFormState(
     val existingTask: ScheduledTaskResponse? = null,
 )
 
+/** One bed-task in a batch save: the bed, its earliest date, and its deadline. */
+data class BedSchedule(
+    val bedId: Long,
+    val earliestDate: String?,
+    val deadline: String,
+)
+
 @HiltViewModel
 class TaskFormViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -100,6 +107,7 @@ class TaskFormViewModel @Inject constructor(
         speciesId: Long?,
         bedId: Long?,
         activityType: String,
+        earliestDate: String?,
         deadline: String,
         targetCount: Int,
         notes: String?,
@@ -111,6 +119,7 @@ class TaskFormViewModel @Inject constructor(
                     taskRepository.update(taskId, UpdateScheduledTaskRequest(
                         speciesId = speciesId,
                         activityType = activityType,
+                        earliestDate = earliestDate,
                         deadline = deadline,
                         targetCount = targetCount,
                         notes = notes,
@@ -120,6 +129,7 @@ class TaskFormViewModel @Inject constructor(
                         speciesId = speciesId,
                         bedId = bedId,
                         activityType = activityType,
+                        earliestDate = earliestDate,
                         deadline = deadline,
                         targetCount = targetCount,
                         notes = notes,
@@ -139,7 +149,7 @@ class TaskFormViewModel @Inject constructor(
      * the first failure.
      */
     fun saveForBeds(
-        bedDeadlines: List<Pair<Long, String>>,
+        bedSchedules: List<BedSchedule>,
         activityType: String,
         targetCount: Int,
         notes: String?,
@@ -147,12 +157,13 @@ class TaskFormViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                for ((id, deadline) in bedDeadlines) {
+                for (s in bedSchedules) {
                     taskRepository.create(CreateScheduledTaskRequest(
                         speciesId = null,
-                        bedId = id,
+                        bedId = s.bedId,
                         activityType = activityType,
-                        deadline = deadline,
+                        earliestDate = s.earliestDate,
+                        deadline = s.deadline,
                         targetCount = targetCount,
                         notes = notes,
                     ))
@@ -267,6 +278,9 @@ fun TaskFormScreen(
     var selectedActivityType by remember { mutableStateOf<String?>(null) }
     var selectedSpecies by remember { mutableStateOf<SpeciesResponse?>(null) }
     var selectedBed by remember { mutableStateOf<app.verdant.android.data.model.BedWithGardenResponse?>(null) }
+    // Optional. When set, the task is hidden from the dashboard until that
+    // date arrives, but visible in the dedicated Tasks list under Kommande.
+    var earliestDate by remember { mutableStateOf<LocalDate?>(null) }
     var deadline by remember { mutableStateOf<LocalDate?>(null) }
     var targetCountText by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
@@ -307,6 +321,7 @@ fun TaskFormScreen(
             selectedActivityType = existing.activityType
             selectedSpecies = existing.speciesId?.let { id -> uiState.species.find { it.id == id } }
             selectedBed = existing.bedId?.let { id -> uiState.beds.find { it.id == id } }
+            earliestDate = existing.earliestDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
             deadline = runCatching { LocalDate.parse(existing.deadline) }.getOrNull()
             targetCountText = existing.targetCount.toString()
             notes = existing.notes ?: ""
@@ -341,17 +356,22 @@ fun TaskFormScreen(
                         // Order siblings by name and compute a deadline per
                         // bed: when stagger is on, beds[0..N-1] keep the
                         // base deadline, beds[N..2N-1] get +D days, etc.
+                        // The earliest date is offset by the same amount so
+                        // each batch becomes available together.
                         val orderedBeds = bedFamily.filter { it.id in siblingBedIds }
                         val perBatch = staggerBedsPerBatchText.toIntOrNull()?.coerceAtLeast(1) ?: 1
                         val daysBetween = staggerDaysBetweenText.toIntOrNull()?.coerceAtLeast(0) ?: 0
-                        val base = deadline!!
-                        val pairs = orderedBeds.mapIndexed { index, bed ->
-                            val batch = if (staggerEnabled) index / perBatch else 0
-                            val d = base.plusDays((batch * daysBetween).toLong())
-                            bed.id to d.toString()
+                        val baseDeadline = deadline!!
+                        val schedules = orderedBeds.mapIndexed { index, bed ->
+                            val offset = if (staggerEnabled) (index / perBatch) * daysBetween else 0
+                            BedSchedule(
+                                bedId = bed.id,
+                                earliestDate = earliestDate?.plusDays(offset.toLong())?.toString(),
+                                deadline = baseDeadline.plusDays(offset.toLong()).toString(),
+                            )
                         }
                         viewModel.saveForBeds(
-                            bedDeadlines = pairs,
+                            bedSchedules = schedules,
                             activityType = selectedActivityType!!,
                             targetCount = targetCount,
                             notes = notesOrNull,
@@ -361,6 +381,7 @@ fun TaskFormScreen(
                             speciesId = if (isBedActivity) null else selectedSpecies?.id,
                             bedId = if (isBedActivity) selectedBed?.id else null,
                             activityType = selectedActivityType!!,
+                            earliestDate = earliestDate?.toString(),
                             deadline = deadline!!.toString(),
                             targetCount = targetCount,
                             notes = notesOrNull,
@@ -442,6 +463,13 @@ fun TaskFormScreen(
                             required = true,
                         )
                     }
+                }
+                item {
+                    FaltetDatePicker(
+                        label = "Tidigast (valfri)",
+                        value = earliestDate,
+                        onValueChange = { earliestDate = it },
+                    )
                 }
                 item {
                     FaltetDatePicker(

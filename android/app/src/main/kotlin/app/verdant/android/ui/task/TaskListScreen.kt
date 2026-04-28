@@ -136,6 +136,9 @@ private fun groupTasks(tasks: List<ScheduledTaskResponse>): List<TaskGroup> {
     val tomorrow = today.plusDays(1)
     val inSevenDays = today.plusDays(7)
 
+    // Tasks whose earliest date is in the future are "kommande" — visible
+    // here but not on the dashboard. Everything else is grouped by deadline.
+    val upcoming = mutableListOf<ScheduledTaskResponse>()
     val overdue = mutableListOf<ScheduledTaskResponse>()
     val todayList = mutableListOf<ScheduledTaskResponse>()
     val tomorrowList = mutableListOf<ScheduledTaskResponse>()
@@ -143,6 +146,11 @@ private fun groupTasks(tasks: List<ScheduledTaskResponse>): List<TaskGroup> {
     val later = mutableListOf<ScheduledTaskResponse>()
 
     for (task in tasks) {
+        val earliest = task.earliestDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        if (earliest != null && earliest.isAfter(today)) {
+            upcoming.add(task)
+            continue
+        }
         val date = runCatching { LocalDate.parse(task.deadline) }.getOrNull()
         when {
             date == null -> later.add(task)
@@ -160,6 +168,7 @@ private fun groupTasks(tasks: List<ScheduledTaskResponse>): List<TaskGroup> {
         TaskGroup("I morgon", tomorrowList),
         TaskGroup("Denna vecka", thisWeek),
         TaskGroup("Senare", later),
+        TaskGroup("Kommande", upcoming.sortedBy { it.earliestDate ?: it.deadline }),
     ).filter { it.tasks.isNotEmpty() }
 }
 

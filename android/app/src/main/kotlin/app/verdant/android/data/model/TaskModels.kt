@@ -12,6 +12,7 @@ data class ScheduledTaskResponse(
     @SerializedName("bedName") val bedName: String? = null,
     @SerializedName("gardenName") val gardenName: String? = null,
     @SerializedName("activityType") val activityType: String,
+    @SerializedName("earliestDate") val earliestDate: String? = null,
     @SerializedName("deadline") val deadline: String,
     @SerializedName("targetCount") val targetCount: Int,
     @SerializedName("remainingCount") val remainingCount: Int,
@@ -41,6 +42,7 @@ data class CreateScheduledTaskRequest(
     @SerializedName("speciesIds") val speciesIds: List<Long>? = null,
     @SerializedName("bedId") val bedId: Long? = null,
     @SerializedName("activityType") val activityType: String,
+    @SerializedName("earliestDate") val earliestDate: String? = null,
     @SerializedName("deadline") val deadline: String,
     @SerializedName("targetCount") val targetCount: Int,
     @SerializedName("notes") val notes: String? = null,
@@ -51,6 +53,7 @@ data class CreateScheduledTaskRequest(
 data class UpdateScheduledTaskRequest(
     @SerializedName("speciesId") val speciesId: Long? = null,
     @SerializedName("activityType") val activityType: String? = null,
+    @SerializedName("earliestDate") val earliestDate: String? = null,
     @SerializedName("deadline") val deadline: String? = null,
     @SerializedName("targetCount") val targetCount: Int? = null,
     @SerializedName("notes") val notes: String? = null,

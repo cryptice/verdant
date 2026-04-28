@@ -53,22 +53,24 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
     fun persist(task: ScheduledTask): ScheduledTask {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO scheduled_task (org_id, species_id, bed_id, activity_type, deadline, target_count, remaining_count, status, notes, season_id, succession_schedule_id, origin_group_id, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
+                """INSERT INTO scheduled_task (org_id, species_id, bed_id, activity_type, earliest_date, deadline, target_count, remaining_count, status, notes, season_id, succession_schedule_id, origin_group_id, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setLong(1, task.orgId)
                 ps.setObject(2, task.speciesId)
                 ps.setObject(3, task.bedId)
                 ps.setString(4, task.activityType)
-                ps.setDate(5, Date.valueOf(task.deadline))
-                ps.setInt(6, task.targetCount)
-                ps.setInt(7, task.remainingCount)
-                ps.setString(8, task.status.name)
-                ps.setString(9, task.notes)
-                ps.setObject(10, task.seasonId)
-                ps.setObject(11, task.successionScheduleId)
-                ps.setObject(12, task.originGroupId)
+                if (task.earliestDate != null) ps.setDate(5, Date.valueOf(task.earliestDate))
+                else ps.setNull(5, java.sql.Types.DATE)
+                ps.setDate(6, Date.valueOf(task.deadline))
+                ps.setInt(7, task.targetCount)
+                ps.setInt(8, task.remainingCount)
+                ps.setString(9, task.status.name)
+                ps.setString(10, task.notes)
+                ps.setObject(11, task.seasonId)
+                ps.setObject(12, task.successionScheduleId)
+                ps.setObject(13, task.originGroupId)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -81,22 +83,24 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
     fun update(task: ScheduledTask) {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """UPDATE scheduled_task SET species_id = ?, activity_type = ?, deadline = ?,
+                """UPDATE scheduled_task SET species_id = ?, activity_type = ?, earliest_date = ?, deadline = ?,
                    target_count = ?, remaining_count = ?, status = ?, notes = ?,
                    season_id = ?, succession_schedule_id = ?, origin_group_id = ?, updated_at = now()
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setObject(1, task.speciesId)
                 ps.setString(2, task.activityType)
-                ps.setDate(3, Date.valueOf(task.deadline))
-                ps.setInt(4, task.targetCount)
-                ps.setInt(5, task.remainingCount)
-                ps.setString(6, task.status.name)
-                ps.setString(7, task.notes)
-                ps.setObject(8, task.seasonId)
-                ps.setObject(9, task.successionScheduleId)
-                ps.setObject(10, task.originGroupId)
-                ps.setLong(11, task.id!!)
+                if (task.earliestDate != null) ps.setDate(3, Date.valueOf(task.earliestDate))
+                else ps.setNull(3, java.sql.Types.DATE)
+                ps.setDate(4, Date.valueOf(task.deadline))
+                ps.setInt(5, task.targetCount)
+                ps.setInt(6, task.remainingCount)
+                ps.setString(7, task.status.name)
+                ps.setString(8, task.notes)
+                ps.setObject(9, task.seasonId)
+                ps.setObject(10, task.successionScheduleId)
+                ps.setObject(11, task.originGroupId)
+                ps.setLong(12, task.id!!)
                 ps.executeUpdate()
             }
         }
@@ -194,6 +198,7 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
         speciesId = getObject("species_id") as? Long,
         bedId = getObject("bed_id") as? Long,
         activityType = getString("activity_type"),
+        earliestDate = getDate("earliest_date")?.toLocalDate(),
         deadline = getDate("deadline").toLocalDate(),
         targetCount = getInt("target_count"),
         remainingCount = getInt("remaining_count"),

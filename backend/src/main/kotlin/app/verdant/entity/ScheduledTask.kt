@@ -9,6 +9,7 @@ data class ScheduledTask(
     val speciesId: Long? = null,
     val bedId: Long? = null,
     val activityType: String,
+    val earliestDate: LocalDate? = null,
     val deadline: LocalDate,
     val targetCount: Int,
     val remainingCount: Int,

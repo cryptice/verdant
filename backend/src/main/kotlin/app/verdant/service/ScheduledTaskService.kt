@@ -55,6 +55,7 @@ class ScheduledTaskService(
                     speciesId = null,
                     bedId = request.bedId,
                     activityType = request.activityType,
+                    earliestDate = request.earliestDate,
                     deadline = request.deadline,
                     targetCount = request.targetCount,
                     remainingCount = request.targetCount,
@@ -101,6 +102,7 @@ class ScheduledTaskService(
                 orgId = orgId,
                 speciesId = if (acceptableSpeciesIds.size == 1) acceptableSpeciesIds.first() else null,
                 activityType = request.activityType,
+                earliestDate = request.earliestDate,
                 deadline = request.deadline,
                 targetCount = request.targetCount,
                 remainingCount = request.targetCount,
@@ -130,6 +132,10 @@ class ScheduledTaskService(
 
         val updated = task.copy(
             activityType = request.activityType ?: task.activityType,
+            // earliestDate intentionally not coalesced — the Android/web
+            // forms always re-send the current value, so a `null` request
+            // field means the user has cleared the date.
+            earliestDate = request.earliestDate,
             deadline = request.deadline ?: task.deadline,
             targetCount = newTarget,
             remainingCount = newRemaining,
@@ -208,6 +214,7 @@ class ScheduledTaskService(
                 bedName = bed?.name,
                 gardenName = garden?.name,
                 activityType = task.activityType,
+                earliestDate = task.earliestDate,
                 deadline = task.deadline,
                 targetCount = task.targetCount,
                 remainingCount = task.remainingCount,

@@ -121,11 +121,21 @@ class DashboardViewModel @Inject constructor(
                 val stats = runCatching { analyticsRepository.harvestStats() }.getOrDefault(emptyList())
                 val supplyInv = runCatching { supplyRepository.listInventory() }.getOrDefault(emptyList())
                 val supplyTypes = runCatching { supplyRepository.listTypes() }.getOrDefault(emptyList())
+                // Tasks whose earliestDate is still in the future ("kommande")
+                // belong on the dedicated Tasks list, not the dashboard's
+                // at-a-glance feed.
+                val today = java.time.LocalDate.now()
+                val pending = tasks
+                    .filter { it.status != "COMPLETED" && it.remainingCount > 0 }
+                    .filter {
+                        val earliest = it.earliestDate?.let { d -> runCatching { java.time.LocalDate.parse(d) }.getOrNull() }
+                        earliest == null || !earliest.isAfter(today)
+                    }
+                    .sortedBy { it.deadline }
                 _uiState.value = DashboardState(
                     isLoading = false,
                     dashboard = dashboard,
-                    pendingTasks = tasks.filter { it.status != "COMPLETED" && it.remainingCount > 0 }
-                        .sortedBy { it.deadline },
+                    pendingTasks = pending,
                     trayPlants = tray,
                     harvestStats = stats,
                     suppliesEmpty = supplyInv.isEmpty() && supplyTypes.none { it.inexhaustible },

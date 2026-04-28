@@ -102,6 +102,7 @@ class DataExportService(
                 bedName = null,
                 gardenName = null,
                 activityType = task.activityType,
+                earliestDate = task.earliestDate,
                 deadline = task.deadline,
                 targetCount = task.targetCount,
                 remainingCount = task.remainingCount,
