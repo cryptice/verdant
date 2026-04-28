@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Launcher foreground for the adaptive icon. Wraps favicon.png with a 15%
-  inset on every side so the favicon sits inside the central safe zone and
-  doesn't get clipped by round / squircle launcher masks.
+  Launcher foreground for the adaptive icon. Wraps favicon.png with a 28%
+  inset on every side. The adaptive-icon canvas is 108dp; this puts the
+  favicon inside the central ~48dp, well within the 66dp guaranteed-visible
+  safe zone, with comfortable breathing room around the design on every
+  launcher mask shape.
 -->
 <inset xmlns:android="http://schemas.android.com/apk/res/android"
     android:drawable="@drawable/favicon"
-    android:inset="15%" />
+    android:inset="28%" />
