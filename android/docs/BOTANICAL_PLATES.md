@@ -6,11 +6,13 @@ plate falls back to `botanical_placeholder.xml` — a small line-art sprig.
 
 ## Aesthetic target
 
-Copperplate engraving from the early 1600s. Single specimen centered on the
-page, fine cross-hatching for shading, naturalistic but slightly stylized.
-Black ink on cream paper. The composable's color filter desaturates and
-biases the image toward forest-green ink, so the originals can be plain B/W
-scans — they don't need to be pre-tinted.
+Hand-coloured copperplate engraving from the early 1600s. Single specimen
+centered on the page, fine cross-hatching for shading, naturalistic but
+slightly stylized. Watercolour washes applied over the engraved lines —
+muted, slightly powdery palette: sage and olive greens, ochre yellows,
+brick reds, dusty rose pinks. The engraved lines remain visible through
+the colour. The composable passes colour through unchanged, so source
+images should already be in colour.
 
 ## Recommended source
 
