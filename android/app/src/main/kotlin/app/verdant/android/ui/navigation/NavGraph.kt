@@ -322,15 +322,23 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
             }
         }
     ) {
-        // Hoist the drawer-open callback so every Masthead can render the
-        // burger automatically without each screen wiring it through.
+        // Hoist nav callbacks so every Masthead can render the right
+        // affordances without each screen wiring them through. On detail
+        // screens the back arrow takes priority over the burger.
+        val isRootScreen = currentRoute in listOf(
+            Screen.Dashboard.route, Screen.MyWorld.route,
+            Screen.PlantedSpeciesList.route, Screen.TaskList.route,
+            Screen.GardenDetail.route,
+        )
         val openDrawer: (() -> Unit)? = if (hideChrome) null else { { scope.launch { drawerState.open() } } }
         val openAccount: (() -> Unit)? = if (hideChrome) null else { { navController.navigate(Screen.Account.route) } }
         val openDashboard: (() -> Unit)? = if (hideChrome) null else { { navController.navigate(Screen.Dashboard.route) } }
+        val navigateBack: (() -> Unit)? = if (hideChrome || isRootScreen) null else { { navController.popBackStack() } }
         androidx.compose.runtime.CompositionLocalProvider(
             app.verdant.android.ui.faltet.LocalDrawerOpen provides openDrawer,
             app.verdant.android.ui.faltet.LocalAccountOpen provides openAccount,
             app.verdant.android.ui.faltet.LocalDashboardOpen provides openDashboard,
+            app.verdant.android.ui.faltet.LocalNavigateBack provides navigateBack,
         ) {
         Scaffold(
             topBar = {},

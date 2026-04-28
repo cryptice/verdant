@@ -24,3 +24,10 @@ val LocalAccountOpen = staticCompositionLocalOf<(() -> Unit)?> { null }
  * icon is omitted.
  */
 val LocalDashboardOpen = staticCompositionLocalOf<(() -> Unit)?> { null }
+
+/**
+ * Hoists `navController.popBackStack()` so the Masthead can render a back
+ * arrow on detail screens. NavGraph sets this on every non-root destination;
+ * when present the Masthead swaps the burger for a back arrow.
+ */
+val LocalNavigateBack = staticCompositionLocalOf<(() -> Unit)?> { null }

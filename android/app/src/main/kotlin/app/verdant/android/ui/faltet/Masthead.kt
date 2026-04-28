@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Menu
@@ -37,6 +38,7 @@ fun Masthead(
     val drawerOpen = LocalDrawerOpen.current
     val accountOpen = LocalAccountOpen.current
     val dashboardOpen = LocalDashboardOpen.current
+    val navigateBack = LocalNavigateBack.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
@@ -56,17 +58,26 @@ fun Masthead(
             }
             .padding(end = 22.dp, top = 6.dp, bottom = 6.dp),
     ) {
-        if (drawerOpen != null) {
-            IconButton(onClick = drawerOpen, modifier = Modifier.padding(start = 6.dp)) {
-                Icon(Icons.Default.Menu, contentDescription = null, tint = FaltetForest)
-            }
-            if (dashboardOpen != null) {
-                IconButton(onClick = dashboardOpen) {
-                    Icon(Icons.Default.Dashboard, contentDescription = "Översikt", tint = FaltetForest)
+        when {
+            // Detail / child screens get a back arrow at the start. The
+            // back arrow takes priority over the burger so child screens
+            // don't display two leading icons.
+            navigateBack != null -> {
+                IconButton(onClick = navigateBack, modifier = Modifier.padding(start = 6.dp)) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Tillbaka", tint = FaltetForest)
                 }
             }
-        } else {
-            Spacer(Modifier.width(22.dp))
+            drawerOpen != null -> {
+                IconButton(onClick = drawerOpen, modifier = Modifier.padding(start = 6.dp)) {
+                    Icon(Icons.Default.Menu, contentDescription = "Meny", tint = FaltetForest)
+                }
+                if (dashboardOpen != null) {
+                    IconButton(onClick = dashboardOpen) {
+                        Icon(Icons.Default.Dashboard, contentDescription = "Översikt", tint = FaltetForest)
+                    }
+                }
+            }
+            else -> Spacer(Modifier.width(22.dp))
         }
         val leftMod = if (onLeftClick != null) {
             Modifier.weight(1f).clickable(onClick = onLeftClick)
