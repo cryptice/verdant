@@ -14,6 +14,10 @@ val FaltetBerry   = Color(0xFF7A2E44)
 val FaltetSky     = Color(0xFF4A7A8C)
 val FaltetButter  = Color(0xFFF2D27A)
 val FaltetBlush   = Color(0xFFE9B8A8)
+// FaltetBloom — soft rose used for non-action accents (selected tab tint,
+// gentle highlights, divider washes). Keeps Mustard reserved for primary
+// action affordances so the hierarchy is unambiguous.
+val FaltetBloom   = Color(0xFFD18A88)
 
 // Hairline alpha variants
 val FaltetInkLine20 = FaltetInk.copy(alpha = 0.20f)

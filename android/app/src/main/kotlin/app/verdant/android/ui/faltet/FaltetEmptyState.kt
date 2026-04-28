@@ -27,6 +27,7 @@ fun FaltetEmptyState(
     headline: String,
     subtitle: String,
     modifier: Modifier = Modifier,
+    plate: BotanicalPlate? = BotanicalPlate.EmptyGarden,
     action: (@Composable () -> Unit)? = null,
 ) {
     Column(
@@ -37,6 +38,10 @@ fun FaltetEmptyState(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        if (plate != null) {
+            BotanicalIllustration(plate = plate, size = 160.dp)
+            Spacer(Modifier.height(20.dp))
+        }
         Text(
             text = headline,
             fontFamily = FaltetDisplay,
@@ -45,7 +50,7 @@ fun FaltetEmptyState(
             color = FaltetInk,
             textAlign = TextAlign.Center,
         )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(12.dp))
         Text(
             text = subtitle,
             fontSize = 14.sp,

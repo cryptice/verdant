@@ -17,8 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -85,10 +85,11 @@ fun Masthead(
             Modifier.weight(1f)
         }
         Text(
-            text = left.uppercase(),
-            fontFamily = FontFamily.Monospace,
-            fontSize = 10.sp,
-            letterSpacing = 1.8.sp,
+            text = left,
+            fontFamily = FaltetDisplay,
+            fontStyle = FontStyle.Italic,
+            fontWeight = FontWeight.W400,
+            fontSize = 13.sp,
             color = FaltetForest,
             modifier = leftMod,
         )
@@ -96,7 +97,8 @@ fun Masthead(
             text = center,
             fontFamily = FaltetDisplay,
             fontStyle = FontStyle.Italic,
-            fontSize = 14.sp,
+            fontWeight = FontWeight.W500,
+            fontSize = 16.sp,
             color = FaltetForest,
             textAlign = TextAlign.Center,
             modifier = Modifier.weight(2f),

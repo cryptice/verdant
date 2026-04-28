@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Placeholder vector for the BotanicalIllustration composable. Renders a
+  small sprig so layouts compose before the real Besler engraving PNGs
+  are dropped into this directory. See BOTANICAL_PLATES.md.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp"
+    android:height="160dp"
+    android:viewportWidth="160"
+    android:viewportHeight="160">
+
+    <!-- Stem -->
+    <path
+        android:strokeColor="#2F3D2E"
+        android:strokeWidth="1.4"
+        android:strokeLineCap="round"
+        android:pathData="M80,148 L80,40" />
+
+    <!-- Lower leaves -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#2F3D2E"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round"
+        android:pathData="M80,118 C56,114 48,98 50,82 C66,86 78,98 80,114 Z" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#2F3D2E"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round"
+        android:pathData="M80,100 C104,96 112,80 110,64 C94,68 82,80 80,96 Z" />
+
+    <!-- Upper leaves -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#2F3D2E"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round"
+        android:pathData="M80,80 C62,76 56,62 58,50 C72,52 80,62 82,76 Z" />
+
+    <!-- Flower head: layered petals -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#B6553C"
+        android:strokeWidth="1.4"
+        android:pathData="M80,40 m-14,0 a14,14 0 1,0 28,0 a14,14 0 1,0 -28,0" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#B6553C"
+        android:strokeWidth="1.2"
+        android:pathData="M80,40 m-9,0 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0" />
+    <path
+        android:fillColor="#C89A2B"
+        android:pathData="M80,40 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+</vector>

@@ -30,14 +30,16 @@ private val FaltetColorScheme = lightColorScheme(
     onError            = FaltetCream,
 )
 
-// Zero-radius shape family — matches web's Fältet brutalist aesthetic.
-// Components needing pill radius (Chip, FAB) apply CircleShape locally.
+// Soft, journal-page corners. Earlier we used 0dp everywhere for a
+// brutalist edge; bumping to small radii makes cards and dialogs feel
+// like pressed paper instead of cut card-stock. Components needing pill
+// radius (Chip, FAB) still apply CircleShape locally.
 private val FaltetShapes = Shapes(
-    extraSmall = RoundedCornerShape(0.dp),
-    small      = RoundedCornerShape(0.dp),
-    medium     = RoundedCornerShape(0.dp),
-    large      = RoundedCornerShape(0.dp),
-    extraLarge = RoundedCornerShape(0.dp),
+    extraSmall = RoundedCornerShape(4.dp),
+    small      = RoundedCornerShape(8.dp),
+    medium     = RoundedCornerShape(12.dp),
+    large      = RoundedCornerShape(16.dp),
+    extraLarge = RoundedCornerShape(24.dp),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)

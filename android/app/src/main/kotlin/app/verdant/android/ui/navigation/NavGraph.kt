@@ -258,12 +258,12 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                         Text(
                             buildAnnotatedString {
                                 withStyle(SpanStyle(color = FaltetInk)) { append("Verdant") }
-                                withStyle(SpanStyle(color = FaltetAccent)) { append(".") }
+                                withStyle(SpanStyle(color = FaltetAccent)) { append(" ❀") }
                             },
                             fontFamily = FaltetDisplay,
                             fontStyle = FontStyle.Italic,
-                            fontWeight = FontWeight.W300,
-                            fontSize = 26.sp,
+                            fontWeight = FontWeight.W400,
+                            fontSize = 28.sp,
                             modifier = Modifier.weight(1f),
                         )
                         IconButton(onClick = { scope.launch { drawerState.close() } }) {
@@ -275,14 +275,24 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                         }
                     }
                     Text(
-                        text = "Est. 2026".uppercase(),
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 10.sp,
-                        letterSpacing = 1.8.sp,
+                        text = "Est. 2026",
+                        fontFamily = FaltetDisplay,
+                        fontStyle = FontStyle.Italic,
+                        fontSize = 12.sp,
                         color = FaltetForest,
                         modifier = Modifier.padding(start = 18.dp, top = 4.dp),
                     )
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(8.dp))
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        app.verdant.android.ui.faltet.BotanicalIllustration(
+                            plate = app.verdant.android.ui.faltet.BotanicalPlate.Frontispiece,
+                            size = 96.dp,
+                        )
+                    }
+                    Spacer(Modifier.height(8.dp))
                     Box(Modifier.fillMaxWidth().height(1.dp).background(FaltetInk))
 
                     // Scrollable nav body
@@ -370,10 +380,10 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                             icon = { Icon(Icons.Default.Eco, contentDescription = myWorldLabel) },
                             label = {
                                 Text(
-                                    text = myWorldLabel.take(12).uppercase(),
-                                    fontFamily = FontFamily.Monospace,
-                                    fontSize = 9.sp,
-                                    letterSpacing = 1.4.sp,
+                                    text = myWorldLabel,
+                                    fontFamily = FaltetDisplay,
+                                    fontStyle = FontStyle.Italic,
+                                    fontSize = 13.sp,
                                     maxLines = 1,
                                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                                 )
@@ -397,10 +407,10 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                             icon = { Icon(Icons.Default.Yard, contentDescription = stringResource(R.string.plants)) },
                             label = {
                                 Text(
-                                    text = stringResource(R.string.plants).uppercase(),
-                                    fontFamily = FontFamily.Monospace,
-                                    fontSize = 9.sp,
-                                    letterSpacing = 1.4.sp,
+                                    text = stringResource(R.string.plants),
+                                    fontFamily = FaltetDisplay,
+                                    fontStyle = FontStyle.Italic,
+                                    fontSize = 13.sp,
                                 )
                             },
                             colors = NavigationBarItemDefaults.colors(
@@ -422,10 +432,10 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                             icon = { Icon(Icons.Default.CalendarMonth, contentDescription = stringResource(R.string.scheduled_tasks)) },
                             label = {
                                 Text(
-                                    text = stringResource(R.string.scheduled_tasks).uppercase(),
-                                    fontFamily = FontFamily.Monospace,
-                                    fontSize = 9.sp,
-                                    letterSpacing = 1.4.sp,
+                                    text = stringResource(R.string.scheduled_tasks),
+                                    fontFamily = FaltetDisplay,
+                                    fontStyle = FontStyle.Italic,
+                                    fontSize = 13.sp,
                                 )
                             },
                             colors = NavigationBarItemDefaults.colors(
@@ -443,10 +453,10 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                             icon = { Icon(Icons.Default.Bolt, contentDescription = "Aktivitet") },
                             label = {
                                 Text(
-                                    text = "AKTIVITET",
-                                    fontFamily = FontFamily.Monospace,
-                                    fontSize = 9.sp,
-                                    letterSpacing = 1.4.sp,
+                                    text = "Aktivitet",
+                                    fontFamily = FaltetDisplay,
+                                    fontStyle = FontStyle.Italic,
+                                    fontSize = 13.sp,
                                 )
                             },
                             colors = NavigationBarItemDefaults.colors(

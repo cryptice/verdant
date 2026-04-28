@@ -2,21 +2,23 @@
 package app.verdant.android.ui.faltet
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetCream
+import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
 
 @Composable
@@ -28,22 +30,26 @@ fun FaltetSectionHeader(
         modifier = modifier
             .fillMaxWidth()
             .background(FaltetCream)
-            .padding(start = 18.dp, end = 18.dp, top = 12.dp, bottom = 6.dp),
+            .padding(start = 18.dp, end = 18.dp, top = 14.dp, bottom = 6.dp),
     ) {
-        Text(
-            text = label.uppercase(),
-            fontFamily = FontFamily.Monospace,
-            fontSize = 9.sp,
-            letterSpacing = 1.4.sp,
-            color = FaltetForest,
-        )
-        Spacer(Modifier.height(4.dp))
-        Spacer(
-            Modifier
-                .width(24.dp)
-                .height(1.5.dp)
-                .background(FaltetAccent),
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = "❀",
+                fontSize = 11.sp,
+                color = FaltetAccent,
+            )
+            Text(
+                text = label,
+                fontFamily = FaltetDisplay,
+                fontStyle = FontStyle.Italic,
+                fontWeight = FontWeight.W500,
+                fontSize = 16.sp,
+                color = FaltetForest,
+            )
+        }
     }
 }
 
