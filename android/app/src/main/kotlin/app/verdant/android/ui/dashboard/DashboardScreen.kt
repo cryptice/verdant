@@ -2,6 +2,7 @@ package app.verdant.android.ui.dashboard
 import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.AnalyticsRepository
 import app.verdant.android.data.repository.PlantRepository
+import app.verdant.android.data.repository.SupplyRepository
 import app.verdant.android.data.repository.TaskRepository
 import app.verdant.android.data.repository.TrayLocationRepository
 
@@ -84,6 +85,12 @@ data class DashboardState(
     val pendingTasks: List<ScheduledTaskResponse> = emptyList(),
     val trayPlants: List<TraySummaryEntry> = emptyList(),
     val harvestStats: List<HarvestStatRow> = emptyList(),
+    /**
+     * True when the user has nothing they could currently apply via the
+     * Gödsla flow — no inventory rows AND no inexhaustible-type rows.
+     * Drives the "add supplies" prompt at the top of the dashboard.
+     */
+    val suppliesEmpty: Boolean = false,
     val toastMessage: String? = null,
     val error: String? = null,
 )
@@ -94,6 +101,7 @@ class DashboardViewModel @Inject constructor(
     private val analyticsRepository: AnalyticsRepository,
     private val taskRepository: TaskRepository,
     private val plantRepository: PlantRepository,
+    private val supplyRepository: SupplyRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(DashboardState())
     val uiState = _uiState.asStateFlow()
@@ -111,6 +119,8 @@ class DashboardViewModel @Inject constructor(
                 val tasks = runCatching { taskRepository.list() }.getOrDefault(emptyList())
                 val tray = runCatching { plantRepository.traySummary() }.getOrDefault(emptyList())
                 val stats = runCatching { analyticsRepository.harvestStats() }.getOrDefault(emptyList())
+                val supplyInv = runCatching { supplyRepository.listInventory() }.getOrDefault(emptyList())
+                val supplyTypes = runCatching { supplyRepository.listTypes() }.getOrDefault(emptyList())
                 _uiState.value = DashboardState(
                     isLoading = false,
                     dashboard = dashboard,
@@ -118,6 +128,7 @@ class DashboardViewModel @Inject constructor(
                         .sortedBy { it.deadline },
                     trayPlants = tray,
                     harvestStats = stats,
+                    suppliesEmpty = supplyInv.isEmpty() && supplyTypes.none { it.inexhaustible },
                 )
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load dashboard", e)
@@ -134,6 +145,7 @@ fun DashboardScreen(
     onOpenTasks: () -> Unit = {},
     onSpeciesClick: (Long) -> Unit = {},
     onOpenTrayLocation: (Long) -> Unit = {},
+    onOpenSupplies: () -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -183,6 +195,12 @@ fun DashboardScreen(
                             plants = dashboard.stats.totalActivePlants,
                             species = dashboard.stats.totalActiveSpecies,
                         )
+                    }
+
+                    if (uiState.suppliesEmpty) {
+                        item {
+                            EmptySuppliesBanner(onOpenSupplies = onOpenSupplies)
+                        }
                     }
 
                     item {
@@ -376,6 +394,55 @@ private fun TrayLocationGroup(
                 }
             }
         }
+    }
+}
+
+/**
+ * Notice on the Dashboard when the user has nothing they could currently
+ * apply via Gödsla — i.e. no supply inventory rows and no inexhaustible
+ * supply types. Tapping the card navigates to the Material screen so the
+ * user can add supplies right away.
+ */
+@Composable
+private fun EmptySuppliesBanner(onOpenSupplies: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .padding(horizontal = 14.dp, vertical = 8.dp)
+            .fillMaxWidth()
+            .background(FaltetPaper, shape = RoundedCornerShape(12.dp))
+            .border(1.dp, FaltetAccent, shape = RoundedCornerShape(12.dp))
+            .clickable(onClick = onOpenSupplies)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = Icons.Default.Spa,
+            contentDescription = null,
+            tint = FaltetAccent,
+            modifier = Modifier.size(22.dp),
+        )
+        Spacer(Modifier.width(14.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "Inget material",
+                fontFamily = FaltetDisplay,
+                fontStyle = FontStyle.Italic,
+                fontSize = 16.sp,
+                color = FaltetInk,
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = "Lägg till jord, gödsel eller andra förnödenheter för att kunna gödsla bäddar och brätten.",
+                fontSize = 12.sp,
+                color = FaltetForest,
+            )
+        }
+        Icon(
+            imageVector = Icons.Default.ChevronRight,
+            contentDescription = null,
+            tint = FaltetAccent,
+            modifier = Modifier.size(20.dp),
+        )
     }
 }
 

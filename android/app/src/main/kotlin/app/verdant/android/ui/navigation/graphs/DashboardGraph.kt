@@ -33,6 +33,7 @@ fun NavGraphBuilder.dashboardGraph(navController: NavController) {
             onOpenTrayLocation = { id ->
                 navController.navigate(Screen.TrayLocationDetail.create(id))
             },
+            onOpenSupplies = { navController.navigate(Screen.Supplies.route) },
         )
     }
     composable(Screen.MyWorld.route) {
