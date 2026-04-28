@@ -613,6 +613,7 @@
     "newTitle": "Ny uppgift",
     "form": {
       "type": "Typ",
+      "earliestDate": "Tidigast (valfri)",
       "deadline": "Deadline",
       "bed": "Bädd"
     }

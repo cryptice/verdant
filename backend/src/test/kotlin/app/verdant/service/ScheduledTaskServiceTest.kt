@@ -6,6 +6,8 @@ import app.verdant.entity.ScheduledTask
 import app.verdant.entity.ScheduledTaskStatus
 import app.verdant.entity.Species
 import app.verdant.entity.SpeciesGroup
+import app.verdant.repository.BedRepository
+import app.verdant.repository.GardenRepository
 import app.verdant.repository.ScheduledTaskRepository
 import app.verdant.repository.SpeciesGroupRepository
 import app.verdant.repository.SpeciesRepository
@@ -23,7 +25,12 @@ class ScheduledTaskServiceTest {
     private val taskRepository: ScheduledTaskRepository = mock()
     private val speciesRepository: SpeciesRepository = mock()
     private val speciesGroupRepository: SpeciesGroupRepository = mock()
-    private val service = ScheduledTaskService(taskRepository, speciesRepository, speciesGroupRepository)
+    private val bedRepository: BedRepository = mock()
+    private val gardenRepository: GardenRepository = mock()
+    private val service = ScheduledTaskService(
+        taskRepository, speciesRepository, speciesGroupRepository,
+        bedRepository, gardenRepository,
+    )
 
     private val orgId = 10L
     private val speciesId = 100L

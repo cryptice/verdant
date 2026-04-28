@@ -613,6 +613,7 @@
     "newTitle": "New task",
     "form": {
       "type": "Type",
+      "earliestDate": "Earliest (optional)",
       "deadline": "Deadline",
       "bed": "Bed"
     }

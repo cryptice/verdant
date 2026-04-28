@@ -78,6 +78,7 @@ export function TaskForm() {
   const [checkedSpeciesIds, setCheckedSpeciesIds] = useState<Set<number>>(new Set())
   const [activityType, setActivityType] = useState('SOW')
   const [selectedBedId, setSelectedBedId] = useState<number | null>(null)
+  const [earliestDate, setEarliestDate] = useState('')
   const [deadline, setDeadline] = useState('')
   const [targetCount, setTargetCount] = useState('')
   const [notes, setNotes] = useState('')
@@ -98,6 +99,7 @@ export function TaskForm() {
   useEffect(() => {
     if (existing) {
       setActivityType(existing.activityType)
+      setEarliestDate(existing.earliestDate ?? '')
       setDeadline(existing.deadline)
       setTargetCount(String(existing.targetCount))
       setNotes(existing.notes ?? '')
@@ -145,12 +147,15 @@ export function TaskForm() {
     : (isGroupMode ? checkedSpeciesIds.size > 0 : !!selectedSpecies)
   const valid = hasSelection && deadline && Number(targetCount) > 0
 
+  const earliestOrNull = earliestDate || null
+
   const createMut = useMutation({
     mutationFn: () => {
       if (isBedActivity) {
         return api.tasks.create({
           bedId: selectedBedId!,
           activityType,
+          earliestDate: earliestOrNull,
           deadline,
           targetCount: Number(targetCount),
           notes: notes || undefined,
@@ -161,6 +166,7 @@ export function TaskForm() {
           speciesGroupId: selectedGroupId!,
           speciesIds: Array.from(checkedSpeciesIds),
           activityType,
+          earliestDate: earliestOrNull,
           deadline,
           targetCount: Number(targetCount),
           notes: notes || undefined,
@@ -169,6 +175,7 @@ export function TaskForm() {
       return api.tasks.create({
         speciesId: selectedSpecies!.id,
         activityType,
+        earliestDate: earliestOrNull,
         deadline,
         targetCount: Number(targetCount),
         notes: notes || undefined,
@@ -183,7 +190,11 @@ export function TaskForm() {
 
   const updateMut = useMutation({
     mutationFn: () => api.tasks.update(Number(taskId), {
-      activityType, deadline, targetCount: Number(targetCount), notes: notes || undefined,
+      activityType,
+      earliestDate: earliestOrNull,
+      deadline,
+      targetCount: Number(targetCount),
+      notes: notes || undefined,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['tasks'] })
@@ -224,6 +235,19 @@ export function TaskForm() {
               ))}
             </select>
           </label>
+
+          {/* Earliest date — optional. Tasks before this date stay in
+              the dedicated Tasks list under "Kommande" and don't appear
+              on the Dashboard's at-a-glance feed. */}
+          <div>
+            <span style={selectLabelStyle}>{t('tasks.form.earliestDate')}</span>
+            <input
+              type="date"
+              value={earliestDate}
+              onChange={e => setEarliestDate(e.target.value)}
+              style={{ ...selectStyle, fontFamily: 'var(--font-mono)', fontSize: 14 }}
+            />
+          </div>
 
           {/* Deadline */}
           <div>

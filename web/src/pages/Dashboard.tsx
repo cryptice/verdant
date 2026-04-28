@@ -52,6 +52,16 @@ export function Dashboard() {
     queryFn: () => api.tasks.list(),
   })
 
+  // Tasks with a future earliestDate are "kommande" — they live on the
+  // dedicated Tasks list, not on the dashboard's at-a-glance feed.
+  const dashboardTasks = tasks?.filter(t => {
+    const earliest = t.earliestDate ? new Date(t.earliestDate) : null
+    if (earliest == null) return true
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return earliest <= today
+  })
+
   const { data: harvests } = useQuery({
     queryKey: ['harvest-stats'],
     queryFn: api.stats.harvests,
@@ -279,7 +289,7 @@ export function Dashboard() {
                 </Link>
               }
             />
-            {tasks?.slice(0, 6).map((task) => (
+            {dashboardTasks?.slice(0, 6).map((task) => (
               <div
                 key={task.id}
                 style={{
@@ -317,7 +327,7 @@ export function Dashboard() {
                 </span>
               </div>
             ))}
-            {(!tasks || tasks.length === 0) && (
+            {(!dashboardTasks || dashboardTasks.length === 0) && (
               <p
                 style={{
                   fontFamily: 'var(--font-mono)',

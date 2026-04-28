@@ -167,6 +167,7 @@ export interface ScheduledTaskResponse {
   id: number; speciesId: number | null; speciesName: string | null
   bedId: number | null; bedName: string | null; gardenName: string | null
   activityType: string
+  earliestDate?: string | null
   deadline: string; targetCount: number; remainingCount: number
   status: string; notes?: string; seasonId?: number; successionScheduleId?: number
   originGroupId?: number; originGroupName?: string
@@ -592,10 +593,10 @@ export const api = {
     create: (data: {
       speciesId?: number; speciesGroupId?: number; speciesIds?: number[]
       bedId?: number
-      activityType: string; deadline: string; targetCount: number; notes?: string
+      activityType: string; earliestDate?: string | null; deadline: string; targetCount: number; notes?: string
     }) => apiRequest<ScheduledTaskResponse>('/api/tasks', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: number, data: {
-      activityType?: string; deadline?: string; targetCount?: number; notes?: string
+      activityType?: string; earliestDate?: string | null; deadline?: string; targetCount?: number; notes?: string
     }) => apiRequest<ScheduledTaskResponse>(`/api/tasks/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     complete: (id: number, speciesId: number, processedCount: number) =>
       apiRequest<void>(`/api/tasks/${id}/complete`, { method: 'POST', body: JSON.stringify({ speciesId, processedCount }) }),

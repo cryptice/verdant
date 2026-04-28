@@ -19,6 +19,7 @@ import app.verdant.repository.PlantRepository
 import app.verdant.repository.SupplyApplicationRepository
 import app.verdant.repository.SupplyInventoryRepository
 import app.verdant.repository.SupplyTypeRepository
+import app.verdant.repository.TrayLocationRepository
 import app.verdant.repository.UserRepository
 import app.verdant.repository.WorkflowRepository
 import jakarta.ws.rs.BadRequestException
@@ -45,10 +46,12 @@ class SupplyApplicationServiceTest {
     private val userRepo: UserRepository = mock()
     private val bedRepo: BedRepository = mock()
     private val gardenRepo: GardenRepository = mock()
+    private val trayLocationRepo: TrayLocationRepository = mock()
 
     private val service = SupplyApplicationService(
         applicationRepo, inventoryRepo, supplyTypeRepo, plantRepo,
         plantEventRepo, workflowRepo, userRepo, bedRepo, gardenRepo,
+        trayLocationRepo,
     )
 
     private val orgId = 1L
