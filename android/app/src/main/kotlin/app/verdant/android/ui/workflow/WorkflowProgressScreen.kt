@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -25,7 +24,8 @@ import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.CompleteWorkflowStepRequest
 import app.verdant.android.data.model.SpeciesWorkflowResponse
 import app.verdant.android.data.model.SpeciesWorkflowStepResponse
-import app.verdant.android.ui.theme.verdantTopAppBarColors
+import app.verdant.android.ui.faltet.BotanicalPlate
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -228,18 +228,13 @@ fun WorkflowProgressScreen(
         )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Workflow Progress") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
-                    }
-                },
-                colors = verdantTopAppBarColors()
-            )
-        }
+    // Body shows the species/template name as its header, so the masthead
+    // stays empty — back arrow is provided automatically by the NavGraph
+    // ambient.
+    FaltetScreenScaffold(
+        mastheadLeft = "",
+        mastheadCenter = "",
+        watermark = BotanicalPlate.Trellis,
     ) { padding ->
         when {
             uiState.isLoading -> {

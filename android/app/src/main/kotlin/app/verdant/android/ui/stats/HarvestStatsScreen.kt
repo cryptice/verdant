@@ -21,7 +21,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
 import app.verdant.android.data.model.HarvestStatRow
-import app.verdant.android.ui.theme.verdantTopAppBarColors
+import app.verdant.android.ui.faltet.BotanicalPlate
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -63,10 +64,10 @@ fun HarvestStatsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.harvest_stats)) }, colors = verdantTopAppBarColors())
-        }
+    FaltetScreenScaffold(
+        mastheadLeft = "",
+        mastheadCenter = stringResource(R.string.harvest_stats),
+        watermark = BotanicalPlate.Harvest,
     ) { padding ->
         when {
             uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
