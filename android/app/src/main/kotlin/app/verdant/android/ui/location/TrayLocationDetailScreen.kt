@@ -530,7 +530,7 @@ private fun MoveDialog(
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(initialTitle, fontSize = 12.sp, color = FaltetForest)
                 FaltetDropdown(
-                    label = "Mål",
+                    label = "Flytta till",
                     options = allLocations,
                     selected = target,
                     onSelectedChange = { target = it; detach = false },
