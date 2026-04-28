@@ -152,8 +152,13 @@ internal fun AddSupplyTypeDialog(
 ) {
     var name by remember { mutableStateOf("") }
     var category by remember { mutableStateOf<String?>(initialCategory) }
-    var unit by remember { mutableStateOf<String?>("LITERS") }
+    // Unit defaults from category — trays / pots / labels are counted,
+    // others are measured by volume. If the user changes category, slide
+    // the unit to that category's default unless they've already deviated
+    // from any default themselves.
+    var unit by remember { mutableStateOf<String?>(defaultUnitFor(initialCategory)) }
     var inexhaustible by remember { mutableStateOf(false) }
+    val isDefaultUnit = unit == defaultUnitFor(category ?: initialCategory)
 
     val canSubmit = name.trim().isNotBlank() && category != null && unit != null
 
@@ -173,7 +178,13 @@ internal fun AddSupplyTypeDialog(
                     label = "Kategori",
                     options = SUPPLY_CATEGORIES,
                     selected = category,
-                    onSelectedChange = { category = it },
+                    onSelectedChange = { newCat ->
+                        // If the user hasn't deviated from the previous
+                        // category's default unit, slide it to the new
+                        // category's default. Manual choices are kept.
+                        if (isDefaultUnit && newCat != null) unit = defaultUnitFor(newCat)
+                        category = newCat
+                    },
                     labelFor = { categoryLabelSv(it) },
                     searchable = false,
                     required = true,

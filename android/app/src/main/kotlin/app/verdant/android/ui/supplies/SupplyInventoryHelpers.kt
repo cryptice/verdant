@@ -33,6 +33,17 @@ internal fun unitLabelSv(unit: String): String = when (unit) {
     else -> unit
 }
 
+/**
+ * The most natural unit for a freshly-picked category. Trays, pots, and
+ * labels are counted; soil and fertilizer are measured by volume by
+ * default. Everything else defaults to litres so users can still measure
+ * homemade tinctures or compost teas without changing the unit.
+ */
+internal fun defaultUnitFor(category: String): String = when (category) {
+    "TRAY", "POT", "LABEL" -> "COUNT"
+    else -> "LITERS"
+}
+
 internal fun categoryIcon(category: String): ImageVector = when (category) {
     "SOIL" -> Icons.Default.Grass
     "POT" -> Icons.Default.Inventory2
