@@ -98,23 +98,6 @@ class DashboardViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(DashboardState())
     val uiState = _uiState.asStateFlow()
 
-    fun waterLocation(locationId: Long) {
-        viewModelScope.launch {
-            try {
-                val response = trayLocationRepository.water(locationId)
-                val name = _uiState.value.trayPlants
-                    .firstOrNull { it.trayLocationId == locationId }?.trayLocationName
-                val msg = if (name != null) "Vattnade · ${response.plantsAffected} plantor i $name"
-                    else "Vattnade · ${response.plantsAffected} plantor"
-                _uiState.value = _uiState.value.copy(toastMessage = msg)
-                refresh()
-            } catch (e: Exception) {
-                Log.e(TAG, "waterLocation failed", e)
-                _uiState.value = _uiState.value.copy(toastMessage = "Kunde inte vattna")
-            }
-        }
-    }
-
     fun consumeToast() {
         _uiState.value = _uiState.value.copy(toastMessage = null)
     }
@@ -151,7 +134,6 @@ fun DashboardScreen(
     onOpenTasks: () -> Unit = {},
     onSpeciesClick: (Long) -> Unit = {},
     onOpenTrayLocation: (Long) -> Unit = {},
-    onFertilizeTrayLocation: (Long) -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -266,8 +248,6 @@ fun DashboardScreen(
                                     onToggleExpanded = {
                                         expandedTrayKeys[groupKey] = !(expandedTrayKeys[groupKey] == true)
                                     },
-                                    onWater = locId?.let { id -> { viewModel.waterLocation(id) } },
-                                    onFertilize = locId?.let { id -> { onFertilizeTrayLocation(id) } },
                                     onOpen = locId?.let { id -> { onOpenTrayLocation(id) } },
                                     onSpeciesClick = onSpeciesClick,
                                 )
@@ -304,11 +284,14 @@ fun DashboardScreen(
 }
 
 /**
- * One tray-location row on the Dashboard. Collapsed by default — only the
- * location name, total count, and action links are visible. Tap the row
- * (anywhere outside the action buttons) to expand and show the per-species
- * plant rows. The whole group is wrapped in a soft paper card so the
- * grouping reads at a glance even when collapsed.
+ * One tray-location row on the Dashboard. Tapping anywhere on the card
+ * (outside the chevron and the per-species plant rows) navigates to the
+ * tray-location detail screen, where the user can take actions
+ * (Vattna alla, Gödsla, …). Tapping the chevron toggles the per-species
+ * plant rows in place.
+ *
+ * Collapsed by default — at-a-glance summary (name + count) is the
+ * default view; the user expands the row only when they need details.
  */
 @Composable
 private fun TrayLocationGroup(
@@ -317,32 +300,37 @@ private fun TrayLocationGroup(
     entries: List<TraySummaryEntry>,
     expanded: Boolean,
     onToggleExpanded: () -> Unit,
-    onWater: (() -> Unit)?,
-    onFertilize: (() -> Unit)?,
     onOpen: (() -> Unit)?,
     onSpeciesClick: (Long) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .padding(horizontal = 14.dp, vertical = 4.dp)
-            .fillMaxWidth()
-            .background(FaltetPaper, shape = RoundedCornerShape(12.dp))
-            .border(1.dp, FaltetInkLine20, shape = RoundedCornerShape(12.dp)),
-    ) {
+    val cardModifier = Modifier
+        .padding(horizontal = 14.dp, vertical = 4.dp)
+        .fillMaxWidth()
+        .background(FaltetPaper, shape = RoundedCornerShape(12.dp))
+        .border(1.dp, FaltetInkLine20, shape = RoundedCornerShape(12.dp))
+        .let { if (onOpen != null) it.clickable(onClick = onOpen) else it }
+
+    Column(modifier = cardModifier) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onToggleExpanded)
-                .padding(start = 14.dp, end = 6.dp, top = 8.dp, bottom = 8.dp),
+                .padding(start = 4.dp, end = 14.dp, top = 4.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(
-                imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                contentDescription = if (expanded) "Dölj plantor" else "Visa plantor",
-                tint = FaltetForest,
-                modifier = Modifier.size(18.dp),
-            )
-            Spacer(Modifier.width(8.dp))
+            // Chevron is its own tap target so it doesn't navigate to detail.
+            // Compose's clickable doesn't bubble up through nested click
+            // surfaces, so a tap here only toggles expansion.
+            androidx.compose.material3.IconButton(
+                onClick = onToggleExpanded,
+                modifier = Modifier.size(40.dp),
+            ) {
+                Icon(
+                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = if (expanded) "Dölj plantor" else "Visa plantor",
+                    tint = FaltetForest,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
             Text(
                 text = locName ?: "Utan plats",
                 fontFamily = FaltetDisplay,
@@ -356,23 +344,7 @@ private fun TrayLocationGroup(
                 fontFamily = FontFamily.Monospace,
                 fontSize = 12.sp,
                 color = FaltetForest,
-                modifier = Modifier.padding(end = 4.dp),
             )
-            if (onWater != null) {
-                TextButton(onClick = onWater) {
-                    Text("Vattna", color = FaltetAccent, fontSize = 12.sp)
-                }
-            }
-            if (onFertilize != null) {
-                TextButton(onClick = onFertilize) {
-                    Text("Gödsla", color = FaltetAccent, fontSize = 12.sp)
-                }
-            }
-            if (onOpen != null) {
-                TextButton(onClick = onOpen) {
-                    Text("Öppna", color = FaltetAccent, fontSize = 12.sp)
-                }
-            }
         }
         AnimatedVisibility(visible = expanded) {
             Column(
