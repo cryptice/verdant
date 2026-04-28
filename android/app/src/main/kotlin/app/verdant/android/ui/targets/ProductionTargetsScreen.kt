@@ -206,6 +206,7 @@ fun ProductionTargetsScreen(
             uiState.items.isEmpty() -> FaltetEmptyState(
                 headline = "Inga produktionsmål",
                 subtitle = "Sätt upp mål för säsongens produktion.",
+                plate = app.verdant.android.ui.faltet.BotanicalPlate.Harvest,
                 modifier = Modifier.padding(padding),
             )
 

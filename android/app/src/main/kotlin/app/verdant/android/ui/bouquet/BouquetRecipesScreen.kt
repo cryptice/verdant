@@ -185,6 +185,7 @@ fun BouquetRecipesScreen(
             uiState.items.isEmpty() -> FaltetEmptyState(
                 headline = "Inga recept",
                 subtitle = "Designa din första bukett.",
+                plate = app.verdant.android.ui.faltet.BotanicalPlate.Harvest,
                 modifier = Modifier.padding(padding),
             )
 
@@ -474,6 +475,7 @@ private fun BouquetRecipesScreenPreview() {
         FaltetEmptyState(
             headline = "Inga recept",
             subtitle = "Designa din första bukett.",
+            plate = app.verdant.android.ui.faltet.BotanicalPlate.Harvest,
             modifier = Modifier.padding(padding),
         )
     }

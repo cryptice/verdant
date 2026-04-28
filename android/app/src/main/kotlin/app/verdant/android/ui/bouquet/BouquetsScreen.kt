@@ -216,6 +216,7 @@ fun BouquetsScreen(
             uiState.bouquets.isEmpty() -> FaltetEmptyState(
                 headline = "Inga buketter byggda än",
                 subtitle = "Tryck på + för att binda en ny.",
+                plate = app.verdant.android.ui.faltet.BotanicalPlate.Harvest,
                 modifier = Modifier.padding(padding),
             )
             else -> LazyColumn(

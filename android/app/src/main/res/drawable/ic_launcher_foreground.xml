@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Launcher foreground for the adaptive icon. Wraps favicon.png with a 15%
+  inset on every side so the favicon sits inside the central safe zone and
+  doesn't get clipped by round / squircle launcher masks.
+-->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/favicon"
+    android:inset="15%" />

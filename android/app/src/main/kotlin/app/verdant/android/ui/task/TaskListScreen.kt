@@ -212,6 +212,7 @@ fun TaskListScreen(
             uiState.tasks.isEmpty() -> FaltetEmptyState(
                 headline = "Inga uppgifter",
                 subtitle = "Skapa din första uppgift för säsongen.",
+                plate = app.verdant.android.ui.faltet.BotanicalPlate.Trellis,
                 modifier = Modifier.padding(padding),
             )
             else -> LazyColumn(Modifier.fillMaxSize().padding(padding)) {

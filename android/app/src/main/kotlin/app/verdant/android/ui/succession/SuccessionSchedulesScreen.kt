@@ -250,6 +250,7 @@ fun SuccessionSchedulesScreen(
             uiState.items.isEmpty() -> FaltetEmptyState(
                 headline = "Inga successioner",
                 subtitle = "Planera din första succession.",
+                plate = app.verdant.android.ui.faltet.BotanicalPlate.Trellis,
                 modifier = Modifier.padding(padding),
             )
 
@@ -497,6 +498,7 @@ private fun SuccessionSchedulesScreenPreview() {
         FaltetEmptyState(
             headline = "Inga successioner",
             subtitle = "Planera din första succession.",
+            plate = app.verdant.android.ui.faltet.BotanicalPlate.Trellis,
             modifier = Modifier.padding(padding),
         )
     }
