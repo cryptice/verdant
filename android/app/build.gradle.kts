@@ -1,6 +1,5 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    id("verdant.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
@@ -32,7 +31,8 @@ fun envGet(vararg keys: String): String {
 
 android {
     namespace = "app.verdant.android"
-    compileSdk = 35
+    // compileSdk, minSdk, targetSdk, source/target compat, jvmTarget — all
+    // come from the verdant.android.application convention plugin.
 
     signingConfigs {
         create("release") {
@@ -46,8 +46,6 @@ android {
 
     defaultConfig {
         applicationId = "app.verdant.android"
-        minSdk = 28
-        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -82,14 +80,6 @@ android {
         }
     }
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = "17"
-    }
 }
 
 dependencies {
