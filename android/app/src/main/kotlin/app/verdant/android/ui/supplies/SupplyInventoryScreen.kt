@@ -80,6 +80,8 @@ fun SupplyInventoryScreen(
     var showAddTypeDialog by remember { mutableStateOf(false) }
     var editTypeTarget by remember { mutableStateOf<SupplyTypeResponse?>(null) }
 
+    val loaded = uiState as? SupplyInventoryUiState.Loaded
+
     if (useDialogBatch != null) {
         val batch = useDialogBatch!!
         AlertDialog(
@@ -121,10 +123,10 @@ fun SupplyInventoryScreen(
         )
     }
 
-    if (showAddDialog) {
+    if (showAddDialog && loaded != null) {
         AddSupplyDialog(
-            types = uiState.types,
-            saving = uiState.saving,
+            types = loaded.types,
+            saving = loaded.saving,
             onDismiss = { showAddDialog = false },
             onSubmit = { typeId, qty, costCents, notes ->
                 viewModel.createInventory(typeId, qty, costCents, notes) {
@@ -171,48 +173,51 @@ fun SupplyInventoryScreen(
             FaltetFab(onClick = { showAddDialog = true }, contentDescription = "Lägg till material")
         },
     ) { padding ->
-        when {
-            uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
-            uiState.error != null && uiState.items.isEmpty() -> Box(
+        when (val state = uiState) {
+            is SupplyInventoryUiState.Loading -> FaltetLoadingState(Modifier.padding(padding))
+            is SupplyInventoryUiState.Error -> Box(
                 Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center,
             ) {
                 ConnectionErrorState(onRetry = { viewModel.refresh() })
             }
-            uiState.items.isEmpty() && uiState.types.none { it.inexhaustible } -> FaltetEmptyState(
-                headline = "Inget material",
-                subtitle = "Lägg till ditt första material.",
-                modifier = Modifier.padding(padding),
-                action = {
-                    Button(onClick = { showAddDialog = true }) {
-                        Text("+ Lägg till material")
-                    }
-                },
-            )
-            else -> {
-                val grouped = remember(uiState.items, uiState.types) { groupSupplies(uiState.items, uiState.types) }
-                LazyColumn(Modifier.fillMaxSize().padding(padding)) {
-                    grouped.forEach { (category, typeGroups) ->
-                        item(key = "header_$category") {
-                            FaltetSectionHeader(label = categoryLabelSv(category))
+            is SupplyInventoryUiState.Loaded -> {
+                if (state.items.isEmpty() && state.types.none { it.inexhaustible }) {
+                    FaltetEmptyState(
+                        headline = "Inget material",
+                        subtitle = "Lägg till ditt första material.",
+                        modifier = Modifier.padding(padding),
+                        action = {
+                            Button(onClick = { showAddDialog = true }) {
+                                Text("+ Lägg till material")
+                            }
+                        },
+                    )
+                } else {
+                    val grouped = remember(state.items, state.types) { groupSupplies(state.items, state.types) }
+                    LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+                        grouped.forEach { (category, typeGroups) ->
+                            item(key = "header_$category") {
+                                FaltetSectionHeader(label = categoryLabelSv(category))
+                            }
+                            items(typeGroups, key = { "type_${it.supplyTypeId}" }) { typeGroup ->
+                                SupplyTypeFaltetRow(
+                                    group = typeGroup,
+                                    category = category,
+                                    isDecrementing = state.decrementingId,
+                                    onUseBatch = { batch ->
+                                        useDialogBatch = batch
+                                        useAmount = formatQuantity(batch.quantity, "").trim()
+                                    },
+                                    onLongClick = {
+                                        state.types.firstOrNull { it.id == typeGroup.supplyTypeId }
+                                            ?.let { editTypeTarget = it }
+                                    },
+                                )
+                            }
                         }
-                        items(typeGroups, key = { "type_${it.supplyTypeId}" }) { typeGroup ->
-                            SupplyTypeFaltetRow(
-                                group = typeGroup,
-                                category = category,
-                                isDecrementing = uiState.decrementingId,
-                                onUseBatch = { batch ->
-                                    useDialogBatch = batch
-                                    useAmount = formatQuantity(batch.quantity, "").trim()
-                                },
-                                onLongClick = {
-                                    uiState.types.firstOrNull { it.id == typeGroup.supplyTypeId }
-                                        ?.let { editTypeTarget = it }
-                                },
-                            )
-                        }
+                        item { Spacer(Modifier.height(80.dp)) }
                     }
-                    item { Spacer(Modifier.height(80.dp)) }
                 }
             }
         }

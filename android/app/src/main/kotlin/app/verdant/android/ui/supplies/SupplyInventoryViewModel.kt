@@ -17,34 +17,49 @@ import javax.inject.Inject
 
 private const val TAG = "SupplyInventoryViewModel"
 
-data class SupplyInventoryState(
-    val isLoading: Boolean = true,
-    val items: List<SupplyInventoryResponse> = emptyList(),
-    val types: List<SupplyTypeResponse> = emptyList(),
-    val error: String? = null,
-    val decrementingId: Long? = null,
-    val saving: Boolean = false,
-)
+/**
+ * Three-state UI: cold load shows a spinner, errors that block first-load
+ * show a retry, and once we have data we stay in [Loaded] — even while
+ * subsequent refreshes are in flight, so the list doesn't flicker.
+ */
+sealed interface SupplyInventoryUiState {
+    data object Loading : SupplyInventoryUiState
+    data class Error(val message: String) : SupplyInventoryUiState
+    data class Loaded(
+        val items: List<SupplyInventoryResponse>,
+        val types: List<SupplyTypeResponse>,
+        val isRefreshing: Boolean = false,
+        val decrementingId: Long? = null,
+        val saving: Boolean = false,
+    ) : SupplyInventoryUiState
+}
 
 @HiltViewModel
 class SupplyInventoryViewModel @Inject constructor(
     private val supplyRepository: SupplyRepository,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(SupplyInventoryState())
+    private val _uiState = MutableStateFlow<SupplyInventoryUiState>(SupplyInventoryUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
     init { refresh() }
 
     fun refresh() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            val current = _uiState.value
+            if (current is SupplyInventoryUiState.Loaded) {
+                _uiState.value = current.copy(isRefreshing = true)
+            }
             try {
                 val items = supplyRepository.listInventory()
                 val types = runCatching { supplyRepository.listTypes() }.getOrDefault(emptyList())
-                _uiState.value = _uiState.value.copy(isLoading = false, items = items, types = types)
+                _uiState.value = SupplyInventoryUiState.Loaded(items = items, types = types)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load supply inventory", e)
-                _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
+                _uiState.value = if (current is SupplyInventoryUiState.Loaded) {
+                    current.copy(isRefreshing = false)
+                } else {
+                    SupplyInventoryUiState.Error(e.message ?: "Kunde inte ladda material")
+                }
             }
         }
     }
@@ -57,7 +72,8 @@ class SupplyInventoryViewModel @Inject constructor(
         onDone: () -> Unit,
     ) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(saving = true)
+            val current = _uiState.value as? SupplyInventoryUiState.Loaded ?: return@launch
+            _uiState.value = current.copy(saving = true)
             try {
                 supplyRepository.createInventory(
                     CreateSupplyInventoryRequest(
@@ -67,12 +83,11 @@ class SupplyInventoryViewModel @Inject constructor(
                         notes = notes,
                     ),
                 )
-                _uiState.value = _uiState.value.copy(saving = false)
                 refresh()
                 onDone()
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to create supply inventory", e)
-                _uiState.value = _uiState.value.copy(saving = false, error = e.message)
+                _uiState.value = current.copy(saving = false)
             }
         }
     }
@@ -85,18 +100,18 @@ class SupplyInventoryViewModel @Inject constructor(
         onCreated: (SupplyTypeResponse) -> Unit,
     ) {
         viewModelScope.launch {
+            val current = _uiState.value as? SupplyInventoryUiState.Loaded ?: return@launch
             try {
                 val created = supplyRepository.createType(
                     CreateSupplyTypeRequest(
                         name = name, category = category, unit = unit, inexhaustible = inexhaustible,
                     ),
                 )
-                _uiState.value = _uiState.value.copy(types = (_uiState.value.types + created).sortedBy { it.name })
+                _uiState.value = current.copy(types = (current.types + created).sortedBy { it.name })
                 onCreated(created)
                 if (inexhaustible) refresh()
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to create supply type", e)
-                _uiState.value = _uiState.value.copy(error = e.message)
             }
         }
     }
@@ -121,7 +136,6 @@ class SupplyInventoryViewModel @Inject constructor(
                 onDone()
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to update supply type", e)
-                _uiState.value = _uiState.value.copy(error = e.message)
             }
         }
     }
@@ -134,20 +148,20 @@ class SupplyInventoryViewModel @Inject constructor(
                 onDone()
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to delete supply type", e)
-                _uiState.value = _uiState.value.copy(error = e.message)
             }
         }
     }
 
     fun decrement(id: Long, quantity: Double) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(decrementingId = id)
+            val current = _uiState.value as? SupplyInventoryUiState.Loaded ?: return@launch
+            _uiState.value = current.copy(decrementingId = id)
             try {
                 supplyRepository.decrement(id, quantity)
                 refresh()
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to decrement supply", e)
-                _uiState.value = _uiState.value.copy(decrementingId = null, error = e.message)
+                _uiState.value = current.copy(decrementingId = null)
             }
         }
     }

@@ -65,10 +65,12 @@ fun PlantedSpeciesDetailScreen(
     viewModel: PlantedSpeciesDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val loaded = uiState as? PlantedSpeciesDetailUiState.Loaded
+    val locations = loaded?.locations ?: emptyList()
 
     val statusOrder = listOf("SEEDED", "POTTED_UP", "PLANTED_OUT", "GROWING", "HARVESTED", "RECOVERED", "REMOVED")
-    val byStatus: List<Pair<String, List<PlantLocationGroup>>> = remember(uiState.locations) {
-        uiState.locations
+    val byStatus: List<Pair<String, List<PlantLocationGroup>>> = remember(locations) {
+        locations
             .groupBy { it.status }
             .toList()
             .sortedBy { (status, _) ->
@@ -76,9 +78,7 @@ fun PlantedSpeciesDetailScreen(
             }
     }
 
-    val aggregateCount = remember(uiState.locations) {
-        uiState.locations.sumOf { it.count }
-    }
+    val aggregateCount = remember(locations) { locations.sumOf { it.count } }
 
     var selectedSubItem by remember { mutableStateOf<PlantLocationGroup?>(null) }
     var actionCount by remember { mutableStateOf("") }
@@ -96,9 +96,9 @@ fun PlantedSpeciesDetailScreen(
     var eventChooserTarget by remember { mutableStateOf<EventTarget?>(null) }
     var editDateTarget by remember { mutableStateOf<EventTarget?>(null) }
     var deleteEventTarget by remember { mutableStateOf<EventTarget?>(null) }
-    androidx.compose.runtime.LaunchedEffect(uiState.locations) {
+    androidx.compose.runtime.LaunchedEffect(locations) {
         // Default-expand every tray row so the events show without an extra tap.
-        expandedTrayStatuses.value = uiState.locations.filter { it.bedId == null }
+        expandedTrayStatuses.value = locations.filter { it.bedId == null }
             .map { it.status }.toSet()
     }
 
@@ -243,7 +243,7 @@ fun PlantedSpeciesDetailScreen(
                         onExpandedChange = { bedExpanded = it },
                     ) {
                         OutlinedTextField(
-                            value = uiState.beds.find { it.id == selectedTargetBedId }?.let { "${it.gardenName} - ${it.name}" } ?: "",
+                            value = (loaded?.beds ?: emptyList()).find { it.id == selectedTargetBedId }?.let { "${it.gardenName} - ${it.name}" } ?: "",
                             onValueChange = {},
                             readOnly = true,
                             placeholder = { Text("Välj bädd") },
@@ -254,7 +254,7 @@ fun PlantedSpeciesDetailScreen(
                             expanded = bedExpanded,
                             onDismissRequest = { bedExpanded = false },
                         ) {
-                            uiState.beds.forEach { bed ->
+                            (loaded?.beds ?: emptyList()).forEach { bed ->
                                 DropdownMenuItem(
                                     text = { Text("${bed.gardenName} - ${bed.name}") },
                                     onClick = { selectedTargetBedId = bed.id; bedExpanded = false },
@@ -289,7 +289,7 @@ fun PlantedSpeciesDetailScreen(
     if (selectedSubItem != null && moveMode) {
         val item = selectedSubItem!!
         val count = actionCount.toIntOrNull() ?: 0
-        val targetOptions = uiState.trayLocations.filter { it.id != item.trayLocationId }
+        val targetOptions = (loaded?.trayLocations ?: emptyList()).filter { it.id != item.trayLocationId }
         val sourceLabel = item.trayLocationName ?: "Utan plats"
         val canSubmit = (detachLocation || selectedTargetTrayLocationId != null) &&
             count in 1..item.count && !actionSubmitting
@@ -379,22 +379,23 @@ fun PlantedSpeciesDetailScreen(
 
     FaltetScreenScaffold(
         mastheadLeft = "",
-        mastheadCenter = uiState.speciesName,
+        mastheadCenter = loaded?.speciesName ?: "",
     ) { padding ->
-        when {
-            uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
-            uiState.error != null -> Box(
+        when (val state = uiState) {
+            is PlantedSpeciesDetailUiState.Loading -> FaltetLoadingState(Modifier.padding(padding))
+            is PlantedSpeciesDetailUiState.Error -> Box(
                 Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center,
             ) {
                 ConnectionErrorState(onRetry = { viewModel.load() })
             }
-            uiState.speciesName.isEmpty() && uiState.locations.isEmpty() -> FaltetEmptyState(
-                headline = "Arten hittades inte",
-                subtitle = "Arten kan ha tagits bort.",
-                modifier = Modifier.padding(padding),
-            )
-            else -> {
+            is PlantedSpeciesDetailUiState.Loaded -> if (state.speciesName.isEmpty() && state.locations.isEmpty()) {
+                FaltetEmptyState(
+                    headline = "Arten hittades inte",
+                    subtitle = "Arten kan ha tagits bort.",
+                    modifier = Modifier.padding(padding),
+                )
+            } else {
                 LazyColumn(Modifier.fillMaxSize().padding(padding)) {
                     item {
                         Column(
@@ -404,7 +405,7 @@ fun PlantedSpeciesDetailScreen(
                             verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
                             Text(
-                                text = uiState.speciesName,
+                                text = state.speciesName,
                                 fontFamily = FaltetDisplay,
                                 fontStyle = FontStyle.Italic,
                                 fontSize = 24.sp,
@@ -424,14 +425,14 @@ fun PlantedSpeciesDetailScreen(
                         item { FaltetSectionHeader(label = "Plantor") }
                         item { InlineEmpty("Inga plantor av denna art ännu.") }
                     } else {
-                        byStatus.forEach { (status, locations) ->
-                            if (locations.isEmpty()) return@forEach
+                        byStatus.forEach { (status, locsForStatus) ->
+                            if (locsForStatus.isEmpty()) return@forEach
                             item(key = "card_${status}") {
                                 StatusSectionCard(
                                     status = status,
-                                    locations = locations,
+                                    locations = locsForStatus,
                                     expandedTrayStatuses = expandedTrayStatuses.value,
-                                    trayEvents = uiState.trayEvents,
+                                    trayEvents = state.trayEvents,
                                     onTrayToggle = { s ->
                                         expandedTrayStatuses.value =
                                             if (s in expandedTrayStatuses.value) expandedTrayStatuses.value - s

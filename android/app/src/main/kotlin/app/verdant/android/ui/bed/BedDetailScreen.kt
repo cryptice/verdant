@@ -79,6 +79,7 @@ fun BedDetailScreen(
     viewModel: BedDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val loaded = uiState as? BedDetailUiState.Loaded
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
@@ -88,8 +89,8 @@ fun BedDetailScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showAddDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
-    LaunchedEffect(uiState.toastMessage) {
-        uiState.toastMessage?.let {
+    LaunchedEffect(loaded?.toastMessage) {
+        loaded?.toastMessage?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.consumeToast()
         }
@@ -112,13 +113,13 @@ fun BedDetailScreen(
     val editSoilPhError = editSoilPhText.isNotBlank() &&
         editSoilPhText.toDoubleOrNull().let { it == null || it < 3.0 || it > 9.0 }
 
-    LaunchedEffect(uiState.deleted) {
-        if (uiState.deleted) onBack()
+    LaunchedEffect(loaded?.deleted) {
+        if (loaded?.deleted == true) onBack()
     }
 
     var didAutoOpenEdit by remember { mutableStateOf(false) }
-    LaunchedEffect(uiState.bed) {
-        val bed = uiState.bed
+    LaunchedEffect(loaded?.bed) {
+        val bed = loaded?.bed
         if (openEditOnStart && !didAutoOpenEdit && bed != null) {
             editName = bed.name
             editDescription = bed.description ?: ""
@@ -139,7 +140,7 @@ fun BedDetailScreen(
         }
     }
 
-    val source = uiState.bed
+    val source = loaded?.bed
     val editDirty = editing && source != null && (
         editName != source.name ||
             editDescription != (source.description ?: "") ||
@@ -260,7 +261,7 @@ fun BedDetailScreen(
     }
 
     if (showAddDialog) {
-        val bedId = uiState.bed?.id ?: 0L
+        val bedId = loaded?.bed?.id ?: 0L
         AlertDialog(
             onDismissRequest = { showAddDialog = false },
             title = { Text("Åtgärd") },
@@ -300,8 +301,8 @@ fun BedDetailScreen(
         )
     }
 
-    if (showDeleteDialog && uiState.bed != null) {
-        val bed = uiState.bed!!
+    if (showDeleteDialog && loaded?.bed != null) {
+        val bed = loaded.bed
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             title = { Text("Ta bort bädd") },
@@ -320,32 +321,31 @@ fun BedDetailScreen(
     }
 
     FaltetScreenScaffold(
-        mastheadLeft = uiState.gardenName?.let { "← $it" } ?: "§ Bädd",
-        onMastheadLeftClick = uiState.bed?.gardenId?.let { gid -> { onGardenClick(gid) } },
-        mastheadCenter = uiState.bed?.name ?: "",
+        mastheadLeft = loaded?.gardenName?.let { "← $it" } ?: "§ Bädd",
+        onMastheadLeftClick = loaded?.bed?.gardenId?.let { gid -> { onGardenClick(gid) } },
+        mastheadCenter = loaded?.bed?.name ?: "",
         mastheadRight = {
-            if (uiState.bed != null) {
+            if (loaded?.bed != null) {
+                val bed = loaded.bed
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     IconButton(
                         onClick = {
-                            uiState.bed?.let { bed ->
-                                editName = bed.name
-                                editDescription = bed.description ?: ""
-                                editSoilType = bed.soilType
-                                editSoilPhText = bed.soilPh?.toString() ?: ""
-                                editSunExposure = bed.sunExposure
-                                editSunDirections = bed.sunDirections?.toSet() ?: emptySet()
-                                editDrainage = bed.drainage
-                                editIrrigationType = bed.irrigationType
-                                editProtection = bed.protection
-                                editRaisedBed = bed.raisedBed
-                                editConditionsExpanded = listOf(
-                                    bed.soilType, bed.soilPh?.toString(), bed.sunExposure,
-                                    bed.drainage, bed.irrigationType, bed.protection,
-                                    bed.raisedBed?.toString()
-                                ).any { it != null } || !bed.sunDirections.isNullOrEmpty()
-                                editing = true
-                            }
+                            editName = bed.name
+                            editDescription = bed.description ?: ""
+                            editSoilType = bed.soilType
+                            editSoilPhText = bed.soilPh?.toString() ?: ""
+                            editSunExposure = bed.sunExposure
+                            editSunDirections = bed.sunDirections?.toSet() ?: emptySet()
+                            editDrainage = bed.drainage
+                            editIrrigationType = bed.irrigationType
+                            editProtection = bed.protection
+                            editRaisedBed = bed.raisedBed
+                            editConditionsExpanded = listOf(
+                                bed.soilType, bed.soilPh?.toString(), bed.sunExposure,
+                                bed.drainage, bed.irrigationType, bed.protection,
+                                bed.raisedBed?.toString()
+                            ).any { it != null } || !bed.sunDirections.isNullOrEmpty()
+                            editing = true
                         },
                         modifier = Modifier.size(36.dp),
                     ) {
@@ -367,7 +367,7 @@ fun BedDetailScreen(
             }
         },
         fab = {
-            uiState.bed?.let {
+            loaded?.bed?.let {
                 FaltetFab(
                     onClick = { showAddDialog = true },
                     contentDescription = "Åtgärd",
@@ -377,21 +377,16 @@ fun BedDetailScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
-        when {
-            uiState.isLoading && uiState.bed == null -> FaltetLoadingState(Modifier.padding(padding))
-            uiState.error != null -> Box(
+        when (val state = uiState) {
+            is BedDetailUiState.Loading -> FaltetLoadingState(Modifier.padding(padding))
+            is BedDetailUiState.Error -> Box(
                 Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center,
             ) {
                 ConnectionErrorState(onRetry = { viewModel.refresh() })
             }
-            uiState.bed == null -> FaltetEmptyState(
-                headline = "Bädden hittades inte",
-                subtitle = "Bädden kan ha tagits bort.",
-                modifier = Modifier.padding(padding),
-            )
-            else -> {
-                val bed = uiState.bed!!
+            is BedDetailUiState.Loaded -> {
+                val bed = state.bed
                 LazyColumn(Modifier.fillMaxSize().padding(padding)) {
                     item {
                         Column(
@@ -480,10 +475,10 @@ fun BedDetailScreen(
 
                     // Plantor section
                     item { FaltetSectionHeader(label = "Plantor") }
-                    if (uiState.plants.isEmpty()) {
+                    if (state.plants.isEmpty()) {
                         item { InlineEmpty("Inga plantor ännu.") }
                     } else {
-                        items(uiState.plants, key = { it.id }) { plant ->
+                        items(state.plants, key = { it.id }) { plant ->
                             val count = plant.survivingCount ?: plant.seedCount
                             FaltetListRow(
                                 title = plant.name,
@@ -503,10 +498,10 @@ fun BedDetailScreen(
 
                     // Skötsel section — bed-level maintenance log (water, weed, …)
                     item { FaltetSectionHeader(label = "Skötsel") }
-                    if (uiState.bedEvents.isEmpty()) {
+                    if (state.bedEvents.isEmpty()) {
                         item { InlineEmpty("Inga skötselhändelser ännu.") }
                     } else {
-                        items(uiState.bedEvents, key = { "be_${it.id}" }) { ev ->
+                        items(state.bedEvents, key = { "be_${it.id}" }) { ev ->
                             FaltetListRow(
                                 title = bedEventLabelSv(ev.eventType),
                                 meta = buildString {
@@ -521,10 +516,10 @@ fun BedDetailScreen(
 
                     // Gödsling & vatten section
                     item { FaltetSectionHeader(label = "Gödsling & vatten") }
-                    if (uiState.applications.isEmpty()) {
+                    if (state.applications.isEmpty()) {
                         item { InlineEmpty("Inga gödslingar ännu.") }
                     } else {
-                        items(uiState.applications, key = { it.id }) { application ->
+                        items(state.applications, key = { it.id }) { application ->
                             FaltetListRow(
                                 title = application.supplyTypeName,
                                 meta = formattedDate(application.appliedAt.take(10)),

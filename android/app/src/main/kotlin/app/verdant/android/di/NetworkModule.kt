@@ -14,15 +14,20 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.runBlocking
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
-import java.util.concurrent.TimeUnit
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
+/**
+ * Wires OkHttp / Retrofit / [VerdantApi]. Authentication, org-scoping, and
+ * the backend-toggle interceptor live here so the rest of the app talks to a
+ * configured Retrofit instance and nothing else.
+ */
 @Module
 @InstallIn(SingletonComponent::class)
-object AppModule {
+object NetworkModule {
 
     @Provides
     @Singleton

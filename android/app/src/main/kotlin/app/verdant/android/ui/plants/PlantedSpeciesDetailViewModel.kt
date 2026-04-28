@@ -25,16 +25,24 @@ import javax.inject.Inject
 
 private const val TAG = "PlantedSpeciesDetailViewModel"
 
-data class PlantedSpeciesDetailState(
-    val isLoading: Boolean = true,
-    val speciesName: String = "",
-    val tasks: List<ScheduledTaskResponse> = emptyList(),
-    val locations: List<PlantLocationGroup> = emptyList(),
-    val beds: List<BedWithGardenResponse> = emptyList(),
-    val trayLocations: List<TrayLocationResponse> = emptyList(),
-    val trayEvents: List<SpeciesEventSummaryEntry> = emptyList(),
-    val error: String? = null,
-)
+/**
+ * Three-state UI: cold load shows a spinner, hard errors show retry, and
+ * once we have data we stay [Loaded] across refreshes so the screen
+ * doesn't flicker.
+ */
+sealed interface PlantedSpeciesDetailUiState {
+    data object Loading : PlantedSpeciesDetailUiState
+    data class Error(val message: String) : PlantedSpeciesDetailUiState
+    data class Loaded(
+        val speciesName: String,
+        val tasks: List<ScheduledTaskResponse>,
+        val locations: List<PlantLocationGroup>,
+        val beds: List<BedWithGardenResponse>,
+        val trayLocations: List<TrayLocationResponse>,
+        val trayEvents: List<SpeciesEventSummaryEntry>,
+        val isRefreshing: Boolean = false,
+    ) : PlantedSpeciesDetailUiState
+}
 
 @HiltViewModel
 class PlantedSpeciesDetailViewModel @Inject constructor(
@@ -45,7 +53,7 @@ class PlantedSpeciesDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val speciesId: Long = savedStateHandle["speciesId"]!!
-    private val _uiState = MutableStateFlow(PlantedSpeciesDetailState())
+    private val _uiState = MutableStateFlow<PlantedSpeciesDetailUiState>(PlantedSpeciesDetailUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
     init { load() }
@@ -152,7 +160,10 @@ class PlantedSpeciesDetailViewModel @Inject constructor(
 
     fun load() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            val current = _uiState.value
+            if (current is PlantedSpeciesDetailUiState.Loaded) {
+                _uiState.value = current.copy(isRefreshing = true)
+            }
             try {
                 val locations = plantRepository.speciesLocations(speciesId)
                 val beds = bedRepository.listAll()
@@ -168,8 +179,7 @@ class PlantedSpeciesDetailViewModel @Inject constructor(
                     .getOrDefault(emptyList())
                 val trayLocations = runCatching { trayLocationRepository.list() }
                     .getOrDefault(emptyList())
-                _uiState.value = PlantedSpeciesDetailState(
-                    isLoading = false,
+                _uiState.value = PlantedSpeciesDetailUiState.Loaded(
                     speciesName = name,
                     tasks = tasks,
                     locations = locations,
@@ -178,7 +188,11 @@ class PlantedSpeciesDetailViewModel @Inject constructor(
                     trayEvents = trayEvents,
                 )
             } catch (e: Exception) {
-                _uiState.value = PlantedSpeciesDetailState(isLoading = false, error = e.message)
+                _uiState.value = if (current is PlantedSpeciesDetailUiState.Loaded) {
+                    current.copy(isRefreshing = false)
+                } else {
+                    PlantedSpeciesDetailUiState.Error(e.message ?: "Kunde inte ladda art")
+                }
             }
         }
     }
