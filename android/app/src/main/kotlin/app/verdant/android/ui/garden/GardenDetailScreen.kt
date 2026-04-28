@@ -1,4 +1,7 @@
 package app.verdant.android.ui.garden
+import app.verdant.android.data.repository.BedRepository
+import app.verdant.android.data.repository.GardenApiRepository
+import app.verdant.android.data.repository.PlantRepository
 
 import android.util.Log
 import androidx.compose.foundation.clickable
@@ -52,7 +55,6 @@ import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.BedResponse
 import app.verdant.android.data.model.GardenResponse
 import app.verdant.android.data.model.UpdateGardenRequest
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.Field
 import app.verdant.android.ui.faltet.FaltetEmptyState
@@ -86,7 +88,9 @@ data class GardenDetailState(
 @HiltViewModel
 class GardenDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val gardenRepository: GardenRepository
+    private val gardenApiRepository: GardenApiRepository,
+    private val bedRepository: BedRepository,
+    private val plantRepository: PlantRepository
 ) : ViewModel() {
     private val gardenId: Long = savedStateHandle.get<Long>("gardenId")!!
     private val _uiState = MutableStateFlow(GardenDetailState())
@@ -106,11 +110,11 @@ class GardenDetailViewModel @Inject constructor(
             for (attempt in 1..3) {
                 try {
                     Log.d(TAG, "Loading garden $gardenId (attempt $attempt)")
-                    val garden = gardenRepository.getGarden(gardenId)
+                    val garden = gardenApiRepository.get(gardenId)
                     Log.d(TAG, "Garden loaded: ${garden.name}")
-                    val beds = gardenRepository.getBeds(gardenId).sortedBy { it.name.lowercase() }
+                    val beds = bedRepository.list(gardenId).sortedBy { it.name.lowercase() }
                     Log.d(TAG, "Beds loaded: ${beds.size}")
-                    val tray = runCatching { gardenRepository.getTraySummary() }.getOrDefault(emptyList())
+                    val tray = runCatching { plantRepository.traySummary() }.getOrDefault(emptyList())
                     _uiState.value = GardenDetailState(isLoading = false, garden = garden, beds = beds, trayPlants = tray)
                     return@launch
                 } catch (e: Exception) {
@@ -126,7 +130,7 @@ class GardenDetailViewModel @Inject constructor(
     fun update(name: String, description: String?, emoji: String?) {
         viewModelScope.launch {
             try {
-                gardenRepository.updateGarden(gardenId, UpdateGardenRequest(name = name, description = description, emoji = emoji))
+                gardenApiRepository.update(gardenId, UpdateGardenRequest(name = name, description = description, emoji = emoji))
                 refresh()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)
@@ -137,7 +141,7 @@ class GardenDetailViewModel @Inject constructor(
     fun delete() {
         viewModelScope.launch {
             try {
-                gardenRepository.deleteGarden(gardenId)
+                gardenApiRepository.delete(gardenId)
                 _uiState.value = _uiState.value.copy(deleted = true)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)

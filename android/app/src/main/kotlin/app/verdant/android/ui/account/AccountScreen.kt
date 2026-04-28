@@ -1,4 +1,5 @@
 package app.verdant.android.ui.account
+import app.verdant.android.data.repository.UserRepository
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,7 +31,6 @@ import app.verdant.android.data.BackendStore
 import app.verdant.android.data.model.UpdateUserRequest
 import app.verdant.android.data.model.UserResponse
 import app.verdant.android.data.repository.AuthRepository
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.faltet.FaltetAvatar
 import app.verdant.android.ui.faltet.FaltetChipSelector
 import app.verdant.android.ui.faltet.FaltetHero
@@ -60,7 +60,7 @@ private const val DEV_EMAIL = "erik@l2c.se"
 
 @HiltViewModel
 class AccountViewModel @Inject constructor(
-    private val gardenRepository: GardenRepository,
+    private val userRepository: UserRepository,
     private val authRepository: AuthRepository,
     private val backendStore: BackendStore,
 ) : ViewModel() {
@@ -80,7 +80,7 @@ class AccountViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = AccountState(isLoading = true)
             try {
-                val user = gardenRepository.getMe()
+                val user = userRepository.me()
                 _uiState.value = AccountState(isLoading = false, user = user)
             } catch (e: Exception) {
                 _uiState.value = AccountState(isLoading = false, error = e.message)
@@ -98,8 +98,8 @@ class AccountViewModel @Inject constructor(
     fun updateLanguage(language: String) {
         viewModelScope.launch {
             try {
-                gardenRepository.updateMe(UpdateUserRequest(language = language))
-                val user = gardenRepository.getMe()
+                userRepository.updateMe(UpdateUserRequest(language = language))
+                val user = userRepository.me()
                 _uiState.value = AccountState(isLoading = false, user = user)
                 AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(language))
             } catch (e: Exception) {
@@ -115,7 +115,7 @@ class AccountViewModel @Inject constructor(
     fun deleteAccount() {
         viewModelScope.launch {
             try {
-                gardenRepository.deleteMe()
+                userRepository.deleteMe()
                 authRepository.signOut()
                 _uiState.value = _uiState.value.copy(signedOut = true)
             } catch (e: Exception) {

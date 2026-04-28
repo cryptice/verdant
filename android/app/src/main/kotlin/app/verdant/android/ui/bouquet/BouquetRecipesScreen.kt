@@ -1,4 +1,6 @@
 package app.verdant.android.ui.bouquet
+import app.verdant.android.data.repository.BouquetRepository
+import app.verdant.android.data.repository.SpeciesRepository
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -67,7 +69,6 @@ import app.verdant.android.data.model.ItemRole
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.UpdateBouquetRecipeRequest
 import app.verdant.android.data.model.sortedBySwedishName
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetFab
@@ -94,7 +95,8 @@ data class BouquetState(
 
 @HiltViewModel
 class BouquetViewModel @Inject constructor(
-    private val repo: GardenRepository,
+    private val bouquetRepository: BouquetRepository,
+    private val speciesRepository: SpeciesRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(BouquetState())
     val uiState = _uiState.asStateFlow()
@@ -105,8 +107,8 @@ class BouquetViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val items = repo.getBouquetRecipes()
-                val species = repo.getSpecies().sortedBySwedishName()
+                val items = bouquetRepository.listRecipes()
+                val species = speciesRepository.list().sortedBySwedishName()
                 _uiState.value = _uiState.value.copy(isLoading = false, items = items, species = species)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
@@ -118,7 +120,7 @@ class BouquetViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(saving = true)
             try {
-                repo.createBouquetRecipe(request)
+                bouquetRepository.createRecipe(request)
                 _uiState.value = _uiState.value.copy(saving = false)
                 refresh()
             } catch (e: Exception) {
@@ -131,7 +133,7 @@ class BouquetViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(saving = true)
             try {
-                repo.updateBouquetRecipe(id, request)
+                bouquetRepository.updateRecipe(id, request)
                 _uiState.value = _uiState.value.copy(saving = false)
                 refresh()
             } catch (e: Exception) {
@@ -143,7 +145,7 @@ class BouquetViewModel @Inject constructor(
     fun delete(id: Long) {
         viewModelScope.launch {
             try {
-                repo.deleteBouquetRecipe(id)
+                bouquetRepository.deleteRecipe(id)
                 refresh()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)

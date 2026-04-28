@@ -1,4 +1,6 @@
 package app.verdant.android.ui.activity
+import app.verdant.android.data.repository.BedRepository
+import app.verdant.android.data.repository.PlantRepository
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -33,7 +35,6 @@ import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.BatchEventRequest
 import app.verdant.android.data.model.BedWithGardenResponse
 import app.verdant.android.data.model.PlantGroupResponse
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.faltet.FaltetDropdown
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetFormSubmitBar
@@ -59,7 +60,8 @@ data class BatchPlantOutState(
 @HiltViewModel
 class BatchPlantOutViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val repo: GardenRepository
+    private val plantRepository: PlantRepository,
+    private val bedRepository: BedRepository
 ) : ViewModel() {
     val targetBedId: Long = savedStateHandle.get<Long>("bedId") ?: 0L
     private val _uiState = MutableStateFlow(BatchPlantOutState())
@@ -70,9 +72,9 @@ class BatchPlantOutViewModel @Inject constructor(
     private fun loadData() {
         viewModelScope.launch {
             try {
-                val seeded = repo.getPlantGroups("SEEDED", trayOnly = true)
-                val pottedUp = repo.getPlantGroups("POTTED_UP", trayOnly = true)
-                val beds = repo.getAllBeds()
+                val seeded = plantRepository.groupedByStatus("SEEDED", trayOnly = true)
+                val pottedUp = plantRepository.groupedByStatus("POTTED_UP", trayOnly = true)
+                val beds = bedRepository.listAll()
                 _uiState.value = BatchPlantOutState(isLoading = false, groups = seeded + pottedUp, beds = beds)
             } catch (e: Exception) {
                 _uiState.value = BatchPlantOutState(isLoading = false, error = e.message)
@@ -84,7 +86,7 @@ class BatchPlantOutViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(submitting = true, error = null)
             try {
-                repo.batchEvent(
+                plantRepository.batchEvent(
                     BatchEventRequest(
                         speciesId = group.speciesId,
                         bedId = group.bedId,

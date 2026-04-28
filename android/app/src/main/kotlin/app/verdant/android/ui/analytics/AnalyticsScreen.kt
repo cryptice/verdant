@@ -1,4 +1,6 @@
 package app.verdant.android.ui.analytics
+import app.verdant.android.data.repository.AnalyticsRepository
+import app.verdant.android.data.repository.SpeciesRepository
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -31,7 +33,6 @@ import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.SeasonSummaryResponse
 import app.verdant.android.data.model.YieldPerBedResponse
 import app.verdant.android.data.model.sortedBySwedishName
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetDropdown
 import app.verdant.android.ui.faltet.FaltetListRow
@@ -59,7 +60,8 @@ data class AnalyticsState(
 
 @HiltViewModel
 class AnalyticsViewModel @Inject constructor(
-    private val repo: GardenRepository,
+    private val analyticsRepository: AnalyticsRepository,
+    private val speciesRepository: SpeciesRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AnalyticsState())
     val uiState = _uiState.asStateFlow()
@@ -70,9 +72,9 @@ class AnalyticsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val summaries = repo.getSeasonSummaries()
-                val beds = repo.getYieldPerBed()
-                val species = repo.getSpecies().sortedBySwedishName()
+                val summaries = analyticsRepository.seasonSummaries()
+                val beds = analyticsRepository.yieldPerBed()
+                val species = speciesRepository.list().sortedBySwedishName()
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     seasonSummaries = summaries,
@@ -89,7 +91,7 @@ class AnalyticsViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(selectedSpeciesId = id, loadingComparison = true)
         viewModelScope.launch {
             try {
-                val c = repo.getSpeciesComparison(id)
+                val c = analyticsRepository.speciesComparison(id)
                 _uiState.value = _uiState.value.copy(comparison = c, loadingComparison = false)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(loadingComparison = false, error = e.message)

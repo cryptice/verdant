@@ -1,4 +1,7 @@
 package app.verdant.android.ui.trials
+import app.verdant.android.data.repository.SeasonRepository
+import app.verdant.android.data.repository.SpeciesRepository
+import app.verdant.android.data.repository.VarietyTrialRepository
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -49,7 +52,6 @@ import app.verdant.android.data.model.UpdateVarietyTrialRequest
 import app.verdant.android.data.model.VarietyTrialResponse
 import app.verdant.android.data.model.Verdict
 import app.verdant.android.data.model.sortedBySwedishName
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.Chip
 import app.verdant.android.ui.faltet.FaltetEmptyState
@@ -78,7 +80,9 @@ data class TrialsState(
 
 @HiltViewModel
 class TrialsViewModel @Inject constructor(
-    private val repo: GardenRepository,
+    private val seasonRepository: SeasonRepository,
+    private val varietyTrialRepository: VarietyTrialRepository,
+    private val speciesRepository: SpeciesRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TrialsState())
     val uiState = _uiState.asStateFlow()
@@ -89,10 +93,10 @@ class TrialsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val seasons = repo.getSeasons()
+                val seasons = seasonRepository.list()
                 val active = seasons.firstOrNull { it.isActive }
-                val items = repo.getVarietyTrials(active?.id)
-                val species = repo.getSpecies().sortedBySwedishName()
+                val items = varietyTrialRepository.list(active?.id)
+                val species = speciesRepository.list().sortedBySwedishName()
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     items = items,
@@ -110,7 +114,7 @@ class TrialsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(saving = true)
             try {
-                repo.createVarietyTrial(request)
+                varietyTrialRepository.create(request)
                 _uiState.value = _uiState.value.copy(saving = false)
                 refresh()
             } catch (e: Exception) {
@@ -123,7 +127,7 @@ class TrialsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(saving = true)
             try {
-                repo.updateVarietyTrial(id, request)
+                varietyTrialRepository.update(id, request)
                 _uiState.value = _uiState.value.copy(saving = false)
                 refresh()
             } catch (e: Exception) {
@@ -135,7 +139,7 @@ class TrialsViewModel @Inject constructor(
     fun delete(id: Long) {
         viewModelScope.launch {
             try {
-                repo.deleteVarietyTrial(id)
+                varietyTrialRepository.delete(id)
                 refresh()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)

@@ -1,4 +1,7 @@
 package app.verdant.android.ui.targets
+import app.verdant.android.data.repository.AnalyticsRepository
+import app.verdant.android.data.repository.SeasonRepository
+import app.verdant.android.data.repository.SpeciesRepository
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,7 +59,6 @@ import app.verdant.android.data.model.ProductionTargetResponse
 import app.verdant.android.data.model.SeasonResponse
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.sortedBySwedishName
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetFab
@@ -91,7 +93,9 @@ data class TargetsState(
 
 @HiltViewModel
 class TargetsViewModel @Inject constructor(
-    private val repo: GardenRepository,
+    private val seasonRepository: SeasonRepository,
+    private val analyticsRepository: AnalyticsRepository,
+    private val speciesRepository: SpeciesRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TargetsState())
     val uiState = _uiState.asStateFlow()
@@ -102,10 +106,10 @@ class TargetsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val seasons = repo.getSeasons()
+                val seasons = seasonRepository.list()
                 val active = seasons.firstOrNull { it.isActive }
-                val items = repo.getProductionTargets(active?.id)
-                val species = repo.getSpecies().sortedBySwedishName()
+                val items = analyticsRepository.productionTargets(active?.id)
+                val species = speciesRepository.list().sortedBySwedishName()
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     items = items,
@@ -123,7 +127,7 @@ class TargetsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(saving = true)
             try {
-                repo.createProductionTarget(payload)
+                analyticsRepository.createProductionTarget(payload)
                 _uiState.value = _uiState.value.copy(saving = false)
                 refresh()
             } catch (e: Exception) {
@@ -135,7 +139,7 @@ class TargetsViewModel @Inject constructor(
     fun delete(id: Long) {
         viewModelScope.launch {
             try {
-                repo.deleteProductionTarget(id)
+                analyticsRepository.deleteProductionTarget(id)
                 refresh()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)
@@ -148,7 +152,7 @@ class TargetsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(forecastLoadingId = id)
             try {
-                val forecast = repo.getProductionForecast(id)
+                val forecast = analyticsRepository.productionForecast(id)
                 _uiState.value = _uiState.value.copy(
                     forecastLoadingId = null,
                     forecasts = _uiState.value.forecasts + (id to forecast),

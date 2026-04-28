@@ -1,4 +1,7 @@
 package app.verdant.android.ui.plants
+import app.verdant.android.data.repository.PlantRepository
+import app.verdant.android.data.repository.SpeciesRepository
+import app.verdant.android.data.repository.SupplyRepository
 
 import android.util.Log
 import androidx.compose.foundation.layout.Box
@@ -32,7 +35,6 @@ import app.verdant.android.data.model.SpeciesPlantSummary
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.SupplyInventoryResponse
 import app.verdant.android.data.model.sortedBySwedishName
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetListRow
@@ -58,7 +60,9 @@ data class PlantedSpeciesListState(
 
 @HiltViewModel
 class PlantedSpeciesListViewModel @Inject constructor(
-    private val repo: GardenRepository,
+    private val plantRepository: PlantRepository,
+    private val speciesRepository: SpeciesRepository,
+    private val supplyRepository: SupplyRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(PlantedSpeciesListState())
     val uiState = _uiState.asStateFlow()
@@ -72,7 +76,7 @@ class PlantedSpeciesListViewModel @Inject constructor(
             // The supporting lists (species + supplies, used only by the voice
             // overlay) are loaded after — failures there must never block the UI.
             try {
-                val species = repo.getSpeciesPlantSummary()
+                val species = plantRepository.speciesSummary()
                 _uiState.value = _uiState.value.copy(species = species, error = null)
             } catch (e: Exception) {
                 Log.e("PlantedSpeciesList", "species-summary failed", e)
@@ -81,12 +85,12 @@ class PlantedSpeciesListViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(isLoading = false)
             }
             try {
-                _uiState.value = _uiState.value.copy(speciesList = repo.getSpecies().sortedBySwedishName())
+                _uiState.value = _uiState.value.copy(speciesList = speciesRepository.list().sortedBySwedishName())
             } catch (e: Exception) {
                 Log.w("PlantedSpeciesList", "species list failed", e)
             }
             try {
-                _uiState.value = _uiState.value.copy(supplyList = repo.getSupplyInventory())
+                _uiState.value = _uiState.value.copy(supplyList = supplyRepository.listInventory())
             } catch (e: Exception) {
                 Log.w("PlantedSpeciesList", "supply list failed", e)
             }
@@ -96,7 +100,7 @@ class PlantedSpeciesListViewModel @Inject constructor(
     suspend fun executePlantActivity(action: String, quantity: Int, species: SpeciesResponse) {
         if (action == "SOW") {
             val name = species.variantName?.let { "${species.commonName} $it" } ?: species.commonName
-            repo.batchSow(
+            plantRepository.batchSow(
                 BatchSowRequest(
                     speciesId = species.id,
                     name = name,
@@ -118,7 +122,7 @@ class PlantedSpeciesListViewModel @Inject constructor(
                 "HARVEST" -> "HARVESTED"
                 else -> "NOTE"
             }
-            repo.batchEvent(
+            plantRepository.batchEvent(
                 BatchEventRequest(
                     speciesId = species.id,
                     status = statusForAction,
@@ -131,7 +135,7 @@ class PlantedSpeciesListViewModel @Inject constructor(
     }
 
     suspend fun executeSupplyUsage(supply: SupplyInventoryResponse, quantity: Double) {
-        repo.decrementSupply(supply.id, quantity)
+        supplyRepository.decrement(supply.id, quantity)
     }
 }
 

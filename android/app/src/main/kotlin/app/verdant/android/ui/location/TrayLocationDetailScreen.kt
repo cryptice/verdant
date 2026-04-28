@@ -1,4 +1,6 @@
 package app.verdant.android.ui.location
+import app.verdant.android.data.repository.PlantRepository
+import app.verdant.android.data.repository.TrayLocationRepository
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
@@ -42,7 +44,6 @@ import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.MoveTrayLocationRequest
 import app.verdant.android.data.model.TrayLocationResponse
 import app.verdant.android.data.model.TraySummaryEntry
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetDropdown
 import app.verdant.android.ui.faltet.FaltetEmptyState
@@ -74,7 +75,8 @@ data class TrayLocationDetailState(
 
 @HiltViewModel
 class TrayLocationDetailViewModel @Inject constructor(
-    private val repo: GardenRepository,
+    private val trayLocationRepository: TrayLocationRepository,
+    private val plantRepository: PlantRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val locationId: Long = savedStateHandle.get<Long>("locationId")
@@ -89,9 +91,9 @@ class TrayLocationDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val all = repo.getTrayLocations()
+                val all = trayLocationRepository.list()
                 val loc = all.firstOrNull { it.id == locationId }
-                val summary = repo.getTraySummary().filter { it.trayLocationId == locationId }
+                val summary = plantRepository.traySummary().filter { it.trayLocationId == locationId }
                 _uiState.value = TrayLocationDetailState(
                     isLoading = false,
                     location = loc,
@@ -106,14 +108,14 @@ class TrayLocationDetailViewModel @Inject constructor(
         }
     }
 
-    fun water() = bulk("Vattnade") { repo.waterTrayLocation(locationId).plantsAffected }
+    fun water() = bulk("Vattnade") { trayLocationRepository.water(locationId).plantsAffected }
 
     fun note(text: String) = bulk("Anteckning sparad") {
-        repo.noteTrayLocation(locationId, text).plantsAffected
+        trayLocationRepository.note(locationId, text).plantsAffected
     }
 
     fun move(targetId: Long?, count: Int, speciesId: Long?, status: String?) = bulk("Flyttade") {
-        repo.moveTrayLocation(
+        trayLocationRepository.move(
             locationId,
             MoveTrayLocationRequest(
                 targetLocationId = targetId,
@@ -126,14 +128,14 @@ class TrayLocationDetailViewModel @Inject constructor(
 
     fun rename(newName: String) {
         viewModelScope.launch {
-            try { repo.updateTrayLocation(locationId, newName); refresh() }
+            try { trayLocationRepository.update(locationId, newName); refresh() }
             catch (e: Exception) { Log.e(TAG, "rename failed", e) }
         }
     }
 
     fun delete(onDeleted: () -> Unit) {
         viewModelScope.launch {
-            try { repo.deleteTrayLocation(locationId); onDeleted() }
+            try { trayLocationRepository.delete(locationId); onDeleted() }
             catch (e: Exception) { Log.e(TAG, "delete failed", e) }
         }
     }

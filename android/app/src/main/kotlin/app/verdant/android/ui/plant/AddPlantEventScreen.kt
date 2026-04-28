@@ -1,4 +1,6 @@
 package app.verdant.android.ui.plant
+import app.verdant.android.data.repository.CustomerRepository
+import app.verdant.android.data.repository.PlantRepository
 
 import android.graphics.Bitmap
 import android.util.Log
@@ -43,7 +45,6 @@ import app.verdant.android.data.model.CreatePlantEventRequest
 import app.verdant.android.data.model.CustomerResponse
 import app.verdant.android.data.model.IdentifyPlantRequest
 import app.verdant.android.data.model.PlantSuggestion
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.activity.toCompressedBase64
 import app.verdant.android.ui.faltet.FaltetChipSelector
 import app.verdant.android.ui.faltet.FaltetDropdown
@@ -78,7 +79,8 @@ data class AddPlantEventState(
 @HiltViewModel
 class AddPlantEventViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val gardenRepository: GardenRepository
+    private val customerRepository: CustomerRepository,
+    private val plantRepository: PlantRepository
 ) : ViewModel() {
     val plantId: Long = savedStateHandle.get<Long>("plantId")!!
     private val _uiState = MutableStateFlow(AddPlantEventState())
@@ -89,7 +91,7 @@ class AddPlantEventViewModel @Inject constructor(
     private fun loadCustomers() {
         viewModelScope.launch {
             try {
-                val customers = gardenRepository.getCustomers()
+                val customers = customerRepository.list()
                 _uiState.value = _uiState.value.copy(customers = customers)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load customers", e)
@@ -101,7 +103,7 @@ class AddPlantEventViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                gardenRepository.addPlantEvent(plantId, request)
+                plantRepository.addEvent(plantId, request)
                 _uiState.value = _uiState.value.copy(isLoading = false, created = true)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
@@ -113,7 +115,7 @@ class AddPlantEventViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(identifying = true, suggestions = emptyList(), error = null)
             try {
-                val suggestions = gardenRepository.identifyPlant(IdentifyPlantRequest(imageBase64))
+                val suggestions = plantRepository.identify(IdentifyPlantRequest(imageBase64))
                 _uiState.value = _uiState.value.copy(identifying = false, suggestions = suggestions)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(identifying = false, error = "Kunde inte identifiera bilden")

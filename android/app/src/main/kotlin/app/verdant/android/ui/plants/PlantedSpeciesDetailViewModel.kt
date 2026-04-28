@@ -1,4 +1,8 @@
 package app.verdant.android.ui.plants
+import app.verdant.android.data.repository.BedRepository
+import app.verdant.android.data.repository.PlantRepository
+import app.verdant.android.data.repository.TaskRepository
+import app.verdant.android.data.repository.TrayLocationRepository
 
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
@@ -13,7 +17,6 @@ import app.verdant.android.data.model.ScheduledTaskResponse
 import app.verdant.android.data.model.SpeciesEventSummaryEntry
 import app.verdant.android.data.model.TrayLocationResponse
 import app.verdant.android.data.model.UpdateSpeciesEventDateRequest
-import app.verdant.android.data.repository.GardenRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,7 +38,10 @@ data class PlantedSpeciesDetailState(
 
 @HiltViewModel
 class PlantedSpeciesDetailViewModel @Inject constructor(
-    private val repo: GardenRepository,
+    private val plantRepository: PlantRepository,
+    private val bedRepository: BedRepository,
+    private val taskRepository: TaskRepository,
+    private val trayLocationRepository: TrayLocationRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val speciesId: Long = savedStateHandle["speciesId"]!!
@@ -53,7 +59,7 @@ class PlantedSpeciesDetailViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
-                repo.deleteSpeciesEvent(
+                plantRepository.deleteSpeciesEvent(
                     speciesId,
                     DeleteSpeciesEventRequest(
                         eventType = eventType,
@@ -79,7 +85,7 @@ class PlantedSpeciesDetailViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
-                repo.updateSpeciesEventDate(
+                plantRepository.updateSpeciesEventDate(
                     speciesId,
                     UpdateSpeciesEventDateRequest(
                         eventType = eventType,
@@ -105,7 +111,7 @@ class PlantedSpeciesDetailViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
-                repo.moveTrayPlants(
+                plantRepository.moveTrayPlants(
                     MoveTrayPlantsRequest(
                         fromTrayLocationId = sourceLocationId,
                         toTrayLocationId = targetLocationId,
@@ -125,7 +131,7 @@ class PlantedSpeciesDetailViewModel @Inject constructor(
     fun batchEvent(item: PlantLocationGroup, eventType: String, count: Int, targetBedId: Long? = null, onDone: () -> Unit) {
         viewModelScope.launch {
             try {
-                repo.batchEvent(
+                plantRepository.batchEvent(
                     BatchEventRequest(
                         speciesId = speciesId,
                         bedId = item.bedId,
@@ -148,19 +154,19 @@ class PlantedSpeciesDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val locations = repo.getSpeciesLocations(speciesId)
-                val beds = repo.getAllBeds()
-                val tasks = repo.getTasks().filter {
+                val locations = plantRepository.speciesLocations(speciesId)
+                val beds = bedRepository.listAll()
+                val tasks = taskRepository.list().filter {
                     it.speciesId == speciesId && it.status == "PENDING"
                 }
-                val summary = repo.getSpeciesPlantSummary().find { it.speciesId == speciesId }
+                val summary = plantRepository.speciesSummary().find { it.speciesId == speciesId }
                 val name = summary?.let {
                     it.variantName?.let { v -> "${it.speciesName} – $v" } ?: it.speciesName
                 } ?: tasks.firstOrNull()?.speciesName ?: ""
-                val trayEvents = runCatching { repo.getSpeciesEventSummary(speciesId, trayOnly = true) }
+                val trayEvents = runCatching { plantRepository.speciesEvents(speciesId, trayOnly = true) }
                     .onFailure { Log.e(TAG, "Failed to load species event summary", it) }
                     .getOrDefault(emptyList())
-                val trayLocations = runCatching { repo.getTrayLocations() }
+                val trayLocations = runCatching { trayLocationRepository.list() }
                     .getOrDefault(emptyList())
                 _uiState.value = PlantedSpeciesDetailState(
                     isLoading = false,

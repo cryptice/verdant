@@ -1,4 +1,5 @@
 package app.verdant.android.ui.plant
+import app.verdant.android.data.repository.PlantRepository
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.layout.Arrangement
@@ -29,7 +30,6 @@ import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.CreatePlantRequest
 import app.verdant.android.data.model.IdentifyPlantRequest
 import app.verdant.android.data.model.PlantSuggestion
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.activity.toCompressedBase64
 import app.verdant.android.ui.faltet.FaltetFormSubmitBar
 import app.verdant.android.ui.faltet.FaltetImagePicker
@@ -55,7 +55,7 @@ data class CreatePlantState(
 @HiltViewModel
 class CreatePlantViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val gardenRepository: GardenRepository
+    private val plantRepository: PlantRepository
 ) : ViewModel() {
     private val bedId: Long = savedStateHandle.get<Long>("bedId")!!
     private val _uiState = MutableStateFlow(CreatePlantState())
@@ -65,7 +65,7 @@ class CreatePlantViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                gardenRepository.createPlant(
+                plantRepository.create(
                     bedId,
                     CreatePlantRequest(
                         name = name,
@@ -84,7 +84,7 @@ class CreatePlantViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(identifying = true, suggestions = emptyList())
             try {
-                val suggestions = gardenRepository.identifyPlant(IdentifyPlantRequest(imageBase64))
+                val suggestions = plantRepository.identify(IdentifyPlantRequest(imageBase64))
                 _uiState.value = _uiState.value.copy(identifying = false, suggestions = suggestions)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(identifying = false, error = e.message)

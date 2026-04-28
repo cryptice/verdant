@@ -1,6 +1,7 @@
 @file:Suppress("DEPRECATION")
 
 package app.verdant.android.ui.garden
+import app.verdant.android.data.repository.GardenApiRepository
 
 import android.Manifest
 import android.content.Context
@@ -47,7 +48,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
 import app.verdant.android.data.model.*
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.faltet.FaltetFormSubmitBar
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.Field
@@ -145,7 +145,7 @@ fun getPlusIcon(): BitmapDescriptor {
 
 @HiltViewModel
 class CreateGardenViewModel @Inject constructor(
-    private val gardenRepository: GardenRepository
+    private val gardenApiRepository: GardenApiRepository
 ) : ViewModel() {
 
     // Steps: 0=location, 1=boundary, 2=name, 3=beds
@@ -231,7 +231,7 @@ class CreateGardenViewModel @Inject constructor(
                     }
                 )
                 android.util.Log.d("CreateGarden", "Sending request: name=${request.name}, beds=${request.beds.size}")
-                val result = gardenRepository.createGardenWithLayout(request)
+                val result = gardenApiRepository.createWithLayout(request)
                 android.util.Log.d("CreateGarden", "Created garden id=${result.garden.id}, name=${result.garden.name}")
                 createdGardenId = result.garden.id
             } catch (e: Exception) {

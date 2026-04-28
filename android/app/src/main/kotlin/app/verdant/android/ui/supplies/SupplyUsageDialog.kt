@@ -1,4 +1,5 @@
 package app.verdant.android.ui.supplies
+import app.verdant.android.data.repository.SupplyRepository
 
 import android.util.Log
 import androidx.compose.foundation.layout.*
@@ -16,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.verdant.android.R
 import app.verdant.android.data.model.SupplyInventoryResponse
-import app.verdant.android.data.repository.GardenRepository
 import kotlinx.coroutines.launch
 
 private const val TAG = "SupplyUsageDialog"
@@ -24,7 +24,7 @@ private const val TAG = "SupplyUsageDialog"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SupplyUsageBottomSheet(
-    repo: GardenRepository,
+    supplyRepository: SupplyRepository,
     onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -40,7 +40,7 @@ fun SupplyUsageBottomSheet(
 
     LaunchedEffect(Unit) {
         try {
-            supplies = repo.getSupplyInventory().filter { it.quantity > 0 }
+            supplies = supplyRepository.listInventory().filter { it.quantity > 0 }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to load supplies", e)
         }
@@ -149,10 +149,10 @@ fun SupplyUsageBottomSheet(
                             isSubmitting = true
                             scope.launch {
                                 try {
-                                    repo.decrementSupply(selectedSupply!!.id, qty)
+                                    supplyRepository.decrement(selectedSupply!!.id, qty)
                                     submitted = true
                                     // Refresh supplies for potential next recording
-                                    supplies = repo.getSupplyInventory().filter { it.quantity > 0 }
+                                    supplies = supplyRepository.listInventory().filter { it.quantity > 0 }
                                 } catch (e: Exception) {
                                     Log.e(TAG, "Failed to decrement supply", e)
                                 }

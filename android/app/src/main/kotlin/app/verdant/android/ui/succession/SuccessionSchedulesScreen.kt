@@ -1,4 +1,7 @@
 package app.verdant.android.ui.succession
+import app.verdant.android.data.repository.AnalyticsRepository
+import app.verdant.android.data.repository.SeasonRepository
+import app.verdant.android.data.repository.SpeciesRepository
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -57,7 +60,6 @@ import app.verdant.android.data.model.SeasonResponse
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.SuccessionScheduleResponse
 import app.verdant.android.data.model.sortedBySwedishName
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetFab
@@ -95,7 +97,9 @@ data class SuccessionState(
 
 @HiltViewModel
 class SuccessionViewModel @Inject constructor(
-    private val repo: GardenRepository,
+    private val seasonRepository: SeasonRepository,
+    private val analyticsRepository: AnalyticsRepository,
+    private val speciesRepository: SpeciesRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SuccessionState())
     val uiState = _uiState.asStateFlow()
@@ -106,10 +110,10 @@ class SuccessionViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val seasons = repo.getSeasons()
+                val seasons = seasonRepository.list()
                 val active = seasons.firstOrNull { it.isActive }
-                val items = repo.getSuccessionSchedules(active?.id)
-                val species = repo.getSpecies().sortedBySwedishName()
+                val items = analyticsRepository.successionSchedules(active?.id)
+                val species = speciesRepository.list().sortedBySwedishName()
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     items = items,
@@ -127,7 +131,7 @@ class SuccessionViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(saving = true)
             try {
-                repo.createSuccessionSchedule(request)
+                analyticsRepository.createSuccessionSchedule(request)
                 _uiState.value = _uiState.value.copy(saving = false)
                 refresh()
             } catch (e: Exception) {
@@ -139,7 +143,7 @@ class SuccessionViewModel @Inject constructor(
     fun delete(id: Long) {
         viewModelScope.launch {
             try {
-                repo.deleteSuccessionSchedule(id)
+                analyticsRepository.deleteSuccessionSchedule(id)
                 refresh()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)
@@ -151,7 +155,7 @@ class SuccessionViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(generatingId = id, generatedCount = null)
             try {
-                val ids = repo.generateSuccessionTasks(id)
+                val ids = analyticsRepository.generateSuccessionTasks(id)
                 _uiState.value = _uiState.value.copy(generatingId = null, generatedCount = ids.size)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(generatingId = null, error = e.message)

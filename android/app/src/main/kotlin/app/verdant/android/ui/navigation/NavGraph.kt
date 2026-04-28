@@ -188,7 +188,7 @@ sealed class Screen(val route: String) {
 @HiltViewModel
 class NavViewModel @Inject constructor(
     val sessionManager: SessionManager,
-    private val gardenRepository: app.verdant.android.data.repository.GardenRepository,
+    private val gardenApiRepository: app.verdant.android.data.repository.GardenApiRepository,
 ) : ViewModel() {
     private val _gardens = kotlinx.coroutines.flow.MutableStateFlow<List<app.verdant.android.data.model.GardenResponse>>(emptyList())
     val gardens = _gardens.asStateFlow()
@@ -197,7 +197,7 @@ class NavViewModel @Inject constructor(
 
     fun refreshGardens() {
         viewModelScope.launch {
-            runCatching { gardenRepository.getGardens() }.onSuccess { _gardens.value = it }
+            runCatching { gardenApiRepository.list() }.onSuccess { _gardens.value = it }
         }
     }
 }

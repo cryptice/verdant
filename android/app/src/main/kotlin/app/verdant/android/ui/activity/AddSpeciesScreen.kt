@@ -1,4 +1,6 @@
 package app.verdant.android.ui.activity
+import app.verdant.android.data.repository.PlantRepository
+import app.verdant.android.data.repository.SpeciesRepository
 
 import android.graphics.Bitmap
 import android.util.Log
@@ -61,7 +63,6 @@ import app.verdant.android.data.model.SpeciesGroupResponse
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.SpeciesTagResponse
 import app.verdant.android.data.model.UpdateSpeciesRequest
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.faltet.FaltetChipMultiSelector
 import app.verdant.android.ui.faltet.FaltetDropdown
 import app.verdant.android.ui.faltet.FaltetFormSubmitBar
@@ -99,7 +100,8 @@ data class AddSpeciesState(
 @HiltViewModel
 class AddSpeciesViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val repo: GardenRepository
+    private val speciesRepository: SpeciesRepository,
+    private val plantRepository: PlantRepository
 ) : ViewModel() {
     val speciesId: Long? = savedStateHandle.get<Long>("speciesId")?.takeIf { it > 0 }
     private val _uiState = MutableStateFlow(AddSpeciesState())
@@ -110,9 +112,9 @@ class AddSpeciesViewModel @Inject constructor(
     private fun loadData() {
         viewModelScope.launch {
             try {
-                val groups = repo.getSpeciesGroups()
-                val tags = repo.getSpeciesTags()
-                val existing = speciesId?.let { repo.getSpecies().find { s -> s.id == it } }
+                val groups = speciesRepository.listGroups()
+                val tags = speciesRepository.listTags()
+                val existing = speciesId?.let { speciesRepository.list().find { s -> s.id == it } }
                 _uiState.value = _uiState.value.copy(groups = groups, tags = tags, existingSpecies = existing)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load species data", e)
@@ -124,7 +126,7 @@ class AddSpeciesViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                repo.createSpecies(request)
+                speciesRepository.create(request)
                 _uiState.value = _uiState.value.copy(isLoading = false, created = true)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
@@ -136,7 +138,7 @@ class AddSpeciesViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                repo.updateSpecies(speciesId!!, request)
+                speciesRepository.update(speciesId!!, request)
                 _uiState.value = _uiState.value.copy(isLoading = false, created = true)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
@@ -147,7 +149,7 @@ class AddSpeciesViewModel @Inject constructor(
     fun createGroup(name: String) {
         viewModelScope.launch {
             try {
-                repo.createSpeciesGroup(CreateSpeciesGroupRequest(name))
+                speciesRepository.createGroup(CreateSpeciesGroupRequest(name))
                 loadData()
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to create species group", e)
@@ -158,7 +160,7 @@ class AddSpeciesViewModel @Inject constructor(
     fun createTag(name: String) {
         viewModelScope.launch {
             try {
-                repo.createSpeciesTag(CreateSpeciesTagRequest(name))
+                speciesRepository.createTag(CreateSpeciesTagRequest(name))
                 loadData()
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to create species tag", e)
@@ -170,7 +172,7 @@ class AddSpeciesViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(identifying = true, suggestions = emptyList(), error = null)
             try {
-                val suggestions = repo.identifyPlant(IdentifyPlantRequest(imageBase64))
+                val suggestions = plantRepository.identify(IdentifyPlantRequest(imageBase64))
                 _uiState.value = _uiState.value.copy(identifying = false, suggestions = suggestions)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(identifying = false, error = "Kunde inte identifiera bilden")
@@ -182,7 +184,7 @@ class AddSpeciesViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(extracting = true, extractedInfo = null, error = null)
             try {
-                val info = repo.extractSpeciesInfo(ExtractSpeciesInfoRequest(imageBase64))
+                val info = plantRepository.extractSpeciesInfo(ExtractSpeciesInfoRequest(imageBase64))
                 _uiState.value = _uiState.value.copy(extracting = false, extractedInfo = info)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(extracting = false, error = "Kunde inte extrahera information")

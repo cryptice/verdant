@@ -1,4 +1,8 @@
 package app.verdant.android.ui.dashboard
+import app.verdant.android.data.repository.AnalyticsRepository
+import app.verdant.android.data.repository.PlantRepository
+import app.verdant.android.data.repository.TaskRepository
+import app.verdant.android.data.repository.TrayLocationRepository
 
 import android.util.Log
 import androidx.compose.foundation.background
@@ -48,7 +52,6 @@ import app.verdant.android.data.model.DashboardResponse
 import app.verdant.android.data.model.HarvestStatRow
 import app.verdant.android.data.model.ScheduledTaskResponse
 import app.verdant.android.data.model.TraySummaryEntry
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetListRow
@@ -79,7 +82,10 @@ data class DashboardState(
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    private val repo: GardenRepository,
+    private val trayLocationRepository: TrayLocationRepository,
+    private val analyticsRepository: AnalyticsRepository,
+    private val taskRepository: TaskRepository,
+    private val plantRepository: PlantRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(DashboardState())
     val uiState = _uiState.asStateFlow()
@@ -87,7 +93,7 @@ class DashboardViewModel @Inject constructor(
     fun waterLocation(locationId: Long) {
         viewModelScope.launch {
             try {
-                val response = repo.waterTrayLocation(locationId)
+                val response = trayLocationRepository.water(locationId)
                 val name = _uiState.value.trayPlants
                     .firstOrNull { it.trayLocationId == locationId }?.trayLocationName
                 val msg = if (name != null) "Vattnade · ${response.plantsAffected} plantor i $name"
@@ -110,10 +116,10 @@ class DashboardViewModel @Inject constructor(
             val showLoading = _uiState.value.dashboard == null
             if (showLoading) _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val dashboard = repo.getDashboard()
-                val tasks = runCatching { repo.getTasks() }.getOrDefault(emptyList())
-                val tray = runCatching { repo.getTraySummary() }.getOrDefault(emptyList())
-                val stats = runCatching { repo.getHarvestStats() }.getOrDefault(emptyList())
+                val dashboard = analyticsRepository.dashboard()
+                val tasks = runCatching { taskRepository.list() }.getOrDefault(emptyList())
+                val tray = runCatching { plantRepository.traySummary() }.getOrDefault(emptyList())
+                val stats = runCatching { analyticsRepository.harvestStats() }.getOrDefault(emptyList())
                 _uiState.value = DashboardState(
                     isLoading = false,
                     dashboard = dashboard,

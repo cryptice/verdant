@@ -1,4 +1,5 @@
 package app.verdant.android.ui.bed
+import app.verdant.android.data.repository.BedRepository
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -39,7 +40,6 @@ import app.verdant.android.data.model.BedProtection
 import app.verdant.android.data.model.BedSoilType
 import app.verdant.android.data.model.BedSunExposure
 import app.verdant.android.data.model.CreateBedRequest
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.faltet.FaltetChipMultiSelector
 import app.verdant.android.ui.faltet.FaltetChipSelector
 import app.verdant.android.ui.faltet.FaltetFormSubmitBar
@@ -60,7 +60,7 @@ data class CreateBedState(
 @HiltViewModel
 class CreateBedViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val gardenRepository: GardenRepository
+    private val bedRepository: BedRepository
 ) : ViewModel() {
     private val gardenId: Long = savedStateHandle.get<Long>("gardenId")!!
     private val _uiState = MutableStateFlow(CreateBedState())
@@ -81,7 +81,7 @@ class CreateBedViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = CreateBedState(isLoading = true)
             try {
-                val bed = gardenRepository.createBed(
+                val bed = bedRepository.create(
                     gardenId,
                     CreateBedRequest(
                         name = name,

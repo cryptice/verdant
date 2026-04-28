@@ -1,4 +1,7 @@
 package app.verdant.android.ui.task
+import app.verdant.android.data.repository.BedRepository
+import app.verdant.android.data.repository.SpeciesRepository
+import app.verdant.android.data.repository.TaskRepository
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -28,7 +31,6 @@ import app.verdant.android.data.model.ScheduledTaskResponse
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.UpdateScheduledTaskRequest
 import app.verdant.android.data.model.sortedBySwedishName
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.activity.Activity
 import app.verdant.android.ui.faltet.FaltetDatePicker
 import app.verdant.android.ui.faltet.FaltetDropdown
@@ -58,7 +60,9 @@ data class TaskFormState(
 @HiltViewModel
 class TaskFormViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val repo: GardenRepository,
+    private val speciesRepository: SpeciesRepository,
+    private val bedRepository: BedRepository,
+    private val taskRepository: TaskRepository,
 ) : ViewModel() {
     val taskId: Long? = savedStateHandle.get<Long>("taskId")?.takeIf { it > 0 }
     private val _uiState = MutableStateFlow(TaskFormState())
@@ -69,9 +73,9 @@ class TaskFormViewModel @Inject constructor(
     private fun loadData() {
         viewModelScope.launch {
             try {
-                val species = repo.getSpecies().sortedBySwedishName()
-                val beds = runCatching { repo.getAllBeds() }.getOrDefault(emptyList())
-                val task = taskId?.let { repo.getTask(it) }
+                val species = speciesRepository.list().sortedBySwedishName()
+                val beds = runCatching { bedRepository.listAll() }.getOrDefault(emptyList())
+                val task = taskId?.let { taskRepository.get(it) }
                 _uiState.value = _uiState.value.copy(species = species, beds = beds, existingTask = task)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load task form data", e)
@@ -91,7 +95,7 @@ class TaskFormViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
                 if (taskId != null) {
-                    repo.updateTask(taskId, UpdateScheduledTaskRequest(
+                    taskRepository.update(taskId, UpdateScheduledTaskRequest(
                         speciesId = speciesId,
                         activityType = activityType,
                         deadline = deadline,
@@ -99,7 +103,7 @@ class TaskFormViewModel @Inject constructor(
                         notes = notes,
                     ))
                 } else {
-                    repo.createTask(CreateScheduledTaskRequest(
+                    taskRepository.create(CreateScheduledTaskRequest(
                         speciesId = speciesId,
                         bedId = bedId,
                         activityType = activityType,

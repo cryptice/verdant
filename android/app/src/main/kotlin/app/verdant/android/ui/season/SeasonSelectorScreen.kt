@@ -1,4 +1,5 @@
 package app.verdant.android.ui.season
+import app.verdant.android.data.repository.SeasonRepository
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,7 +35,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.CreateSeasonRequest
 import app.verdant.android.data.model.SeasonResponse
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetDatePicker
 import app.verdant.android.ui.faltet.FaltetEmptyState
@@ -61,7 +61,7 @@ data class SeasonSelectorState(
 
 @HiltViewModel
 class SeasonSelectorViewModel @Inject constructor(
-    private val repo: GardenRepository
+    private val seasonRepository: SeasonRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SeasonSelectorState())
     val uiState = _uiState.asStateFlow()
@@ -72,7 +72,7 @@ class SeasonSelectorViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val seasons = repo.getSeasons()
+                val seasons = seasonRepository.list()
                 _uiState.value = _uiState.value.copy(isLoading = false, seasons = seasons)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
@@ -84,7 +84,7 @@ class SeasonSelectorViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(saving = true)
             try {
-                repo.createSeason(request)
+                seasonRepository.create(request)
                 refresh()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(saving = false, error = e.message)
@@ -96,7 +96,7 @@ class SeasonSelectorViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(saving = true)
             try {
-                repo.updateSeason(id, fields)
+                seasonRepository.update(id, fields)
                 refresh()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(saving = false, error = e.message)
@@ -107,7 +107,7 @@ class SeasonSelectorViewModel @Inject constructor(
     fun deleteSeason(id: Long) {
         viewModelScope.launch {
             try {
-                repo.deleteSeason(id)
+                seasonRepository.delete(id)
                 refresh()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)

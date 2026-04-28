@@ -1,4 +1,5 @@
 package app.verdant.android.ui.customer
+import app.verdant.android.data.repository.CustomerRepository
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,7 +46,6 @@ import app.verdant.android.data.model.CreateCustomerRequest
 import app.verdant.android.data.model.CustomerChannel
 import app.verdant.android.data.model.CustomerResponse
 import app.verdant.android.data.model.UpdateCustomerRequest
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetFab
@@ -67,7 +67,7 @@ data class CustomerListState(
 
 @HiltViewModel
 class CustomerListViewModel @Inject constructor(
-    private val repo: GardenRepository,
+    private val customerRepository: CustomerRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CustomerListState())
     val uiState = _uiState.asStateFlow()
@@ -78,7 +78,7 @@ class CustomerListViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val items = repo.getCustomers()
+                val items = customerRepository.list()
                 _uiState.value = _uiState.value.copy(isLoading = false, items = items)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
@@ -90,7 +90,7 @@ class CustomerListViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(saving = true)
             try {
-                repo.createCustomer(request)
+                customerRepository.create(request)
                 _uiState.value = _uiState.value.copy(saving = false)
                 refresh()
             } catch (e: Exception) {
@@ -103,7 +103,7 @@ class CustomerListViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(saving = true)
             try {
-                repo.updateCustomer(id, request)
+                customerRepository.update(id, request)
                 _uiState.value = _uiState.value.copy(saving = false)
                 refresh()
             } catch (e: Exception) {
@@ -115,7 +115,7 @@ class CustomerListViewModel @Inject constructor(
     fun delete(id: Long) {
         viewModelScope.launch {
             try {
-                repo.deleteCustomer(id)
+                customerRepository.delete(id)
                 refresh()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)

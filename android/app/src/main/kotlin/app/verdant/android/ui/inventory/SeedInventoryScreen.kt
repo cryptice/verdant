@@ -1,4 +1,5 @@
 package app.verdant.android.ui.inventory
+import app.verdant.android.data.repository.SeedInventoryRepository
 
 import android.util.Log
 import androidx.compose.foundation.layout.Box
@@ -39,7 +40,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
 import app.verdant.android.data.model.SeedInventoryResponse
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetListRow
@@ -63,7 +63,7 @@ data class SeedInventoryState(
 
 @HiltViewModel
 class SeedInventoryViewModel @Inject constructor(
-    private val repo: GardenRepository
+    private val seedInventoryRepository: SeedInventoryRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SeedInventoryState())
     val uiState = _uiState.asStateFlow()
@@ -73,7 +73,7 @@ class SeedInventoryViewModel @Inject constructor(
             val isColdLoad = _uiState.value.items.isEmpty()
             _uiState.value = _uiState.value.copy(isLoading = isColdLoad, error = null)
             try {
-                val items = repo.getSeedInventory()
+                val items = seedInventoryRepository.list()
                 _uiState.value = _uiState.value.copy(isLoading = false, items = items)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
@@ -84,7 +84,7 @@ class SeedInventoryViewModel @Inject constructor(
     fun delete(id: Long) {
         viewModelScope.launch {
             try {
-                repo.deleteSeedInventory(id)
+                seedInventoryRepository.delete(id)
                 refresh()
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to delete seed inventory", e)

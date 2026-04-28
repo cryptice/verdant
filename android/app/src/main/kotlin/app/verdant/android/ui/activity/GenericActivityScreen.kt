@@ -1,4 +1,8 @@
 package app.verdant.android.ui.activity
+import app.verdant.android.data.repository.BedRepository
+import app.verdant.android.data.repository.PlantRepository
+import app.verdant.android.data.repository.SpeciesRepository
+import app.verdant.android.data.repository.TaskRepository
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.clickable
@@ -36,7 +40,6 @@ import app.verdant.android.data.model.CreatePlantEventRequest
 import app.verdant.android.data.model.PlantResponse
 import app.verdant.android.data.model.RecordCommentRequest
 import app.verdant.android.data.model.ScheduledTaskResponse
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.faltet.Chip
 import app.verdant.android.ui.faltet.FaltetFormSubmitBar
 import app.verdant.android.ui.faltet.FaltetImagePicker
@@ -65,7 +68,10 @@ data class GenericActivityState(
 @HiltViewModel
 class GenericActivityViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val repo: GardenRepository
+    private val plantRepository: PlantRepository,
+    private val speciesRepository: SpeciesRepository,
+    private val bedRepository: BedRepository,
+    private val taskRepository: TaskRepository
 ) : ViewModel() {
     val plantId: Long = savedStateHandle.get<Long>("plantId")!!
     private val taskId: Long? = savedStateHandle.get<Long>("taskId")?.takeIf { it > 0 }
@@ -77,10 +83,10 @@ class GenericActivityViewModel @Inject constructor(
     private fun loadData() {
         viewModelScope.launch {
             try {
-                val plant = repo.getPlant(plantId)
-                val comments = repo.getFrequentComments().map { it.text }
-                val beds = repo.getAllBeds()
-                val task = taskId?.let { repo.getTask(it) }
+                val plant = plantRepository.get(plantId)
+                val comments = speciesRepository.frequentComments().map { it.text }
+                val beds = bedRepository.listAll()
+                val task = taskId?.let { taskRepository.get(it) }
                 _uiState.value = _uiState.value.copy(plant = plant, comments = comments, beds = beds, task = task)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load activity data", e)
@@ -99,7 +105,7 @@ class GenericActivityViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                repo.addPlantEvent(
+                plantRepository.addEvent(
                     plantId,
                     CreatePlantEventRequest(
                         eventType = eventType,
@@ -112,12 +118,12 @@ class GenericActivityViewModel @Inject constructor(
                     )
                 )
                 if (!notes.isNullOrBlank()) {
-                    repo.recordComment(RecordCommentRequest(notes))
+                    speciesRepository.recordComment(RecordCommentRequest(notes))
                 }
                 // Complete task partially if performing from a scheduled task
                 val speciesId = _uiState.value.plant?.speciesId
                 if (taskId != null && plantCount != null && plantCount > 0 && speciesId != null) {
-                    repo.completeTaskPartially(taskId, CompleteTaskPartiallyRequest(plantCount, speciesId))
+                    taskRepository.completePartially(taskId, CompleteTaskPartiallyRequest(plantCount, speciesId))
                 }
                 _uiState.value = _uiState.value.copy(isLoading = false, created = true)
             } catch (e: Exception) {

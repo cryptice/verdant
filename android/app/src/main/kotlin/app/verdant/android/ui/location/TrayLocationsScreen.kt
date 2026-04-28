@@ -1,4 +1,5 @@
 package app.verdant.android.ui.location
+import app.verdant.android.data.repository.TrayLocationRepository
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
@@ -33,7 +34,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.TrayLocationResponse
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetListRow
@@ -57,7 +57,7 @@ data class TrayLocationsState(
 
 @HiltViewModel
 class TrayLocationsViewModel @Inject constructor(
-    private val repo: GardenRepository,
+    private val trayLocationRepository: TrayLocationRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TrayLocationsState())
     val uiState = _uiState.asStateFlow()
@@ -68,7 +68,7 @@ class TrayLocationsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                _uiState.value = TrayLocationsState(isLoading = false, locations = repo.getTrayLocations())
+                _uiState.value = TrayLocationsState(isLoading = false, locations = trayLocationRepository.list())
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load tray locations", e)
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
@@ -78,7 +78,7 @@ class TrayLocationsViewModel @Inject constructor(
 
     fun create(name: String) {
         viewModelScope.launch {
-            try { repo.createTrayLocation(name); refresh() } catch (e: Exception) { Log.e(TAG, "create", e) }
+            try { trayLocationRepository.create(name); refresh() } catch (e: Exception) { Log.e(TAG, "create", e) }
         }
     }
 }

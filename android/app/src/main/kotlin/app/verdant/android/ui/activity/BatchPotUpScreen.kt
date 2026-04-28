@@ -1,4 +1,8 @@
 package app.verdant.android.ui.activity
+import app.verdant.android.data.repository.PlantRepository
+import app.verdant.android.data.repository.SpeciesRepository
+import app.verdant.android.data.repository.SupplyRepository
+import app.verdant.android.data.repository.TaskRepository
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.layout.Arrangement
@@ -39,7 +43,6 @@ import app.verdant.android.data.model.BatchEventRequest
 import app.verdant.android.data.model.CompleteTaskPartiallyRequest
 import app.verdant.android.data.model.PlantGroupResponse
 import app.verdant.android.data.model.RecordCommentRequest
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetFormSubmitBar
 import app.verdant.android.ui.faltet.FaltetImagePicker
@@ -66,7 +69,10 @@ data class BatchPotUpState(
 @HiltViewModel
 class BatchPotUpViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    val repo: GardenRepository
+    private val plantRepository: PlantRepository,
+    private val speciesRepository: SpeciesRepository,
+    private val taskRepository: TaskRepository,
+    val supplyRepository: SupplyRepository,
 ) : ViewModel() {
     private val taskId: Long? = savedStateHandle.get<Long>("taskId")?.takeIf { it > 0 }
     val preselectedSpeciesId: Long? = savedStateHandle.get<Long>("speciesId")?.takeIf { it > 0 }
@@ -78,11 +84,11 @@ class BatchPotUpViewModel @Inject constructor(
     private fun loadData() {
         viewModelScope.launch {
             try {
-                val groups = repo.getPlantGroups("SEEDED", trayOnly = true)
+                val groups = plantRepository.groupedByStatus("SEEDED", trayOnly = true)
                 val filtered = if (preselectedSpeciesId != null) {
                     groups.filter { it.speciesId == preselectedSpeciesId }
                 } else groups
-                val comments = repo.getFrequentComments().map { it.text }
+                val comments = speciesRepository.frequentComments().map { it.text }
                 _uiState.value = BatchPotUpState(isLoading = false, groups = filtered, comments = comments)
             } catch (e: Exception) {
                 _uiState.value = BatchPotUpState(isLoading = false, error = e.message)
@@ -94,7 +100,7 @@ class BatchPotUpViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(submitting = true, error = null)
             try {
-                repo.batchEvent(
+                plantRepository.batchEvent(
                     BatchEventRequest(
                         speciesId = group.speciesId,
                         bedId = group.bedId,
@@ -107,10 +113,10 @@ class BatchPotUpViewModel @Inject constructor(
                     )
                 )
                 if (!notes.isNullOrBlank()) {
-                    repo.recordComment(RecordCommentRequest(notes))
+                    speciesRepository.recordComment(RecordCommentRequest(notes))
                 }
                 if (taskId != null && count > 0) {
-                    repo.completeTaskPartially(taskId, CompleteTaskPartiallyRequest(count, group.speciesId))
+                    taskRepository.completePartially(taskId, CompleteTaskPartiallyRequest(count, group.speciesId))
                 }
                 _uiState.value = _uiState.value.copy(submitting = false, created = true)
             } catch (e: Exception) {
@@ -139,7 +145,7 @@ fun BatchPotUpScreen(
 
     if (showSupplySheet) {
         SupplyUsageBottomSheet(
-            repo = viewModel.repo,
+            supplyRepository = viewModel.supplyRepository,
             onDismiss = { showSupplySheet = false },
         )
     }

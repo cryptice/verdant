@@ -1,4 +1,6 @@
 package app.verdant.android.ui.plant
+import app.verdant.android.data.repository.PlantRepository
+import app.verdant.android.data.repository.WorkflowRepository
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,7 +57,6 @@ import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.PlantEventResponse
 import app.verdant.android.data.model.PlantResponse
 import app.verdant.android.data.model.PlantWorkflowProgressResponse
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetFab
@@ -94,7 +95,8 @@ data class PlantDetailState(
 @HiltViewModel
 class PlantDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val gardenRepository: GardenRepository
+    private val plantRepository: PlantRepository,
+    private val workflowRepository: WorkflowRepository
 ) : ViewModel() {
     private val plantId: Long = savedStateHandle.get<Long>("plantId")!!
     private val _uiState = MutableStateFlow(PlantDetailState())
@@ -106,10 +108,10 @@ class PlantDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = PlantDetailState(isLoading = true)
             try {
-                val plant = gardenRepository.getPlant(plantId)
-                val events = gardenRepository.getPlantEvents(plantId)
+                val plant = plantRepository.get(plantId)
+                val events = plantRepository.events(plantId)
                 val workflowProgress = try {
-                    gardenRepository.getPlantWorkflowProgress(plantId)
+                    workflowRepository.plantProgress(plantId)
                 } catch (_: Exception) {
                     null
                 }
@@ -128,7 +130,7 @@ class PlantDetailViewModel @Inject constructor(
     fun delete() {
         viewModelScope.launch {
             try {
-                gardenRepository.deletePlant(plantId)
+                plantRepository.delete(plantId)
                 _uiState.value = _uiState.value.copy(deleted = true)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)
@@ -139,7 +141,7 @@ class PlantDetailViewModel @Inject constructor(
     fun deleteEvent(eventId: Long) {
         viewModelScope.launch {
             try {
-                gardenRepository.deletePlantEvent(plantId, eventId)
+                plantRepository.deleteEvent(plantId, eventId)
                 refresh()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)

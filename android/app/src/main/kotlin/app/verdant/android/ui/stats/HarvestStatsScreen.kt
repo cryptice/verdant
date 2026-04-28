@@ -1,4 +1,5 @@
 package app.verdant.android.ui.stats
+import app.verdant.android.data.repository.AnalyticsRepository
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,7 +21,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
 import app.verdant.android.data.model.HarvestStatRow
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.theme.verdantTopAppBarColors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,7 +36,7 @@ data class HarvestStatsState(
 
 @HiltViewModel
 class HarvestStatsViewModel @Inject constructor(
-    private val gardenRepository: GardenRepository
+    private val analyticsRepository: AnalyticsRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(HarvestStatsState())
     val uiState = _uiState.asStateFlow()
@@ -47,7 +47,7 @@ class HarvestStatsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = HarvestStatsState(isLoading = true)
             try {
-                val stats = gardenRepository.getHarvestStats()
+                val stats = analyticsRepository.harvestStats()
                 _uiState.value = HarvestStatsState(isLoading = false, stats = stats)
             } catch (e: Exception) {
                 _uiState.value = HarvestStatsState(isLoading = false, error = e.message)

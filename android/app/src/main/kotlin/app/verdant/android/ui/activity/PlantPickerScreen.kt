@@ -1,4 +1,5 @@
 package app.verdant.android.ui.activity
+import app.verdant.android.data.repository.PlantRepository
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -24,7 +25,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.PlantResponse
-import app.verdant.android.data.repository.GardenRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,7 +40,7 @@ data class PlantPickerState(
 @HiltViewModel
 class PlantPickerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val repo: GardenRepository,
+    private val plantRepository: PlantRepository,
 ) : ViewModel() {
     private val statuses: String? = savedStateHandle.get<String>("statuses")
     private val speciesId: Long? = savedStateHandle.get<Long>("speciesId")?.takeIf { it > 0 }
@@ -53,7 +53,7 @@ class PlantPickerViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = PlantPickerState(isLoading = true)
             try {
-                val allPlants = repo.getAllPlants()
+                val allPlants = plantRepository.listAll()
                 var filtered = if (statuses != null) {
                     val allowed = statuses.split(",").toSet()
                     allPlants.filter { it.status in allowed }

@@ -1,4 +1,5 @@
 package app.verdant.android.ui.supplies
+import app.verdant.android.data.repository.SupplyRepository
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -8,7 +9,6 @@ import app.verdant.android.data.model.CreateSupplyTypeRequest
 import app.verdant.android.data.model.SupplyInventoryResponse
 import app.verdant.android.data.model.SupplyTypeResponse
 import app.verdant.android.data.model.UpdateSupplyTypeRequest
-import app.verdant.android.data.repository.GardenRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,7 +28,7 @@ data class SupplyInventoryState(
 
 @HiltViewModel
 class SupplyInventoryViewModel @Inject constructor(
-    private val repo: GardenRepository,
+    private val supplyRepository: SupplyRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SupplyInventoryState())
     val uiState = _uiState.asStateFlow()
@@ -39,8 +39,8 @@ class SupplyInventoryViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val items = repo.getSupplyInventory()
-                val types = runCatching { repo.getSupplyTypes() }.getOrDefault(emptyList())
+                val items = supplyRepository.listInventory()
+                val types = runCatching { supplyRepository.listTypes() }.getOrDefault(emptyList())
                 _uiState.value = _uiState.value.copy(isLoading = false, items = items, types = types)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load supply inventory", e)
@@ -59,7 +59,7 @@ class SupplyInventoryViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(saving = true)
             try {
-                repo.createSupplyInventory(
+                supplyRepository.createInventory(
                     CreateSupplyInventoryRequest(
                         supplyTypeId = supplyTypeId,
                         quantity = quantity,
@@ -86,7 +86,7 @@ class SupplyInventoryViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
-                val created = repo.createSupplyType(
+                val created = supplyRepository.createType(
                     CreateSupplyTypeRequest(
                         name = name, category = category, unit = unit, inexhaustible = inexhaustible,
                     ),
@@ -111,7 +111,7 @@ class SupplyInventoryViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
-                repo.updateSupplyType(
+                supplyRepository.updateType(
                     id,
                     UpdateSupplyTypeRequest(
                         name = name, category = category, unit = unit, inexhaustible = inexhaustible,
@@ -129,7 +129,7 @@ class SupplyInventoryViewModel @Inject constructor(
     fun deleteSupplyType(id: Long, onDone: () -> Unit) {
         viewModelScope.launch {
             try {
-                repo.deleteSupplyType(id)
+                supplyRepository.deleteType(id)
                 refresh()
                 onDone()
             } catch (e: Exception) {
@@ -143,7 +143,7 @@ class SupplyInventoryViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(decrementingId = id)
             try {
-                repo.decrementSupply(id, quantity)
+                supplyRepository.decrement(id, quantity)
                 refresh()
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to decrement supply", e)

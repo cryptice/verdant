@@ -1,4 +1,7 @@
 package app.verdant.android.ui.activity
+import app.verdant.android.data.repository.PlantRepository
+import app.verdant.android.data.repository.SupplyApplicationRepository
+import app.verdant.android.data.repository.SupplyRepository
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,7 +38,6 @@ import app.verdant.android.data.model.PlantResponse
 import app.verdant.android.data.model.SupplyApplicationScope
 import app.verdant.android.data.model.SupplyInventoryResponse
 import app.verdant.android.data.model.SupplyTypeResponse
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.faltet.FaltetCheckbox
 import app.verdant.android.ui.faltet.FaltetChecklistGroup
 import app.verdant.android.ui.faltet.FaltetDropdown
@@ -53,7 +55,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ApplySupplyViewModel @Inject constructor(
-    private val repo: GardenRepository,
+    private val plantRepository: PlantRepository,
+    private val supplyRepository: SupplyRepository,
+    private val supplyApplicationRepository: SupplyApplicationRepository,
 ) : ViewModel() {
 
     data class State(
@@ -82,9 +86,9 @@ class ApplySupplyViewModel @Inject constructor(
         suggestedQuantity: Double?,
     ) {
         viewModelScope.launch {
-            val plants = runCatching { repo.getBedPlants(bedId) }.getOrDefault(emptyList())
-            val inv = runCatching { repo.getSupplyInventory() }.getOrDefault(emptyList())
-            val types = runCatching { repo.getSupplyTypes() }.getOrDefault(emptyList())
+            val plants = runCatching { plantRepository.listForBed(bedId) }.getOrDefault(emptyList())
+            val inv = runCatching { supplyRepository.listInventory() }.getOrDefault(emptyList())
+            val types = runCatching { supplyRepository.listTypes() }.getOrDefault(emptyList())
             // Q11: prefer the largest finite lot; fall back to inexhaustible row.
             var initialLot: Long? = null
             var initialInexhaustibleType: Long? = null
@@ -140,7 +144,7 @@ class ApplySupplyViewModel @Inject constructor(
         _uiState.update { it.copy(saving = true, error = null) }
         viewModelScope.launch {
             runCatching {
-                repo.createSupplyApplication(
+                supplyApplicationRepository.create(
                     CreateSupplyApplicationRequest(
                         bedId = bedId,
                         supplyInventoryId = s.selectedInventoryId,

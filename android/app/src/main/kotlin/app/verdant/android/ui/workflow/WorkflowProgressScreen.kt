@@ -1,4 +1,6 @@
 package app.verdant.android.ui.workflow
+import app.verdant.android.data.repository.PlantRepository
+import app.verdant.android.data.repository.WorkflowRepository
 
 import android.util.Log
 import androidx.compose.foundation.layout.*
@@ -23,7 +25,6 @@ import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.CompleteWorkflowStepRequest
 import app.verdant.android.data.model.SpeciesWorkflowResponse
 import app.verdant.android.data.model.SpeciesWorkflowStepResponse
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.theme.verdantTopAppBarColors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,7 +50,8 @@ data class WorkflowProgressState(
 @HiltViewModel
 class WorkflowProgressViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val repo: GardenRepository,
+    private val workflowRepository: WorkflowRepository,
+    private val plantRepository: PlantRepository,
 ) : ViewModel() {
     val speciesId: Long = savedStateHandle.get<Long>("speciesId")!!
     private val _uiState = MutableStateFlow(WorkflowProgressState())
@@ -63,12 +65,12 @@ class WorkflowProgressViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val workflow = repo.getSpeciesWorkflow(speciesId)
+                val workflow = workflowRepository.speciesWorkflow(speciesId)
                 // Fetch plant counts for each step
                 val plantCounts = mutableMapOf<Long, List<Long>>()
                 for (step in workflow.steps) {
                     try {
-                        val plantIds = repo.getPlantsAtStep(step.id, speciesId)
+                        val plantIds = workflowRepository.plantsAtStep(step.id, speciesId)
                         plantCounts[step.id] = plantIds
                     } catch (e: Exception) {
                         Log.w(TAG, "Failed to fetch plants for step ${step.id}", e)
@@ -78,7 +80,7 @@ class WorkflowProgressViewModel @Inject constructor(
                 // Build a plantId -> bedId map (bedId nullable; drop plants without a bed).
                 val allPlantIds = plantCounts.values.flatten().toSet()
                 val plantBed: Map<Long, Long> = if (allPlantIds.isEmpty()) emptyMap() else {
-                    runCatching { repo.getAllPlants() }
+                    runCatching { plantRepository.listAll() }
                         .getOrDefault(emptyList())
                         .filter { it.id in allPlantIds && it.bedId != null }
                         .associate { it.id to it.bedId!! }
@@ -105,7 +107,7 @@ class WorkflowProgressViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(completingStepId = stepId, completionSuccess = false)
             try {
-                val response = repo.completeWorkflowStep(
+                val response = workflowRepository.completeStep(
                     stepId,
                     CompleteWorkflowStepRequest(plantIds = plantIds, notes = notes)
                 )

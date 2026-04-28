@@ -1,4 +1,5 @@
 package app.verdant.android.ui.activity
+import app.verdant.android.data.repository.SpeciesRepository
 
 import android.util.Log
 import androidx.compose.foundation.layout.Box
@@ -34,7 +35,6 @@ import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.SpeciesGroupRef
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.sortedBySwedishName
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetFab
@@ -68,7 +68,7 @@ data class SpeciesListState(
 
 @HiltViewModel
 class SpeciesListViewModel @Inject constructor(
-    private val repo: GardenRepository,
+    private val speciesRepository: SpeciesRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SpeciesListState())
     val uiState = _uiState.asStateFlow()
@@ -80,7 +80,7 @@ class SpeciesListViewModel @Inject constructor(
             val showLoading = _uiState.value.species.isEmpty()
             if (showLoading) _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val species = repo.getSpecies().sortedBySwedishName()
+                val species = speciesRepository.list().sortedBySwedishName()
                 _uiState.value = SpeciesListState(isLoading = false, species = species)
             } catch (e: Exception) {
                 if (showLoading) _uiState.value = SpeciesListState(isLoading = false, error = e.message)
@@ -91,7 +91,7 @@ class SpeciesListViewModel @Inject constructor(
     fun deleteSpecies(id: Long) {
         viewModelScope.launch {
             try {
-                repo.deleteSpecies(id)
+                speciesRepository.delete(id)
                 _uiState.value = _uiState.value.copy(
                     species = _uiState.value.species.filter { it.id != id }
                 )

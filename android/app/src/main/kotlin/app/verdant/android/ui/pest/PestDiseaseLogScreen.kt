@@ -1,4 +1,7 @@
 package app.verdant.android.ui.pest
+import app.verdant.android.data.repository.PestDiseaseRepository
+import app.verdant.android.data.repository.SeasonRepository
+import app.verdant.android.data.repository.SpeciesRepository
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,7 +29,6 @@ import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
 import app.verdant.android.data.model.*
 import app.verdant.android.data.model.sortedBySwedishName
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetFab
@@ -59,7 +61,9 @@ data class PestDiseaseLogState(
 
 @HiltViewModel
 class PestDiseaseLogViewModel @Inject constructor(
-    private val repo: GardenRepository,
+    private val seasonRepository: SeasonRepository,
+    private val pestDiseaseRepository: PestDiseaseRepository,
+    private val speciesRepository: SpeciesRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(PestDiseaseLogState())
     val uiState = _uiState.asStateFlow()
@@ -70,10 +74,10 @@ class PestDiseaseLogViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val seasons = repo.getSeasons()
+                val seasons = seasonRepository.list()
                 val active = seasons.firstOrNull { it.isActive }
-                val items = repo.getPestDiseaseLogs(active?.id)
-                val species = repo.getSpecies().sortedBySwedishName()
+                val items = pestDiseaseRepository.list(active?.id)
+                val species = speciesRepository.list().sortedBySwedishName()
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     items = items,
@@ -90,7 +94,7 @@ class PestDiseaseLogViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(saving = true)
             try {
-                repo.createPestDiseaseLog(request)
+                pestDiseaseRepository.create(request)
                 _uiState.value = _uiState.value.copy(saving = false)
                 refresh()
             } catch (e: Exception) {
@@ -103,7 +107,7 @@ class PestDiseaseLogViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(saving = true)
             try {
-                repo.updatePestDiseaseLog(id, request)
+                pestDiseaseRepository.update(id, request)
                 _uiState.value = _uiState.value.copy(saving = false)
                 refresh()
             } catch (e: Exception) {
@@ -115,7 +119,7 @@ class PestDiseaseLogViewModel @Inject constructor(
     fun delete(id: Long) {
         viewModelScope.launch {
             try {
-                repo.deletePestDiseaseLog(id)
+                pestDiseaseRepository.delete(id)
                 refresh()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)

@@ -1,4 +1,11 @@
 package app.verdant.android.ui.activity
+import app.verdant.android.data.repository.SupplyRepository
+import app.verdant.android.data.repository.BedRepository
+import app.verdant.android.data.repository.PlantRepository
+import app.verdant.android.data.repository.SeedInventoryRepository
+import app.verdant.android.data.repository.SpeciesRepository
+import app.verdant.android.data.repository.TaskRepository
+import app.verdant.android.data.repository.TrayLocationRepository
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.background
@@ -47,7 +54,6 @@ import app.verdant.android.data.model.RecordCommentRequest
 import app.verdant.android.data.model.ScheduledTaskResponse
 import app.verdant.android.data.model.SeedInventoryResponse
 import app.verdant.android.data.model.SpeciesResponse
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.faltet.FaltetDatePicker
 import app.verdant.android.ui.faltet.FaltetDropdown
 import app.verdant.android.ui.faltet.FaltetFormSubmitBar
@@ -81,7 +87,13 @@ data class SowActivityState(
 @HiltViewModel
 class SowActivityViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    val repo: GardenRepository
+    private val speciesRepository: SpeciesRepository,
+    private val bedRepository: BedRepository,
+    private val taskRepository: TaskRepository,
+    private val trayLocationRepository: TrayLocationRepository,
+    private val seedInventoryRepository: SeedInventoryRepository,
+    private val plantRepository: PlantRepository,
+    val supplyRepository: SupplyRepository,
 ) : ViewModel() {
     val taskId: Long? = savedStateHandle.get<Long>("taskId")?.takeIf { it > 0 }
     val preselectedSpeciesId: Long? = savedStateHandle.get<Long>("speciesId")?.takeIf { it > 0 }
@@ -94,11 +106,11 @@ class SowActivityViewModel @Inject constructor(
     private fun loadData() {
         viewModelScope.launch {
             try {
-                val species = repo.getSpecies().sortedBySwedishName()
-                val beds = repo.getAllBeds()
-                val comments = repo.getFrequentComments().map { it.text }
-                val task = taskId?.let { repo.getTask(it) }
-                val trayLocations = runCatching { repo.getTrayLocations() }.getOrDefault(emptyList())
+                val species = speciesRepository.list().sortedBySwedishName()
+                val beds = bedRepository.listAll()
+                val comments = speciesRepository.frequentComments().map { it.text }
+                val task = taskId?.let { taskRepository.get(it) }
+                val trayLocations = runCatching { trayLocationRepository.list() }.getOrDefault(emptyList())
                 _uiState.value = _uiState.value.copy(
                     species = species, beds = beds, comments = comments, task = task,
                     trayLocations = trayLocations,
@@ -112,7 +124,7 @@ class SowActivityViewModel @Inject constructor(
     fun createTrayLocation(name: String, onCreated: (app.verdant.android.data.model.TrayLocationResponse) -> Unit) {
         viewModelScope.launch {
             try {
-                val created = repo.createTrayLocation(name)
+                val created = trayLocationRepository.create(name)
                 _uiState.value = _uiState.value.copy(
                     trayLocations = (_uiState.value.trayLocations + created).sortedBy { it.name }
                 )
@@ -126,7 +138,7 @@ class SowActivityViewModel @Inject constructor(
     fun loadSeedBatches(speciesId: Long) {
         viewModelScope.launch {
             try {
-                val lots = repo.getSeedInventory(speciesId).filter { it.quantity > 0 }
+                val lots = seedInventoryRepository.list(speciesId).filter { it.quantity > 0 }
                 _uiState.value = _uiState.value.copy(seedBatches = lots)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load seed batches", e)
@@ -140,7 +152,7 @@ class SowActivityViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
                 val count = seedCount ?: 1
-                repo.batchSow(
+                plantRepository.batchSow(
                     BatchSowRequest(
                         bedId = bedId,
                         trayLocationId = trayLocationId,
@@ -154,14 +166,14 @@ class SowActivityViewModel @Inject constructor(
                 )
                 // Decrement seed inventory
                 if (seedBatchId != null && count > 0) {
-                    repo.decrementSeedInventory(seedBatchId, DecrementSeedInventoryRequest(count))
+                    seedInventoryRepository.decrement(seedBatchId, DecrementSeedInventoryRequest(count))
                 }
                 if (!notes.isNullOrBlank()) {
-                    repo.recordComment(RecordCommentRequest(notes))
+                    speciesRepository.recordComment(RecordCommentRequest(notes))
                 }
                 // Complete task partially if performing from a scheduled task
                 if (taskId != null && count > 0) {
-                    repo.completeTaskPartially(taskId, CompleteTaskPartiallyRequest(count, speciesId))
+                    taskRepository.completePartially(taskId, CompleteTaskPartiallyRequest(count, speciesId))
                 }
                 _uiState.value = _uiState.value.copy(isLoading = false, created = true)
             } catch (e: Exception) {
@@ -251,7 +263,7 @@ fun SowActivityScreen(
 
     if (showSupplySheet) {
         SupplyUsageBottomSheet(
-            repo = viewModel.repo,
+            supplyRepository = viewModel.supplyRepository,
             onDismiss = { showSupplySheet = false },
         )
     }

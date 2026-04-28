@@ -1,4 +1,7 @@
 package app.verdant.android.ui.activity
+import app.verdant.android.data.repository.PlantRepository
+import app.verdant.android.data.repository.SpeciesRepository
+import app.verdant.android.data.repository.TrayLocationRepository
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
@@ -32,7 +35,6 @@ import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.BatchSowRequest
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.sortedBySwedishName
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.faltet.FaltetDatePicker
 import app.verdant.android.ui.faltet.FaltetDropdown
 import app.verdant.android.ui.faltet.FaltetFormSubmitBar
@@ -58,7 +60,9 @@ data class RegisterPlantsState(
 
 @HiltViewModel
 class RegisterPlantsViewModel @Inject constructor(
-    private val repo: GardenRepository,
+    private val speciesRepository: SpeciesRepository,
+    private val trayLocationRepository: TrayLocationRepository,
+    private val plantRepository: PlantRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(RegisterPlantsState())
     val uiState = _uiState.asStateFlow()
@@ -68,8 +72,8 @@ class RegisterPlantsViewModel @Inject constructor(
     private fun load() {
         viewModelScope.launch {
             try {
-                val species = repo.getSpecies().sortedBySwedishName()
-                val locations = runCatching { repo.getTrayLocations() }.getOrDefault(emptyList())
+                val species = speciesRepository.list().sortedBySwedishName()
+                val locations = runCatching { trayLocationRepository.list() }.getOrDefault(emptyList())
                 _uiState.value = _uiState.value.copy(species = species, trayLocations = locations)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load species", e)
@@ -80,7 +84,7 @@ class RegisterPlantsViewModel @Inject constructor(
     fun createTrayLocation(name: String, onCreated: (app.verdant.android.data.model.TrayLocationResponse) -> Unit) {
         viewModelScope.launch {
             try {
-                val created = repo.createTrayLocation(name)
+                val created = trayLocationRepository.create(name)
                 _uiState.value = _uiState.value.copy(
                     trayLocations = (_uiState.value.trayLocations + created).sortedBy { it.name }
                 )
@@ -97,7 +101,7 @@ class RegisterPlantsViewModel @Inject constructor(
             try {
                 val name = species.variantNameSv ?: species.variantName
                     ?: species.commonNameSv ?: species.commonName
-                repo.batchSow(
+                plantRepository.batchSow(
                     BatchSowRequest(
                         speciesId = species.id,
                         trayLocationId = trayLocationId,

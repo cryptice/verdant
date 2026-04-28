@@ -1,4 +1,8 @@
 package app.verdant.android.ui.bed
+import app.verdant.android.data.repository.BedRepository
+import app.verdant.android.data.repository.GardenApiRepository
+import app.verdant.android.data.repository.PlantRepository
+import app.verdant.android.data.repository.SupplyApplicationRepository
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -9,7 +13,6 @@ import app.verdant.android.data.model.CreateBedRequest
 import app.verdant.android.data.model.PlantResponse
 import app.verdant.android.data.model.SupplyApplicationResponse
 import app.verdant.android.data.model.UpdateBedRequest
-import app.verdant.android.data.repository.GardenRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,7 +37,10 @@ data class BedDetailState(
 @HiltViewModel
 class BedDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val gardenRepository: GardenRepository,
+    private val bedRepository: BedRepository,
+    private val plantRepository: PlantRepository,
+    private val supplyApplicationRepository: SupplyApplicationRepository,
+    private val gardenApiRepository: GardenApiRepository,
 ) : ViewModel() {
     private val bedId: Long = savedStateHandle.get<Long>("bedId")!!
     private val _uiState = MutableStateFlow(BedDetailState())
@@ -47,11 +53,11 @@ class BedDetailViewModel @Inject constructor(
             val isColdLoad = _uiState.value.bed == null
             _uiState.value = _uiState.value.copy(isLoading = isColdLoad, error = null)
             try {
-                val bed = gardenRepository.getBed(bedId)
-                val plants = gardenRepository.getPlants(bedId)
-                val applications = runCatching { gardenRepository.listSupplyApplicationsByBed(bedId, 10) }.getOrDefault(emptyList())
-                val bedEvents = runCatching { gardenRepository.getBedEvents(bedId, 20) }.getOrDefault(emptyList())
-                val gardenName = runCatching { gardenRepository.getGarden(bed.gardenId).name }.getOrNull()
+                val bed = bedRepository.get(bedId)
+                val plants = plantRepository.listForBed(bedId)
+                val applications = runCatching { supplyApplicationRepository.listByBed(bedId, 10) }.getOrDefault(emptyList())
+                val bedEvents = runCatching { bedRepository.events(bedId, 20) }.getOrDefault(emptyList())
+                val gardenName = runCatching { gardenApiRepository.get(bed.gardenId).name }.getOrNull()
                 _uiState.value = _uiState.value.copy(
                     isLoading = false, bed = bed, plants = plants, applications = applications,
                     bedEvents = bedEvents, gardenName = gardenName,
@@ -76,7 +82,7 @@ class BedDetailViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
-                gardenRepository.updateBed(
+                bedRepository.update(
                     bedId,
                     UpdateBedRequest(
                         name = name,
@@ -112,7 +118,7 @@ class BedDetailViewModel @Inject constructor(
     fun delete() {
         viewModelScope.launch {
             try {
-                gardenRepository.deleteBed(bedId)
+                bedRepository.delete(bedId)
                 _uiState.value = _uiState.value.copy(deleted = true)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)
@@ -123,7 +129,7 @@ class BedDetailViewModel @Inject constructor(
     fun weed() {
         viewModelScope.launch {
             try {
-                val r = gardenRepository.weedBed(bedId)
+                val r = bedRepository.weed(bedId)
                 _uiState.value = _uiState.value.copy(
                     toastMessage = "Rensade ogräs · ${r.plantsAffected} plantor",
                 )
@@ -136,7 +142,7 @@ class BedDetailViewModel @Inject constructor(
     fun water() {
         viewModelScope.launch {
             try {
-                val r = gardenRepository.waterBed(bedId)
+                val r = bedRepository.water(bedId)
                 _uiState.value = _uiState.value.copy(
                     toastMessage = "Vattnade · ${r.plantsAffected} plantor",
                 )
@@ -160,7 +166,7 @@ class BedDetailViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val newName = nextCopyName(source.name, source.gardenId)
-                val created = gardenRepository.createBed(
+                val created = bedRepository.create(
                     source.gardenId,
                     CreateBedRequest(
                         name = newName,
@@ -185,7 +191,7 @@ class BedDetailViewModel @Inject constructor(
     private suspend fun nextCopyName(sourceName: String, gardenId: Long): String {
         val match = Regex("^(.*?)#(\\d+)\\s*$").matchEntire(sourceName) ?: return "$sourceName (kopia)"
         val stem = match.groupValues[1]
-        val siblings = runCatching { gardenRepository.getBeds(gardenId) }.getOrDefault(emptyList())
+        val siblings = runCatching { bedRepository.list(gardenId) }.getOrDefault(emptyList())
         val pattern = Regex("^${Regex.escape(stem)}#(\\d+)\\s*$")
         val highest = siblings.mapNotNull { pattern.matchEntire(it.name)?.groupValues?.get(1)?.toIntOrNull() }
             .maxOrNull() ?: 0

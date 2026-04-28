@@ -1,4 +1,6 @@
 package app.verdant.android.ui.world
+import app.verdant.android.data.repository.AnalyticsRepository
+import app.verdant.android.data.repository.PlantRepository
 
 import android.util.Log
 import androidx.compose.foundation.layout.Box
@@ -33,7 +35,6 @@ import app.verdant.android.data.model.DashboardResponse
 import app.verdant.android.data.model.GardenSummary
 import app.verdant.android.data.model.HarvestStatRow
 import app.verdant.android.data.model.TraySummaryEntry
-import app.verdant.android.data.repository.GardenRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetFab
@@ -62,7 +63,8 @@ data class MyWorldState(
 
 @HiltViewModel
 class MyWorldViewModel @Inject constructor(
-    private val repo: GardenRepository
+    private val analyticsRepository: AnalyticsRepository,
+    private val plantRepository: PlantRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MyWorldState())
     val uiState = _uiState.asStateFlow()
@@ -72,9 +74,9 @@ class MyWorldViewModel @Inject constructor(
             val showLoading = _uiState.value.dashboard == null
             if (showLoading) _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val dashboard = repo.getDashboard()
-                val stats = repo.getHarvestStats()
-                val tray = try { repo.getTraySummary() } catch (e: Exception) { Log.e(TAG, "Failed to load tray summary", e); emptyList() }
+                val dashboard = analyticsRepository.dashboard()
+                val stats = analyticsRepository.harvestStats()
+                val tray = try { plantRepository.traySummary() } catch (e: Exception) { Log.e(TAG, "Failed to load tray summary", e); emptyList() }
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     dashboard = dashboard,
