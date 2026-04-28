@@ -49,15 +49,15 @@ fun BotanicalIllustration(
  * that renders as a small floral glyph so the layout still composes.
  */
 enum class BotanicalPlate(@DrawableRes val drawableRes: Int, val contentDescription: String?) {
-    /** Empty-state for "no plants" — recommend Besler plate of a tulip in bloom. */
-    EmptyGarden(R.drawable.botanical_placeholder, "Botanisk illustration"),
+    /** Empty-state for "no plants" — tulip in bloom. */
+    EmptyGarden(R.drawable.botanical_empty_garden, "Botanisk illustration"),
 
-    /** Splash / drawer header — recommend Besler frontispiece or a peony plate. */
-    Frontispiece(R.drawable.botanical_placeholder, "Botanisk illustration"),
+    /** Splash / drawer header — peony, the title-page specimen. */
+    Frontispiece(R.drawable.botanical_frontispiece, "Botanisk illustration"),
 
-    /** Empty-state for "no tasks" — recommend a Besler vine or trellis plate. */
-    Trellis(R.drawable.botanical_placeholder, "Botanisk illustration"),
+    /** Empty-state for "no tasks" — climbing grapevine. */
+    Trellis(R.drawable.botanical_trellis, "Botanisk illustration"),
 
-    /** Empty-state for "no harvest" — recommend a Besler fruiting plate. */
-    Harvest(R.drawable.botanical_placeholder, "Botanisk illustration"),
+    /** Empty-state for "no harvest" — fruiting apple branch. */
+    Harvest(R.drawable.botanical_harvest, "Botanisk illustration"),
 }
