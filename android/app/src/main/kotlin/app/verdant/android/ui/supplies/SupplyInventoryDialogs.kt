@@ -15,6 +15,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +35,13 @@ import app.verdant.android.ui.theme.FaltetForest
 internal fun AddSupplyDialog(
     types: List<SupplyTypeResponse>,
     saving: Boolean,
+    /**
+     * When set, auto-selects this type (and its category) on next
+     * composition. The parent passes the type that was just created via
+     * the nested 'Ny typ' flow, so the user doesn't have to find their
+     * brand-new entry in the dropdown manually.
+     */
+    preselectedType: SupplyTypeResponse? = null,
     onDismiss: () -> Unit,
     onSubmit: (typeId: Long, quantity: Double, costCents: Int?, notes: String?) -> Unit,
     onAddType: (initialCategory: String) -> Unit,
@@ -41,11 +49,22 @@ internal fun AddSupplyDialog(
     // Two-stage selection: pick the category first, then the type within
     // it. Categories that have no types yet show a hint instead of an
     // empty type dropdown.
-    var selectedCategory by remember { mutableStateOf<String?>(null) }
-    var selectedType by remember { mutableStateOf<SupplyTypeResponse?>(null) }
+    var selectedCategory by remember { mutableStateOf<String?>(preselectedType?.category) }
+    var selectedType by remember { mutableStateOf<SupplyTypeResponse?>(preselectedType) }
     var quantity by remember { mutableStateOf("") }
     var cost by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
+
+    // When the parent surfaces a freshly-created type, apply it. Keyed on
+    // id so we don't re-fire on equal references; gated on non-null so
+    // clearing the preselect from the parent doesn't wipe the user's
+    // current choice.
+    LaunchedEffect(preselectedType?.id) {
+        preselectedType?.let {
+            selectedCategory = it.category
+            selectedType = it
+        }
+    }
 
     val typesInCategory = remember(types, selectedCategory) {
         selectedCategory?.let { cat -> types.filter { it.category == cat } } ?: emptyList()

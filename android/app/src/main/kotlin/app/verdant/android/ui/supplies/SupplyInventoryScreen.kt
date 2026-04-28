@@ -82,6 +82,9 @@ fun SupplyInventoryScreen(
     // current category so the type form opens pre-set to it. Null when the
     // type dialog is dismissed.
     var addTypeWithCategory by remember { mutableStateOf<String?>(null) }
+    // After a new type is created mid-flow, hand it back to AddSupplyDialog
+    // so the user doesn't have to re-pick their brand-new entry.
+    var preselectAfterCreate by remember { mutableStateOf<SupplyTypeResponse?>(null) }
     var editTypeTarget by remember { mutableStateOf<SupplyTypeResponse?>(null) }
 
     val loaded = uiState as? SupplyInventoryUiState.Loaded
@@ -131,10 +134,15 @@ fun SupplyInventoryScreen(
         AddSupplyDialog(
             types = loaded.types,
             saving = loaded.saving,
-            onDismiss = { showAddDialog = false },
+            preselectedType = preselectAfterCreate,
+            onDismiss = {
+                showAddDialog = false
+                preselectAfterCreate = null
+            },
             onSubmit = { typeId, qty, costCents, notes ->
                 viewModel.createInventory(typeId, qty, costCents, notes) {
                     showAddDialog = false
+                    preselectAfterCreate = null
                 }
             },
             onAddType = { initialCategory -> addTypeWithCategory = initialCategory },
@@ -145,12 +153,16 @@ fun SupplyInventoryScreen(
             initialCategory = initialCategory,
             onDismiss = { addTypeWithCategory = null },
             onSubmit = { name, category, unit, inexhaustible ->
-                viewModel.createSupplyType(name, category, unit, inexhaustible) { _ ->
+                viewModel.createSupplyType(name, category, unit, inexhaustible) { created ->
                     addTypeWithCategory = null
                     if (inexhaustible) {
                         // Per spec Q9: when the new type is inexhaustible, the parent
                         // "Add inventory" dialog has nothing left to do — close it too.
                         showAddDialog = false
+                    } else {
+                        // Hand the new type back so AddSupplyDialog auto-
+                        // selects it instead of leaving the dropdown empty.
+                        preselectAfterCreate = created
                     }
                 }
             },
