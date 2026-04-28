@@ -32,6 +32,7 @@ import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.UpdateScheduledTaskRequest
 import app.verdant.android.data.model.sortedBySwedishName
 import app.verdant.android.ui.activity.Activity
+import app.verdant.android.ui.faltet.FaltetChecklistGroup
 import app.verdant.android.ui.faltet.FaltetDatePicker
 import app.verdant.android.ui.faltet.FaltetDropdown
 import app.verdant.android.ui.faltet.FaltetFormSubmitBar
@@ -118,7 +119,49 @@ class TaskFormViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * Create the same bed-scoped task once per [bedIds]. Used when the user
+     * picks a bed named like `Bed #1` and elects to schedule the activity
+     * for the whole `Bed #*` family in one go. Stops on the first failure.
+     */
+    fun saveForBeds(
+        bedIds: List<Long>,
+        activityType: String,
+        deadline: String,
+        targetCount: Int,
+        notes: String?,
+    ) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            try {
+                for (id in bedIds) {
+                    taskRepository.create(CreateScheduledTaskRequest(
+                        speciesId = null,
+                        bedId = id,
+                        activityType = activityType,
+                        deadline = deadline,
+                        targetCount = targetCount,
+                        notes = notes,
+                    ))
+                }
+                _uiState.value = _uiState.value.copy(isLoading = false, saved = true)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
+            }
+        }
+    }
 }
+
+/**
+ * When a bed name matches `<stem>#<n>` we treat beds sharing that stem
+ * (in the same garden) as a family — useful for scheduling the same task
+ * across all of them at once.
+ */
+private val BED_STEM_PATTERN = Regex("^(.*?)#(\\d+)\\s*$")
+
+private fun bedStem(name: String): String? = BED_STEM_PATTERN.matchEntire(name)
+    ?.groupValues?.get(1)?.trim()?.takeIf { it.isNotEmpty() }
 
 private fun activityTypeLabelSvStr(name: String): String = when (name) {
     Activity.SOW.name -> "Så"
@@ -159,8 +202,31 @@ fun TaskFormScreen(
     var deadline by remember { mutableStateOf<LocalDate?>(null) }
     var targetCountText by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
+    // Beds sharing the selected bed's stem (e.g. "Bed #1", "Bed #2", "Bed #3"
+    // all share the stem "Bed "). Surfaces a checklist so the user can
+    // schedule the same task across the whole family in one go.
+    var siblingBedIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
 
     val isBedActivity = selectedActivityType in BED_ACTIVITY_TYPES
+
+    // Compute the sibling family for the currently-selected bed. Only
+    // surfaces in create mode and only when there's at least one other
+    // bed sharing the stem in the same garden.
+    val bedFamily = remember(selectedBed, uiState.beds, isEdit) {
+        val bed = selectedBed ?: return@remember emptyList()
+        if (isEdit) return@remember emptyList()
+        val stem = bedStem(bed.name) ?: return@remember emptyList()
+        uiState.beds
+            .filter { it.gardenId == bed.gardenId && bedStem(it.name) == stem }
+            .sortedBy { it.name }
+            .takeIf { it.size >= 2 }
+            .orEmpty()
+    }
+    // When the family changes (e.g. user picks a different bed), default to
+    // selecting every member.
+    LaunchedEffect(bedFamily) {
+        siblingBedIds = bedFamily.map { it.id }.toSet()
+    }
 
     var prefilled by remember { mutableStateOf(false) }
     LaunchedEffect(existing, uiState.species, uiState.beds) {
@@ -178,7 +244,8 @@ fun TaskFormScreen(
     val canSubmit = selectedActivityType != null &&
         deadline != null &&
         !uiState.isLoading &&
-        (if (isBedActivity) selectedBed != null else selectedSpecies != null)
+        (if (isBedActivity) selectedBed != null && (bedFamily.isEmpty() || siblingBedIds.isNotEmpty())
+         else selectedSpecies != null)
 
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(uiState.error) { uiState.error?.let { snackbarHostState.showSnackbar(it) } }
@@ -191,14 +258,26 @@ fun TaskFormScreen(
             FaltetFormSubmitBar(
                 label = if (isEdit) "Spara" else "Skapa",
                 onClick = {
-                    viewModel.save(
-                        speciesId = if (isBedActivity) null else selectedSpecies?.id,
-                        bedId = if (isBedActivity) selectedBed?.id else null,
-                        activityType = selectedActivityType!!,
-                        deadline = deadline!!.toString(),
-                        targetCount = targetCountText.toIntOrNull()?.coerceAtLeast(1) ?: 1,
-                        notes = notes.ifBlank { null },
-                    )
+                    val targetCount = targetCountText.toIntOrNull()?.coerceAtLeast(1) ?: 1
+                    val notesOrNull = notes.ifBlank { null }
+                    if (isBedActivity && bedFamily.isNotEmpty()) {
+                        viewModel.saveForBeds(
+                            bedIds = siblingBedIds.toList(),
+                            activityType = selectedActivityType!!,
+                            deadline = deadline!!.toString(),
+                            targetCount = targetCount,
+                            notes = notesOrNull,
+                        )
+                    } else {
+                        viewModel.save(
+                            speciesId = if (isBedActivity) null else selectedSpecies?.id,
+                            bedId = if (isBedActivity) selectedBed?.id else null,
+                            activityType = selectedActivityType!!,
+                            deadline = deadline!!.toString(),
+                            targetCount = targetCount,
+                            notes = notesOrNull,
+                        )
+                    }
                 },
                 enabled = canSubmit,
                 submitting = uiState.isLoading,
@@ -238,6 +317,20 @@ fun TaskFormScreen(
                             searchable = true,
                             required = true,
                         )
+                    }
+                    if (bedFamily.isNotEmpty()) {
+                        item {
+                            val familyByBed = bedFamily.associateBy { it.id }
+                            FaltetChecklistGroup(
+                                label = "Schemalägg även för",
+                                options = bedFamily,
+                                selected = siblingBedIds.mapNotNull { familyByBed[it] }.toSet(),
+                                onSelectedChange = { picks -> siblingBedIds = picks.map { it.id }.toSet() },
+                                labelFor = { it.name },
+                                selectAllEnabled = true,
+                                required = true,
+                            )
+                        }
                     }
                 } else {
                     item {
