@@ -6,14 +6,18 @@ import app.verdant.android.data.repository.TaskRepository
 import app.verdant.android.data.repository.TrayLocationRepository
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material.icons.filled.Yard
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +32,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -63,6 +68,8 @@ import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
 import app.verdant.android.ui.theme.FaltetInk
+import app.verdant.android.ui.theme.FaltetInkLine20
+import app.verdant.android.ui.theme.FaltetPaper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -160,6 +167,11 @@ fun DashboardScreen(
         onPauseOrDispose { }
     }
 
+    // Tracks which tray locations have their plant rows expanded. Collapsed
+    // by default — header row alone (location name + count + actions) reads
+    // as the at-a-glance summary.
+    val expandedTrayKeys = remember { androidx.compose.runtime.mutableStateMapOf<String, Boolean>() }
+
     FaltetScreenScaffold(
         mastheadLeft = "",
         mastheadCenter = "Översikt",
@@ -242,61 +254,20 @@ fun DashboardScreen(
                             .sortedBy { (key, _) -> key.second ?: "￿" }
                         grouped.forEach { (key, entries) ->
                             val (locId, locName) = key
+                            val groupKey = "loc_${locId ?: "none"}"
                             val totalCount = entries.sumOf { it.count }
-                            item(key = "loc_${locId ?: "none"}") {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 18.dp, vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Text(
-                                        text = (locName ?: "Utan plats").uppercase(),
-                                        fontFamily = FontFamily.Monospace,
-                                        fontSize = 10.sp,
-                                        letterSpacing = 1.4.sp,
-                                        color = FaltetForest,
-                                        modifier = Modifier.weight(1f),
-                                    )
-                                    Text(
-                                        text = "$totalCount ST",
-                                        fontFamily = FontFamily.Monospace,
-                                        fontSize = 10.sp,
-                                        letterSpacing = 1.2.sp,
-                                        color = FaltetForest,
-                                    )
-                                    if (locId != null) {
-                                        TextButton(onClick = { viewModel.waterLocation(locId) }) {
-                                            Text("Vattna", color = FaltetAccent, fontSize = 11.sp)
-                                        }
-                                        TextButton(onClick = { onOpenTrayLocation(locId) }) {
-                                            Text("Öppna", color = FaltetAccent, fontSize = 11.sp)
-                                        }
-                                    }
-                                }
-                            }
-                            items(entries.take(6)) { entry ->
-                                FaltetListRow(
-                                    title = entry.variantName?.let { "${entry.speciesName} – $it" } ?: entry.speciesName,
-                                    meta = trayStatusLabelSv(entry.status),
-                                    stat = {
-                                        Row(verticalAlignment = Alignment.Bottom) {
-                                            Text(
-                                                text = entry.count.toString(),
-                                                fontFamily = FontFamily.Monospace,
-                                                fontSize = 16.sp,
-                                                color = FaltetInk,
-                                            )
-                                            Text(
-                                                text = " ST",
-                                                fontFamily = FontFamily.Monospace,
-                                                fontSize = 9.sp,
-                                                letterSpacing = 1.2.sp,
-                                                color = FaltetForest,
-                                            )
-                                        }
+                            item(key = groupKey) {
+                                TrayLocationGroup(
+                                    locName = locName,
+                                    totalCount = totalCount,
+                                    entries = entries,
+                                    expanded = expandedTrayKeys[groupKey] == true,
+                                    onToggleExpanded = {
+                                        expandedTrayKeys[groupKey] = !(expandedTrayKeys[groupKey] == true)
                                     },
-                                    onClick = { entry.speciesId?.let(onSpeciesClick) },
+                                    onWater = locId?.let { id -> { viewModel.waterLocation(id) } },
+                                    onOpen = locId?.let { id -> { onOpenTrayLocation(id) } },
+                                    onSpeciesClick = onSpeciesClick,
                                 )
                             }
                         }
@@ -324,6 +295,104 @@ fun DashboardScreen(
                     }
 
                     item { Spacer(Modifier.height(80.dp)) }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * One tray-location row on the Dashboard. Collapsed by default — only the
+ * location name, total count, and action links are visible. Tap the row
+ * (anywhere outside the action buttons) to expand and show the per-species
+ * plant rows. The whole group is wrapped in a soft paper card so the
+ * grouping reads at a glance even when collapsed.
+ */
+@Composable
+private fun TrayLocationGroup(
+    locName: String?,
+    totalCount: Int,
+    entries: List<TraySummaryEntry>,
+    expanded: Boolean,
+    onToggleExpanded: () -> Unit,
+    onWater: (() -> Unit)?,
+    onOpen: (() -> Unit)?,
+    onSpeciesClick: (Long) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 14.dp, vertical = 4.dp)
+            .fillMaxWidth()
+            .background(FaltetPaper, shape = RoundedCornerShape(12.dp))
+            .border(1.dp, FaltetInkLine20, shape = RoundedCornerShape(12.dp)),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onToggleExpanded)
+                .padding(start = 14.dp, end = 6.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                contentDescription = if (expanded) "Dölj plantor" else "Visa plantor",
+                tint = FaltetForest,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = locName ?: "Utan plats",
+                fontFamily = FaltetDisplay,
+                fontStyle = FontStyle.Italic,
+                fontSize = 16.sp,
+                color = FaltetInk,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = "$totalCount st",
+                fontFamily = FontFamily.Monospace,
+                fontSize = 12.sp,
+                color = FaltetForest,
+                modifier = Modifier.padding(end = 4.dp),
+            )
+            if (onWater != null) {
+                TextButton(onClick = onWater) {
+                    Text("Vattna", color = FaltetAccent, fontSize = 12.sp)
+                }
+            }
+            if (onOpen != null) {
+                TextButton(onClick = onOpen) {
+                    Text("Öppna", color = FaltetAccent, fontSize = 12.sp)
+                }
+            }
+        }
+        AnimatedVisibility(visible = expanded) {
+            Column(
+                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+            ) {
+                entries.take(6).forEach { entry ->
+                    FaltetListRow(
+                        title = entry.variantName?.let { "${entry.speciesName} – $it" } ?: entry.speciesName,
+                        meta = trayStatusLabelSv(entry.status),
+                        stat = {
+                            Row(verticalAlignment = Alignment.Bottom) {
+                                Text(
+                                    text = entry.count.toString(),
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 16.sp,
+                                    color = FaltetInk,
+                                )
+                                Text(
+                                    text = " st",
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 9.sp,
+                                    letterSpacing = 1.2.sp,
+                                    color = FaltetForest,
+                                )
+                            }
+                        },
+                        onClick = { entry.speciesId?.let(onSpeciesClick) },
+                    )
                 }
             }
         }
