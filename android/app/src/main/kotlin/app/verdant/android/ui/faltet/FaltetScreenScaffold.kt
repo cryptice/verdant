@@ -28,7 +28,7 @@ fun FaltetScreenScaffold(
     snackbarHost: @Composable () -> Unit = {},
     /**
      * Optional faint botanical watermark behind the screen content.
-     * Anchored bottom-end at 7% alpha. Pass null (default) to disable —
+     * Anchored bottom-end at 4.5% alpha. Pass null (default) to disable —
      * appropriate for splash, hero, and form screens that already render
      * their own large imagery.
      */
@@ -60,7 +60,7 @@ fun FaltetScreenScaffold(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
                             .padding(padding)
-                            .alpha(0.07f),
+                            .alpha(0.045f),
                     )
                     content(padding)
                 }
