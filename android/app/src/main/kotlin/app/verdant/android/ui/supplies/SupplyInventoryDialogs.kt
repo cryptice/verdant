@@ -36,12 +36,20 @@ internal fun AddSupplyDialog(
     saving: Boolean,
     onDismiss: () -> Unit,
     onSubmit: (typeId: Long, quantity: Double, costCents: Int?, notes: String?) -> Unit,
-    onAddType: () -> Unit,
+    onAddType: (initialCategory: String) -> Unit,
 ) {
+    // Two-stage selection: pick the category first, then the type within
+    // it. Categories that have no types yet show a hint instead of an
+    // empty type dropdown.
+    var selectedCategory by remember { mutableStateOf<String?>(null) }
     var selectedType by remember { mutableStateOf<SupplyTypeResponse?>(null) }
     var quantity by remember { mutableStateOf("") }
     var cost by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
+
+    val typesInCategory = remember(types, selectedCategory) {
+        selectedCategory?.let { cat -> types.filter { it.category == cat } } ?: emptyList()
+    }
 
     val qty = quantity.toDoubleOrNull()
     val canSubmit = selectedType != null && qty != null && qty > 0 && !saving
@@ -52,17 +60,48 @@ internal fun AddSupplyDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 FaltetDropdown(
-                    label = "Typ",
-                    options = types,
-                    selected = selectedType,
-                    onSelectedChange = { selectedType = it },
-                    labelFor = { "${it.name} · ${categoryLabelSv(it.category)}" },
-                    searchable = true,
+                    label = "Kategori",
+                    options = SUPPLY_CATEGORIES,
+                    selected = selectedCategory,
+                    onSelectedChange = {
+                        selectedCategory = it
+                        // Picking a different category invalidates the
+                        // type, so reset it.
+                        selectedType = null
+                    },
+                    labelFor = { categoryLabelSv(it) },
+                    searchable = false,
                     required = true,
                 )
-                TextButton(onClick = onAddType) {
-                    Text("+ Ny typ", color = FaltetAccent, fontSize = 12.sp)
+
+                if (selectedCategory != null && typesInCategory.isEmpty()) {
+                    // Hint: this category has no types yet — nudge the
+                    // user toward creating one in the right category.
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            text = "Inga typer i ${categoryLabelSv(selectedCategory!!)} ännu.",
+                            fontSize = 12.sp,
+                            color = FaltetForest,
+                        )
+                        TextButton(onClick = { onAddType(selectedCategory!!) }) {
+                            Text("+ Skapa ${categoryLabelSv(selectedCategory!!).lowercase()}-typ", color = FaltetAccent, fontSize = 12.sp)
+                        }
+                    }
+                } else {
+                    FaltetDropdown(
+                        label = "Typ",
+                        options = typesInCategory,
+                        selected = selectedType,
+                        onSelectedChange = { selectedType = it },
+                        labelFor = { it.name },
+                        searchable = true,
+                        required = true,
+                    )
+                    TextButton(onClick = { onAddType(selectedCategory ?: "FERTILIZER") }) {
+                        Text("+ Ny typ", color = FaltetAccent, fontSize = 12.sp)
+                    }
                 }
+
                 OutlinedTextField(
                     value = quantity,
                     onValueChange = { quantity = it },
@@ -109,9 +148,10 @@ internal fun AddSupplyDialog(
 internal fun AddSupplyTypeDialog(
     onDismiss: () -> Unit,
     onSubmit: (name: String, category: String, unit: String, inexhaustible: Boolean) -> Unit,
+    initialCategory: String = "FERTILIZER",
 ) {
     var name by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf<String?>("FERTILIZER") }
+    var category by remember { mutableStateOf<String?>(initialCategory) }
     var unit by remember { mutableStateOf<String?>("LITERS") }
     var inexhaustible by remember { mutableStateOf(false) }
 

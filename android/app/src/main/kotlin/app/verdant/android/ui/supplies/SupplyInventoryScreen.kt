@@ -78,7 +78,10 @@ fun SupplyInventoryScreen(
     var useDialogBatch by remember { mutableStateOf<SupplyInventoryResponse?>(null) }
     var useAmount by remember { mutableStateOf("") }
     var showAddDialog by remember { mutableStateOf(false) }
-    var showAddTypeDialog by remember { mutableStateOf(false) }
+    // When the inventory dialog asks to create a new type, it passes the
+    // current category so the type form opens pre-set to it. Null when the
+    // type dialog is dismissed.
+    var addTypeWithCategory by remember { mutableStateOf<String?>(null) }
     var editTypeTarget by remember { mutableStateOf<SupplyTypeResponse?>(null) }
 
     val loaded = uiState as? SupplyInventoryUiState.Loaded
@@ -134,15 +137,16 @@ fun SupplyInventoryScreen(
                     showAddDialog = false
                 }
             },
-            onAddType = { showAddTypeDialog = true },
+            onAddType = { initialCategory -> addTypeWithCategory = initialCategory },
         )
     }
-    if (showAddTypeDialog) {
+    addTypeWithCategory?.let { initialCategory ->
         AddSupplyTypeDialog(
-            onDismiss = { showAddTypeDialog = false },
+            initialCategory = initialCategory,
+            onDismiss = { addTypeWithCategory = null },
             onSubmit = { name, category, unit, inexhaustible ->
                 viewModel.createSupplyType(name, category, unit, inexhaustible) { _ ->
-                    showAddTypeDialog = false
+                    addTypeWithCategory = null
                     if (inexhaustible) {
                         // Per spec Q9: when the new type is inexhaustible, the parent
                         // "Add inventory" dialog has nothing left to do — close it too.
