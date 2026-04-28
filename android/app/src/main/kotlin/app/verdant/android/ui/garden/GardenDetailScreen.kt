@@ -1,4 +1,5 @@
 package app.verdant.android.ui.garden
+import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.BedRepository
 import app.verdant.android.data.repository.GardenApiRepository
 import app.verdant.android.data.repository.PlantRepository
@@ -222,7 +223,8 @@ fun GardenDetailScreen(
                 }
             }
         },
-    ) { padding ->
+        watermark = BotanicalPlate.EmptyGarden,
+) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
             uiState.error != null -> Box(

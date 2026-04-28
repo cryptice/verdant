@@ -1,4 +1,5 @@
 package app.verdant.android.ui.targets
+import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.AnalyticsRepository
 import app.verdant.android.data.repository.SeasonRepository
 import app.verdant.android.data.repository.SpeciesRepository
@@ -192,7 +193,8 @@ fun ProductionTargetsScreen(
         mastheadLeft = "",
         mastheadCenter = "Mål",
         fab = { FaltetFab(onClick = { showDialog = true }, contentDescription = "Nytt mål") },
-    ) { padding ->
+        watermark = BotanicalPlate.Harvest,
+) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
 

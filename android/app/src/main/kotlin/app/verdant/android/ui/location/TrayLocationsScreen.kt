@@ -1,4 +1,5 @@
 package app.verdant.android.ui.location
+import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.TrayLocationRepository
 
 import android.util.Log
@@ -109,7 +110,8 @@ fun TrayLocationsScreen(
                 )
             }
         },
-    ) { padding ->
+        watermark = BotanicalPlate.EmptyGarden,
+) { padding ->
         when {
             ui.isLoading -> FaltetLoadingState(Modifier.padding(padding))
             ui.error != null -> Box(

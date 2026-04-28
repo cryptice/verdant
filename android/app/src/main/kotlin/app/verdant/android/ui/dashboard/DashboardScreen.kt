@@ -1,4 +1,5 @@
 package app.verdant.android.ui.dashboard
+import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.AnalyticsRepository
 import app.verdant.android.data.repository.PlantRepository
 import app.verdant.android.data.repository.TaskRepository
@@ -163,7 +164,8 @@ fun DashboardScreen(
         mastheadLeft = "",
         mastheadCenter = "Översikt",
         snackbarHost = { SnackbarHost(snackbarHostState) },
-    ) { padding ->
+        watermark = BotanicalPlate.EmptyGarden,
+) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
             uiState.error != null && uiState.dashboard == null -> Box(

@@ -1,4 +1,5 @@
 package app.verdant.android.ui.activity
+import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.SpeciesRepository
 
 import android.util.Log
@@ -173,7 +174,8 @@ fun SpeciesListScreen(
         mastheadLeft = "",
         mastheadCenter = "Sorter",
         fab = { FaltetFab(onClick = onAddSpecies, contentDescription = "Lägg till sort") },
-    ) { padding ->
+        watermark = BotanicalPlate.EmptyGarden,
+) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
             uiState.error != null -> Box(
@@ -223,7 +225,8 @@ private fun SpeciesListScreenPreview() {
     FaltetScreenScaffold(
         mastheadLeft = "",
         mastheadCenter = "Sorter",
-    ) { padding ->
+        watermark = BotanicalPlate.EmptyGarden,
+) { padding ->
         FaltetEmptyState(
             headline = "Inga sorter",
             subtitle = "Lägg till en sort för att börja.",

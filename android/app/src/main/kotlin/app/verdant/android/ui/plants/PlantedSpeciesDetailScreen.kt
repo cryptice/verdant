@@ -1,4 +1,5 @@
 package app.verdant.android.ui.plants
+import app.verdant.android.ui.faltet.BotanicalPlate
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -380,7 +381,8 @@ fun PlantedSpeciesDetailScreen(
     FaltetScreenScaffold(
         mastheadLeft = "",
         mastheadCenter = "",
-    ) { padding ->
+        watermark = BotanicalPlate.EmptyGarden,
+) { padding ->
         when (val state = uiState) {
             is PlantedSpeciesDetailUiState.Loading -> FaltetLoadingState(Modifier.padding(padding))
             is PlantedSpeciesDetailUiState.Error -> Box(

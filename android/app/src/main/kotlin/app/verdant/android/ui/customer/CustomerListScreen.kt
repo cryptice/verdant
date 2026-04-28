@@ -1,4 +1,5 @@
 package app.verdant.android.ui.customer
+import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.CustomerRepository
 
 import androidx.compose.foundation.layout.Arrangement
@@ -144,7 +145,8 @@ fun CustomerListScreen(
                 icon = Icons.Default.Add,
             )
         },
-    ) { padding ->
+        watermark = BotanicalPlate.Harvest,
+) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
             uiState.error != null && uiState.items.isEmpty() -> Box(

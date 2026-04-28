@@ -1,4 +1,5 @@
 package app.verdant.android.ui.world
+import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.AnalyticsRepository
 import app.verdant.android.data.repository.PlantRepository
 
@@ -112,7 +113,8 @@ fun MyVerdantWorldScreen(
         mastheadRight = {
             TextButton(onClick = onSow) { Text("Så", fontSize = 12.sp) }
         },
-    ) { padding ->
+        watermark = BotanicalPlate.EmptyGarden,
+) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
             uiState.error != null -> Box(
@@ -287,7 +289,8 @@ private fun MyVerdantWorldScreenPreview() {
         mastheadLeft = "",
         mastheadCenter = "Trädgårdar",
         fab = { FaltetFab(onClick = {}, contentDescription = "Skapa trädgård") },
-    ) { padding ->
+        watermark = BotanicalPlate.EmptyGarden,
+) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding)) {
             item { FaltetSectionHeader(label = "Trädgårdar") }
             items(uiState.dashboard!!.gardens, key = { "garden_${it.id}" }) { garden ->

@@ -1,4 +1,5 @@
 package app.verdant.android.ui.plant
+import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.PlantRepository
 import app.verdant.android.data.repository.WorkflowRepository
 
@@ -218,7 +219,8 @@ fun PlantDetailScreen(
                 FaltetFab(onClick = { onAddEvent(plant.id) }, contentDescription = "Lägg till händelse")
             }
         },
-    ) { padding ->
+        watermark = BotanicalPlate.EmptyGarden,
+) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
             uiState.error != null && uiState.plant == null -> Box(

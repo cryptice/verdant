@@ -1,4 +1,5 @@
 package app.verdant.android.ui.pest
+import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.PestDiseaseRepository
 import app.verdant.android.data.repository.SeasonRepository
 import app.verdant.android.data.repository.SpeciesRepository
@@ -190,7 +191,8 @@ fun PestDiseaseLogScreen(
                 contentDescription = stringResource(R.string.new_pest_disease),
             )
         },
-    ) { padding ->
+        watermark = BotanicalPlate.EmptyGarden,
+) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
 
@@ -481,7 +483,8 @@ private fun PestDiseaseLogScreenPreview() {
     FaltetScreenScaffold(
         mastheadLeft = "",
         mastheadCenter = "Skadedjur & sjukdomar",
-    ) { padding ->
+        watermark = BotanicalPlate.EmptyGarden,
+) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding)) {
             items(
                 listOf(

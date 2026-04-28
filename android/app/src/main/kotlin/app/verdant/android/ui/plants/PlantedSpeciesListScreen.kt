@@ -1,4 +1,5 @@
 package app.verdant.android.ui.plants
+import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.PlantRepository
 import app.verdant.android.data.repository.SpeciesRepository
 import app.verdant.android.data.repository.SupplyRepository
@@ -174,7 +175,8 @@ fun PlantedSpeciesListScreen(
         FaltetScreenScaffold(
             mastheadLeft = "",
             mastheadCenter = "Växter",
-        ) { padding ->
+            watermark = BotanicalPlate.EmptyGarden,
+) { padding ->
             when {
                 uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
                 uiState.error != null -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {

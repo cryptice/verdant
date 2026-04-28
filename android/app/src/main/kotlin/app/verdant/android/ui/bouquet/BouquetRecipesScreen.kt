@@ -1,4 +1,5 @@
 package app.verdant.android.ui.bouquet
+import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.BouquetRepository
 import app.verdant.android.data.repository.SpeciesRepository
 
@@ -173,7 +174,8 @@ fun BouquetRecipesScreen(
                 contentDescription = stringResource(R.string.new_bouquet),
             )
         },
-    ) { padding ->
+        watermark = BotanicalPlate.Harvest,
+) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
 
@@ -471,7 +473,8 @@ private fun BouquetRecipesScreenPreview() {
     FaltetScreenScaffold(
         mastheadLeft = "",
         mastheadCenter = "Recept",
-    ) { padding ->
+        watermark = BotanicalPlate.Harvest,
+) { padding ->
         FaltetEmptyState(
             headline = "Inga recept",
             subtitle = "Designa din första bukett.",

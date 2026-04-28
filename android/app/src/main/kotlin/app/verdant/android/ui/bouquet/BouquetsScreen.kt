@@ -1,5 +1,6 @@
 // android/app/src/main/kotlin/app/verdant/android/ui/bouquet/BouquetsScreen.kt
 package app.verdant.android.ui.bouquet
+import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.BouquetRepository
 import app.verdant.android.data.repository.SpeciesRepository
 
@@ -207,7 +208,8 @@ fun BouquetsScreen(
                 contentDescription = "Bygg bukett",
             )
         },
-    ) { padding ->
+        watermark = BotanicalPlate.Harvest,
+) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
             uiState.error != null -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {

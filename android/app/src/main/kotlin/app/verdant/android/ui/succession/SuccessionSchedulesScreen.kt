@@ -1,4 +1,5 @@
 package app.verdant.android.ui.succession
+import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.AnalyticsRepository
 import app.verdant.android.data.repository.SeasonRepository
 import app.verdant.android.data.repository.SpeciesRepository
@@ -236,7 +237,8 @@ fun SuccessionSchedulesScreen(
                 contentDescription = stringResource(R.string.new_succession),
             )
         },
-    ) { padding ->
+        watermark = BotanicalPlate.Trellis,
+) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
 
@@ -494,7 +496,8 @@ private fun SuccessionSchedulesScreenPreview() {
     FaltetScreenScaffold(
         mastheadLeft = "",
         mastheadCenter = "Successioner",
-    ) { padding ->
+        watermark = BotanicalPlate.Trellis,
+) { padding ->
         FaltetEmptyState(
             headline = "Inga successioner",
             subtitle = "Planera din första succession.",

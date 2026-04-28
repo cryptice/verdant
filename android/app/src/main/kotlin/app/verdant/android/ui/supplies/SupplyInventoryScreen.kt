@@ -1,4 +1,5 @@
 package app.verdant.android.ui.supplies
+import app.verdant.android.ui.faltet.BotanicalPlate
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -172,7 +173,8 @@ fun SupplyInventoryScreen(
         fab = {
             FaltetFab(onClick = { showAddDialog = true }, contentDescription = "Lägg till material")
         },
-    ) { padding ->
+        watermark = BotanicalPlate.Harvest,
+) { padding ->
         when (val state = uiState) {
             is SupplyInventoryUiState.Loading -> FaltetLoadingState(Modifier.padding(padding))
             is SupplyInventoryUiState.Error -> Box(

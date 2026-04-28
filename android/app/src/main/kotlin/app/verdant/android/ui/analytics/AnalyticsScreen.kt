@@ -1,4 +1,5 @@
 package app.verdant.android.ui.analytics
+import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.AnalyticsRepository
 import app.verdant.android.data.repository.SpeciesRepository
 
@@ -122,7 +123,8 @@ fun AnalyticsScreen(
                 )
             }
         },
-    ) { padding ->
+        watermark = BotanicalPlate.Harvest,
+) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
 
@@ -266,7 +268,8 @@ private fun AnalyticsScreenSasonerPreview() {
     FaltetScreenScaffold(
         mastheadLeft = "",
         mastheadCenter = "Analys",
-    ) { padding ->
+        watermark = BotanicalPlate.Harvest,
+) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding)) {
             item { FaltetSectionHeader(label = "Säsonger") }
             item { FaltetListRow(title = "Säsong 2024", meta = "2024") }

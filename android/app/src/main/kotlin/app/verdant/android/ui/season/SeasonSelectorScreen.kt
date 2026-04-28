@@ -1,4 +1,5 @@
 package app.verdant.android.ui.season
+import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.SeasonRepository
 
 import androidx.compose.foundation.layout.Arrangement
@@ -218,7 +219,8 @@ fun SeasonSelectorScreen(
         mastheadLeft = "",
         mastheadCenter = "Säsonger",
         fab = { FaltetFab(onClick = openCreate, contentDescription = "Skapa säsong") },
-    ) { padding ->
+        watermark = BotanicalPlate.Trellis,
+) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
             uiState.error != null -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {

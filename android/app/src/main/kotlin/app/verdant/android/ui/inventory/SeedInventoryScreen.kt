@@ -1,4 +1,5 @@
 package app.verdant.android.ui.inventory
+import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.SeedInventoryRepository
 
 import android.util.Log
@@ -111,7 +112,8 @@ fun SeedInventoryScreen(
     FaltetScreenScaffold(
         mastheadLeft = "",
         mastheadCenter = stringResource(R.string.seed_inventory),
-    ) { padding ->
+        watermark = BotanicalPlate.EmptyGarden,
+) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
             uiState.error != null -> Box(

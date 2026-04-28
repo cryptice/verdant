@@ -1,4 +1,5 @@
 package app.verdant.android.ui.trials
+import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.SeasonRepository
 import app.verdant.android.data.repository.SpeciesRepository
 import app.verdant.android.data.repository.VarietyTrialRepository
@@ -183,7 +184,8 @@ fun VarietyTrialsScreen(
                 contentDescription = stringResource(R.string.new_trial),
             )
         },
-    ) { padding ->
+        watermark = BotanicalPlate.EmptyGarden,
+) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
 

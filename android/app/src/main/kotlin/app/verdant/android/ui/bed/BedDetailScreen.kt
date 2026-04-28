@@ -1,4 +1,5 @@
 package app.verdant.android.ui.bed
+import app.verdant.android.ui.faltet.BotanicalPlate
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
@@ -376,7 +377,8 @@ fun BedDetailScreen(
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-    ) { padding ->
+        watermark = BotanicalPlate.EmptyGarden,
+) { padding ->
         when (val state = uiState) {
             is BedDetailUiState.Loading -> FaltetLoadingState(Modifier.padding(padding))
             is BedDetailUiState.Error -> Box(
