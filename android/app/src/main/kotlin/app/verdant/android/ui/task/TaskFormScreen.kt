@@ -4,13 +4,25 @@ import app.verdant.android.data.repository.SpeciesRepository
 import app.verdant.android.data.repository.TaskRepository
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -121,21 +133,21 @@ class TaskFormViewModel @Inject constructor(
     }
 
     /**
-     * Create the same bed-scoped task once per [bedIds]. Used when the user
-     * picks a bed named like `Bed #1` and elects to schedule the activity
-     * for the whole `Bed #*` family in one go. Stops on the first failure.
+     * Create the same bed-scoped task once per (bedId, deadline) pair. Used
+     * when the user schedules an activity across a family of `<stem>#<n>`
+     * beds in one go, optionally with the deadlines staggered. Stops on
+     * the first failure.
      */
     fun saveForBeds(
-        bedIds: List<Long>,
+        bedDeadlines: List<Pair<Long, String>>,
         activityType: String,
-        deadline: String,
         targetCount: Int,
         notes: String?,
     ) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                for (id in bedIds) {
+                for ((id, deadline) in bedDeadlines) {
                     taskRepository.create(CreateScheduledTaskRequest(
                         speciesId = null,
                         bedId = id,
@@ -162,6 +174,62 @@ private val BED_STEM_PATTERN = Regex("^(.*?)#(\\d+)\\s*$")
 
 private fun bedStem(name: String): String? = BED_STEM_PATTERN.matchEntire(name)
     ?.groupValues?.get(1)?.trim()?.takeIf { it.isNotEmpty() }
+
+@Composable
+private fun StaggerOption(
+    enabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit,
+    bedsPerBatchText: String,
+    onBedsPerBatchChange: (String) -> Unit,
+    daysBetweenText: String,
+    onDaysBetweenChange: (String) -> Unit,
+) {
+    Column {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Switch(checked = enabled, onCheckedChange = onEnabledChange)
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Sprid ut över flera dagar",
+                    fontFamily = app.verdant.android.ui.theme.FaltetDisplay,
+                    fontStyle = FontStyle.Italic,
+                    fontSize = 16.sp,
+                    color = app.verdant.android.ui.theme.FaltetInk,
+                )
+                Text(
+                    text = "Schemalägg ett par bäddar i taget istället för alla samtidigt.",
+                    fontSize = 11.sp,
+                    color = app.verdant.android.ui.theme.FaltetForest,
+                )
+            }
+        }
+        if (enabled) {
+            Spacer(Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Field(
+                    label = "Bäddar per omgång",
+                    value = bedsPerBatchText,
+                    onValueChange = { onBedsPerBatchChange(it.filter { c -> c.isDigit() }) },
+                    keyboardType = KeyboardType.Number,
+                    modifier = Modifier.weight(1f),
+                )
+                Field(
+                    label = "Dagar mellan",
+                    value = daysBetweenText,
+                    onValueChange = { onDaysBetweenChange(it.filter { c -> c.isDigit() }) },
+                    keyboardType = KeyboardType.Number,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    }
+}
 
 private fun activityTypeLabelSvStr(name: String): String = when (name) {
     Activity.SOW.name -> "Så"
@@ -206,6 +274,11 @@ fun TaskFormScreen(
     // all share the stem "Bed "). Surfaces a checklist so the user can
     // schedule the same task across the whole family in one go.
     var siblingBedIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
+    // Optional stagger: spread the schedule across multiple days, doing
+    // [staggerBedsPerBatch] beds per [staggerDaysBetween]-day batch.
+    var staggerEnabled by remember { mutableStateOf(false) }
+    var staggerBedsPerBatchText by remember { mutableStateOf("1") }
+    var staggerDaysBetweenText by remember { mutableStateOf("7") }
 
     val isBedActivity = selectedActivityType in BED_ACTIVITY_TYPES
 
@@ -258,13 +331,28 @@ fun TaskFormScreen(
             FaltetFormSubmitBar(
                 label = if (isEdit) "Spara" else "Skapa",
                 onClick = {
-                    val targetCount = targetCountText.toIntOrNull()?.coerceAtLeast(1) ?: 1
+                    // Bed tasks don't have a meaningful target count — the
+                    // task is "do this to the bed", not "do it N times" — so
+                    // we send 1 (the backend column requires ≥1).
+                    val targetCount = if (isBedActivity) 1
+                    else targetCountText.toIntOrNull()?.coerceAtLeast(1) ?: 1
                     val notesOrNull = notes.ifBlank { null }
                     if (isBedActivity && bedFamily.isNotEmpty()) {
+                        // Order siblings by name and compute a deadline per
+                        // bed: when stagger is on, beds[0..N-1] keep the
+                        // base deadline, beds[N..2N-1] get +D days, etc.
+                        val orderedBeds = bedFamily.filter { it.id in siblingBedIds }
+                        val perBatch = staggerBedsPerBatchText.toIntOrNull()?.coerceAtLeast(1) ?: 1
+                        val daysBetween = staggerDaysBetweenText.toIntOrNull()?.coerceAtLeast(0) ?: 0
+                        val base = deadline!!
+                        val pairs = orderedBeds.mapIndexed { index, bed ->
+                            val batch = if (staggerEnabled) index / perBatch else 0
+                            val d = base.plusDays((batch * daysBetween).toLong())
+                            bed.id to d.toString()
+                        }
                         viewModel.saveForBeds(
-                            bedIds = siblingBedIds.toList(),
+                            bedDeadlines = pairs,
                             activityType = selectedActivityType!!,
-                            deadline = deadline!!.toString(),
                             targetCount = targetCount,
                             notes = notesOrNull,
                         )
@@ -331,6 +419,16 @@ fun TaskFormScreen(
                                 required = true,
                             )
                         }
+                        item {
+                            StaggerOption(
+                                enabled = staggerEnabled,
+                                onEnabledChange = { staggerEnabled = it },
+                                bedsPerBatchText = staggerBedsPerBatchText,
+                                onBedsPerBatchChange = { staggerBedsPerBatchText = it },
+                                daysBetweenText = staggerDaysBetweenText,
+                                onDaysBetweenChange = { staggerDaysBetweenText = it },
+                            )
+                        }
                     }
                 } else {
                     item {
@@ -353,13 +451,15 @@ fun TaskFormScreen(
                         required = true,
                     )
                 }
-                item {
-                    Field(
-                        label = "Målantal (valfri)",
-                        value = targetCountText,
-                        onValueChange = { targetCountText = it.filter { c -> c.isDigit() } },
-                        keyboardType = KeyboardType.Number,
-                    )
+                if (!isBedActivity) {
+                    item {
+                        Field(
+                            label = "Målantal (valfri)",
+                            value = targetCountText,
+                            onValueChange = { targetCountText = it.filter { c -> c.isDigit() } },
+                            keyboardType = KeyboardType.Number,
+                        )
+                    }
                 }
                 item {
                     Field(

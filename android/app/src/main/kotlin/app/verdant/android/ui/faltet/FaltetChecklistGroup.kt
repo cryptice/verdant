@@ -44,36 +44,41 @@ fun <T : Any> FaltetChecklistGroup(
     required: Boolean = false,
 ) {
     Column(modifier) {
-        Text(
-            text = buildAnnotatedString {
-                append(label.uppercase())
-                if (required) {
-                    withStyle(SpanStyle(color = FaltetAccent)) { append(" *") }
-                }
-            },
-            fontFamily = FontFamily.Monospace,
-            fontSize = 9.sp,
-            letterSpacing = 1.4.sp,
-            color = FaltetForest.copy(alpha = 0.7f),
-        )
-        Spacer(Modifier.height(6.dp))
-        if (selectAllEnabled && options.isNotEmpty()) {
-            val allSelected = selected.size == options.size
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
             Text(
-                text = if (allSelected) "AVMARKERA ALLA" else "VÄLJ ALLA",
-                fontFamily = FontFamily.Monospace,
-                fontSize = 10.sp,
-                letterSpacing = 1.4.sp,
-                color = FaltetAccent,
-                textAlign = TextAlign.End,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        onSelectedChange(if (allSelected) emptySet() else options.toSet())
+                text = buildAnnotatedString {
+                    append(label.uppercase())
+                    if (required) {
+                        withStyle(SpanStyle(color = FaltetAccent)) { append(" *") }
                     }
-                    .padding(horizontal = 18.dp, vertical = 8.dp),
+                },
+                fontFamily = FontFamily.Monospace,
+                fontSize = 9.sp,
+                letterSpacing = 1.4.sp,
+                color = FaltetForest.copy(alpha = 0.7f),
+                modifier = Modifier.weight(1f),
             )
+            if (selectAllEnabled && options.isNotEmpty()) {
+                val allSelected = selected.size == options.size
+                Text(
+                    text = if (allSelected) "AVMARKERA ALLA" else "VÄLJ ALLA",
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 10.sp,
+                    letterSpacing = 1.4.sp,
+                    color = FaltetAccent,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier
+                        .clickable {
+                            onSelectedChange(if (allSelected) emptySet() else options.toSet())
+                        }
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                )
+            }
         }
+        Spacer(Modifier.height(6.dp))
         options.forEach { option ->
             val isSelected = option in selected
             val subtitle = subtitleFor?.invoke(option)
