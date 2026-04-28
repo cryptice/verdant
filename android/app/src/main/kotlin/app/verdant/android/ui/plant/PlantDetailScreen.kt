@@ -192,7 +192,7 @@ fun PlantDetailScreen(
 
     FaltetScreenScaffold(
         mastheadLeft = "",
-        mastheadCenter = uiState.plant?.name ?: "",
+        mastheadCenter = "",
         mastheadRight = {
             if (uiState.plant != null) {
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {

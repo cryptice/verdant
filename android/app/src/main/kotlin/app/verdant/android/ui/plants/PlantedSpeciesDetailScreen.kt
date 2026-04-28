@@ -379,7 +379,7 @@ fun PlantedSpeciesDetailScreen(
 
     FaltetScreenScaffold(
         mastheadLeft = "",
-        mastheadCenter = loaded?.speciesName ?: "",
+        mastheadCenter = "",
     ) { padding ->
         when (val state = uiState) {
             is PlantedSpeciesDetailUiState.Loading -> FaltetLoadingState(Modifier.padding(padding))

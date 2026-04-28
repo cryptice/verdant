@@ -321,9 +321,9 @@ fun BedDetailScreen(
     }
 
     FaltetScreenScaffold(
-        mastheadLeft = loaded?.gardenName?.let { "← $it" } ?: "§ Bädd",
+        mastheadLeft = loaded?.gardenName ?: "",
         onMastheadLeftClick = loaded?.bed?.gardenId?.let { gid -> { onGardenClick(gid) } },
-        mastheadCenter = loaded?.bed?.name ?: "",
+        mastheadCenter = "",
         mastheadRight = {
             if (loaded?.bed != null) {
                 val bed = loaded.bed
