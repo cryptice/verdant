@@ -40,6 +40,9 @@ fun NavGraphBuilder.inventoryGraph(navController: NavController) {
             onSpeciesClick = { speciesId ->
                 navController.navigate(Screen.PlantedSpeciesDetail.create(speciesId))
             },
+            onFertilize = { locationId ->
+                navController.navigate(Screen.ApplySupply.create(trayLocationId = locationId))
+            },
             onDeleted = { navController.popBackStack() },
         )
     }

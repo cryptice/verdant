@@ -161,6 +161,7 @@ class TrayLocationDetailViewModel @Inject constructor(
 fun TrayLocationDetailScreen(
     onBack: () -> Unit,
     onSpeciesClick: (Long) -> Unit = {},
+    onFertilize: (Long) -> Unit = {},
     onDeleted: () -> Unit = onBack,
     viewModel: TrayLocationDetailViewModel = hiltViewModel(),
 ) {
@@ -266,6 +267,11 @@ fun TrayLocationDetailScreen(
                                 label = "Vattna alla",
                                 enabled = !ui.acting && ui.totalCount > 0,
                                 onClick = { showWaterConfirm = true },
+                            )
+                            ActionButton(
+                                label = "Gödsla",
+                                enabled = !ui.acting && ui.totalCount > 0,
+                                onClick = { ui.location?.id?.let(onFertilize) },
                             )
                             ActionButton(
                                 label = "Anteckna",
