@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -215,60 +216,73 @@ fun TaskListScreen(
                 plate = app.verdant.android.ui.faltet.BotanicalPlate.Trellis,
                 modifier = Modifier.padding(padding),
             )
-            else -> LazyColumn(Modifier.fillMaxSize().padding(padding)) {
-                for (group in groups) {
-                    item(key = "header_${group.label}") {
-                        FaltetSectionHeader(label = group.label)
-                    }
-                    items(group.tasks, key = { it.id }) { task ->
-                        val dotColor = taskDotColor(task.activityType)
-                        val isBedTask = task.bedId != null
-                        val title = when {
-                            isBedTask -> taskActivityLabel(task.activityType)
-                            else -> task.originGroupName ?: task.speciesName ?: "Uppgift"
+            else -> Box(Modifier.fillMaxSize().padding(padding)) {
+                // Faint trellis watermark behind the list — climbing-vine
+                // motif matching the empty-state plate. Positioned bottom-end
+                // so it peeks past the task rows on short lists and sits
+                // softly behind dense ones.
+                app.verdant.android.ui.faltet.BotanicalIllustration(
+                    plate = app.verdant.android.ui.faltet.BotanicalPlate.Trellis,
+                    size = 360.dp,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .alpha(0.07f),
+                )
+                LazyColumn(Modifier.fillMaxSize()) {
+                    for (group in groups) {
+                        item(key = "header_${group.label}") {
+                            FaltetSectionHeader(label = group.label)
                         }
-                        val meta = buildString {
-                            append(formatDeadline(task.deadline))
-                            if (isBedTask) {
-                                val bedLabel = listOfNotNull(task.gardenName, task.bedName).joinToString(" · ")
-                                if (bedLabel.isNotBlank()) { append(" · "); append(bedLabel) }
-                            } else {
-                                val species = task.speciesName
-                                if (species != null && species != title) {
-                                    append(" · ")
-                                    append(species)
+                        items(group.tasks, key = { it.id }) { task ->
+                            val dotColor = taskDotColor(task.activityType)
+                            val isBedTask = task.bedId != null
+                            val title = when {
+                                isBedTask -> taskActivityLabel(task.activityType)
+                                else -> task.originGroupName ?: task.speciesName ?: "Uppgift"
+                            }
+                            val meta = buildString {
+                                append(formatDeadline(task.deadline))
+                                if (isBedTask) {
+                                    val bedLabel = listOfNotNull(task.gardenName, task.bedName).joinToString(" · ")
+                                    if (bedLabel.isNotBlank()) { append(" · "); append(bedLabel) }
+                                } else {
+                                    val species = task.speciesName
+                                    if (species != null && species != title) {
+                                        append(" · ")
+                                        append(species)
+                                    }
                                 }
                             }
-                        }
-                        FaltetListRow(
-                            title = title,
-                            meta = meta,
-                            leading = {
-                                androidx.compose.foundation.layout.Box(
-                                    Modifier
-                                        .size(10.dp)
-                                        .drawBehind { drawCircle(dotColor) }
-                                )
-                            },
-                            stat = null,
-                            actions = {
-                                IconButton(
-                                    onClick = { taskToDelete = task },
-                                    modifier = Modifier.size(36.dp),
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = "Ta bort",
-                                        tint = FaltetAccent,
-                                        modifier = Modifier.size(18.dp),
+                            FaltetListRow(
+                                title = title,
+                                meta = meta,
+                                leading = {
+                                    androidx.compose.foundation.layout.Box(
+                                        Modifier
+                                            .size(10.dp)
+                                            .drawBehind { drawCircle(dotColor) }
                                     )
-                                }
-                            },
-                            onClick = { onEditTask(task.id) },
-                        )
+                                },
+                                stat = null,
+                                actions = {
+                                    IconButton(
+                                        onClick = { taskToDelete = task },
+                                        modifier = Modifier.size(36.dp),
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = "Ta bort",
+                                            tint = FaltetAccent,
+                                            modifier = Modifier.size(18.dp),
+                                        )
+                                    }
+                                },
+                                onClick = { onEditTask(task.id) },
+                            )
+                        }
                     }
+                    item { Spacer(Modifier.height(80.dp)) }
                 }
-                item { Spacer(Modifier.height(80.dp)) }
             }
         }
     }
