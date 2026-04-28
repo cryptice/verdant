@@ -35,7 +35,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -53,6 +56,7 @@ import app.verdant.android.ui.faltet.FaltetLoadingState
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.FaltetSectionHeader
 import app.verdant.android.ui.theme.FaltetAccent
+import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
 import app.verdant.android.ui.theme.FaltetInk
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -447,8 +451,19 @@ private fun ActionButton(
     enabled: Boolean,
     onClick: () -> Unit,
 ) {
+    // Renders as an italic, underlined link in the accent colour so the
+    // row of actions reads unambiguously as tappable text rather than as
+    // small static labels.
     TextButton(onClick = onClick, enabled = enabled) {
-        Text(label, color = FaltetAccent, fontSize = 12.sp)
+        Text(
+            text = label,
+            color = FaltetAccent,
+            fontFamily = FaltetDisplay,
+            fontStyle = FontStyle.Italic,
+            fontWeight = FontWeight.W500,
+            fontSize = 15.sp,
+            textDecoration = TextDecoration.Underline,
+        )
     }
 }
 
