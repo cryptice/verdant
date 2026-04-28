@@ -571,6 +571,11 @@ private fun TrayEventsExpansion(
                     }
                 }
             }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             if (rows.size > 1) {
                 TextButton(
                     onClick = { showAll = !showAll },
@@ -585,12 +590,7 @@ private fun TrayEventsExpansion(
                     )
                 }
             }
-        }
-        Spacer(Modifier.height(4.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-        ) {
+            Spacer(Modifier.weight(1f))
             Button(
                 onClick = onAct,
                 colors = ButtonDefaults.buttonColors(
@@ -688,7 +688,7 @@ private fun StatusSectionCard(
             } else listOfNotNull(loc.gardenName, loc.bedName).joinToString(" / ")
             FaltetListRow(
                 title = locationLabel.ifBlank { "—" },
-                meta = loc.year.toString(),
+                meta = null,
                 stat = if (locations.size > 1) {
                     {
                         Row(verticalAlignment = Alignment.Bottom) {
