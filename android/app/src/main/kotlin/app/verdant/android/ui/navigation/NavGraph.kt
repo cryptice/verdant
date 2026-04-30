@@ -231,6 +231,15 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
         Screen.Dashboard.route, Screen.MyWorld.route, Screen.PlantedSpeciesList.route, Screen.TaskList.route, Screen.GardenDetail.route,
     )
 
+    // Re-fetch the gardens list whenever the user lands on a chrome-having
+    // screen. NavViewModel.init only fires once at app start, so without
+    // this the bottom-bar 'My world' tab keeps showing the placeholder
+    // label after a user authenticates or creates their first garden —
+    // until the app is fully restarted.
+    LaunchedEffect(currentRoute) {
+        if (currentRoute != null && !hideChrome) viewModel.refreshGardens()
+    }
+
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
