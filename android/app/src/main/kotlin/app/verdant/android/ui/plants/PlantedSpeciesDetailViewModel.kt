@@ -1,4 +1,5 @@
 package app.verdant.android.ui.plants
+import app.verdant.android.ui.bed.sortedByNaturalName
 import app.verdant.android.data.repository.BedRepository
 import app.verdant.android.data.repository.PlantRepository
 import app.verdant.android.data.repository.TaskRepository
@@ -166,7 +167,7 @@ class PlantedSpeciesDetailViewModel @Inject constructor(
             }
             try {
                 val locations = plantRepository.speciesLocations(speciesId)
-                val beds = bedRepository.listAll()
+                val beds = bedRepository.listAll().sortedByNaturalName()
                 val tasks = taskRepository.list().filter {
                     it.speciesId == speciesId && it.status == "PENDING"
                 }

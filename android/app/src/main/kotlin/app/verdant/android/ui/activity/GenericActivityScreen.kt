@@ -1,4 +1,5 @@
 package app.verdant.android.ui.activity
+import app.verdant.android.ui.bed.sortedByNaturalName
 import app.verdant.android.data.repository.BedRepository
 import app.verdant.android.data.repository.PlantRepository
 import app.verdant.android.data.repository.SpeciesRepository
@@ -85,7 +86,7 @@ class GenericActivityViewModel @Inject constructor(
             try {
                 val plant = plantRepository.get(plantId)
                 val comments = speciesRepository.frequentComments().map { it.text }
-                val beds = bedRepository.listAll()
+                val beds = bedRepository.listAll().sortedByNaturalName()
                 val task = taskId?.let { taskRepository.get(it) }
                 _uiState.value = _uiState.value.copy(plant = plant, comments = comments, beds = beds, task = task)
             } catch (e: Exception) {

@@ -1,4 +1,5 @@
 package app.verdant.android.ui.activity
+import app.verdant.android.ui.bed.sortedByNaturalName
 import app.verdant.android.data.repository.BedRepository
 import app.verdant.android.data.repository.PlantRepository
 
@@ -74,7 +75,7 @@ class BatchPlantOutViewModel @Inject constructor(
             try {
                 val seeded = plantRepository.groupedByStatus("SEEDED", trayOnly = true)
                 val pottedUp = plantRepository.groupedByStatus("POTTED_UP", trayOnly = true)
-                val beds = bedRepository.listAll()
+                val beds = bedRepository.listAll().sortedByNaturalName()
                 _uiState.value = BatchPlantOutState(isLoading = false, groups = seeded + pottedUp, beds = beds)
             } catch (e: Exception) {
                 _uiState.value = BatchPlantOutState(isLoading = false, error = e.message)

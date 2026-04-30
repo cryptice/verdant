@@ -1,4 +1,5 @@
 package app.verdant.android.ui.task
+import app.verdant.android.ui.bed.sortedByNaturalName
 import app.verdant.android.data.repository.BedRepository
 import app.verdant.android.data.repository.SpeciesRepository
 import app.verdant.android.data.repository.TaskRepository
@@ -94,7 +95,7 @@ class TaskFormViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val species = speciesRepository.list().sortedBySwedishName()
-                val beds = runCatching { bedRepository.listAll() }.getOrDefault(emptyList())
+                val beds = runCatching { bedRepository.listAll().sortedByNaturalName() }.getOrDefault(emptyList())
                 val task = taskId?.let { taskRepository.get(it) }
                 _uiState.value = _uiState.value.copy(species = species, beds = beds, existingTask = task)
             } catch (e: Exception) {

@@ -1,4 +1,5 @@
 package app.verdant.android.ui.garden
+import app.verdant.android.ui.bed.sortedByNaturalName
 import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.BedRepository
 import app.verdant.android.data.repository.GardenApiRepository
@@ -113,7 +114,7 @@ class GardenDetailViewModel @Inject constructor(
                     Log.d(TAG, "Loading garden $gardenId (attempt $attempt)")
                     val garden = gardenApiRepository.get(gardenId)
                     Log.d(TAG, "Garden loaded: ${garden.name}")
-                    val beds = bedRepository.list(gardenId).sortedBy { it.name.lowercase() }
+                    val beds = bedRepository.list(gardenId).sortedByNaturalName()
                     Log.d(TAG, "Beds loaded: ${beds.size}")
                     val tray = runCatching { plantRepository.traySummary() }.getOrDefault(emptyList())
                     _uiState.value = GardenDetailState(isLoading = false, garden = garden, beds = beds, trayPlants = tray)

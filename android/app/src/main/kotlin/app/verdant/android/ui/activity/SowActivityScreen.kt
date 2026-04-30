@@ -1,4 +1,5 @@
 package app.verdant.android.ui.activity
+import app.verdant.android.ui.bed.sortedByNaturalName
 import app.verdant.android.data.repository.SupplyRepository
 import app.verdant.android.data.repository.BedRepository
 import app.verdant.android.data.repository.PlantRepository
@@ -107,7 +108,7 @@ class SowActivityViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val species = speciesRepository.list().sortedBySwedishName()
-                val beds = bedRepository.listAll()
+                val beds = bedRepository.listAll().sortedByNaturalName()
                 val comments = speciesRepository.frequentComments().map { it.text }
                 val task = taskId?.let { taskRepository.get(it) }
                 val trayLocations = runCatching { trayLocationRepository.list() }.getOrDefault(emptyList())

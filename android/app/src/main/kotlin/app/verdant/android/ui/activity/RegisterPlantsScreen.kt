@@ -1,4 +1,5 @@
 package app.verdant.android.ui.activity
+import app.verdant.android.ui.bed.sortedByNaturalName
 import app.verdant.android.data.repository.BedRepository
 import app.verdant.android.data.repository.PlantRepository
 import app.verdant.android.data.repository.SpeciesRepository
@@ -78,7 +79,7 @@ class RegisterPlantsViewModel @Inject constructor(
             try {
                 val species = speciesRepository.list().sortedBySwedishName()
                 val locations = runCatching { trayLocationRepository.list() }.getOrDefault(emptyList())
-                val beds = runCatching { bedRepository.listAll() }.getOrDefault(emptyList())
+                val beds = runCatching { bedRepository.listAll().sortedByNaturalName() }.getOrDefault(emptyList())
                 _uiState.value = _uiState.value.copy(species = species, trayLocations = locations, beds = beds)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load species", e)
