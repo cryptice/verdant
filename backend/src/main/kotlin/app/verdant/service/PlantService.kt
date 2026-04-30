@@ -284,9 +284,15 @@ class PlantService(
                     imageUrl = imageUrl,
                 )
             )
+            // When the event places the plant in a bed, clear the
+            // tray_location_id at the same time — the
+            // plant_bed_or_tray_location_exclusive CHECK constraint
+            // forbids a plant from carrying both at once.
+            val movingToBed = request.targetBedId != null
             val updated = plant.copy(
                 status = newStatus,
                 bedId = request.targetBedId ?: plant.bedId,
+                trayLocationId = if (movingToBed) null else plant.trayLocationId,
             )
             plantRepository.update(updated)
 
