@@ -1,4 +1,5 @@
 package app.verdant.android.ui.activity
+import app.verdant.android.data.repository.BedRepository
 import app.verdant.android.data.repository.PlantRepository
 import app.verdant.android.data.repository.SpeciesRepository
 import app.verdant.android.data.repository.TrayLocationRepository
@@ -38,6 +39,7 @@ import app.verdant.android.data.model.sortedBySwedishName
 import app.verdant.android.ui.faltet.FaltetDatePicker
 import app.verdant.android.ui.faltet.FaltetDropdown
 import app.verdant.android.ui.faltet.FaltetFormSubmitBar
+import app.verdant.android.ui.faltet.FaltetScopeToggle
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.Field
 import app.verdant.android.ui.theme.FaltetAccent
@@ -53,6 +55,7 @@ private const val TAG = "RegisterPlantsScreen"
 data class RegisterPlantsState(
     val species: List<SpeciesResponse> = emptyList(),
     val trayLocations: List<app.verdant.android.data.model.TrayLocationResponse> = emptyList(),
+    val beds: List<app.verdant.android.data.model.BedWithGardenResponse> = emptyList(),
     val isLoading: Boolean = false,
     val created: Boolean = false,
     val error: String? = null,
@@ -62,6 +65,7 @@ data class RegisterPlantsState(
 class RegisterPlantsViewModel @Inject constructor(
     private val speciesRepository: SpeciesRepository,
     private val trayLocationRepository: TrayLocationRepository,
+    private val bedRepository: BedRepository,
     private val plantRepository: PlantRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(RegisterPlantsState())
@@ -74,7 +78,8 @@ class RegisterPlantsViewModel @Inject constructor(
             try {
                 val species = speciesRepository.list().sortedBySwedishName()
                 val locations = runCatching { trayLocationRepository.list() }.getOrDefault(emptyList())
-                _uiState.value = _uiState.value.copy(species = species, trayLocations = locations)
+                val beds = runCatching { bedRepository.listAll() }.getOrDefault(emptyList())
+                _uiState.value = _uiState.value.copy(species = species, trayLocations = locations, beds = beds)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load species", e)
             }
@@ -95,7 +100,14 @@ class RegisterPlantsViewModel @Inject constructor(
         }
     }
 
-    fun register(species: SpeciesResponse, count: Int, seedDate: LocalDate, notes: String?, trayLocationId: Long?) {
+    fun register(
+        species: SpeciesResponse,
+        count: Int,
+        seedDate: LocalDate,
+        notes: String?,
+        bedId: Long?,
+        trayLocationId: Long?,
+    ) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
@@ -104,6 +116,7 @@ class RegisterPlantsViewModel @Inject constructor(
                 plantRepository.batchSow(
                     BatchSowRequest(
                         speciesId = species.id,
+                        bedId = bedId,
                         trayLocationId = trayLocationId,
                         name = name,
                         seedCount = count,
@@ -119,6 +132,9 @@ class RegisterPlantsViewModel @Inject constructor(
         }
     }
 }
+
+/** Where the registered plants are placed. */
+private enum class Placement { BED, TRAY }
 
 private fun speciesLabel(s: SpeciesResponse): String {
     val name = s.commonNameSv ?: s.commonName
@@ -153,11 +169,28 @@ fun RegisterPlantsScreen(
     var seedDate by remember { mutableStateOf<LocalDate?>(LocalDate.now()) }
     var notes by remember { mutableStateOf("") }
     var selectedTrayLocation by remember { mutableStateOf<app.verdant.android.data.model.TrayLocationResponse?>(null) }
+    var selectedBed by remember { mutableStateOf<app.verdant.android.data.model.BedWithGardenResponse?>(null) }
     var showAddTrayLocation by remember { mutableStateOf(false) }
+    // Where the registered plants land. Tray is the historical default;
+    // bed lets the user register plants directly into a specific bed
+    // without moving them later.
+    var placement by remember { mutableStateOf(Placement.TRAY) }
+
+    // Default to bed mode when there are beds but no tray locations yet.
+    LaunchedEffect(uiState.beds, uiState.trayLocations) {
+        if (uiState.beds.isNotEmpty() && uiState.trayLocations.isEmpty()) {
+            placement = Placement.BED
+        }
+    }
 
     LaunchedEffect(uiState.trayLocations) {
         if (selectedTrayLocation == null && uiState.trayLocations.size == 1) {
             selectedTrayLocation = uiState.trayLocations.first()
+        }
+    }
+    LaunchedEffect(uiState.beds) {
+        if (selectedBed == null && uiState.beds.size == 1) {
+            selectedBed = uiState.beds.first()
         }
     }
 
@@ -210,10 +243,14 @@ fun RegisterPlantsScreen(
         )
     }
 
+    val placementValid = when (placement) {
+        Placement.BED -> selectedBed != null
+        Placement.TRAY -> uiState.trayLocations.size < 2 || selectedTrayLocation != null
+    }
     val canSubmit = selectedSpecies != null &&
         (countText.toIntOrNull() ?: 0) > 0 &&
         seedDate != null &&
-        (uiState.trayLocations.size < 2 || selectedTrayLocation != null) &&
+        placementValid &&
         !uiState.isLoading
 
     val submit: () -> Unit = {
@@ -222,7 +259,8 @@ fun RegisterPlantsScreen(
             count = countText.toInt(),
             seedDate = seedDate!!,
             notes = notes.ifBlank { null },
-            trayLocationId = selectedTrayLocation?.id,
+            bedId = if (placement == Placement.BED) selectedBed?.id else null,
+            trayLocationId = if (placement == Placement.TRAY) selectedTrayLocation?.id else null,
         )
     }
 
@@ -255,7 +293,38 @@ fun RegisterPlantsScreen(
                     required = true,
                 )
             }
-            if (uiState.trayLocations.size >= 2) {
+            // Placement scope toggle — only meaningful when both kinds of
+            // destinations exist. If the user has only beds (or only
+            // trays) we hide the toggle and just show the relevant
+            // dropdown (or nothing, when there's only one option total).
+            val hasBeds = uiState.beds.isNotEmpty()
+            val hasTrays = uiState.trayLocations.isNotEmpty()
+            if (hasBeds && hasTrays) {
+                item {
+                    FaltetScopeToggle(
+                        label = "Placering",
+                        options = listOf(Placement.BED, Placement.TRAY),
+                        selected = placement,
+                        onSelectedChange = { placement = it },
+                        labelFor = { if (it == Placement.BED) "Bädd" else "Bricka" },
+                        required = true,
+                    )
+                }
+            }
+            if (placement == Placement.BED && hasBeds) {
+                item {
+                    FaltetDropdown(
+                        label = "Bädd",
+                        options = uiState.beds,
+                        selected = selectedBed,
+                        onSelectedChange = { selectedBed = it },
+                        labelFor = { "${it.gardenName} · ${it.name}" },
+                        searchable = true,
+                        required = true,
+                    )
+                }
+            }
+            if (placement == Placement.TRAY && uiState.trayLocations.size >= 2) {
                 item {
                     FaltetDropdown(
                         label = "Plats",
