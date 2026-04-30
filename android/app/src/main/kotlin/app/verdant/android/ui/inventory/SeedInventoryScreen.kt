@@ -42,7 +42,9 @@ import androidx.lifecycle.viewModelScope
 import app.verdant.android.R
 import app.verdant.android.data.model.SeedInventoryResponse
 import app.verdant.android.ui.common.ConnectionErrorState
+import androidx.compose.material3.Button
 import app.verdant.android.ui.faltet.FaltetEmptyState
+import app.verdant.android.ui.faltet.FaltetFab
 import app.verdant.android.ui.faltet.FaltetListRow
 import app.verdant.android.ui.faltet.FaltetLoadingState
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
@@ -112,6 +114,7 @@ fun SeedInventoryScreen(
     FaltetScreenScaffold(
         mastheadLeft = "",
         mastheadCenter = stringResource(R.string.seed_inventory),
+        fab = { FaltetFab(onClick = onAddSeeds, contentDescription = "Lägg till frön") },
         watermark = BotanicalPlate.EmptyGarden,
 ) { padding ->
         when {
@@ -126,6 +129,9 @@ fun SeedInventoryScreen(
                 headline = "Inga frön ännu",
                 subtitle = "Börja med att lägga till ditt första frö.",
                 modifier = Modifier.padding(padding),
+                action = {
+                    Button(onClick = onAddSeeds) { Text("+ Lägg till frö") }
+                },
             )
             else -> LazyColumn(Modifier.fillMaxSize().padding(padding)) {
                 items(uiState.items, key = { it.id }) { item ->
