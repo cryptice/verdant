@@ -22,6 +22,7 @@ class OrganizationService(
     private val orgMemberRepository: OrgMemberRepository,
     private val orgInviteRepository: OrgInviteRepository,
     private val userRepository: UserRepository,
+    private val supplyService: SupplyService,
 ) {
 
     fun getOrganizationsForUser(userId: Long): List<OrganizationResponse> {
@@ -49,6 +50,7 @@ class OrganizationService(
                 role = OrgRole.OWNER,
             )
         )
+        supplyService.seedInexhaustibleFertilizers(org.id!!)
         return org.toResponse(OrgRole.OWNER)
     }
 
