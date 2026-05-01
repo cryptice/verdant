@@ -1,8 +1,10 @@
 package app.verdant.service
 
 import app.verdant.dto.*
+import app.verdant.entity.SupplyCategory
 import app.verdant.entity.SupplyInventory
 import app.verdant.entity.SupplyType
+import app.verdant.entity.SupplyUnit
 import app.verdant.repository.SupplyInventoryRepository
 import app.verdant.repository.SupplyTypeRepository
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -17,6 +19,32 @@ class SupplyService(
     private val inventoryRepository: SupplyInventoryRepository,
     private val objectMapper: ObjectMapper,
 ) {
+    fun seedInexhaustibleFertilizers(orgId: Long) {
+        SEEDED_INEXHAUSTIBLE_FERTILIZERS.forEach { seed ->
+            typeRepository.persist(
+                SupplyType(
+                    orgId = orgId,
+                    name = seed.name,
+                    category = SupplyCategory.FERTILIZER,
+                    unit = SupplyUnit.LITERS,
+                    properties = """{"npk":"${seed.npk}"}""",
+                    inexhaustible = true,
+                ),
+            )
+        }
+    }
+
+    private data class SeedFertilizer(val name: String, val npk: String)
+
+    private companion object {
+        private val SEEDED_INEXHAUSTIBLE_FERTILIZERS = listOf(
+            SeedFertilizer("Hästgödsel", "0.6-0.3-0.5"),
+            SeedFertilizer("Hönsgödsel", "3.0-2.0-2.0"),
+            SeedFertilizer("Kompost",    "1.0-0.5-1.0"),
+            SeedFertilizer("Träaska",    "0.0-1.0-7.0"),
+        )
+    }
+
     // ── Supply Types ──
 
     fun getTypesForUser(orgId: Long): List<SupplyTypeResponse> =
