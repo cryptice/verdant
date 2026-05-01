@@ -2,6 +2,7 @@ package app.verdant.resource
 
 import app.verdant.entity.*
 import app.verdant.repository.*
+import app.verdant.service.SupplyService
 import io.quarkus.security.Authenticated
 import jakarta.annotation.security.RolesAllowed
 import jakarta.ws.rs.*
@@ -34,6 +35,7 @@ class DevResource(
     private val bouquetRecipeRepository: BouquetRecipeRepository,
     private val successionScheduleRepository: SuccessionScheduleRepository,
     private val productionTargetRepository: ProductionTargetRepository,
+    private val supplyService: SupplyService,
 ) {
     data class SeedResult(
         val speciesCount: Int,
@@ -177,6 +179,7 @@ class DevResource(
         val org = organizationRepository.persist(Organization(name = "Test Farm", emoji = "🌻"))
         orgMemberRepository.persist(OrgMember(orgId = org.id!!, userId = userId, role = OrgRole.OWNER))
         val orgId = org.id!!
+        supplyService.seedInexhaustibleFertilizers(orgId)
 
         // ── Seasons ──
         val season2024 = seasonRepository.persist(Season(
