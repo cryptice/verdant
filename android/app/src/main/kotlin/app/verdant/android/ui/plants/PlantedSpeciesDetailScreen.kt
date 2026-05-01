@@ -63,6 +63,13 @@ import app.verdant.android.ui.theme.FaltetInkLine40
 @Composable
 fun PlantedSpeciesDetailScreen(
     onBack: () -> Unit,
+    /**
+     * Called after the user plants out a tray group into a bed. The
+     * NavGraph routes this to the planted-species list so the freshly-
+     * loaded list reflects the new location instead of the user staring
+     * at a stale species detail with the tray group still rendered.
+     */
+    onPlantedOut: () -> Unit = onBack,
     viewModel: PlantedSpeciesDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -268,6 +275,7 @@ fun PlantedSpeciesDetailScreen(
                             actionSubmitting = true
                             viewModel.batchEvent(item, "PLANTED_OUT", count.coerceAtMost(item.count), targetBedId = selectedTargetBedId) {
                                 dismissModal()
+                                onPlantedOut()
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),

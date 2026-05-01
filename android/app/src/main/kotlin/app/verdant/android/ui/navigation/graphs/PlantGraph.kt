@@ -45,6 +45,14 @@ fun NavGraphBuilder.plantGraph(navController: NavController) {
         Screen.PlantedSpeciesDetail.route,
         arguments = listOf(navArgument("speciesId") { type = NavType.LongType }),
     ) {
-        PlantedSpeciesDetailScreen(onBack = { navController.popBackStack() })
+        PlantedSpeciesDetailScreen(
+            onBack = { navController.popBackStack() },
+            onPlantedOut = {
+                navController.navigate(Screen.PlantedSpeciesList.route) {
+                    popUpTo(Screen.PlantedSpeciesList.route) { inclusive = false }
+                    launchSingleTop = true
+                }
+            },
+        )
     }
 }
