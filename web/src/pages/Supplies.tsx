@@ -187,6 +187,12 @@ function getRequiredFields(category: string): string[] {
   }
 }
 
+const NPK_PATTERN = /^\d+(\.\d+)?-\d+(\.\d+)?-\d+(\.\d+)?$/
+
+export function isValidNpk(value: string): boolean {
+  return NPK_PATTERN.test(value.trim())
+}
+
 function arePropertiesValid(category: string, props: Record<string, unknown>): boolean {
   const required = getRequiredFields(category)
   for (const field of required) {
@@ -194,7 +200,7 @@ function arePropertiesValid(category: string, props: Record<string, unknown>): b
     if (val == null || val === '') return false
   }
   if (category === 'FERTILIZER' && props.npk) {
-    if (!/^\d+-\d+-\d+$/.test(String(props.npk).trim())) return false
+    if (!isValidNpk(String(props.npk))) return false
   }
   return true
 }
@@ -257,7 +263,7 @@ function CategoryPropertyFields({
       )
     case 'FERTILIZER': {
       const npkVal = (props.npk as string) ?? ''
-      const npkValid = !npkVal || /^\d+-\d+-\d+$/.test(npkVal.trim())
+      const npkValid = !npkVal || isValidNpk(npkVal)
       return (
         <div>
           <label className="field-label">{t('supplies.npk')}</label>
