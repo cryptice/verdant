@@ -15,6 +15,12 @@ data class WorkflowTemplateResponse(
     val createdAt: Instant,
 )
 
+data class AdminWorkflowTemplateResponse(
+    val id: Long,
+    val name: String,
+    val orgId: Long,
+)
+
 data class WorkflowStepResponse(
     val id: Long,
     val name: String,

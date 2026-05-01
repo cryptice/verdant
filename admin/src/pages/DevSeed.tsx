@@ -36,10 +36,10 @@ export default function DevSeed() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-semibold text-[#37352F] mb-1">{t('devSeed.title')}</h1>
-      <p className="text-sm text-[#787774] mb-8">{t('devSeed.subtitle')}</p>
+      <h1 className="text-xl sm:text-2xl font-semibold text-[#37352F] mb-1">{t('devSeed.title')}</h1>
+      <p className="text-sm text-[#787774] mb-6 sm:mb-8">{t('devSeed.subtitle')}</p>
 
-      <div className="border border-[#E9E9E7] rounded-lg p-6">
+      <div className="border border-[#E9E9E7] rounded-lg p-4 sm:p-6">
         <h2 className="text-base font-semibold text-[#37352F] mb-2">{t('devSeed.seedTitle')}</h2>
         <p className="text-sm text-[#787774] mb-4">
           {t('devSeed.seedDescription')}
@@ -68,7 +68,7 @@ export default function DevSeed() {
         {result && (
           <div className="mt-4 bg-[#DBEDDB] border border-[#C4DFC4] rounded-md p-4">
             <p className="text-sm font-medium text-[#0F7B0F] mb-3">{t('devSeed.seedSuccess')}</p>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {([
                 [t('devSeed.labelSpecies'), result.speciesCount],
                 [t('devSeed.labelGroups'), result.groupCount],

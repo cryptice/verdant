@@ -7,7 +7,9 @@
     "resetData": "Reset Data",
     "devTools": "Dev Tools",
     "signOut": "Sign Out",
-    "admin": "Admin"
+    "admin": "Admin",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "common": {
     "loading": "Loading...",
@@ -115,6 +117,10 @@
     "vaseLifeDays": "Vase life (days)",
     "plantType": "Plant type",
     "defaultUnitType": "Default unit type",
+    "workflow": "Workflow",
+    "workflowTemplate": "Workflow template",
+    "workflowNone": "— None —",
+    "workflowMissing": "Template #{{id}} (not in this organization)",
     "additionalPhotos": "Additional Photos",
     "noAdditionalPhotos": "No additional photos yet",
     "dangerZone": "Danger Zone",

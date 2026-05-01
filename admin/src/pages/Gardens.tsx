@@ -15,12 +15,32 @@ export default function Gardens() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-[#37352F]">{t('gardens.title')}</h2>
+      <div className="mb-5 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-semibold text-[#37352F]">{t('gardens.title')}</h2>
         <p className="text-sm text-[#787774] mt-1">{t('gardens.count', { count: gardens?.length || 0 })}</p>
       </div>
 
-      <div className="border border-[#E9E9E7] rounded-lg overflow-hidden">
+      {/* Mobile card list */}
+      <div className="md:hidden space-y-2">
+        {gardens?.map((garden: Garden) => (
+          <div key={garden.id} className="border border-[#E9E9E7] rounded-lg p-3 bg-white">
+            <div className="flex items-baseline gap-2 mb-1">
+              {garden.emoji && <span className="text-lg leading-none">{garden.emoji}</span>}
+              <span className="text-sm font-medium text-[#37352F] truncate">{garden.name}</span>
+            </div>
+            {garden.description && (
+              <p className="text-sm text-[#787774] mb-2">{garden.description}</p>
+            )}
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-[#A5A29C]">
+              <span>{t('gardens.created')}: {new Date(garden.createdAt).toLocaleDateString()}</span>
+              <span>{t('gardens.updated')}: {new Date(garden.updatedAt).toLocaleDateString()}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block border border-[#E9E9E7] rounded-lg overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="border-b border-[#E9E9E7] bg-[#FBFBFA]">

@@ -33,6 +33,15 @@ class WorkflowRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    fun findAllTemplates(): List<WorkflowTemplate> =
+        ds.connection.use { conn ->
+            conn.prepareStatement("SELECT * FROM workflow_template ORDER BY name").use { ps ->
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.toTemplate()) }
+                }
+            }
+        }
+
     fun persistTemplate(template: WorkflowTemplate): WorkflowTemplate {
         ds.connection.use { conn ->
             conn.prepareStatement(

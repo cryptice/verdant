@@ -189,6 +189,13 @@ export interface UpdateSpeciesRequest {
   plantType?: string | null
   defaultUnitType?: string | null
   workflowTemplateId?: number | null
+  clearWorkflowTemplate?: boolean
+}
+
+export interface WorkflowTemplate {
+  id: number
+  name: string
+  orgId: number
 }
 
 export interface ExtractedFrontInfo {
@@ -344,5 +351,7 @@ export const api = {
       }),
     deleteSpeciesProvider: (speciesId: number, spId: number) =>
       apiRequest<void>(`/api/admin/species/${speciesId}/providers/${spId}`, { method: 'DELETE' }),
+
+    getWorkflowTemplates: () => apiRequest<WorkflowTemplate[]>('/api/admin/workflow-templates'),
   }
 }

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, type Species, type UpdateSpeciesRequest, type CreateSpeciesRequest, type SpeciesPhoto, type SpeciesExportEntry, type AddSpeciesProviderRequest, type SpeciesTag } from '../api/client'
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import ErrorDisplay from '../components/ErrorDisplay'
 import { useTranslation } from 'react-i18next'
 
@@ -61,41 +61,7 @@ export function SpeciesListPage() {
     placeholderData: (prev) => prev,
   })
 
-  const copyMutation = useMutation({
-    mutationFn: async (s: Species) => {
-      const full = await api.admin.getSpeciesById(s.id)
-      return api.admin.createSpecies({
-        commonName: full.commonName,
-        commonNameSv: full.commonNameSv,
-        variantName: full.variantName ? `${full.variantName} (kopia)` : '(kopia)',
-        variantNameSv: full.variantNameSv ? `${full.variantNameSv} (kopia)` : undefined,
-        scientificName: full.scientificName,
-        germinationTimeDaysMin: full.germinationTimeDaysMin,
-        germinationTimeDaysMax: full.germinationTimeDaysMax,
-        daysToHarvestMin: full.daysToHarvestMin,
-        daysToHarvestMax: full.daysToHarvestMax,
-        sowingDepthMm: full.sowingDepthMm,
-        growingPositions: full.growingPositions,
-        soils: full.soils,
-        heightCmMin: full.heightCmMin,
-        heightCmMax: full.heightCmMax,
-        bloomMonths: full.bloomMonths,
-        sowingMonths: full.sowingMonths,
-        germinationRate: full.germinationRate,
-        tagIds: full.tags.map(tag => tag.id),
-        costPerSeedSek: full.costPerSeedSek,
-        expectedStemsPerPlant: full.expectedStemsPerPlant,
-        expectedVaseLifeDays: full.expectedVaseLifeDays,
-        plantType: full.plantType,
-        defaultUnitType: full.defaultUnitType,
-        workflowTemplateId: full.workflowTemplateId,
-      })
-    },
-    onSuccess: (created) => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'species'] })
-      navigate(`/species/${created.id}`)
-    },
-  })
+  const handleCopy = (s: Species) => navigate(`/species/new?from=${s.id}`)
 
   const handleExport = async () => {
     setExporting(true)
@@ -152,30 +118,30 @@ export function SpeciesListPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-semibold text-[#37352F]">{t('species.title')}</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5 sm:mb-6">
+        <div className="min-w-0">
+          <h2 className="text-xl sm:text-2xl font-semibold text-[#37352F]">{t('species.title')}</h2>
           <p className="text-sm text-[#787774] mt-1">{t('species.count', { count: species?.length || 0 })}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="px-3 py-1.5 border border-[#E9E9E7] text-[#37352F] rounded-md hover:bg-[#F0F0EE] transition-colors text-sm disabled:opacity-50"
+            className="px-3 py-2 sm:py-1.5 border border-[#E9E9E7] text-[#37352F] rounded-md hover:bg-[#F0F0EE] transition-colors text-sm disabled:opacity-50"
           >
             {exporting ? t('species.exporting') : t('species.export')}
           </button>
           <button
             onClick={() => importInputRef.current?.click()}
             disabled={importing}
-            className="px-3 py-1.5 border border-[#E9E9E7] text-[#37352F] rounded-md hover:bg-[#F0F0EE] transition-colors text-sm disabled:opacity-50"
+            className="px-3 py-2 sm:py-1.5 border border-[#E9E9E7] text-[#37352F] rounded-md hover:bg-[#F0F0EE] transition-colors text-sm disabled:opacity-50"
           >
             {importing ? t('species.importing') : t('species.import')}
           </button>
           <input ref={importInputRef} type="file" accept=".json" className="hidden" onChange={handleImportFile} />
           <button
             onClick={() => navigate('/species/new')}
-            className="px-3 py-1.5 bg-[#2EAADC] text-white rounded-md hover:bg-[#2898C4] transition-colors text-sm font-medium"
+            className="ml-auto sm:ml-0 px-3 py-2 sm:py-1.5 bg-[#2EAADC] text-white rounded-md hover:bg-[#2898C4] transition-colors text-sm font-medium"
           >
             {t('common.new')}
           </button>
@@ -203,7 +169,63 @@ export function SpeciesListPage() {
         />
       </div>
 
-      <div className="border border-[#E9E9E7] rounded-lg overflow-hidden">
+      {/* Mobile card list */}
+      <div className="md:hidden space-y-2">
+        {filtered?.slice(page * pageSize, (page + 1) * pageSize).map((s: Species) => (
+          <div
+            key={s.id}
+            className="border border-[#E9E9E7] rounded-lg p-3 bg-white active:bg-[#FBFBFA] transition-colors"
+            onClick={() => navigate(`/species/${s.id}`)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/species/${s.id}`) }}
+          >
+            <div className="flex items-start gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-[#37352F]">
+                  {s.commonNameSv || s.commonName}
+                  {(s.variantNameSv || s.variantName) && <span className="text-[#787774] font-normal"> — {s.variantNameSv || s.variantName}</span>}
+                </div>
+                {s.scientificName && (
+                  <div className="text-xs text-[#787774] italic mt-0.5 truncate">{s.scientificName}</div>
+                )}
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+                    s.isSystem ? 'bg-[#D3E5EF] text-[#2B6CB0]' : 'bg-[#E9E9E7] text-[#787774]'
+                  }`}>
+                    {s.isSystem ? t('species.system') : t('species.user')}
+                  </span>
+                  {s.groups.length > 0 && (
+                    <span className="text-xs text-[#787774] truncate">{s.groups.map(g => g.name).join(', ')}</span>
+                  )}
+                </div>
+                {s.providers.length > 0 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setPreviewSpecies(s) }}
+                    className="mt-2 text-xs text-[#2EAADC] hover:underline text-left truncate max-w-full"
+                  >
+                    {s.providers.map(p => p.providerName).join(', ')}
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); handleCopy(s) }}
+                aria-label={t('species.copy')}
+                title={t('species.copy')}
+                className="-mr-1 -mt-1 p-2 text-[#787774] hover:text-[#2EAADC] transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block border border-[#E9E9E7] rounded-lg overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="border-b border-[#E9E9E7] bg-[#FBFBFA]">
@@ -248,11 +270,10 @@ export function SpeciesListPage() {
                 <td className="px-2 py-2.5 text-right" onClick={e => e.stopPropagation()}>
                   <button
                     type="button"
-                    onClick={() => copyMutation.mutate(s)}
-                    disabled={copyMutation.isPending}
+                    onClick={() => handleCopy(s)}
                     aria-label={t('species.copy')}
                     title={t('species.copy')}
-                    className="p-1 text-[#787774] hover:text-[#2EAADC] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    className="p-1 text-[#787774] hover:text-[#2EAADC] transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -291,37 +312,44 @@ export function SpeciesListPage() {
 
       {/* Provider Images Modal */}
       {previewSpecies && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setPreviewSpecies(null)}>
-          <div className="bg-white rounded-lg border border-[#E9E9E7] max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#E9E9E7]">
-              <h3 className="text-base font-semibold text-[#37352F]">
+        <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50" onClick={() => setPreviewSpecies(null)}>
+          <div
+            className="bg-white sm:rounded-lg rounded-t-xl border-t sm:border border-[#E9E9E7] sm:max-w-4xl w-full sm:mx-4 max-h-[92vh] sm:max-h-[90vh] overflow-y-auto pb-[env(safe-area-inset-bottom)]"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-[#E9E9E7] sticky top-0 bg-white z-10">
+              <h3 className="text-base font-semibold text-[#37352F] min-w-0 break-words">
                 {previewSpecies.commonNameSv || previewSpecies.commonName}
                 {(previewSpecies.variantNameSv || previewSpecies.variantName) && <span className="text-[#787774] font-normal"> — {previewSpecies.variantNameSv || previewSpecies.variantName}</span>}
               </h3>
-              <button onClick={() => setPreviewSpecies(null)} className="text-[#787774] hover:text-[#37352F] text-xl leading-none">&times;</button>
+              <button
+                onClick={() => setPreviewSpecies(null)}
+                aria-label={t('common.cancel')}
+                className="-mr-2 -mt-1 inline-flex items-center justify-center w-9 h-9 text-[#787774] hover:text-[#37352F] hover:bg-[#F0F0EE] rounded-md text-xl leading-none shrink-0"
+              >&times;</button>
             </div>
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-6">
               {previewSpecies.providers.map(sp => (
                 <div key={sp.id}>
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
                     <span className="text-sm font-medium text-[#37352F]">{sp.providerName}</span>
                     <span className="text-xs text-[#787774]">{sp.providerIdentifier}</span>
                     {sp.productUrl && (
-                      <a href={sp.productUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[#2EAADC] hover:underline ml-auto">
+                      <a href={sp.productUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[#2EAADC] hover:underline sm:ml-auto">
                         {t('species.productPage')} &rarr;
                       </a>
                     )}
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     {sp.imageFrontUrl ? (
-                      <img src={sp.imageFrontUrl} alt={t('species.front')} className="w-full rounded-md object-contain max-h-[500px]" />
+                      <img src={sp.imageFrontUrl} alt={t('species.front')} className="w-full rounded-md object-contain max-h-[60vh] sm:max-h-[500px]" />
                     ) : (
-                      <div className="h-48 bg-[#FBFBFA] border border-[#E9E9E7] rounded-md flex items-center justify-center text-[#A5A29C] text-sm">{t('species.noFrontImage')}</div>
+                      <div className="h-40 sm:h-48 bg-[#FBFBFA] border border-[#E9E9E7] rounded-md flex items-center justify-center text-[#A5A29C] text-sm">{t('species.noFrontImage')}</div>
                     )}
                     {sp.imageBackUrl ? (
-                      <img src={sp.imageBackUrl} alt={t('species.back')} className="w-full rounded-md object-contain max-h-[500px]" />
+                      <img src={sp.imageBackUrl} alt={t('species.back')} className="w-full rounded-md object-contain max-h-[60vh] sm:max-h-[500px]" />
                     ) : (
-                      <div className="h-48 bg-[#FBFBFA] border border-[#E9E9E7] rounded-md flex items-center justify-center text-[#A5A29C] text-sm">{t('species.noBackImage')}</div>
+                      <div className="h-40 sm:h-48 bg-[#FBFBFA] border border-[#E9E9E7] rounded-md flex items-center justify-center text-[#A5A29C] text-sm">{t('species.noBackImage')}</div>
                     )}
                   </div>
                 </div>
@@ -475,42 +503,6 @@ export function SpeciesDetailPage() {
     }
   })
 
-  const copyMutation = useMutation({
-    mutationFn: async () => {
-      if (!species) throw new Error('Species not loaded')
-      return api.admin.createSpecies({
-        commonName: species.commonName,
-        commonNameSv: species.commonNameSv,
-        variantName: species.variantName ? `${species.variantName} (kopia)` : '(kopia)',
-        variantNameSv: species.variantNameSv ? `${species.variantNameSv} (kopia)` : undefined,
-        scientificName: species.scientificName,
-        germinationTimeDaysMin: species.germinationTimeDaysMin,
-        germinationTimeDaysMax: species.germinationTimeDaysMax,
-        daysToHarvestMin: species.daysToHarvestMin,
-        daysToHarvestMax: species.daysToHarvestMax,
-        sowingDepthMm: species.sowingDepthMm,
-        growingPositions: species.growingPositions,
-        soils: species.soils,
-        heightCmMin: species.heightCmMin,
-        heightCmMax: species.heightCmMax,
-        bloomMonths: species.bloomMonths,
-        sowingMonths: species.sowingMonths,
-        germinationRate: species.germinationRate,
-        tagIds: species.tags.map(tag => tag.id),
-        costPerSeedSek: species.costPerSeedSek,
-        expectedStemsPerPlant: species.expectedStemsPerPlant,
-        expectedVaseLifeDays: species.expectedVaseLifeDays,
-        plantType: species.plantType,
-        defaultUnitType: species.defaultUnitType,
-        workflowTemplateId: species.workflowTemplateId,
-      })
-    },
-    onSuccess: (created) => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'species'] })
-      navigate(`/species/${created.id}`)
-    },
-  })
-
   const addProviderMutation = useMutation({
     mutationFn: (req: AddSpeciesProviderRequest) => api.admin.addSpeciesProvider(speciesId, req),
     onSuccess: () => {
@@ -532,14 +524,14 @@ export function SpeciesDetailPage() {
 
   return (
     <div>
-      <button onClick={() => navigate('/species')} className="flex items-center gap-1 text-sm text-[#787774] hover:text-[#37352F] mb-4 transition-colors">
+      <button onClick={() => navigate('/species')} className="-ml-2 inline-flex items-center gap-1 text-sm text-[#787774] hover:text-[#37352F] hover:bg-[#F0F0EE] rounded-md px-2 py-1.5 mb-3 sm:mb-4 transition-colors">
         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         {t('species.backToList')}
       </button>
 
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-semibold text-[#37352F]">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5 sm:mb-6">
+        <div className="min-w-0">
+          <h2 className="text-xl sm:text-2xl font-semibold text-[#37352F] break-words">
             {species.commonNameSv || species.commonName}
             {(species.variantNameSv || species.variantName) && <span className="text-[#787774] font-normal"> — {species.variantNameSv || species.variantName}</span>}
             {' '}<span className={`inline-block align-middle px-2 py-0.5 rounded text-xs font-medium ${species.isSystem ? 'bg-[#D3E5EF] text-[#2B6CB0]' : 'bg-[#E9E9E7] text-[#787774]'}`}>
@@ -552,31 +544,30 @@ export function SpeciesDetailPage() {
               {species.variantName && <span> — {species.variantName}</span>}
             </p>
           )}
-          {species.scientificName && <p className="text-sm text-[#A5A29C] italic">{species.scientificName}</p>}
+          {species.scientificName && <p className="text-sm text-[#A5A29C] italic break-words">{species.scientificName}</p>}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
-            onClick={() => copyMutation.mutate()}
-            disabled={copyMutation.isPending}
-            className="px-3 py-1.5 border border-[#E9E9E7] text-[#37352F] rounded-md hover:bg-[#F0F0EE] transition-colors text-sm disabled:opacity-50 inline-flex items-center gap-1.5"
+            onClick={() => navigate(`/species/new?from=${speciesId}`)}
+            className="px-3 py-2 sm:py-1.5 border border-[#E9E9E7] text-[#37352F] rounded-md hover:bg-[#F0F0EE] transition-colors text-sm inline-flex items-center gap-1.5"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
-            {copyMutation.isPending ? t('species.copying') : t('species.copy')}
+            {t('species.copy')}
           </button>
           <button
             onClick={() => navigate(`/species/${speciesId}/edit`)}
-            className="px-3 py-1.5 bg-[#2EAADC] text-white rounded-md hover:bg-[#2898C4] transition-colors text-sm font-medium"
+            className="ml-auto px-3 py-2 sm:py-1.5 bg-[#2EAADC] text-white rounded-md hover:bg-[#2898C4] transition-colors text-sm font-medium"
           >
             {t('common.edit')}
           </button>
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Providers & Images */}
-        <section className="border border-[#E9E9E7] rounded-lg p-5">
+        <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider">
               {t('species.seedProviders')}
@@ -605,16 +596,16 @@ export function SpeciesDetailPage() {
                       </a>
                     )}
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     {sp.imageFrontUrl ? (
-                      <img src={sp.imageFrontUrl} alt={t('species.front')} className="w-full rounded-md object-contain max-h-[500px]" />
+                      <img src={sp.imageFrontUrl} alt={t('species.front')} className="w-full rounded-md object-contain max-h-[60vh] sm:max-h-[500px]" />
                     ) : (
-                      <div className="h-48 bg-[#FBFBFA] border border-[#E9E9E7] rounded-md flex items-center justify-center text-[#A5A29C] text-sm">{t('species.noFrontImage')}</div>
+                      <div className="h-40 sm:h-48 bg-[#FBFBFA] border border-[#E9E9E7] rounded-md flex items-center justify-center text-[#A5A29C] text-sm">{t('species.noFrontImage')}</div>
                     )}
                     {sp.imageBackUrl ? (
-                      <img src={sp.imageBackUrl} alt={t('species.back')} className="w-full rounded-md object-contain max-h-[500px]" />
+                      <img src={sp.imageBackUrl} alt={t('species.back')} className="w-full rounded-md object-contain max-h-[60vh] sm:max-h-[500px]" />
                     ) : (
-                      <div className="h-48 bg-[#FBFBFA] border border-[#E9E9E7] rounded-md flex items-center justify-center text-[#A5A29C] text-sm">{t('species.noBackImage')}</div>
+                      <div className="h-40 sm:h-48 bg-[#FBFBFA] border border-[#E9E9E7] rounded-md flex items-center justify-center text-[#A5A29C] text-sm">{t('species.noBackImage')}</div>
                     )}
                   </div>
                 </div>
@@ -644,7 +635,7 @@ export function SpeciesDetailPage() {
               </div>
               {newProviderId && (
                 <>
-                  <div className="grid grid-cols-2 gap-4 mb-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3">
                     <ImageUpload
                       label={t('species.front')}
                       currentUrl={newFrontBase64 ? `data:image/jpeg;base64,${newFrontBase64}` : null}
@@ -699,7 +690,7 @@ export function SpeciesDetailPage() {
 
         {/* Growth Info, Months & Growing Conditions */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <section className="border border-[#E9E9E7] rounded-lg p-5">
+          <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
             <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.growthInfo')}</h3>
             <div className="grid grid-cols-2 gap-3">
               <InfoField label={t('species.germinationDays')} value={species.germinationTimeDaysMin != null ? (species.germinationTimeDaysMax && species.germinationTimeDaysMax !== species.germinationTimeDaysMin ? `${species.germinationTimeDaysMin}–${species.germinationTimeDaysMax}` : species.germinationTimeDaysMin) : null} />
@@ -711,7 +702,7 @@ export function SpeciesDetailPage() {
           </section>
 
           {(species.sowingMonths.length > 0 || species.bloomMonths.length > 0) && (
-            <section className="border border-[#E9E9E7] rounded-lg p-5">
+            <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
               <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.sowingBloomMonths')}</h3>
               <div className="space-y-3">
                 {species.sowingMonths.length > 0 && (
@@ -739,7 +730,7 @@ export function SpeciesDetailPage() {
           )}
 
           {(species.growingPositions.length > 0 || species.soils.length > 0) && (
-            <section className="border border-[#E9E9E7] rounded-lg p-5">
+            <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
               <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.growingConditions')}</h3>
               <div className="space-y-3">
                 {species.growingPositions.length > 0 && (
@@ -769,7 +760,7 @@ export function SpeciesDetailPage() {
 
         {/* Group & Tags */}
         {(species.groups.length > 0 || species.tags.length > 0) && (
-          <section className="border border-[#E9E9E7] rounded-lg p-5">
+          <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
             <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.groupsAndTags')}</h3>
             {species.groups.length > 0 && (
               <div className="mb-3">
@@ -792,7 +783,7 @@ export function SpeciesDetailPage() {
 
         {/* Commercial & Classification */}
         {(species.costPerSeedSek != null || species.expectedStemsPerPlant != null || species.expectedVaseLifeDays != null || species.plantType || species.defaultUnitType) && (
-          <section className="border border-[#E9E9E7] rounded-lg p-5">
+          <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
             <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.commercialClassification')}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <InfoField label={t('species.costPerSeed')} value={species.costPerSeedSek != null ? `${(species.costPerSeedSek / 100).toFixed(2)} kr` : undefined} />
@@ -806,18 +797,18 @@ export function SpeciesDetailPage() {
 
         {/* Additional Photos */}
         {species.photos.length > 0 && (
-          <section className="border border-[#E9E9E7] rounded-lg p-5">
+          <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
             <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.additionalPhotos')} ({species.photos.length})</h3>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
               {species.photos.map(photo => (
-                <img key={photo.id} src={photo.imageUrl} alt="" className="w-full h-32 object-cover rounded-md" />
+                <img key={photo.id} src={photo.imageUrl} alt="" className="w-full h-28 sm:h-32 object-cover rounded-md" />
               ))}
             </div>
           </section>
         )}
 
         {/* Delete */}
-        <section className="border border-[#E9E9E7] rounded-lg p-5 mt-2">
+        <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5 mt-2">
           <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-2">{t('species.dangerZone')}</h3>
           <p className="text-sm text-[#787774] mb-4">{t('species.dangerDescription')}</p>
           {deleteStep === 0 && (
@@ -829,35 +820,35 @@ export function SpeciesDetailPage() {
             </button>
           )}
           {deleteStep === 1 && (
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-[#E03E3E]">{t('species.areYouSure')}</span>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <span className="text-sm text-[#E03E3E] w-full sm:w-auto">{t('species.areYouSure')}</span>
               <button
                 onClick={() => setDeleteStep(2)}
-                className="px-3 py-1.5 bg-[#E03E3E] text-white rounded-md hover:bg-[#C73535] transition-colors text-sm font-medium"
+                className="px-3 py-2 sm:py-1.5 bg-[#E03E3E] text-white rounded-md hover:bg-[#C73535] transition-colors text-sm font-medium"
               >
                 {t('species.yesDelete')}
               </button>
               <button
                 onClick={() => setDeleteStep(0)}
-                className="px-3 py-1.5 text-[#787774] hover:bg-[#F0F0EE] rounded-md transition-colors text-sm"
+                className="px-3 py-2 sm:py-1.5 text-[#787774] hover:bg-[#F0F0EE] rounded-md transition-colors text-sm"
               >
                 {t('common.cancel')}
               </button>
             </div>
           )}
           {deleteStep === 2 && (
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-[#E03E3E] font-medium">{t('species.cannotBeUndone')}</span>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <span className="text-sm text-[#E03E3E] font-medium w-full sm:w-auto">{t('species.cannotBeUndone')}</span>
               <button
                 onClick={() => deleteMutation.mutate()}
                 disabled={deleteMutation.isPending}
-                className="px-3 py-1.5 bg-[#E03E3E] text-white rounded-md hover:bg-[#C73535] disabled:opacity-50 transition-colors text-sm font-medium"
+                className="px-3 py-2 sm:py-1.5 bg-[#E03E3E] text-white rounded-md hover:bg-[#C73535] disabled:opacity-50 transition-colors text-sm font-medium"
               >
                 {deleteMutation.isPending ? t('species.deleting') : t('species.permanentlyDelete')}
               </button>
               <button
                 onClick={() => setDeleteStep(0)}
-                className="px-3 py-1.5 text-[#787774] hover:bg-[#F0F0EE] rounded-md transition-colors text-sm"
+                className="px-3 py-2 sm:py-1.5 text-[#787774] hover:bg-[#F0F0EE] rounded-md transition-colors text-sm"
               >
                 {t('common.cancel')}
               </button>
@@ -976,6 +967,23 @@ export function SpeciesCreatePage() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const [searchParams] = useSearchParams()
+  const fromParam = searchParams.get('from')
+  const fromId = fromParam ? Number(fromParam) : null
+
+  const { data: source, isLoading: sourceLoading, error: sourceError } = useQuery({
+    queryKey: ['admin', 'species', fromId],
+    queryFn: () => api.admin.getSpeciesById(fromId!),
+    enabled: fromId !== null,
+  })
+
+  const template: Species | null = source ? {
+    ...source,
+    variantName: source.variantName ? `${source.variantName} (kopia)` : '(kopia)',
+    variantNameSv: source.variantNameSv ? `${source.variantNameSv} (kopia)` : null,
+    providers: [],
+    photos: [],
+  } : null
 
   const createMutation = useMutation({
     mutationFn: async ({ req, provider }: { req: CreateSpeciesRequest; provider?: PendingProvider }) => {
@@ -996,9 +1004,17 @@ export function SpeciesCreatePage() {
     }
   })
 
+  if (fromId !== null && sourceLoading) {
+    return <div className="flex justify-center py-12"><div className="text-[#787774] text-sm">{t('common.loading')}</div></div>
+  }
+  if (fromId !== null && sourceError) {
+    return <ErrorDisplay error={sourceError} onRetry={() => queryClient.invalidateQueries({ queryKey: ['admin', 'species', fromId] })} />
+  }
+
   return (
     <SpeciesForm
       species={null}
+      template={template}
       title={t('species.addSpecies')}
       submitLabel={t('species.createSpecies')}
       isSubmitting={createMutation.isPending}
@@ -1017,6 +1033,7 @@ export function SpeciesCreatePage() {
 
 function SpeciesForm({
   species,
+  template,
   title,
   submitLabel,
   isSubmitting,
@@ -1033,6 +1050,7 @@ function SpeciesForm({
   isAddingProvider,
 }: {
   species: Species | null
+  template?: Species | null
   title: string
   submitLabel: string
   isSubmitting: boolean
@@ -1049,33 +1067,35 @@ function SpeciesForm({
   isAddingProvider?: boolean
 }) {
   const isEdit = species !== null
+  const init = species ?? template ?? null
   const { t } = useTranslation()
   const positionLabel = usePositionLabel()
   const soilLabel = useSoilLabel()
 
-  const [commonName, setCommonName] = useState(species?.commonName ?? '')
-  const [commonNameSv, setCommonNameSv] = useState(species?.commonNameSv ?? '')
-  const [variantName, setVariantName] = useState(species?.variantName ?? '')
-  const [variantNameSv, setVariantNameSv] = useState(species?.variantNameSv ?? '')
-  const [scientificName, setScientificName] = useState(species?.scientificName ?? '')
-  const [germinationTimeDaysMin, setGerminationTimeDaysMin] = useState(species?.germinationTimeDaysMin?.toString() ?? '')
-  const [germinationTimeDaysMax, setGerminationTimeDaysMax] = useState(species?.germinationTimeDaysMax?.toString() ?? '')
-  const [daysToHarvestMin, setDaysToHarvestMin] = useState(species?.daysToHarvestMin?.toString() ?? '')
-  const [daysToHarvestMax, setDaysToHarvestMax] = useState(species?.daysToHarvestMax?.toString() ?? '')
-  const [sowingDepthMm, setSowingDepthMm] = useState(species?.sowingDepthMm?.toString() ?? '')
-  const [heightCmMin, setHeightCmMin] = useState(species?.heightCmMin?.toString() ?? '')
-  const [heightCmMax, setHeightCmMax] = useState(species?.heightCmMax?.toString() ?? '')
-  const [bloomMonths, setBloomMonths] = useState<Set<number>>(new Set(species?.bloomMonths ?? []))
-  const [sowingMonths, setSowingMonths] = useState<Set<number>>(new Set(species?.sowingMonths ?? []))
-  const [germinationRate, setGerminationRate] = useState(species?.germinationRate?.toString() ?? '')
-  const [positions, setPositions] = useState<Set<string>>(new Set(species?.growingPositions ?? []))
-  const [soils, setSoils] = useState<Set<string>>(new Set(species?.soils ?? []))
-  const [tagIds, setTagIds] = useState<Set<number>>(new Set(species?.tags.map(tg => tg.id) ?? []))
-  const [costPerSeedSek, setCostPerSeedSek] = useState(species?.costPerSeedSek != null ? (species.costPerSeedSek / 100).toString() : '')
-  const [expectedStemsPerPlant, setExpectedStemsPerPlant] = useState(species?.expectedStemsPerPlant?.toString() ?? '')
-  const [expectedVaseLifeDays, setExpectedVaseLifeDays] = useState(species?.expectedVaseLifeDays?.toString() ?? '')
-  const [plantType, setPlantType] = useState(species?.plantType ?? '')
-  const [defaultUnitType, setDefaultUnitType] = useState(species?.defaultUnitType ?? '')
+  const [commonName, setCommonName] = useState(init?.commonName ?? '')
+  const [commonNameSv, setCommonNameSv] = useState(init?.commonNameSv ?? '')
+  const [variantName, setVariantName] = useState(init?.variantName ?? '')
+  const [variantNameSv, setVariantNameSv] = useState(init?.variantNameSv ?? '')
+  const [scientificName, setScientificName] = useState(init?.scientificName ?? '')
+  const [germinationTimeDaysMin, setGerminationTimeDaysMin] = useState(init?.germinationTimeDaysMin?.toString() ?? '')
+  const [germinationTimeDaysMax, setGerminationTimeDaysMax] = useState(init?.germinationTimeDaysMax?.toString() ?? '')
+  const [daysToHarvestMin, setDaysToHarvestMin] = useState(init?.daysToHarvestMin?.toString() ?? '')
+  const [daysToHarvestMax, setDaysToHarvestMax] = useState(init?.daysToHarvestMax?.toString() ?? '')
+  const [sowingDepthMm, setSowingDepthMm] = useState(init?.sowingDepthMm?.toString() ?? '')
+  const [heightCmMin, setHeightCmMin] = useState(init?.heightCmMin?.toString() ?? '')
+  const [heightCmMax, setHeightCmMax] = useState(init?.heightCmMax?.toString() ?? '')
+  const [bloomMonths, setBloomMonths] = useState<Set<number>>(new Set(init?.bloomMonths ?? []))
+  const [sowingMonths, setSowingMonths] = useState<Set<number>>(new Set(init?.sowingMonths ?? []))
+  const [germinationRate, setGerminationRate] = useState(init?.germinationRate?.toString() ?? '')
+  const [positions, setPositions] = useState<Set<string>>(new Set(init?.growingPositions ?? []))
+  const [soils, setSoils] = useState<Set<string>>(new Set(init?.soils ?? []))
+  const [tagIds, setTagIds] = useState<Set<number>>(new Set(init?.tags.map(tg => tg.id) ?? []))
+  const [costPerSeedSek, setCostPerSeedSek] = useState(init?.costPerSeedSek != null ? (init.costPerSeedSek / 100).toString() : '')
+  const [expectedStemsPerPlant, setExpectedStemsPerPlant] = useState(init?.expectedStemsPerPlant?.toString() ?? '')
+  const [expectedVaseLifeDays, setExpectedVaseLifeDays] = useState(init?.expectedVaseLifeDays?.toString() ?? '')
+  const [plantType, setPlantType] = useState(init?.plantType ?? '')
+  const [defaultUnitType, setDefaultUnitType] = useState(init?.defaultUnitType ?? '')
+  const [workflowTemplateId, setWorkflowTemplateId] = useState<string>(init?.workflowTemplateId != null ? String(init.workflowTemplateId) : '')
   const [imageFrontBase64, setImageFrontBase64] = useState<string | null>(null)
   const [imageBackBase64, setImageBackBase64] = useState<string | null>(null)
   const [backImageSmall, setBackImageSmall] = useState(false)
@@ -1104,6 +1124,11 @@ function SpeciesForm({
   const { data: availableTags } = useQuery({
     queryKey: ['admin', 'speciesTags'],
     queryFn: api.admin.getSpeciesTags,
+  })
+
+  const { data: availableWorkflowTemplates } = useQuery({
+    queryKey: ['admin', 'workflowTemplates'],
+    queryFn: api.admin.getWorkflowTemplates,
   })
 
   const photoInputRef = useRef<HTMLInputElement>(null)
@@ -1221,6 +1246,10 @@ function SpeciesForm({
       expectedVaseLifeDays: expectedVaseLifeDays ? parseInt(expectedVaseLifeDays) : undefined,
       plantType: plantType || undefined,
       defaultUnitType: defaultUnitType || undefined,
+      workflowTemplateId: workflowTemplateId !== '' ? Number(workflowTemplateId) : undefined,
+      ...(isEdit && workflowTemplateId === '' && species?.workflowTemplateId != null
+        ? { clearWorkflowTemplate: true }
+        : {}),
     }
     const provider = !isEdit && selectedProviderId ? {
       providerId: selectedProviderId,
@@ -1233,16 +1262,16 @@ function SpeciesForm({
 
   return (
     <div>
-      <button onClick={onBack} className="flex items-center gap-1 text-sm text-[#787774] hover:text-[#37352F] mb-4 transition-colors">
+      <button onClick={onBack} className="-ml-2 inline-flex items-center gap-1 text-sm text-[#787774] hover:text-[#37352F] hover:bg-[#F0F0EE] rounded-md px-2 py-1.5 mb-3 sm:mb-4 transition-colors">
         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         {t('common.back')}
       </button>
 
-      <h2 className="text-2xl font-semibold text-[#37352F] mb-6">{title}</h2>
+      <h2 className="text-xl sm:text-2xl font-semibold text-[#37352F] mb-5 sm:mb-6 break-words">{title}</h2>
 
-      {/* Provider back image floating right */}
+      {/* Provider back image floating right (desktop only) */}
       {isEdit && species?.providers?.[0]?.imageBackUrl && (
-        <div className="fixed right-6 top-24 z-10">
+        <div className="hidden xl:block fixed right-6 top-24 z-10">
           <img
             src={species.providers[0].imageBackUrl}
             alt={t('species.seedPacketBack')}
@@ -1271,10 +1300,10 @@ function SpeciesForm({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6 pb-20">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 pb-28 sm:pb-20">
         {/* Provider & Images — create mode */}
         {!isEdit && (
-          <section className="border border-[#E9E9E7] rounded-lg p-5">
+          <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
             <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.seedProviderImages')}</h3>
             <div className="mb-4">
               <label className="block text-xs font-medium text-[#787774] mb-1.5">{t('species.provider')}</label>
@@ -1291,7 +1320,7 @@ function SpeciesForm({
             </div>
             {selectedProviderId && (
               <>
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <ImageUpload
                     label={t('species.front')}
                     currentUrl={imageFrontBase64 ? `data:image/jpeg;base64,${imageFrontBase64}` : null}
@@ -1320,7 +1349,7 @@ function SpeciesForm({
 
         {/* Additional Photos — only in edit mode */}
         {isEdit && (
-          <section className="border border-[#E9E9E7] rounded-lg p-5">
+          <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider">
                 {t('species.additionalPhotos')}
@@ -1339,11 +1368,11 @@ function SpeciesForm({
             {photos.length === 0 ? (
               <p className="text-[#A5A29C] text-sm">{t('species.noAdditionalPhotos')}</p>
             ) : (
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
                 {photos.map(photo => (
                   <div key={photo.id} className="relative group">
-                    <img src={photo.imageUrl} alt="" className="w-full h-32 object-cover rounded-md" />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors rounded-md flex items-center justify-center">
+                    <img src={photo.imageUrl} alt="" className="w-full h-28 sm:h-32 object-cover rounded-md" />
+                    <div className="absolute inset-0 bg-black/0 md:group-hover:bg-black/30 transition-colors rounded-md flex items-center justify-center">
                       {deletingPhotoId === photo.id ? (
                         <div className="flex gap-2">
                           <button
@@ -1365,9 +1394,10 @@ function SpeciesForm({
                         <button
                           type="button"
                           onClick={() => setDeletingPhotoId(photo.id)}
-                          className="opacity-0 group-hover:opacity-100 px-2 py-1 bg-[#E03E3E] text-white text-xs rounded font-medium transition-opacity"
+                          aria-label={t('common.delete')}
+                          className="absolute top-1 right-1 md:opacity-0 md:group-hover:opacity-100 inline-flex items-center justify-center w-7 h-7 bg-[#E03E3E] text-white rounded-full font-medium shadow transition-opacity"
                         >
-                          {t('common.delete')}
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                       )}
                     </div>
@@ -1379,7 +1409,7 @@ function SpeciesForm({
         )}
 
         {/* Basic Info */}
-        <section className="border border-[#E9E9E7] rounded-lg p-5">
+        <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider">{t('species.basicInfo')}</h3>
             <button
@@ -1393,31 +1423,31 @@ function SpeciesForm({
               {t('species.copyToEnglish')}
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <Field label={t('species.commonNameSv')} value={commonNameSv} onChange={setCommonNameSv} />
             <Field label={t('species.commonNameEn')} value={commonName} onChange={setCommonName} />
             <Field label={t('species.variantNameSv')} value={variantNameSv} onChange={setVariantNameSv} />
             <Field label={t('species.variantNameEn')} value={variantName} onChange={setVariantName} />
-            <Field label={t('species.scientificName')} value={scientificName} onChange={setScientificName} className="col-span-2" />
+            <Field label={t('species.scientificName')} value={scientificName} onChange={setScientificName} className="sm:col-span-2" />
           </div>
         </section>
 
         {/* Growth Info */}
-        <section className="border border-[#E9E9E7] rounded-lg p-5">
+        <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
           <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.growthInfo')}</h3>
           <div className="space-y-3">
             <RangeField label={t('species.germinationTimeDays')} min={germinationTimeDaysMin} max={germinationTimeDaysMax} onMinChange={v => setGerminationTimeDaysMin(v.replace(/\D/g, ''))} onMaxChange={v => setGerminationTimeDaysMax(v.replace(/\D/g, ''))} />
             <RangeField label={t('species.daysToHarvest')} min={daysToHarvestMin} max={daysToHarvestMax} onMinChange={v => setDaysToHarvestMin(v.replace(/\D/g, ''))} onMaxChange={v => setDaysToHarvestMax(v.replace(/\D/g, ''))} />
             <RangeField label={t('species.heightCm')} min={heightCmMin} max={heightCmMax} onMinChange={v => setHeightCmMin(v.replace(/\D/g, ''))} onMaxChange={v => setHeightCmMax(v.replace(/\D/g, ''))} />
-            <div className="grid grid-cols-6 gap-4">
-              <Field label={t('species.sowingDepthMm')} value={sowingDepthMm} onChange={v => setSowingDepthMm(v.replace(/\D/g, ''))} type="text" className="col-span-1" />
-              <Field label={t('species.germinationRatePercent')} value={germinationRate} onChange={v => setGerminationRate(v.replace(/\D/g, ''))} type="text" className="col-span-1" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+              <Field label={t('species.sowingDepthMm')} value={sowingDepthMm} onChange={v => setSowingDepthMm(v.replace(/\D/g, ''))} type="text" />
+              <Field label={t('species.germinationRatePercent')} value={germinationRate} onChange={v => setGerminationRate(v.replace(/\D/g, ''))} type="text" />
             </div>
           </div>
         </section>
 
         {/* Sowing & Bloom Months */}
-        <section className="border border-[#E9E9E7] rounded-lg p-5">
+        <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
           <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.sowingBloomMonths')}</h3>
           <div className="space-y-4">
             <div>
@@ -1440,7 +1470,7 @@ function SpeciesForm({
         </section>
 
         {/* Growing Conditions */}
-        <section className="border border-[#E9E9E7] rounded-lg p-5">
+        <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
           <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.growingConditions')}</h3>
           <div className="space-y-4">
             <div>
@@ -1464,7 +1494,7 @@ function SpeciesForm({
 
         {/* Providers — edit mode */}
         {isEdit && (
-          <section className="border border-[#E9E9E7] rounded-lg p-5">
+          <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider">
                 {t('species.seedProviders')}
@@ -1485,12 +1515,12 @@ function SpeciesForm({
             <div className="space-y-4">
               {species!.providers.map(sp => (
                 <div key={sp.id} className="p-4 bg-[#FBFBFA] border border-[#E9E9E7] rounded-md">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div className="min-w-0">
                       <span className="text-sm font-medium text-[#37352F]">{sp.providerName}</span>
                       <span className="ml-2 text-xs text-[#787774]">{sp.providerIdentifier}</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       {sp.productUrl && (
                         <a href={sp.productUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[#2EAADC] hover:underline">
                           {t('species.productPage')} &rarr;
@@ -1524,7 +1554,7 @@ function SpeciesForm({
                       )}
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <ImageUpload
                       label={t('species.front')}
                       currentUrl={sp.imageFrontUrl}
@@ -1568,7 +1598,7 @@ function SpeciesForm({
                 </div>
                 {newProviderProviderId && (
                   <>
-                    <div className="grid grid-cols-2 gap-4 mb-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3">
                       <ImageUpload
                         label={t('species.front')}
                         currentUrl={newProviderFrontBase64 ? `data:image/jpeg;base64,${newProviderFrontBase64}` : null}
@@ -1632,7 +1662,7 @@ function SpeciesForm({
 
         {/* Tags */}
         {availableTags && availableTags.length > 0 && (
-          <section className="border border-[#E9E9E7] rounded-lg p-5">
+          <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
             <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.tags')}</h3>
             <div className="flex gap-1.5 flex-wrap">
               {availableTags.map((tg: SpeciesTag) => (
@@ -1643,14 +1673,14 @@ function SpeciesForm({
         )}
 
         {/* Commercial & Classification */}
-        <section className="border border-[#E9E9E7] rounded-lg p-5">
+        <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
           <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.commercialClassification')}</h3>
-          <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
             <Field label={t('species.costPerSeedSek')} value={costPerSeedSek} onChange={setCostPerSeedSek} type="text" />
             <Field label={t('species.expectedStemsPerPlant')} value={expectedStemsPerPlant} onChange={v => setExpectedStemsPerPlant(v.replace(/\D/g, ''))} type="text" />
             <Field label={t('species.expectedVaseLifeDays')} value={expectedVaseLifeDays} onChange={v => setExpectedVaseLifeDays(v.replace(/\D/g, ''))} type="text" />
           </div>
-          <div className="grid grid-cols-2 gap-4 max-w-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 sm:max-w-sm">
             <div>
               <label className="block text-xs font-medium text-[#787774] mb-1.5">{t('species.plantType')}</label>
               <select
@@ -1683,6 +1713,27 @@ function SpeciesForm({
           </div>
         </section>
 
+        {/* Workflow */}
+        <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
+          <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.workflow')}</h3>
+          <div className="sm:max-w-sm">
+            <label className="block text-xs font-medium text-[#787774] mb-1.5">{t('species.workflowTemplate')}</label>
+            <select
+              value={workflowTemplateId}
+              onChange={e => setWorkflowTemplateId(e.target.value)}
+              className="w-full px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA]"
+            >
+              <option value="">{t('species.workflowNone')}</option>
+              {availableWorkflowTemplates?.map(tpl => (
+                <option key={tpl.id} value={tpl.id}>{tpl.name}</option>
+              ))}
+              {workflowTemplateId !== '' && availableWorkflowTemplates && !availableWorkflowTemplates.some(t => String(t.id) === workflowTemplateId) && (
+                <option value={workflowTemplateId}>{t('species.workflowMissing', { id: workflowTemplateId })}</option>
+              )}
+            </select>
+          </div>
+        </section>
+
         {/* Submit */}
         {error && (
           <div className="bg-[#FBE4E4] text-[#E03E3E] px-3 py-2.5 rounded-md text-sm">{error}</div>
@@ -1691,8 +1742,11 @@ function SpeciesForm({
       </form>
 
       {/* Floating save bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E9E9E7] px-6 py-3 flex gap-3 justify-center shadow-lg z-10">
-        {error && <span className="text-red-600 text-sm self-center absolute left-6">{error}</span>}
+      <div
+        className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E9E9E7] px-4 sm:px-6 py-3 flex flex-wrap gap-2 sm:gap-3 justify-end sm:justify-center shadow-lg z-10"
+        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+      >
+        {error && <span className="text-[#E03E3E] text-sm self-center w-full sm:w-auto sm:absolute sm:left-6">{error}</span>}
         <button
           type="button"
           onClick={onBack}
@@ -1721,11 +1775,13 @@ function RangeField({ label, min, max, onMinChange, onMaxChange }: {
   const { t } = useTranslation()
   const inputClass = "px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA] w-20"
   return (
-    <div className="flex items-center gap-3">
-      <label className="text-xs font-medium text-[#787774] w-40 shrink-0">{label}</label>
-      <input type="text" maxLength={4} value={min} onChange={e => onMinChange(e.target.value)} placeholder={t('species.min')} className={inputClass} />
-      <span className="text-xs text-[#787774]">–</span>
-      <input type="text" maxLength={4} value={max} onChange={e => onMaxChange(e.target.value)} placeholder={t('species.max')} className={inputClass} />
+    <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+      <label className="text-xs font-medium text-[#787774] sm:w-40 sm:shrink-0">{label}</label>
+      <div className="flex items-center gap-3">
+        <input type="text" inputMode="numeric" maxLength={4} value={min} onChange={e => onMinChange(e.target.value)} placeholder={t('species.min')} className={inputClass} />
+        <span className="text-xs text-[#787774]">–</span>
+        <input type="text" inputMode="numeric" maxLength={4} value={max} onChange={e => onMaxChange(e.target.value)} placeholder={t('species.max')} className={inputClass} />
+      </div>
     </div>
   )
 }

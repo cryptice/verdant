@@ -26,10 +26,10 @@ export default function ResetData() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-semibold text-[#37352F] mb-1">{t('resetData.title')}</h1>
-      <p className="text-sm text-[#787774] mb-8">{t('resetData.subtitle')}</p>
+      <h1 className="text-xl sm:text-2xl font-semibold text-[#37352F] mb-1">{t('resetData.title')}</h1>
+      <p className="text-sm text-[#787774] mb-6 sm:mb-8">{t('resetData.subtitle')}</p>
 
-      <div className="border border-[#E9E9E7] rounded-lg p-6">
+      <div className="border border-[#E9E9E7] rounded-lg p-4 sm:p-6">
         <h2 className="text-base font-semibold text-[#37352F] mb-2">{t('resetData.wipeTitle')}</h2>
         <p className="text-sm text-[#787774] mb-4">
           {t('resetData.wipeDescription')}
@@ -50,7 +50,7 @@ export default function ResetData() {
             {t('resetData.wipeButton')}
           </button>
         ) : (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <button
               onClick={handleWipe}
               disabled={wiping}

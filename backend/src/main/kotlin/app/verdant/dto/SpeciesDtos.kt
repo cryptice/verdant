@@ -152,6 +152,10 @@ data class UpdateSpeciesRequest(
     @field:Size(max = 20)
     val defaultUnitType: String? = null,
     val workflowTemplateId: Long? = null,
+    // When true, workflowTemplateId is cleared (set to NULL), regardless of the
+    // workflowTemplateId field. Needed because Kotlin + Jackson cannot
+    // distinguish field-absent from field-present-with-null.
+    val clearWorkflowTemplate: Boolean? = null,
 )
 
 data class SpeciesGroupResponse(

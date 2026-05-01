@@ -7,7 +7,9 @@
     "resetData": "\u00c5terst\u00e4ll data",
     "devTools": "Utvecklingsverktyg",
     "signOut": "Logga ut",
-    "admin": "Admin"
+    "admin": "Admin",
+    "openMenu": "Öppna meny",
+    "closeMenu": "Stäng meny"
   },
   "common": {
     "loading": "Laddar...",
@@ -115,6 +117,10 @@
     "vaseLifeDays": "Vaslivsl\u00e4ngd (dagar)",
     "plantType": "V\u00e4xttyp",
     "defaultUnitType": "Standardenhetstyp",
+    "workflow": "Arbetsfl\u00f6de",
+    "workflowTemplate": "Arbetsfl\u00f6desmall",
+    "workflowNone": "\u2014 Ingen \u2014",
+    "workflowMissing": "Mall #{{id}} (finns ej i denna organisation)",
     "additionalPhotos": "Ytterligare foton",
     "noAdditionalPhotos": "\u00c4nnu inga ytterligare foton",
     "dangerZone": "Farozon",

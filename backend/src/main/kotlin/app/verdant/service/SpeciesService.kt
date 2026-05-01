@@ -125,7 +125,8 @@ class SpeciesService(
             expectedVaseLifeDays = request.expectedVaseLifeDays ?: species.expectedVaseLifeDays,
             plantType = request.plantType?.let { PlantType.valueOf(it) } ?: species.plantType,
             defaultUnitType = request.defaultUnitType?.let { UnitType.valueOf(it) } ?: species.defaultUnitType,
-            workflowTemplateId = request.workflowTemplateId ?: species.workflowTemplateId,
+            workflowTemplateId = if (request.clearWorkflowTemplate == true) null
+                else request.workflowTemplateId ?: species.workflowTemplateId,
         )
         speciesRepository.update(updated)
         if (request.tagIds != null) {
@@ -237,7 +238,8 @@ class SpeciesService(
             expectedVaseLifeDays = request.expectedVaseLifeDays ?: species.expectedVaseLifeDays,
             plantType = request.plantType?.let { PlantType.valueOf(it) } ?: species.plantType,
             defaultUnitType = request.defaultUnitType?.let { UnitType.valueOf(it) } ?: species.defaultUnitType,
-            workflowTemplateId = request.workflowTemplateId ?: species.workflowTemplateId,
+            workflowTemplateId = if (request.clearWorkflowTemplate == true) null
+                else request.workflowTemplateId ?: species.workflowTemplateId,
         )
         speciesRepository.update(updated)
         if (request.tagIds != null) {

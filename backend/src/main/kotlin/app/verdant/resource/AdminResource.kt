@@ -2,9 +2,11 @@ package app.verdant.resource
 
 import app.verdant.dto.*
 import app.verdant.entity.Provider
+import app.verdant.entity.Role
 import app.verdant.repository.GardenRepository
 import app.verdant.repository.ProviderRepository
 import app.verdant.repository.UserRepository
+import app.verdant.repository.WorkflowRepository
 import app.verdant.service.AiService
 import app.verdant.service.SpeciesService
 import app.verdant.service.toResponse
@@ -23,6 +25,7 @@ class AdminResource(
     private val speciesService: SpeciesService,
     private val aiService: AiService,
     private val providerRepository: ProviderRepository,
+    private val workflowRepository: WorkflowRepository,
 ) {
     @GET
     @Path("/users")
@@ -31,7 +34,8 @@ class AdminResource(
     @DELETE
     @Path("/users/{id}")
     fun deleteUser(@PathParam("id") id: Long): Response {
-        userRepository.findById(id) ?: throw NotFoundException("User not found")
+        val user = userRepository.findById(id) ?: throw NotFoundException("User not found")
+        if (user.role == Role.ADMIN) throw ForbiddenException("Admin users cannot be deleted")
         userRepository.delete(id)
         return Response.noContent().build()
     }
@@ -177,4 +181,13 @@ class AdminResource(
         speciesService.removeSpeciesProviderAdmin(id, spId)
         return Response.noContent().build()
     }
+
+    // ── Workflow Templates ──
+
+    @GET
+    @Path("/workflow-templates")
+    fun listWorkflowTemplates(): List<AdminWorkflowTemplateResponse> =
+        workflowRepository.findAllTemplates().map {
+            AdminWorkflowTemplateResponse(id = it.id!!, name = it.name, orgId = it.orgId)
+        }
 }
