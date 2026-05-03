@@ -214,17 +214,12 @@ fun DashboardScreen(
                     }
 
                     item {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth().padding(end = 12.dp),
-                        ) {
-                            Box(Modifier.weight(1f)) {
-                                FaltetSectionHeader(label = "Pågående uppgifter")
-                            }
-                            if (uiState.pendingTasks.isNotEmpty()) {
-                                TextButton(onClick = onOpenTasks) { Text("Alla", fontSize = 12.sp) }
-                            }
-                        }
+                        FaltetSectionHeader(
+                            label = "Pågående uppgifter",
+                            trailing = if (uiState.pendingTasks.isNotEmpty()) {
+                                { TextButton(onClick = onOpenTasks) { Text("Alla", fontSize = 12.sp) } }
+                            } else null,
+                        )
                     }
                     if (uiState.pendingTasks.isEmpty()) {
                         item { InlineMuted("Inget väntar på dig.") }

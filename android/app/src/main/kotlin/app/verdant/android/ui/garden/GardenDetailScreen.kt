@@ -245,19 +245,16 @@ fun GardenDetailScreen(
                 val groupedBeds = remember(uiState.beds) { groupBedsByStem(uiState.beds) }
                 LazyColumn(Modifier.fillMaxSize().padding(padding)) {
                     item {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth().padding(end = 12.dp),
-                        ) {
-                            Box(Modifier.weight(1f)) {
-                                FaltetSectionHeader(label = "Bäddar")
-                            }
-                            uiState.garden?.let { garden ->
-                                TextButton(onClick = { onCreateBed(garden.id) }) {
-                                    Text("+ Lägg till bädd", color = FaltetAccent, fontSize = 12.sp)
+                        FaltetSectionHeader(
+                            label = "Bäddar",
+                            trailing = uiState.garden?.let { garden ->
+                                {
+                                    TextButton(onClick = { onCreateBed(garden.id) }) {
+                                        Text("+ Lägg till bädd", color = FaltetAccent, fontSize = 12.sp)
+                                    }
                                 }
-                            }
-                        }
+                            },
+                        )
                     }
                     if (uiState.beds.isEmpty()) {
                         item { InlineEmpty("Inga bäddar ännu. Tryck + för att skapa.") }

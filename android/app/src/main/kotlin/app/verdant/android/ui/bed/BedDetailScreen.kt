@@ -572,7 +572,7 @@ private fun ConditionGroup(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     contentDescription = if (expanded) "Dölj" else "Visa",
                     tint = FaltetForest,
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(32.dp),
                 )
             },
             onClick = { expanded = !expanded },
