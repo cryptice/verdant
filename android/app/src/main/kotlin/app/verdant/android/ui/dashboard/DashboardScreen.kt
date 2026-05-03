@@ -345,13 +345,13 @@ private fun TrayLocationGroup(
             // surfaces, so a tap here only toggles expansion.
             androidx.compose.material3.IconButton(
                 onClick = onToggleExpanded,
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(48.dp),
             ) {
                 Icon(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     contentDescription = if (expanded) "Dölj plantor" else "Visa plantor",
                     tint = FaltetForest,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(32.dp),
                 )
             }
             Text(

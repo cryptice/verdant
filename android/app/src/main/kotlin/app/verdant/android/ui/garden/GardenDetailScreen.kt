@@ -24,6 +24,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -508,11 +510,11 @@ private fun BedGroupRow(
                 color = FaltetForest,
             )
             Spacer(Modifier.width(10.dp))
-            Text(
-                text = if (expanded) "▾" else "▸",
-                fontFamily = FontFamily.Monospace,
-                fontSize = 12.sp,
-                color = FaltetAccent,
+            Icon(
+                imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                contentDescription = if (expanded) "Dölj" else "Visa",
+                tint = FaltetAccent,
+                modifier = Modifier.size(32.dp),
             )
         }
         if (expanded) {
