@@ -416,6 +416,35 @@ fun BedDetailScreen(
                         }
                     }
 
+                    // Skötsel section — bed-level maintenance log (water, weed, …).
+                    // Placed above the slower-changing sections so the most
+                    // recently mutated information is visible first.
+                    item { FaltetSectionHeader(label = "Skötsel") }
+                    if (state.bedEvents.isEmpty()) {
+                        item { InlineEmpty("Inga skötselhändelser ännu.") }
+                    } else {
+                        items(state.bedEvents, key = { "be_${it.id}" }) { ev ->
+                            val secondary = buildList {
+                                ev.plantsAffected?.takeIf { it > 0 }?.let { add("$it plantor") }
+                                ev.notes?.takeIf { it.isNotBlank() }?.let { add("“$it”") }
+                            }.joinToString(" · ").takeIf { it.isNotBlank() }
+                            FaltetListRow(
+                                title = bedEventLabelSv(ev.eventType),
+                                meta = secondary,
+                                metaMaxLines = 2,
+                                stat = {
+                                    Text(
+                                        formattedDate(ev.eventDate.take(10)).uppercase(),
+                                        fontFamily = FontFamily.Monospace,
+                                        fontSize = 10.sp,
+                                        letterSpacing = 1.2.sp,
+                                        color = FaltetForest,
+                                    )
+                                },
+                            )
+                        }
+                    }
+
                     // Förhållanden section
                     val hasAnyCondition = listOf(
                         bed.soilType, bed.soilPh?.toString(), bed.drainage,
@@ -494,24 +523,6 @@ fun BedDetailScreen(
                                     }
                                 } else null,
                                 onClick = { onPlantClick(plant.id) },
-                            )
-                        }
-                    }
-
-                    // Skötsel section — bed-level maintenance log (water, weed, …)
-                    item { FaltetSectionHeader(label = "Skötsel") }
-                    if (state.bedEvents.isEmpty()) {
-                        item { InlineEmpty("Inga skötselhändelser ännu.") }
-                    } else {
-                        items(state.bedEvents, key = { "be_${it.id}" }) { ev ->
-                            FaltetListRow(
-                                title = bedEventLabelSv(ev.eventType),
-                                meta = buildString {
-                                    append(formattedDate(ev.eventDate.take(10)))
-                                    ev.plantsAffected?.takeIf { it > 0 }?.let { append(" · $it plantor") }
-                                    ev.notes?.takeIf { it.isNotBlank() }?.let { append(" · “$it”") }
-                                },
-                                metaMaxLines = 2,
                             )
                         }
                     }
