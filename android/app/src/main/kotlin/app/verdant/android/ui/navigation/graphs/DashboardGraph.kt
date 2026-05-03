@@ -34,6 +34,8 @@ fun NavGraphBuilder.dashboardGraph(navController: NavController) {
                 navController.navigate(Screen.TrayLocationDetail.create(id))
             },
             onOpenSupplies = { navController.navigate(Screen.Supplies.route) },
+            onSow = { navController.navigate(Screen.Sow.create()) },
+            onRegister = { navController.navigate(Screen.RegisterPlants.route) },
         )
     }
     composable(Screen.MyWorld.route) {

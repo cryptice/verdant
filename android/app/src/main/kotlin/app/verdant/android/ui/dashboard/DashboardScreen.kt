@@ -1,5 +1,9 @@
 package app.verdant.android.ui.dashboard
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.window.Dialog
 import app.verdant.android.ui.faltet.BotanicalPlate
+import app.verdant.android.ui.faltet.FaltetFab
+import app.verdant.android.ui.theme.FaltetCream
 import app.verdant.android.data.repository.AnalyticsRepository
 import app.verdant.android.data.repository.PlantRepository
 import app.verdant.android.data.repository.SupplyRepository
@@ -10,6 +14,7 @@ import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.ExpandLess
@@ -18,6 +23,7 @@ import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material.icons.filled.Yard
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -156,6 +162,8 @@ fun DashboardScreen(
     onSpeciesClick: (Long) -> Unit = {},
     onOpenTrayLocation: (Long) -> Unit = {},
     onOpenSupplies: () -> Unit = {},
+    onSow: () -> Unit = {},
+    onRegister: () -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -176,12 +184,20 @@ fun DashboardScreen(
     // by default — header row alone (location name + count + actions) reads
     // as the at-a-glance summary.
     val expandedTrayKeys = remember { androidx.compose.runtime.mutableStateMapOf<String, Boolean>() }
+    var showQuickActions by remember { mutableStateOf(false) }
 
     FaltetScreenScaffold(
         mastheadLeft = "",
         mastheadCenter = "Översikt",
         snackbarHost = { SnackbarHost(snackbarHostState) },
         watermark = BotanicalPlate.EmptyGarden,
+        fab = {
+            FaltetFab(
+                onClick = { showQuickActions = true },
+                contentDescription = "Aktivitet",
+                icon = Icons.Default.Bolt,
+            )
+        },
 ) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
@@ -303,6 +319,121 @@ fun DashboardScreen(
                 }
             }
         }
+    }
+
+    if (showQuickActions) {
+        QuickActionsDialog(
+            onDismiss = { showQuickActions = false },
+            onSow = {
+                showQuickActions = false
+                onSow()
+            },
+            onRegister = {
+                showQuickActions = false
+                onRegister()
+            },
+        )
+    }
+}
+
+@Composable
+private fun QuickActionsDialog(
+    onDismiss: () -> Unit,
+    onSow: () -> Unit,
+    onRegister: () -> Unit,
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(FaltetCream, RoundedCornerShape(16.dp))
+                .border(1.dp, FaltetInk, RoundedCornerShape(16.dp))
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(
+                text = "AKTIVITET",
+                fontFamily = FontFamily.Monospace,
+                fontSize = 9.sp,
+                letterSpacing = 1.8.sp,
+                color = FaltetForest,
+            )
+            Text(
+                text = "Vad vill du göra?",
+                fontFamily = FaltetDisplay,
+                fontStyle = FontStyle.Italic,
+                fontSize = 26.sp,
+                color = FaltetInk,
+            )
+            QuickActionCard(
+                icon = Icons.Default.Spa,
+                title = "Så",
+                subtitle = "Sätt nya frön i brätte eller bädd",
+                onClick = onSow,
+            )
+            QuickActionCard(
+                icon = Icons.Default.Yard,
+                title = "Registrera plantor",
+                subtitle = "Lägg till plantor du redan har",
+                onClick = onRegister,
+            )
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                TextButton(onClick = onDismiss) {
+                    Text("Avbryt", color = FaltetForest)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuickActionCard(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, FaltetInk, RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .background(FaltetAccent.copy(alpha = 0.12f), CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(icon, contentDescription = null, tint = FaltetAccent, modifier = Modifier.size(22.dp))
+        }
+        Spacer(Modifier.width(14.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                fontFamily = FaltetDisplay,
+                fontStyle = FontStyle.Italic,
+                fontSize = 20.sp,
+                color = FaltetInk,
+            )
+            Text(
+                text = subtitle,
+                fontFamily = FontFamily.Monospace,
+                fontSize = 10.sp,
+                letterSpacing = 1.2.sp,
+                color = FaltetForest,
+            )
+        }
+        Icon(
+            imageVector = Icons.Default.ChevronRight,
+            contentDescription = null,
+            tint = FaltetAccent,
+        )
     }
 }
 

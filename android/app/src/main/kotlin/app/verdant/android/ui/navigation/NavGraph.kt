@@ -219,7 +219,6 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
     // sidebar.
     val gardens by viewModel.gardens.collectAsStateWithLifecycle()
     val soleGarden = gardens.singleOrNull()
-    var showQuickActions by remember { mutableStateOf(false) }
     val myWorldLabel = soleGarden?.name ?: stringResource(R.string.my_world)
     val myWorldRoute = soleGarden?.let { Screen.GardenDetail.create(it.id) } ?: Screen.MyWorld.route
     val myWorldSelected = currentRoute == Screen.MyWorld.route ||
@@ -461,26 +460,6 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                             )
                         )
 
-                        NavigationBarItem(
-                            selected = false,
-                            onClick = { showQuickActions = true },
-                            icon = { Icon(Icons.Default.Bolt, contentDescription = "Aktivitet") },
-                            label = {
-                                Text(
-                                    text = "Aktivitet",
-                                    fontFamily = FaltetDisplay,
-                                    fontStyle = FontStyle.Italic,
-                                    fontSize = 13.sp,
-                                )
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = FaltetAccent,
-                                selectedTextColor = FaltetAccent,
-                                unselectedIconColor = FaltetAccent,
-                                unselectedTextColor = FaltetAccent,
-                                indicatorColor = Color.Transparent,
-                            )
-                        )
                     }
                 }
             }
@@ -502,123 +481,8 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
             parityGraph(navController)
             activityGraph(navController)
         }
-
-        if (showQuickActions) {
-            QuickActionsDialog(
-                onDismiss = { showQuickActions = false },
-                onSow = {
-                    showQuickActions = false
-                    navController.navigate(Screen.Sow.create())
-                },
-                onRegister = {
-                    showQuickActions = false
-                    navController.navigate(Screen.RegisterPlants.route)
-                },
-            )
         }
         }
-        }
-    }
-}
-
-@Composable
-private fun QuickActionsDialog(
-    onDismiss: () -> Unit,
-    onSow: () -> Unit,
-    onRegister: () -> Unit,
-) {
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
-        androidx.compose.foundation.layout.Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(FaltetCream, androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
-                .border(1.dp, FaltetInk, androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
-                .padding(24.dp),
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
-        ) {
-            Text(
-                text = "AKTIVITET",
-                fontFamily = FontFamily.Monospace,
-                fontSize = 9.sp,
-                letterSpacing = 1.8.sp,
-                color = FaltetForest,
-            )
-            Text(
-                text = "Vad vill du göra?",
-                fontFamily = FaltetDisplay,
-                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                fontSize = 26.sp,
-                color = FaltetInk,
-            )
-            QuickActionCard(
-                icon = Icons.Default.Spa,
-                title = "Så",
-                subtitle = "Sätt nya frön i brätte eller bädd",
-                onClick = onSow,
-            )
-            QuickActionCard(
-                icon = Icons.Default.Yard,
-                title = "Registrera plantor",
-                subtitle = "Lägg till plantor du redan har",
-                onClick = onRegister,
-            )
-            androidx.compose.foundation.layout.Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = androidx.compose.ui.Alignment.CenterEnd,
-            ) {
-                androidx.compose.material3.TextButton(onClick = onDismiss) {
-                    Text("Avbryt", color = FaltetForest)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun QuickActionCard(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-) {
-    androidx.compose.foundation.layout.Row(
-        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(1.dp, FaltetInk, androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-    ) {
-        androidx.compose.foundation.layout.Box(
-            modifier = Modifier
-                .size(44.dp)
-                .background(FaltetAccent.copy(alpha = 0.12f), androidx.compose.foundation.shape.CircleShape),
-            contentAlignment = androidx.compose.ui.Alignment.Center,
-        ) {
-            Icon(icon, contentDescription = null, tint = FaltetAccent, modifier = Modifier.size(22.dp))
-        }
-        androidx.compose.foundation.layout.Spacer(Modifier.width(14.dp))
-        androidx.compose.foundation.layout.Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                fontFamily = FaltetDisplay,
-                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                fontSize = 20.sp,
-                color = FaltetInk,
-            )
-            Text(
-                text = subtitle,
-                fontFamily = FontFamily.Monospace,
-                fontSize = 10.sp,
-                letterSpacing = 1.2.sp,
-                color = FaltetForest,
-            )
-        }
-        Icon(
-            imageVector = Icons.Default.ChevronRight,
-            contentDescription = null,
-            tint = FaltetAccent,
-        )
     }
 }
 
