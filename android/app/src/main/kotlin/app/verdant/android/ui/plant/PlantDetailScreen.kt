@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -24,6 +25,7 @@ import androidx.compose.material.icons.filled.Grass
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Park
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material.icons.automirrored.filled.StickyNote2
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.AlertDialog
@@ -89,6 +91,9 @@ data class PlantDetailState(
     val plant: PlantResponse? = null,
     val events: List<PlantEventResponse> = emptyList(),
     val workflowProgress: PlantWorkflowProgressResponse? = null,
+    val outlets: List<app.verdant.android.data.model.OutletResponse> = emptyList(),
+    val availableForSale: Int = 0,
+    val toastMessage: String? = null,
     val error: String? = null,
     val deleted: Boolean = false
 )
@@ -97,7 +102,9 @@ data class PlantDetailState(
 class PlantDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val plantRepository: PlantRepository,
-    private val workflowRepository: WorkflowRepository
+    private val workflowRepository: WorkflowRepository,
+    private val outletRepository: app.verdant.android.data.repository.OutletRepository,
+    private val saleLotRepository: app.verdant.android.data.repository.SaleLotRepository,
 ) : ViewModel() {
     private val plantId: Long = savedStateHandle.get<Long>("plantId")!!
     private val _uiState = MutableStateFlow(PlantDetailState())
@@ -116,16 +123,65 @@ class PlantDetailViewModel @Inject constructor(
                 } catch (_: Exception) {
                     null
                 }
+                val outlets = runCatching { outletRepository.list() }.getOrDefault(emptyList())
+                val available = runCatching { saleLotRepository.availableForPlant(plantId) }.getOrDefault(0)
                 _uiState.value = PlantDetailState(
                     isLoading = false,
                     plant = plant,
                     events = events,
                     workflowProgress = workflowProgress,
+                    outlets = outlets,
+                    availableForSale = available,
                 )
             } catch (e: Exception) {
                 _uiState.value = PlantDetailState(isLoading = false, error = e.message)
             }
         }
+    }
+
+    fun createSaleLot(
+        unitKind: String,
+        quantityTotal: Int,
+        initialRequestedPriceCents: Int,
+        outletId: Long,
+        onDone: () -> Unit,
+    ) {
+        viewModelScope.launch {
+            try {
+                saleLotRepository.createForPlant(
+                    app.verdant.android.data.model.CreateSaleLotForPlantRequest(
+                        plantId = plantId,
+                        unitKind = unitKind,
+                        quantityTotal = quantityTotal,
+                        initialRequestedPriceCents = initialRequestedPriceCents,
+                        currentOutletId = outletId,
+                    ),
+                )
+                _uiState.value = _uiState.value.copy(toastMessage = "Lade ut $quantityTotal till försäljning")
+                onDone()
+                refresh()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(error = e.message ?: "Kunde inte lägga ut till försäljning")
+            }
+        }
+    }
+
+    fun createOutlet(name: String, channel: String, onCreated: (Long) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val created = outletRepository.create(
+                    app.verdant.android.data.model.CreateOutletRequest(name = name, channel = channel),
+                )
+                _uiState.value = _uiState.value.copy(outlets = _uiState.value.outlets + created)
+                onCreated(created.id)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(error = e.message)
+            }
+        }
+    }
+
+    fun consumeToast() {
+        _uiState.value = _uiState.value.copy(toastMessage = null)
     }
 
     fun delete() {
@@ -163,7 +219,9 @@ fun PlantDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showSellDialog by remember { mutableStateOf(false) }
     var eventsExpanded by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
 
     LaunchedEffect(refreshKey) {
         if (refreshKey == true) viewModel.refresh()
@@ -171,6 +229,28 @@ fun PlantDetailScreen(
 
     LaunchedEffect(uiState.deleted) {
         if (uiState.deleted) onBack()
+    }
+
+    LaunchedEffect(uiState.toastMessage) {
+        uiState.toastMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.consumeToast()
+        }
+    }
+
+    if (showSellDialog && uiState.plant != null) {
+        ListPlantForSaleDialog(
+            plant = uiState.plant!!,
+            available = uiState.availableForSale,
+            outlets = uiState.outlets,
+            onDismiss = { showSellDialog = false },
+            onCreate = { unitKind, qty, priceCents, outletId ->
+                viewModel.createSaleLot(unitKind, qty, priceCents, outletId) { showSellDialog = false }
+            },
+            onCreateOutlet = { name, channel, onCreated ->
+                viewModel.createOutlet(name, channel, onCreated)
+            },
+        )
     }
 
     if (showDeleteDialog && uiState.plant != null) {
@@ -196,10 +276,25 @@ fun PlantDetailScreen(
         mastheadCenter = "",
         mastheadRight = {
             if (uiState.plant != null) {
+                val plant = uiState.plant!!
+                val canSell = plant.status != "REMOVED" && uiState.availableForSale > 0
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (canSell) {
+                        IconButton(
+                            onClick = { showSellDialog = true },
+                            modifier = Modifier.size(36.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Storefront,
+                                contentDescription = "Lägg ut till försäljning",
+                                tint = FaltetAccent,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                    }
                     if (onEditPlant != null) {
                         IconButton(
-                            onClick = { onEditPlant(uiState.plant!!.id) },
+                            onClick = { onEditPlant(plant.id) },
                             modifier = Modifier.size(36.dp),
                         ) {
                             Icon(Icons.Default.Edit, "Redigera", tint = FaltetAccent, modifier = Modifier.size(18.dp))
@@ -219,6 +314,7 @@ fun PlantDetailScreen(
                 FaltetFab(onClick = { onAddEvent(plant.id) }, contentDescription = "Lägg till händelse")
             }
         },
+        snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarHostState) },
         watermark = BotanicalPlate.EmptyGarden,
 ) { padding ->
         when {
@@ -469,4 +565,111 @@ private fun WorkflowStripPreview() {
         letterSpacing = 1.4.sp,
         modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
     )
+}
+
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@androidx.compose.runtime.Composable
+private fun ListPlantForSaleDialog(
+    plant: PlantResponse,
+    available: Int,
+    outlets: List<app.verdant.android.data.model.OutletResponse>,
+    onDismiss: () -> Unit,
+    onCreate: (unitKind: String, quantity: Int, priceCents: Int, outletId: Long) -> Unit,
+    onCreateOutlet: (name: String, channel: String, onCreated: (Long) -> Unit) -> Unit,
+) {
+    var quantity by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
+    var unitKind by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(app.verdant.android.data.model.UnitKind.PLUG) }
+    var priceText by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
+    var outletId by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<Long?>(null) }
+
+    val plantUnitKinds = listOf(
+        app.verdant.android.data.model.UnitKind.PLUG,
+        app.verdant.android.data.model.UnitKind.BULB,
+        app.verdant.android.data.model.UnitKind.TUBER,
+        app.verdant.android.data.model.UnitKind.PLANT,
+    )
+
+    val qtyInt = quantity.toIntOrNull()
+    val priceCents = priceText.replace(',', '.').toDoubleOrNull()?.let { (it * 100).toInt() }
+    val valid = qtyInt != null && qtyInt in 1..available &&
+        priceCents != null && priceCents > 0 &&
+        outletId != null
+
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { androidx.compose.material3.Text("Lägg ut till försäljning") },
+        text = {
+            androidx.compose.foundation.layout.Column(
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
+            ) {
+                androidx.compose.material3.Text(
+                    text = "${plant.name} — tillgängligt: $available",
+                    fontSize = 13.sp,
+                    color = FaltetForest,
+                )
+
+                androidx.compose.material3.OutlinedTextField(
+                    value = quantity,
+                    onValueChange = { quantity = it.filter { c -> c.isDigit() } },
+                    label = { androidx.compose.material3.Text("Antal") },
+                    singleLine = true,
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                    isError = quantity.isNotBlank() && (qtyInt == null || qtyInt < 1 || qtyInt > available),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                androidx.compose.material3.Text("Enhet", fontSize = 13.sp)
+                androidx.compose.foundation.layout.FlowRow(
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
+                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp),
+                ) {
+                    plantUnitKinds.forEach { u ->
+                        androidx.compose.material3.FilterChip(
+                            selected = u == unitKind,
+                            onClick = { unitKind = u },
+                            label = { androidx.compose.material3.Text(unitLabelSv(u), fontSize = 12.sp) },
+                        )
+                    }
+                }
+
+                app.verdant.android.ui.sales.OutletPicker(
+                    outlets = outlets,
+                    selectedId = outletId,
+                    onSelected = { outletId = it },
+                    onCreateOutlet = { name, channel ->
+                        onCreateOutlet(name, channel) { newId -> outletId = newId }
+                    },
+                )
+
+                androidx.compose.material3.OutlinedTextField(
+                    value = priceText,
+                    onValueChange = { priceText = it.filter { c -> c.isDigit() || c == '.' || c == ',' } },
+                    label = { androidx.compose.material3.Text("Begärt pris per enhet (SEK)") },
+                    singleLine = true,
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            androidx.compose.material3.Button(
+                enabled = valid,
+                onClick = { onCreate(unitKind, qtyInt!!, priceCents!!, outletId!!) },
+            ) { androidx.compose.material3.Text("Lägg ut") }
+        },
+        dismissButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { androidx.compose.material3.Text("Avbryt") } },
+    )
+}
+
+internal fun unitLabelSv(unit: String): String = when (unit) {
+    app.verdant.android.data.model.UnitKind.STEM -> "Stjälk"
+    app.verdant.android.data.model.UnitKind.BUNCH -> "Bunt"
+    app.verdant.android.data.model.UnitKind.PLUG -> "Plugg"
+    app.verdant.android.data.model.UnitKind.BULB -> "Lök"
+    app.verdant.android.data.model.UnitKind.TUBER -> "Knöl"
+    app.verdant.android.data.model.UnitKind.PLANT -> "Planta"
+    app.verdant.android.data.model.UnitKind.BOUQUET -> "Bukett"
+    else -> unit
 }
