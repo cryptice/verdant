@@ -43,6 +43,12 @@ data class CreateBouquetRequest(
     @field:Size(max = 100)
     @field:Valid
     val items: List<CreateBouquetItemRequest> = emptyList(),
+    /** Required: the outlet this bouquet is being assembled for. Auto-creates a sale lot. */
+    @field:NotNull
+    val outletId: Long,
+    /** Required: asking price for the auto-created lot. */
+    @field:NotNull @field:Min(0)
+    val initialRequestedPriceCents: Int,
 )
 
 data class CreateBouquetItemRequest(

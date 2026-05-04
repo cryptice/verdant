@@ -5,9 +5,11 @@ import app.verdant.entity.Bouquet
 import app.verdant.entity.BouquetItem
 import app.verdant.repository.BouquetRecipeRepository
 import app.verdant.repository.BouquetRepository
+import app.verdant.repository.SaleLotRepository
 import app.verdant.repository.SpeciesRepository
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
+import jakarta.ws.rs.BadRequestException
 import jakarta.ws.rs.NotFoundException
 import java.time.Instant
 
@@ -16,6 +18,8 @@ class BouquetService(
     private val repo: BouquetRepository,
     private val recipeRepo: BouquetRecipeRepository,
     private val speciesRepo: SpeciesRepository,
+    private val saleLotService: SaleLotService,
+    private val saleLotRepo: SaleLotRepository,
 ) {
     fun getBouquetsForUser(orgId: Long, limit: Int = 100, offset: Int = 0): List<BouquetResponse> =
         repo.findByOrgId(orgId, limit, offset).map { it.toResponseWithItems() }
@@ -26,8 +30,13 @@ class BouquetService(
         return bouquet.toResponseWithItems()
     }
 
+    /**
+     * Assemble a bouquet. Required: outletId + initialRequestedPriceCents — the
+     * service auto-creates a sale_lot in the same transaction (Q4: bouquets
+     * exist to be sold). The lot's quantity is always 1 and unit_kind is BOUQUET.
+     */
     @Transactional
-    fun createBouquet(request: CreateBouquetRequest, orgId: Long): BouquetResponse {
+    fun createBouquet(request: CreateBouquetRequest, orgId: Long, userId: Long): BouquetResponse {
         // If sourceRecipeId is supplied, verify the recipe belongs to this org.
         request.sourceRecipeId?.let { recipeId ->
             val recipe = recipeRepo.findById(recipeId)
@@ -55,6 +64,14 @@ class BouquetService(
                 )
             )
         }
+        // Auto-create the sale lot for this bouquet.
+        saleLotService.createForBouquet(
+            bouquetId = bouquet.id!!,
+            requestedPriceCents = request.initialRequestedPriceCents,
+            outletId = request.outletId,
+            orgId = orgId,
+            userId = userId,
+        )
         return bouquet.toResponseWithItems()
     }
 
@@ -95,6 +112,11 @@ class BouquetService(
     fun deleteBouquet(id: Long, orgId: Long) {
         val bouquet = repo.findById(id) ?: throw NotFoundException("Bouquet not found")
         if (bouquet.orgId != orgId) throw NotFoundException("Bouquet not found")
+        if (saleLotRepo.findByBouquetId(id).isNotEmpty()) {
+            throw BadRequestException(
+                "Bouquet has sale lots and cannot be deleted; mark the lot NOT_SOLD first",
+            )
+        }
         repo.deleteItemsByBouquetId(id)
         repo.delete(id)
     }

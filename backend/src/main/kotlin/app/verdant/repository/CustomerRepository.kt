@@ -17,6 +17,19 @@ class CustomerRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    fun findByIds(ids: Set<Long>): Map<Long, Customer> {
+        if (ids.isEmpty()) return emptyMap()
+        val placeholders = ids.joinToString(",") { "?" }
+        return ds.connection.use { conn ->
+            conn.prepareStatement("SELECT * FROM customer WHERE id IN ($placeholders)").use { ps ->
+                ids.forEachIndexed { i, id -> ps.setLong(i + 1, id) }
+                ps.executeQuery().use { rs ->
+                    buildMap { while (rs.next()) { val c = rs.toCustomer(); put(c.id!!, c) } }
+                }
+            }
+        }
+    }
+
     fun findByOrgId(orgId: Long, limit: Int = 50, offset: Int = 0): List<Customer> =
         ds.connection.use { conn ->
             conn.prepareStatement("SELECT * FROM customer WHERE org_id = ? ORDER BY name LIMIT ? OFFSET ?").use { ps ->

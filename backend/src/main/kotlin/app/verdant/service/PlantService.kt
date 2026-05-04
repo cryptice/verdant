@@ -22,6 +22,7 @@ class PlantService(
     private val workflowRepository: WorkflowRepository,
     private val trayLocationRepository: app.verdant.repository.TrayLocationRepository,
     private val bedEventRepository: app.verdant.repository.BedEventRepository,
+    private val saleLotRepository: app.verdant.repository.SaleLotRepository,
 ) {
     @Transactional
     fun weedBed(bedId: Long, orgId: Long): BulkLocationActionResponse =
@@ -321,6 +322,11 @@ class PlantService(
 
     fun deletePlant(plantId: Long, orgId: Long) {
         checkPlantOwnership(plantId, orgId)
+        if (saleLotRepository.findByPlantId(plantId).isNotEmpty()) {
+            throw jakarta.ws.rs.BadRequestException(
+                "Plant has sale lots and cannot be deleted; mark each lot NOT_SOLD first",
+            )
+        }
         plantRepository.delete(plantId)
     }
 
@@ -408,6 +414,11 @@ class PlantService(
         checkPlantOwnership(plantId, orgId)
         val event = plantEventRepository.findById(eventId) ?: throw NotFoundException("Event not found")
         if (event.plantId != plantId) throw NotFoundException("Event not found")
+        if (saleLotRepository.findByHarvestEventId(eventId).isNotEmpty()) {
+            throw jakarta.ws.rs.BadRequestException(
+                "Harvest event has sale lots and cannot be deleted; mark each lot NOT_SOLD first",
+            )
+        }
         plantEventRepository.delete(eventId)
     }
 

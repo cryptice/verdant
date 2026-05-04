@@ -34,6 +34,7 @@ class PlantServiceTest {
     private lateinit var workflowRepository: app.verdant.repository.WorkflowRepository
     private lateinit var trayLocationRepository: app.verdant.repository.TrayLocationRepository
     private lateinit var bedEventRepository: app.verdant.repository.BedEventRepository
+    private lateinit var saleLotRepository: app.verdant.repository.SaleLotRepository
     private lateinit var service: PlantService
 
     private val orgId = 42L
@@ -50,6 +51,7 @@ class PlantServiceTest {
         workflowRepository = mock()
         trayLocationRepository = mock()
         bedEventRepository = mock()
+        saleLotRepository = mock()
         service = PlantService(
             plantRepository,
             plantEventRepository,
@@ -60,6 +62,7 @@ class PlantServiceTest {
             workflowRepository,
             trayLocationRepository,
             bedEventRepository,
+            saleLotRepository,
         )
     }
 

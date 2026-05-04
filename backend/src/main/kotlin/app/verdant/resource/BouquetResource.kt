@@ -29,7 +29,7 @@ class BouquetResource(
 
     @POST
     fun create(@Valid request: CreateBouquetRequest): Response {
-        val bouquet = service.createBouquet(request, orgContext.orgId)
+        val bouquet = service.createBouquet(request, orgContext.orgId, orgContext.userId)
         return Response.status(Response.Status.CREATED).entity(bouquet).build()
     }
 
