@@ -454,4 +454,71 @@ interface VerdantApi {
         @Path("id") id: Long,
         @Body request: MoveTrayLocationRequest,
     ): BulkLocationActionResponse
+
+    // ── Outlets ──
+
+    @GET("api/outlets")
+    suspend fun getOutlets(): List<OutletResponse>
+
+    @POST("api/outlets")
+    suspend fun createOutlet(@Body request: CreateOutletRequest): OutletResponse
+
+    @PUT("api/outlets/{id}")
+    suspend fun updateOutlet(@Path("id") id: Long, @Body request: UpdateOutletRequest): OutletResponse
+
+    @DELETE("api/outlets/{id}")
+    suspend fun deleteOutlet(@Path("id") id: Long): Response<Unit>
+
+    // ── Sale lots ──
+
+    @GET("api/sale-lots")
+    suspend fun getSaleLots(
+        @Query("status") status: String? = null,
+        @Query("sourceKind") sourceKind: String? = null,
+        @Query("limit") limit: Int = 200,
+        @Query("offset") offset: Int = 0,
+    ): List<SaleLotResponse>
+
+    @GET("api/sale-lots/{id}")
+    suspend fun getSaleLotDetail(@Path("id") id: Long): SaleLotDetailResponse
+
+    @POST("api/sale-lots/for-plant")
+    suspend fun createSaleLotForPlant(@Body request: CreateSaleLotForPlantRequest): SaleLotResponse
+
+    @POST("api/sale-lots/for-harvest")
+    suspend fun createSaleLotForHarvest(@Body request: CreateSaleLotForHarvestRequest): SaleLotResponse
+
+    @POST("api/sale-lots/{id}/price")
+    suspend fun changeSaleLotPrice(@Path("id") id: Long, @Body request: ChangePriceRequest): SaleLotResponse
+
+    @POST("api/sale-lots/{id}/outlet")
+    suspend fun changeSaleLotOutlet(@Path("id") id: Long, @Body request: ChangeOutletRequest): SaleLotResponse
+
+    @POST("api/sale-lots/{id}/return")
+    suspend fun markSaleLotReturned(@Path("id") id: Long, @Body request: ReturnFromOutletRequest): Response<Unit>
+
+    @POST("api/sale-lots/{id}/not-sold")
+    suspend fun markSaleLotNotSold(@Path("id") id: Long): SaleLotResponse
+
+    @DELETE("api/sale-lots/{id}")
+    suspend fun deleteSaleLot(@Path("id") id: Long): Response<Unit>
+
+    // ── Sales (record/edit) ──
+
+    @POST("api/sale-lots/{lotId}/sales")
+    suspend fun recordSale(@Path("lotId") lotId: Long, @Body request: RecordSaleRequest): SaleResponse
+
+    @PUT("api/sales/{id}")
+    suspend fun editSale(@Path("id") id: Long, @Body request: EditSaleRequest): SaleResponse
+
+    // ── Available-for-sale derivation ──
+
+    @GET("api/plants/{id}/available-for-sale")
+    suspend fun availableForPlant(@Path("id") id: Long): AvailableForSaleResponse
+
+    @GET("api/harvest-events/{id}/available-for-sale")
+    suspend fun availableForHarvestEvent(@Path("id") id: Long): AvailableForSaleResponse
+
+    @GET("api/bouquets/{id}/available-for-sale")
+    suspend fun availableForBouquet(@Path("id") id: Long): AvailableForSaleResponse
 }

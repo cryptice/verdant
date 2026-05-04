@@ -207,7 +207,6 @@ fun AddPlantEventScreen(
                 stemLengthCm = stemLengthCm.toIntOrNull(),
                 vaseLifeDays = vaseLifeDays.toIntOrNull(),
                 qualityGrade = qualityGrade,
-                harvestDestinationId = selectedCustomer?.id,
             )
         )
     }
@@ -409,7 +408,7 @@ private fun SuggestionRow(suggestion: PlantSuggestion) {
 @Composable
 private fun AddPlantEventScreenPreview_Harvested() {
     val uiState = AddPlantEventState(
-        customers = listOf(CustomerResponse(id = 1L, name = "Blomsterbutiken", channel = "", contactInfo = null, notes = null, createdAt = "")),
+        customers = listOf(CustomerResponse(id = 1L, name = "Blomsterbutiken", outletId = null, contactInfo = null, notes = null, createdAt = "")),
     )
 
     var eventType by remember { mutableStateOf<String?>("HARVESTED") }

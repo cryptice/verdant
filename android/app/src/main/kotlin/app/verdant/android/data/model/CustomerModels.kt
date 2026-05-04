@@ -7,7 +7,7 @@ import com.google.gson.annotations.SerializedName
 data class CustomerResponse(
     @SerializedName("id") val id: Long,
     @SerializedName("name") val name: String,
-    @SerializedName("channel") val channel: String,
+    @SerializedName("outletId") val outletId: Long?,
     @SerializedName("contactInfo") val contactInfo: String?,
     @SerializedName("notes") val notes: String?,
     @SerializedName("createdAt") val createdAt: String,
@@ -15,20 +15,21 @@ data class CustomerResponse(
 
 data class CreateCustomerRequest(
     @SerializedName("name") val name: String,
-    @SerializedName("channel") val channel: String,
+    @SerializedName("outletId") val outletId: Long? = null,
     @SerializedName("contactInfo") val contactInfo: String? = null,
     @SerializedName("notes") val notes: String? = null,
 )
 
 data class UpdateCustomerRequest(
     @SerializedName("name") val name: String? = null,
-    @SerializedName("channel") val channel: String? = null,
+    @SerializedName("outletId") val outletId: Long? = null,
     @SerializedName("contactInfo") val contactInfo: String? = null,
     @SerializedName("notes") val notes: String? = null,
 )
 
-// Customer channel values (matches backend Channel enum): FLORIST, FARMERS_MARKET, CSA, WEDDING, WHOLESALE, DIRECT, OTHER
-object CustomerChannel {
+// Outlet channel values (matches backend Channel enum). Lives here for now since
+// the per-customer channel was the original home; a customer's outlet now owns it.
+object OutletChannel {
     const val FLORIST = "FLORIST"
     const val FARMERS_MARKET = "FARMERS_MARKET"
     const val CSA = "CSA"

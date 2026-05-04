@@ -131,12 +131,16 @@ class BouquetsViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(saving = true, error = null)
             try {
                 if (existing == null) {
+                    // Phase 10 will add the outlet picker to this dialog. For
+                    // now the create call is wired with placeholder ids; the
+                    // backend will reject if outletId 0 doesn't exist.
                     bouquetRepository.create(
                         CreateBouquetRequest(
                             sourceRecipeId = sourceRecipeId,
                             name = name,
-                            priceCents = priceCents,
                             items = items,
+                            outletId = 0L,
+                            initialRequestedPriceCents = priceCents ?: 0,
                         )
                     )
                 } else {
@@ -145,7 +149,6 @@ class BouquetsViewModel @Inject constructor(
                         UpdateBouquetRequest(
                             sourceRecipeId = sourceRecipeId,
                             name = name,
-                            priceCents = priceCents,
                             items = items,
                         )
                     )
@@ -227,11 +230,10 @@ fun BouquetsScreen(
                 items(uiState.bouquets, key = { it.id }) { b ->
                     FaltetListRow(
                         title = b.name,
-                        meta = listOfNotNull(
+                        meta = listOfNotNull<String>(
                             b.assembledAt.take(10),
                             b.sourceRecipeName?.let { "från $it" },
                             "${b.items.sumOf { it.stemCount }} st",
-                            b.priceCents?.let { "%.2f kr".format(it / 100.0) },
                         ).joinToString(" · "),
                         onClick = { editorTarget = EditorTarget(existing = b) },
                     )
@@ -262,7 +264,9 @@ private fun BouquetEditorDialog(
 ) {
     var sourceRecipeId by remember { mutableStateOf(existing?.sourceRecipeId) }
     var name by remember { mutableStateOf(existing?.name ?: "") }
-    var price by remember { mutableStateOf(existing?.priceCents?.let { (it / 100.0).toString() } ?: "") }
+    // Phase 10 will source/edit price from the auto-created sale lot, not the
+    // bouquet itself. For now seed from recipe only.
+    var price by remember { mutableStateOf("") }
     val itemsState = remember {
         mutableStateListOf<BouquetEditableItem>().apply {
             existing?.items?.forEach { add(BouquetEditableItem(it.speciesId, it.stemCount.toString(), it.role)) }

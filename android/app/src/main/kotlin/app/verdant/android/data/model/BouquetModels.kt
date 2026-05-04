@@ -56,7 +56,6 @@ data class BouquetResponse(
     @SerializedName("name") val name: String,
     @SerializedName("description") val description: String? = null,
     @SerializedName("imageUrl") val imageUrl: String? = null,
-    @SerializedName("priceCents") val priceCents: Int? = null,
     @SerializedName("assembledAt") val assembledAt: String,
     @SerializedName("notes") val notes: String? = null,
     @SerializedName("items") val items: List<BouquetItemResponse> = emptyList(),
@@ -77,10 +76,13 @@ data class CreateBouquetRequest(
     @SerializedName("sourceRecipeId") val sourceRecipeId: Long? = null,
     @SerializedName("name") val name: String,
     @SerializedName("description") val description: String? = null,
-    @SerializedName("priceCents") val priceCents: Int? = null,
     @SerializedName("assembledAt") val assembledAt: String? = null,
     @SerializedName("notes") val notes: String? = null,
     @SerializedName("items") val items: List<CreateBouquetItemRequest> = emptyList(),
+    /** Required: outlet the bouquet is being assembled for. */
+    @SerializedName("outletId") val outletId: Long,
+    /** Required: asking price for the auto-created sale lot. */
+    @SerializedName("initialRequestedPriceCents") val initialRequestedPriceCents: Int,
 )
 
 data class CreateBouquetItemRequest(
@@ -94,7 +96,6 @@ data class UpdateBouquetRequest(
     @SerializedName("sourceRecipeId") val sourceRecipeId: Long? = null,
     @SerializedName("name") val name: String? = null,
     @SerializedName("description") val description: String? = null,
-    @SerializedName("priceCents") val priceCents: Int? = null,
     @SerializedName("assembledAt") val assembledAt: String? = null,
     @SerializedName("notes") val notes: String? = null,
     @SerializedName("items") val items: List<CreateBouquetItemRequest>? = null,

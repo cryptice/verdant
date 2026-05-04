@@ -143,8 +143,6 @@ data class PlantEventResponse(
     @SerializedName("stemLengthCm") val stemLengthCm: Int? = null,
     @SerializedName("qualityGrade") val qualityGrade: String? = null,
     @SerializedName("vaseLifeDays") val vaseLifeDays: Int? = null,
-    @SerializedName("harvestDestinationId") val harvestDestinationId: Long? = null,
-    @SerializedName("customerName") val customerName: String? = null,
     @SerializedName("supplyApplicationId") val supplyApplicationId: Long? = null,
     @SerializedName("createdAt") val createdAt: String,
 )
@@ -162,7 +160,6 @@ data class CreatePlantEventRequest(
     @SerializedName("stemLengthCm") val stemLengthCm: Int? = null,
     @SerializedName("qualityGrade") val qualityGrade: String? = null,
     @SerializedName("vaseLifeDays") val vaseLifeDays: Int? = null,
-    @SerializedName("harvestDestinationId") val harvestDestinationId: Long? = null,
 )
 
 data class IdentifyPlantRequest(

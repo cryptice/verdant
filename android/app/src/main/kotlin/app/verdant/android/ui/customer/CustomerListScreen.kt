@@ -23,7 +23,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -36,15 +35,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.CreateCustomerRequest
-import app.verdant.android.data.model.CustomerChannel
 import app.verdant.android.data.model.CustomerResponse
 import app.verdant.android.data.model.UpdateCustomerRequest
 import app.verdant.android.ui.common.ConnectionErrorState
@@ -164,7 +160,7 @@ fun CustomerListScreen(
                 items(uiState.items, key = { it.id }) { customer ->
                     FaltetListRow(
                         title = customer.name,
-                        meta = channelLabel(customer.channel),
+                        meta = customer.contactInfo,
                         leading = null,
                         stat = null,
                         actions = null,
@@ -181,13 +177,13 @@ fun CustomerListScreen(
             existing = editing,
             saving = uiState.saving,
             onDismiss = { showDialog = false },
-            onSave = { name, channel, contactInfo, notes ->
+            onSave = { name, contactInfo, notes ->
                 if (editing != null) {
                     viewModel.update(
                         editing!!.id,
                         UpdateCustomerRequest(
                             name = name,
-                            channel = channel,
+                            outletId = editing!!.outletId,
                             contactInfo = contactInfo.ifBlank { null },
                             notes = notes.ifBlank { null },
                         ),
@@ -196,7 +192,6 @@ fun CustomerListScreen(
                     viewModel.create(
                         CreateCustomerRequest(
                             name = name,
-                            channel = channel,
                             contactInfo = contactInfo.ifBlank { null },
                             notes = notes.ifBlank { null },
                         ),
@@ -211,27 +206,15 @@ fun CustomerListScreen(
     }
 }
 
-private fun channelLabel(channel: String): String = when (channel) {
-    CustomerChannel.FLORIST -> "Blomsterhandel"
-    CustomerChannel.FARMERS_MARKET -> "Bondemarknaden"
-    CustomerChannel.CSA -> "Andelsodling"
-    CustomerChannel.WEDDING -> "Bröllop"
-    CustomerChannel.WHOLESALE -> "Grossist"
-    CustomerChannel.DIRECT -> "Direktförsäljning"
-    else -> "Övrigt"
-}
-
-@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun CustomerDialog(
     existing: CustomerResponse?,
     saving: Boolean,
     onDismiss: () -> Unit,
-    onSave: (name: String, channel: String, contactInfo: String, notes: String) -> Unit,
+    onSave: (name: String, contactInfo: String, notes: String) -> Unit,
     onDelete: (() -> Unit)?,
 ) {
     var name by remember { mutableStateOf(existing?.name ?: "") }
-    var channel by remember { mutableStateOf(existing?.channel ?: CustomerChannel.DIRECT) }
     var contactInfo by remember { mutableStateOf(existing?.contactInfo ?: "") }
     var notes by remember { mutableStateOf(existing?.notes ?: "") }
 
@@ -251,20 +234,6 @@ private fun CustomerDialog(
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true,
                 )
-
-                Text("Kanal", fontWeight = FontWeight.Medium, fontSize = 13.sp)
-                androidx.compose.foundation.layout.FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    CustomerChannel.values.forEach { c ->
-                        FilterChip(
-                            selected = c == channel,
-                            onClick = { channel = c },
-                            label = { Text(channelLabel(c), fontSize = 12.sp) },
-                        )
-                    }
-                }
 
                 OutlinedTextField(
                     value = contactInfo,
@@ -293,7 +262,7 @@ private fun CustomerDialog(
         confirmButton = {
             Button(
                 enabled = name.isNotBlank() && !saving,
-                onClick = { onSave(name, channel, contactInfo, notes) },
+                onClick = { onSave(name, contactInfo, notes) },
             ) {
                 if (saving) {
                     CircularProgressIndicator(Modifier.size(18.dp), color = MaterialTheme.colorScheme.onPrimary)
@@ -312,15 +281,15 @@ private fun CustomerDialog(
 @Composable
 private fun CustomerListScreenPreview() {
     val customers = listOf(
-        CustomerResponse(1L, "Blomsterriket AB", CustomerChannel.FLORIST, "anna@blomsterriket.se", null, "2024-01-01"),
-        CustomerResponse(2L, "Naturens Skafferi", CustomerChannel.FARMERS_MARKET, null, "Standplats 12", "2024-01-02"),
-        CustomerResponse(3L, "Gröna Lådan", CustomerChannel.CSA, "info@gronaladan.se", null, "2024-01-03"),
+        CustomerResponse(1L, "Blomsterriket AB", null, "anna@blomsterriket.se", null, "2024-01-01"),
+        CustomerResponse(2L, "Naturens Skafferi", null, null, "Standplats 12", "2024-01-02"),
+        CustomerResponse(3L, "Gröna Lådan", null, "info@gronaladan.se", null, "2024-01-03"),
     )
     Column {
         customers.forEach { customer ->
             FaltetListRow(
                 title = customer.name,
-                meta = channelLabel(customer.channel),
+                meta = customer.contactInfo,
                 onClick = {},
             )
         }
