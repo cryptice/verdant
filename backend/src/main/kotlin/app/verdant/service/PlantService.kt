@@ -481,8 +481,6 @@ fun PlantEvent.toResponse() = PlantEventResponse(
     aiSuggestions = aiSuggestions,
     stemCount = stemCount, stemLengthCm = stemLengthCm,
     qualityGrade = qualityGrade, vaseLifeDays = vaseLifeDays,
-    harvestDestinationId = harvestDestinationId,
-    customerName = null,
     supplyApplicationId = supplyApplicationId,
     createdAt = createdAt,
 )

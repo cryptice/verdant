@@ -83,11 +83,9 @@ class DevResource(
             counters.events++
         }
         for (h in harvests) {
-            val destId = if (customerIds.isNotEmpty()) customerIds[h.customerIdx % customerIds.size] else null
             plantEventRepository.persist(PlantEvent(
                 plantId = pid, eventType = PlantEventType.HARVESTED, eventDate = h.date,
                 stemCount = h.stems, stemLengthCm = h.lengthCm, qualityGrade = h.grade,
-                harvestDestinationId = destId,
             ))
             counters.events++
         }
@@ -479,11 +477,11 @@ class DevResource(
         speciesRepository.setTagsForSpecies(ranunculus.id!!, listOf(cutFlowerId, coolSeasonId))
 
         // ── Customers ──
-        val cAndersson = customerRepository.persist(Customer(orgId = orgId, name = "Blomsterhandel Andersson", channel = Channel.FLORIST, contactInfo = "anna@andersson-blommor.se"))
-        val cStortorget = customerRepository.persist(Customer(orgId = orgId, name = "Stortorgets marknad", channel = Channel.FARMERS_MARKET, contactInfo = "Lördagar 08-14"))
-        val cCSA = customerRepository.persist(Customer(orgId = orgId, name = "Blomster-CSA", channel = Channel.CSA, contactInfo = "12 medlemmar, leverans torsdag"))
-        val cWedding = customerRepository.persist(Customer(orgId = orgId, name = "Weddingflowers.se", channel = Channel.WEDDING, contactInfo = "info@weddingflowers.se"))
-        val cICA = customerRepository.persist(Customer(orgId = orgId, name = "ICA Maxi Blommor", channel = Channel.WHOLESALE, contactInfo = "Beställning senast onsdag"))
+        val cAndersson = customerRepository.persist(Customer(orgId = orgId, name = "Blomsterhandel Andersson", contactInfo = "anna@andersson-blommor.se"))
+        val cStortorget = customerRepository.persist(Customer(orgId = orgId, name = "Stortorgets marknad", contactInfo = "Lördagar 08-14"))
+        val cCSA = customerRepository.persist(Customer(orgId = orgId, name = "Blomster-CSA", contactInfo = "12 medlemmar, leverans torsdag"))
+        val cWedding = customerRepository.persist(Customer(orgId = orgId, name = "Weddingflowers.se", contactInfo = "info@weddingflowers.se"))
+        val cICA = customerRepository.persist(Customer(orgId = orgId, name = "ICA Maxi Blommor", contactInfo = "Beställning senast onsdag"))
         val customerIds = listOf(cAndersson.id!!, cStortorget.id!!, cCSA.id!!, cWedding.id!!, cICA.id!!)
 
         // ── Garden & Beds ──

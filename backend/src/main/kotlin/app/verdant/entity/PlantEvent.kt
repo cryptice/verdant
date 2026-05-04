@@ -18,7 +18,6 @@ data class PlantEvent(
     val stemLengthCm: Int? = null,
     val qualityGrade: String? = null,
     val vaseLifeDays: Int? = null,
-    val harvestDestinationId: Long? = null,
     val supplyApplicationId: Long? = null,
     val fromTrayLocationId: Long? = null,
     val toTrayLocationId: Long? = null,

@@ -33,9 +33,9 @@ class PlantEventRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """INSERT INTO plant_event (plant_id, event_type, event_date, plant_count, weight_grams, quantity, notes, image_url, ai_suggestions,
-                   stem_count, stem_length_cm, quality_grade, vase_life_days, harvest_destination_id, supply_application_id,
+                   stem_count, stem_length_cm, quality_grade, vase_life_days, supply_application_id,
                    from_tray_location_id, to_tray_location_id, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setLong(1, event.plantId)
@@ -51,10 +51,9 @@ class PlantEventRepository(private val ds: AgroalDataSource) {
                 ps.setObject(11, event.stemLengthCm)
                 ps.setString(12, event.qualityGrade)
                 ps.setObject(13, event.vaseLifeDays)
-                ps.setObject(14, event.harvestDestinationId)
-                event.supplyApplicationId?.let { ps.setLong(15, it) } ?: ps.setNull(15, java.sql.Types.BIGINT)
-                event.fromTrayLocationId?.let { ps.setLong(16, it) } ?: ps.setNull(16, java.sql.Types.BIGINT)
-                event.toTrayLocationId?.let { ps.setLong(17, it) } ?: ps.setNull(17, java.sql.Types.BIGINT)
+                event.supplyApplicationId?.let { ps.setLong(14, it) } ?: ps.setNull(14, java.sql.Types.BIGINT)
+                event.fromTrayLocationId?.let { ps.setLong(15, it) } ?: ps.setNull(15, java.sql.Types.BIGINT)
+                event.toTrayLocationId?.let { ps.setLong(16, it) } ?: ps.setNull(16, java.sql.Types.BIGINT)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -133,7 +132,6 @@ class PlantEventRepository(private val ds: AgroalDataSource) {
         stemLengthCm = getObject("stem_length_cm") as? Int,
         qualityGrade = getString("quality_grade"),
         vaseLifeDays = getObject("vase_life_days") as? Int,
-        harvestDestinationId = getObject("harvest_destination_id") as? Long,
         supplyApplicationId = getLong("supply_application_id").takeIf { !wasNull() },
         fromTrayLocationId = getLong("from_tray_location_id").takeIf { !wasNull() },
         toTrayLocationId = getLong("to_tray_location_id").takeIf { !wasNull() },

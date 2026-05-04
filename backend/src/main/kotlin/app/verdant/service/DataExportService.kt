@@ -149,7 +149,7 @@ class DataExportService(
             CustomerResponse(
                 id = customer.id!!,
                 name = customer.name,
-                channel = customer.channel,
+                outletId = customer.outletId,
                 contactInfo = customer.contactInfo,
                 notes = customer.notes,
                 createdAt = customer.createdAt,

@@ -24,7 +24,7 @@ class CustomerService(
             Customer(
                 orgId = orgId,
                 name = request.name,
-                channel = request.channel,
+                outletId = request.outletId,
                 contactInfo = request.contactInfo,
                 notes = request.notes,
             )
@@ -37,7 +37,7 @@ class CustomerService(
         if (customer.orgId != orgId) throw NotFoundException("Customer not found")
         val updated = customer.copy(
             name = request.name ?: customer.name,
-            channel = request.channel ?: customer.channel,
+            outletId = request.outletId ?: customer.outletId,
             contactInfo = request.contactInfo ?: customer.contactInfo,
             notes = request.notes ?: customer.notes,
         )
@@ -54,7 +54,7 @@ class CustomerService(
     private fun Customer.toResponse() = CustomerResponse(
         id = id!!,
         name = name,
-        channel = channel,
+        outletId = outletId,
         contactInfo = contactInfo,
         notes = notes,
         createdAt = createdAt,

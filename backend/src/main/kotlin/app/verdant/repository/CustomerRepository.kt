@@ -1,6 +1,5 @@
 package app.verdant.repository
 
-import app.verdant.entity.Channel
 import app.verdant.entity.Customer
 import io.agroal.api.AgroalDataSource
 import jakarta.enterprise.context.ApplicationScoped
@@ -33,13 +32,13 @@ class CustomerRepository(private val ds: AgroalDataSource) {
     fun persist(customer: Customer): Customer {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO customer (org_id, name, channel, contact_info, notes, created_at)
+                """INSERT INTO customer (org_id, name, outlet_id, contact_info, notes, created_at)
                    VALUES (?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setLong(1, customer.orgId)
                 ps.setString(2, customer.name)
-                ps.setString(3, customer.channel.name)
+                ps.setObject(3, customer.outletId)
                 ps.setString(4, customer.contactInfo)
                 ps.setString(5, customer.notes)
                 ps.executeUpdate()
@@ -54,10 +53,10 @@ class CustomerRepository(private val ds: AgroalDataSource) {
     fun update(customer: Customer) {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                "UPDATE customer SET name = ?, channel = ?, contact_info = ?, notes = ? WHERE id = ?"
+                "UPDATE customer SET name = ?, outlet_id = ?, contact_info = ?, notes = ? WHERE id = ?"
             ).use { ps ->
                 ps.setString(1, customer.name)
-                ps.setString(2, customer.channel.name)
+                ps.setObject(2, customer.outletId)
                 ps.setString(3, customer.contactInfo)
                 ps.setString(4, customer.notes)
                 ps.setLong(5, customer.id!!)
@@ -80,7 +79,7 @@ class CustomerRepository(private val ds: AgroalDataSource) {
         id = getLong("id"),
         orgId = getLong("org_id"),
         name = getString("name"),
-        channel = Channel.valueOf(getString("channel")),
+        outletId = getLong("outlet_id").takeIf { !wasNull() },
         contactInfo = getString("contact_info"),
         notes = getString("notes"),
         createdAt = getTimestamp("created_at").toInstant(),

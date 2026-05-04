@@ -22,8 +22,6 @@ data class PlantEventResponse(
     val stemLengthCm: Int?,
     val qualityGrade: String?,
     val vaseLifeDays: Int?,
-    val harvestDestinationId: Long?,
-    val customerName: String?,
     val supplyApplicationId: Long?,
     val createdAt: Instant,
 )
@@ -50,7 +48,6 @@ data class CreatePlantEventRequest(
     val qualityGrade: String? = null,
     @field:Min(0)
     val vaseLifeDays: Int? = null,
-    val harvestDestinationId: Long? = null,
 )
 
 data class IdentifyPlantRequest(

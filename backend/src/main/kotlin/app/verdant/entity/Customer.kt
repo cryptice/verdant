@@ -6,7 +6,7 @@ data class Customer(
     val id: Long? = null,
     val orgId: Long,
     val name: String,
-    val channel: Channel,
+    val outletId: Long? = null,
     val contactInfo: String? = null,
     val notes: String? = null,
     val createdAt: Instant = Instant.now(),
