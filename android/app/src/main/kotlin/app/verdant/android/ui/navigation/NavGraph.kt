@@ -42,6 +42,7 @@ import app.verdant.android.ui.navigation.graphs.gardenGraph
 import app.verdant.android.ui.navigation.graphs.inventoryGraph
 import app.verdant.android.ui.navigation.graphs.parityGraph
 import app.verdant.android.ui.navigation.graphs.plantGraph
+import app.verdant.android.ui.navigation.graphs.salesGraph
 import app.verdant.android.ui.navigation.graphs.taskGraph
 import dagger.hilt.android.lifecycle.HiltViewModel
 import androidx.lifecycle.viewModelScope
@@ -121,6 +122,10 @@ sealed class Screen(val route: String) {
     data object Bouquets : Screen("bouquets")
     data object BouquetRecipes : Screen("bouquet-recipes")
     data object Analytics : Screen("analytics")
+    data object Sales : Screen("sales")
+    data object SaleLotDetail : Screen("sales/{lotId}") {
+        fun create(lotId: Long) = "sales/$lotId"
+    }
 
     // Activity screens
     data object AddSpecies : Screen("activity/add-species")
@@ -328,6 +333,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
 
                         // Section 3 — § SKÖRD & FÖRSÄLJNING
                         DrawerSection("§ Skörd & Försäljning")
+                        DrawerItem("Försäljning", Screen.Sales.route, currentRoute, navController, scope, drawerState)
                         DrawerItem("Kunder", Screen.Customers.route, currentRoute, navController, scope, drawerState)
                         DrawerItem("Buketter", Screen.Bouquets.route, currentRoute, navController, scope, drawerState)
                         DrawerItem("Bukettrecept", Screen.BouquetRecipes.route, currentRoute, navController, scope, drawerState)
@@ -479,6 +485,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
             inventoryGraph(navController)
             taskGraph(navController)
             parityGraph(navController)
+            salesGraph(navController)
             activityGraph(navController)
         }
         }
