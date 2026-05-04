@@ -3,6 +3,7 @@ package app.verdant.resource
 import app.verdant.dto.*
 import app.verdant.filter.OrgContext
 import app.verdant.repository.UserRepository
+import app.verdant.repository.SaleLotRepository
 import app.verdant.service.AiService
 import app.verdant.service.PlantService
 import io.quarkus.security.Authenticated
@@ -21,8 +22,26 @@ class PlantResource(
     private val aiService: AiService,
     private val userRepository: UserRepository,
     private val orgContext: OrgContext,
-    private val jwt: JsonWebToken
+    private val jwt: JsonWebToken,
+    private val saleLotRepository: SaleLotRepository,
 ) {
+
+    @GET
+    @Path("/plants/{id}/available-for-sale")
+    fun availableForPlant(@PathParam("id") id: Long): Map<String, Int> {
+        // Org check via the existing service path; the repo answer is the same regardless.
+        plantService.getPlant(id, orgContext.orgId)
+        return mapOf("available" to saleLotRepository.availableForPlant(id))
+    }
+
+    @GET
+    @Path("/harvest-events/{id}/available-for-sale")
+    fun availableForHarvestEvent(@PathParam("id") id: Long): Map<String, Int> {
+        plantService.findEventInOrg(id, orgContext.orgId)
+            ?: throw NotFoundException("Harvest event not found")
+        return mapOf("available" to saleLotRepository.availableForHarvestEvent(id))
+    }
+
     @GET
     @Path("/plants")
     fun listAll(

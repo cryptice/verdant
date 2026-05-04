@@ -2,6 +2,7 @@ package app.verdant.resource
 
 import app.verdant.dto.*
 import app.verdant.filter.OrgContext
+import app.verdant.repository.SaleLotRepository
 import app.verdant.service.BouquetService
 import io.quarkus.security.Authenticated
 import jakarta.validation.Valid
@@ -16,6 +17,7 @@ import jakarta.ws.rs.core.Response
 class BouquetResource(
     private val service: BouquetService,
     private val orgContext: OrgContext,
+    private val saleLotRepository: SaleLotRepository,
 ) {
     @GET
     fun list(
@@ -43,5 +45,13 @@ class BouquetResource(
     fun delete(@PathParam("id") id: Long): Response {
         service.deleteBouquet(id, orgContext.orgId)
         return Response.noContent().build()
+    }
+
+    @GET
+    @Path("/{id}/available-for-sale")
+    fun availableForSale(@PathParam("id") id: Long): Map<String, Int> {
+        // Resolve the bouquet for org-scoped 404.
+        service.getBouquet(id, orgContext.orgId)
+        return mapOf("available" to saleLotRepository.availableForBouquet(id))
     }
 }

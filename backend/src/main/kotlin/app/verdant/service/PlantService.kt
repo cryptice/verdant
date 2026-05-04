@@ -337,6 +337,14 @@ class PlantService(
         return plantEventRepository.findByPlantId(plantId).map { it.toResponse() }
     }
 
+    /** Look up a single event with org-scoped 404 — returns null if not found or not in org. */
+    fun findEventInOrg(eventId: Long, orgId: Long): PlantEventResponse? {
+        val event = plantEventRepository.findById(eventId) ?: return null
+        val plant = plantRepository.findById(event.plantId) ?: return null
+        if (plant.orgId != orgId) return null
+        return event.toResponse()
+    }
+
     fun addEvent(plantId: Long, request: CreatePlantEventRequest, orgId: Long): PlantEventResponse {
         val plant = checkPlantOwnership(plantId, orgId)
 
