@@ -268,6 +268,44 @@ export interface Provider {
   identifier: string
 }
 
+export type OutletChannel =
+  | 'FLORIST'
+  | 'FARMERS_MARKET'
+  | 'CSA'
+  | 'WEDDING'
+  | 'WHOLESALE'
+  | 'DIRECT'
+  | 'OTHER'
+
+export interface Outlet {
+  id: number
+  orgId: number
+  name: string
+  channel: OutletChannel
+  contactInfo: string | null
+  notes: string | null
+}
+
+export interface Organization {
+  id: number
+  name: string
+}
+
+export interface CreateOutletRequest {
+  orgId: number
+  name: string
+  channel: OutletChannel
+  contactInfo?: string | null
+  notes?: string | null
+}
+
+export interface UpdateOutletRequest {
+  name?: string
+  channel?: OutletChannel
+  contactInfo?: string | null
+  notes?: string | null
+}
+
 export interface AddSpeciesProviderRequest {
   providerId: number
   imageFrontBase64?: string | null
@@ -353,5 +391,15 @@ export const api = {
       apiRequest<void>(`/api/admin/species/${speciesId}/providers/${spId}`, { method: 'DELETE' }),
 
     getWorkflowTemplates: () => apiRequest<WorkflowTemplate[]>('/api/admin/workflow-templates'),
+
+    // Outlets
+    getOrganizations: () => apiRequest<Organization[]>('/api/admin/organizations'),
+    getOutlets: () => apiRequest<Outlet[]>('/api/admin/outlets'),
+    createOutlet: (req: CreateOutletRequest) =>
+      apiRequest<Outlet>('/api/admin/outlets', { method: 'POST', body: JSON.stringify(req) }),
+    updateOutlet: (id: number, req: UpdateOutletRequest) =>
+      apiRequest<Outlet>(`/api/admin/outlets/${id}`, { method: 'PUT', body: JSON.stringify(req) }),
+    deleteOutlet: (id: number) =>
+      apiRequest<void>(`/api/admin/outlets/${id}`, { method: 'DELETE' }),
   }
 }

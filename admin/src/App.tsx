@@ -6,6 +6,7 @@ import Gardens from './pages/Gardens'
 import { SpeciesListPage, SpeciesDetailPage, SpeciesEditPage, SpeciesCreatePage } from './pages/Species'
 import DevSeed from './pages/DevSeed'
 import ResetData from './pages/ResetData'
+import Outlets from './pages/Outlets'
 import Providers from './pages/Providers'
 import ProtectedRoute from './components/ProtectedRoute'
 
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/species/:id" element={<SpeciesDetailPage />} />
           <Route path="/species/:id/edit" element={<SpeciesEditPage />} />
           <Route path="/providers" element={<Providers />} />
+          <Route path="/outlets" element={<Outlets />} />
           <Route path="/reset" element={<ResetData />} />
           <Route path="/dev" element={<DevSeed />} />
         </Route>

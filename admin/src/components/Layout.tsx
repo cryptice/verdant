@@ -49,6 +49,7 @@ export default function Layout() {
         <NavLink to="/users" className={linkClass} onClick={closeDrawer}>{t('nav.users')}</NavLink>
         <NavLink to="/gardens" className={linkClass} onClick={closeDrawer}>{t('nav.gardens')}</NavLink>
         <NavLink to="/providers" className={linkClass} onClick={closeDrawer}>{t('nav.providers')}</NavLink>
+        <NavLink to="/outlets" className={linkClass} onClick={closeDrawer}>{t('nav.outlets')}</NavLink>
         <NavLink to="/reset" className={linkClass} onClick={closeDrawer}>{t('nav.resetData')}</NavLink>
         {window.location.hostname === 'localhost' && (
           <NavLink to="/dev" className={linkClass} onClick={closeDrawer}>{t('nav.devTools')}</NavLink>

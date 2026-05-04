@@ -4,6 +4,7 @@
     "users": "Users",
     "gardens": "Gardens",
     "providers": "Providers",
+    "outlets": "Outlets",
     "resetData": "Reset Data",
     "devTools": "Dev Tools",
     "signOut": "Sign Out",
@@ -68,6 +69,29 @@
     "identifierPlaceholder": "e.g. impecta",
     "creating": "Creating...",
     "create": "Create"
+  },
+  "outlets": {
+    "title": "Outlets",
+    "count": "{{count}} outlets",
+    "newOutlet": "New Outlet",
+    "organization": "Organization",
+    "name": "Name",
+    "channel": "Channel",
+    "contactInfo": "Contact",
+    "actions": "Actions",
+    "namePlaceholder": "e.g. Florist Andersson",
+    "contactPlaceholder": "e.g. anna@andersson.se",
+    "creating": "Creating...",
+    "create": "Create",
+    "channels": {
+      "FLORIST": "Florist",
+      "FARMERS_MARKET": "Farmers market",
+      "CSA": "CSA",
+      "WEDDING": "Wedding",
+      "WHOLESALE": "Wholesale",
+      "DIRECT": "Direct",
+      "OTHER": "Other"
+    }
   },
   "species": {
     "title": "Species",

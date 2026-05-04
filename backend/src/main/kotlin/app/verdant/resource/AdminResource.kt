@@ -1,9 +1,12 @@
 package app.verdant.resource
 
 import app.verdant.dto.*
+import app.verdant.entity.Outlet
 import app.verdant.entity.Provider
 import app.verdant.entity.Role
 import app.verdant.repository.GardenRepository
+import app.verdant.repository.OrganizationRepository
+import app.verdant.repository.OutletRepository
 import app.verdant.repository.ProviderRepository
 import app.verdant.repository.UserRepository
 import app.verdant.repository.WorkflowRepository
@@ -26,6 +29,8 @@ class AdminResource(
     private val aiService: AiService,
     private val providerRepository: ProviderRepository,
     private val workflowRepository: WorkflowRepository,
+    private val outletRepository: OutletRepository,
+    private val organizationRepository: OrganizationRepository,
 ) {
     @GET
     @Path("/users")
@@ -190,4 +195,127 @@ class AdminResource(
         workflowRepository.findAllTemplates().map {
             AdminWorkflowTemplateResponse(id = it.id!!, name = it.name, orgId = it.orgId)
         }
+
+    // ── Organizations (slim list for admin pickers) ──
+
+    @GET
+    @Path("/organizations")
+    fun listOrganizations(): List<AdminOrganizationResponse> =
+        organizationRepository.listAll().map { AdminOrganizationResponse(id = it.id!!, name = it.name) }
+
+    // ── Outlets (admin-scope CRUD across all orgs) ──
+
+    @GET
+    @Path("/outlets")
+    fun listOutlets(): List<AdminOutletResponse> =
+        outletRepository.findAll().map {
+            AdminOutletResponse(
+                id = it.id!!,
+                orgId = it.orgId,
+                name = it.name,
+                channel = it.channel.name,
+                contactInfo = it.contactInfo,
+                notes = it.notes,
+            )
+        }
+
+    @POST
+    @Path("/outlets")
+    @Consumes(MediaType.APPLICATION_JSON)
+    fun createOutlet(@Valid request: AdminCreateOutletRequest): Response {
+        val outlet = outletRepository.persist(
+            Outlet(
+                orgId = request.orgId,
+                name = request.name,
+                channel = app.verdant.entity.Channel.valueOf(request.channel),
+                contactInfo = request.contactInfo,
+                notes = request.notes,
+            ),
+        )
+        return Response.status(Response.Status.CREATED).entity(
+            AdminOutletResponse(
+                id = outlet.id!!,
+                orgId = outlet.orgId,
+                name = outlet.name,
+                channel = outlet.channel.name,
+                contactInfo = outlet.contactInfo,
+                notes = outlet.notes,
+            ),
+        ).build()
+    }
+
+    @PUT
+    @Path("/outlets/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    fun updateOutlet(@PathParam("id") id: Long, @Valid request: AdminUpdateOutletRequest): AdminOutletResponse {
+        val outlet = outletRepository.findById(id) ?: throw NotFoundException("Outlet not found")
+        val updated = outlet.copy(
+            name = request.name ?: outlet.name,
+            channel = request.channel?.let { app.verdant.entity.Channel.valueOf(it) } ?: outlet.channel,
+            contactInfo = request.contactInfo ?: outlet.contactInfo,
+            notes = request.notes ?: outlet.notes,
+        )
+        outletRepository.update(updated)
+        return AdminOutletResponse(
+            id = updated.id!!,
+            orgId = updated.orgId,
+            name = updated.name,
+            channel = updated.channel.name,
+            contactInfo = updated.contactInfo,
+            notes = updated.notes,
+        )
+    }
+
+    @DELETE
+    @Path("/outlets/{id}")
+    fun deleteOutlet(@PathParam("id") id: Long): Response {
+        outletRepository.findById(id) ?: throw NotFoundException("Outlet not found")
+        try {
+            outletRepository.delete(id)
+        } catch (e: Exception) {
+            val msg = e.message ?: ""
+            if (msg.contains("foreign key", ignoreCase = true) || msg.contains("23503")) {
+                throw WebApplicationException(
+                    "Outlet is referenced by existing sales or active lots and cannot be deleted",
+                    409,
+                )
+            }
+            throw e
+        }
+        return Response.noContent().build()
+    }
 }
+
+data class AdminOrganizationResponse(val id: Long, val name: String)
+
+data class AdminOutletResponse(
+    val id: Long,
+    val orgId: Long,
+    val name: String,
+    val channel: String,
+    val contactInfo: String?,
+    val notes: String?,
+)
+
+data class AdminCreateOutletRequest(
+    @field:jakarta.validation.constraints.NotNull
+    val orgId: Long,
+    @field:jakarta.validation.constraints.NotBlank @field:jakarta.validation.constraints.Size(max = 200)
+    val name: String,
+    @field:jakarta.validation.constraints.NotBlank
+    val channel: String,
+    @field:jakarta.validation.constraints.Size(max = 2000)
+    val contactInfo: String? = null,
+    @field:jakarta.validation.constraints.Size(max = 2000)
+    val notes: String? = null,
+)
+
+data class AdminUpdateOutletRequest(
+    @field:jakarta.validation.constraints.Size(max = 200)
+    val name: String? = null,
+    val channel: String? = null,
+    @field:jakarta.validation.constraints.Size(max = 2000)
+    val contactInfo: String? = null,
+    @field:jakarta.validation.constraints.Size(max = 2000)
+    val notes: String? = null,
+)

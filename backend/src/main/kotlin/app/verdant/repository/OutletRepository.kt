@@ -41,6 +41,16 @@ class OutletRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    /** Admin-scope: all outlets across all orgs, ordered by org then name. */
+    fun findAll(): List<Outlet> =
+        ds.connection.use { conn ->
+            conn.prepareStatement("SELECT * FROM outlet ORDER BY org_id, name").use { ps ->
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.toOutlet()) }
+                }
+            }
+        }
+
     fun persist(outlet: Outlet): Outlet {
         ds.connection.use { conn ->
             conn.prepareStatement(

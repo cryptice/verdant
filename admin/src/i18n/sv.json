@@ -4,6 +4,7 @@
     "users": "Anv\u00e4ndare",
     "gardens": "Tr\u00e4dg\u00e5rdar",
     "providers": "Leverant\u00f6rer",
+    "outlets": "Utlopp",
     "resetData": "\u00c5terst\u00e4ll data",
     "devTools": "Utvecklingsverktyg",
     "signOut": "Logga ut",
@@ -68,6 +69,29 @@
     "identifierPlaceholder": "t.ex. impecta",
     "creating": "Skapar...",
     "create": "Skapa"
+  },
+  "outlets": {
+    "title": "Utlopp",
+    "count": "{{count}} utlopp",
+    "newOutlet": "Nytt utlopp",
+    "organization": "Organisation",
+    "name": "Namn",
+    "channel": "Kanal",
+    "contactInfo": "Kontakt",
+    "actions": "\u00c5tg\u00e4rder",
+    "namePlaceholder": "t.ex. Blomsterhandel Andersson",
+    "contactPlaceholder": "t.ex. anna@andersson.se",
+    "creating": "Skapar...",
+    "create": "Skapa",
+    "channels": {
+      "FLORIST": "Blomsterhandel",
+      "FARMERS_MARKET": "Bondemarknad",
+      "CSA": "CSA",
+      "WEDDING": "Br\u00f6llop",
+      "WHOLESALE": "Grossist",
+      "DIRECT": "Direkt",
+      "OTHER": "\u00d6vrigt"
+    }
   },
   "species": {
     "title": "Arter",

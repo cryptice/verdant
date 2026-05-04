@@ -16,6 +16,15 @@ class OrganizationRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    fun listAll(): List<Organization> =
+        ds.connection.use { conn ->
+            conn.prepareStatement("SELECT * FROM organization ORDER BY name").use { ps ->
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.toOrganization()) }
+                }
+            }
+        }
+
     fun persist(organization: Organization): Organization {
         ds.connection.use { conn ->
             conn.prepareStatement(
