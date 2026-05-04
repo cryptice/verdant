@@ -2,6 +2,7 @@
 package app.verdant.android.ui.bouquet
 import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.BouquetRepository
+import app.verdant.android.data.repository.OutletRepository
 import app.verdant.android.data.repository.SpeciesRepository
 
 import androidx.compose.foundation.layout.Arrangement
@@ -64,11 +65,14 @@ import app.verdant.android.data.model.BouquetRecipeResponse
 import app.verdant.android.data.model.BouquetResponse
 import app.verdant.android.data.model.CreateBouquetItemRequest
 import app.verdant.android.data.model.CreateBouquetRequest
+import app.verdant.android.data.model.CreateOutletRequest
 import app.verdant.android.data.model.ItemRole
+import app.verdant.android.data.model.OutletResponse
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.UpdateBouquetRequest
 import app.verdant.android.data.model.sortedBySwedishName
 import app.verdant.android.ui.common.ConnectionErrorState
+import app.verdant.android.ui.sales.OutletPicker
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetFab
 import app.verdant.android.ui.faltet.FaltetListRow
@@ -87,6 +91,7 @@ data class BouquetsState(
     val bouquets: List<BouquetResponse> = emptyList(),
     val recipes: List<BouquetRecipeResponse> = emptyList(),
     val species: List<SpeciesResponse> = emptyList(),
+    val outlets: List<OutletResponse> = emptyList(),
     val error: String? = null,
 )
 
@@ -94,6 +99,7 @@ data class BouquetsState(
 class BouquetsViewModel @Inject constructor(
     private val bouquetRepository: BouquetRepository,
     private val speciesRepository: SpeciesRepository,
+    private val outletRepository: OutletRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(BouquetsState())
     val uiState = _uiState.asStateFlow()
@@ -107,11 +113,13 @@ class BouquetsViewModel @Inject constructor(
                 val bouquets = bouquetRepository.list()
                 val recipes = runCatching { bouquetRepository.listRecipes() }.getOrDefault(emptyList())
                 val species = runCatching { speciesRepository.list().sortedBySwedishName() }.getOrDefault(emptyList())
+                val outlets = runCatching { outletRepository.list() }.getOrDefault(emptyList())
                 _uiState.value = BouquetsState(
                     isLoading = false,
                     bouquets = bouquets,
                     recipes = recipes,
                     species = species,
+                    outlets = outlets,
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
@@ -119,11 +127,18 @@ class BouquetsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Create/update a bouquet. On create the [outletId] and
+     * [initialRequestedPriceCents] are required and used to auto-create the
+     * sale lot server-side. On update they're ignored — the bouquet's lot
+     * (if any) is edited via the sale-lot screen.
+     */
     fun save(
         existing: BouquetResponse?,
         sourceRecipeId: Long?,
         name: String,
-        priceCents: Int?,
+        outletId: Long?,
+        initialRequestedPriceCents: Int?,
         items: List<CreateBouquetItemRequest>,
         onDone: () -> Unit,
     ) {
@@ -131,16 +146,16 @@ class BouquetsViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(saving = true, error = null)
             try {
                 if (existing == null) {
-                    // Phase 10 will add the outlet picker to this dialog. For
-                    // now the create call is wired with placeholder ids; the
-                    // backend will reject if outletId 0 doesn't exist.
+                    if (outletId == null || initialRequestedPriceCents == null) {
+                        throw IllegalArgumentException("Outlet och pris krävs för nya buketter")
+                    }
                     bouquetRepository.create(
                         CreateBouquetRequest(
                             sourceRecipeId = sourceRecipeId,
                             name = name,
                             items = items,
-                            outletId = 0L,
-                            initialRequestedPriceCents = priceCents ?: 0,
+                            outletId = outletId,
+                            initialRequestedPriceCents = initialRequestedPriceCents,
                         )
                     )
                 } else {
@@ -158,6 +173,18 @@ class BouquetsViewModel @Inject constructor(
                 refresh()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(saving = false, error = e.message)
+            }
+        }
+    }
+
+    fun createOutlet(name: String, channel: String, onCreated: (Long) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val created = outletRepository.create(CreateOutletRequest(name = name, channel = channel))
+                _uiState.value = _uiState.value.copy(outlets = _uiState.value.outlets + created)
+                onCreated(created.id)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(error = e.message)
             }
         }
     }
@@ -188,12 +215,16 @@ fun BouquetsScreen(
             existing = target.existing,
             recipes = uiState.recipes,
             species = uiState.species,
+            outlets = uiState.outlets,
             saving = uiState.saving,
             onDismiss = { editorTarget = null },
-            onSave = { sourceId, name, price, items ->
-                viewModel.save(target.existing, sourceId, name, price, items) {
+            onSave = { sourceId, name, outletId, price, items ->
+                viewModel.save(target.existing, sourceId, name, outletId, price, items) {
                     editorTarget = null
                 }
+            },
+            onCreateOutlet = { name, channel, onCreated ->
+                viewModel.createOutlet(name, channel, onCreated)
             },
             onDelete = target.existing?.let { e -> { viewModel.delete(e.id); editorTarget = null } },
         )
@@ -257,15 +288,19 @@ private fun BouquetEditorDialog(
     existing: BouquetResponse?,
     recipes: List<BouquetRecipeResponse>,
     species: List<SpeciesResponse>,
+    outlets: List<OutletResponse>,
     saving: Boolean,
     onDismiss: () -> Unit,
-    onSave: (sourceRecipeId: Long?, name: String, priceCents: Int?, items: List<CreateBouquetItemRequest>) -> Unit,
+    onSave: (sourceRecipeId: Long?, name: String, outletId: Long?, initialRequestedPriceCents: Int?, items: List<CreateBouquetItemRequest>) -> Unit,
+    onCreateOutlet: (name: String, channel: String, onCreated: (Long) -> Unit) -> Unit,
     onDelete: (() -> Unit)?,
 ) {
+    val isCreating = existing == null
     var sourceRecipeId by remember { mutableStateOf(existing?.sourceRecipeId) }
     var name by remember { mutableStateOf(existing?.name ?: "") }
-    // Phase 10 will source/edit price from the auto-created sale lot, not the
-    // bouquet itself. For now seed from recipe only.
+    // Outlet + price are required for a new bouquet (auto-creates the sale lot).
+    // For edits the lot owns the price/outlet — the sale-lot screen edits them.
+    var outletId by remember { mutableStateOf<Long?>(null) }
     var price by remember { mutableStateOf("") }
     val itemsState = remember {
         mutableStateListOf<BouquetEditableItem>().apply {
@@ -310,15 +345,25 @@ private fun BouquetEditorDialog(
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true,
                 )
-                OutlinedTextField(
-                    value = price,
-                    onValueChange = { price = it.filter { c -> c.isDigit() || c == '.' || c == ',' } },
-                    label = { Text("Pris (SEK)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                )
+                if (isCreating) {
+                    OutletPicker(
+                        outlets = outlets,
+                        selectedId = outletId,
+                        onSelected = { outletId = it },
+                        onCreateOutlet = { newName, newChannel ->
+                            onCreateOutlet(newName, newChannel) { newId -> outletId = newId }
+                        },
+                    )
+                    OutlinedTextField(
+                        value = price,
+                        onValueChange = { price = it.filter { c -> c.isDigit() || c == '.' || c == ',' } },
+                        label = { Text("Begärt pris (SEK)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                    )
+                }
 
                 Text("Stjälkar", fontWeight = FontWeight.Medium, fontSize = 13.sp)
 
@@ -346,16 +391,20 @@ private fun BouquetEditorDialog(
             }
         },
         confirmButton = {
-            val valid = name.isNotBlank() && itemsState.isNotEmpty() && itemsState.all {
+            val priceCents = price.replace(',', '.').toDoubleOrNull()?.let { (it * 100).toInt() }
+            val itemsValid = itemsState.isNotEmpty() && itemsState.all {
                 it.speciesId != null && (it.stemCount.toIntOrNull() ?: 0) > 0
             }
+            val valid = name.isNotBlank() && itemsValid &&
+                (!isCreating || (outletId != null && priceCents != null && priceCents > 0))
             Button(
                 enabled = valid && !saving,
                 onClick = {
                     onSave(
                         sourceRecipeId,
                         name,
-                        price.replace(',', '.').toDoubleOrNull()?.let { (it * 100).toInt() },
+                        outletId,
+                        priceCents,
                         itemsState.map {
                             CreateBouquetItemRequest(
                                 speciesId = it.speciesId!!,
