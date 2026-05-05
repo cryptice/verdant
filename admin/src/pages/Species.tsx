@@ -210,6 +210,17 @@ export function SpeciesListPage() {
               </div>
               <button
                 type="button"
+                onClick={(e) => { e.stopPropagation(); navigate(`/species/${s.id}`) }}
+                aria-label={t('common.edit')}
+                title={t('common.edit')}
+                className="-mt-1 p-2 text-[#787774] hover:text-[#2EAADC] transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+              <button
+                type="button"
                 onClick={(e) => { e.stopPropagation(); handleCopy(s) }}
                 aria-label={t('species.copy')}
                 title={t('species.copy')}
@@ -268,17 +279,30 @@ export function SpeciesListPage() {
                   )}
                 </td>
                 <td className="px-2 py-2.5 text-right" onClick={e => e.stopPropagation()}>
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(s)}
-                    aria-label={t('species.copy')}
-                    title={t('species.copy')}
-                    className="p-1 text-[#787774] hover:text-[#2EAADC] transition-colors"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                  </button>
+                  <div className="flex items-center justify-end gap-1">
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/species/${s.id}`)}
+                      aria-label={t('common.edit')}
+                      title={t('common.edit')}
+                      className="p-1 text-[#787774] hover:text-[#2EAADC] transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(s)}
+                      aria-label={t('species.copy')}
+                      title={t('species.copy')}
+                      className="p-1 text-[#787774] hover:text-[#2EAADC] transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -483,6 +507,10 @@ export function SpeciesDetailPage() {
   const { t } = useTranslation()
   const positionLabel = usePositionLabel()
   const soilLabel = useSoilLabel()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [speciesId])
 
   const { data: species, isLoading, error } = useQuery({
     queryKey: ['admin', 'species', speciesId],
@@ -998,9 +1026,9 @@ export function SpeciesCreatePage() {
       }
       return species
     },
-    onSuccess: () => {
+    onSuccess: (species) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'species'] })
-      navigate('/species')
+      navigate(`/species/${species.id}`)
     }
   })
 
@@ -1426,7 +1454,14 @@ function SpeciesForm({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <Field label={t('species.commonNameSv')} value={commonNameSv} onChange={setCommonNameSv} />
             <Field label={t('species.commonNameEn')} value={commonName} onChange={setCommonName} />
-            <Field label={t('species.variantNameSv')} value={variantNameSv} onChange={setVariantNameSv} />
+            <Field
+              label={t('species.variantNameSv')}
+              value={variantNameSv}
+              onChange={(v) => {
+                setVariantNameSv(v)
+                if (variantName.trimEnd().endsWith('(kopia)')) setVariantName(v)
+              }}
+            />
             <Field label={t('species.variantNameEn')} value={variantName} onChange={setVariantName} />
             <Field label={t('species.scientificName')} value={scientificName} onChange={setScientificName} className="sm:col-span-2" />
           </div>
