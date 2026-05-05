@@ -69,10 +69,11 @@ export function SpeciesList() {
       variantNameSv: addVariantNameSv || undefined,
       scientificName: addScientificName || undefined,
     }),
-    onSuccess: () => {
+    onSuccess: (created) => {
       qc.invalidateQueries({ queryKey: ['species'] })
       setShowAdd(false)
       setAddCommonName(''); setAddVariantName(''); setAddVariantNameSv(''); setAddScientificName('')
+      navigate(`/species/${created.id}`)
     },
   })
 
@@ -222,6 +223,31 @@ export function SpeciesList() {
                 if (!pt) return null
                 return <Chip tone={PLANT_TYPE_TONE[pt]}>{t(`plantType.${pt}`)}</Chip>
               },
+            },
+            {
+              key: 'edit',
+              label: '',
+              width: '40px',
+              align: 'right',
+              render: (s: SpeciesResponse) => (
+                <button
+                  type="button"
+                  aria-label={t('common.edit')}
+                  title={t('common.edit')}
+                  onClick={(e) => { e.stopPropagation(); navigate(`/species/${s.id}`) }}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--color-accent)',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 14,
+                    padding: 4,
+                  }}
+                >
+                  ✎
+                </button>
+              ),
             },
             {
               key: 'copy',

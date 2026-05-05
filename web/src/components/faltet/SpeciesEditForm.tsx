@@ -109,7 +109,24 @@ export function SpeciesEditForm({ speciesId, onSaved }: { speciesId: number; onS
 
       {/* Identity fields */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 28px' }}>
-        <Field label={t('species.fields.sortSv')} editable value={value('variantNameSv')} onChange={(v) => set('variantNameSv', v)} accent="clay" />
+        <Field
+          label={t('species.fields.sortSv')}
+          editable
+          value={value('variantNameSv')}
+          onChange={(v) => {
+            setDraft((d) => {
+              const next: Record<string, unknown> = { ...d, variantNameSv: v }
+              const currentEn = 'variantName' in d
+                ? String(d.variantName ?? '')
+                : String(species?.variantName ?? '')
+              if (currentEn.trimEnd().endsWith('(kopia)')) {
+                next.variantName = v
+              }
+              return next
+            })
+          }}
+          accent="clay"
+        />
         <Field label={t('species.fields.sortEn')} editable value={value('variantName')} onChange={(v) => set('variantName', v)} accent="clay" />
         <Field label={t('speciesDetail.commonNameSv')} editable value={value('commonNameSv')} onChange={(v) => set('commonNameSv', v)} accent="clay" />
         <Field label={t('species.commonName')} editable value={value('commonName')} onChange={(v) => set('commonName', v)} accent="clay" />

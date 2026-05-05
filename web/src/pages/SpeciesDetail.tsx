@@ -1,7 +1,7 @@
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import { Masthead, Rule } from '../components/faltet'
 import { SpeciesEditForm } from '../components/faltet/SpeciesEditForm'
@@ -14,6 +14,10 @@ export function SpeciesDetail() {
   const { t } = useTranslation()
 
   const [confirmDelete, setConfirmDelete] = useState(false)
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [speciesId])
 
   const deleteMut = useMutation({
     mutationFn: () => api.species.delete(speciesId),
