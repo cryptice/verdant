@@ -113,17 +113,12 @@ export function SpeciesEditForm({ speciesId, onSaved }: { speciesId: number; onS
           label={t('species.fields.sortSv')}
           editable
           value={value('variantNameSv')}
-          onChange={(v) => {
-            setDraft((d) => {
-              const next: Record<string, unknown> = { ...d, variantNameSv: v }
-              const currentEn = 'variantName' in d
-                ? String(d.variantName ?? '')
-                : String(species?.variantName ?? '')
-              if (currentEn.trimEnd().endsWith('(kopia)')) {
-                next.variantName = v
-              }
-              return next
-            })
+          onChange={(v) => set('variantNameSv', v)}
+          onBlur={() => {
+            const currentEn = value('variantName')
+            if (currentEn.trimEnd().endsWith('(kopia)')) {
+              set('variantName', value('variantNameSv'))
+            }
           }}
           accent="clay"
         />

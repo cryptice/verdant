@@ -1457,9 +1457,9 @@ function SpeciesForm({
             <Field
               label={t('species.variantNameSv')}
               value={variantNameSv}
-              onChange={(v) => {
-                setVariantNameSv(v)
-                if (variantName.trimEnd().endsWith('(kopia)')) setVariantName(v)
+              onChange={setVariantNameSv}
+              onBlur={() => {
+                if (variantName.trimEnd().endsWith('(kopia)')) setVariantName(variantNameSv)
               }}
             />
             <Field label={t('species.variantNameEn')} value={variantName} onChange={setVariantName} />
@@ -1821,8 +1821,8 @@ function RangeField({ label, min, max, onMinChange, onMaxChange }: {
   )
 }
 
-function Field({ label, value, onChange, type = 'text', className = '' }: {
-  label: string; value: string; onChange: (v: string) => void; type?: string; className?: string
+function Field({ label, value, onChange, onBlur, type = 'text', className = '' }: {
+  label: string; value: string; onChange: (v: string) => void; onBlur?: () => void; type?: string; className?: string
 }) {
   return (
     <div className={className}>
@@ -1831,6 +1831,7 @@ function Field({ label, value, onChange, type = 'text', className = '' }: {
         type={type}
         value={value}
         onChange={e => onChange(e.target.value)}
+        onBlur={onBlur}
         className="w-full px-3 py-2 border border-[#E9E9E7] rounded-md focus:ring-2 focus:ring-[#2EAADC]/30 focus:border-[#2EAADC] outline-none text-sm bg-[#FBFBFA]"
       />
     </div>

@@ -14,7 +14,7 @@ type Props = {
   accent?: Accent
 } & (
   | { editable?: false; onChange?: never }
-  | { editable: true; onChange: (v: string) => void; placeholder?: string }
+  | { editable: true; onChange: (v: string) => void; placeholder?: string; onBlur?: () => void }
 )
 
 export function Field(props: Props) {
@@ -39,6 +39,7 @@ export function Field(props: Props) {
         <input
           value={props.value ?? ''}
           onChange={(e) => props.onChange(e.target.value)}
+          onBlur={'onBlur' in props ? props.onBlur : undefined}
           placeholder={'placeholder' in props ? props.placeholder : undefined}
           style={{
             display: 'block',
