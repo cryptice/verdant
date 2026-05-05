@@ -512,6 +512,18 @@ export function SpeciesDetailPage() {
     window.scrollTo(0, 0)
   }, [speciesId])
 
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== 'c' || e.metaKey || e.ctrlKey || e.altKey) return
+      const target = e.target as HTMLElement | null
+      if (target && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))) return
+      e.preventDefault()
+      navigate(`/species/new?from=${speciesId}`)
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [navigate, speciesId])
+
   const { data: species, isLoading, error } = useQuery({
     queryKey: ['admin', 'species', speciesId],
     queryFn: () => api.admin.getSpeciesById(speciesId)
@@ -1328,7 +1340,7 @@ function SpeciesForm({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 pb-28 sm:pb-20">
+      <form id="species-form" onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 pb-28 sm:pb-20">
         {/* Provider & Images — create mode */}
         {!isEdit && (
           <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
@@ -1790,8 +1802,8 @@ function SpeciesForm({
           {t('common.cancel')}
         </button>
         <button
-          type="button"
-          onClick={handleSubmit}
+          type="submit"
+          form="species-form"
           disabled={isSubmitting || (!commonNameSv.trim() && !commonName.trim())}
           className="px-6 py-2 bg-[#2EAADC] text-white rounded-md hover:bg-[#2898C4] disabled:opacity-50 transition-colors text-sm font-medium"
         >
