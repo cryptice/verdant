@@ -47,7 +47,7 @@ android {
 
     defaultConfig {
         applicationId = "app.verdant.android"
-        versionCode = 1
+        versionCode = 2
         versionName = "1.0"
 
         // Production-by-default. Erik can flip to the local emulator backend
