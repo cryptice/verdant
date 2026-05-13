@@ -86,7 +86,8 @@ data class GardenDetailState(
     val beds: List<BedResponse> = emptyList(),
     val trayPlants: List<app.verdant.android.data.model.TraySummaryEntry> = emptyList(),
     val error: String? = null,
-    val deleted: Boolean = false
+    val deleted: Boolean = false,
+    val expandedBedGroups: Set<String> = emptySet(),
 )
 
 @HiltViewModel
@@ -119,7 +120,13 @@ class GardenDetailViewModel @Inject constructor(
                     val beds = bedRepository.list(gardenId).sortedByNaturalName()
                     Log.d(TAG, "Beds loaded: ${beds.size}")
                     val tray = runCatching { plantRepository.traySummary() }.getOrDefault(emptyList())
-                    _uiState.value = GardenDetailState(isLoading = false, garden = garden, beds = beds, trayPlants = tray)
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        garden = garden,
+                        beds = beds,
+                        trayPlants = tray,
+                        error = null,
+                    )
                     return@launch
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to load garden (attempt $attempt): ${e.message}")
@@ -129,6 +136,17 @@ class GardenDetailViewModel @Inject constructor(
             }
             _uiState.value = _uiState.value.copy(isLoading = false, error = lastError?.message)
         }
+    }
+
+    fun toggleBedGroup(stem: String) {
+        val current = _uiState.value
+        _uiState.value = current.copy(
+            expandedBedGroups = if (stem in current.expandedBedGroups) {
+                current.expandedBedGroups - stem
+            } else {
+                current.expandedBedGroups + stem
+            },
+        )
     }
 
     fun update(name: String, description: String?, emoji: String?) {
@@ -271,6 +289,8 @@ fun GardenDetailScreen(
                                     BedGroupRow(
                                         stem = entry.stem,
                                         beds = entry.beds,
+                                        expanded = entry.stem in uiState.expandedBedGroups,
+                                        onToggle = { viewModel.toggleBedGroup(entry.stem) },
                                         onBedClick = onBedClick,
                                     )
                                 }
@@ -472,16 +492,17 @@ private fun groupBedsByStem(beds: List<BedResponse>): List<BedListEntry> {
 private fun BedGroupRow(
     stem: String,
     beds: List<BedResponse>,
+    expanded: Boolean,
+    onToggle: () -> Unit,
     onBedClick: (Long) -> Unit,
 ) {
-    var expanded by remember(stem) { mutableStateOf(false) }
     Column {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 64.dp)
-                .clickable { expanded = !expanded }
+                .clickable { onToggle() }
                 .drawBehind {
                     drawLine(
                         color = FaltetInkLine20,

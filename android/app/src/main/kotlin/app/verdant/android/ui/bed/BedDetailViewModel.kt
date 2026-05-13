@@ -166,6 +166,7 @@ class BedDetailViewModel @Inject constructor(
             try {
                 val r = bedRepository.weed(bedId)
                 _uiState.value = current.copy(toastMessage = "Rensade ogräs · ${r.plantsAffected} plantor")
+                refresh()
             } catch (e: Exception) {
                 _uiState.value = current.copy(toastMessage = "Kunde inte rensa ogräs")
             }
@@ -178,6 +179,7 @@ class BedDetailViewModel @Inject constructor(
             try {
                 val r = bedRepository.water(bedId)
                 _uiState.value = current.copy(toastMessage = "Vattnade · ${r.plantsAffected} plantor")
+                refresh()
             } catch (e: Exception) {
                 _uiState.value = current.copy(toastMessage = "Kunde inte vattna")
             }
