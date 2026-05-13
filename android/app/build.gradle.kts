@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
+    id("com.github.triplet.play") version "3.12.1"
 }
 
 buildscript {
@@ -80,6 +81,17 @@ android {
         }
     }
 
+}
+
+// Play Console upload via Triple-T's gradle-play-publisher. Defaults the track
+// to "internal" so a bare `./gradlew :app:publishBundle` releases to the
+// internal-testing track. Override on the CLI with `--track <name>` if needed.
+play {
+    val playSaPath = envGet("android", "play-service-account-path").ifBlank { "../secrets/play-service-account.json" }
+    serviceAccountCredentials.set(rootProject.file(playSaPath))
+    track.set("internal")
+    defaultToAppBundles.set(true)
+    releaseStatus.set(com.github.triplet.gradle.androidpublisher.ReleaseStatus.COMPLETED)
 }
 
 dependencies {
