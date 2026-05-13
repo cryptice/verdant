@@ -71,8 +71,9 @@ data class UpdateScheduledTaskRequest(
 )
 
 data class CompleteTaskPartiallyRequest(
-    @field:NotNull
-    val speciesId: Long,
+    // Required for species-scoped tasks; null for bed-scoped tasks (WATER/WEED/FERTILIZE),
+    // which complete without per-species validation.
+    val speciesId: Long? = null,
     @field:Min(1)
     val processedCount: Int,
 )

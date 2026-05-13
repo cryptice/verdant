@@ -62,5 +62,6 @@ data class UpdateScheduledTaskRequest(
 
 data class CompleteTaskPartiallyRequest(
     @SerializedName("processedCount") val processedCount: Int,
-    @SerializedName("speciesId") val speciesId: Long,
+    // null for bed-scoped tasks (WATER/WEED/FERTILIZE)
+    @SerializedName("speciesId") val speciesId: Long? = null,
 )

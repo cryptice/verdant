@@ -61,6 +61,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.data.model.CompleteTaskPartiallyRequest
 import app.verdant.android.data.model.DashboardResponse
 import app.verdant.android.data.model.HarvestStatRow
 import app.verdant.android.data.model.ScheduledTaskResponse
@@ -71,6 +72,9 @@ import app.verdant.android.ui.faltet.FaltetListRow
 import app.verdant.android.ui.faltet.FaltetLoadingState
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.FaltetSectionHeader
+import app.verdant.android.ui.task.COMPLETE_TASK_DELAY_MS
+import app.verdant.android.ui.task.TaskDeleteDialog
+import app.verdant.android.ui.task.TaskRow
 import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
@@ -99,6 +103,9 @@ data class DashboardState(
     val suppliesEmpty: Boolean = false,
     val toastMessage: String? = null,
     val error: String? = null,
+    /** Task IDs whose checkbox is checked but not yet sent to the backend.
+     *  Drives the checked visual + scheduled removal. */
+    val completingTaskIds: Set<Long> = emptySet(),
 )
 
 @HiltViewModel
@@ -114,6 +121,47 @@ class DashboardViewModel @Inject constructor(
 
     fun consumeToast() {
         _uiState.value = _uiState.value.copy(toastMessage = null)
+    }
+
+    fun deleteTask(taskId: Long) {
+        viewModelScope.launch {
+            try {
+                taskRepository.delete(taskId)
+                _uiState.value = _uiState.value.copy(
+                    pendingTasks = _uiState.value.pendingTasks.filter { it.id != taskId },
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to delete task", e)
+            }
+        }
+    }
+
+    fun completeTask(task: ScheduledTaskResponse) {
+        if (task.id in _uiState.value.completingTaskIds) return
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                completingTaskIds = _uiState.value.completingTaskIds + task.id,
+            )
+            kotlinx.coroutines.delay(COMPLETE_TASK_DELAY_MS)
+            try {
+                taskRepository.completePartially(
+                    task.id,
+                    CompleteTaskPartiallyRequest(
+                        processedCount = task.remainingCount.coerceAtLeast(1),
+                        speciesId = if (task.bedId != null) null else task.speciesId,
+                    ),
+                )
+                _uiState.value = _uiState.value.copy(
+                    pendingTasks = _uiState.value.pendingTasks.filter { it.id != task.id },
+                    completingTaskIds = _uiState.value.completingTaskIds - task.id,
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to complete task", e)
+                _uiState.value = _uiState.value.copy(
+                    completingTaskIds = _uiState.value.completingTaskIds - task.id,
+                )
+            }
+        }
     }
 
     fun refresh() {
@@ -185,6 +233,18 @@ fun DashboardScreen(
     // as the at-a-glance summary.
     val expandedTrayKeys = remember { androidx.compose.runtime.mutableStateMapOf<String, Boolean>() }
     var showQuickActions by remember { mutableStateOf(false) }
+    var taskToDelete by remember { mutableStateOf<ScheduledTaskResponse?>(null) }
+
+    taskToDelete?.let { task ->
+        TaskDeleteDialog(
+            task = task,
+            onConfirm = {
+                viewModel.deleteTask(task.id)
+                taskToDelete = null
+            },
+            onDismiss = { taskToDelete = null },
+        )
+    }
 
     FaltetScreenScaffold(
         mastheadLeft = "",
@@ -241,27 +301,13 @@ fun DashboardScreen(
                         item { InlineMuted("Inget väntar på dig.") }
                     } else {
                         items(uiState.pendingTasks.take(6), key = { "task_${it.id}" }) { task ->
-                            FaltetListRow(
-                                title = task.speciesName ?: activityLabelSv(task.activityType),
-                                meta = "${activityLabelSv(task.activityType)} · ${task.deadline.take(10)}",
-                                stat = {
-                                    Row(verticalAlignment = Alignment.Bottom) {
-                                        Text(
-                                            text = task.remainingCount.toString(),
-                                            fontFamily = FontFamily.Monospace,
-                                            fontSize = 16.sp,
-                                            color = FaltetInk,
-                                        )
-                                        Text(
-                                            text = " ST",
-                                            fontFamily = FontFamily.Monospace,
-                                            fontSize = 9.sp,
-                                            letterSpacing = 1.2.sp,
-                                            color = FaltetForest,
-                                        )
-                                    }
-                                },
+                            TaskRow(
+                                task = task,
+                                isCompleting = task.id in uiState.completingTaskIds,
                                 onClick = { onTaskClick(task) },
+                                onCompleteToggle = { viewModel.completeTask(task) },
+                                onDelete = { taskToDelete = task },
+                                modifier = Modifier.animateItem(),
                             )
                         }
                     }

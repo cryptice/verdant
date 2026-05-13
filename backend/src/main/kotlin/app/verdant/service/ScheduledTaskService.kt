@@ -146,15 +146,22 @@ class ScheduledTaskService(
         return buildResponses(listOf(updated)).first()
     }
 
-    fun completePartially(taskId: Long, speciesId: Long, processedCount: Int, orgId: Long): ScheduledTaskResponse {
-        checkOwnership(taskId, orgId)
-        val acceptableIds = taskRepository.findAcceptableSpeciesIds(taskId)
-        if (speciesId !in acceptableIds) {
-            throw BadRequestException("Species $speciesId is not in the acceptable species list for this task")
+    fun completePartially(taskId: Long, speciesId: Long?, processedCount: Int, orgId: Long): ScheduledTaskResponse {
+        val task = checkOwnership(taskId, orgId)
+        if (task.bedId != null) {
+            // Bed-scoped tasks (WATER/WEED/FERTILIZE) don't carry species — speciesId is ignored.
+        } else {
+            if (speciesId == null) {
+                throw BadRequestException("speciesId is required for species-scoped tasks")
+            }
+            val acceptableIds = taskRepository.findAcceptableSpeciesIds(taskId)
+            if (speciesId !in acceptableIds) {
+                throw BadRequestException("Species $speciesId is not in the acceptable species list for this task")
+            }
         }
         taskRepository.decrementRemainingCount(taskId, processedCount)
-        val task = taskRepository.findById(taskId)!!
-        return buildResponses(listOf(task)).first()
+        val updated = taskRepository.findById(taskId)!!
+        return buildResponses(listOf(updated)).first()
     }
 
     fun addSpeciesToTask(taskId: Long, speciesId: Long, orgId: Long): ScheduledTaskResponse {

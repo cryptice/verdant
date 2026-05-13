@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.data.model.CompleteTaskPartiallyRequest
 import app.verdant.android.data.model.ScheduledTaskResponse
 import app.verdant.android.data.repository.TaskRepository
 import app.verdant.android.ui.common.ConnectionErrorState
@@ -64,6 +65,9 @@ data class TaskListState(
     val isLoading: Boolean = true,
     val tasks: List<ScheduledTaskResponse> = emptyList(),
     val error: String? = null,
+    /** Task IDs whose checkbox is checked but not yet sent to the backend.
+     *  Drives the checked visual + scheduled removal. */
+    val completingTaskIds: Set<Long> = emptySet(),
 )
 
 @HiltViewModel
@@ -100,34 +104,37 @@ class TaskListViewModel @Inject constructor(
             }
         }
     }
-}
 
-private fun taskActivityLabel(activityType: String): String = when (activityType) {
-    "SOW" -> "Så"
-    "POT_UP" -> "Skola om"
-    "PLANT" -> "Plantera"
-    "HARVEST" -> "Skörda"
-    "RECOVER" -> "Återhämta"
-    "DISCARD" -> "Kassera"
-    "WATER" -> "Vattna"
-    "WEED" -> "Rensa ogräs"
-    "FERTILIZE" -> "Gödsla"
-    else -> activityType
-}
-
-private fun taskDotColor(activityType: String): Color = when (activityType) {
-    "SOW" -> FaltetMustard
-    "PLANT" -> FaltetSage
-    "HARVEST" -> FaltetAccent
-    "FERTILIZE" -> FaltetBerry
-    else -> FaltetSky
+    fun completeTask(task: ScheduledTaskResponse) {
+        if (task.id in _uiState.value.completingTaskIds) return
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                completingTaskIds = _uiState.value.completingTaskIds + task.id,
+            )
+            kotlinx.coroutines.delay(COMPLETE_TASK_DELAY_MS)
+            try {
+                repo.completePartially(
+                    task.id,
+                    CompleteTaskPartiallyRequest(
+                        processedCount = task.remainingCount.coerceAtLeast(1),
+                        speciesId = if (task.bedId != null) null else task.speciesId,
+                    ),
+                )
+                _uiState.value = _uiState.value.copy(
+                    tasks = _uiState.value.tasks.filter { it.id != task.id },
+                    completingTaskIds = _uiState.value.completingTaskIds - task.id,
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to complete task", e)
+                _uiState.value = _uiState.value.copy(
+                    completingTaskIds = _uiState.value.completingTaskIds - task.id,
+                )
+            }
+        }
+    }
 }
 
 private val svDateFormatter = DateTimeFormatter.ofPattern("d MMM", Locale("sv"))
-
-private fun formatDeadline(deadline: String): String = runCatching {
-    LocalDate.parse(deadline).format(svDateFormatter)
-}.getOrElse { deadline }
 
 private data class TaskGroup(val label: String, val tasks: List<ScheduledTaskResponse>)
 
@@ -188,19 +195,13 @@ fun TaskListScreen(
     var taskToDelete by remember { mutableStateOf<ScheduledTaskResponse?>(null) }
 
     taskToDelete?.let { task ->
-        AlertDialog(
-            onDismissRequest = { taskToDelete = null },
-            title = { Text("Ta bort uppgift") },
-            text = { Text("Vill du ta bort \"${task.originGroupName ?: task.speciesName ?: "Uppgift"}\"?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.deleteTask(task.id)
-                    taskToDelete = null
-                }) { Text("Ta bort", color = FaltetClay) }
+        TaskDeleteDialog(
+            task = task,
+            onConfirm = {
+                viewModel.deleteTask(task.id)
+                taskToDelete = null
             },
-            dismissButton = {
-                TextButton(onClick = { taskToDelete = null }) { Text("Avbryt") }
-            },
+            onDismiss = { taskToDelete = null },
         )
     }
 
@@ -232,50 +233,13 @@ fun TaskListScreen(
                         FaltetSectionHeader(label = group.label)
                     }
                     items(group.tasks, key = { it.id }) { task ->
-                        val dotColor = taskDotColor(task.activityType)
-                        val isBedTask = task.bedId != null
-                        val title = when {
-                            isBedTask -> taskActivityLabel(task.activityType)
-                            else -> task.originGroupName ?: task.speciesName ?: "Uppgift"
-                        }
-                        val meta = buildString {
-                            append(formatDeadline(task.deadline))
-                            if (isBedTask) {
-                                val bedLabel = listOfNotNull(task.gardenName, task.bedName).joinToString(" · ")
-                                if (bedLabel.isNotBlank()) { append(" · "); append(bedLabel) }
-                            } else {
-                                val species = task.speciesName
-                                if (species != null && species != title) {
-                                    append(" · ")
-                                    append(species)
-                                }
-                            }
-                        }
-                        FaltetListRow(
-                            title = title,
-                            meta = meta,
-                            leading = {
-                                androidx.compose.foundation.layout.Box(
-                                    Modifier
-                                        .size(10.dp)
-                                        .drawBehind { drawCircle(dotColor) }
-                                )
-                            },
-                            stat = null,
-                            actions = {
-                                IconButton(
-                                    onClick = { taskToDelete = task },
-                                    modifier = Modifier.size(36.dp),
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = "Ta bort",
-                                        tint = FaltetAccent,
-                                        modifier = Modifier.size(18.dp),
-                                    )
-                                }
-                            },
+                        TaskRow(
+                            task = task,
+                            isCompleting = task.id in uiState.completingTaskIds,
                             onClick = { onEditTask(task.id) },
+                            onCompleteToggle = { viewModel.completeTask(task) },
+                            onDelete = { taskToDelete = task },
+                            modifier = Modifier.animateItem(),
                         )
                     }
                 }
