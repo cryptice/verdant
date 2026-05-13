@@ -15,8 +15,7 @@ cd "$(dirname "$0")/.."
 
 echo "==> Submitting build to Cloud Build"
 gcloud builds submit \
-  --project="$PROJECT_ID" \
-  --substitutions="_REGION=$REGION"
+  --project="$PROJECT_ID"
 
 URL=$(gcloud run services describe "$SERVICE_NAME" --project="$PROJECT_ID" --region="$REGION" --format='value(status.url)')
 
