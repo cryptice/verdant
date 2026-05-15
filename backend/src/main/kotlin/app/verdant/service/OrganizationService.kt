@@ -57,6 +57,42 @@ class OrganizationService(
         return request.toResponse(orgName = org.name, userEmail = user.email, userDisplayName = user.displayName)
     }
 
+    fun getPendingJoinRequests(orgId: Long, userId: Long): List<OrgJoinRequestResponse> {
+        checkOwner(orgId, userId)
+        val requests = orgJoinRequestRepository.findPendingByOrgId(orgId)
+        if (requests.isEmpty()) return emptyList()
+        val org = organizationRepository.findById(orgId) ?: throw NotFoundException("Organization not found")
+        val users = userRepository.findByIds(requests.map { it.userId }.toSet())
+        return requests.mapNotNull { req ->
+            val u = users[req.userId] ?: return@mapNotNull null
+            req.toResponse(orgName = org.name, userEmail = u.email, userDisplayName = u.displayName)
+        }
+    }
+
+    @Transactional
+    fun acceptJoinRequest(orgId: Long, requestId: Long, userId: Long): OrgJoinRequestResponse {
+        checkOwner(orgId, userId)
+        val req = orgJoinRequestRepository.findById(requestId) ?: throw NotFoundException("Join request not found")
+        if (req.orgId != orgId) throw NotFoundException("Join request not found")
+        if (req.status != JoinRequestStatus.PENDING) throw BadRequestException("Join request is no longer pending")
+        orgMemberRepository.persist(
+            OrgMember(orgId = orgId, userId = req.userId, role = OrgRole.MEMBER)
+        )
+        orgJoinRequestRepository.updateStatus(requestId, JoinRequestStatus.ACCEPTED)
+        val org = organizationRepository.findById(orgId) ?: throw NotFoundException("Organization not found")
+        val user = userRepository.findById(req.userId) ?: throw NotFoundException("User not found")
+        return req.copy(status = JoinRequestStatus.ACCEPTED)
+            .toResponse(orgName = org.name, userEmail = user.email, userDisplayName = user.displayName)
+    }
+
+    fun declineJoinRequest(orgId: Long, requestId: Long, userId: Long) {
+        checkOwner(orgId, userId)
+        val req = orgJoinRequestRepository.findById(requestId) ?: throw NotFoundException("Join request not found")
+        if (req.orgId != orgId) throw NotFoundException("Join request not found")
+        if (req.status != JoinRequestStatus.PENDING) throw BadRequestException("Join request is no longer pending")
+        orgJoinRequestRepository.updateStatus(requestId, JoinRequestStatus.DECLINED)
+    }
+
     fun getOrganizationsForUser(userId: Long): List<OrganizationResponse> {
         val memberships = orgMemberRepository.findByUserId(userId)
         val orgIds = memberships.map { it.orgId }.toSet()

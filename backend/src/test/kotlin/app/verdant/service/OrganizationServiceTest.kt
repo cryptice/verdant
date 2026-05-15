@@ -13,12 +13,14 @@ import app.verdant.repository.OrgMemberRepository
 import app.verdant.repository.OrganizationRepository
 import app.verdant.repository.UserRepository
 import jakarta.ws.rs.BadRequestException
+import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
+import org.mockito.kotlin.check
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
@@ -150,5 +152,93 @@ class OrganizationServiceTest {
     fun `requestJoin throws NotFoundException for unknown org`() {
         whenever(orgRepo.findById(1L)).thenReturn(null)
         assertThrows<NotFoundException> { service.requestJoin(1L, 7L) }
+    }
+
+    // ── accept/decline/list join requests ───────────────────────────────────
+
+    @Test
+    fun `getPendingJoinRequests returns pending requests for owner`() {
+        val orgId = 1L; val ownerId = 7L; val requesterId = 9L
+        val req = OrgJoinRequest(id = 10L, orgId = orgId, userId = requesterId, status = JoinRequestStatus.PENDING)
+        val org = Organization(id = orgId, name = "O")
+        val requester = User(id = requesterId, email = "r@example.com", displayName = "R")
+        whenever(memberRepo.findByOrgAndUser(orgId, ownerId))
+            .thenReturn(OrgMember(id = 1L, orgId = orgId, userId = ownerId, role = OrgRole.OWNER))
+        whenever(joinRequestRepo.findPendingByOrgId(orgId)).thenReturn(listOf(req))
+        whenever(orgRepo.findById(orgId)).thenReturn(org)
+        whenever(userRepo.findByIds(setOf(requesterId))).thenReturn(mapOf(requesterId to requester))
+
+        val result = service.getPendingJoinRequests(orgId, ownerId)
+
+        assertEquals(1, result.size)
+        assertEquals(10L, result[0].id)
+        assertEquals("r@example.com", result[0].userEmail)
+    }
+
+    @Test
+    fun `getPendingJoinRequests rejects non-owners`() {
+        val orgId = 1L; val memberId = 7L
+        whenever(memberRepo.findByOrgAndUser(orgId, memberId))
+            .thenReturn(OrgMember(id = 1L, orgId = orgId, userId = memberId, role = OrgRole.MEMBER))
+
+        assertThrows<ForbiddenException> { service.getPendingJoinRequests(orgId, memberId) }
+    }
+
+    @Test
+    fun `acceptJoinRequest creates an OrgMember and flips status`() {
+        val orgId = 1L; val ownerId = 7L; val requesterId = 9L
+        val req = OrgJoinRequest(id = 10L, orgId = orgId, userId = requesterId, status = JoinRequestStatus.PENDING)
+        val org = Organization(id = orgId, name = "O")
+        val requester = User(id = requesterId, email = "r@example.com", displayName = "R")
+        whenever(memberRepo.findByOrgAndUser(orgId, ownerId))
+            .thenReturn(OrgMember(id = 1L, orgId = orgId, userId = ownerId, role = OrgRole.OWNER))
+        whenever(joinRequestRepo.findById(10L)).thenReturn(req)
+        whenever(orgRepo.findById(orgId)).thenReturn(org)
+        whenever(userRepo.findById(requesterId)).thenReturn(requester)
+
+        service.acceptJoinRequest(orgId, 10L, ownerId)
+
+        verify(memberRepo).persist(check {
+            assertEquals(orgId, it.orgId)
+            assertEquals(requesterId, it.userId)
+            assertEquals(OrgRole.MEMBER, it.role)
+        })
+        verify(joinRequestRepo).updateStatus(10L, JoinRequestStatus.ACCEPTED)
+    }
+
+    @Test
+    fun `acceptJoinRequest rejects when status is not PENDING`() {
+        val orgId = 1L; val ownerId = 7L
+        val req = OrgJoinRequest(id = 10L, orgId = orgId, userId = 9L, status = JoinRequestStatus.ACCEPTED)
+        whenever(memberRepo.findByOrgAndUser(orgId, ownerId))
+            .thenReturn(OrgMember(id = 1L, orgId = orgId, userId = ownerId, role = OrgRole.OWNER))
+        whenever(joinRequestRepo.findById(10L)).thenReturn(req)
+
+        assertThrows<BadRequestException> { service.acceptJoinRequest(orgId, 10L, ownerId) }
+    }
+
+    @Test
+    fun `acceptJoinRequest rejects cross-org request`() {
+        val orgId = 1L; val ownerId = 7L
+        val req = OrgJoinRequest(id = 10L, orgId = 99L /* different org */, userId = 9L, status = JoinRequestStatus.PENDING)
+        whenever(memberRepo.findByOrgAndUser(orgId, ownerId))
+            .thenReturn(OrgMember(id = 1L, orgId = orgId, userId = ownerId, role = OrgRole.OWNER))
+        whenever(joinRequestRepo.findById(10L)).thenReturn(req)
+
+        assertThrows<NotFoundException> { service.acceptJoinRequest(orgId, 10L, ownerId) }
+    }
+
+    @Test
+    fun `declineJoinRequest flips status to DECLINED`() {
+        val orgId = 1L; val ownerId = 7L
+        val req = OrgJoinRequest(id = 10L, orgId = orgId, userId = 9L, status = JoinRequestStatus.PENDING)
+        whenever(memberRepo.findByOrgAndUser(orgId, ownerId))
+            .thenReturn(OrgMember(id = 1L, orgId = orgId, userId = ownerId, role = OrgRole.OWNER))
+        whenever(joinRequestRepo.findById(10L)).thenReturn(req)
+
+        service.declineJoinRequest(orgId, 10L, ownerId)
+
+        verify(joinRequestRepo).updateStatus(10L, JoinRequestStatus.DECLINED)
+        verify(memberRepo, never()).persist(any())
     }
 }
