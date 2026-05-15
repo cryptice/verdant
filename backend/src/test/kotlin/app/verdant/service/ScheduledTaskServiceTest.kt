@@ -414,4 +414,81 @@ class ScheduledTaskServiceTest {
         )
         assertThrows<BadRequestException> { service.createTask(request, orgId) }
     }
+
+    // ── updateTask: TODO transitions ────────────────────────────────────────
+
+    @Test
+    fun `updateTask cannot convert a TODO to another activity type`() {
+        val todoTask = ScheduledTask(
+            id = 5L, orgId = orgId, speciesId = null, bedId = null,
+            activityType = "TODO", deadline = null,
+            targetCount = 1, remainingCount = 1, notes = "Original",
+            createdAt = Instant.now(), updatedAt = Instant.now(),
+        )
+        whenever(taskRepository.findById(5L)).thenReturn(todoTask)
+
+        val request = UpdateScheduledTaskRequest(activityType = "SOW")
+        assertThrows<BadRequestException> { service.updateTask(5L, request, orgId) }
+    }
+
+    @Test
+    fun `updateTask cannot convert a non-TODO to TODO`() {
+        val sowTask = makeTask(id = 6L)
+        whenever(taskRepository.findById(6L)).thenReturn(sowTask)
+
+        val request = UpdateScheduledTaskRequest(activityType = "TODO")
+        assertThrows<BadRequestException> { service.updateTask(6L, request, orgId) }
+    }
+
+    @Test
+    fun `updateTask updating a TODO description works`() {
+        val todoTask = ScheduledTask(
+            id = 7L, orgId = orgId, speciesId = null, bedId = null,
+            activityType = "TODO", deadline = null,
+            targetCount = 1, remainingCount = 1, notes = "Original",
+            createdAt = Instant.now(), updatedAt = Instant.now(),
+        )
+        whenever(taskRepository.findById(7L)).thenReturn(todoTask)
+        stubBuildResponses(todoTask.copy(notes = "Uppdaterad"), emptyList())
+
+        val request = UpdateScheduledTaskRequest(notes = "Uppdaterad")
+        val result = service.updateTask(7L, request, orgId)
+
+        verify(taskRepository).update(check { assertEquals("Uppdaterad", it.notes) })
+        assertEquals("Uppdaterad", result.notes)
+    }
+
+    @Test
+    fun `updateTask TODO with blank notes is rejected`() {
+        val todoTask = ScheduledTask(
+            id = 8L, orgId = orgId, speciesId = null, bedId = null,
+            activityType = "TODO", deadline = null,
+            targetCount = 1, remainingCount = 1, notes = "Original",
+            createdAt = Instant.now(), updatedAt = Instant.now(),
+        )
+        whenever(taskRepository.findById(8L)).thenReturn(todoTask)
+
+        val request = UpdateScheduledTaskRequest(notes = "  ")
+        assertThrows<BadRequestException> { service.updateTask(8L, request, orgId) }
+    }
+
+    // ── completePartially: TODO ─────────────────────────────────────────────
+
+    @Test
+    fun `completePartially completes a TODO with processedCount 1`() {
+        val todoTask = ScheduledTask(
+            id = 9L, orgId = orgId, speciesId = null, bedId = null,
+            activityType = "TODO", deadline = null,
+            targetCount = 1, remainingCount = 1, notes = "Boka tid",
+            createdAt = Instant.now(), updatedAt = Instant.now(),
+        )
+        val completed = todoTask.copy(remainingCount = 0, status = ScheduledTaskStatus.COMPLETED)
+        whenever(taskRepository.findById(9L)).thenReturn(todoTask, completed)
+        stubBuildResponses(completed, emptyList())
+
+        val result = service.completePartially(9L, speciesId = null, processedCount = 1, orgId = orgId)
+
+        verify(taskRepository).decrementRemainingCount(9L, 1)
+        assertEquals("COMPLETED", result.status)
+    }
 }

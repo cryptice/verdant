@@ -157,6 +157,19 @@ class ScheduledTaskService(
     fun updateTask(taskId: Long, request: UpdateScheduledTaskRequest, orgId: Long): ScheduledTaskResponse {
         val task = checkOwnership(taskId, orgId)
 
+        if (task.activityType == TODO_ACTIVITY_TYPE &&
+            request.activityType != null && request.activityType != TODO_ACTIVITY_TYPE) {
+            throw BadRequestException("Cannot convert a TODO task to another type")
+        }
+        if (task.activityType != TODO_ACTIVITY_TYPE &&
+            request.activityType == TODO_ACTIVITY_TYPE) {
+            throw BadRequestException("Cannot convert a non-TODO task to TODO")
+        }
+        if (task.activityType == TODO_ACTIVITY_TYPE &&
+            request.notes != null && request.notes.isBlank()) {
+            throw BadRequestException("TODO tasks require a non-blank description")
+        }
+
         val newTarget = request.targetCount ?: task.targetCount
         val newRemaining = if (request.targetCount != null) {
             val completed = task.targetCount - task.remainingCount
@@ -184,15 +197,21 @@ class ScheduledTaskService(
 
     fun completePartially(taskId: Long, speciesId: Long?, processedCount: Int, orgId: Long): ScheduledTaskResponse {
         val task = checkOwnership(taskId, orgId)
-        if (task.bedId != null) {
-            // Bed-scoped tasks (WATER/WEED/FERTILIZE) don't carry species — speciesId is ignored.
-        } else {
-            if (speciesId == null) {
-                throw BadRequestException("speciesId is required for species-scoped tasks")
+        when {
+            task.activityType == TODO_ACTIVITY_TYPE -> {
+                // TODOs are done-or-not; speciesId is irrelevant.
             }
-            val acceptableIds = taskRepository.findAcceptableSpeciesIds(taskId)
-            if (speciesId !in acceptableIds) {
-                throw BadRequestException("Species $speciesId is not in the acceptable species list for this task")
+            task.bedId != null -> {
+                // Bed-scoped tasks (WATER/WEED/FERTILIZE) don't carry species — speciesId is ignored.
+            }
+            else -> {
+                if (speciesId == null) {
+                    throw BadRequestException("speciesId is required for species-scoped tasks")
+                }
+                val acceptableIds = taskRepository.findAcceptableSpeciesIds(taskId)
+                if (speciesId !in acceptableIds) {
+                    throw BadRequestException("Species $speciesId is not in the acceptable species list for this task")
+                }
             }
         }
         taskRepository.decrementRemainingCount(taskId, processedCount)
