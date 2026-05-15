@@ -109,8 +109,8 @@ class TaskFormViewModel @Inject constructor(
         bedId: Long?,
         activityType: String,
         earliestDate: String?,
-        deadline: String,
-        targetCount: Int,
+        deadline: String?,
+        targetCount: Int?,
         notes: String?,
     ) {
         viewModelScope.launch {
@@ -253,12 +253,14 @@ private fun activityTypeLabelSvStr(name: String): String = when (name) {
     "WATER" -> "Vattna"
     "WEED" -> "Rensa ogräs"
     "FERTILIZE" -> "Gödsla"
+    "TODO" -> "Övrigt"
     else -> name
 }
 
 private val ACTIVITY_TYPES: List<String> = Activity.entries.map { it.name } +
-    listOf("WATER", "WEED", "FERTILIZE")
+    listOf("WATER", "WEED", "FERTILIZE", "TODO")
 private val BED_ACTIVITY_TYPES: Set<String> = setOf("WATER", "WEED", "FERTILIZE")
+private const val TODO_ACTIVITY_TYPE: String = "TODO"
 
 private fun speciesDisplayName(s: SpeciesResponse): String {
     val name = s.commonNameSv ?: s.commonName
@@ -296,6 +298,7 @@ fun TaskFormScreen(
     var staggerDaysBetweenText by remember { mutableStateOf("7") }
 
     val isBedActivity = selectedActivityType in BED_ACTIVITY_TYPES
+    val isTodoActivity = selectedActivityType == TODO_ACTIVITY_TYPE
 
     // Compute the sibling family for the currently-selected bed. Only
     // surfaces in create mode and only when there's at least one other
@@ -331,14 +334,65 @@ fun TaskFormScreen(
     }
 
     val canSubmit = selectedActivityType != null &&
-        deadline != null &&
         !uiState.isLoading &&
-        (if (isBedActivity) selectedBed != null && (bedFamily.isEmpty() || siblingBedIds.isNotEmpty())
-         else selectedSpecies != null)
+        when {
+            isTodoActivity -> notes.isNotBlank()
+            isBedActivity -> deadline != null && selectedBed != null &&
+                (bedFamily.isEmpty() || siblingBedIds.isNotEmpty())
+            else -> deadline != null && selectedSpecies != null
+        }
 
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(uiState.error) { uiState.error?.let { snackbarHostState.showSnackbar(it) } }
     LaunchedEffect(uiState.saved) { if (uiState.saved) onBack() }
+
+    fun submit() {
+        if (isTodoActivity) {
+            viewModel.save(
+                speciesId = null,
+                bedId = null,
+                activityType = TODO_ACTIVITY_TYPE,
+                earliestDate = earliestDate?.toString(),
+                deadline = deadline?.toString(),
+                targetCount = null,
+                notes = notes.ifBlank { null },
+            )
+            return
+        }
+        val targetCount = if (isBedActivity) 1
+        else targetCountText.toIntOrNull()?.coerceAtLeast(1) ?: 1
+        val notesOrNull = notes.ifBlank { null }
+        if (isBedActivity && bedFamily.isNotEmpty()) {
+            val orderedBeds = bedFamily.filter { it.id in siblingBedIds }
+            val perBatch = staggerBedsPerBatchText.toIntOrNull()?.coerceAtLeast(1) ?: 1
+            val daysBetween = staggerDaysBetweenText.toIntOrNull()?.coerceAtLeast(0) ?: 0
+            val baseDeadline = deadline!!
+            val schedules = orderedBeds.mapIndexed { index, bed ->
+                val offset = if (staggerEnabled) (index / perBatch) * daysBetween else 0
+                BedSchedule(
+                    bedId = bed.id,
+                    earliestDate = earliestDate?.plusDays(offset.toLong())?.toString(),
+                    deadline = baseDeadline.plusDays(offset.toLong()).toString(),
+                )
+            }
+            viewModel.saveForBeds(
+                bedSchedules = schedules,
+                activityType = selectedActivityType!!,
+                targetCount = targetCount,
+                notes = notesOrNull,
+            )
+        } else {
+            viewModel.save(
+                speciesId = if (isBedActivity) null else selectedSpecies?.id,
+                bedId = if (isBedActivity) selectedBed?.id else null,
+                activityType = selectedActivityType!!,
+                earliestDate = earliestDate?.toString(),
+                deadline = deadline?.toString(),
+                targetCount = targetCount,
+                notes = notesOrNull,
+            )
+        }
+    }
 
     FaltetScreenScaffold(
         mastheadLeft = "",
@@ -346,49 +400,7 @@ fun TaskFormScreen(
         bottomBar = {
             FaltetFormSubmitBar(
                 label = if (isEdit) "Spara" else "Skapa",
-                onClick = {
-                    // Bed tasks don't have a meaningful target count — the
-                    // task is "do this to the bed", not "do it N times" — so
-                    // we send 1 (the backend column requires ≥1).
-                    val targetCount = if (isBedActivity) 1
-                    else targetCountText.toIntOrNull()?.coerceAtLeast(1) ?: 1
-                    val notesOrNull = notes.ifBlank { null }
-                    if (isBedActivity && bedFamily.isNotEmpty()) {
-                        // Order siblings by name and compute a deadline per
-                        // bed: when stagger is on, beds[0..N-1] keep the
-                        // base deadline, beds[N..2N-1] get +D days, etc.
-                        // The earliest date is offset by the same amount so
-                        // each batch becomes available together.
-                        val orderedBeds = bedFamily.filter { it.id in siblingBedIds }
-                        val perBatch = staggerBedsPerBatchText.toIntOrNull()?.coerceAtLeast(1) ?: 1
-                        val daysBetween = staggerDaysBetweenText.toIntOrNull()?.coerceAtLeast(0) ?: 0
-                        val baseDeadline = deadline!!
-                        val schedules = orderedBeds.mapIndexed { index, bed ->
-                            val offset = if (staggerEnabled) (index / perBatch) * daysBetween else 0
-                            BedSchedule(
-                                bedId = bed.id,
-                                earliestDate = earliestDate?.plusDays(offset.toLong())?.toString(),
-                                deadline = baseDeadline.plusDays(offset.toLong()).toString(),
-                            )
-                        }
-                        viewModel.saveForBeds(
-                            bedSchedules = schedules,
-                            activityType = selectedActivityType!!,
-                            targetCount = targetCount,
-                            notes = notesOrNull,
-                        )
-                    } else {
-                        viewModel.save(
-                            speciesId = if (isBedActivity) null else selectedSpecies?.id,
-                            bedId = if (isBedActivity) selectedBed?.id else null,
-                            activityType = selectedActivityType!!,
-                            earliestDate = earliestDate?.toString(),
-                            deadline = deadline!!.toString(),
-                            targetCount = targetCount,
-                            notes = notesOrNull,
-                        )
-                    }
-                },
+                onClick = ::submit,
                 enabled = canSubmit,
                 submitting = uiState.isLoading,
             )
@@ -416,53 +428,55 @@ fun TaskFormScreen(
                         required = true,
                     )
                 }
-                if (isBedActivity) {
-                    item {
-                        FaltetDropdown(
-                            label = "Bädd",
-                            options = uiState.beds,
-                            selected = selectedBed,
-                            onSelectedChange = { selectedBed = it },
-                            labelFor = { "${it.gardenName} · ${it.name}" },
-                            searchable = true,
-                            required = true,
-                        )
-                    }
-                    if (bedFamily.isNotEmpty()) {
+                if (!isTodoActivity) {
+                    if (isBedActivity) {
                         item {
-                            val familyByBed = bedFamily.associateBy { it.id }
-                            FaltetChecklistGroup(
-                                label = "Schemalägg även för",
-                                options = bedFamily,
-                                selected = siblingBedIds.mapNotNull { familyByBed[it] }.toSet(),
-                                onSelectedChange = { picks -> siblingBedIds = picks.map { it.id }.toSet() },
-                                labelFor = { it.name },
-                                selectAllEnabled = true,
+                            FaltetDropdown(
+                                label = "Bädd",
+                                options = uiState.beds,
+                                selected = selectedBed,
+                                onSelectedChange = { selectedBed = it },
+                                labelFor = { "${it.gardenName} · ${it.name}" },
+                                searchable = true,
                                 required = true,
                             )
                         }
+                        if (bedFamily.isNotEmpty()) {
+                            item {
+                                val familyByBed = bedFamily.associateBy { it.id }
+                                FaltetChecklistGroup(
+                                    label = "Schemalägg även för",
+                                    options = bedFamily,
+                                    selected = siblingBedIds.mapNotNull { familyByBed[it] }.toSet(),
+                                    onSelectedChange = { picks -> siblingBedIds = picks.map { it.id }.toSet() },
+                                    labelFor = { it.name },
+                                    selectAllEnabled = true,
+                                    required = true,
+                                )
+                            }
+                            item {
+                                StaggerOption(
+                                    enabled = staggerEnabled,
+                                    onEnabledChange = { staggerEnabled = it },
+                                    bedsPerBatchText = staggerBedsPerBatchText,
+                                    onBedsPerBatchChange = { staggerBedsPerBatchText = it },
+                                    daysBetweenText = staggerDaysBetweenText,
+                                    onDaysBetweenChange = { staggerDaysBetweenText = it },
+                                )
+                            }
+                        }
+                    } else {
                         item {
-                            StaggerOption(
-                                enabled = staggerEnabled,
-                                onEnabledChange = { staggerEnabled = it },
-                                bedsPerBatchText = staggerBedsPerBatchText,
-                                onBedsPerBatchChange = { staggerBedsPerBatchText = it },
-                                daysBetweenText = staggerDaysBetweenText,
-                                onDaysBetweenChange = { staggerDaysBetweenText = it },
+                            FaltetDropdown(
+                                label = "Art",
+                                options = uiState.species,
+                                selected = selectedSpecies,
+                                onSelectedChange = { selectedSpecies = it },
+                                labelFor = { speciesDisplayName(it) },
+                                searchable = true,
+                                required = true,
                             )
                         }
-                    }
-                } else {
-                    item {
-                        FaltetDropdown(
-                            label = "Art",
-                            options = uiState.species,
-                            selected = selectedSpecies,
-                            onSelectedChange = { selectedSpecies = it },
-                            labelFor = { speciesDisplayName(it) },
-                            searchable = true,
-                            required = true,
-                        )
                     }
                 }
                 item {
@@ -474,13 +488,13 @@ fun TaskFormScreen(
                 }
                 item {
                     FaltetDatePicker(
-                        label = "Deadline",
+                        label = if (isTodoActivity) "Deadline (valfri)" else "Deadline",
                         value = deadline,
                         onValueChange = { deadline = it },
-                        required = true,
+                        required = !isTodoActivity,
                     )
                 }
-                if (!isBedActivity) {
+                if (!isBedActivity && !isTodoActivity) {
                     item {
                         Field(
                             label = "Målantal (valfri)",
@@ -492,7 +506,7 @@ fun TaskFormScreen(
                 }
                 item {
                     Field(
-                        label = "Anteckningar (valfri)",
+                        label = if (isTodoActivity) "Beskrivning" else "Anteckningar (valfri)",
                         value = notes,
                         onValueChange = { notes = it },
                     )
