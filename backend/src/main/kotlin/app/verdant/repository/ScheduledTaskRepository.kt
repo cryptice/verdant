@@ -63,7 +63,8 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
                 ps.setString(4, task.activityType)
                 if (task.earliestDate != null) ps.setDate(5, Date.valueOf(task.earliestDate))
                 else ps.setNull(5, java.sql.Types.DATE)
-                ps.setDate(6, Date.valueOf(task.deadline))
+                if (task.deadline != null) ps.setDate(6, Date.valueOf(task.deadline))
+                else ps.setNull(6, java.sql.Types.DATE)
                 ps.setInt(7, task.targetCount)
                 ps.setInt(8, task.remainingCount)
                 ps.setString(9, task.status.name)
@@ -92,7 +93,8 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
                 ps.setString(2, task.activityType)
                 if (task.earliestDate != null) ps.setDate(3, Date.valueOf(task.earliestDate))
                 else ps.setNull(3, java.sql.Types.DATE)
-                ps.setDate(4, Date.valueOf(task.deadline))
+                if (task.deadline != null) ps.setDate(4, Date.valueOf(task.deadline))
+                else ps.setNull(4, java.sql.Types.DATE)
                 ps.setInt(5, task.targetCount)
                 ps.setInt(6, task.remainingCount)
                 ps.setString(7, task.status.name)
@@ -199,7 +201,7 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
         bedId = getObject("bed_id") as? Long,
         activityType = getString("activity_type"),
         earliestDate = getDate("earliest_date")?.toLocalDate(),
-        deadline = getDate("deadline").toLocalDate(),
+        deadline = getDate("deadline")?.toLocalDate(),
         targetCount = getInt("target_count"),
         remainingCount = getInt("remaining_count"),
         status = ScheduledTaskStatus.valueOf(getString("status")),

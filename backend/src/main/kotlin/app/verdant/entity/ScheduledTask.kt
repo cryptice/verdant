@@ -10,7 +10,7 @@ data class ScheduledTask(
     val bedId: Long? = null,
     val activityType: String,
     val earliestDate: LocalDate? = null,
-    val deadline: LocalDate,
+    val deadline: LocalDate? = null,
     val targetCount: Int,
     val remainingCount: Int,
     val status: ScheduledTaskStatus = ScheduledTaskStatus.PENDING,

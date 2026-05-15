@@ -2,7 +2,6 @@ package app.verdant.dto
 
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import java.time.Instant
 import java.time.LocalDate
@@ -16,7 +15,7 @@ data class ScheduledTaskResponse(
     val gardenName: String?,
     val activityType: String,
     val earliestDate: LocalDate?,
-    val deadline: LocalDate,
+    val deadline: LocalDate?,
     val targetCount: Int,
     val remainingCount: Int,
     val status: String,
@@ -47,10 +46,8 @@ data class CreateScheduledTaskRequest(
     @field:NotBlank @field:Size(max = 255)
     val activityType: String,
     val earliestDate: LocalDate? = null,
-    @field:NotNull
-    val deadline: LocalDate,
-    @field:Min(1)
-    val targetCount: Int,
+    val deadline: LocalDate? = null,
+    val targetCount: Int? = null,
     @field:Size(max = 2000)
     val notes: String? = null,
     val seasonId: Long? = null,
