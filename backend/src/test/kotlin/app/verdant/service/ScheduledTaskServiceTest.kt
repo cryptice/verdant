@@ -299,4 +299,32 @@ class ScheduledTaskServiceTest {
             service.completePartially(taskId = 99L, speciesId = speciesId, processedCount = 1, orgId = orgId)
         }
     }
+
+    // ── createTask: non-TODO must have deadline and targetCount ─────────────
+
+    @Test
+    fun `createTask without deadline for non-TODO is rejected`() {
+        val request = CreateScheduledTaskRequest(
+            speciesId = speciesId,
+            activityType = "SOW",
+            deadline = null,
+            targetCount = 10,
+        )
+        whenever(speciesRepository.findById(speciesId)).thenReturn(makeSpecies(speciesId, "Zinnia"))
+
+        assertThrows<BadRequestException> { service.createTask(request, orgId) }
+    }
+
+    @Test
+    fun `createTask without targetCount for non-TODO is rejected`() {
+        val request = CreateScheduledTaskRequest(
+            speciesId = speciesId,
+            activityType = "SOW",
+            deadline = deadline,
+            targetCount = null,
+        )
+        whenever(speciesRepository.findById(speciesId)).thenReturn(makeSpecies(speciesId, "Zinnia"))
+
+        assertThrows<BadRequestException> { service.createTask(request, orgId) }
+    }
 }

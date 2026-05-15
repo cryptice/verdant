@@ -39,6 +39,14 @@ class ScheduledTaskService(
     }
 
     fun createTask(request: CreateScheduledTaskRequest, orgId: Long): ScheduledTaskResponse {
+        // Non-TODO tasks must declare deadline and target_count; the DTO
+        // makes them nullable so the TODO branch can omit them.
+        if (request.activityType != TODO_ACTIVITY_TYPE) {
+            if (request.deadline == null) throw BadRequestException("deadline is required")
+            if (request.targetCount == null || request.targetCount < 1)
+                throw BadRequestException("targetCount must be >= 1")
+        }
+
         // Bed-scoped maintenance tasks (WATER, FERTILIZE, WEED) don't carry species.
         if (request.bedId != null) {
             if (request.activityType !in BED_ACTIVITY_TYPES)
@@ -117,6 +125,7 @@ class ScheduledTaskService(
     }
 
     private val BED_ACTIVITY_TYPES = setOf("WATER", "FERTILIZE", "WEED")
+    private val TODO_ACTIVITY_TYPE = "TODO"
 
     fun updateTask(taskId: Long, request: UpdateScheduledTaskRequest, orgId: Long): ScheduledTaskResponse {
         val task = checkOwnership(taskId, orgId)
