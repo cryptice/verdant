@@ -55,8 +55,8 @@ class OrganizationResource(
 
     @GET
     @Path("/lookup")
-    fun lookup(@QueryParam("name") name: String): Response {
-        if (name.isBlank()) throw BadRequestException("name is required")
+    fun lookup(@QueryParam("name") name: String?): Response {
+        if (name.isNullOrBlank()) throw BadRequestException("name is required")
         val org = organizationService.lookupByName(name) ?: throw NotFoundException("Organization not found")
         return Response.ok(org).build()
     }
