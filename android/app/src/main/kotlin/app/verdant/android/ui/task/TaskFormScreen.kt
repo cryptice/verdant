@@ -422,7 +422,7 @@ fun TaskFormScreen(
                         label = "Aktivitet",
                         options = ACTIVITY_TYPES,
                         selected = selectedActivityType,
-                        onSelectedChange = { selectedActivityType = it },
+                        onSelectedChange = { if (!isEdit) selectedActivityType = it },
                         labelFor = { activityTypeLabelSvStr(it) },
                         searchable = false,
                         required = true,
