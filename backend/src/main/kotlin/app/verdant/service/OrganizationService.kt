@@ -2,7 +2,9 @@ package app.verdant.service
 
 import app.verdant.dto.*
 import app.verdant.entity.InviteStatus
+import app.verdant.entity.JoinRequestStatus
 import app.verdant.entity.OrgInvite
+import app.verdant.entity.OrgJoinRequest
 import app.verdant.entity.OrgMember
 import app.verdant.entity.OrgRole
 import app.verdant.entity.Organization
@@ -30,6 +32,29 @@ class OrganizationService(
     fun lookupByName(name: String): OrgLookupResponse? {
         val org = organizationRepository.findByNameIgnoreCase(name) ?: return null
         return OrgLookupResponse(id = org.id!!, name = org.name, emoji = org.emoji)
+    }
+
+    @Transactional
+    fun requestJoin(orgId: Long, userId: Long): OrgJoinRequestResponse {
+        val org = organizationRepository.findById(orgId) ?: throw NotFoundException("Organization not found")
+        if (orgMemberRepository.findByOrgAndUser(orgId, userId) != null) {
+            throw BadRequestException("Already a member of this organization")
+        }
+        val user = userRepository.findById(userId) ?: throw NotFoundException("User not found")
+        val existing = orgJoinRequestRepository.findByOrgAndUser(orgId, userId)
+        val request = when (existing?.status) {
+            JoinRequestStatus.PENDING -> existing
+            JoinRequestStatus.DECLINED, JoinRequestStatus.ACCEPTED -> {
+                orgJoinRequestRepository.delete(existing.id!!)
+                orgJoinRequestRepository.persist(
+                    OrgJoinRequest(orgId = orgId, userId = userId, status = JoinRequestStatus.PENDING)
+                )
+            }
+            null -> orgJoinRequestRepository.persist(
+                OrgJoinRequest(orgId = orgId, userId = userId, status = JoinRequestStatus.PENDING)
+            )
+        }
+        return request.toResponse(orgName = org.name, userEmail = user.email, userDisplayName = user.displayName)
     }
 
     fun getOrganizationsForUser(userId: Long): List<OrganizationResponse> {
@@ -192,3 +217,15 @@ fun OrgInvite.toResponse(orgName: String, invitedByName: String) = OrgInviteResp
     status = status,
     createdAt = createdAt,
 )
+
+fun OrgJoinRequest.toResponse(orgName: String, userEmail: String, userDisplayName: String) =
+    OrgJoinRequestResponse(
+        id = id!!,
+        orgId = orgId,
+        orgName = orgName,
+        userId = userId,
+        userEmail = userEmail,
+        userDisplayName = userDisplayName,
+        status = status,
+        createdAt = createdAt,
+    )
