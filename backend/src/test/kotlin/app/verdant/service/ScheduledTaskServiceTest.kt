@@ -340,4 +340,78 @@ class ScheduledTaskServiceTest {
 
         assertThrows<BadRequestException> { service.createTask(request, orgId) }
     }
+
+    // ── createTask: TODO branch ─────────────────────────────────────────────
+
+    @Test
+    fun `createTask creates a TODO with only a description`() {
+        val request = CreateScheduledTaskRequest(
+            activityType = "TODO",
+            notes = "Beställ nya pinnar",
+        )
+        val persisted = ScheduledTask(
+            id = 42L,
+            orgId = orgId,
+            speciesId = null,
+            bedId = null,
+            activityType = "TODO",
+            earliestDate = null,
+            deadline = null,
+            targetCount = 1,
+            remainingCount = 1,
+            notes = "Beställ nya pinnar",
+            createdAt = Instant.now(),
+            updatedAt = Instant.now(),
+        )
+        whenever(taskRepository.persist(any())).thenReturn(persisted)
+        stubBuildResponses(persisted, emptyList())
+
+        val result = service.createTask(request, orgId)
+
+        verify(taskRepository).persist(check {
+            assertEquals("TODO", it.activityType)
+            assertNull(it.speciesId)
+            assertNull(it.bedId)
+            assertNull(it.deadline)
+            assertEquals(1, it.targetCount)
+            assertEquals(1, it.remainingCount)
+            assertEquals("Beställ nya pinnar", it.notes)
+        })
+        assertEquals("TODO", result.activityType)
+        assertNull(result.deadline)
+        assertEquals(1, result.targetCount)
+        verify(taskRepository, never()).setAcceptableSpecies(any(), any())
+    }
+
+    @Test
+    fun `createTask TODO with blank notes is rejected`() {
+        val request = CreateScheduledTaskRequest(activityType = "TODO", notes = "   ")
+        assertThrows<BadRequestException> { service.createTask(request, orgId) }
+    }
+
+    @Test
+    fun `createTask TODO with null notes is rejected`() {
+        val request = CreateScheduledTaskRequest(activityType = "TODO", notes = null)
+        assertThrows<BadRequestException> { service.createTask(request, orgId) }
+    }
+
+    @Test
+    fun `createTask TODO with speciesId is rejected`() {
+        val request = CreateScheduledTaskRequest(
+            activityType = "TODO",
+            speciesId = speciesId,
+            notes = "Boka tid",
+        )
+        assertThrows<BadRequestException> { service.createTask(request, orgId) }
+    }
+
+    @Test
+    fun `createTask TODO with bedId is rejected`() {
+        val request = CreateScheduledTaskRequest(
+            activityType = "TODO",
+            bedId = 7L,
+            notes = "Boka tid",
+        )
+        assertThrows<BadRequestException> { service.createTask(request, orgId) }
+    }
 }

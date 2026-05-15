@@ -39,6 +39,33 @@ class ScheduledTaskService(
     }
 
     fun createTask(request: CreateScheduledTaskRequest, orgId: Long): ScheduledTaskResponse {
+        if (request.activityType == TODO_ACTIVITY_TYPE) {
+            if (request.speciesId != null || request.speciesIds != null ||
+                request.speciesGroupId != null || request.bedId != null) {
+                throw BadRequestException("TODO tasks cannot reference species, group, or bed")
+            }
+            if (request.notes.isNullOrBlank()) {
+                throw BadRequestException("TODO tasks require a description in notes")
+            }
+            val task = taskRepository.persist(
+                ScheduledTask(
+                    orgId = orgId,
+                    speciesId = null,
+                    bedId = null,
+                    activityType = TODO_ACTIVITY_TYPE,
+                    earliestDate = request.earliestDate,
+                    deadline = request.deadline,
+                    targetCount = 1,
+                    remainingCount = 1,
+                    notes = request.notes,
+                    seasonId = request.seasonId,
+                    successionScheduleId = null,
+                    originGroupId = null,
+                )
+            )
+            return buildResponses(listOf(task)).first()
+        }
+
         // Non-TODO tasks must declare deadline and target_count; the DTO
         // makes them nullable so the TODO branch can omit them.
         if (request.activityType != TODO_ACTIVITY_TYPE) {
