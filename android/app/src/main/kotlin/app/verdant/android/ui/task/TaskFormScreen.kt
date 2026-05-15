@@ -323,7 +323,7 @@ fun TaskFormScreen(
             selectedSpecies = existing.speciesId?.let { id -> uiState.species.find { it.id == id } }
             selectedBed = existing.bedId?.let { id -> uiState.beds.find { it.id == id } }
             earliestDate = existing.earliestDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
-            deadline = runCatching { LocalDate.parse(existing.deadline) }.getOrNull()
+            deadline = existing.deadline?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
             targetCountText = existing.targetCount.toString()
             notes = existing.notes ?: ""
             prefilled = true

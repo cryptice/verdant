@@ -87,7 +87,7 @@ fun TaskRow(
         else -> task.originGroupName ?: task.speciesName ?: "Uppgift"
     }
     val meta = buildString {
-        append(formatTaskDeadline(task.deadline))
+        task.deadline?.let { append(formatTaskDeadline(it)) }
         if (isBedTask) {
             task.bedName?.takeIf { it.isNotBlank() }?.let {
                 append(" · ")

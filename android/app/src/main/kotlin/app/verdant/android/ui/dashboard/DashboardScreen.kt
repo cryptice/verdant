@@ -185,7 +185,7 @@ class DashboardViewModel @Inject constructor(
                         val earliest = it.earliestDate?.let { d -> runCatching { java.time.LocalDate.parse(d) }.getOrNull() }
                         earliest == null || !earliest.isAfter(today)
                     }
-                    .sortedBy { it.deadline }
+                    .sortedBy { it.deadline ?: "9999-12-31" }
                 _uiState.value = DashboardState(
                     isLoading = false,
                     dashboard = dashboard,

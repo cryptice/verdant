@@ -158,7 +158,7 @@ private fun groupTasks(tasks: List<ScheduledTaskResponse>): List<TaskGroup> {
             upcoming.add(task)
             continue
         }
-        val date = runCatching { LocalDate.parse(task.deadline) }.getOrNull()
+        val date = task.deadline?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
         when {
             date == null -> later.add(task)
             date.isBefore(today) -> overdue.add(task)
@@ -175,7 +175,7 @@ private fun groupTasks(tasks: List<ScheduledTaskResponse>): List<TaskGroup> {
         TaskGroup("I morgon", tomorrowList),
         TaskGroup("Denna vecka", thisWeek),
         TaskGroup("Senare", later),
-        TaskGroup("Kommande", upcoming.sortedBy { it.earliestDate ?: it.deadline }),
+        TaskGroup("Kommande", upcoming.sortedBy { it.earliestDate ?: it.deadline ?: "9999-12-31" }),
     ).filter { it.tasks.isNotEmpty() }
 }
 
