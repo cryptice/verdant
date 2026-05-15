@@ -53,6 +53,50 @@ class OrganizationResource(
         return Response.status(Response.Status.CREATED).entity(invite).build()
     }
 
+    @GET
+    @Path("/lookup")
+    fun lookup(@QueryParam("name") name: String): Response {
+        if (name.isBlank()) throw BadRequestException("name is required")
+        val org = organizationService.lookupByName(name) ?: throw NotFoundException("Organization not found")
+        return Response.ok(org).build()
+    }
+
+    @POST
+    @Path("/{id}/join-requests")
+    fun requestJoin(@PathParam("id") id: Long): Response {
+        val req = organizationService.requestJoin(id, userId())
+        return Response.status(Response.Status.CREATED).entity(req).build()
+    }
+
+    @GET
+    @Path("/{id}/join-requests")
+    fun listJoinRequests(@PathParam("id") id: Long) =
+        organizationService.getPendingJoinRequests(id, userId())
+
+    @POST
+    @Path("/{id}/join-requests/{reqId}/accept")
+    fun acceptJoinRequest(@PathParam("id") id: Long, @PathParam("reqId") reqId: Long) =
+        organizationService.acceptJoinRequest(id, reqId, userId())
+
+    @POST
+    @Path("/{id}/join-requests/{reqId}/decline")
+    fun declineJoinRequest(@PathParam("id") id: Long, @PathParam("reqId") reqId: Long): Response {
+        organizationService.declineJoinRequest(id, reqId, userId())
+        return Response.noContent().build()
+    }
+
+    @GET
+    @Path("/{id}/invites")
+    fun listInvites(@PathParam("id") id: Long) =
+        organizationService.getPendingInvitesForOrg(id, userId())
+
+    @DELETE
+    @Path("/{id}/invites/{inviteId}")
+    fun cancelInvite(@PathParam("id") id: Long, @PathParam("inviteId") inviteId: Long): Response {
+        organizationService.cancelInvite(id, inviteId, userId())
+        return Response.noContent().build()
+    }
+
     @DELETE
     @Path("/{id}/members/{userId}")
     fun removeMember(@PathParam("id") id: Long, @PathParam("userId") targetUserId: Long): Response {
