@@ -2,6 +2,7 @@ package app.verdant.dto
 
 import app.verdant.entity.OrgRole
 import app.verdant.entity.InviteStatus
+import app.verdant.entity.JoinRequestStatus
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import java.time.Instant
@@ -50,5 +51,22 @@ data class OrgInviteResponse(
     val email: String,
     val invitedByName: String,
     val status: InviteStatus,
+    val createdAt: Instant,
+)
+
+data class OrgLookupResponse(
+    val id: Long,
+    val name: String,
+    val emoji: String?,
+)
+
+data class OrgJoinRequestResponse(
+    val id: Long,
+    val orgId: Long,
+    val orgName: String,
+    val userId: Long,
+    val userEmail: String,
+    val userDisplayName: String,
+    val status: JoinRequestStatus,
     val createdAt: Instant,
 )

@@ -30,3 +30,13 @@ data class OrgInvite(
     val status: InviteStatus = InviteStatus.PENDING,
     val createdAt: Instant = Instant.now(),
 )
+
+enum class JoinRequestStatus { PENDING, ACCEPTED, DECLINED }
+
+data class OrgJoinRequest(
+    val id: Long? = null,
+    val orgId: Long,
+    val userId: Long,
+    val status: JoinRequestStatus = JoinRequestStatus.PENDING,
+    val createdAt: Instant = Instant.now(),
+)
