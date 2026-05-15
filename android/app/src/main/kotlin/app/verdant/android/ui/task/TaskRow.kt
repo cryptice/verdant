@@ -54,6 +54,7 @@ fun taskActivityLabelSv(activityType: String): String = when (activityType) {
     "WATER" -> "Vattna"
     "WEED" -> "Rensa ogräs"
     "FERTILIZE" -> "Gödsla"
+    "TODO" -> "Övrigt"
     else -> activityType
 }
 
@@ -80,23 +81,27 @@ fun TaskRow(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isBedTask = task.bedId != null
+    val isTodo = task.activityType == "TODO"
+    val isBedTask = !isTodo && task.bedId != null
     val dotColor = taskDotColor(task.activityType)
     val title = when {
+        isTodo -> task.notes?.takeIf { it.isNotBlank() } ?: "Övrigt"
         isBedTask -> taskActivityLabelSv(task.activityType)
         else -> task.originGroupName ?: task.speciesName ?: "Uppgift"
     }
     val meta = buildString {
         task.deadline?.let { append(formatTaskDeadline(it)) }
-        if (isBedTask) {
+        if (isTodo) {
+            // No species/bed suffix for TODOs.
+        } else if (isBedTask) {
             task.bedName?.takeIf { it.isNotBlank() }?.let {
-                append(" · ")
+                if (isNotEmpty()) append(" · ")
                 append(it)
             }
         } else {
             val species = task.speciesName
             if (species != null && species != title) {
-                append(" · ")
+                if (isNotEmpty()) append(" · ")
                 append(species)
             }
         }
@@ -106,7 +111,7 @@ fun TaskRow(
         title = title,
         meta = meta,
         leading = {
-            if (isBedTask) {
+            if (isBedTask || isTodo) {
                 Checkbox(
                     checked = isCompleting,
                     onCheckedChange = { if (!isCompleting) onCompleteToggle() },
@@ -124,7 +129,7 @@ fun TaskRow(
                 )
             }
         },
-        stat = if (!isBedTask) {
+        stat = if (!isBedTask && !isTodo) {
             {
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
@@ -166,11 +171,13 @@ fun TaskDeleteDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val isTodo = task.activityType == "TODO"
     val title = when {
+        isTodo -> task.notes?.takeIf { it.isNotBlank() } ?: "Övrigt"
         task.bedId != null -> taskActivityLabelSv(task.activityType)
         else -> task.originGroupName ?: task.speciesName ?: "Uppgift"
     }
-    val target = taskTargetLabel(task)
+    val target = if (isTodo) null else taskTargetLabel(task)
     val label = if (target != null && target != title) "$title · $target" else title
     AlertDialog(
         onDismissRequest = onDismiss,

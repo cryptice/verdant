@@ -74,6 +74,32 @@ class TaskListViewModelTest {
         assertEquals("boom", state.error)
     }
 
+    @Test
+    fun `TODO task uses notes as title and has no species or bed`() = runTest {
+        val tasks = listOf(
+            ScheduledTaskResponse(
+                id = 99,
+                speciesId = null,
+                speciesName = null,
+                activityType = "TODO",
+                deadline = null,
+                targetCount = 1,
+                remainingCount = 1,
+                status = "PENDING",
+                notes = "Beställ nya pinnar",
+                createdAt = "2026-04-01T00:00:00Z",
+                updatedAt = "2026-04-01T00:00:00Z",
+            ),
+        )
+        val vm = TaskListViewModel(FakeTaskRepository(tasks))
+        advanceUntilIdle()
+
+        val loaded = vm.uiState.value.tasks.single()
+        assertEquals("TODO", loaded.activityType)
+        assertNull(loaded.deadline)
+        assertEquals("Beställ nya pinnar", loaded.notes)
+    }
+
     private fun sampleTask(id: Long, deadline: String) = ScheduledTaskResponse(
         id = id,
         speciesId = 100,
