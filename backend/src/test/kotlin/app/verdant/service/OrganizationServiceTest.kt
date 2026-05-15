@@ -2,6 +2,7 @@ package app.verdant.service
 
 import app.verdant.dto.CreateOrganizationRequest
 import app.verdant.entity.JoinRequestStatus
+import app.verdant.entity.OrgInvite
 import app.verdant.entity.OrgJoinRequest
 import app.verdant.entity.OrgMember
 import app.verdant.entity.OrgRole
@@ -240,5 +241,59 @@ class OrganizationServiceTest {
 
         verify(joinRequestRepo).updateStatus(10L, JoinRequestStatus.DECLINED)
         verify(memberRepo, never()).persist(any())
+    }
+
+    // ── owner: list and cancel email invites ────────────────────────────────
+
+    @Test
+    fun `getPendingInvitesForOrg returns invites for owner`() {
+        val orgId = 1L; val ownerId = 7L
+        val org = Organization(id = orgId, name = "O")
+        val owner = User(id = ownerId, email = "owner@x.com", displayName = "Owner")
+        val invite = OrgInvite(id = 11L, orgId = orgId, email = "invitee@example.com", invitedBy = ownerId)
+        whenever(memberRepo.findByOrgAndUser(orgId, ownerId))
+            .thenReturn(OrgMember(id = 1L, orgId = orgId, userId = ownerId, role = OrgRole.OWNER))
+        whenever(inviteRepo.findPendingByOrgId(orgId)).thenReturn(listOf(invite))
+        whenever(orgRepo.findById(orgId)).thenReturn(org)
+        whenever(userRepo.findById(ownerId)).thenReturn(owner)
+
+        val result = service.getPendingInvitesForOrg(orgId, ownerId)
+
+        assertEquals(1, result.size)
+        assertEquals("invitee@example.com", result[0].email)
+        assertEquals("Owner", result[0].invitedByName)
+    }
+
+    @Test
+    fun `getPendingInvitesForOrg rejects non-owners`() {
+        val orgId = 1L; val memberId = 7L
+        whenever(memberRepo.findByOrgAndUser(orgId, memberId))
+            .thenReturn(OrgMember(id = 1L, orgId = orgId, userId = memberId, role = OrgRole.MEMBER))
+
+        assertThrows<ForbiddenException> { service.getPendingInvitesForOrg(orgId, memberId) }
+    }
+
+    @Test
+    fun `cancelInvite deletes the invite for owner`() {
+        val orgId = 1L; val ownerId = 7L
+        val invite = OrgInvite(id = 11L, orgId = orgId, email = "e@x.com", invitedBy = ownerId)
+        whenever(memberRepo.findByOrgAndUser(orgId, ownerId))
+            .thenReturn(OrgMember(id = 1L, orgId = orgId, userId = ownerId, role = OrgRole.OWNER))
+        whenever(inviteRepo.findById(11L)).thenReturn(invite)
+
+        service.cancelInvite(orgId, 11L, ownerId)
+
+        verify(inviteRepo).delete(11L)
+    }
+
+    @Test
+    fun `cancelInvite rejects cross-org invite delete`() {
+        val orgId = 1L; val ownerId = 7L
+        val invite = OrgInvite(id = 11L, orgId = 99L, email = "e@x.com", invitedBy = ownerId)
+        whenever(memberRepo.findByOrgAndUser(orgId, ownerId))
+            .thenReturn(OrgMember(id = 1L, orgId = orgId, userId = ownerId, role = OrgRole.OWNER))
+        whenever(inviteRepo.findById(11L)).thenReturn(invite)
+
+        assertThrows<NotFoundException> { service.cancelInvite(orgId, 11L, ownerId) }
     }
 }

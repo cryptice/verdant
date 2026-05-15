@@ -93,6 +93,24 @@ class OrganizationService(
         orgJoinRequestRepository.updateStatus(requestId, JoinRequestStatus.DECLINED)
     }
 
+    fun getPendingInvitesForOrg(orgId: Long, userId: Long): List<OrgInviteResponse> {
+        checkOwner(orgId, userId)
+        val invites = orgInviteRepository.findPendingByOrgId(orgId)
+        if (invites.isEmpty()) return emptyList()
+        val org = organizationRepository.findById(orgId) ?: throw NotFoundException("Organization not found")
+        return invites.mapNotNull { invite ->
+            val inviter = userRepository.findById(invite.invitedBy) ?: return@mapNotNull null
+            invite.toResponse(orgName = org.name, invitedByName = inviter.displayName)
+        }
+    }
+
+    fun cancelInvite(orgId: Long, inviteId: Long, userId: Long) {
+        checkOwner(orgId, userId)
+        val invite = orgInviteRepository.findById(inviteId) ?: throw NotFoundException("Invite not found")
+        if (invite.orgId != orgId) throw NotFoundException("Invite not found")
+        orgInviteRepository.delete(inviteId)
+    }
+
     fun getOrganizationsForUser(userId: Long): List<OrganizationResponse> {
         val memberships = orgMemberRepository.findByUserId(userId)
         val orgIds = memberships.map { it.orgId }.toSet()
