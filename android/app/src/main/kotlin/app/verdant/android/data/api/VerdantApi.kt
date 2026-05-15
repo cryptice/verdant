@@ -8,6 +8,58 @@ interface VerdantApi {
     @POST("api/auth/google")
     suspend fun googleAuth(@Body request: GoogleAuthRequest): AuthResponse
 
+    // ── Organizations ───────────────────────────────────────────────────────
+
+    @GET("api/organizations")
+    suspend fun listOrgs(): List<OrganizationResponse>
+
+    @POST("api/organizations")
+    suspend fun createOrg(@Body request: CreateOrganizationRequest): OrganizationResponse
+
+    @PUT("api/organizations/{id}")
+    suspend fun updateOrg(@Path("id") orgId: Long, @Body request: UpdateOrganizationRequest): OrganizationResponse
+
+    @GET("api/organizations/lookup")
+    suspend fun lookupOrg(@Query("name") name: String): OrgLookupResponse
+
+    @GET("api/organizations/{id}/members")
+    suspend fun listMembers(@Path("id") orgId: Long): List<OrgMemberResponse>
+
+    @DELETE("api/organizations/{id}/members/{userId}")
+    suspend fun removeMember(@Path("id") orgId: Long, @Path("userId") userId: Long): Response<Unit>
+
+    @POST("api/organizations/{id}/invite")
+    suspend fun inviteMember(@Path("id") orgId: Long, @Body request: InviteMemberRequest): OrgInviteResponse
+
+    @GET("api/organizations/{id}/invites")
+    suspend fun listOrgInvites(@Path("id") orgId: Long): List<OrgInviteResponse>
+
+    @DELETE("api/organizations/{id}/invites/{inviteId}")
+    suspend fun cancelInvite(@Path("id") orgId: Long, @Path("inviteId") inviteId: Long): Response<Unit>
+
+    @POST("api/organizations/{id}/join-requests")
+    suspend fun requestJoin(@Path("id") orgId: Long): OrgJoinRequestResponse
+
+    @GET("api/organizations/{id}/join-requests")
+    suspend fun listJoinRequests(@Path("id") orgId: Long): List<OrgJoinRequestResponse>
+
+    @POST("api/organizations/{id}/join-requests/{reqId}/accept")
+    suspend fun acceptJoinRequest(@Path("id") orgId: Long, @Path("reqId") reqId: Long): OrgJoinRequestResponse
+
+    @POST("api/organizations/{id}/join-requests/{reqId}/decline")
+    suspend fun declineJoinRequest(@Path("id") orgId: Long, @Path("reqId") reqId: Long): Response<Unit>
+
+    // ── Invites (current user) ──────────────────────────────────────────────
+
+    @GET("api/invites")
+    suspend fun listMyInvites(): List<OrgInviteResponse>
+
+    @POST("api/invites/{id}/accept")
+    suspend fun acceptInvite(@Path("id") inviteId: Long): OrganizationResponse
+
+    @POST("api/invites/{id}/decline")
+    suspend fun declineInvite(@Path("id") inviteId: Long): Response<Unit>
+
     @GET("api/dashboard")
     suspend fun getDashboard(): DashboardResponse
 
