@@ -16,6 +16,14 @@ class OrganizationRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    fun findByNameIgnoreCase(name: String): Organization? =
+        ds.connection.use { conn ->
+            conn.prepareStatement("SELECT * FROM organization WHERE LOWER(name) = LOWER(?) LIMIT 1").use { ps ->
+                ps.setString(1, name)
+                ps.executeQuery().use { rs -> if (rs.next()) rs.toOrganization() else null }
+            }
+        }
+
     fun listAll(): List<Organization> =
         ds.connection.use { conn ->
             conn.prepareStatement("SELECT * FROM organization ORDER BY name").use { ps ->

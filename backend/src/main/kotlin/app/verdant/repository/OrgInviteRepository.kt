@@ -19,6 +19,18 @@ class OrgInviteRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    fun findPendingByOrgId(orgId: Long): List<OrgInvite> =
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                "SELECT * FROM org_invite WHERE org_id = ? AND status = 'PENDING' ORDER BY id"
+            ).use { ps ->
+                ps.setLong(1, orgId)
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.toOrgInvite()) }
+                }
+            }
+        }
+
     fun findPendingByEmail(email: String): List<OrgInvite> =
         ds.connection.use { conn ->
             conn.prepareStatement("SELECT * FROM org_invite WHERE email = ? AND status = 'PENDING' ORDER BY id").use { ps ->
@@ -61,6 +73,16 @@ class OrgInviteRepository(private val ds: AgroalDataSource) {
             conn.prepareStatement("UPDATE org_invite SET status = ? WHERE id = ?").use { ps ->
                 ps.setString(1, status.name)
                 ps.setLong(2, id)
+                val rows = ps.executeUpdate()
+                if (rows == 0) throw jakarta.ws.rs.NotFoundException("Org invite not found")
+            }
+        }
+    }
+
+    fun delete(id: Long) {
+        ds.connection.use { conn ->
+            conn.prepareStatement("DELETE FROM org_invite WHERE id = ?").use { ps ->
+                ps.setLong(1, id)
                 val rows = ps.executeUpdate()
                 if (rows == 0) throw jakarta.ws.rs.NotFoundException("Org invite not found")
             }
