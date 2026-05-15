@@ -327,4 +327,17 @@ class ScheduledTaskServiceTest {
 
         assertThrows<BadRequestException> { service.createTask(request, orgId) }
     }
+
+    @Test
+    fun `createTask with non-positive targetCount for non-TODO is rejected`() {
+        val request = CreateScheduledTaskRequest(
+            speciesId = speciesId,
+            activityType = "SOW",
+            deadline = deadline,
+            targetCount = 0,
+        )
+        whenever(speciesRepository.findById(speciesId)).thenReturn(makeSpecies(speciesId, "Zinnia"))
+
+        assertThrows<BadRequestException> { service.createTask(request, orgId) }
+    }
 }
