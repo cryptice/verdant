@@ -1,6 +1,8 @@
 package app.verdant.android.di
 
 import app.verdant.android.data.repository.DefaultTaskRepository
+import app.verdant.android.data.repository.OrgRepository
+import app.verdant.android.data.repository.OrgRepositoryImpl
 import app.verdant.android.data.repository.TaskRepository
 import dagger.Binds
 import dagger.Module
@@ -19,4 +21,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindTaskRepository(impl: DefaultTaskRepository): TaskRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindOrgRepository(impl: OrgRepositoryImpl): OrgRepository
 }

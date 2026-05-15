@@ -40,6 +40,18 @@ class AuthRepository @Inject constructor(
         orgStore.clear()
     }
 
+    suspend fun listPendingInvites(): List<app.verdant.android.data.model.OrgInviteResponse> =
+        api.listMyInvites()
+
+    suspend fun acceptInvite(inviteId: Long) {
+        val org = api.acceptInvite(inviteId)
+        orgStore.saveOrgId(org.id)
+    }
+
+    suspend fun declineInvite(inviteId: Long) {
+        api.declineInvite(inviteId)
+    }
+
     private suspend fun saveFirstOrg(user: UserResponse) {
         user.organizations.firstOrNull()?.let { orgStore.saveOrgId(it.orgId) }
     }
