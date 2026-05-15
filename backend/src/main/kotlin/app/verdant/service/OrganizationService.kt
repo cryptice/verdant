@@ -7,6 +7,7 @@ import app.verdant.entity.OrgMember
 import app.verdant.entity.OrgRole
 import app.verdant.entity.Organization
 import app.verdant.repository.OrgInviteRepository
+import app.verdant.repository.OrgJoinRequestRepository
 import app.verdant.repository.OrgMemberRepository
 import app.verdant.repository.OrganizationRepository
 import app.verdant.repository.UserRepository
@@ -21,9 +22,15 @@ class OrganizationService(
     private val organizationRepository: OrganizationRepository,
     private val orgMemberRepository: OrgMemberRepository,
     private val orgInviteRepository: OrgInviteRepository,
+    private val orgJoinRequestRepository: OrgJoinRequestRepository,
     private val userRepository: UserRepository,
     private val supplyService: SupplyService,
 ) {
+
+    fun lookupByName(name: String): OrgLookupResponse? {
+        val org = organizationRepository.findByNameIgnoreCase(name) ?: return null
+        return OrgLookupResponse(id = org.id!!, name = org.name, emoji = org.emoji)
+    }
 
     fun getOrganizationsForUser(userId: Long): List<OrganizationResponse> {
         val memberships = orgMemberRepository.findByUserId(userId)
