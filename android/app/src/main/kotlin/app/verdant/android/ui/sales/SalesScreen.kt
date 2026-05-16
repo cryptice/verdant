@@ -203,6 +203,7 @@ fun SalesScreen(
                             error = uiState.ledgerError,
                             onSeasonSelected = { viewModel.selectSeason(it) },
                             onEntryClick = { /* dialog opens in Task 7 */ },
+                            onRetry = { viewModel.loadLedger() },
                         )
                     } else if (visibleLots.isEmpty()) {
                         FaltetEmptyState(
@@ -263,6 +264,7 @@ private fun LedgerTabContent(
     error: String?,
     onSeasonSelected: (Long?) -> Unit,
     onEntryClick: (SaleLedgerEntry) -> Unit,
+    onRetry: () -> Unit,
 ) {
     androidx.compose.foundation.layout.Column(modifier = Modifier.fillMaxSize()) {
         // Season chip
@@ -305,7 +307,7 @@ private fun LedgerTabContent(
             error != null && ledger.isEmpty() -> Box(
                 Modifier.weight(1f).fillMaxWidth(),
                 contentAlignment = Alignment.Center,
-            ) { ConnectionErrorState(onRetry = { /* parent re-fetches on chip change */ }) }
+            ) { ConnectionErrorState(onRetry = onRetry) }
             ledger.isEmpty() -> FaltetEmptyState(
                 headline = "Inga försäljningar",
                 subtitle = "Registrera en försäljning på en bukett, planta eller skörd för att se den här.",
