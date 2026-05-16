@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +41,7 @@ import app.verdant.android.data.repository.SeasonRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.plant.unitLabelSv
 import app.verdant.android.ui.faltet.BotanicalPlate
+import app.verdant.android.ui.faltet.FaltetDropdown
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetListRow
 import app.verdant.android.ui.faltet.FaltetLoadingState
@@ -147,10 +150,11 @@ fun SalesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var tabIndex by remember { mutableIntStateOf(0) }
-    val tabs = listOf(
+    val tabs: List<Pair<String?, String>> = listOf(
         SaleLotStatus.OFFERED to "Aktiva",
         SaleLotStatus.SOLD_OUT to "Sålda",
         SaleLotStatus.NOT_SOLD to "Ej sålda",
+        null to "Försäljningar",
     )
 
     androidx.lifecycle.compose.LifecycleResumeEffect(Unit) {
@@ -158,9 +162,17 @@ fun SalesScreen(
         onPauseOrDispose { }
     }
 
-    val visibleLots = remember(uiState.lots, tabIndex) {
-        uiState.lots.filter { it.status == tabs[tabIndex].first }
+    LaunchedEffect(tabIndex) {
+        if (tabs[tabIndex].first == null && uiState.ledger.isEmpty() && !uiState.ledgerLoading) {
+            viewModel.loadLedger()
+        }
     }
+
+    val visibleLots = remember(uiState.lots, tabIndex) {
+        val status = tabs[tabIndex].first ?: return@remember emptyList()
+        uiState.lots.filter { it.status == status }
+    }
+    val isLedgerTab = tabs[tabIndex].first == null
 
     FaltetScreenScaffold(
         mastheadLeft = "",
@@ -182,7 +194,17 @@ fun SalesScreen(
                             Tab(selected = tabIndex == i, onClick = { tabIndex = i }, text = { Text(label) })
                         }
                     }
-                    if (visibleLots.isEmpty()) {
+                    if (isLedgerTab) {
+                        LedgerTabContent(
+                            seasons = uiState.seasons,
+                            selectedSeasonId = uiState.selectedSeasonId,
+                            ledger = uiState.ledger,
+                            loading = uiState.ledgerLoading,
+                            error = uiState.ledgerError,
+                            onSeasonSelected = { viewModel.selectSeason(it) },
+                            onEntryClick = { /* dialog opens in Task 7 */ },
+                        )
+                    } else if (visibleLots.isEmpty()) {
                         FaltetEmptyState(
                             headline = when (tabs[tabIndex].first) {
                                 SaleLotStatus.OFFERED -> "Inga aktiva försäljningar"
@@ -231,6 +253,117 @@ private fun SaleLotRow(lot: SaleLotResponse, onClick: () -> Unit) {
         onClick = onClick,
     )
 }
+
+@Composable
+private fun LedgerTabContent(
+    seasons: List<SeasonResponse>,
+    selectedSeasonId: Long?,
+    ledger: List<SaleLedgerEntry>,
+    loading: Boolean,
+    error: String?,
+    onSeasonSelected: (Long?) -> Unit,
+    onEntryClick: (SaleLedgerEntry) -> Unit,
+) {
+    androidx.compose.foundation.layout.Column(modifier = Modifier.fillMaxSize()) {
+        // Season chip
+        Row(
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("Säsong:", fontSize = 12.sp, color = FaltetForest)
+            Spacer(Modifier.width(8.dp))
+            val seasonOptions: List<SeasonChoice> =
+                listOf(SeasonChoice.All) + seasons.map { SeasonChoice.Season(it) }
+            val selectedChoice: SeasonChoice = seasonOptions.firstOrNull {
+                it is SeasonChoice.Season && it.value.id == selectedSeasonId
+            } ?: SeasonChoice.All
+            Box(Modifier.weight(1f)) {
+                FaltetDropdown(
+                    label = "",
+                    options = seasonOptions,
+                    selected = selectedChoice,
+                    onSelectedChange = { onSeasonSelected((it as? SeasonChoice.Season)?.value?.id) },
+                    labelFor = { it.label },
+                    searchable = false,
+                )
+            }
+        }
+
+        // Summary
+        val totalKronor = ledger.sumOf { it.totalCents } / 100
+        Text(
+            text = "$totalKronor KR · ${ledger.size} försäljningar",
+            fontFamily = FontFamily.Monospace,
+            fontSize = 12.sp,
+            letterSpacing = 1.2.sp,
+            color = FaltetForest,
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 4.dp),
+        )
+
+        when {
+            loading -> FaltetLoadingState(Modifier.weight(1f))
+            error != null && ledger.isEmpty() -> Box(
+                Modifier.weight(1f).fillMaxWidth(),
+                contentAlignment = Alignment.Center,
+            ) { ConnectionErrorState(onRetry = { /* parent re-fetches on chip change */ }) }
+            ledger.isEmpty() -> FaltetEmptyState(
+                headline = "Inga försäljningar",
+                subtitle = "Registrera en försäljning på en bukett, planta eller skörd för att se den här.",
+                modifier = Modifier.padding(top = 32.dp),
+            )
+            else -> LazyColumn(Modifier.weight(1f)) {
+                items(ledger, key = { it.id }) { entry ->
+                    SaleLedgerRow(entry = entry, onClick = { onEntryClick(entry) })
+                }
+                item { Spacer(Modifier.height(80.dp)) }
+            }
+        }
+    }
+}
+
+private sealed class SeasonChoice {
+    abstract val label: String
+
+    object All : SeasonChoice() {
+        override val label: String = "Allt"
+    }
+
+    data class Season(val value: SeasonResponse) : SeasonChoice() {
+        override val label: String get() = value.name
+    }
+}
+
+@Composable
+private fun SaleLedgerRow(entry: SaleLedgerEntry, onClick: () -> Unit) {
+    FaltetListRow(
+        title = entry.sourceSummary ?: sourceKindLabelSv(entry.sourceKind),
+        meta = buildString {
+            append("${entry.quantity} ${unitLabelSv(entry.unitKind).lowercase()}")
+            append(" · ${formatSoldAt(entry.soldAt)}")
+            entry.customerName?.takeIf { it.isNotBlank() }?.let { append(" · $it") }
+            append(" · ${entry.outletName}")
+        },
+        stat = {
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    text = (entry.totalCents / 100).toString(),
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 16.sp,
+                    color = FaltetInk,
+                )
+                Text(" KR", fontFamily = FontFamily.Monospace, fontSize = 9.sp, letterSpacing = 1.2.sp, color = FaltetForest)
+            }
+        },
+        onClick = onClick,
+    )
+}
+
+private val ledgerSvDateFormatter =
+    java.time.format.DateTimeFormatter.ofPattern("d MMM", java.util.Locale("sv"))
+
+private fun formatSoldAt(iso: String): String = runCatching {
+    java.time.LocalDate.parse(iso.take(10)).format(ledgerSvDateFormatter)
+}.getOrElse { iso }
 
 internal fun sourceKindLabelSv(kind: String): String = when (kind) {
     app.verdant.android.data.model.SourceKind.PLANT -> "Plantor"
