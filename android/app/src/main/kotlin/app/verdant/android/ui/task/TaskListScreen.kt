@@ -84,7 +84,7 @@ class TaskListViewModel @Inject constructor(
             val showLoading = _uiState.value.tasks.isEmpty()
             if (showLoading) _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val tasks = repo.list()
+                val tasks = repo.list().filter { it.status != "COMPLETED" }
                 _uiState.value = TaskListState(isLoading = false, tasks = tasks)
             } catch (e: Exception) {
                 if (showLoading) _uiState.value = TaskListState(isLoading = false, error = e.message)
