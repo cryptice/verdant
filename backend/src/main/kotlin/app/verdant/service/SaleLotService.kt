@@ -18,6 +18,7 @@ import app.verdant.repository.SaleLotEventRepository
 import app.verdant.repository.SaleLotRepository
 import app.verdant.repository.SaleRepository
 import app.verdant.repository.SeasonRepository
+import app.verdant.repository.SpeciesRepository
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
@@ -36,6 +37,7 @@ class SaleLotService(
     private val plantEventRepo: PlantEventRepository,
     private val bouquetRepo: BouquetRepository,
     private val customerRepo: CustomerRepository,
+    private val speciesRepo: SpeciesRepository,
     private val seasonRepo: SeasonRepository,
     private val objectMapper: ObjectMapper,
 ) {
@@ -226,6 +228,76 @@ class SaleLotService(
         return sale.toResponse(outletName, customerName)
     }
 
+    /**
+     * Records a sale directly against a species, bypassing the per-lot create flow.
+     * Auto-creates a SOLD_OUT [SaleLot] of [SourceKind.ADHOC] referencing the species,
+     * then delegates to [recordSale] for the actual sale + decrement + auto-flip.
+     */
+    @Transactional
+    fun recordAdHocSale(request: QuickSaleRequest, orgId: Long, userId: Long): SaleResponse {
+        // Validate species
+        val species = speciesRepo.findById(request.speciesId)
+            ?: throw NotFoundException("Species not found")
+        if (species.orgId != orgId) throw NotFoundException("Species not found")
+
+        // Validate outlet
+        val outlet = outletRepo.findById(request.outletId)
+            ?: throw NotFoundException("Outlet not found")
+        if (outlet.orgId != orgId) throw NotFoundException("Outlet not found")
+
+        // Validate unit kind — BUNCH excluded in V1 (would need stems_per_unit)
+        val parsedUnit = try {
+            UnitKind.valueOf(request.unitKind)
+        } catch (e: IllegalArgumentException) {
+            throw BadRequestException("Invalid unitKind: ${request.unitKind}")
+        }
+        if (parsedUnit == UnitKind.BUNCH) {
+            throw BadRequestException("Unit BUNCH not supported for ad-hoc sales")
+        }
+
+        // Persist the OFFERED ADHOC lot.
+        val lot = lotRepo.persist(
+            SaleLot(
+                orgId = orgId,
+                sourceKind = SourceKind.ADHOC,
+                speciesId = request.speciesId,
+                unitKind = parsedUnit,
+                quantityTotal = request.quantity,
+                quantityRemaining = request.quantity,
+                initialRequestedPriceCents = request.pricePerUnitCents,
+                currentRequestedPriceCents = request.pricePerUnitCents,
+                currentOutletId = request.outletId,
+                status = SaleLotStatus.OFFERED,
+            )
+        )
+
+        // Emit CREATED event for audit trail consistency.
+        eventRepo.persist(
+            SaleLotEvent(
+                saleLotId = lot.id!!,
+                eventType = SaleLotEventType.CREATED,
+                payloadJson = null,
+                recordedByUserId = userId,
+            )
+        )
+
+        // Delegate to the existing recordSale path. It will decrement
+        // quantity_remaining → 0, auto-flip status to SOLD_OUT, and emit
+        // SALE_RECORDED + AUTO_SOLD_OUT events.
+        return recordSale(
+            lotId = lot.id!!,
+            request = RecordSaleRequest(
+                quantity = request.quantity,
+                pricePerUnitCents = request.pricePerUnitCents,
+                customerId = request.customerId,
+                soldAt = request.soldAt,
+                notes = request.notes,
+            ),
+            orgId = orgId,
+            userId = userId,
+        )
+    }
+
     @Transactional
     fun editSale(saleId: Long, request: EditSaleRequest, orgId: Long, userId: Long): SaleResponse {
         val sale = saleRepo.findById(saleId) ?: throw NotFoundException("Sale not found")
@@ -312,6 +384,7 @@ class SaleLotService(
         val plantIds = rows.filter { it.sourceKind == "PLANT" }.mapNotNull { it.plantId }.distinct()
         val harvestIds = rows.filter { it.sourceKind == "HARVEST_EVENT" }.mapNotNull { it.harvestEventId }.distinct()
         val bouquetIds = rows.filter { it.sourceKind == "BOUQUET" }.mapNotNull { it.bouquetId }.distinct()
+        val speciesIds = rows.filter { it.sourceKind == "ADHOC" }.mapNotNull { it.speciesId }.distinct()
 
         val plantNames: Map<Long, String> = if (plantIds.isEmpty()) emptyMap()
             else plantRepo.findByIds(plantIds).associate { it.id!! to it.name }
@@ -321,12 +394,17 @@ class SaleLotService(
         val bouquetNames: Map<Long, String> = bouquetIds.mapNotNull { id ->
             bouquetRepo.findById(id)?.let { id to it.name }
         }.toMap()
+        val adHocSpeciesNames: Map<Long, String> = if (speciesIds.isEmpty()) emptyMap()
+            else speciesRepo.findByIds(speciesIds.toSet()).mapValues { (_, sp) ->
+                if (sp.variantName.isNullOrBlank()) sp.commonName else "${sp.commonName} – ${sp.variantName}"
+            }
 
         return rows.map { r ->
             val summary = when (r.sourceKind) {
                 "PLANT" -> r.plantId?.let { plantNames[it] }
                 "HARVEST_EVENT" -> r.harvestEventId?.let { harvestSummaries[it] }
                 "BOUQUET" -> r.bouquetId?.let { bouquetNames[it] }
+                "ADHOC" -> r.speciesId?.let { adHocSpeciesNames[it] }
                 else -> null
             }
             SaleLedgerEntry(
@@ -447,12 +525,18 @@ class SaleLotService(
                 id to "${e.stemCount ?: 0} stems on ${e.eventDate}"
             }
         }.toMap()
+        val speciesIds = lots.mapNotNull { it.speciesId }.toSet()
+        val speciesById = if (speciesIds.isEmpty()) emptyMap() else speciesRepo.findByIds(speciesIds)
         return lots.map { lot ->
             val summary = when (lot.sourceKind) {
                 SourceKind.PLANT -> plantNames[lot.plantId]
                 SourceKind.HARVEST_EVENT -> harvestSummaries[lot.harvestEventId]
                 SourceKind.BOUQUET -> bouquetNames[lot.bouquetId]
-                SourceKind.ADHOC -> null
+                SourceKind.ADHOC -> lot.speciesId?.let { id ->
+                    speciesById[id]?.let { sp ->
+                        if (sp.variantName.isNullOrBlank()) sp.commonName else "${sp.commonName} – ${sp.variantName}"
+                    }
+                }
             }
             lot.toResponse(
                 outletName = outletNames[lot.currentOutletId] ?: "(unknown)",
@@ -467,7 +551,11 @@ class SaleLotService(
             plantEventRepo.findById(id)?.let { "${it.stemCount ?: 0} stems on ${it.eventDate}" }
         }
         SourceKind.BOUQUET -> lot.bouquetId?.let { bouquetRepo.findById(it)?.name }
-        SourceKind.ADHOC -> null
+        SourceKind.ADHOC -> lot.speciesId?.let { id ->
+            speciesRepo.findById(id)?.let { sp ->
+                if (sp.variantName.isNullOrBlank()) sp.commonName else "${sp.commonName} – ${sp.variantName}"
+            }
+        }
     }
 
     private fun SaleLot.toResponse(outletName: String, sourceSummary: String?) = SaleLotResponse(

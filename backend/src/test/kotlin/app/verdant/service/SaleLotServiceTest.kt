@@ -5,6 +5,7 @@ import app.verdant.dto.ChangePriceRequest
 import app.verdant.dto.CreateSaleLotForHarvestRequest
 import app.verdant.dto.CreateSaleLotForPlantRequest
 import app.verdant.dto.EditSaleRequest
+import app.verdant.dto.QuickSaleRequest
 import app.verdant.dto.RecordSaleRequest
 import app.verdant.dto.ReturnFromOutletRequest
 import app.verdant.entity.Bouquet
@@ -31,6 +32,7 @@ import app.verdant.repository.SaleLotEventRepository
 import app.verdant.repository.SaleLotRepository
 import app.verdant.repository.SaleRepository
 import app.verdant.repository.SeasonRepository
+import app.verdant.repository.SpeciesRepository
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.ws.rs.BadRequestException
 import jakarta.ws.rs.ForbiddenException
@@ -52,6 +54,7 @@ class SaleLotServiceTest {
     private lateinit var plantEventRepo: PlantEventRepository
     private lateinit var bouquetRepo: BouquetRepository
     private lateinit var customerRepo: CustomerRepository
+    private lateinit var speciesRepo: SpeciesRepository
     private lateinit var seasonRepo: SeasonRepository
     private lateinit var service: SaleLotService
 
@@ -69,10 +72,12 @@ class SaleLotServiceTest {
         plantEventRepo = mock()
         bouquetRepo = mock()
         customerRepo = mock()
+        speciesRepo = mock()
         seasonRepo = mock()
         service = SaleLotService(
             lotRepo, saleRepo, eventRepo, outletRepo,
             plantRepo, plantEventRepo, bouquetRepo, customerRepo,
+            speciesRepo,
             seasonRepo,
             ObjectMapper(),
         )
@@ -533,6 +538,121 @@ class SaleLotServiceTest {
         verify(saleRepo).listForOrg(orgId, null, null, 1, 0)
     }
 
+    // ── recordAdHocSale ─────────────────────────────────────────────────────
+
+    @Test
+    fun `recordAdHocSale creates ADHOC lot and decrements to SOLD_OUT`() {
+        val orgId = 7L
+        val userId = 11L
+        val speciesId = 100L
+        val outletId = 200L
+        val request = QuickSaleRequest(
+            speciesId = speciesId,
+            unitKind = "STEM",
+            quantity = 10,
+            pricePerUnitCents = 5000,
+            outletId = outletId,
+            customerId = null,
+            soldAt = LocalDate.of(2026, 5, 16),
+            notes = null,
+        )
+        val species = app.verdant.entity.Species(id = speciesId, orgId = orgId, commonName = "Zinnia", variantName = "Giant Wine")
+        val outlet = app.verdant.entity.Outlet(id = outletId, orgId = orgId, name = "Saluhallen", channel = app.verdant.entity.Channel.FARMERS_MARKET)
+        whenever(speciesRepo.findById(speciesId)).thenReturn(species)
+        whenever(outletRepo.findById(outletId)).thenReturn(outlet)
+        whenever(lotRepo.persist(any())).thenAnswer { (it.arguments[0] as SaleLot).copy(id = 999L) }
+        whenever(lotRepo.findById(999L)).thenAnswer {
+            SaleLot(
+                id = 999L, orgId = orgId, sourceKind = SourceKind.ADHOC,
+                speciesId = speciesId, unitKind = UnitKind.STEM,
+                quantityTotal = 10, quantityRemaining = 10,
+                initialRequestedPriceCents = 5000, currentRequestedPriceCents = 5000,
+                currentOutletId = outletId, status = SaleLotStatus.OFFERED,
+            )
+        }
+        whenever(saleRepo.persist(any())).thenAnswer { (it.arguments[0] as Sale).copy(id = 888L) }
+        whenever(saleRepo.sumQuantityForLot(999L)).thenReturn(10)
+
+        val result = service.recordAdHocSale(request, orgId, userId)
+
+        verify(lotRepo).persist(check {
+            assertEquals(SourceKind.ADHOC, it.sourceKind)
+            assertEquals(speciesId, it.speciesId)
+            assertEquals(10, it.quantityTotal)
+            assertEquals(10, it.quantityRemaining)
+            assertEquals(outletId, it.currentOutletId)
+            assertEquals(SaleLotStatus.OFFERED, it.status)
+        })
+        verify(saleRepo).persist(any())
+        assertEquals(888L, result.id)
+    }
+
+    @Test
+    fun `recordAdHocSale rejects BUNCH unit kind`() {
+        val request = QuickSaleRequest(
+            speciesId = 1L, unitKind = "BUNCH", quantity = 1,
+            pricePerUnitCents = 100, outletId = 1L,
+        )
+        whenever(speciesRepo.findById(1L)).thenReturn(
+            app.verdant.entity.Species(id = 1L, orgId = 7L, commonName = "X")
+        )
+        whenever(outletRepo.findById(1L)).thenReturn(
+            app.verdant.entity.Outlet(id = 1L, orgId = 7L, name = "O", channel = app.verdant.entity.Channel.OTHER)
+        )
+
+        assertThrows<jakarta.ws.rs.BadRequestException> {
+            service.recordAdHocSale(request, orgId = 7L, userId = 11L)
+        }
+    }
+
+    @Test
+    fun `recordAdHocSale validates species belongs to org`() {
+        val request = QuickSaleRequest(
+            speciesId = 1L, unitKind = "STEM", quantity = 1,
+            pricePerUnitCents = 100, outletId = 1L,
+        )
+        whenever(speciesRepo.findById(1L)).thenReturn(
+            app.verdant.entity.Species(id = 1L, orgId = 999L /* different */, commonName = "X")
+        )
+
+        assertThrows<jakarta.ws.rs.NotFoundException> {
+            service.recordAdHocSale(request, orgId = 7L, userId = 11L)
+        }
+    }
+
+    @Test
+    fun `recordAdHocSale validates outlet belongs to org`() {
+        val request = QuickSaleRequest(
+            speciesId = 1L, unitKind = "STEM", quantity = 1,
+            pricePerUnitCents = 100, outletId = 1L,
+        )
+        whenever(speciesRepo.findById(1L)).thenReturn(
+            app.verdant.entity.Species(id = 1L, orgId = 7L, commonName = "X")
+        )
+        whenever(outletRepo.findById(1L)).thenReturn(
+            app.verdant.entity.Outlet(id = 1L, orgId = 999L /* different */, name = "O", channel = app.verdant.entity.Channel.OTHER)
+        )
+
+        assertThrows<jakarta.ws.rs.NotFoundException> {
+            service.recordAdHocSale(request, orgId = 7L, userId = 11L)
+        }
+    }
+
+    @Test
+    fun `listSales sourceSummary handles ADHOC via species lookup`() {
+        val orgId = 7L
+        val rows = listOf(
+            saleListRow(id = 1, sourceKind = "ADHOC", speciesId = 100L)
+        )
+        whenever(saleRepo.listForOrg(orgId, null, null, 500, 0)).thenReturn(rows)
+        whenever(speciesRepo.findByIds(setOf(100L))).thenReturn(
+            mapOf(100L to app.verdant.entity.Species(id = 100L, orgId = orgId, commonName = "Zinnia", variantName = "Giant Wine"))
+        )
+
+        val result = service.listSales(orgId, seasonId = null, limit = 500, offset = 0)
+        assertEquals("Zinnia – Giant Wine", result.single().sourceSummary)
+    }
+
     private fun saleListRow(
         id: Long,
         soldAt: LocalDate = LocalDate.of(2026, 5, 12),
@@ -543,6 +663,7 @@ class SaleLotServiceTest {
         plantId: Long? = null,
         harvestEventId: Long? = null,
         bouquetId: Long? = null,
+        speciesId: Long? = null,
         outletName: String = "Saluhallen",
         customerName: String? = null,
         notes: String? = null,
@@ -550,6 +671,7 @@ class SaleLotServiceTest {
         id = id, saleLotId = id, quantity = quantity, pricePerUnitCents = pricePerUnitCents,
         soldAt = soldAt, sourceKind = sourceKind, unitKind = unitKind,
         plantId = plantId, harvestEventId = harvestEventId, bouquetId = bouquetId,
+        speciesId = speciesId,
         outletName = outletName, customerName = customerName, notes = notes,
     )
 
