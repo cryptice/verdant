@@ -12,10 +12,24 @@ import app.verdant.android.data.model.SaleLotResponse
 import app.verdant.android.data.model.SaleResponse
 import app.verdant.android.data.model.SeasonResponse
 import app.verdant.android.data.api.VerdantApi
+import app.verdant.android.data.model.CreateOutletRequest
+import app.verdant.android.data.model.CreateSpeciesGroupRequest
+import app.verdant.android.data.model.CreateSpeciesRequest
+import app.verdant.android.data.model.CreateSpeciesTagRequest
+import app.verdant.android.data.model.FrequentCommentResponse
+import app.verdant.android.data.model.OutletResponse
+import app.verdant.android.data.model.RecordCommentRequest
+import app.verdant.android.data.model.SpeciesGroupResponse
+import app.verdant.android.data.model.SpeciesResponse
+import app.verdant.android.data.model.SpeciesTagResponse
+import app.verdant.android.data.model.UpdateOutletRequest
+import app.verdant.android.data.model.UpdateSpeciesRequest
 import app.verdant.android.data.repository.CustomerRepository
+import app.verdant.android.data.repository.OutletRepository
 import app.verdant.android.data.repository.SaleLotRepository
 import app.verdant.android.data.repository.SaleRepository
 import app.verdant.android.data.repository.SeasonRepository
+import app.verdant.android.data.repository.SpeciesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -26,6 +40,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
@@ -48,6 +63,8 @@ class SalesViewModelTest {
             FakeSaleRepo(ledger = entries),
             FakeSeasonRepo(),
             stubCustomerRepo(),
+            FakeSpeciesRepo(),
+            FakeOutletRepo(),
         )
         advanceUntilIdle()
 
@@ -61,14 +78,14 @@ class SalesViewModelTest {
             season(id = 1, startDate = "2024-03-01", endDate = "2024-11-30"),
             season(id = 2, startDate = "2023-03-01", endDate = "2023-11-30"),
         )
-        val vm = SalesViewModel(FakeSaleLotRepo(), FakeSaleRepo(), FakeSeasonRepo(seasons), stubCustomerRepo())
+        val vm = SalesViewModel(FakeSaleLotRepo(), FakeSaleRepo(), FakeSeasonRepo(seasons), stubCustomerRepo(), FakeSpeciesRepo(), FakeOutletRepo())
         advanceUntilIdle()
         assertEquals(1L, vm.uiState.value.selectedSeasonId)
     }
 
     @Test
     fun `default is null when no seasons exist`() = runTest {
-        val vm = SalesViewModel(FakeSaleLotRepo(), FakeSaleRepo(), FakeSeasonRepo(emptyList()), stubCustomerRepo())
+        val vm = SalesViewModel(FakeSaleLotRepo(), FakeSaleRepo(), FakeSeasonRepo(emptyList()), stubCustomerRepo(), FakeSpeciesRepo(), FakeOutletRepo())
         advanceUntilIdle()
         assertNull(vm.uiState.value.selectedSeasonId)
     }
@@ -76,12 +93,40 @@ class SalesViewModelTest {
     @Test
     fun `selectSeason updates state and re-fetches`() = runTest {
         val repo = FakeSaleRepo(ledger = listOf(ledgerEntry(id = 1, total = 1000)))
-        val vm = SalesViewModel(FakeSaleLotRepo(), repo, FakeSeasonRepo(), stubCustomerRepo())
+        val vm = SalesViewModel(FakeSaleLotRepo(), repo, FakeSeasonRepo(), stubCustomerRepo(), FakeSpeciesRepo(), FakeOutletRepo())
         advanceUntilIdle()
         vm.selectSeason(42L)
         advanceUntilIdle()
         assertEquals(42L, vm.uiState.value.selectedSeasonId)
         assertEquals(listOf(null, 42L), repo.requestedSeasonIds)
+    }
+
+    @Test
+    fun `recordQuickSale calls repo and triggers ledger refresh`() = runTest {
+        val saleRepo = FakeSaleRepo(ledger = emptyList())
+        val vm = SalesViewModel(
+            FakeSaleLotRepo(),
+            saleRepo,
+            FakeSeasonRepo(),
+            stubCustomerRepo(),
+            FakeSpeciesRepo(),
+            FakeOutletRepo(),
+        )
+        advanceUntilIdle()
+
+        val request = QuickSaleRequest(
+            speciesId = 1L,
+            unitKind = "STEM",
+            quantity = 5,
+            pricePerUnitCents = 5000,
+            outletId = 10L,
+        )
+        var doneCalled = false
+        vm.recordQuickSale(request) { doneCalled = true }
+        advanceUntilIdle()
+
+        assertEquals(listOf(request), saleRepo.quickSales)
+        assertTrue(doneCalled)
     }
 
     /** Builds a CustomerRepository over a JDK proxy VerdantApi that throws on any call.
@@ -128,13 +173,25 @@ private class FakeSaleRepo(
     private val ledger: List<SaleLedgerEntry> = emptyList(),
 ) : SaleRepository {
     val requestedSeasonIds = mutableListOf<Long?>()
+    val quickSales = mutableListOf<QuickSaleRequest>()
     override suspend fun listLedger(seasonId: Long?, limit: Int, offset: Int): List<SaleLedgerEntry> {
         requestedSeasonIds += seasonId
         return ledger
     }
     override suspend fun record(lotId: Long, request: RecordSaleRequest): SaleResponse = error("not used")
     override suspend fun edit(saleId: Long, request: EditSaleRequest): SaleResponse = error("not used")
-    override suspend fun recordQuick(request: QuickSaleRequest): SaleResponse = error("not used")
+    override suspend fun recordQuick(request: QuickSaleRequest): SaleResponse {
+        quickSales += request
+        return SaleResponse(
+            id = 1L, saleLotId = 1L, quantity = request.quantity,
+            pricePerUnitCents = request.pricePerUnitCents,
+            outletId = request.outletId, outletName = "X",
+            customerId = request.customerId, customerName = null,
+            soldAt = request.soldAt ?: "2026-05-16",
+            recordedByUserId = 1L, notes = request.notes,
+            createdAt = "2026-05-16T00:00:00Z",
+        )
+    }
 }
 
 private class FakeSeasonRepo(
@@ -144,4 +201,31 @@ private class FakeSeasonRepo(
     override suspend fun create(request: CreateSeasonRequest): SeasonResponse = error("not used")
     override suspend fun update(id: Long, request: Map<String, Any?>): SeasonResponse = error("not used")
     override suspend fun delete(id: Long) { error("not used") }
+}
+
+private class FakeSpeciesRepo(
+    private val species: List<SpeciesResponse> = emptyList(),
+) : SpeciesRepository {
+    override suspend fun list(): List<SpeciesResponse> = species
+    override suspend fun create(request: CreateSpeciesRequest): SpeciesResponse = error("not used")
+    override suspend fun update(id: Long, request: UpdateSpeciesRequest): SpeciesResponse = error("not used")
+    override suspend fun delete(id: Long) { error("not used") }
+    override suspend fun listGroups(): List<SpeciesGroupResponse> = error("not used")
+    override suspend fun createGroup(request: CreateSpeciesGroupRequest): SpeciesGroupResponse = error("not used")
+    override suspend fun deleteGroup(id: Long) { error("not used") }
+    override suspend fun listTags(): List<SpeciesTagResponse> = error("not used")
+    override suspend fun createTag(request: CreateSpeciesTagRequest): SpeciesTagResponse = error("not used")
+    override suspend fun deleteTag(id: Long) { error("not used") }
+    override suspend fun frequentComments(): List<FrequentCommentResponse> = error("not used")
+    override suspend fun recordComment(request: RecordCommentRequest): FrequentCommentResponse = error("not used")
+    override suspend fun deleteComment(id: Long) { error("not used") }
+}
+
+private class FakeOutletRepo(
+    private val outlets: List<OutletResponse> = emptyList(),
+) : OutletRepository {
+    override suspend fun list(): List<OutletResponse> = outlets
+    override suspend fun create(request: CreateOutletRequest): OutletResponse = error("not used")
+    override suspend fun update(id: Long, request: UpdateOutletRequest): OutletResponse = error("not used")
+    override suspend fun delete(id: Long): Response<Unit> = error("not used")
 }

@@ -37,9 +37,11 @@ import app.verdant.android.data.model.SaleLotResponse
 import app.verdant.android.data.model.SaleLotStatus
 import app.verdant.android.data.model.SeasonResponse
 import app.verdant.android.data.repository.CustomerRepository
+import app.verdant.android.data.repository.OutletRepository
 import app.verdant.android.data.repository.SaleLotRepository
 import app.verdant.android.data.repository.SaleRepository
 import app.verdant.android.data.repository.SeasonRepository
+import app.verdant.android.data.repository.SpeciesRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.plant.unitLabelSv
 import app.verdant.android.ui.faltet.BotanicalPlate
@@ -67,6 +69,8 @@ data class SalesState(
     val ledgerLoading: Boolean = false,
     val ledgerError: String? = null,
     val customers: List<CustomerResponse> = emptyList(),
+    val species: List<app.verdant.android.data.model.SpeciesResponse> = emptyList(),
+    val outlets: List<app.verdant.android.data.model.OutletResponse> = emptyList(),
 )
 
 @HiltViewModel
@@ -75,6 +79,8 @@ class SalesViewModel @Inject constructor(
     private val saleRepository: SaleRepository,
     private val seasonRepository: SeasonRepository,
     private val customerRepository: CustomerRepository,
+    private val speciesRepository: SpeciesRepository,
+    private val outletRepository: OutletRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SalesState())
     val uiState = _uiState.asStateFlow()
@@ -83,6 +89,43 @@ class SalesViewModel @Inject constructor(
         refresh()
         loadSeasons()
         loadCustomers()
+        loadSpecies()
+        loadOutlets()
+    }
+
+    fun loadSpecies() {
+        viewModelScope.launch {
+            try {
+                val list = speciesRepository.list()
+                _uiState.value = _uiState.value.copy(species = list)
+            } catch (e: Exception) {
+                // Silent — quick-sale dialog shows an empty species list.
+            }
+        }
+    }
+
+    fun loadOutlets() {
+        viewModelScope.launch {
+            try {
+                val list = outletRepository.list()
+                _uiState.value = _uiState.value.copy(outlets = list)
+            } catch (e: Exception) {
+                // Silent — dialog shows empty outlet list.
+            }
+        }
+    }
+
+    fun recordQuickSale(request: app.verdant.android.data.model.QuickSaleRequest, onDone: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                saleRepository.recordQuick(request)
+                refresh()
+                loadLedger()
+                onDone()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(ledgerError = e.message)
+            }
+        }
     }
 
     fun loadCustomers() {
