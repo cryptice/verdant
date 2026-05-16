@@ -18,6 +18,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -63,6 +64,60 @@ class JoinOrgViewModelTest {
         val s = vm.uiState.value
         assertEquals("Trädgården", s.requestSentOrgName)
         assertEquals(listOf(9L), repo.joinedIds)
+    }
+
+    @Test
+    fun `submit treats requestJoin 409 conflict as success`() = runTest {
+        val repo = object : OrgRepository {
+            override suspend fun lookup(name: String) = app.verdant.android.data.model.OrgLookupResponse(id = 9, name = "X", emoji = null)
+            override suspend fun requestJoin(orgId: Long): app.verdant.android.data.model.OrgJoinRequestResponse {
+                throw retrofit2.HttpException(retrofit2.Response.error<Any>(409, okhttp3.ResponseBody.create(null, "")))
+            }
+            override suspend fun listJoinRequests(orgId: Long) = emptyList<app.verdant.android.data.model.OrgJoinRequestResponse>()
+            override suspend fun acceptJoinRequest(orgId: Long, reqId: Long) {}
+            override suspend fun declineJoinRequest(orgId: Long, reqId: Long) {}
+            override suspend fun listMembers(orgId: Long) = emptyList<app.verdant.android.data.model.OrgMemberResponse>()
+            override suspend fun removeMember(orgId: Long, userId: Long) {}
+            override suspend fun listInvites(orgId: Long) = emptyList<app.verdant.android.data.model.OrgInviteResponse>()
+            override suspend fun invite(orgId: Long, email: String) = error("not used")
+            override suspend fun cancelInvite(orgId: Long, inviteId: Long) {}
+            override suspend fun create(name: String, emoji: String?) = error("not used")
+            override suspend fun update(orgId: Long, name: String?, emoji: String?) = error("not used")
+        }
+        val vm = JoinOrgViewModel(repo, FakeUserRefresher())
+        vm.setName("X")
+        vm.submit()
+        advanceUntilIdle()
+        val s = vm.uiState.value
+        assertEquals("X", s.requestSentOrgName)
+        assertNull(s.error)
+    }
+
+    @Test
+    fun `submit surfaces non-409 requestJoin failures as error`() = runTest {
+        val repo = object : OrgRepository {
+            override suspend fun lookup(name: String) = app.verdant.android.data.model.OrgLookupResponse(id = 9, name = "X", emoji = null)
+            override suspend fun requestJoin(orgId: Long): app.verdant.android.data.model.OrgJoinRequestResponse {
+                throw retrofit2.HttpException(retrofit2.Response.error<Any>(500, okhttp3.ResponseBody.create(null, "")))
+            }
+            override suspend fun listJoinRequests(orgId: Long) = emptyList<app.verdant.android.data.model.OrgJoinRequestResponse>()
+            override suspend fun acceptJoinRequest(orgId: Long, reqId: Long) {}
+            override suspend fun declineJoinRequest(orgId: Long, reqId: Long) {}
+            override suspend fun listMembers(orgId: Long) = emptyList<app.verdant.android.data.model.OrgMemberResponse>()
+            override suspend fun removeMember(orgId: Long, userId: Long) {}
+            override suspend fun listInvites(orgId: Long) = emptyList<app.verdant.android.data.model.OrgInviteResponse>()
+            override suspend fun invite(orgId: Long, email: String) = error("not used")
+            override suspend fun cancelInvite(orgId: Long, inviteId: Long) {}
+            override suspend fun update(orgId: Long, name: String?, emoji: String?) = error("not used")
+            override suspend fun create(name: String, emoji: String?) = error("not used")
+        }
+        val vm = JoinOrgViewModel(repo, FakeUserRefresher())
+        vm.setName("X")
+        vm.submit()
+        advanceUntilIdle()
+        val s = vm.uiState.value
+        assertNull(s.requestSentOrgName)
+        assertNotNull(s.error)
     }
 }
 

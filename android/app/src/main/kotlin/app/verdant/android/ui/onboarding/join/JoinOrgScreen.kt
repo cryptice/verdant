@@ -24,6 +24,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import javax.inject.Inject
 
 private const val TAG = "JoinOrgScreen"
@@ -58,8 +59,12 @@ class JoinOrgViewModel @Inject constructor(
                     _uiState.value = _uiState.value.copy(isSubmitting = false, notFound = true)
                     return@launch
                 }
-                runCatching { orgRepository.requestJoin(org.id) }
-                    .onFailure { Log.w(TAG, "requestJoin failed but treating as success (likely 409): ${it.message}") }
+                try {
+                    orgRepository.requestJoin(org.id)
+                } catch (e: HttpException) {
+                    if (e.code() != 409) throw e
+                    Log.w(TAG, "requestJoin returned 409 (already pending) — treating as success")
+                }
                 _uiState.value = _uiState.value.copy(
                     isSubmitting = false, requestSentOrgName = org.name,
                 )
