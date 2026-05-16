@@ -1,6 +1,7 @@
 package app.verdant.resource
 
 import app.verdant.dto.EditSaleRequest
+import app.verdant.dto.QuickSaleRequest
 import app.verdant.dto.RecordSaleRequest
 import app.verdant.dto.SaleLedgerEntry
 import app.verdant.filter.OrgContext
@@ -28,6 +29,13 @@ class SaleResource(
     @Path("/sale-lots/{lotId}/sales")
     fun recordSale(@PathParam("lotId") lotId: Long, @Valid request: RecordSaleRequest): Response {
         val sale = service.recordSale(lotId, request, orgContext.orgId, orgContext.userId)
+        return Response.status(Response.Status.CREATED).entity(sale).build()
+    }
+
+    @POST
+    @Path("/sales/quick")
+    fun recordQuickSale(@Valid request: QuickSaleRequest): Response {
+        val sale = service.recordAdHocSale(request, orgContext.orgId, orgContext.userId)
         return Response.status(Response.Status.CREATED).entity(sale).build()
     }
 
