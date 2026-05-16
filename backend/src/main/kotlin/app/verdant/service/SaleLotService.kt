@@ -8,6 +8,7 @@ import app.verdant.entity.SaleLotEvent
 import app.verdant.entity.SaleLotEventType
 import app.verdant.entity.SaleLotStatus
 import app.verdant.entity.SourceKind
+import app.verdant.entity.Species
 import app.verdant.entity.UnitKind
 import app.verdant.repository.BouquetRepository
 import app.verdant.repository.CustomerRepository
@@ -395,9 +396,7 @@ class SaleLotService(
             bouquetRepo.findById(id)?.let { id to it.name }
         }.toMap()
         val adHocSpeciesNames: Map<Long, String> = if (speciesIds.isEmpty()) emptyMap()
-            else speciesRepo.findByIds(speciesIds.toSet()).mapValues { (_, sp) ->
-                if (sp.variantName.isNullOrBlank()) sp.commonName else "${sp.commonName} – ${sp.variantName}"
-            }
+            else speciesRepo.findByIds(speciesIds.toSet()).mapValues { (_, sp) -> sp.displayName() }
 
         return rows.map { r ->
             val summary = when (r.sourceKind) {
@@ -532,11 +531,7 @@ class SaleLotService(
                 SourceKind.PLANT -> plantNames[lot.plantId]
                 SourceKind.HARVEST_EVENT -> harvestSummaries[lot.harvestEventId]
                 SourceKind.BOUQUET -> bouquetNames[lot.bouquetId]
-                SourceKind.ADHOC -> lot.speciesId?.let { id ->
-                    speciesById[id]?.let { sp ->
-                        if (sp.variantName.isNullOrBlank()) sp.commonName else "${sp.commonName} – ${sp.variantName}"
-                    }
-                }
+                SourceKind.ADHOC -> lot.speciesId?.let { id -> speciesById[id]?.displayName() }
             }
             lot.toResponse(
                 outletName = outletNames[lot.currentOutletId] ?: "(unknown)",
@@ -551,11 +546,7 @@ class SaleLotService(
             plantEventRepo.findById(id)?.let { "${it.stemCount ?: 0} stems on ${it.eventDate}" }
         }
         SourceKind.BOUQUET -> lot.bouquetId?.let { bouquetRepo.findById(it)?.name }
-        SourceKind.ADHOC -> lot.speciesId?.let { id ->
-            speciesRepo.findById(id)?.let { sp ->
-                if (sp.variantName.isNullOrBlank()) sp.commonName else "${sp.commonName} – ${sp.variantName}"
-            }
-        }
+        SourceKind.ADHOC -> lot.speciesId?.let { id -> speciesRepo.findById(id)?.displayName() }
     }
 
     private fun SaleLot.toResponse(outletName: String, sourceSummary: String?) = SaleLotResponse(
@@ -607,3 +598,6 @@ class SaleLotService(
         createdAt = createdAt,
     )
 }
+
+private fun Species.displayName(): String =
+    if (variantName.isNullOrBlank()) commonName else "$commonName – $variantName"
