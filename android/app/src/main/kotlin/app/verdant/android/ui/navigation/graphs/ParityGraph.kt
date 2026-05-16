@@ -10,6 +10,7 @@ import app.verdant.android.ui.bouquet.BouquetRecipesScreen
 import app.verdant.android.ui.bouquet.BouquetsScreen
 import app.verdant.android.ui.customer.CustomerListScreen
 import app.verdant.android.ui.navigation.Screen
+import app.verdant.android.ui.outlets.OutletListScreen
 import app.verdant.android.ui.pest.PestDiseaseLogScreen
 import app.verdant.android.ui.succession.SuccessionSchedulesScreen
 import app.verdant.android.ui.targets.ProductionTargetsScreen
@@ -26,6 +27,9 @@ fun NavGraphBuilder.parityGraph(navController: NavController) {
     }
     composable(Screen.Customers.route) {
         CustomerListScreen(onBack = { navController.popBackStack() })
+    }
+    composable(Screen.Outlets.route) {
+        OutletListScreen(onBack = { navController.popBackStack() })
     }
     composable(Screen.Successions.route) {
         SuccessionSchedulesScreen(onBack = { navController.popBackStack() })

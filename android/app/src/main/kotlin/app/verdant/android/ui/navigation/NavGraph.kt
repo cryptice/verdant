@@ -119,6 +119,7 @@ sealed class Screen(val route: String) {
     // Parity screens
     data object PestDiseaseLog : Screen("pest-disease")
     data object Customers : Screen("customers")
+    data object Outlets : Screen("outlets")
     data object Successions : Screen("successions")
     data object Targets : Screen("targets")
     data object Trials : Screen("trials")
@@ -344,6 +345,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                         DrawerSection("§ Skörd & Försäljning")
                         DrawerItem("Försäljning", Screen.Sales.route, currentRoute, navController, scope, drawerState)
                         DrawerItem("Kunder", Screen.Customers.route, currentRoute, navController, scope, drawerState)
+                        DrawerItem("Försäljningskanaler", Screen.Outlets.route, currentRoute, navController, scope, drawerState)
                         DrawerItem("Buketter", Screen.Bouquets.route, currentRoute, navController, scope, drawerState)
                         DrawerItem("Bukettrecept", Screen.BouquetRecipes.route, currentRoute, navController, scope, drawerState)
 
