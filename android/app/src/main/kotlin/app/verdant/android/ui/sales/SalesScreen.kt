@@ -47,6 +47,7 @@ import app.verdant.android.ui.plant.unitLabelSv
 import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.ui.faltet.FaltetDropdown
 import app.verdant.android.ui.faltet.FaltetEmptyState
+import app.verdant.android.ui.faltet.FaltetFab
 import app.verdant.android.ui.faltet.FaltetListRow
 import app.verdant.android.ui.faltet.FaltetLoadingState
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
@@ -210,6 +211,7 @@ fun SalesScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var tabIndex by remember { mutableIntStateOf(0) }
     var editingEntry by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<SaleLedgerEntry?>(null) }
+    var showQuickSaleDialog by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     val tabs: List<Pair<String?, String>> = listOf(
         SaleLotStatus.OFFERED to "Aktiva",
         SaleLotStatus.SOLD_OUT to "Sålda",
@@ -238,6 +240,12 @@ fun SalesScreen(
         mastheadLeft = "",
         mastheadCenter = "Försäljning",
         watermark = BotanicalPlate.Harvest,
+        fab = {
+            FaltetFab(
+                onClick = { showQuickSaleDialog = true },
+                contentDescription = "Lägg till försäljning",
+            )
+        },
     ) { padding ->
         when {
             uiState.isLoading -> FaltetLoadingState(Modifier.padding(padding))
@@ -295,6 +303,18 @@ fun SalesScreen(
             onDismiss = { editingEntry = null },
             onConfirm = { request ->
                 viewModel.editSale(entry.id, request) { editingEntry = null }
+            },
+        )
+    }
+
+    if (showQuickSaleDialog) {
+        QuickSaleDialog(
+            species = uiState.species,
+            outlets = uiState.outlets,
+            customers = uiState.customers,
+            onDismiss = { showQuickSaleDialog = false },
+            onConfirm = { request ->
+                viewModel.recordQuickSale(request) { showQuickSaleDialog = false }
             },
         )
     }
