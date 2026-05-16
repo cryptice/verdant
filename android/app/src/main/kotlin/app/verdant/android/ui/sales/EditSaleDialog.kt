@@ -34,7 +34,7 @@ fun EditSaleDialog(
 ) {
     var qtyText by remember(entry.id) { mutableStateOf(entry.quantity.toString()) }
     var priceText by remember(entry.id) { mutableStateOf("%.2f".format(entry.pricePerUnitCents / 100.0)) }
-    var notes by remember(entry.id) { mutableStateOf("") }
+    var notes by remember(entry.id) { mutableStateOf(entry.notes ?: "") }
     var soldAt by remember(entry.id) {
         mutableStateOf(runCatching { LocalDate.parse(entry.soldAt.take(10)) }.getOrNull() ?: LocalDate.now())
     }

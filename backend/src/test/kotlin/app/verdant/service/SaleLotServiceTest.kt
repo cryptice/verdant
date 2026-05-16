@@ -545,11 +545,12 @@ class SaleLotServiceTest {
         bouquetId: Long? = null,
         outletName: String = "Saluhallen",
         customerName: String? = null,
+        notes: String? = null,
     ) = SaleRepository.SaleListRow(
         id = id, saleLotId = id, quantity = quantity, pricePerUnitCents = pricePerUnitCents,
         soldAt = soldAt, sourceKind = sourceKind, unitKind = unitKind,
         plantId = plantId, harvestEventId = harvestEventId, bouquetId = bouquetId,
-        outletName = outletName, customerName = customerName,
+        outletName = outletName, customerName = customerName, notes = notes,
     )
 
     private fun plant(id: Long, name: String) = app.verdant.entity.Plant(

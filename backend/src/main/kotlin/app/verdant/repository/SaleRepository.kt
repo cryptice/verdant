@@ -48,7 +48,7 @@ class SaleRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """
-                SELECT s.id, s.sale_lot_id, s.quantity, s.price_per_unit_cents, s.sold_at,
+                SELECT s.id, s.sale_lot_id, s.quantity, s.price_per_unit_cents, s.sold_at, s.notes,
                        sl.source_kind, sl.unit_kind, sl.plant_id, sl.harvest_event_id, sl.bouquet_id,
                        o.name AS outlet_name,
                        c.name AS customer_name
@@ -99,6 +99,7 @@ class SaleRepository(private val ds: AgroalDataSource) {
         bouquetId = getLong("bouquet_id").takeIf { !wasNull() },
         outletName = getString("outlet_name"),
         customerName = getString("customer_name"),
+        notes = getString("notes"),
     )
 
     /** Intermediate row from the listing query; service enriches to SaleLedgerEntry. */
@@ -115,6 +116,7 @@ class SaleRepository(private val ds: AgroalDataSource) {
         val bouquetId: Long?,
         val outletName: String,
         val customerName: String?,
+        val notes: String?,
     )
 
     /** Sum of quantity for a lot — used by service to recompute quantity_remaining. */

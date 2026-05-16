@@ -64,4 +64,5 @@ data class SaleLedgerEntry(
     val outletName: String,
     val customerName: String?,
     val soldAt: LocalDate,
+    val notes: String?,
 )

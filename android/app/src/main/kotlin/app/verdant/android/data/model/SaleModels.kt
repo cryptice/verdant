@@ -179,4 +179,5 @@ data class SaleLedgerEntry(
     @SerializedName("outletName") val outletName: String,
     @SerializedName("customerName") val customerName: String?,
     @SerializedName("soldAt") val soldAt: String,
+    @SerializedName("notes") val notes: String? = null,
 )

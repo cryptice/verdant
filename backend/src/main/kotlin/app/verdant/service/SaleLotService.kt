@@ -341,6 +341,7 @@ class SaleLotService(
                 outletName = r.outletName,
                 customerName = r.customerName,
                 soldAt = r.soldAt,
+                notes = r.notes,
             )
         }
     }
