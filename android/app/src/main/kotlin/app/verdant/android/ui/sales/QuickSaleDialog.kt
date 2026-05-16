@@ -27,6 +27,7 @@ import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.ui.faltet.FaltetChipSelector
 import app.verdant.android.ui.faltet.FaltetDatePicker
 import app.verdant.android.ui.faltet.FaltetDropdown
+// OutletPicker is in the same package — no import needed
 import java.time.LocalDate
 
 private val QUICK_UNIT_KINDS = listOf("STEM", "PLUG", "BULB", "TUBER", "PLANT")
@@ -47,12 +48,13 @@ fun QuickSaleDialog(
     customers: List<CustomerResponse>,
     onDismiss: () -> Unit,
     onConfirm: (QuickSaleRequest) -> Unit,
+    onCreateOutlet: ((name: String, channel: String) -> Unit)? = null,
 ) {
     var selectedSpecies by remember { mutableStateOf<SpeciesResponse?>(null) }
     var unitKind by remember { mutableStateOf<String?>(null) }
     var qtyText by remember { mutableStateOf("") }
     var priceText by remember { mutableStateOf("") }
-    var selectedOutlet by remember { mutableStateOf<OutletResponse?>(null) }
+    var selectedOutletId by remember { mutableStateOf<Long?>(null) }
     var selectedCustomer by remember { mutableStateOf<CustomerResponse?>(null) }
     var soldAt by remember { mutableStateOf<LocalDate?>(LocalDate.now()) }
     var notes by remember { mutableStateOf("") }
@@ -63,7 +65,7 @@ fun QuickSaleDialog(
         unitKind != null &&
         qty != null && qty >= 1 &&
         priceCents != null && priceCents >= 0 &&
-        selectedOutlet != null
+        selectedOutletId != null
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -108,14 +110,12 @@ fun QuickSaleDialog(
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth(),
                 )
-                FaltetDropdown(
+                OutletPicker(
+                    outlets = outlets,
+                    selectedId = selectedOutletId,
+                    onSelected = { selectedOutletId = it },
                     label = "Försäljningskanal",
-                    options = outlets,
-                    selected = selectedOutlet,
-                    onSelectedChange = { selectedOutlet = it },
-                    labelFor = { it.name },
-                    searchable = false,
-                    required = true,
+                    onCreateOutlet = onCreateOutlet,
                 )
                 FaltetDatePicker(
                     label = "Säljdatum",
@@ -149,7 +149,7 @@ fun QuickSaleDialog(
                             unitKind = unitKind!!,
                             quantity = qty!!,
                             pricePerUnitCents = priceCents!!,
-                            outletId = selectedOutlet!!.id,
+                            outletId = selectedOutletId!!,
                             customerId = selectedCustomer?.id,
                             soldAt = soldAt?.toString(),
                             notes = notes.ifBlank { null },

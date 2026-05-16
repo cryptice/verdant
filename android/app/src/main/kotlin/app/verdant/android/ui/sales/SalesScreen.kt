@@ -129,6 +129,19 @@ class SalesViewModel @Inject constructor(
         }
     }
 
+    fun createOutlet(name: String, channel: String) {
+        viewModelScope.launch {
+            try {
+                val created = outletRepository.create(
+                    app.verdant.android.data.model.CreateOutletRequest(name = name, channel = channel)
+                )
+                _uiState.value = _uiState.value.copy(outlets = _uiState.value.outlets + created)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(ledgerError = e.message)
+            }
+        }
+    }
+
     fun loadCustomers() {
         viewModelScope.launch {
             try {
@@ -316,6 +329,7 @@ fun SalesScreen(
             onConfirm = { request ->
                 viewModel.recordQuickSale(request) { showQuickSaleDialog = false }
             },
+            onCreateOutlet = { name, channel -> viewModel.createOutlet(name, channel) },
         )
     }
 }
