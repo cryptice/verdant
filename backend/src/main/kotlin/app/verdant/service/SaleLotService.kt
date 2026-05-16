@@ -452,6 +452,7 @@ class SaleLotService(
                 SourceKind.PLANT -> plantNames[lot.plantId]
                 SourceKind.HARVEST_EVENT -> harvestSummaries[lot.harvestEventId]
                 SourceKind.BOUQUET -> bouquetNames[lot.bouquetId]
+                SourceKind.ADHOC -> null
             }
             lot.toResponse(
                 outletName = outletNames[lot.currentOutletId] ?: "(unknown)",
@@ -466,6 +467,7 @@ class SaleLotService(
             plantEventRepo.findById(id)?.let { "${it.stemCount ?: 0} stems on ${it.eventDate}" }
         }
         SourceKind.BOUQUET -> lot.bouquetId?.let { bouquetRepo.findById(it)?.name }
+        SourceKind.ADHOC -> null
     }
 
     private fun SaleLot.toResponse(outletName: String, sourceSummary: String?) = SaleLotResponse(

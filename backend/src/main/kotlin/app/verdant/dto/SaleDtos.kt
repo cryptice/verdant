@@ -2,6 +2,8 @@ package app.verdant.dto
 
 import app.verdant.entity.SaleLotEventType
 import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import java.time.Instant
 import java.time.LocalDate
@@ -65,4 +67,15 @@ data class SaleLedgerEntry(
     val customerName: String?,
     val soldAt: LocalDate,
     val notes: String?,
+)
+
+data class QuickSaleRequest(
+    @field:NotNull val speciesId: Long,
+    @field:NotBlank val unitKind: String,
+    @field:Min(1) val quantity: Int,
+    @field:Min(0) val pricePerUnitCents: Int,
+    @field:NotNull val outletId: Long,
+    val customerId: Long? = null,
+    val soldAt: LocalDate? = null,
+    @field:Size(max = 2000) val notes: String? = null,
 )

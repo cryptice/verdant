@@ -20,6 +20,7 @@ data class SaleLot(
     val plantId: Long? = null,
     val harvestEventId: Long? = null,
     val bouquetId: Long? = null,
+    val speciesId: Long? = null,
     val unitKind: UnitKind,
     val stemsPerUnit: Int? = null,
     val quantityTotal: Int,
@@ -32,7 +33,7 @@ data class SaleLot(
     val updatedAt: Instant = Instant.now(),
 )
 
-enum class SourceKind { PLANT, HARVEST_EVENT, BOUQUET }
+enum class SourceKind { PLANT, HARVEST_EVENT, BOUQUET, ADHOC }
 
 enum class UnitKind { STEM, BUNCH, PLUG, BULB, TUBER, PLANT, BOUQUET }
 
