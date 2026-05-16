@@ -563,6 +563,13 @@ interface VerdantApi {
     @PUT("api/sales/{id}")
     suspend fun editSale(@Path("id") id: Long, @Body request: EditSaleRequest): SaleResponse
 
+    @GET("api/sales")
+    suspend fun listSales(
+        @Query("seasonId") seasonId: Long? = null,
+        @Query("limit") limit: Int = 500,
+        @Query("offset") offset: Int = 0,
+    ): List<SaleLedgerEntry>
+
     // ── Available-for-sale derivation ──
 
     @GET("api/plants/{id}/available-for-sale")

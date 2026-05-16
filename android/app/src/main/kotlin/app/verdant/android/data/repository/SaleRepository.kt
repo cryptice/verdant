@@ -11,4 +11,11 @@ import javax.inject.Singleton
 class SaleRepository @Inject constructor(private val api: VerdantApi) {
     suspend fun record(lotId: Long, request: RecordSaleRequest) = api.recordSale(lotId, request)
     suspend fun edit(saleId: Long, request: EditSaleRequest) = api.editSale(saleId, request)
+
+    suspend fun listLedger(
+        seasonId: Long?,
+        limit: Int = 500,
+        offset: Int = 0,
+    ): List<app.verdant.android.data.model.SaleLedgerEntry> =
+        api.listSales(seasonId, limit, offset)
 }

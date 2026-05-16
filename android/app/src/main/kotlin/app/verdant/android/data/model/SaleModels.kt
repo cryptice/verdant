@@ -166,3 +166,17 @@ object SaleLotEventType {
     const val MARKED_NOT_SOLD = "MARKED_NOT_SOLD"
     const val AUTO_SOLD_OUT = "AUTO_SOLD_OUT"
 }
+
+data class SaleLedgerEntry(
+    @SerializedName("id") val id: Long,
+    @SerializedName("saleLotId") val saleLotId: Long,
+    @SerializedName("sourceKind") val sourceKind: String,
+    @SerializedName("sourceSummary") val sourceSummary: String?,
+    @SerializedName("unitKind") val unitKind: String,
+    @SerializedName("quantity") val quantity: Int,
+    @SerializedName("pricePerUnitCents") val pricePerUnitCents: Int,
+    @SerializedName("totalCents") val totalCents: Int,
+    @SerializedName("outletName") val outletName: String,
+    @SerializedName("customerName") val customerName: String?,
+    @SerializedName("soldAt") val soldAt: String,
+)
