@@ -28,9 +28,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.data.model.EditSaleRequest
+import app.verdant.android.data.model.SaleLedgerEntry
 import app.verdant.android.data.model.SaleLotResponse
 import app.verdant.android.data.model.SaleLotStatus
+import app.verdant.android.data.model.SeasonResponse
 import app.verdant.android.data.repository.SaleLotRepository
+import app.verdant.android.data.repository.SaleRepository
+import app.verdant.android.data.repository.SeasonRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.plant.unitLabelSv
 import app.verdant.android.ui.faltet.BotanicalPlate
@@ -44,31 +49,92 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 data class SalesState(
     val isLoading: Boolean = true,
-    val lots: List<SaleLotResponse> = emptyList(),
     val error: String? = null,
+    val lots: List<SaleLotResponse> = emptyList(),
+    val seasons: List<SeasonResponse> = emptyList(),
+    val selectedSeasonId: Long? = null,
+    val ledger: List<SaleLedgerEntry> = emptyList(),
+    val ledgerLoading: Boolean = false,
+    val ledgerError: String? = null,
 )
 
 @HiltViewModel
 class SalesViewModel @Inject constructor(
     private val saleLotRepository: SaleLotRepository,
+    private val saleRepository: SaleRepository,
+    private val seasonRepository: SeasonRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SalesState())
     val uiState = _uiState.asStateFlow()
 
-    init { refresh() }
+    init {
+        refresh()
+        loadSeasons()
+    }
 
     fun refresh() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
                 val lots = saleLotRepository.list()
-                _uiState.value = SalesState(isLoading = false, lots = lots)
+                _uiState.value = _uiState.value.copy(isLoading = false, lots = lots)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
+            }
+        }
+    }
+
+    fun loadSeasons() {
+        viewModelScope.launch {
+            try {
+                val seasons = seasonRepository.list()
+                val today = LocalDate.now()
+                val defaultSeason = seasons.firstOrNull { s ->
+                    val start = s.startDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+                    val end = s.endDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+                    (start == null || !today.isBefore(start)) && (end == null || !today.isAfter(end))
+                } ?: seasons.maxByOrNull { it.startDate ?: "" }
+                _uiState.value = _uiState.value.copy(
+                    seasons = seasons,
+                    selectedSeasonId = defaultSeason?.id,
+                )
+                loadLedger()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(ledgerError = e.message)
+            }
+        }
+    }
+
+    fun selectSeason(seasonId: Long?) {
+        _uiState.value = _uiState.value.copy(selectedSeasonId = seasonId)
+        loadLedger()
+    }
+
+    fun loadLedger() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(ledgerLoading = true, ledgerError = null)
+            try {
+                val entries = saleRepository.listLedger(_uiState.value.selectedSeasonId)
+                _uiState.value = _uiState.value.copy(ledger = entries, ledgerLoading = false)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(ledgerLoading = false, ledgerError = e.message)
+            }
+        }
+    }
+
+    fun editSale(saleId: Long, request: EditSaleRequest, onDone: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                saleRepository.edit(saleId, request)
+                loadLedger()
+                onDone()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(ledgerError = e.message)
             }
         }
     }
