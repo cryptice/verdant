@@ -42,6 +42,7 @@ class SupplyService(
             SeedFertilizer("Hönsgödsel", "3.0-2.0-2.0"),
             SeedFertilizer("Kompost",    "1.0-0.5-1.0"),
             SeedFertilizer("Träaska",    "0.0-1.0-7.0"),
+            SeedFertilizer("Gräsklipp",  "0.6-0.2-0.5"),
         )
     }
 
