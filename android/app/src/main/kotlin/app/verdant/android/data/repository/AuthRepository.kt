@@ -20,16 +20,12 @@ interface UserRefresher {
     suspend fun refreshUser(): app.verdant.android.data.model.UserResponse
 }
 
-interface Signer {
-    suspend fun signOut()
-}
-
 @Singleton
 class AuthRepository @Inject constructor(
     private val tokenStore: TokenStore,
     private val orgStore: OrgStore,
     private val api: VerdantApi,
-) : InviteOps, UserRefresher, Signer {
+) : InviteOps, UserRefresher {
     val token: Flow<String?> = tokenStore.token
 
     suspend fun getToken(): String? = tokenStore.getToken()
@@ -49,7 +45,7 @@ class AuthRepository @Inject constructor(
         return user
     }
 
-    override suspend fun signOut() {
+    suspend fun signOut() {
         tokenStore.clear()
         orgStore.clear()
     }

@@ -31,7 +31,6 @@ import app.verdant.android.data.model.OrgInviteResponse
 import app.verdant.android.data.model.OrgJoinRequestResponse
 import app.verdant.android.data.model.OrgMemberResponse
 import app.verdant.android.data.repository.OrgRepository
-import app.verdant.android.data.repository.Signer
 import app.verdant.android.data.repository.UserRefresher
 import app.verdant.android.ui.faltet.FaltetListRow
 import app.verdant.android.ui.faltet.FaltetSectionHeader
@@ -63,7 +62,6 @@ data class OrgState(
 class OrgViewModel @Inject constructor(
     private val orgRepository: OrgRepository,
     private val userRefresher: UserRefresher,
-    private val signer: Signer,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(OrgState())
     val uiState = _uiState.asStateFlow()
@@ -76,7 +74,7 @@ class OrgViewModel @Inject constructor(
             try {
                 val user = userRefresher.refreshUser()
                 val first = user.organizations.firstOrNull() ?: run {
-                    _uiState.value = OrgState(isLoading = false, leftOrg = true)
+                    _uiState.value = OrgState(isLoading = false)
                     return@launch
                 }
                 val members = orgRepository.listMembers(first.orgId)
@@ -173,7 +171,6 @@ class OrgViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 orgRepository.removeMember(orgId, userId)
-                signer.signOut()
                 _uiState.value = _uiState.value.copy(leftOrg = true)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message)

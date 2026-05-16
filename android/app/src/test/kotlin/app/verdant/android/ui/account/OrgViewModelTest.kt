@@ -8,7 +8,6 @@ import app.verdant.android.data.model.OrganizationResponse
 import app.verdant.android.data.model.UserOrgMembership
 import app.verdant.android.data.model.UserResponse
 import app.verdant.android.data.repository.OrgRepository
-import app.verdant.android.data.repository.Signer
 import app.verdant.android.data.repository.UserRefresher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -38,8 +37,7 @@ class OrgViewModelTest {
             joinRequests = listOf(joinReq(20, "z@y.com", "Z")),
         )
         val refresher = UserRefresherFake(userWithOrg(role = "OWNER"))
-        val signer = SignerFake()
-        val vm = OrgViewModel(org, refresher, signer)
+        val vm = OrgViewModel(org, refresher)
         advanceUntilIdle()
 
         val s = vm.uiState.value
@@ -52,7 +50,7 @@ class OrgViewModelTest {
     @Test
     fun `invite appends to state`() = runTest {
         val org = OrgRepoFake()
-        val vm = OrgViewModel(org, UserRefresherFake(userWithOrg(role = "OWNER")), SignerFake())
+        val vm = OrgViewModel(org, UserRefresherFake(userWithOrg(role = "OWNER")))
         advanceUntilIdle()
         vm.invite("new@example.com")
         advanceUntilIdle()
@@ -63,7 +61,7 @@ class OrgViewModelTest {
     @Test
     fun `cancelInvite removes from state`() = runTest {
         val org = OrgRepoFake(invites = listOf(invite(10, "a@b.com"), invite(11, "c@d.com")))
-        val vm = OrgViewModel(org, UserRefresherFake(userWithOrg(role = "OWNER")), SignerFake())
+        val vm = OrgViewModel(org, UserRefresherFake(userWithOrg(role = "OWNER")))
         advanceUntilIdle()
         vm.cancelInvite(10L)
         advanceUntilIdle()
@@ -77,7 +75,7 @@ class OrgViewModelTest {
             joinRequests = listOf(joinReq(20, "z@y.com", "Z")),
             membersAfterAccept = listOf(member(1, "A", "OWNER"), member(2, "Z", "MEMBER")),
         )
-        val vm = OrgViewModel(org, UserRefresherFake(userWithOrg(role = "OWNER")), SignerFake())
+        val vm = OrgViewModel(org, UserRefresherFake(userWithOrg(role = "OWNER")))
         advanceUntilIdle()
         vm.acceptJoinRequest(20L)
         advanceUntilIdle()
@@ -137,9 +135,4 @@ private class OrgRepoFake(
 
 private class UserRefresherFake(private val user: UserResponse) : UserRefresher {
     override suspend fun refreshUser(): UserResponse = user
-}
-
-private class SignerFake : Signer {
-    var signedOut = false
-    override suspend fun signOut() { signedOut = true }
 }
