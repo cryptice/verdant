@@ -215,6 +215,9 @@ fun AccountScreen(
                         }
                     }
                     item {
+                        OrgSection(onLeft = { viewModel.signOut() })
+                    }
+                    item {
                         FaltetSectionHeader(label = "Konto")
                         FaltetListRow(
                             title = "Logga ut",
