@@ -2,6 +2,7 @@ package app.verdant.resource
 
 import app.verdant.dto.EditSaleRequest
 import app.verdant.dto.RecordSaleRequest
+import app.verdant.dto.SaleLedgerEntry
 import app.verdant.filter.OrgContext
 import app.verdant.service.SaleLotService
 import io.quarkus.security.Authenticated
@@ -34,4 +35,13 @@ class SaleResource(
     @Path("/sales/{id}")
     fun editSale(@PathParam("id") id: Long, @Valid request: EditSaleRequest) =
         service.editSale(id, request, orgContext.orgId, orgContext.userId)
+
+    @GET
+    @Path("/sales")
+    fun listSales(
+        @QueryParam("seasonId") seasonId: Long?,
+        @QueryParam("limit") @DefaultValue("500") limit: Int,
+        @QueryParam("offset") @DefaultValue("0") offset: Int,
+    ): List<SaleLedgerEntry> =
+        service.listSales(orgContext.orgId, seasonId, limit, offset)
 }
