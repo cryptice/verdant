@@ -47,12 +47,18 @@ class SplashViewModel @Inject constructor(
 fun SplashScreen(
     onNavigateToAuth: () -> Unit,
     onNavigateToDashboard: () -> Unit,
-    onNavigateToOrgRequired: () -> Unit,
+    onNavigateToInviteOffer: () -> Unit,
+    onNavigateToNoOrg: () -> Unit,
     viewModel: SplashViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
+        suspend fun routeBasedOnInvites() {
+            val invites = runCatching { viewModel.authRepository.listPendingInvites() }.getOrDefault(emptyList())
+            if (invites.isNotEmpty()) onNavigateToInviteOffer() else onNavigateToNoOrg()
+        }
+
         Log.d(TAG, "Splash started, checking stored token...")
         val existingToken = viewModel.tokenStore.getToken()
         if (existingToken != null) {
@@ -60,8 +66,8 @@ fun SplashScreen(
             try {
                 val user = viewModel.authRepository.refreshUser()
                 if (user.organizations.isEmpty()) {
-                    Log.d(TAG, "User has no organizations, navigating to OrgRequired")
-                    onNavigateToOrgRequired()
+                    Log.d(TAG, "User has no organizations, routing based on pending invites")
+                    routeBasedOnInvites()
                 } else {
                     Log.d(TAG, "User refresh succeeded, navigating to dashboard")
                     onNavigateToDashboard()
@@ -96,8 +102,8 @@ fun SplashScreen(
 
             val auth = viewModel.authRepository.signIn(credential.idToken)
             if (auth.user.organizations.isEmpty()) {
-                Log.d(TAG, "Silent sign-in: user has no organizations, navigating to OrgRequired")
-                onNavigateToOrgRequired()
+                Log.d(TAG, "Silent sign-in: user has no organizations, routing based on pending invites")
+                routeBasedOnInvites()
             } else {
                 Log.d(TAG, "Backend auth successful, navigating to dashboard")
                 onNavigateToDashboard()

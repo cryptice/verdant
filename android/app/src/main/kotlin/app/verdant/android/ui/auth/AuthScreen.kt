@@ -92,7 +92,7 @@ class AuthViewModel @Inject constructor(
 @Composable
 fun AuthScreen(
     onAuthSuccess: () -> Unit,
-    onNeedsOrg: () -> Unit,
+    onNeedsOnboarding: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -102,7 +102,7 @@ fun AuthScreen(
         if (uiState.success) onAuthSuccess()
     }
     LaunchedEffect(uiState.needsOrg) {
-        if (uiState.needsOrg) onNeedsOrg()
+        if (uiState.needsOrg) onNeedsOnboarding()
     }
 
     Box(

@@ -60,7 +60,9 @@ import app.verdant.android.ui.theme.verdantTopAppBarColors
 sealed class Screen(val route: String) {
     data object Splash : Screen("splash")
     data object Auth : Screen("auth")
-    data object OrgRequired : Screen("org-required")
+    data object NoOrg : Screen("no-org")
+    data object InviteOffer : Screen("invite-offer")
+    data object CreateOrg : Screen("create-org")
     data object Dashboard : Screen("dashboard")
     data object MyWorld : Screen("my-world")
     data object CreateGarden : Screen("garden/create")
@@ -229,7 +231,13 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
     val myWorldSelected = currentRoute == Screen.MyWorld.route ||
         (soleGarden != null && currentRoute == Screen.GardenDetail.route)
 
-    val hideChrome = currentRoute in listOf(Screen.Splash.route, Screen.Auth.route, Screen.OrgRequired.route)
+    val hideChrome = currentRoute in listOf(
+        Screen.Splash.route,
+        Screen.Auth.route,
+        Screen.NoOrg.route,
+        Screen.InviteOffer.route,
+        Screen.CreateOrg.route,
+    )
     val showTopBar = currentRoute == Screen.MyWorld.route
     val showBottomBar = currentRoute in listOf(
         Screen.Dashboard.route, Screen.MyWorld.route, Screen.PlantedSpeciesList.route, Screen.TaskList.route, Screen.GardenDetail.route,

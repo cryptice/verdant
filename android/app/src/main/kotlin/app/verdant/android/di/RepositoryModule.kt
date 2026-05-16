@@ -1,9 +1,13 @@
 package app.verdant.android.di
 
+import app.verdant.android.data.repository.AuthRepository
 import app.verdant.android.data.repository.DefaultTaskRepository
+import app.verdant.android.data.repository.InviteOps
 import app.verdant.android.data.repository.OrgRepository
 import app.verdant.android.data.repository.OrgRepositoryImpl
+import app.verdant.android.data.repository.Signer
 import app.verdant.android.data.repository.TaskRepository
+import app.verdant.android.data.repository.UserRefresher
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -25,4 +29,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindOrgRepository(impl: OrgRepositoryImpl): OrgRepository
+
+    @Binds abstract fun bindInviteOps(impl: AuthRepository): InviteOps
+    @Binds abstract fun bindUserRefresher(impl: AuthRepository): UserRefresher
+    @Binds abstract fun bindSigner(impl: AuthRepository): Signer
 }
