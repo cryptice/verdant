@@ -70,12 +70,12 @@ class SaleLotRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """INSERT INTO sale_lot (
-                       org_id, source_kind, plant_id, harvest_event_id, bouquet_id,
+                       org_id, source_kind, plant_id, harvest_event_id, bouquet_id, species_id,
                        unit_kind, stems_per_unit,
                        quantity_total, quantity_remaining,
                        initial_requested_price_cents, current_requested_price_cents,
                        current_outlet_id, status, created_at, updated_at
-                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS,
             ).use { ps ->
                 ps.setLong(1, lot.orgId)
@@ -83,14 +83,15 @@ class SaleLotRepository(private val ds: AgroalDataSource) {
                 ps.setObject(3, lot.plantId)
                 ps.setObject(4, lot.harvestEventId)
                 ps.setObject(5, lot.bouquetId)
-                ps.setString(6, lot.unitKind.name)
-                lot.stemsPerUnit?.let { ps.setInt(7, it) } ?: ps.setNull(7, Types.INTEGER)
-                ps.setInt(8, lot.quantityTotal)
-                ps.setInt(9, lot.quantityRemaining)
-                ps.setInt(10, lot.initialRequestedPriceCents)
-                ps.setInt(11, lot.currentRequestedPriceCents)
-                ps.setLong(12, lot.currentOutletId)
-                ps.setString(13, lot.status.name)
+                ps.setObject(6, lot.speciesId)
+                ps.setString(7, lot.unitKind.name)
+                lot.stemsPerUnit?.let { ps.setInt(8, it) } ?: ps.setNull(8, Types.INTEGER)
+                ps.setInt(9, lot.quantityTotal)
+                ps.setInt(10, lot.quantityRemaining)
+                ps.setInt(11, lot.initialRequestedPriceCents)
+                ps.setInt(12, lot.currentRequestedPriceCents)
+                ps.setLong(13, lot.currentOutletId)
+                ps.setString(14, lot.status.name)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -199,6 +200,7 @@ class SaleLotRepository(private val ds: AgroalDataSource) {
         plantId = getLong("plant_id").takeIf { !wasNull() },
         harvestEventId = getLong("harvest_event_id").takeIf { !wasNull() },
         bouquetId = getLong("bouquet_id").takeIf { !wasNull() },
+        speciesId = getLong("species_id").takeIf { !wasNull() },
         unitKind = UnitKind.valueOf(getString("unit_kind")),
         stemsPerUnit = getInt("stems_per_unit").takeIf { !wasNull() },
         quantityTotal = getInt("quantity_total"),
