@@ -4,6 +4,7 @@ import app.verdant.android.data.model.CreateSaleLotForHarvestRequest
 import app.verdant.android.data.model.CreateSaleLotForPlantRequest
 import app.verdant.android.data.model.CreateSeasonRequest
 import app.verdant.android.data.model.EditSaleRequest
+import app.verdant.android.data.model.QuickSaleRequest
 import app.verdant.android.data.model.RecordSaleRequest
 import app.verdant.android.data.model.SaleLedgerEntry
 import app.verdant.android.data.model.SaleLotDetailResponse
@@ -133,6 +134,7 @@ private class FakeSaleRepo(
     }
     override suspend fun record(lotId: Long, request: RecordSaleRequest): SaleResponse = error("not used")
     override suspend fun edit(saleId: Long, request: EditSaleRequest): SaleResponse = error("not used")
+    override suspend fun recordQuick(request: QuickSaleRequest): SaleResponse = error("not used")
 }
 
 private class FakeSeasonRepo(

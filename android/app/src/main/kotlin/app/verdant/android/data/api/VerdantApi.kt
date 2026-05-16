@@ -563,6 +563,9 @@ interface VerdantApi {
     @PUT("api/sales/{id}")
     suspend fun editSale(@Path("id") id: Long, @Body request: EditSaleRequest): SaleResponse
 
+    @POST("api/sales/quick")
+    suspend fun recordQuickSale(@Body request: QuickSaleRequest): SaleResponse
+
     @GET("api/sales")
     suspend fun listSales(
         @Query("seasonId") seasonId: Long? = null,

@@ -118,6 +118,17 @@ data class EditSaleRequest(
     @SerializedName("notes") val notes: String? = null,
 )
 
+data class QuickSaleRequest(
+    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("unitKind") val unitKind: String,
+    @SerializedName("quantity") val quantity: Int,
+    @SerializedName("pricePerUnitCents") val pricePerUnitCents: Int,
+    @SerializedName("outletId") val outletId: Long,
+    @SerializedName("customerId") val customerId: Long? = null,
+    @SerializedName("soldAt") val soldAt: String? = null,
+    @SerializedName("notes") val notes: String? = null,
+)
+
 data class SaleLotEventResponse(
     @SerializedName("id") val id: Long,
     @SerializedName("eventType") val eventType: String,

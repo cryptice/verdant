@@ -2,6 +2,7 @@ package app.verdant.android.data.repository
 
 import app.verdant.android.data.api.VerdantApi
 import app.verdant.android.data.model.EditSaleRequest
+import app.verdant.android.data.model.QuickSaleRequest
 import app.verdant.android.data.model.RecordSaleRequest
 import app.verdant.android.data.model.SaleLedgerEntry
 import app.verdant.android.data.model.SaleResponse
@@ -13,6 +14,7 @@ interface SaleRepository {
     suspend fun record(lotId: Long, request: RecordSaleRequest): SaleResponse
     suspend fun edit(saleId: Long, request: EditSaleRequest): SaleResponse
     suspend fun listLedger(seasonId: Long?, limit: Int = 500, offset: Int = 0): List<SaleLedgerEntry>
+    suspend fun recordQuick(request: QuickSaleRequest): SaleResponse
 }
 
 @Singleton
@@ -21,4 +23,5 @@ class SaleRepositoryImpl @Inject constructor(private val api: VerdantApi) : Sale
     override suspend fun edit(saleId: Long, request: EditSaleRequest) = api.editSale(saleId, request)
     override suspend fun listLedger(seasonId: Long?, limit: Int, offset: Int) =
         api.listSales(seasonId, limit, offset)
+    override suspend fun recordQuick(request: QuickSaleRequest) = api.recordQuickSale(request)
 }
