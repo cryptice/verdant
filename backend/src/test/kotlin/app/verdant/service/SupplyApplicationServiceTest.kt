@@ -231,6 +231,53 @@ class SupplyApplicationServiceTest {
     }
 
     @Test
+    fun `create accepts quantity zero for inexhaustible supply`() {
+        val inexhaustibleType = defaultSupplyType().copy(inexhaustible = true)
+        val persistedApp = SupplyApplication(
+            id = 101L, orgId = orgId, bedId = bedId,
+            supplyInventoryId = null, supplyTypeId = supplyTypeId,
+            quantity = BigDecimal.ZERO, targetScope = SupplyApplicationScope.BED,
+            appliedBy = userId,
+        )
+
+        whenever(bedRepo.findById(bedId)).thenReturn(defaultBed())
+        whenever(gardenRepo.findById(gardenId)).thenReturn(defaultGarden())
+        whenever(supplyTypeRepo.findById(supplyTypeId)).thenReturn(inexhaustibleType)
+        whenever(applicationRepo.insert(any())).thenReturn(persistedApp)
+        whenever(userRepo.findById(userId)).thenReturn(null)
+        whenever(applicationRepo.findPlantIdsForApplication(any())).thenReturn(emptyList())
+
+        val request = CreateSupplyApplicationRequest(
+            bedId = bedId,
+            supplyTypeId = supplyTypeId,
+            quantity = BigDecimal.ZERO,
+            targetScope = "BED",
+        )
+
+        service.create(request, orgId, userId)
+
+        verify(applicationRepo).insert(any())
+        verify(inventoryRepo, never()).decrementQuantity(any(), any())
+    }
+
+    @Test
+    fun `create rejects quantity zero for tracked supply inventory`() {
+        whenever(bedRepo.findById(bedId)).thenReturn(defaultBed())
+        whenever(gardenRepo.findById(gardenId)).thenReturn(defaultGarden())
+        whenever(inventoryRepo.findById(inventoryId)).thenReturn(defaultInventory())
+
+        val exception = assertThrows(BadRequestException::class.java) {
+            service.create(defaultBedRequest(quantity = BigDecimal.ZERO), orgId, userId)
+        }
+        assert(exception.message?.contains("quantity must be > 0") == true) {
+            "Expected 'quantity must be > 0' message, got: ${exception.message}"
+        }
+
+        verify(inventoryRepo, never()).decrementQuantity(any(), any())
+        verify(applicationRepo, never()).insert(any())
+    }
+
+    @Test
     fun `happy path BED inserts app and decrements zero plant events`() {
         val persistedBedApp = SupplyApplication(
             id = 100L, orgId = orgId, bedId = bedId,

@@ -45,8 +45,6 @@ class SupplyApplicationService(
         } catch (e: IllegalArgumentException) {
             throw BadRequestException("Invalid targetScope: ${request.targetScope}")
         }
-        if (request.quantity <= BigDecimal.ZERO) throw BadRequestException("quantity must be > 0")
-
         // Bed XOR tray location.
         val bedId = request.bedId
         val trayLocationId = request.trayLocationId
@@ -101,6 +99,12 @@ class SupplyApplicationService(
             if (!type.inexhaustible)
                 throw BadRequestException("supplyTypeId only accepted for inexhaustible types")
             type.id!!
+        }
+
+        // Inexhaustible types can be applied without a meaningful amount;
+        // 0 means "amount not recorded". For tracked lots, require > 0.
+        if (inventory != null && request.quantity <= BigDecimal.ZERO) {
+            throw BadRequestException("quantity must be > 0")
         }
 
         // 3. Plant resolution

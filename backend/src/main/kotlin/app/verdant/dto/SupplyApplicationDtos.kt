@@ -1,6 +1,5 @@
 package app.verdant.dto
 
-import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.NotNull
 import java.math.BigDecimal
 import java.time.Instant
@@ -30,7 +29,7 @@ data class CreateSupplyApplicationRequest(
     val trayLocationId: Long? = null,
     val supplyInventoryId: Long? = null,
     val supplyTypeId: Long? = null,
-    @field:NotNull @field:DecimalMin("0.01") val quantity: BigDecimal,
+    @field:NotNull val quantity: BigDecimal,
     @field:NotNull val targetScope: String,
     val plantIds: List<Long> = emptyList(),
     val workflowStepId: Long? = null,

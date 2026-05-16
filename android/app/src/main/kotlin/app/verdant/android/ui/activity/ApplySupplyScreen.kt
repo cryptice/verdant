@@ -148,7 +148,8 @@ class ApplySupplyViewModel @Inject constructor(
         val s = _uiState.value
         val q = s.quantity.toDoubleOrNull() ?: 0.0
         val noSupply = s.selectedInventoryId == null && s.selectedInexhaustibleTypeId == null
-        if (noSupply || q <= 0 ||
+        val isInexhaustible = s.selectedInexhaustibleTypeId != null
+        if (noSupply || (!isInexhaustible && q <= 0) ||
             (s.scope == SupplyApplicationScope.PLANTS && s.selectedPlantIds.isEmpty())
         ) return
         _uiState.update { it.copy(saving = true, error = null) }
@@ -242,13 +243,14 @@ fun ApplySupplyScreen(
     }
 
     val selectedLot = (selectedSelection as? SupplySelection.Lot)?.inv
+    val isInexhaustible = selectedSelection is SupplySelection.Inexhaustible
     val quantityNum = state.quantity.toDoubleOrNull() ?: 0.0
     val quantityExceeds = selectedLot != null && quantityNum > selectedLot.quantity
 
     var quantityError by remember { mutableStateOf<String?>(null) }
 
     val canSubmit = selectedSelection != null &&
-        quantityNum > 0 &&
+        (isInexhaustible || quantityNum > 0) &&
         !quantityExceeds &&
         (state.scope == SupplyApplicationScope.BED || state.selectedPlantIds.isNotEmpty()) &&
         !state.saving
@@ -256,6 +258,7 @@ fun ApplySupplyScreen(
     val submitAction: () -> Unit = {
         val qty = state.quantity.toDoubleOrNull()
         quantityError = when {
+            isInexhaustible -> null
             qty == null || qty <= 0 -> "Ogiltig mängd"
             qty > (selectedLot?.quantity ?: 0.0) -> "Mängd överskrider tillgängligt"
             else -> null
@@ -367,11 +370,11 @@ fun ApplySupplyScreen(
             }
             item {
                 Field(
-                    label = "Mängd",
+                    label = if (isInexhaustible) "Mängd (valfri)" else "Mängd",
                     value = state.quantity,
                     onValueChange = { vm.setQuantity(it); quantityError = null },
                     keyboardType = KeyboardType.Decimal,
-                    required = true,
+                    required = !isInexhaustible,
                     error = quantityError ?: if (quantityExceeds) "Mängd överskrider tillgängligt" else null,
                 )
             }
