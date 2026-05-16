@@ -3,11 +3,13 @@ package app.verdant.android.ui.account
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -93,6 +95,18 @@ class OrgViewModel @Inject constructor(
                 )
             } catch (e: Exception) {
                 _uiState.value = OrgState(isLoading = false, error = e.message)
+            }
+        }
+    }
+
+    fun updateOrg(name: String, emoji: String?) {
+        val orgId = _uiState.value.orgId ?: return
+        viewModelScope.launch {
+            try {
+                val org = orgRepository.update(orgId, name.trim().ifBlank { null }, emoji?.trim()?.ifBlank { null })
+                _uiState.value = _uiState.value.copy(orgName = org.name, orgEmoji = org.emoji)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(error = e.message)
             }
         }
     }
@@ -187,6 +201,7 @@ fun OrgSection(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showInviteDialog by remember { mutableStateOf(false) }
     var showLeaveConfirm by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
     var inviteEmail by remember { mutableStateOf("") }
 
     LaunchedEffect(state.leftOrg) { if (state.leftOrg) onLeft() }
@@ -195,6 +210,13 @@ fun OrgSection(
         FaltetSectionHeader(label = "Organisation")
         FaltetListRow(
             title = "${state.orgEmoji ?: "🌱"}  ${state.orgName}",
+            actions = if (state.isOwner) {
+                {
+                    IconButton(onClick = { showEditDialog = true }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Redigera", tint = FaltetAccent)
+                    }
+                }
+            } else null,
         )
         if (state.members.isNotEmpty()) {
             FaltetSectionHeader(label = "Medlemmar")
@@ -279,6 +301,41 @@ fun OrgSection(
             },
             dismissButton = {
                 TextButton(onClick = { showInviteDialog = false; inviteEmail = "" }) { Text("Avbryt") }
+            },
+        )
+    }
+
+    if (showEditDialog) {
+        var editName by remember(state.orgName) { mutableStateOf(state.orgName) }
+        var editEmoji by remember(state.orgEmoji) { mutableStateOf(state.orgEmoji ?: "🌱") }
+        AlertDialog(
+            onDismissRequest = { showEditDialog = false },
+            title = { Text("Redigera organisation") },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = editName,
+                        onValueChange = { editName = it },
+                        label = { Text("Namn") },
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = editEmoji,
+                        onValueChange = { editEmoji = it.take(4) },
+                        label = { Text("Emoji") },
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (editName.isNotBlank()) {
+                        viewModel.updateOrg(editName, editEmoji)
+                    }
+                    showEditDialog = false
+                }) { Text("Spara") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditDialog = false }) { Text("Avbryt") }
             },
         )
     }

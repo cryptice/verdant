@@ -69,6 +69,24 @@ class OrgViewModelTest {
     }
 
     @Test
+    fun `updateOrg updates state with returned org`() = runTest {
+        val org = object : app.verdant.android.data.repository.OrgRepository by OrgRepoFake() {
+            override suspend fun update(orgId: Long, name: String?, emoji: String?) =
+                app.verdant.android.data.model.OrganizationResponse(
+                    id = orgId, name = name ?: "X", emoji = emoji ?: "🌳",
+                    role = "OWNER", createdAt = "2026-05-01T00:00:00Z",
+                )
+        }
+        val vm = OrgViewModel(org, UserRefresherFake(userWithOrg(role = "OWNER")))
+        advanceUntilIdle()
+        vm.updateOrg("Nytt namn", "🌳")
+        advanceUntilIdle()
+        val s = vm.uiState.value
+        assertEquals("Nytt namn", s.orgName)
+        assertEquals("🌳", s.orgEmoji)
+    }
+
+    @Test
     fun `acceptJoinRequest removes the request and reloads members`() = runTest {
         val org = OrgRepoFake(
             members = listOf(member(1, "A", "OWNER")),
