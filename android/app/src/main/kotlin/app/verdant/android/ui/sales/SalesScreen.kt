@@ -30,11 +30,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.data.model.CustomerResponse
 import app.verdant.android.data.model.EditSaleRequest
 import app.verdant.android.data.model.SaleLedgerEntry
 import app.verdant.android.data.model.SaleLotResponse
 import app.verdant.android.data.model.SaleLotStatus
 import app.verdant.android.data.model.SeasonResponse
+import app.verdant.android.data.repository.CustomerRepository
 import app.verdant.android.data.repository.SaleLotRepository
 import app.verdant.android.data.repository.SaleRepository
 import app.verdant.android.data.repository.SeasonRepository
@@ -64,6 +66,7 @@ data class SalesState(
     val ledger: List<SaleLedgerEntry> = emptyList(),
     val ledgerLoading: Boolean = false,
     val ledgerError: String? = null,
+    val customers: List<CustomerResponse> = emptyList(),
 )
 
 @HiltViewModel
@@ -71,6 +74,7 @@ class SalesViewModel @Inject constructor(
     private val saleLotRepository: SaleLotRepository,
     private val saleRepository: SaleRepository,
     private val seasonRepository: SeasonRepository,
+    private val customerRepository: CustomerRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(SalesState())
     val uiState = _uiState.asStateFlow()
@@ -78,6 +82,18 @@ class SalesViewModel @Inject constructor(
     init {
         refresh()
         loadSeasons()
+        loadCustomers()
+    }
+
+    fun loadCustomers() {
+        viewModelScope.launch {
+            try {
+                val list = customerRepository.list()
+                _uiState.value = _uiState.value.copy(customers = list)
+            } catch (e: Exception) {
+                // Silent — customer picker just shows nothing.
+            }
+        }
     }
 
     fun refresh() {
@@ -150,6 +166,7 @@ fun SalesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var tabIndex by remember { mutableIntStateOf(0) }
+    var editingEntry by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<SaleLedgerEntry?>(null) }
     val tabs: List<Pair<String?, String>> = listOf(
         SaleLotStatus.OFFERED to "Aktiva",
         SaleLotStatus.SOLD_OUT to "Sålda",
@@ -202,7 +219,7 @@ fun SalesScreen(
                             loading = uiState.ledgerLoading,
                             error = uiState.ledgerError,
                             onSeasonSelected = { viewModel.selectSeason(it) },
-                            onEntryClick = { /* dialog opens in Task 7 */ },
+                            onEntryClick = { entry -> editingEntry = entry },
                             onRetry = { viewModel.loadLedger() },
                         )
                     } else if (visibleLots.isEmpty()) {
@@ -226,6 +243,17 @@ fun SalesScreen(
                 }
             }
         }
+    }
+
+    editingEntry?.let { entry ->
+        EditSaleDialog(
+            entry = entry,
+            customers = uiState.customers,
+            onDismiss = { editingEntry = null },
+            onConfirm = { request ->
+                viewModel.editSale(entry.id, request) { editingEntry = null }
+            },
+        )
     }
 }
 

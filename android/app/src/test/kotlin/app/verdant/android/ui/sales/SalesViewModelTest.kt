@@ -10,6 +10,8 @@ import app.verdant.android.data.model.SaleLotDetailResponse
 import app.verdant.android.data.model.SaleLotResponse
 import app.verdant.android.data.model.SaleResponse
 import app.verdant.android.data.model.SeasonResponse
+import app.verdant.android.data.api.VerdantApi
+import app.verdant.android.data.repository.CustomerRepository
 import app.verdant.android.data.repository.SaleLotRepository
 import app.verdant.android.data.repository.SaleRepository
 import app.verdant.android.data.repository.SeasonRepository
@@ -44,6 +46,7 @@ class SalesViewModelTest {
             FakeSaleLotRepo(),
             FakeSaleRepo(ledger = entries),
             FakeSeasonRepo(),
+            stubCustomerRepo(),
         )
         advanceUntilIdle()
 
@@ -57,14 +60,14 @@ class SalesViewModelTest {
             season(id = 1, startDate = "2024-03-01", endDate = "2024-11-30"),
             season(id = 2, startDate = "2023-03-01", endDate = "2023-11-30"),
         )
-        val vm = SalesViewModel(FakeSaleLotRepo(), FakeSaleRepo(), FakeSeasonRepo(seasons))
+        val vm = SalesViewModel(FakeSaleLotRepo(), FakeSaleRepo(), FakeSeasonRepo(seasons), stubCustomerRepo())
         advanceUntilIdle()
         assertEquals(1L, vm.uiState.value.selectedSeasonId)
     }
 
     @Test
     fun `default is null when no seasons exist`() = runTest {
-        val vm = SalesViewModel(FakeSaleLotRepo(), FakeSaleRepo(), FakeSeasonRepo(emptyList()))
+        val vm = SalesViewModel(FakeSaleLotRepo(), FakeSaleRepo(), FakeSeasonRepo(emptyList()), stubCustomerRepo())
         advanceUntilIdle()
         assertNull(vm.uiState.value.selectedSeasonId)
     }
@@ -72,12 +75,22 @@ class SalesViewModelTest {
     @Test
     fun `selectSeason updates state and re-fetches`() = runTest {
         val repo = FakeSaleRepo(ledger = listOf(ledgerEntry(id = 1, total = 1000)))
-        val vm = SalesViewModel(FakeSaleLotRepo(), repo, FakeSeasonRepo())
+        val vm = SalesViewModel(FakeSaleLotRepo(), repo, FakeSeasonRepo(), stubCustomerRepo())
         advanceUntilIdle()
         vm.selectSeason(42L)
         advanceUntilIdle()
         assertEquals(42L, vm.uiState.value.selectedSeasonId)
         assertEquals(listOf(null, 42L), repo.requestedSeasonIds)
+    }
+
+    /** Builds a CustomerRepository over a JDK proxy VerdantApi that throws on any call.
+     *  loadCustomers() swallows the exception, so customers stay empty in tests. */
+    private fun stubCustomerRepo(): CustomerRepository {
+        val api = java.lang.reflect.Proxy.newProxyInstance(
+            VerdantApi::class.java.classLoader,
+            arrayOf(VerdantApi::class.java),
+        ) { _, _, _ -> throw UnsupportedOperationException("not used") } as VerdantApi
+        return CustomerRepository(api)
     }
 
     private fun ledgerEntry(id: Long, total: Int) = SaleLedgerEntry(
