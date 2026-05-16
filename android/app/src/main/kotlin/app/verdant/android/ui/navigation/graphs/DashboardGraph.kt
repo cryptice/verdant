@@ -4,6 +4,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import app.verdant.android.ui.account.AccountScreen
+import app.verdant.android.ui.account.OrgManageScreen
 import app.verdant.android.ui.dashboard.DashboardScreen
 import app.verdant.android.ui.navigation.Screen
 import app.verdant.android.ui.world.MyVerdantWorldScreen
@@ -51,6 +52,13 @@ fun NavGraphBuilder.dashboardGraph(navController: NavController) {
     composable(Screen.Account.route) {
         AccountScreen(
             onSignedOut = { navController.navigate(Screen.Auth.route) { popUpTo(0) { inclusive = true } } },
+            onManageOrg = { navController.navigate(Screen.OrgManage.route) },
+        )
+    }
+    composable(Screen.OrgManage.route) {
+        OrgManageScreen(
+            onBack = { navController.popBackStack() },
+            onLeft = { navController.navigate(Screen.Auth.route) { popUpTo(0) { inclusive = true } } },
         )
     }
 }

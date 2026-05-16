@@ -3,9 +3,12 @@ package app.verdant.android.ui.account
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -35,6 +38,7 @@ import app.verdant.android.data.model.OrgMemberResponse
 import app.verdant.android.data.repository.OrgRepository
 import app.verdant.android.data.repository.UserRefresher
 import app.verdant.android.ui.faltet.FaltetListRow
+import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.FaltetSectionHeader
 import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetClay
@@ -194,7 +198,8 @@ class OrgViewModel @Inject constructor(
 }
 
 @Composable
-fun OrgSection(
+fun OrgManageScreen(
+    onBack: () -> Unit,
     onLeft: () -> Unit,
     viewModel: OrgViewModel = hiltViewModel(),
 ) {
@@ -206,77 +211,86 @@ fun OrgSection(
 
     LaunchedEffect(state.leftOrg) { if (state.leftOrg) onLeft() }
 
-    Column {
-        FaltetSectionHeader(label = "Organisation")
-        FaltetListRow(
-            title = "${state.orgEmoji ?: "🌱"}  ${state.orgName}",
-            actions = if (state.isOwner) {
-                {
-                    IconButton(onClick = { showEditDialog = true }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Redigera", tint = FaltetAccent)
-                    }
-                }
-            } else null,
-        )
-        if (state.members.isNotEmpty()) {
-            FaltetSectionHeader(label = "Medlemmar")
-            state.members.forEach { m ->
-                FaltetListRow(
-                    title = m.displayName,
-                    meta = if (m.role == "OWNER") "Ägare" else m.email,
-                    actions = if (state.isOwner && m.userId != state.currentUserId) {
-                        {
-                            IconButton(onClick = { viewModel.removeMember(m.userId) }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Ta bort", tint = FaltetClay)
-                            }
+    FaltetScreenScaffold(
+        mastheadLeft = "",
+        mastheadCenter = "Organisation",
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState()),
+        ) {
+            FaltetListRow(
+                title = "${state.orgEmoji ?: "🌱"}  ${state.orgName}",
+                actions = if (state.isOwner) {
+                    {
+                        IconButton(onClick = { showEditDialog = true }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Redigera", tint = FaltetAccent)
                         }
-                    } else null,
-                )
-            }
-        }
-        if (state.isOwner) {
-            if (state.invites.isNotEmpty()) {
-                FaltetSectionHeader(label = "Inbjudningar")
-                state.invites.forEach { inv ->
+                    }
+                } else null,
+            )
+            if (state.members.isNotEmpty()) {
+                FaltetSectionHeader(label = "Medlemmar")
+                state.members.forEach { m ->
                     FaltetListRow(
-                        title = inv.email,
-                        meta = "Inbjuden",
-                        actions = {
-                            IconButton(onClick = { viewModel.cancelInvite(inv.id) }) {
-                                Icon(Icons.Default.Close, contentDescription = "Avbryt", tint = FaltetClay)
+                        title = m.displayName,
+                        meta = if (m.role == "OWNER") "Ägare" else m.email,
+                        actions = if (state.isOwner && m.userId != state.currentUserId) {
+                            {
+                                IconButton(onClick = { viewModel.removeMember(m.userId) }) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Ta bort", tint = FaltetClay)
+                                }
                             }
-                        },
+                        } else null,
                     )
                 }
             }
-            if (state.joinRequests.isNotEmpty()) {
-                FaltetSectionHeader(label = "Förfrågningar")
-                state.joinRequests.forEach { req ->
-                    Column(modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp)) {
-                        Text(req.userDisplayName, fontSize = 14.sp, color = FaltetInk)
-                        Text(req.userEmail, fontSize = 12.sp, color = FaltetForest)
-                        Row(modifier = Modifier.padding(top = 4.dp)) {
-                            TextButton(onClick = { viewModel.acceptJoinRequest(req.id) }) {
-                                Text("Godkänn", color = FaltetAccent)
-                            }
-                            Spacer(Modifier.width(12.dp))
-                            TextButton(onClick = { viewModel.declineJoinRequest(req.id) }) {
-                                Text("Avvisa", color = FaltetClay)
+            if (state.isOwner) {
+                if (state.invites.isNotEmpty()) {
+                    FaltetSectionHeader(label = "Inbjudningar")
+                    state.invites.forEach { inv ->
+                        FaltetListRow(
+                            title = inv.email,
+                            meta = "Inbjuden",
+                            actions = {
+                                IconButton(onClick = { viewModel.cancelInvite(inv.id) }) {
+                                    Icon(Icons.Default.Close, contentDescription = "Avbryt", tint = FaltetClay)
+                                }
+                            },
+                        )
+                    }
+                }
+                if (state.joinRequests.isNotEmpty()) {
+                    FaltetSectionHeader(label = "Förfrågningar")
+                    state.joinRequests.forEach { req ->
+                        Column(modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp)) {
+                            Text(req.userDisplayName, fontSize = 14.sp, color = FaltetInk)
+                            Text(req.userEmail, fontSize = 12.sp, color = FaltetForest)
+                            Row(modifier = Modifier.padding(top = 4.dp)) {
+                                TextButton(onClick = { viewModel.acceptJoinRequest(req.id) }) {
+                                    Text("Godkänn", color = FaltetAccent)
+                                }
+                                Spacer(Modifier.width(12.dp))
+                                TextButton(onClick = { viewModel.declineJoinRequest(req.id) }) {
+                                    Text("Avvisa", color = FaltetClay)
+                                }
                             }
                         }
                     }
                 }
+                FaltetListRow(
+                    title = "Bjud in via e-post",
+                    onClick = { showInviteDialog = true },
+                )
             }
-            FaltetListRow(
-                title = "Bjud in via e-post",
-                onClick = { showInviteDialog = true },
-            )
-        }
-        if (!state.isOwner && state.orgId != null) {
-            FaltetListRow(
-                title = "Lämna organisationen",
-                onClick = { showLeaveConfirm = true },
-            )
+            if (!state.isOwner && state.orgId != null) {
+                FaltetListRow(
+                    title = "Lämna organisationen",
+                    onClick = { showLeaveConfirm = true },
+                )
+            }
         }
     }
 

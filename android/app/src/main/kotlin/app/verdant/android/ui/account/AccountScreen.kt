@@ -14,6 +14,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
@@ -21,8 +22,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -40,6 +43,7 @@ import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.FaltetSectionHeader
 import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetClay
+import app.verdant.android.ui.theme.FaltetForest
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -129,6 +133,7 @@ class AccountViewModel @Inject constructor(
 @Composable
 fun AccountScreen(
     onSignedOut: () -> Unit,
+    onManageOrg: () -> Unit,
     viewModel: AccountViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -141,6 +146,17 @@ fun AccountScreen(
 
     LaunchedEffect(uiState.signedOut) {
         if (uiState.signedOut) onSignedOut()
+    }
+
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                viewModel.load()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     if (showDeleteDialog) {
@@ -215,7 +231,23 @@ fun AccountScreen(
                         }
                     }
                     item {
-                        OrgSection(onLeft = { viewModel.signOut() })
+                        FaltetSectionHeader(label = "Organisation")
+                        val orgMembership = user.organizations.firstOrNull()
+                        if (orgMembership != null) {
+                            FaltetListRow(
+                                title = "${orgMembership.orgEmoji ?: "🌱"}  ${orgMembership.orgName}",
+                                actions = {
+                                    Text(
+                                        text = if (orgMembership.role == "OWNER") "ÄGARE" else "MEDLEM",
+                                        fontFamily = FontFamily.Monospace,
+                                        fontSize = 10.sp,
+                                        letterSpacing = 1.6.sp,
+                                        color = FaltetForest,
+                                    )
+                                },
+                                onClick = onManageOrg,
+                            )
+                        }
                     }
                     item {
                         FaltetSectionHeader(label = "Konto")
