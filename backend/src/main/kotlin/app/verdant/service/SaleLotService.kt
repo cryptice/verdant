@@ -17,6 +17,7 @@ import app.verdant.repository.PlantRepository
 import app.verdant.repository.SaleLotEventRepository
 import app.verdant.repository.SaleLotRepository
 import app.verdant.repository.SaleRepository
+import app.verdant.repository.SeasonRepository
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
@@ -35,6 +36,7 @@ class SaleLotService(
     private val plantEventRepo: PlantEventRepository,
     private val bouquetRepo: BouquetRepository,
     private val customerRepo: CustomerRepository,
+    private val seasonRepo: SeasonRepository,
     private val objectMapper: ObjectMapper,
 ) {
 
@@ -279,6 +281,68 @@ class SaleLotService(
         val outletName = outletRepo.findById(updated.outletId)?.name ?: "(unknown)"
         val customerName = updated.customerId?.let { customerRepo.findById(it)?.name }
         return updated.toResponse(outletName, customerName)
+    }
+
+    // ── Sale ledger ──
+
+    /**
+     * Flat chronological list of individual `sale` rows for the ledger view.
+     * When [seasonId] is provided, [Season.startDate]/[Season.endDate] bound
+     * `sold_at`; nulls on either side mean open-ended.
+     */
+    fun listSales(
+        orgId: Long,
+        seasonId: Long?,
+        limit: Int = 500,
+        offset: Int = 0,
+    ): List<SaleLedgerEntry> {
+        val clampedLimit = limit.coerceIn(1, 500)
+        val (fromDate, toDate) = if (seasonId != null) {
+            val season = seasonRepo.findById(seasonId)
+                ?: throw NotFoundException("Season not found")
+            if (season.orgId != orgId) throw NotFoundException("Season not found")
+            season.startDate to season.endDate
+        } else {
+            null to null
+        }
+        val rows = saleRepo.listForOrg(orgId, fromDate, toDate, clampedLimit, offset)
+        if (rows.isEmpty()) return emptyList()
+
+        // Bulk-load source summaries to avoid N+1.
+        val plantIds = rows.filter { it.sourceKind == "PLANT" }.mapNotNull { it.plantId }.distinct()
+        val harvestIds = rows.filter { it.sourceKind == "HARVEST_EVENT" }.mapNotNull { it.harvestEventId }.distinct()
+        val bouquetIds = rows.filter { it.sourceKind == "BOUQUET" }.mapNotNull { it.bouquetId }.distinct()
+
+        val plantNames: Map<Long, String> = if (plantIds.isEmpty()) emptyMap()
+            else plantRepo.findByIds(plantIds).associate { it.id!! to it.name }
+        val harvestSummaries: Map<Long, String> = harvestIds.mapNotNull { id ->
+            plantEventRepo.findById(id)?.let { id to "${it.stemCount ?: 0} stems on ${it.eventDate}" }
+        }.toMap()
+        val bouquetNames: Map<Long, String> = bouquetIds.mapNotNull { id ->
+            bouquetRepo.findById(id)?.let { id to it.name }
+        }.toMap()
+
+        return rows.map { r ->
+            val summary = when (r.sourceKind) {
+                "PLANT" -> r.plantId?.let { plantNames[it] }
+                "HARVEST_EVENT" -> r.harvestEventId?.let { harvestSummaries[it] }
+                "BOUQUET" -> r.bouquetId?.let { bouquetNames[it] }
+                else -> null
+            }
+            SaleLedgerEntry(
+                id = r.id,
+                saleLotId = r.saleLotId,
+                sourceKind = r.sourceKind,
+                sourceSummary = summary,
+                unitKind = r.unitKind,
+                quantity = r.quantity,
+                pricePerUnitCents = r.pricePerUnitCents,
+                totalCents = r.quantity * r.pricePerUnitCents,
+                outletName = r.outletName,
+                customerName = r.customerName,
+                soldAt = r.soldAt,
+            )
+        }
     }
 
     // ── Lot mutations ──

@@ -26,13 +26,16 @@ import app.verdant.repository.CustomerRepository
 import app.verdant.repository.OutletRepository
 import app.verdant.repository.PlantEventRepository
 import app.verdant.repository.PlantRepository
+import app.verdant.entity.Season
 import app.verdant.repository.SaleLotEventRepository
 import app.verdant.repository.SaleLotRepository
 import app.verdant.repository.SaleRepository
+import app.verdant.repository.SeasonRepository
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.ws.rs.BadRequestException
 import jakarta.ws.rs.ForbiddenException
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -49,6 +52,7 @@ class SaleLotServiceTest {
     private lateinit var plantEventRepo: PlantEventRepository
     private lateinit var bouquetRepo: BouquetRepository
     private lateinit var customerRepo: CustomerRepository
+    private lateinit var seasonRepo: SeasonRepository
     private lateinit var service: SaleLotService
 
     private val orgId = 42L
@@ -65,9 +69,11 @@ class SaleLotServiceTest {
         plantEventRepo = mock()
         bouquetRepo = mock()
         customerRepo = mock()
+        seasonRepo = mock()
         service = SaleLotService(
             lotRepo, saleRepo, eventRepo, outletRepo,
             plantRepo, plantEventRepo, bouquetRepo, customerRepo,
+            seasonRepo,
             ObjectMapper(),
         )
         // Default: outlet exists in org. Override per-test if needed.
@@ -420,4 +426,137 @@ class SaleLotServiceTest {
         assertThrows<BadRequestException> { service.delete(1L, orgId) }
         verify(lotRepo, never()).delete(any())
     }
+
+    // ── listSales ───────────────────────────────────────────────────────────
+
+    @Test
+    fun `listSales returns rows newest-first when seasonId is null`() {
+        val orgId = 7L
+        val rows = listOf(
+            saleListRow(id = 1, soldAt = LocalDate.of(2026, 5, 12), sourceKind = "PLANT", plantId = 100L),
+            saleListRow(id = 2, soldAt = LocalDate.of(2026, 5, 10), sourceKind = "BOUQUET", bouquetId = 200L),
+        )
+        whenever(saleRepo.listForOrg(orgId, null, null, 500, 0)).thenReturn(rows)
+        whenever(plantRepo.findByIds(listOf(100L)))
+            .thenReturn(listOf(plant(100L, name = "Zinnia – Giant Wine")))
+        whenever(bouquetRepo.findById(200L)).thenReturn(bouquet(200L, "Sommarbukett"))
+
+        val result = service.listSales(orgId, seasonId = null, limit = 500, offset = 0)
+
+        assertEquals(2, result.size)
+        assertEquals("Zinnia – Giant Wine", result[0].sourceSummary)
+        assertEquals("Sommarbukett", result[1].sourceSummary)
+    }
+
+    @Test
+    fun `listSales filters by season date range when seasonId is provided`() {
+        val orgId = 7L
+        val seasonId = 33L
+        whenever(seasonRepo.findById(seasonId)).thenReturn(
+            Season(id = seasonId, orgId = orgId, name = "2026", year = 2026,
+                startDate = LocalDate.of(2026, 3, 1), endDate = LocalDate.of(2026, 11, 30))
+        )
+        whenever(saleRepo.listForOrg(orgId, LocalDate.of(2026, 3, 1), LocalDate.of(2026, 11, 30), 500, 0))
+            .thenReturn(emptyList())
+
+        service.listSales(orgId, seasonId = seasonId, limit = 500, offset = 0)
+
+        verify(saleRepo).listForOrg(orgId, LocalDate.of(2026, 3, 1), LocalDate.of(2026, 11, 30), 500, 0)
+    }
+
+    @Test
+    fun `listSales throws NotFoundException for cross-org season`() {
+        val orgId = 7L
+        val seasonId = 33L
+        whenever(seasonRepo.findById(seasonId)).thenReturn(
+            Season(id = seasonId, orgId = 999L /* different org */, name = "2026", year = 2026)
+        )
+
+        assertThrows<jakarta.ws.rs.NotFoundException> {
+            service.listSales(orgId, seasonId = seasonId, limit = 500, offset = 0)
+        }
+    }
+
+    @Test
+    fun `listSales returns null sourceSummary when source row is missing`() {
+        val orgId = 7L
+        val rows = listOf(saleListRow(id = 1, sourceKind = "PLANT", plantId = 100L))
+        whenever(saleRepo.listForOrg(orgId, null, null, 500, 0)).thenReturn(rows)
+        whenever(plantRepo.findByIds(listOf(100L))).thenReturn(emptyList())
+
+        val result = service.listSales(orgId, seasonId = null, limit = 500, offset = 0)
+        assertNull(result.single().sourceSummary)
+    }
+
+    @Test
+    fun `listSales returns sourceSummary for HARVEST_EVENT lots`() {
+        val orgId = 7L
+        val rows = listOf(saleListRow(id = 1, sourceKind = "HARVEST_EVENT", harvestEventId = 300L))
+        whenever(saleRepo.listForOrg(orgId, null, null, 500, 0)).thenReturn(rows)
+        whenever(plantEventRepo.findById(300L)).thenReturn(
+            PlantEvent(id = 300L, plantId = 1L, eventType = PlantEventType.HARVESTED,
+                eventDate = LocalDate.of(2026, 5, 12), stemCount = 25)
+        )
+
+        val result = service.listSales(orgId, seasonId = null, limit = 500, offset = 0)
+        assertEquals("25 stems on 2026-05-12", result.single().sourceSummary)
+    }
+
+    @Test
+    fun `listSales computes totalCents`() {
+        val orgId = 7L
+        val rows = listOf(
+            saleListRow(id = 1, quantity = 5, pricePerUnitCents = 5000,
+                sourceKind = "PLANT", plantId = 100L)
+        )
+        whenever(saleRepo.listForOrg(orgId, null, null, 500, 0)).thenReturn(rows)
+        whenever(plantRepo.findByIds(listOf(100L)))
+            .thenReturn(listOf(plant(100L, name = "Zinnia")))
+
+        val result = service.listSales(orgId, seasonId = null, limit = 500, offset = 0)
+        assertEquals(25_000, result.single().totalCents)
+    }
+
+    @Test
+    fun `listSales clamps limit to 500`() {
+        val orgId = 7L
+        whenever(saleRepo.listForOrg(orgId, null, null, 500, 0)).thenReturn(emptyList())
+        service.listSales(orgId, seasonId = null, limit = 99999, offset = 0)
+        verify(saleRepo).listForOrg(orgId, null, null, 500, 0)
+    }
+
+    @Test
+    fun `listSales clamps limit to at least 1`() {
+        val orgId = 7L
+        whenever(saleRepo.listForOrg(orgId, null, null, 1, 0)).thenReturn(emptyList())
+        service.listSales(orgId, seasonId = null, limit = 0, offset = 0)
+        verify(saleRepo).listForOrg(orgId, null, null, 1, 0)
+    }
+
+    private fun saleListRow(
+        id: Long,
+        soldAt: LocalDate = LocalDate.of(2026, 5, 12),
+        quantity: Int = 1,
+        pricePerUnitCents: Int = 1000,
+        sourceKind: String = "PLANT",
+        unitKind: String = "STEM",
+        plantId: Long? = null,
+        harvestEventId: Long? = null,
+        bouquetId: Long? = null,
+        outletName: String = "Saluhallen",
+        customerName: String? = null,
+    ) = SaleRepository.SaleListRow(
+        id = id, saleLotId = id, quantity = quantity, pricePerUnitCents = pricePerUnitCents,
+        soldAt = soldAt, sourceKind = sourceKind, unitKind = unitKind,
+        plantId = plantId, harvestEventId = harvestEventId, bouquetId = bouquetId,
+        outletName = outletName, customerName = customerName,
+    )
+
+    private fun plant(id: Long, name: String) = app.verdant.entity.Plant(
+        id = id, orgId = 7L, speciesId = 1L, name = name,
+    )
+
+    private fun bouquet(id: Long, name: String) = app.verdant.entity.Bouquet(
+        id = id, orgId = 7L, name = name,
+    )
 }
