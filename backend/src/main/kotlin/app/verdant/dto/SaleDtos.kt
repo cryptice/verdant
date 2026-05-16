@@ -51,3 +51,17 @@ data class SaleLotEventResponse(
     val recordedByUserId: Long,
     val createdAt: Instant,
 )
+
+data class SaleLedgerEntry(
+    val id: Long,
+    val saleLotId: Long,
+    val sourceKind: String,
+    val sourceSummary: String?,
+    val unitKind: String,
+    val quantity: Int,
+    val pricePerUnitCents: Int,
+    val totalCents: Int,
+    val outletName: String,
+    val customerName: String?,
+    val soldAt: LocalDate,
+)

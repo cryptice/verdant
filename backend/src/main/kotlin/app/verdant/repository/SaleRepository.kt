@@ -31,6 +31,92 @@ class SaleRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    /**
+     * List sales for an org, optionally bounded by sold_at date range. Joins
+     * sale_lot for source kind, outlet for name, customer (optional) for name.
+     * The source summary itself is filled in by the service layer using the
+     * existing per-source-kind enrichment so we don't duplicate the
+     * polymorphic-join logic here.
+     */
+    fun listForOrg(
+        orgId: Long,
+        fromDate: java.time.LocalDate?,
+        toDate: java.time.LocalDate?,
+        limit: Int,
+        offset: Int,
+    ): List<SaleListRow> =
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                """
+                SELECT s.id, s.sale_lot_id, s.quantity, s.price_per_unit_cents, s.sold_at,
+                       sl.source_kind, sl.unit_kind, sl.plant_id, sl.harvest_event_id, sl.bouquet_id,
+                       o.name AS outlet_name,
+                       c.name AS customer_name
+                FROM sale s
+                JOIN sale_lot sl ON sl.id = s.sale_lot_id
+                JOIN outlet o ON o.id = s.outlet_id
+                LEFT JOIN customer c ON c.id = s.customer_id
+                WHERE sl.org_id = ?
+                  AND (CAST(? AS DATE) IS NULL OR s.sold_at >= ?)
+                  AND (CAST(? AS DATE) IS NULL OR s.sold_at <= ?)
+                ORDER BY s.sold_at DESC, s.created_at DESC, s.id DESC
+                LIMIT ? OFFSET ?
+                """.trimIndent(),
+            ).use { ps ->
+                ps.setLong(1, orgId)
+                if (fromDate != null) {
+                    ps.setDate(2, java.sql.Date.valueOf(fromDate))
+                    ps.setDate(3, java.sql.Date.valueOf(fromDate))
+                } else {
+                    ps.setNull(2, java.sql.Types.DATE)
+                    ps.setNull(3, java.sql.Types.DATE)
+                }
+                if (toDate != null) {
+                    ps.setDate(4, java.sql.Date.valueOf(toDate))
+                    ps.setDate(5, java.sql.Date.valueOf(toDate))
+                } else {
+                    ps.setNull(4, java.sql.Types.DATE)
+                    ps.setNull(5, java.sql.Types.DATE)
+                }
+                ps.setInt(6, limit)
+                ps.setInt(7, offset)
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.toListRow()) }
+                }
+            }
+        }
+
+    private fun ResultSet.toListRow() = SaleListRow(
+        id = getLong("id"),
+        saleLotId = getLong("sale_lot_id"),
+        quantity = getInt("quantity"),
+        pricePerUnitCents = getInt("price_per_unit_cents"),
+        soldAt = getDate("sold_at").toLocalDate(),
+        sourceKind = getString("source_kind"),
+        unitKind = getString("unit_kind"),
+        plantId = getLong("plant_id").takeIf { !wasNull() },
+        harvestEventId = getLong("harvest_event_id").takeIf { !wasNull() },
+        bouquetId = getLong("bouquet_id").takeIf { !wasNull() },
+        outletName = getString("outlet_name"),
+        customerName = getString("customer_name"),
+    )
+
+    /** Intermediate row from the listing query; service enriches to SaleLedgerEntry. */
+    data class SaleListRow(
+        val id: Long,
+        val saleLotId: Long,
+        val quantity: Int,
+        val pricePerUnitCents: Int,
+        val soldAt: java.time.LocalDate,
+        val sourceKind: String,
+        val unitKind: String,
+        val plantId: Long?,
+        val harvestEventId: Long?,
+        val bouquetId: Long?,
+        val outletName: String,
+        val customerName: String?,
+    )
+
     /** Sum of quantity for a lot — used by service to recompute quantity_remaining. */
     fun sumQuantityForLot(lotId: Long): Int =
         ds.connection.use { conn ->
