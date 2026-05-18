@@ -14,5 +14,5 @@
     "5174": { "label": "verdant-admin" }
   },
 
-  "postCreateCommand": "backend/gradlew --version && node --version"
+  "postCreateCommand": ".devcontainer/post-create.sh"
 }

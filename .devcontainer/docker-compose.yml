@@ -17,6 +17,10 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/verdant
       DB_USERNAME: verdant
       DB_PASSWORD: verdant
+      # Redundant with the Dockerfile ENV, but explicit so `docker compose
+      # exec` and devcontainer feature scripts see the right values.
+      ANDROID_HOME: /opt/android-sdk
+      ANDROID_SDK_ROOT: /opt/android-sdk
 
 volumes:
   gradle-cache:

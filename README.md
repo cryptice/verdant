@@ -52,7 +52,7 @@ Alternatively, use the **Dev Container** (see below) — it bundles JDK 21, Node
 
 ### Dev Container (optional)
 
-The repo ships a [Dev Container](.devcontainer/) (`mcr.microsoft.com/devcontainers/java:21-bookworm` + Node 22 + Claude Code CLI) that runs the backend and admin UI alongside a PostgreSQL container.
+The repo ships a [Dev Container](.devcontainer/) (`mcr.microsoft.com/devcontainers/java:21-bookworm` + Node 22 + Claude Code CLI + Android SDK platform-35) that runs the backend, admin UI, and Android build alongside a PostgreSQL container.
 
 **VS Code:** open the folder and choose *"Reopen in Container"*. The workspace mounts at `/workspaces/verdant` and ports `8081` (backend) and `5174` (admin) are auto-forwarded.
 
@@ -67,7 +67,9 @@ cd backend && ./gradlew quarkusDev
 
 The host's `~/.claude` is bind-mounted into the container so Claude Code auth/memory/plugins follow you in. Gradle and npm caches live in named volumes (`gradle-cache`, `node-modules-cache`) so they survive container rebuilds. The backend reaches PostgreSQL at `postgres:5432` inside the network; the host can reach it on `localhost:5433`.
 
-The Android app is *not* run inside the container — keep using Android Studio on the host. Set the Android app's `.env.yaml` API host to your laptop IP and the forwarded `:8081` port.
+The Android app **compiles, tests, and lints inside the container** — `cd android && ./gradlew :app:compileDebugKotlin` (or `:app:assembleDebug`, `:app:testDebugUnitTest`, `:app:lintDebug`) all work against the bundled SDK at `/opt/android-sdk`. The post-create hook rewrites `android/local.properties` to point there; Android Studio on the host regenerates the file with the host SDK path on next sync — expected friction.
+
+Interactive debugging on a device or emulator still needs the host: Docker Desktop on macOS doesn't expose KVM or USB. To `adb` into a host-side emulator/device from inside the container, run `adb tcpip 5555` on the host once, then `adb connect host.docker.internal:5555` inside the container. For running the app interactively, set the Android app's `.env.yaml` API host to your laptop IP and the forwarded `:8081` port.
 
 ### Backend
 
