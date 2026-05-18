@@ -48,6 +48,27 @@ React + TypeScript + Tailwind CSS (Notion-inspired design).
 - Android Studio (for the Android app)
 - Docker (for local PostgreSQL and deployment builds)
 
+Alternatively, use the **Dev Container** (see below) — it bundles JDK 21, Node 22, and Claude Code CLI, and wires PostgreSQL automatically.
+
+### Dev Container (optional)
+
+The repo ships a [Dev Container](.devcontainer/) (`mcr.microsoft.com/devcontainers/java:21-bookworm` + Node 22 + Claude Code CLI) that runs the backend and admin UI alongside a PostgreSQL container.
+
+**VS Code:** open the folder and choose *"Reopen in Container"*. The workspace mounts at `/workspaces/verdant` and ports `8081` (backend) and `5174` (admin) are auto-forwarded.
+
+**Plain Docker:**
+
+```bash
+docker compose -f docker-compose.yml -f .devcontainer/docker-compose.yml up -d
+docker compose -f docker-compose.yml -f .devcontainer/docker-compose.yml exec dev bash
+# inside the container — already in /workspaces/verdant
+cd backend && ./gradlew quarkusDev
+```
+
+The host's `~/.claude` is bind-mounted into the container so Claude Code auth/memory/plugins follow you in. Gradle and npm caches live in named volumes (`gradle-cache`, `node-modules-cache`) so they survive container rebuilds. The backend reaches PostgreSQL at `postgres:5432` inside the network; the host can reach it on `localhost:5433`.
+
+The Android app is *not* run inside the container — keep using Android Studio on the host. Set the Android app's `.env.yaml` API host to your laptop IP and the forwarded `:8081` port.
+
 ### Backend
 
 ```bash
