@@ -735,3 +735,25 @@ fun AddSpeciesScreen(
         }
     }
 }
+
+private fun monthShortSv(month: Int): String = arrayOf(
+    "jan", "feb", "mar", "apr", "maj", "jun",
+    "jul", "aug", "sep", "okt", "nov", "dec",
+)[month - 1]
+
+private fun positionLabelSv(code: String): String = when (code) {
+    "SUNNY" -> "Sol"
+    "PARTIALLY_SUNNY" -> "Halvskugga"
+    "SHADOWY" -> "Skugga"
+    else -> code
+}
+
+private fun soilLabelSv(code: String): String = when (code) {
+    "CLAY" -> "Lera"
+    "SANDY" -> "Sand"
+    "LOAMY" -> "Mylla"
+    "CHALKY" -> "Kalk"
+    "PEATY" -> "Torv"
+    "SILTY" -> "Silt"
+    else -> code
+}
