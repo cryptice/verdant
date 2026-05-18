@@ -1,0 +1,22 @@
+services:
+  dev:
+    build:
+      context: .devcontainer
+      dockerfile: Dockerfile
+    user: vscode
+    volumes:
+      - .:/workspaces/verdant:cached
+      - gradle-cache:/home/vscode/.gradle
+      - node-modules-cache:/home/vscode/.npm
+      - ${HOME}/.claude:/home/vscode/.claude
+    command: sleep infinity
+    depends_on:
+      - postgres
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/verdant
+      DB_USERNAME: verdant
+      DB_PASSWORD: verdant
+
+volumes:
+  gradle-cache:
+  node-modules-cache:

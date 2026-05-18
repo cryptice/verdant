@@ -1,0 +1,18 @@
+{
+  "name": "verdant",
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "docker-compose.yml"
+  ],
+  "service": "dev",
+  "workspaceFolder": "/workspaces/verdant",
+  "remoteUser": "vscode",
+
+  "forwardPorts": [8081, 5174],
+  "portsAttributes": {
+    "8081": { "label": "verdant-backend" },
+    "5174": { "label": "verdant-admin" }
+  },
+
+  "postCreateCommand": "backend/gradlew --version && node --version"
+}
