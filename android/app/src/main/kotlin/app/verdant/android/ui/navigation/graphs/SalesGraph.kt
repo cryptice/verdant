@@ -11,7 +11,10 @@ import app.verdant.android.ui.sales.SalesScreen
 
 fun NavGraphBuilder.salesGraph(navController: NavController) {
     composable(Screen.Sales.route) {
-        SalesScreen(onLotClick = { lotId -> navController.navigate(Screen.SaleLotDetail.create(lotId)) })
+        SalesScreen(
+            onLotClick = { lotId -> navController.navigate(Screen.SaleLotDetail.create(lotId)) },
+            onBrowsePlants = { navController.navigate(Screen.PlantedSpeciesList.route) },
+        )
     }
     composable(
         Screen.SaleLotDetail.route,

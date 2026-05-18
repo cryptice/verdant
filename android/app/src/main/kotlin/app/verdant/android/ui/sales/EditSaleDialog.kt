@@ -2,7 +2,10 @@ package app.verdant.android.ui.sales
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
@@ -32,6 +35,7 @@ fun EditSaleDialog(
     initialCustomerId: Long?,
     onDismiss: () -> Unit,
     onConfirm: (EditSaleRequest) -> Unit,
+    onOpenLot: (() -> Unit)? = null,
 ) {
     var qtyText by remember(entry.id) { mutableStateOf(entry.quantity.toString()) }
     var priceText by remember(entry.id) { mutableStateOf("%.2f".format(entry.pricePerUnitCents / 100.0)) }
@@ -110,6 +114,14 @@ fun EditSaleDialog(
                 },
             ) { Text("Spara") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Avbryt") } },
+        dismissButton = {
+            Row {
+                if (onOpenLot != null) {
+                    TextButton(onClick = onOpenLot) { Text("Öppna lot") }
+                    Spacer(Modifier.width(8.dp))
+                }
+                TextButton(onClick = onDismiss) { Text("Avbryt") }
+            }
+        },
     )
 }

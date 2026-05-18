@@ -72,6 +72,7 @@ data class SalesState(
     val customers: List<CustomerResponse> = emptyList(),
     val species: List<app.verdant.android.data.model.SpeciesResponse> = emptyList(),
     val outlets: List<app.verdant.android.data.model.OutletResponse> = emptyList(),
+    val toastMessage: String? = null,
 )
 
 @HiltViewModel
@@ -116,6 +117,8 @@ class SalesViewModel @Inject constructor(
         }
     }
 
+    fun consumeToast() { _uiState.value = _uiState.value.copy(toastMessage = null) }
+
     fun recordQuickSale(request: app.verdant.android.data.model.QuickSaleRequest, onDone: () -> Unit) {
         viewModelScope.launch {
             try {
@@ -124,7 +127,7 @@ class SalesViewModel @Inject constructor(
                 loadLedger()
                 onDone()
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(ledgerError = e.message)
+                _uiState.value = _uiState.value.copy(toastMessage = e.message ?: "Kunde inte spara försäljning")
             }
         }
     }
@@ -137,7 +140,7 @@ class SalesViewModel @Inject constructor(
                 )
                 _uiState.value = _uiState.value.copy(outlets = _uiState.value.outlets + created)
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(ledgerError = e.message)
+                _uiState.value = _uiState.value.copy(toastMessage = e.message ?: "Kunde inte skapa säljkanal")
             }
         }
     }
@@ -216,15 +219,25 @@ class SalesViewModel @Inject constructor(
     }
 }
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun SalesScreen(
     onLotClick: (Long) -> Unit,
+    onBrowsePlants: () -> Unit,
     viewModel: SalesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var tabIndex by remember { mutableIntStateOf(0) }
     var editingEntry by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<SaleLedgerEntry?>(null) }
     var showQuickSaleDialog by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    var showFabChooser by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
+    LaunchedEffect(uiState.toastMessage) {
+        uiState.toastMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.consumeToast()
+        }
+    }
     val tabs: List<Pair<String?, String>> = listOf(
         SaleLotStatus.OFFERED to "Aktiva",
         SaleLotStatus.SOLD_OUT to "Sålda",
@@ -253,9 +266,10 @@ fun SalesScreen(
         mastheadLeft = "",
         mastheadCenter = "Försäljning",
         watermark = BotanicalPlate.Harvest,
+        snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarHostState) },
         fab = {
             FaltetFab(
-                onClick = { showQuickSaleDialog = true },
+                onClick = { showFabChooser = true },
                 contentDescription = "Lägg till försäljning",
             )
         },
@@ -318,6 +332,10 @@ fun SalesScreen(
             onConfirm = { request ->
                 viewModel.editSale(entry.id, request) { editingEntry = null }
             },
+            onOpenLot = {
+                onLotClick(entry.saleLotId)
+                editingEntry = null
+            },
         )
     }
 
@@ -332,6 +350,33 @@ fun SalesScreen(
             },
             onCreateOutlet = { name, channel -> viewModel.createOutlet(name, channel) },
         )
+    }
+
+    if (showFabChooser) {
+        androidx.compose.material3.ModalBottomSheet(
+            onDismissRequest = { showFabChooser = false },
+        ) {
+            androidx.compose.foundation.layout.Column(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+            ) {
+                FaltetListRow(
+                    title = "Snabbförsäljning",
+                    meta = "Registrera en försäljning direkt",
+                    onClick = {
+                        showFabChooser = false
+                        showQuickSaleDialog = true
+                    },
+                )
+                FaltetListRow(
+                    title = "Lägg ut för försäljning",
+                    meta = "Öppna en planta eller skörd att sälja",
+                    onClick = {
+                        showFabChooser = false
+                        onBrowsePlants()
+                    },
+                )
+            }
+        }
     }
 }
 
