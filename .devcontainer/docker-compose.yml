@@ -4,6 +4,7 @@ services:
       context: .devcontainer
       dockerfile: Dockerfile
     user: vscode
+    working_dir: /workspaces/verdant
     volumes:
       - .:/workspaces/verdant:cached
       - gradle-cache:/home/vscode/.gradle
