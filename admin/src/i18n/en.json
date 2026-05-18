@@ -183,7 +183,7 @@
     "frontDataExtracted": "Front data extracted",
     "extractingBack": "Extracting back with Gemini...",
     "backDataExtracted": "Back data extracted",
-    "importResult": "Imported {{created}} species, skipped {{skipped}} duplicates",
+    "importResult": "Imported {{created}} new, updated {{updated}}, skipped {{skipped}} duplicates",
     "exportFailed": "Export failed: {{error}}",
     "importFailed": "Import failed: {{error}}",
     "seedPacketBack": "Seed packet back",

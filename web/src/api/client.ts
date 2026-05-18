@@ -1,26 +1,10 @@
-const API_BASE = ''
+import { ApiError, makeApiRequest } from '@verdant/shared'
 
-function getToken(): string | null {
-  return localStorage.getItem('verdant_token')
-}
-
-function getActiveOrgId(): string | null {
-  return localStorage.getItem('verdant_org_id')
-}
+export { ApiError }
 
 export function setActiveOrgId(orgId: number | null) {
   if (orgId) localStorage.setItem('verdant_org_id', String(orgId))
   else localStorage.removeItem('verdant_org_id')
-}
-
-export class ApiError extends Error {
-  status?: number
-  isNetworkError: boolean
-  constructor(message: string, status?: number, isNetworkError = false) {
-    super(message)
-    this.status = status
-    this.isNetworkError = isNetworkError
-  }
 }
 
 let onUnauthorized: (() => void) | null = null
@@ -28,36 +12,14 @@ export function setOnUnauthorized(cb: () => void) {
   onUnauthorized = cb
 }
 
-async function apiRequest<T>(path: string, options?: RequestInit): Promise<T> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  const token = getToken()
-  if (token) headers['Authorization'] = `Bearer ${token}`
-  const orgId = getActiveOrgId()
-  if (orgId) headers['X-Organization-Id'] = orgId
-
-  let res: Response
-  try {
-    res = await fetch(`${API_BASE}${path}`, { ...options, headers: { ...headers, ...options?.headers } })
-  } catch {
-    throw new ApiError('Network error — check your connection', undefined, true)
-  }
-
-  if (res.status === 401) {
+const apiRequest = makeApiRequest({
+  getToken: () => localStorage.getItem('verdant_token'),
+  getOrgId: () => localStorage.getItem('verdant_org_id'),
+  onUnauthorized: () => {
     localStorage.removeItem('verdant_token')
     onUnauthorized?.()
-    throw new ApiError('Unauthorized', res.status)
-  }
-
-  if (!res.ok) {
-    const body = await res.text()
-    let message = `Request failed (${res.status})`
-    try { message = JSON.parse(body).message ?? message } catch { /* use default */ }
-    throw new ApiError(message, res.status)
-  }
-
-  if (res.status === 204) return undefined as T
-  return res.json()
-}
+  },
+})
 
 // ── Types ──
 
@@ -803,7 +765,7 @@ export const api = {
 
 export async function downloadDataExport(): Promise<void> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  const token = getToken()
+  const token = localStorage.getItem('verdant_token')
   if (token) headers['Authorization'] = `Bearer ${token}`
 
   let res: Response

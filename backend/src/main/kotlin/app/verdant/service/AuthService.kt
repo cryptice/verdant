@@ -12,6 +12,7 @@ import app.verdant.repository.OrganizationRepository
 import app.verdant.repository.UserRepository
 import io.quarkus.elytron.security.common.BcryptUtil
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.transaction.Transactional
 import jakarta.ws.rs.BadRequestException
 import jakarta.ws.rs.ForbiddenException
 
@@ -23,6 +24,7 @@ class AuthService(
     private val orgMemberRepository: OrgMemberRepository,
     private val organizationRepository: OrganizationRepository,
 ) {
+    @Transactional
     fun authenticateWithGoogle(idToken: String): AuthResponse {
         val claims = googleTokenVerifier.verify(idToken)
 

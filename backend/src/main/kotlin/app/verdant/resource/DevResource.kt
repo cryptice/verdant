@@ -3,6 +3,7 @@ package app.verdant.resource
 import app.verdant.entity.*
 import app.verdant.repository.*
 import app.verdant.service.SupplyService
+import io.quarkus.arc.profile.IfBuildProfile
 import io.quarkus.security.Authenticated
 import jakarta.annotation.security.RolesAllowed
 import jakarta.ws.rs.*
@@ -14,6 +15,7 @@ import java.time.LocalDate
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RolesAllowed("ADMIN")
+@IfBuildProfile("dev")
 class DevResource(
     private val ds: io.agroal.api.AgroalDataSource,
     private val userRepository: UserRepository,

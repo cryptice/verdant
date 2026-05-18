@@ -1,57 +1,27 @@
-const API_BASE = ''
+import { ApiError, makeApiRequest } from '@verdant/shared'
 
-function getToken(): string | null {
-  return localStorage.getItem('admin_token')
-}
+export { ApiError }
 
-export class ApiError extends Error {
-  status?: number
-  isNetworkError: boolean
-
-  constructor(message: string, status?: number, isNetworkError = false) {
-    super(message)
-    this.name = 'ApiError'
-    this.status = status
-    this.isNetworkError = isNetworkError
-  }
-}
-
-export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = getToken()
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...((options.headers as Record<string, string>) || {})
-  }
-
-  let response: Response
-  try {
-    response = await fetch(`${API_BASE}${path}`, { ...options, headers })
-  } catch {
-    throw new ApiError('Unable to connect to the server. Is the backend running?', undefined, true)
-  }
-
-  if (response.status === 401 || response.status === 403) {
+export const apiRequest = makeApiRequest({
+  getToken: () => localStorage.getItem('admin_token'),
+  onUnauthorized: () => {
     localStorage.removeItem('admin_token')
     window.location.href = '/login'
-    throw new ApiError('Unauthorized', response.status)
-  }
-
-  if (!response.ok) {
-    const body = await response.json().catch(() => null)
-    if (!body) {
-      throw new ApiError('Unable to connect to the server. Is the backend running?', undefined, true)
-    }
-    throw new ApiError(body.message || `HTTP ${response.status}`, response.status)
-  }
-
-  if (response.status === 204) return undefined as T
-  return response.json()
-}
+  },
+  networkErrorMessage: 'Unable to connect to the server. Is the backend running?',
+  treat403AsUnauthorized: true,
+})
 
 export interface AuthResponse {
   token: string
   user: User
+}
+
+export interface UserOrgMembership {
+  orgId: number
+  orgName: string
+  orgEmoji: string | null
+  role: 'OWNER' | 'MEMBER'
 }
 
 export interface User {
@@ -60,6 +30,10 @@ export interface User {
   displayName: string
   avatarUrl: string | null
   role: 'USER' | 'ADMIN'
+  language: string
+  onboarding: string | null
+  advancedMode: boolean
+  organizations: UserOrgMembership[]
   createdAt: string
 }
 
@@ -91,6 +65,8 @@ export interface SpeciesProvider {
   imageFrontUrl: string | null
   imageBackUrl: string | null
   productUrl: string | null
+  costPerUnitCents: number | null
+  unitType: string | null
 }
 
 export interface Species {
@@ -118,7 +94,7 @@ export interface Species {
   groups: { id: number; name: string }[]
   tags: SpeciesTag[]
   providers: SpeciesProvider[]
-  costPerSeedSek: number | null
+  costPerSeedCents: number | null
   expectedStemsPerPlant: number | null
   expectedVaseLifeDays: number | null
   plantType: string | null
@@ -154,7 +130,7 @@ export interface CreateSpeciesRequest {
   sowingMonths?: number[]
   germinationRate?: number | null
   tagIds?: number[]
-  costPerSeedSek?: number | null
+  costPerSeedCents?: number | null
   expectedStemsPerPlant?: number | null
   expectedVaseLifeDays?: number | null
   plantType?: string | null
@@ -183,7 +159,7 @@ export interface UpdateSpeciesRequest {
   sowingMonths?: number[]
   germinationRate?: number | null
   tagIds?: number[] | null
-  costPerSeedSek?: number | null
+  costPerSeedCents?: number | null
   expectedStemsPerPlant?: number | null
   expectedVaseLifeDays?: number | null
   plantType?: string | null
@@ -229,6 +205,8 @@ export interface SpeciesExportProvider {
   imageFrontUrl: string | null
   imageBackUrl: string | null
   productUrl: string | null
+  costPerUnitCents: number | null
+  unitType: string | null
 }
 
 export interface SpeciesExportEntry {
@@ -254,11 +232,17 @@ export interface SpeciesExportEntry {
   groupNames: string[]
   tagNames: string[]
   providers: SpeciesExportProvider[]
+  costPerSeedCents: number | null
+  expectedStemsPerPlant: number | null
+  expectedVaseLifeDays: number | null
+  plantType: string | null
+  defaultUnitType: string | null
   workflowTemplateId: number | null
 }
 
 export interface ImportResult {
   created: number
+  updated: number
   skipped: number
 }
 
@@ -311,12 +295,16 @@ export interface AddSpeciesProviderRequest {
   imageFrontBase64?: string | null
   imageBackBase64?: string | null
   productUrl?: string | null
+  costPerUnitCents?: number | null
+  unitType?: string | null
 }
 
 export interface UpdateSpeciesProviderRequest {
   imageFrontBase64?: string | null
   imageBackBase64?: string | null
   productUrl?: string | null
+  costPerUnitCents?: number | null
+  unitType?: string | null
 }
 
 export const api = {

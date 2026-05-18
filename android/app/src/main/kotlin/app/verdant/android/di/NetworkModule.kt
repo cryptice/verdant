@@ -15,8 +15,13 @@ import kotlinx.coroutines.runBlocking
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Invocation
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.lang.reflect.Method
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.WildcardType
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
@@ -74,14 +79,23 @@ object NetworkModule {
                 }
 
                 if (!response.isSuccessful) {
-                    when (response.code) {
-                        401 -> {
-                            runBlocking { sessionManager.onUnauthorized() }
-                            throw AppError.Unauthorized()
+                    // 401 side-effect always — even for Response<*> callers, the
+                    // session is dead and SessionManager must broadcast it.
+                    if (response.code == 401) {
+                        runBlocking { sessionManager.onUnauthorized() }
+                    }
+                    // Only map to AppError when the call declares a bare `T` return.
+                    // For `Response<T>` returns, let the Response propagate so the
+                    // caller can inspect status/body.
+                    val returnsResponseWrapper = request.tag(Invocation::class.java)
+                        ?.let { methodReturnsResponse(it.method()) } ?: false
+                    if (!returnsResponseWrapper) {
+                        when (response.code) {
+                            401 -> throw AppError.Unauthorized()
+                            404 -> throw AppError.NotFound()
+                            in 500..599 -> throw AppError.Server()
+                            else -> throw AppError.Unknown("Request failed with status ${response.code}")
                         }
-                        404 -> throw AppError.NotFound()
-                        in 500..599 -> throw AppError.Server()
-                        else -> throw AppError.Unknown("Request failed with status ${response.code}")
                     }
                 }
 
@@ -107,5 +121,32 @@ object NetworkModule {
     @Singleton
     fun provideVerdantApi(retrofit: Retrofit): VerdantApi {
         return retrofit.create(VerdantApi::class.java)
+    }
+
+    // Detects whether a Retrofit interface method's effective return type is
+    // retrofit2.Response<*>. For suspend functions Retrofit hides the real
+    // return type inside the trailing Continuation<? super T> parameter.
+    private fun methodReturnsResponse(method: Method): Boolean {
+        val params = method.genericParameterTypes
+        if (params.isNotEmpty()) {
+            val last = params.last()
+            if (last is ParameterizedType && last.rawType == kotlin.coroutines.Continuation::class.java) {
+                val arg = last.actualTypeArguments.firstOrNull() ?: return false
+                val tType = if (arg is WildcardType) arg.lowerBounds.firstOrNull() ?: return false else arg
+                val raw = when (tType) {
+                    is ParameterizedType -> tType.rawType
+                    is Class<*> -> tType
+                    else -> return false
+                }
+                return raw == Response::class.java
+            }
+        }
+        val rt = method.genericReturnType
+        val raw = when (rt) {
+            is ParameterizedType -> rt.rawType
+            is Class<*> -> rt
+            else -> return false
+        }
+        return raw == Response::class.java
     }
 }

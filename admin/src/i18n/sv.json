@@ -183,7 +183,7 @@
     "frontDataExtracted": "Framsidedata extraherad",
     "extractingBack": "Extraherar baksida med Gemini...",
     "backDataExtracted": "Baksidedata extraherad",
-    "importResult": "Importerade {{created}} arter, hoppade \u00f6ver {{skipped}} dubbletter",
+    "importResult": "Importerade {{created}} nya, uppdaterade {{updated}}, hoppade \u00f6ver {{skipped}} dubbletter",
     "exportFailed": "Export misslyckades: {{error}}",
     "importFailed": "Import misslyckades: {{error}}",
     "seedPacketBack": "Fr\u00f6p\u00e5se baksida",

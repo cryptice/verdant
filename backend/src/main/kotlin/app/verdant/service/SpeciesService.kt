@@ -4,6 +4,7 @@ import app.verdant.dto.*
 import app.verdant.entity.*
 import app.verdant.repository.*
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.transaction.Transactional
 import jakarta.ws.rs.ForbiddenException
 import jakarta.ws.rs.NotFoundException
 
@@ -51,6 +52,7 @@ class SpeciesService(
         return species.toResponse(groups, tags)
     }
 
+    @Transactional
     fun createSpecies(request: CreateSpeciesRequest, orgId: Long): SpeciesResponse {
         val species = speciesRepository.persist(
             Species(
@@ -93,6 +95,7 @@ class SpeciesService(
         return getSpecies(sid, orgId)
     }
 
+    @Transactional
     fun updateSpecies(speciesId: Long, request: UpdateSpeciesRequest, orgId: Long): SpeciesResponse {
         val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
         if (species.orgId == null) throw ForbiddenException("Cannot modify system species")
@@ -168,6 +171,7 @@ class SpeciesService(
         return species.toResponse(groups, tags)
     }
 
+    @Transactional
     fun createSpeciesAdmin(request: CreateSpeciesRequest): SpeciesResponse {
         val species = speciesRepository.persist(
             Species(
@@ -209,6 +213,7 @@ class SpeciesService(
         return getSpeciesAdmin(sid)
     }
 
+    @Transactional
     fun updateSpeciesAdmin(speciesId: Long, request: UpdateSpeciesRequest): SpeciesResponse {
         val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
         val frontUrl = request.imageFrontBase64?.let { storageService.uploadSpeciesFront(speciesId, it) } ?: species.imageFrontUrl
@@ -253,6 +258,7 @@ class SpeciesService(
         speciesRepository.delete(speciesId)
     }
 
+    @Transactional
     fun uploadSpeciesPhoto(speciesId: Long, base64: String): SpeciesPhotoResponse {
         speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
         val url = storageService.uploadSpeciesPhoto(speciesId, base64)
@@ -262,6 +268,7 @@ class SpeciesService(
         return SpeciesPhotoResponse(photo.id!!, photo.imageUrl, photo.sortOrder)
     }
 
+    @Transactional
     fun deleteSpeciesPhoto(speciesId: Long, photoId: Long) {
         val photo = photoRepository.findById(photoId) ?: throw NotFoundException("Photo not found")
         if (photo.speciesId != speciesId) throw NotFoundException("Photo not found for this species")
@@ -525,6 +532,7 @@ class SpeciesService(
 
     // ── Admin Species Providers ──
 
+    @Transactional
     fun addSpeciesProviderAdmin(speciesId: Long, request: AddSpeciesProviderRequest): SpeciesProviderResponse {
         speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
         providerRepository.findById(request.providerId) ?: throw NotFoundException("Provider not found")
@@ -540,6 +548,7 @@ class SpeciesService(
         return sp.toResponse()
     }
 
+    @Transactional
     fun updateSpeciesProviderAdmin(speciesId: Long, spId: Long, request: UpdateSpeciesProviderRequest): SpeciesProviderResponse {
         speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
         val sp = speciesProviderRepository.findById(spId) ?: throw NotFoundException("Species provider not found")
@@ -565,6 +574,7 @@ class SpeciesService(
         return speciesProviderRepository.findBySpeciesId(speciesId).map { it.toResponse() }
     }
 
+    @Transactional
     fun addProviderToSpecies(speciesId: Long, request: AddSpeciesProviderRequest, orgId: Long): SpeciesProviderResponse {
         val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
         if (species.orgId != null && species.orgId != orgId) throw NotFoundException("Species not found")
@@ -585,6 +595,7 @@ class SpeciesService(
         return sp.toResponse()
     }
 
+    @Transactional
     fun updateSpeciesProvider(speciesId: Long, speciesProviderId: Long, request: UpdateSpeciesProviderRequest, orgId: Long): SpeciesProviderResponse {
         val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
         if (species.orgId != null && species.orgId != orgId) throw NotFoundException("Species not found")

@@ -14,7 +14,6 @@ export function useUnsavedGuard(
   isDirty: boolean,
   message: string = 'Ändringar går förlorade. Är du säker?',
 ) {
-  // Browser refresh / close / external link.
   useEffect(() => {
     if (!isDirty) return
     const handler = (e: BeforeUnloadEvent) => {
@@ -26,7 +25,6 @@ export function useUnsavedGuard(
     return () => window.removeEventListener('beforeunload', handler)
   }, [isDirty, message])
 
-  // SPA navigation (router-driven).
   const blocker = useBlocker(({ currentLocation, nextLocation }) =>
     isDirty && currentLocation.pathname !== nextLocation.pathname,
   )

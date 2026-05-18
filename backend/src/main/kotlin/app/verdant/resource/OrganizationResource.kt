@@ -44,7 +44,7 @@ class OrganizationResource(
     @GET
     @Path("/{id}/members")
     fun listMembers(@PathParam("id") id: Long) =
-        organizationService.getMembers(id)
+        organizationService.getMembers(id, userId())
 
     @POST
     @Path("/{id}/invite")

@@ -157,7 +157,8 @@ class OrganizationService(
         organizationRepository.delete(orgId)
     }
 
-    fun getMembers(orgId: Long): List<OrgMemberResponse> {
+    fun getMembers(orgId: Long, userId: Long): List<OrgMemberResponse> {
+        checkMember(orgId, userId)
         val members = orgMemberRepository.findByOrgId(orgId)
         val userIds = members.map { it.userId }.toSet()
         val usersById = userRepository.findByIds(userIds)
@@ -251,6 +252,11 @@ class OrganizationService(
         val member = orgMemberRepository.findByOrgAndUser(orgId, userId)
             ?: throw ForbiddenException()
         if (member.role != OrgRole.OWNER) throw ForbiddenException()
+    }
+
+    private fun checkMember(orgId: Long, userId: Long) {
+        orgMemberRepository.findByOrgAndUser(orgId, userId)
+            ?: throw ForbiddenException()
     }
 }
 
