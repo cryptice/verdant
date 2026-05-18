@@ -29,6 +29,7 @@ import java.time.LocalDate
 fun EditSaleDialog(
     entry: SaleLedgerEntry,
     customers: List<CustomerResponse>,
+    initialCustomerId: Long?,
     onDismiss: () -> Unit,
     onConfirm: (EditSaleRequest) -> Unit,
 ) {
@@ -39,9 +40,8 @@ fun EditSaleDialog(
         mutableStateOf(runCatching { LocalDate.parse(entry.soldAt.take(10)) }.getOrNull() ?: LocalDate.now())
     }
 
-    // Best-effort pre-select by display name (ledger DTO carries customerName but not customerId).
-    var selectedCustomer by remember(entry.id, customers) {
-        mutableStateOf<CustomerResponse?>(customers.firstOrNull { it.name == entry.customerName })
+    var selectedCustomer by remember(entry.id, customers, initialCustomerId) {
+        mutableStateOf<CustomerResponse?>(customers.firstOrNull { it.id == initialCustomerId })
     }
 
     val qty = qtyText.toIntOrNull()

@@ -313,6 +313,7 @@ fun SalesScreen(
         EditSaleDialog(
             entry = entry,
             customers = uiState.customers,
+            initialCustomerId = entry.customerId,
             onDismiss = { editingEntry = null },
             onConfirm = { request ->
                 viewModel.editSale(entry.id, request) { editingEntry = null }

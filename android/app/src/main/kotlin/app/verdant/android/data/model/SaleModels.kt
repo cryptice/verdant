@@ -188,6 +188,7 @@ data class SaleLedgerEntry(
     @SerializedName("pricePerUnitCents") val pricePerUnitCents: Int,
     @SerializedName("totalCents") val totalCents: Int,
     @SerializedName("outletName") val outletName: String,
+    @SerializedName("customerId") val customerId: Long? = null,
     @SerializedName("customerName") val customerName: String?,
     @SerializedName("soldAt") val soldAt: String,
     @SerializedName("notes") val notes: String? = null,

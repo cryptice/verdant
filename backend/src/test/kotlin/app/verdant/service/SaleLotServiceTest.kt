@@ -664,6 +664,7 @@ class SaleLotServiceTest {
         harvestEventId: Long? = null,
         bouquetId: Long? = null,
         speciesId: Long? = null,
+        customerId: Long? = null,
         outletName: String = "Saluhallen",
         customerName: String? = null,
         notes: String? = null,
@@ -672,6 +673,7 @@ class SaleLotServiceTest {
         soldAt = soldAt, sourceKind = sourceKind, unitKind = unitKind,
         plantId = plantId, harvestEventId = harvestEventId, bouquetId = bouquetId,
         speciesId = speciesId,
+        customerId = customerId,
         outletName = outletName, customerName = customerName, notes = notes,
     )
 

@@ -64,6 +64,7 @@ data class SaleLedgerEntry(
     val pricePerUnitCents: Int,
     val totalCents: Int,
     val outletName: String,
+    val customerId: Long?,
     val customerName: String?,
     val soldAt: LocalDate,
     val notes: String?,

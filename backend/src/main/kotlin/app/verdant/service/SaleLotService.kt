@@ -416,6 +416,7 @@ class SaleLotService(
                 pricePerUnitCents = r.pricePerUnitCents,
                 totalCents = r.quantity * r.pricePerUnitCents,
                 outletName = r.outletName,
+                customerId = r.customerId,
                 customerName = r.customerName,
                 soldAt = r.soldAt,
                 notes = r.notes,
