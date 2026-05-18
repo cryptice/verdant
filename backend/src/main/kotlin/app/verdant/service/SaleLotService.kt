@@ -236,10 +236,18 @@ class SaleLotService(
      */
     @Transactional
     fun recordAdHocSale(request: QuickSaleRequest, orgId: Long, userId: Long): SaleResponse {
-        // Validate species
-        val species = speciesRepo.findById(request.speciesId)
-            ?: throw NotFoundException("Species not found")
-        if (species.orgId != orgId) throw NotFoundException("Species not found")
+        // Validate species XOR adhocLabel
+        val hasSpecies = request.speciesId != null
+        val hasLabel = !request.adhocLabel.isNullOrBlank()
+        if (hasSpecies == hasLabel) {
+            throw BadRequestException("Provide exactly one of speciesId or adhocLabel")
+        }
+
+        if (hasSpecies) {
+            val species = speciesRepo.findById(request.speciesId!!)
+                ?: throw NotFoundException("Species not found")
+            if (species.orgId != orgId) throw NotFoundException("Species not found")
+        }
 
         // Validate outlet
         val outlet = outletRepo.findById(request.outletId)
@@ -255,6 +263,10 @@ class SaleLotService(
         if (parsedUnit == UnitKind.BUNCH) {
             throw BadRequestException("Unit BUNCH not supported for ad-hoc sales")
         }
+        // BOUQUET unit is only valid for label-based ADHOC (no species)
+        if (parsedUnit == UnitKind.BOUQUET && hasSpecies) {
+            throw BadRequestException("Unit BOUQUET requires adhocLabel, not speciesId")
+        }
 
         // Persist the OFFERED ADHOC lot.
         val lot = lotRepo.persist(
@@ -262,6 +274,7 @@ class SaleLotService(
                 orgId = orgId,
                 sourceKind = SourceKind.ADHOC,
                 speciesId = request.speciesId,
+                adhocLabel = request.adhocLabel?.trim()?.takeIf { it.isNotEmpty() },
                 unitKind = parsedUnit,
                 quantityTotal = request.quantity,
                 quantityRemaining = request.quantity,
@@ -403,7 +416,7 @@ class SaleLotService(
                 "PLANT" -> r.plantId?.let { plantNames[it] }
                 "HARVEST_EVENT" -> r.harvestEventId?.let { harvestSummaries[it] }
                 "BOUQUET" -> r.bouquetId?.let { bouquetNames[it] }
-                "ADHOC" -> r.speciesId?.let { adHocSpeciesNames[it] }
+                "ADHOC" -> r.speciesId?.let { adHocSpeciesNames[it] } ?: r.adhocLabel
                 else -> null
             }
             SaleLedgerEntry(
@@ -532,7 +545,7 @@ class SaleLotService(
                 SourceKind.PLANT -> plantNames[lot.plantId]
                 SourceKind.HARVEST_EVENT -> harvestSummaries[lot.harvestEventId]
                 SourceKind.BOUQUET -> bouquetNames[lot.bouquetId]
-                SourceKind.ADHOC -> lot.speciesId?.let { id -> speciesById[id]?.displayName() }
+                SourceKind.ADHOC -> lot.speciesId?.let { id -> speciesById[id]?.displayName() } ?: lot.adhocLabel
             }
             lot.toResponse(
                 outletName = outletNames[lot.currentOutletId] ?: "(unknown)",
@@ -547,7 +560,7 @@ class SaleLotService(
             plantEventRepo.findById(id)?.let { "${it.stemCount ?: 0} stems on ${it.eventDate}" }
         }
         SourceKind.BOUQUET -> lot.bouquetId?.let { bouquetRepo.findById(it)?.name }
-        SourceKind.ADHOC -> lot.speciesId?.let { id -> speciesRepo.findById(id)?.displayName() }
+        SourceKind.ADHOC -> lot.speciesId?.let { id -> speciesRepo.findById(id)?.displayName() } ?: lot.adhocLabel
     }
 
     private fun SaleLot.toResponse(outletName: String, sourceSummary: String?) = SaleLotResponse(

@@ -30,7 +30,7 @@ import app.verdant.android.ui.faltet.FaltetDropdown
 // OutletPicker is in the same package — no import needed
 import java.time.LocalDate
 
-private val QUICK_UNIT_KINDS = listOf("STEM", "PLUG", "BULB", "TUBER", "PLANT")
+private val QUICK_UNIT_KINDS = listOf("STEM", "PLUG", "BULB", "TUBER", "PLANT", "BOUQUET")
 
 private fun unitLabel(kind: String): String = when (kind) {
     "STEM" -> "Stjälk"
@@ -38,6 +38,7 @@ private fun unitLabel(kind: String): String = when (kind) {
     "BULB" -> "Lök"
     "TUBER" -> "Knöl"
     "PLANT" -> "Planta"
+    "BOUQUET" -> "Bukett"
     else -> kind
 }
 
@@ -52,6 +53,7 @@ fun QuickSaleDialog(
 ) {
     var selectedSpecies by remember { mutableStateOf<SpeciesResponse?>(null) }
     var unitKind by remember { mutableStateOf<String?>(null) }
+    var labelText by remember { mutableStateOf("") }
     var qtyText by remember { mutableStateOf("") }
     var priceText by remember { mutableStateOf("") }
     var selectedOutletId by remember { mutableStateOf<Long?>(null) }
@@ -59,10 +61,11 @@ fun QuickSaleDialog(
     var soldAt by remember { mutableStateOf<LocalDate?>(LocalDate.now()) }
     var notes by remember { mutableStateOf("") }
 
+    val isBouquet = unitKind == "BOUQUET"
     val qty = qtyText.toIntOrNull()
     val priceCents = priceText.replace(',', '.').toDoubleOrNull()?.let { (it * 100).toInt() }
-    val valid = selectedSpecies != null &&
-        unitKind != null &&
+    val valid = unitKind != null &&
+        (if (isBouquet) labelText.isNotBlank() else selectedSpecies != null) &&
         qty != null && qty >= 1 &&
         priceCents != null && priceCents >= 0 &&
         selectedOutletId != null
@@ -75,15 +78,6 @@ fun QuickSaleDialog(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.verticalScroll(rememberScrollState()),
             ) {
-                FaltetDropdown(
-                    label = "Art",
-                    options = species,
-                    selected = selectedSpecies,
-                    onSelectedChange = { selectedSpecies = it },
-                    labelFor = { speciesDisplayName(it) },
-                    searchable = true,
-                    required = true,
-                )
                 FaltetChipSelector(
                     label = "Enhet",
                     options = QUICK_UNIT_KINDS,
@@ -92,6 +86,26 @@ fun QuickSaleDialog(
                     labelFor = { unitLabel(it) },
                     required = true,
                 )
+                if (isBouquet) {
+                    OutlinedTextField(
+                        value = labelText,
+                        onValueChange = { labelText = it.take(200) },
+                        label = { Text("Buketts namn") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                } else {
+                    FaltetDropdown(
+                        label = "Art",
+                        options = species,
+                        selected = selectedSpecies,
+                        onSelectedChange = { selectedSpecies = it },
+                        labelFor = { speciesDisplayName(it) },
+                        searchable = true,
+                        required = true,
+                    )
+                }
                 OutlinedTextField(
                     value = qtyText,
                     onValueChange = { qtyText = it.filter { c -> c.isDigit() } },
@@ -145,7 +159,8 @@ fun QuickSaleDialog(
                 onClick = {
                     onConfirm(
                         QuickSaleRequest(
-                            speciesId = selectedSpecies!!.id,
+                            speciesId = if (isBouquet) null else selectedSpecies!!.id,
+                            adhocLabel = if (isBouquet) labelText.trim() else null,
                             unitKind = unitKind!!,
                             quantity = qty!!,
                             pricePerUnitCents = priceCents!!,

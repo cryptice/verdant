@@ -21,6 +21,7 @@ data class SaleLot(
     val harvestEventId: Long? = null,
     val bouquetId: Long? = null,
     val speciesId: Long? = null,
+    val adhocLabel: String? = null,
     val unitKind: UnitKind,
     val stemsPerUnit: Int? = null,
     val quantityTotal: Int,

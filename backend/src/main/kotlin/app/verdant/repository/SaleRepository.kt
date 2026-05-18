@@ -49,7 +49,7 @@ class SaleRepository(private val ds: AgroalDataSource) {
             conn.prepareStatement(
                 """
                 SELECT s.id, s.sale_lot_id, s.quantity, s.price_per_unit_cents, s.sold_at, s.notes,
-                       sl.source_kind, sl.unit_kind, sl.plant_id, sl.harvest_event_id, sl.bouquet_id, sl.species_id,
+                       sl.source_kind, sl.unit_kind, sl.plant_id, sl.harvest_event_id, sl.bouquet_id, sl.species_id, sl.adhoc_label,
                        s.customer_id,
                        o.name AS outlet_name,
                        c.name AS customer_name
@@ -99,6 +99,7 @@ class SaleRepository(private val ds: AgroalDataSource) {
         harvestEventId = getLong("harvest_event_id").takeIf { !wasNull() },
         bouquetId = getLong("bouquet_id").takeIf { !wasNull() },
         speciesId = getLong("species_id").takeIf { !wasNull() },
+        adhocLabel = getString("adhoc_label"),
         customerId = getLong("customer_id").takeIf { !wasNull() },
         outletName = getString("outlet_name"),
         customerName = getString("customer_name"),
@@ -118,6 +119,7 @@ class SaleRepository(private val ds: AgroalDataSource) {
         val harvestEventId: Long?,
         val bouquetId: Long?,
         val speciesId: Long?,
+        val adhocLabel: String?,
         val customerId: Long?,
         val outletName: String,
         val customerName: String?,

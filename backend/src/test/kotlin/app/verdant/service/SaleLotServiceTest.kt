@@ -639,6 +639,87 @@ class SaleLotServiceTest {
     }
 
     @Test
+    fun `recordAdHocSale creates BOUQUET lot from adhocLabel`() {
+        val orgId = 7L
+        val userId = 11L
+        val outletId = 200L
+        val request = QuickSaleRequest(
+            speciesId = null,
+            adhocLabel = "Brudbukett",
+            unitKind = "BOUQUET",
+            quantity = 1,
+            pricePerUnitCents = 50000,
+            outletId = outletId,
+        )
+        val outlet = app.verdant.entity.Outlet(id = outletId, orgId = orgId, name = "Saluhallen", channel = app.verdant.entity.Channel.FARMERS_MARKET)
+        whenever(outletRepo.findById(outletId)).thenReturn(outlet)
+        whenever(lotRepo.persist(any())).thenAnswer { (it.arguments[0] as SaleLot).copy(id = 999L) }
+        whenever(lotRepo.findById(999L)).thenAnswer {
+            SaleLot(
+                id = 999L, orgId = orgId, sourceKind = SourceKind.ADHOC,
+                adhocLabel = "Brudbukett", unitKind = UnitKind.BOUQUET,
+                quantityTotal = 1, quantityRemaining = 1,
+                initialRequestedPriceCents = 50000, currentRequestedPriceCents = 50000,
+                currentOutletId = outletId, status = SaleLotStatus.OFFERED,
+            )
+        }
+        whenever(saleRepo.persist(any())).thenAnswer { (it.arguments[0] as Sale).copy(id = 888L) }
+        whenever(saleRepo.sumQuantityForLot(999L)).thenReturn(1)
+
+        service.recordAdHocSale(request, orgId, userId)
+
+        verify(lotRepo).persist(check {
+            assertEquals(SourceKind.ADHOC, it.sourceKind)
+            assertEquals("Brudbukett", it.adhocLabel)
+            assertNull(it.speciesId)
+            assertEquals(UnitKind.BOUQUET, it.unitKind)
+        })
+    }
+
+    @Test
+    fun `recordAdHocSale rejects when both speciesId and adhocLabel are missing`() {
+        val request = QuickSaleRequest(
+            speciesId = null, adhocLabel = null,
+            unitKind = "STEM", quantity = 1,
+            pricePerUnitCents = 100, outletId = 1L,
+        )
+        assertThrows<jakarta.ws.rs.BadRequestException> {
+            service.recordAdHocSale(request, orgId = 7L, userId = 11L)
+        }
+    }
+
+    @Test
+    fun `recordAdHocSale rejects when both speciesId and adhocLabel are set`() {
+        val request = QuickSaleRequest(
+            speciesId = 1L, adhocLabel = "X",
+            unitKind = "STEM", quantity = 1,
+            pricePerUnitCents = 100, outletId = 1L,
+        )
+        assertThrows<jakarta.ws.rs.BadRequestException> {
+            service.recordAdHocSale(request, orgId = 7L, userId = 11L)
+        }
+    }
+
+    @Test
+    fun `recordAdHocSale rejects BOUQUET unit with speciesId`() {
+        val orgId = 7L
+        whenever(speciesRepo.findById(1L)).thenReturn(
+            app.verdant.entity.Species(id = 1L, orgId = orgId, commonName = "Zinnia")
+        )
+        whenever(outletRepo.findById(1L)).thenReturn(
+            app.verdant.entity.Outlet(id = 1L, orgId = orgId, name = "X", channel = app.verdant.entity.Channel.OTHER)
+        )
+        val request = QuickSaleRequest(
+            speciesId = 1L, adhocLabel = null,
+            unitKind = "BOUQUET", quantity = 1,
+            pricePerUnitCents = 100, outletId = 1L,
+        )
+        assertThrows<jakarta.ws.rs.BadRequestException> {
+            service.recordAdHocSale(request, orgId = orgId, userId = 11L)
+        }
+    }
+
+    @Test
     fun `listSales sourceSummary handles ADHOC via species lookup`() {
         val orgId = 7L
         val rows = listOf(
@@ -664,6 +745,7 @@ class SaleLotServiceTest {
         harvestEventId: Long? = null,
         bouquetId: Long? = null,
         speciesId: Long? = null,
+        adhocLabel: String? = null,
         customerId: Long? = null,
         outletName: String = "Saluhallen",
         customerName: String? = null,
@@ -673,6 +755,7 @@ class SaleLotServiceTest {
         soldAt = soldAt, sourceKind = sourceKind, unitKind = unitKind,
         plantId = plantId, harvestEventId = harvestEventId, bouquetId = bouquetId,
         speciesId = speciesId,
+        adhocLabel = adhocLabel,
         customerId = customerId,
         outletName = outletName, customerName = customerName, notes = notes,
     )

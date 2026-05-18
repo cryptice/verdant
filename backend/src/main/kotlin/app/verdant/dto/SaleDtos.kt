@@ -71,7 +71,8 @@ data class SaleLedgerEntry(
 )
 
 data class QuickSaleRequest(
-    @field:NotNull val speciesId: Long,
+    val speciesId: Long? = null,
+    val adhocLabel: String? = null,
     @field:NotBlank val unitKind: String,
     @field:Min(1) val quantity: Int,
     @field:Min(0) val pricePerUnitCents: Int,

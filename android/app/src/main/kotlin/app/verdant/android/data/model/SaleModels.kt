@@ -119,7 +119,8 @@ data class EditSaleRequest(
 )
 
 data class QuickSaleRequest(
-    @SerializedName("speciesId") val speciesId: Long,
+    @SerializedName("speciesId") val speciesId: Long? = null,
+    @SerializedName("adhocLabel") val adhocLabel: String? = null,
     @SerializedName("unitKind") val unitKind: String,
     @SerializedName("quantity") val quantity: Int,
     @SerializedName("pricePerUnitCents") val pricePerUnitCents: Int,
@@ -192,4 +193,5 @@ data class SaleLedgerEntry(
     @SerializedName("customerName") val customerName: String?,
     @SerializedName("soldAt") val soldAt: String,
     @SerializedName("notes") val notes: String? = null,
+    @SerializedName("adhocLabel") val adhocLabel: String? = null,
 )
