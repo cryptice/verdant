@@ -6,6 +6,8 @@ import app.verdant.android.ui.faltet.FaltetFab
 import app.verdant.android.ui.theme.FaltetCream
 import app.verdant.android.data.repository.AnalyticsRepository
 import app.verdant.android.data.repository.PlantRepository
+import app.verdant.android.data.repository.SaleRepository
+import app.verdant.android.data.repository.SeasonRepository
 import app.verdant.android.data.repository.SupplyRepository
 import app.verdant.android.data.repository.TaskRepository
 import app.verdant.android.data.repository.TrayLocationRepository
@@ -106,6 +108,9 @@ data class DashboardState(
     /** Task IDs whose checkbox is checked but not yet sent to the backend.
      *  Drives the checked visual + scheduled removal. */
     val completingTaskIds: Set<Long> = emptySet(),
+    val seasonRevenueKr: Int = 0,
+    val seasonSalesCount: Int = 0,
+    val seasonRevenueLoaded: Boolean = false,
 )
 
 @HiltViewModel
@@ -115,6 +120,8 @@ class DashboardViewModel @Inject constructor(
     private val taskRepository: TaskRepository,
     private val plantRepository: PlantRepository,
     private val supplyRepository: SupplyRepository,
+    private val saleRepository: SaleRepository,
+    private val seasonRepository: SeasonRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(DashboardState())
     val uiState = _uiState.asStateFlow()
@@ -186,6 +193,17 @@ class DashboardViewModel @Inject constructor(
                         earliest == null || !earliest.isAfter(today)
                     }
                     .sortedBy { it.deadline ?: "9999-12-31" }
+                val revenue = runCatching {
+                    val seasons = seasonRepository.list()
+                    val activeSeason = seasons.firstOrNull { s ->
+                        val start = s.startDate?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() }
+                        val end = s.endDate?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() }
+                        (start == null || !today.isBefore(start)) && (end == null || !today.isAfter(end))
+                    } ?: seasons.maxByOrNull { it.startDate ?: "" }
+                    val ledger = saleRepository.listLedger(activeSeason?.id)
+                    val totalKr = ledger.sumOf { it.totalCents } / 100
+                    Triple(totalKr, ledger.size, activeSeason?.id != null || seasons.isEmpty())
+                }.getOrNull()
                 _uiState.value = DashboardState(
                     isLoading = false,
                     dashboard = dashboard,
@@ -193,6 +211,9 @@ class DashboardViewModel @Inject constructor(
                     trayPlants = tray,
                     harvestStats = stats,
                     suppliesEmpty = supplyInv.isEmpty() && supplyTypes.none { it.inexhaustible },
+                    seasonRevenueKr = revenue?.first ?: 0,
+                    seasonSalesCount = revenue?.second ?: 0,
+                    seasonRevenueLoaded = revenue?.third ?: false,
                 )
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load dashboard", e)
@@ -210,6 +231,7 @@ fun DashboardScreen(
     onSpeciesClick: (Long) -> Unit = {},
     onOpenTrayLocation: (Long) -> Unit = {},
     onOpenSupplies: () -> Unit = {},
+    onOpenSales: () -> Unit = {},
     onSow: () -> Unit = {},
     onRegister: () -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel(),
@@ -281,6 +303,33 @@ fun DashboardScreen(
                             plants = dashboard.stats.totalActivePlants,
                             species = dashboard.stats.totalActiveSpecies,
                         )
+                    }
+
+                    if (uiState.seasonRevenueLoaded) {
+                        item {
+                            FaltetListRow(
+                                title = "I säsong",
+                                meta = "${uiState.seasonSalesCount} försäljningar",
+                                stat = {
+                                    Row(verticalAlignment = Alignment.Bottom) {
+                                        Text(
+                                            text = uiState.seasonRevenueKr.toString(),
+                                            fontFamily = FontFamily.Monospace,
+                                            fontSize = 18.sp,
+                                            color = FaltetInk,
+                                        )
+                                        Text(
+                                            " KR",
+                                            fontFamily = FontFamily.Monospace,
+                                            fontSize = 10.sp,
+                                            letterSpacing = 1.2.sp,
+                                            color = FaltetForest,
+                                        )
+                                    }
+                                },
+                                onClick = onOpenSales,
+                            )
+                        }
                     }
 
                     if (uiState.suppliesEmpty) {
