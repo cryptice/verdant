@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
@@ -31,6 +31,16 @@ export function PlantedSpeciesList() {
       <Masthead
         left={t('nav.plants')}
         center="— Växtliggaren —"
+        right={
+          <div className="flex gap-2">
+            <Link to="/activity/batch/pot-up" className="btn-secondary text-sm">
+              {t('batch.potUpTitle')}
+            </Link>
+            <Link to="/activity/batch/plant-out" className="btn-secondary text-sm">
+              {t('batch.plantOutTitle')}
+            </Link>
+          </div>
+        }
       />
       <OnboardingHint />
 

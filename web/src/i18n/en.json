@@ -667,6 +667,16 @@
     "weightGrams": "Weight (g)",
     "stemCount": "Stem count"
   },
+  "batch": {
+    "potUpTitle": "Batch pot up",
+    "plantOutTitle": "Batch plant out",
+    "registerPlantsTitle": "Register plants",
+    "location": "Location",
+    "plantedDate": "Sown",
+    "count": "Count",
+    "targetBed": "Target bed",
+    "noGroups": "No groups to process."
+  },
   "outlets": {
     "title": "Outlets",
     "newOutlet": "+ New outlet",

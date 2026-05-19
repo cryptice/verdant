@@ -667,6 +667,16 @@
     "weightGrams": "Vikt (g)",
     "stemCount": "Antal stjälkar"
   },
+  "batch": {
+    "potUpTitle": "Skola om i grupp",
+    "plantOutTitle": "Plantera ut i grupp",
+    "registerPlantsTitle": "Registrera plantor",
+    "location": "Plats",
+    "plantedDate": "Sådatum",
+    "count": "Antal",
+    "targetBed": "Målbädd",
+    "noGroups": "Inga grupper att bearbeta."
+  },
   "outlets": {
     "title": "Försäljningskanaler",
     "newOutlet": "+ Ny försäljningskanal",
