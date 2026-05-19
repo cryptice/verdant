@@ -1436,6 +1436,10 @@
       "inviteLabel": "Email address",
       "inviteButton": "Send invite",
       "pendingInvites": "Pending invites",
+      "cancelInvite": "Cancel",
+      "joinRequests": "Join requests",
+      "accept": "Accept",
+      "decline": "Decline",
       "removeMember": "Remove",
       "role": {
         "OWNER": "Owner",

@@ -1436,6 +1436,10 @@
       "inviteLabel": "E-postadress",
       "inviteButton": "Skicka inbjudan",
       "pendingInvites": "Väntande inbjudningar",
+      "cancelInvite": "Avbryt",
+      "joinRequests": "Anslutningsförfrågningar",
+      "accept": "Acceptera",
+      "decline": "Avböj",
       "removeMember": "Ta bort",
       "role": {
         "OWNER": "Ägare",

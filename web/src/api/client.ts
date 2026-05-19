@@ -49,6 +49,12 @@ export interface OrgInviteResponse {
   invitedByName: string; status: string; createdAt: string
 }
 
+export interface OrgJoinRequestResponse {
+  id: number; orgId: number; orgName: string
+  userId: number; userEmail: string; userDisplayName: string
+  status: string; createdAt: string
+}
+
 export interface DashboardResponse {
   user: UserResponse
   gardens: GardenSummary[]
@@ -837,6 +843,15 @@ export const api = {
       apiRequest<OrgInviteResponse>(`/api/organizations/${id}/invite`, { method: 'POST', body: JSON.stringify({ email }) }),
     removeMember: (orgId: number, userId: number) =>
       apiRequest<void>(`/api/organizations/${orgId}/members/${userId}`, { method: 'DELETE' }),
+    listInvites: (id: number) => apiRequest<OrgInviteResponse[]>(`/api/organizations/${id}/invites`),
+    cancelInvite: (orgId: number, inviteId: number) =>
+      apiRequest<void>(`/api/organizations/${orgId}/invites/${inviteId}`, { method: 'DELETE' }),
+    listJoinRequests: (id: number) =>
+      apiRequest<OrgJoinRequestResponse[]>(`/api/organizations/${id}/join-requests`),
+    acceptJoinRequest: (orgId: number, reqId: number) =>
+      apiRequest<OrgMemberResponse>(`/api/organizations/${orgId}/join-requests/${reqId}/accept`, { method: 'POST' }),
+    declineJoinRequest: (orgId: number, reqId: number) =>
+      apiRequest<void>(`/api/organizations/${orgId}/join-requests/${reqId}/decline`, { method: 'POST' }),
   },
 
   invites: {

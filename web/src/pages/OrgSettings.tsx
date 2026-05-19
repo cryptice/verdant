@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
-import type { OrgMemberResponse, OrgInviteResponse } from '../api/client'
+import type { OrgMemberResponse, OrgInviteResponse, OrgJoinRequestResponse } from '../api/client'
 import { useOrg } from '../auth/OrgContext'
 import { Masthead, Field, Rule } from '../components/faltet'
 
@@ -17,12 +17,23 @@ export function OrgSettings() {
   const [orgName, setOrgName] = useState(activeOrg?.orgName ?? '')
   const [orgEmoji, setOrgEmoji] = useState(activeOrg?.orgEmoji ?? '')
   const [inviteEmail, setInviteEmail] = useState('')
-  const [sentInvites, setSentInvites] = useState<OrgInviteResponse[]>([])
 
   const membersQuery = useQuery({
     queryKey: ['org-members', orgId],
     queryFn: () => api.organizations.members(orgId),
     enabled: orgId > 0,
+  })
+
+  const invitesQuery = useQuery({
+    queryKey: ['org-invites', orgId],
+    queryFn: () => api.organizations.listInvites(orgId),
+    enabled: orgId > 0 && isOwner,
+  })
+
+  const joinRequestsQuery = useQuery({
+    queryKey: ['org-join-requests', orgId],
+    queryFn: () => api.organizations.listJoinRequests(orgId),
+    enabled: orgId > 0 && isOwner,
   })
 
   const updateMut = useMutation({
@@ -35,9 +46,31 @@ export function OrgSettings() {
 
   const inviteMut = useMutation({
     mutationFn: (email: string) => api.organizations.invite(orgId, email),
-    onSuccess: (invite) => {
-      setSentInvites(prev => [invite, ...prev])
+    onSuccess: () => {
       setInviteEmail('')
+      queryClient.invalidateQueries({ queryKey: ['org-invites', orgId] })
+    },
+  })
+
+  const cancelInviteMut = useMutation({
+    mutationFn: (inviteId: number) => api.organizations.cancelInvite(orgId, inviteId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['org-invites', orgId] })
+    },
+  })
+
+  const acceptRequestMut = useMutation({
+    mutationFn: (reqId: number) => api.organizations.acceptJoinRequest(orgId, reqId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['org-join-requests', orgId] })
+      queryClient.invalidateQueries({ queryKey: ['org-members', orgId] })
+    },
+  })
+
+  const declineRequestMut = useMutation({
+    mutationFn: (reqId: number) => api.organizations.declineJoinRequest(orgId, reqId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['org-join-requests', orgId] })
     },
   })
 
@@ -220,7 +253,7 @@ export function OrgSettings() {
               </button>
             </div>
 
-            {sentInvites.length > 0 && (
+            {(invitesQuery.data ?? []).length > 0 && (
               <div style={{ marginTop: 14 }}>
                 <div
                   style={{
@@ -235,12 +268,13 @@ export function OrgSettings() {
                 >
                   {t('org.settings.pendingInvites')}
                 </div>
-                {sentInvites.map(invite => (
+                {(invitesQuery.data as OrgInviteResponse[]).map(invite => (
                   <div
                     key={invite.id}
                     style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 120px auto',
+                      gap: 18,
                       alignItems: 'center',
                       padding: '10px 0',
                       borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
@@ -259,10 +293,86 @@ export function OrgSettings() {
                     >
                       {invite.status.toLowerCase()}
                     </span>
+                    <button
+                      onClick={() => cancelInviteMut.mutate(invite.id)}
+                      disabled={cancelInviteMut.isPending}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 9,
+                        letterSpacing: 1.4,
+                        textTransform: 'uppercase',
+                        color: 'var(--color-error)',
+                        cursor: 'pointer',
+                        padding: 0,
+                      }}
+                    >
+                      ↵ {t('org.settings.cancelInvite')}
+                    </button>
                   </div>
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Join requests — owners only */}
+        {isOwner && (joinRequestsQuery.data ?? []).length > 0 && (
+          <div style={{ marginTop: 40 }}>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 9,
+                letterSpacing: 1.4,
+                textTransform: 'uppercase',
+                color: 'var(--color-forest)',
+                opacity: 0.6,
+              }}
+            >
+              § {t('org.settings.joinRequests')}
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <Rule variant="soft" />
+            </div>
+            <div style={{ marginTop: 14 }}>
+              {(joinRequestsQuery.data as OrgJoinRequestResponse[]).map((req) => (
+                <div
+                  key={req.id}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1.5fr auto auto',
+                    gap: 12,
+                    alignItems: 'center',
+                    padding: '12px 0',
+                    borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>
+                      {req.userDisplayName}
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1, color: 'var(--color-forest)', opacity: 0.6 }}>
+                      {req.userEmail}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => acceptRequestMut.mutate(req.id)}
+                    disabled={acceptRequestMut.isPending}
+                    className="btn-primary text-sm"
+                  >
+                    {t('org.settings.accept')}
+                  </button>
+                  <button
+                    onClick={() => declineRequestMut.mutate(req.id)}
+                    disabled={declineRequestMut.isPending}
+                    className="px-3 py-1 text-sm text-text-secondary"
+                  >
+                    {t('org.settings.decline')}
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
