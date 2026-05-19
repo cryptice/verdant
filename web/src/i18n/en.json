@@ -675,6 +675,15 @@
     "replace": "Replace photo",
     "processing": "Processing…"
   },
+  "plantPicker": {
+    "title": "Select plant",
+    "center": "Pick a plant to {{action}}",
+    "name": "Name",
+    "species": "Species",
+    "status": "Status",
+    "searchPlaceholder": "Search plants…",
+    "empty": "No plants match."
+  },
   "batch": {
     "potUpTitle": "Batch pot up",
     "plantOutTitle": "Batch plant out",

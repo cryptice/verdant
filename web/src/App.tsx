@@ -32,6 +32,7 @@ const SalesScreen = lazy(() => import('./pages/SalesScreen').then(m => ({ defaul
 const SaleLotDetail = lazy(() => import('./pages/SaleLotDetail').then(m => ({ default: m.SaleLotDetail })))
 const PlantActivity = lazy(() => import('./pages/PlantActivity').then(m => ({ default: m.PlantActivity })))
 const BatchActivity = lazy(() => import('./pages/BatchActivity').then(m => ({ default: m.BatchActivity })))
+const PlantPicker = lazy(() => import('./pages/PlantPicker').then(m => ({ default: m.PlantPicker })))
 const PestDiseaseLog = lazy(() => import('./pages/PestDiseaseLog').then(m => ({ default: m.PestDiseaseLog })))
 const VarietyTrials = lazy(() => import('./pages/VarietyTrials').then(m => ({ default: m.VarietyTrials })))
 const BouquetRecipes = lazy(() => import('./pages/BouquetRecipes').then(m => ({ default: m.BouquetRecipes })))
@@ -113,6 +114,7 @@ export function App() {
           <Route path="sale-lots/:id" element={<SaleLotDetail />} />
           <Route path="plant/:plantId/activity/:kind" element={<PlantActivity />} />
           <Route path="activity/batch/:kind" element={<BatchActivity />} />
+          <Route path="activity/plant-picker/:statuses/:nextKind" element={<PlantPicker />} />
           <Route path="pest-disease" element={<PestDiseaseLog />} />
           <Route path="trials" element={<VarietyTrials />} />
           <Route path="bouquets" element={<Bouquets />} />

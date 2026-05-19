@@ -675,6 +675,15 @@
     "replace": "Byt foto",
     "processing": "Bearbetar…"
   },
+  "plantPicker": {
+    "title": "Välj planta",
+    "center": "Välj planta att {{action}}",
+    "name": "Namn",
+    "species": "Art",
+    "status": "Status",
+    "searchPlaceholder": "Sök planta…",
+    "empty": "Inga plantor matchar."
+  },
   "batch": {
     "potUpTitle": "Skola om i grupp",
     "plantOutTitle": "Plantera ut i grupp",

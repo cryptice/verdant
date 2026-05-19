@@ -39,6 +39,12 @@ export function PlantedSpeciesList() {
             <Link to="/activity/batch/plant-out" className="btn-secondary text-sm">
               {t('batch.plantOutTitle')}
             </Link>
+            <Link
+              to="/activity/plant-picker/POTTED_UP,PLANTED_OUT/harvest"
+              className="btn-secondary text-sm"
+            >
+              {t('plantPicker.title')}
+            </Link>
           </div>
         }
       />
