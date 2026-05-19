@@ -58,10 +58,21 @@ The repo ships a [Dev Container](.devcontainer/) (`mcr.microsoft.com/devcontaine
 
 **Plain Docker:**
 
+Start the containers:
+
 ```bash
 docker compose -f docker-compose.yml -f .devcontainer/docker-compose.yml up -d
+```
+
+Open a shell inside the dev container (workspace is already at `/workspaces/verdant`):
+
+```bash
 docker compose -f docker-compose.yml -f .devcontainer/docker-compose.yml exec dev bash
-# inside the container — already in /workspaces/verdant
+```
+
+Then, inside the container, start the backend:
+
+```bash
 cd backend && ./gradlew quarkusDev
 ```
 
