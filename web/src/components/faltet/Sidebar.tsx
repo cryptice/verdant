@@ -55,6 +55,8 @@ function useGroups(): NavGroup[] {
       header: t('sidebar.groups.sales'),
       items: [
         { to: '/analytics?tab=harvest', label: t('nav.harvest'),  advanced: true },
+        { to: '/sales',                 label: t('nav.sales') },
+        { to: '/outlets',               label: t('nav.outlets') },
         { to: '/customers',             label: t('nav.customers') },
         { to: '/bouquets',              label: t('nav.bouquets') },
         { to: '/bouquet-recipes',       label: t('nav.bouquetRecipes'), advanced: true },

@@ -215,6 +215,89 @@ export interface CustomerResponse {
   contactInfo?: string; notes?: string; createdAt: string
 }
 
+// Outlet
+export type Channel = 'FLORIST' | 'FARMERS_MARKET' | 'CSA' | 'WEDDING' | 'WHOLESALE' | 'DIRECT' | 'OTHER'
+export interface OutletResponse {
+  id: number; name: string; channel: Channel
+  contactInfo?: string; notes?: string
+  createdAt: string; updatedAt: string
+}
+export interface CreateOutletRequest {
+  name: string; channel: Channel; contactInfo?: string; notes?: string
+}
+export interface UpdateOutletRequest {
+  name?: string; channel?: Channel; contactInfo?: string; notes?: string
+}
+
+// Sale Lot
+export type SaleLotStatus = 'OFFERED' | 'SOLD_OUT' | 'NOT_SOLD'
+export type SourceKind = 'PLANT' | 'HARVEST_EVENT' | 'BOUQUET' | 'ADHOC'
+export type UnitKind = 'STEM' | 'BUNCH' | 'PLUG' | 'BULB' | 'TUBER' | 'PLANT' | 'BOUQUET'
+export type SaleLotEventType =
+  | 'CREATED' | 'PRICE_CHANGED' | 'OUTLET_CHANGED' | 'RETURNED_FROM_OUTLET'
+  | 'SALE_RECORDED' | 'SALE_EDITED' | 'MARKED_NOT_SOLD' | 'AUTO_SOLD_OUT'
+
+export interface SaleLotResponse {
+  id: number; sourceKind: SourceKind
+  plantId?: number; harvestEventId?: number; bouquetId?: number
+  sourceSummary?: string
+  unitKind: UnitKind; stemsPerUnit?: number
+  quantityTotal: number; quantityRemaining: number
+  initialRequestedPriceCents: number; currentRequestedPriceCents: number
+  currentOutletId: number; currentOutletName: string
+  status: SaleLotStatus
+  createdAt: string; updatedAt: string
+}
+
+export interface SaleLotEventResponse {
+  id: number; eventType: SaleLotEventType; payloadJson?: string
+  recordedByUserId: number; createdAt: string
+}
+
+export interface SaleResponse {
+  id: number; saleLotId: number; quantity: number; pricePerUnitCents: number
+  outletId: number; outletName: string
+  customerId?: number; customerName?: string
+  soldAt: string; recordedByUserId: number; notes?: string; createdAt: string
+}
+
+export interface SaleLotDetailResponse {
+  lot: SaleLotResponse
+  sales: SaleResponse[]
+  events: SaleLotEventResponse[]
+}
+
+export interface CreateSaleLotForPlantRequest {
+  plantId: number; unitKind: UnitKind
+  quantityTotal: number; initialRequestedPriceCents: number; currentOutletId: number
+}
+export interface CreateSaleLotForHarvestRequest {
+  harvestEventId: number; unitKind: UnitKind; stemsPerUnit?: number
+  quantityTotal: number; initialRequestedPriceCents: number; currentOutletId: number
+}
+export interface RecordSaleRequest {
+  quantity: number; pricePerUnitCents: number
+  customerId?: number; soldAt?: string; notes?: string
+}
+export interface EditSaleRequest {
+  quantity?: number; pricePerUnitCents?: number
+  customerId?: number; soldAt?: string; notes?: string
+}
+
+// Sale Ledger (unified list of sales across all lots)
+export interface SaleLedgerEntry {
+  id: number; saleLotId: number; sourceKind: SourceKind; sourceSummary?: string
+  unitKind: UnitKind; quantity: number; pricePerUnitCents: number; totalCents: number
+  outletName: string; customerId?: number; customerName?: string
+  soldAt: string; notes?: string
+}
+
+export interface QuickSaleRequest {
+  speciesId?: number; adhocLabel?: string
+  unitKind: UnitKind; quantity: number; pricePerUnitCents: number
+  outletId: number; customerId?: number; soldAt?: string; notes?: string
+}
+
 // Pest/Disease
 export interface PestDiseaseLogResponse {
   id: number; seasonId?: number; bedId?: number; speciesId?: number
@@ -760,6 +843,59 @@ export const api = {
     pending: () => apiRequest<OrgInviteResponse[]>('/api/invites'),
     accept: (id: number) => apiRequest<OrganizationResponse>(`/api/invites/${id}/accept`, { method: 'POST' }),
     decline: (id: number) => apiRequest<void>(`/api/invites/${id}/decline`, { method: 'POST' }),
+  },
+
+  outlets: {
+    list: () => apiRequest<OutletResponse[]>('/api/outlets'),
+    get: (id: number) => apiRequest<OutletResponse>(`/api/outlets/${id}`),
+    create: (data: CreateOutletRequest) =>
+      apiRequest<OutletResponse>('/api/outlets', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: UpdateOutletRequest) =>
+      apiRequest<OutletResponse>(`/api/outlets/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: number) => apiRequest<void>(`/api/outlets/${id}`, { method: 'DELETE' }),
+  },
+
+  saleLots: {
+    list: (params?: { status?: SaleLotStatus; sourceKind?: SourceKind; limit?: number; offset?: number }) => {
+      const q = new URLSearchParams()
+      if (params?.status) q.set('status', params.status)
+      if (params?.sourceKind) q.set('sourceKind', params.sourceKind)
+      if (params?.limit !== undefined) q.set('limit', String(params.limit))
+      if (params?.offset !== undefined) q.set('offset', String(params.offset))
+      const qs = q.toString()
+      return apiRequest<SaleLotResponse[]>(`/api/sale-lots${qs ? `?${qs}` : ''}`)
+    },
+    get: (id: number) => apiRequest<SaleLotDetailResponse>(`/api/sale-lots/${id}`),
+    createForPlant: (data: CreateSaleLotForPlantRequest) =>
+      apiRequest<SaleLotResponse>('/api/sale-lots/for-plant', { method: 'POST', body: JSON.stringify(data) }),
+    createForHarvest: (data: CreateSaleLotForHarvestRequest) =>
+      apiRequest<SaleLotResponse>('/api/sale-lots/for-harvest', { method: 'POST', body: JSON.stringify(data) }),
+    changePrice: (id: number, newPriceCents: number) =>
+      apiRequest<SaleLotResponse>(`/api/sale-lots/${id}/price`, { method: 'POST', body: JSON.stringify({ newPriceCents }) }),
+    changeOutlet: (id: number, newOutletId: number) =>
+      apiRequest<SaleLotResponse>(`/api/sale-lots/${id}/outlet`, { method: 'POST', body: JSON.stringify({ newOutletId }) }),
+    markReturned: (id: number, fromOutletId: number) =>
+      apiRequest<void>(`/api/sale-lots/${id}/return`, { method: 'POST', body: JSON.stringify({ fromOutletId }) }),
+    markNotSold: (id: number) =>
+      apiRequest<SaleLotResponse>(`/api/sale-lots/${id}/not-sold`, { method: 'POST' }),
+    delete: (id: number) => apiRequest<void>(`/api/sale-lots/${id}`, { method: 'DELETE' }),
+    recordSale: (lotId: number, data: RecordSaleRequest) =>
+      apiRequest<SaleResponse>(`/api/sale-lots/${lotId}/sales`, { method: 'POST', body: JSON.stringify(data) }),
+  },
+
+  sales: {
+    list: (params?: { seasonId?: number; limit?: number; offset?: number }) => {
+      const q = new URLSearchParams()
+      if (params?.seasonId !== undefined) q.set('seasonId', String(params.seasonId))
+      if (params?.limit !== undefined) q.set('limit', String(params.limit))
+      if (params?.offset !== undefined) q.set('offset', String(params.offset))
+      const qs = q.toString()
+      return apiRequest<SaleLedgerEntry[]>(`/api/sales${qs ? `?${qs}` : ''}`)
+    },
+    recordQuick: (data: QuickSaleRequest) =>
+      apiRequest<SaleResponse>('/api/sales/quick', { method: 'POST', body: JSON.stringify(data) }),
+    edit: (id: number, data: EditSaleRequest) =>
+      apiRequest<SaleResponse>(`/api/sales/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   },
 }
 

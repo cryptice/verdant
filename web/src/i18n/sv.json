@@ -36,7 +36,9 @@
     "supplies": "Material",
     "workflows": "Arbetsflöden",
     "harvest": "Skörd",
-    "orgSettings": "Org-inställningar"
+    "orgSettings": "Org-inställningar",
+    "outlets": "Försäljningskanaler",
+    "sales": "Försäljning"
   },
   "common": {
     "cancel": "Avbryt",
@@ -654,6 +656,93 @@
     "WHOLESALE": "Grossist",
     "DIRECT": "Direkt",
     "OTHER": "Övrigt"
+  },
+  "outlets": {
+    "title": "Försäljningskanaler",
+    "newOutlet": "+ Ny försäljningskanal",
+    "editOutlet": "Redigera försäljningskanal",
+    "name": "Namn",
+    "channel": "Kanal",
+    "contactInfo": "Kontaktinfo",
+    "noOutlets": "Inga försäljningskanaler ännu",
+    "deleteOutlet": "Radera försäljningskanal",
+    "deleteConfirm": "Radera denna försäljningskanal?"
+  },
+  "sales": {
+    "title": "Försäljning",
+    "ledgerTitle": "— Försäljningsliggaren —",
+    "quickSale": "+ Snabb försäljning",
+    "newLot": "+ Ny lott",
+    "editSale": "Redigera försäljning",
+    "soldAt": "Datum",
+    "quantity": "Antal",
+    "pricePerUnit": "Pris/st",
+    "total": "Totalt",
+    "outlet": "Kanal",
+    "customer": "Kund",
+    "source": "Källa",
+    "unitKind": "Enhet",
+    "noSales": "Inga försäljningar ännu",
+    "noLots": "Inga lotter ännu",
+    "season": "Säsong",
+    "allSeasons": "Alla säsonger",
+    "noOutletWarning": "Skapa minst en försäljningskanal innan du registrerar en försäljning.",
+    "createOutletNow": "Skapa kanal",
+    "adhocLabelPlaceholder": "T.ex. \"Bukett blandat\" (om ingen art)",
+    "saleRecorded": "Försäljning registrerad",
+    "deleteSale": "Radera försäljning",
+    "deleteSaleConfirm": "Radera denna försäljning?"
+  },
+  "saleLot": {
+    "title": "Lott",
+    "status": "Status",
+    "remaining": "Kvar",
+    "of": "av",
+    "currentPrice": "Aktuellt pris",
+    "initialPrice": "Ursprungligt pris",
+    "currentOutlet": "Nuvarande kanal",
+    "changePrice": "Ändra pris",
+    "changeOutlet": "Ändra kanal",
+    "markReturned": "Markera som returnerad",
+    "markNotSold": "Markera som osåld",
+    "deleteLot": "Radera lott",
+    "deleteLotConfirm": "Radera denna lott?",
+    "newPrice": "Nytt pris",
+    "newOutlet": "Ny kanal",
+    "fromOutlet": "Från kanal",
+    "salesHistory": "Försäljningshistorik",
+    "auditLog": "Händelselogg",
+    "recordSale": "+ Registrera försäljning"
+  },
+  "saleLotStatus": {
+    "OFFERED": "Erbjuden",
+    "SOLD_OUT": "Slutsåld",
+    "NOT_SOLD": "Osåld"
+  },
+  "unitKind": {
+    "STEM": "Stjälk",
+    "BUNCH": "Bunt",
+    "PLUG": "Plugg",
+    "BULB": "Lök",
+    "TUBER": "Knöl",
+    "PLANT": "Planta",
+    "BOUQUET": "Bukett"
+  },
+  "saleLotEventType": {
+    "CREATED": "Skapad",
+    "PRICE_CHANGED": "Pris ändrat",
+    "OUTLET_CHANGED": "Kanal ändrad",
+    "RETURNED_FROM_OUTLET": "Returnerad från kanal",
+    "SALE_RECORDED": "Försäljning registrerad",
+    "SALE_EDITED": "Försäljning ändrad",
+    "MARKED_NOT_SOLD": "Markerad som osåld",
+    "AUTO_SOLD_OUT": "Automatiskt slutsåld"
+  },
+  "sourceKind": {
+    "PLANT": "Planta",
+    "HARVEST_EVENT": "Skörd",
+    "BOUQUET": "Bukett",
+    "ADHOC": "Övrigt"
   },
   "plantType": {
     "ANNUAL": "Ettårig",

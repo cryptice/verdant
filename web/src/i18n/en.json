@@ -36,7 +36,9 @@
     "supplies": "Supplies",
     "workflows": "Workflows",
     "harvest": "Harvest",
-    "orgSettings": "Org settings"
+    "orgSettings": "Org settings",
+    "outlets": "Outlets",
+    "sales": "Sales"
   },
   "common": {
     "cancel": "Cancel",
@@ -654,6 +656,93 @@
     "WHOLESALE": "Wholesale",
     "DIRECT": "Direct",
     "OTHER": "Other"
+  },
+  "outlets": {
+    "title": "Outlets",
+    "newOutlet": "+ New outlet",
+    "editOutlet": "Edit outlet",
+    "name": "Name",
+    "channel": "Channel",
+    "contactInfo": "Contact info",
+    "noOutlets": "No outlets yet",
+    "deleteOutlet": "Delete outlet",
+    "deleteConfirm": "Delete this outlet?"
+  },
+  "sales": {
+    "title": "Sales",
+    "ledgerTitle": "— Sales Ledger —",
+    "quickSale": "+ Quick sale",
+    "newLot": "+ New lot",
+    "editSale": "Edit sale",
+    "soldAt": "Date",
+    "quantity": "Qty",
+    "pricePerUnit": "Price/unit",
+    "total": "Total",
+    "outlet": "Outlet",
+    "customer": "Customer",
+    "source": "Source",
+    "unitKind": "Unit",
+    "noSales": "No sales yet",
+    "noLots": "No lots yet",
+    "season": "Season",
+    "allSeasons": "All seasons",
+    "noOutletWarning": "Create at least one outlet before recording a sale.",
+    "createOutletNow": "Create outlet",
+    "adhocLabelPlaceholder": "e.g. \"Mixed bouquet\" (if no species)",
+    "saleRecorded": "Sale recorded",
+    "deleteSale": "Delete sale",
+    "deleteSaleConfirm": "Delete this sale?"
+  },
+  "saleLot": {
+    "title": "Lot",
+    "status": "Status",
+    "remaining": "Remaining",
+    "of": "of",
+    "currentPrice": "Current price",
+    "initialPrice": "Initial price",
+    "currentOutlet": "Current outlet",
+    "changePrice": "Change price",
+    "changeOutlet": "Change outlet",
+    "markReturned": "Mark returned",
+    "markNotSold": "Mark not sold",
+    "deleteLot": "Delete lot",
+    "deleteLotConfirm": "Delete this lot?",
+    "newPrice": "New price",
+    "newOutlet": "New outlet",
+    "fromOutlet": "From outlet",
+    "salesHistory": "Sales history",
+    "auditLog": "Audit log",
+    "recordSale": "+ Record sale"
+  },
+  "saleLotStatus": {
+    "OFFERED": "Offered",
+    "SOLD_OUT": "Sold out",
+    "NOT_SOLD": "Not sold"
+  },
+  "unitKind": {
+    "STEM": "Stem",
+    "BUNCH": "Bunch",
+    "PLUG": "Plug",
+    "BULB": "Bulb",
+    "TUBER": "Tuber",
+    "PLANT": "Plant",
+    "BOUQUET": "Bouquet"
+  },
+  "saleLotEventType": {
+    "CREATED": "Created",
+    "PRICE_CHANGED": "Price changed",
+    "OUTLET_CHANGED": "Outlet changed",
+    "RETURNED_FROM_OUTLET": "Returned from outlet",
+    "SALE_RECORDED": "Sale recorded",
+    "SALE_EDITED": "Sale edited",
+    "MARKED_NOT_SOLD": "Marked not sold",
+    "AUTO_SOLD_OUT": "Auto sold out"
+  },
+  "sourceKind": {
+    "PLANT": "Plant",
+    "HARVEST_EVENT": "Harvest",
+    "BOUQUET": "Bouquet",
+    "ADHOC": "Ad-hoc"
   },
   "plantType": {
     "ANNUAL": "Annual",
