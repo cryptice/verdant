@@ -657,6 +657,16 @@
     "DIRECT": "Direkt",
     "OTHER": "Övrigt"
   },
+  "activity": {
+    "potUp": "Skola om",
+    "plantOut": "Plantera ut",
+    "harvest": "Skörda",
+    "recover": "Återhämta",
+    "discard": "Kassera",
+    "countLabel": "Antal",
+    "weightGrams": "Vikt (g)",
+    "stemCount": "Antal stjälkar"
+  },
   "outlets": {
     "title": "Försäljningskanaler",
     "newOutlet": "+ Ny försäljningskanal",

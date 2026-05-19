@@ -30,6 +30,7 @@ const CustomerList = lazy(() => import('./pages/CustomerList').then(m => ({ defa
 const OutletList = lazy(() => import('./pages/OutletList').then(m => ({ default: m.OutletList })))
 const SalesScreen = lazy(() => import('./pages/SalesScreen').then(m => ({ default: m.SalesScreen })))
 const SaleLotDetail = lazy(() => import('./pages/SaleLotDetail').then(m => ({ default: m.SaleLotDetail })))
+const PlantActivity = lazy(() => import('./pages/PlantActivity').then(m => ({ default: m.PlantActivity })))
 const PestDiseaseLog = lazy(() => import('./pages/PestDiseaseLog').then(m => ({ default: m.PestDiseaseLog })))
 const VarietyTrials = lazy(() => import('./pages/VarietyTrials').then(m => ({ default: m.VarietyTrials })))
 const BouquetRecipes = lazy(() => import('./pages/BouquetRecipes').then(m => ({ default: m.BouquetRecipes })))
@@ -109,6 +110,7 @@ export function App() {
           <Route path="outlets" element={<OutletList />} />
           <Route path="sales" element={<SalesScreen />} />
           <Route path="sale-lots/:id" element={<SaleLotDetail />} />
+          <Route path="plant/:plantId/activity/:kind" element={<PlantActivity />} />
           <Route path="pest-disease" element={<PestDiseaseLog />} />
           <Route path="trials" element={<VarietyTrials />} />
           <Route path="bouquets" element={<Bouquets />} />

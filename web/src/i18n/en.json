@@ -657,6 +657,16 @@
     "DIRECT": "Direct",
     "OTHER": "Other"
   },
+  "activity": {
+    "potUp": "Pot up",
+    "plantOut": "Plant out",
+    "harvest": "Harvest",
+    "recover": "Recover",
+    "discard": "Discard",
+    "countLabel": "Count",
+    "weightGrams": "Weight (g)",
+    "stemCount": "Stem count"
+  },
   "outlets": {
     "title": "Outlets",
     "newOutlet": "+ New outlet",

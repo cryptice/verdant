@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
@@ -141,6 +141,14 @@ export function PlantDetail() {
                 <Chip tone="sage">{t(`status.${plant.status}`, { defaultValue: plant.status })}</Chip>
               )}
               {bedLabel && <Chip tone="mustard">{bedLabel}</Chip>}
+            </div>
+
+            <div className="flex flex-wrap gap-2 mb-3">
+              <Link to={`/plant/${plantId}/activity/pot-up`}    className="btn-secondary text-sm">{t('activity.potUp')}</Link>
+              <Link to={`/plant/${plantId}/activity/plant-out`} className="btn-secondary text-sm">{t('activity.plantOut')}</Link>
+              <Link to={`/plant/${plantId}/activity/harvest`}   className="btn-secondary text-sm">{t('activity.harvest')}</Link>
+              <Link to={`/plant/${plantId}/activity/recover`}   className="btn-secondary text-sm">{t('activity.recover')}</Link>
+              <Link to={`/plant/${plantId}/activity/discard`}   className="btn-secondary text-sm">{t('activity.discard')}</Link>
             </div>
 
             <h1
