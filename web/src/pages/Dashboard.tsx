@@ -67,6 +67,21 @@ export function Dashboard() {
     queryFn: api.stats.harvests,
   })
 
+  const { data: seasons } = useQuery({
+    queryKey: ['seasons'],
+    queryFn: () => api.seasons.list(),
+  })
+
+  // Active season (or most recent) — drives the revenue card.
+  const activeSeason = seasons?.find((s) => s.isActive) ?? seasons?.[0]
+  const { data: seasonLedger } = useQuery({
+    queryKey: ['sale-ledger', activeSeason?.id ?? null],
+    queryFn: () => api.sales.list({ seasonId: activeSeason!.id }),
+    enabled: !!activeSeason,
+  })
+  const seasonRevenueKr = Math.round((seasonLedger?.reduce((acc, e) => acc + e.totalCents, 0) ?? 0) / 100)
+  const seasonSalesCount = seasonLedger?.length ?? 0
+
   const activeBedCount = dashboard?.stats.totalBeds ?? beds?.length ?? 0
   const activePlantCount = dashboard?.stats.totalActivePlants ?? 0
   const activeSpeciesCount = dashboard?.stats.totalActiveSpecies ?? 0
@@ -130,6 +145,14 @@ export function Dashboard() {
           <CenteredHeroStat value={activeBedCount} label="Bäddar" />
           <CenteredHeroStat value={activePlantCount} label="Plantor" />
           <CenteredHeroStat value={activeSpeciesCount} label="Arter" />
+          {activeSeason && (
+            <RevenueHeroStat
+              valueKr={seasonRevenueKr}
+              salesCount={seasonSalesCount}
+              seasonName={activeSeason.name}
+              onClick={() => navigate('/sales')}
+            />
+          )}
         </div>
 
         {/* Three content columns */}
@@ -476,6 +499,67 @@ function groupByLocation(entries: TraySummaryEntry[]): [LocationKey, TraySummary
       return an.localeCompare(bn, 'sv')
     })
     .map((v) => [v.key, v.entries] as [LocationKey, TraySummaryEntry[]])
+}
+
+function RevenueHeroStat({
+  valueKr, salesCount, seasonName, onClick,
+}: { valueKr: number; salesCount: number; seasonName: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 4,
+        padding: '20px 16px',
+        border: '1px solid var(--color-ink)',
+        borderRadius: 14,
+        background: 'var(--color-paper)',
+        cursor: 'pointer',
+        textAlign: 'center',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+        <span
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontStyle: 'italic',
+            fontSize: 48,
+            lineHeight: 1,
+            fontWeight: 300,
+            letterSpacing: -1,
+            color: 'var(--color-accent)',
+            fontVariationSettings: '"SOFT" 100, "opsz" 144',
+          }}
+        >
+          {valueKr.toLocaleString('sv-SE')}
+        </span>
+        <span
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 12,
+            letterSpacing: 1.4,
+            color: 'var(--color-forest)',
+          }}
+        >
+          KR
+        </span>
+      </div>
+      <div
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: 10,
+          letterSpacing: 1.6,
+          textTransform: 'uppercase',
+          color: 'var(--color-forest)',
+        }}
+      >
+        {salesCount} försäljningar · {seasonName}
+      </div>
+    </button>
+  )
 }
 
 function CenteredHeroStat({ value, label }: { value: number; label: string }) {
