@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { Masthead, Chip, Stat, PhotoPlaceholder } from '../components/faltet'
+import { Snackbar, useSnackbar } from '../components/Snackbar'
 import { SpeciesEditModal } from '../components/faltet/SpeciesEditModal'
 import { BedEditDialog } from '../components/bed/BedEditDialog'
 import { BedPlantGroups } from '../components/bed/BedPlantGroups'
@@ -46,29 +47,24 @@ export function BedDetail() {
   const [modalSpecies, setModalSpecies] = useState<number | null>(null)
   const [editing, setEditing] = useState(false)
 
-  const [toast, setToast] = useState<string | null>(null)
-  useEffect(() => {
-    if (!toast) return
-    const id = window.setTimeout(() => setToast(null), 2500)
-    return () => window.clearTimeout(id)
-  }, [toast])
+  const { message: toast, show: showToast } = useSnackbar()
 
   const weedMut = useMutation({
     mutationFn: () => api.beds.weed(bedId),
     onSuccess: (r) => {
-      setToast(`Rensade ogräs · ${r.plantsAffected} plantor`)
+      showToast(`Rensade ogräs · ${r.plantsAffected} plantor`)
       qc.invalidateQueries({ queryKey: ['bed-events', bedId] })
     },
-    onError: () => setToast('Kunde inte rensa ogräs'),
+    onError: () => showToast('Kunde inte rensa ogräs'),
   })
 
   const waterBedMut = useMutation({
     mutationFn: () => api.beds.water(bedId),
     onSuccess: (r) => {
-      setToast(`Vattnade · ${r.plantsAffected} plantor`)
+      showToast(`Vattnade · ${r.plantsAffected} plantor`)
       qc.invalidateQueries({ queryKey: ['bed-events', bedId] })
     },
-    onError: () => setToast('Kunde inte vattna'),
+    onError: () => showToast('Kunde inte vattna'),
   })
 
   if (!bed) return null
@@ -418,29 +414,7 @@ export function BedDetail() {
         />
       )}
 
-      {toast && (
-        <div
-          role="status"
-          aria-live="polite"
-          style={{
-            position: 'fixed',
-            bottom: 24,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'var(--color-ink)',
-            color: 'var(--color-cream)',
-            padding: '10px 18px',
-            borderRadius: 8,
-            fontFamily: 'var(--font-mono)',
-            fontSize: 11,
-            letterSpacing: 1.2,
-            boxShadow: '0 6px 24px rgba(0,0,0,0.18)',
-            zIndex: 1000,
-          }}
-        >
-          {toast}
-        </div>
-      )}
+      <Snackbar message={toast} />
     </div>
   )
 }
