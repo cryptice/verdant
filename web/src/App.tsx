@@ -28,6 +28,7 @@ const TrayLocations = lazy(() => import('./pages/TrayLocations').then(m => ({ de
 const TrayLocationDetail = lazy(() => import('./pages/TrayLocationDetail').then(m => ({ default: m.TrayLocationDetail })))
 const CustomerList = lazy(() => import('./pages/CustomerList').then(m => ({ default: m.CustomerList })))
 const OutletList = lazy(() => import('./pages/OutletList').then(m => ({ default: m.OutletList })))
+const SalesScreen = lazy(() => import('./pages/SalesScreen').then(m => ({ default: m.SalesScreen })))
 const PestDiseaseLog = lazy(() => import('./pages/PestDiseaseLog').then(m => ({ default: m.PestDiseaseLog })))
 const VarietyTrials = lazy(() => import('./pages/VarietyTrials').then(m => ({ default: m.VarietyTrials })))
 const BouquetRecipes = lazy(() => import('./pages/BouquetRecipes').then(m => ({ default: m.BouquetRecipes })))
@@ -105,6 +106,7 @@ export function App() {
           <Route path="tray-locations/:id" element={<TrayLocationDetail />} />
           <Route path="customers" element={<CustomerList />} />
           <Route path="outlets" element={<OutletList />} />
+          <Route path="sales" element={<SalesScreen />} />
           <Route path="pest-disease" element={<PestDiseaseLog />} />
           <Route path="trials" element={<VarietyTrials />} />
           <Route path="bouquets" element={<Bouquets />} />
