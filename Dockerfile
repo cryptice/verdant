@@ -3,6 +3,7 @@ FROM node:22-alpine AS web
 WORKDIR /web
 COPY web/package.json web/package-lock.json ./
 RUN npm ci --no-update-notifier
+COPY shared/ /shared/
 COPY web/ ./
 ARG VITE_GOOGLE_CLIENT_ID
 RUN npm run build
@@ -12,6 +13,7 @@ FROM node:22-alpine AS admin
 WORKDIR /admin
 COPY admin/package.json admin/package-lock.json ./
 RUN npm ci --no-update-notifier
+COPY shared/ /shared/
 COPY admin/ ./
 RUN npm run build
 
