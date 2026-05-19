@@ -93,6 +93,7 @@ export function SowActivity() {
   const [newLocationName, setNewLocationName] = useState('')
   const [seedCount, setSeedCount] = useState('')
   const [notes, setNotes] = useState('')
+  const [plantedDate, setPlantedDate] = useState(() => new Date().toISOString().slice(0, 10))
 
   // Auto-select on 1 location, clear on >=2 if no choice yet.
   useEffect(() => {
@@ -151,6 +152,7 @@ export function SowActivity() {
         name,
         seedCount: count,
         notes: notes || undefined,
+        plantedDate: plantedDate || undefined,
       })
       if (seedBatchId && count > 0) {
         await api.inventory.decrement(Number(seedBatchId), count)
@@ -354,6 +356,19 @@ export function SowActivity() {
                 value={seedCount}
                 onChange={e => setSeedCount(e.target.value)}
                 style={{ ...selectStyle, fontFamily: 'var(--font-mono)', fontSize: 20 }}
+              />
+            </div>
+          )}
+
+          {/* Planted date (lets the user backdate, equivalent to Android RegisterPlants). */}
+          {speciesId && (
+            <div className={sowInTray ? 'md:col-span-2' : ''}>
+              <span style={selectLabelStyle}>{t('sow.plantedDate')}</span>
+              <input
+                type="date"
+                value={plantedDate}
+                onChange={e => setPlantedDate(e.target.value)}
+                style={{ ...selectStyle, fontFamily: 'var(--font-mono)', fontSize: 18 }}
               />
             </div>
           )}
