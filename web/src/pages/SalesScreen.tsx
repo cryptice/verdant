@@ -12,6 +12,7 @@ import {
 } from '../api/client'
 import { Masthead, Ledger } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
+import { Snackbar, useSnackbar } from '../components/Snackbar'
 import { QuickSaleDialog } from './QuickSaleDialog'
 import { EditSaleDialog } from './EditSaleDialog'
 
@@ -47,6 +48,7 @@ export function SalesScreen() {
   const [quickSaleError, setQuickSaleError] = useState<string | null>(null)
   const [editing, setEditing] = useState<SaleLedgerEntry | null>(null)
   const [editError, setEditError] = useState<string | null>(null)
+  const { message: toast, show: showToast } = useSnackbar()
 
   const lotsQuery = useQuery({
     queryKey: ['sale-lots'],
@@ -89,8 +91,13 @@ export function SalesScreen() {
       qc.invalidateQueries({ queryKey: ['sale-lots'] })
       setShowQuickSale(false)
       setQuickSaleError(null)
+      showToast(t('sales.saleRecorded'))
     },
-    onError: (err) => setQuickSaleError(err instanceof Error ? err.message : String(err)),
+    onError: (err) => {
+      const msg = err instanceof Error ? err.message : String(err)
+      setQuickSaleError(msg)
+      showToast(msg)
+    },
   })
 
   const editMut = useMutation({
@@ -101,7 +108,11 @@ export function SalesScreen() {
       setEditing(null)
       setEditError(null)
     },
-    onError: (err) => setEditError(err instanceof Error ? err.message : String(err)),
+    onError: (err) => {
+      const msg = err instanceof Error ? err.message : String(err)
+      setEditError(msg)
+      showToast(msg)
+    },
   })
 
   const visibleLots: SaleLotResponse[] = useMemo(() => {
@@ -216,6 +227,8 @@ export function SalesScreen() {
         isSaving={editMut.isPending}
         error={editError}
       />
+
+      <Snackbar message={toast} />
     </div>
   )
 }

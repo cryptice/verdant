@@ -6,6 +6,7 @@ import { api, type PlantGroupResponse } from '../api/client'
 import { Masthead, Ledger } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
+import { Snackbar, useSnackbar } from '../components/Snackbar'
 
 type BatchKind = 'pot-up' | 'plant-out'
 
@@ -50,6 +51,7 @@ function BatchActivityInner({ kind }: { kind: BatchKind }) {
   const [targetBedId, setTargetBedId] = useState<number | ''>('')
   const [notes, setNotes] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const { message: toast, show: showToast } = useSnackbar()
 
   const submitMut = useMutation({
     mutationFn: () => api.plants.batchEvent({
@@ -71,7 +73,11 @@ function BatchActivityInner({ kind }: { kind: BatchKind }) {
       }
       navigate('/plants')
     },
-    onError: (err) => setError(err instanceof Error ? err.message : String(err)),
+    onError: (err) => {
+      const msg = err instanceof Error ? err.message : String(err)
+      setError(msg)
+      showToast(msg)
+    },
   })
 
   if (groupsQuery.isLoading) {
@@ -223,6 +229,8 @@ function BatchActivityInner({ kind }: { kind: BatchKind }) {
           </div>
         )}
       </Dialog>
+
+      <Snackbar message={toast} />
     </div>
   )
 }

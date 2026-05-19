@@ -12,6 +12,7 @@ import {
 import { Masthead, Ledger, Chip } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
+import { Snackbar, useSnackbar } from '../components/Snackbar'
 
 type DialogKind = 'none' | 'price' | 'outlet' | 'recordSale' | 'returned' | 'notSold' | 'delete'
 
@@ -56,6 +57,7 @@ export function SaleLotDetail() {
 
   const [dialog, setDialog] = useState<DialogKind>('none')
   const [actionError, setActionError] = useState<string | null>(null)
+  const { message: toast, show: showToast } = useSnackbar()
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ['sale-lot', lotId] })
@@ -63,8 +65,11 @@ export function SaleLotDetail() {
     qc.invalidateQueries({ queryKey: ['sale-ledger'] })
   }
 
-  const handleError = (err: unknown) =>
-    setActionError(err instanceof Error ? err.message : String(err))
+  const handleError = (err: unknown) => {
+    const msg = err instanceof Error ? err.message : String(err)
+    setActionError(msg)
+    showToast(msg)
+  }
 
   const changePriceMut = useMutation({
     mutationFn: (newPriceCents: number) => api.saleLots.changePrice(lotId, newPriceCents),
@@ -359,6 +364,8 @@ export function SaleLotDetail() {
         isSaving={deleteMut.isPending}
         error={actionError}
       />
+
+      <Snackbar message={toast} />
     </div>
   )
 }

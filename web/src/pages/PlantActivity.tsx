@@ -6,6 +6,7 @@ import { api } from '../api/client'
 import { Masthead } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { PhotoPicker } from '../components/PhotoPicker'
+import { Snackbar, useSnackbar } from '../components/Snackbar'
 
 type ActivityKind = 'pot-up' | 'plant-out' | 'harvest' | 'recover' | 'discard'
 
@@ -52,6 +53,7 @@ export function PlantActivity() {
   const [notes, setNotes] = useState('')
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const { message: toast, show: showToast } = useSnackbar()
 
   useEffect(() => {
     setError(null)
@@ -76,7 +78,11 @@ export function PlantActivity() {
       }
       navigate(`/plant/${plantId}`)
     },
-    onError: (err) => setError(err instanceof Error ? err.message : String(err)),
+    onError: (err) => {
+      const msg = err instanceof Error ? err.message : String(err)
+      setError(msg)
+      showToast(msg)
+    },
   })
 
   if (!plantIdStr || !kindStr || !(kindStr in KIND_TO_EVENT)) {
@@ -196,6 +202,7 @@ export function PlantActivity() {
           </div>
         </div>
       </div>
+      <Snackbar message={toast} />
     </div>
   )
 }
