@@ -668,6 +668,13 @@
     "weightGrams": "Vikt (g)",
     "stemCount": "Antal stjälkar"
   },
+  "photo": {
+    "label": "Foto",
+    "none": "Inget foto",
+    "choose": "Välj foto",
+    "replace": "Byt foto",
+    "processing": "Bearbetar…"
+  },
   "batch": {
     "potUpTitle": "Skola om i grupp",
     "plantOutTitle": "Plantera ut i grupp",

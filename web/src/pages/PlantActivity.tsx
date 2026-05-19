@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { Masthead } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
+import { PhotoPicker } from '../components/PhotoPicker'
 
 type ActivityKind = 'pot-up' | 'plant-out' | 'harvest' | 'recover' | 'discard'
 
@@ -49,6 +50,7 @@ export function PlantActivity() {
   const [weightG, setWeightG] = useState('')
   const [stemCount, setStemCount] = useState('')
   const [notes, setNotes] = useState('')
+  const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -63,6 +65,7 @@ export function PlantActivity() {
       weightGrams: isHarvest && weightG ? parseFloat(weightG.replace(',', '.')) : undefined,
       quantity: isHarvest && stemCount ? Number(stemCount) : undefined,
       notes: notes.trim() || undefined,
+      imageBase64: photoDataUrl ? photoDataUrl.replace(/^data:image\/\w+;base64,/, '') : undefined,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['plant', plantId] })
@@ -171,6 +174,8 @@ export function PlantActivity() {
               </div>
             )}
           </div>
+
+          <PhotoPicker value={photoDataUrl} onChange={setPhotoDataUrl} />
 
           {error && <p className="text-error text-sm">{error}</p>}
 

@@ -668,6 +668,13 @@
     "weightGrams": "Weight (g)",
     "stemCount": "Stem count"
   },
+  "photo": {
+    "label": "Photo",
+    "none": "No photo",
+    "choose": "Choose photo",
+    "replace": "Replace photo",
+    "processing": "Processing…"
+  },
   "batch": {
     "potUpTitle": "Batch pot up",
     "plantOutTitle": "Batch plant out",
