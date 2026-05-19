@@ -29,8 +29,19 @@ ENV ANDROID_HOME=/opt/android-sdk \
     ANDROID_SDK_ROOT=/opt/android-sdk
 ENV PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
 
+# Multi-arch support for x86_64 binaries when the image runs on Apple Silicon.
+# Google ships only x86_64 Linux build-tools (aapt2, aidl, etc.) — on
+# arm64 hosts the JVM toolchain runs natively, but those few native helpers
+# need Rosetta translation, which in turn needs the x86_64 dynamic linker
+# present in the rootfs. Installing libc6:amd64 + libstdc++6:amd64 provides
+# /lib64/ld-linux-x86-64.so.2 and the runtime libs Rosetta requires. No-op
+# on amd64 hosts because the architecture is already enabled by default.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends unzip \
+ && dpkg --add-architecture amd64 \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends \
+      libc6:amd64 libstdc++6:amd64 zlib1g:amd64 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p $ANDROID_HOME/cmdline-tools \
