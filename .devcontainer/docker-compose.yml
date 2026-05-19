@@ -10,6 +10,7 @@ services:
       - gradle-cache:/home/vscode/.gradle
       - node-modules-cache:/home/vscode/.npm
       - ${HOME}/.claude:/home/vscode/.claude
+      - ${HOME}/.config/gcloud:/home/vscode/.config/gcloud
     command: sleep infinity
     depends_on:
       - postgres

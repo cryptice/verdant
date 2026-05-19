@@ -76,7 +76,7 @@ Then, inside the container, start the backend:
 cd backend && ./gradlew quarkusDev
 ```
 
-The host's `~/.claude` is bind-mounted into the container so Claude Code auth/memory/plugins follow you in. Gradle and npm caches live in named volumes (`gradle-cache`, `node-modules-cache`) so they survive container rebuilds. The backend reaches PostgreSQL at `postgres:5432` inside the network; the host can reach it on `localhost:5433`.
+The host's `~/.claude` and `~/.config/gcloud` are bind-mounted into the container so Claude Code auth/memory/plugins and `gcloud`/`cloud-sql-proxy` credentials follow you in (no re-auth required). Gradle and npm caches live in named volumes (`gradle-cache`, `node-modules-cache`) so they survive container rebuilds. The backend reaches PostgreSQL at `postgres:5432` inside the network; the host can reach it on `localhost:5433`.
 
 The Android app **compiles, tests, and lints inside the container** — `cd android && ./gradlew :app:compileDebugKotlin` (or `:app:assembleDebug`, `:app:testDebugUnitTest`, `:app:lintDebug`) all work against the bundled SDK at `/opt/android-sdk`. The container resolves the SDK via `ANDROID_HOME` rather than writing `local.properties`, so host-side Android Studio builds keep working without manual cleanup. `android/settings.gradle.kts` auto-deletes a stale `local.properties` whose `sdk.dir` points at a directory that doesn't exist in the current environment — so opening the project in Android Studio on the host (which regenerates the file with the host's SDK path), and then jumping into the container, just works. For CLI-only host builds, set `ANDROID_HOME=$HOME/Library/Android/sdk` in your shell profile.
 

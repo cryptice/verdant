@@ -57,8 +57,26 @@ RUN apt-get update \
       "platform-tools" \
  && chown -R vscode:vscode $ANDROID_HOME
 
+# Google Cloud SDK + cloud-sql-proxy — match the production / staging
+# tooling documented in README.md (gcloud secrets, Artifact Registry auth,
+# Cloud SQL proxy for connecting to verdant-planner-staging). The host's
+# ~/.config/gcloud is bind-mounted at runtime (see docker-compose.yml) so
+# `gcloud auth list` works without re-auth inside the container.
+RUN curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg \
+      | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg \
+ && echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" \
+      > /etc/apt/sources.list.d/google-cloud-sdk.list \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends google-cloud-cli \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* \
+ && arch="$(dpkg --print-architecture)" \
+ && curl -fsSL -o /usr/local/bin/cloud-sql-proxy \
+      "https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.14.3/cloud-sql-proxy.linux.${arch}" \
+ && chmod +x /usr/local/bin/cloud-sql-proxy
+
 # Pre-create cache dirs owned by `vscode` so named volumes inherit that
 # ownership on first mount. Without this, Docker creates the mount points
 # as root and the non-root user can't write to its own gradle/npm cache.
 # .android holds adb keys and avd settings.
-RUN install -d -o vscode -g vscode /home/vscode/.gradle /home/vscode/.npm /home/vscode/.android
+RUN install -d -o vscode -g vscode /home/vscode/.gradle /home/vscode/.npm /home/vscode/.android /home/vscode/.config /home/vscode/.config/gcloud
