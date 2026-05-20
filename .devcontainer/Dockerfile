@@ -11,10 +11,24 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# Claude Code CLI. Installed globally so `claude` is on PATH for the
-# vscode user. The host's ~/.claude is bind-mounted at runtime (see
+# Pre-create cache dirs owned by `vscode` so named volumes inherit that
+# ownership on first mount. Without this, Docker creates the mount points
+# as root and the non-root user can't write to its own gradle/npm cache.
+# .npm-global is the user-owned global-install prefix for `npm i -g` (see
+# the claude-code install below); created here for the same reason.
+# .android holds adb keys and avd settings.
+RUN install -d -o vscode -g vscode /home/vscode/.gradle /home/vscode/.npm /home/vscode/.npm-global /home/vscode/.android /home/vscode/.config /home/vscode/.config/gcloud
+
+# Claude Code CLI. Installed under a user-owned npm prefix so the vscode
+# user can run `claude update` (or `npm i -g @anthropic-ai/claude-code`)
+# without sudo — a root-owned /usr/lib/node_modules install would block
+# both. The host's ~/.claude is bind-mounted at runtime (see
 # docker-compose.yml) so auth/memory/plugins follow the developer in.
-RUN npm install -g @anthropic-ai/claude-code
+ENV PATH=/home/vscode/.npm-global/bin:$PATH
+USER vscode
+RUN npm config set prefix /home/vscode/.npm-global \
+ && npm install -g @anthropic-ai/claude-code
+USER root
 
 # Android SDK — enables `./gradlew :app:compileDebugKotlin`, unit tests,
 # lint, and APK assembly inside the container. Image baseline matches the
@@ -74,9 +88,3 @@ RUN curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg \
  && curl -fsSL -o /usr/local/bin/cloud-sql-proxy \
       "https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.14.3/cloud-sql-proxy.linux.${arch}" \
  && chmod +x /usr/local/bin/cloud-sql-proxy
-
-# Pre-create cache dirs owned by `vscode` so named volumes inherit that
-# ownership on first mount. Without this, Docker creates the mount points
-# as root and the non-root user can't write to its own gradle/npm cache.
-# .android holds adb keys and avd settings.
-RUN install -d -o vscode -g vscode /home/vscode/.gradle /home/vscode/.npm /home/vscode/.android /home/vscode/.config /home/vscode/.config/gcloud
