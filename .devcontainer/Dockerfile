@@ -27,7 +27,8 @@ RUN install -d -o vscode -g vscode /home/vscode/.gradle /home/vscode/.npm /home/
 ENV PATH=/home/vscode/.npm-global/bin:$PATH
 USER vscode
 RUN npm config set prefix /home/vscode/.npm-global \
- && npm install -g @anthropic-ai/claude-code
+ && npm install -g @anthropic-ai/claude-code@2.1.143 \
+ && echo '{}' > /home/vscode/.claude.json
 USER root
 
 # Android SDK — enables `./gradlew :app:compileDebugKotlin`, unit tests,
