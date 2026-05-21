@@ -1641,6 +1641,8 @@
     "noTemplates": "No workflow templates yet",
     "noSteps": "No steps added",
     "assignTemplate": "Assign workflow",
+    "viewProgress": "View progress",
+    "noWorkflow": "No workflow assigned",
     "selectTemplate": "Select workflow...",
     "syncFromTemplate": "Sync from template",
     "assigned": "Assigned workflow",

@@ -1641,6 +1641,8 @@
     "noTemplates": "Inga arbetsflöden ännu",
     "noSteps": "Inga steg tillagda",
     "assignTemplate": "Tilldela arbetsflöde",
+    "viewProgress": "Visa framsteg",
+    "noWorkflow": "Inget arbetsflöde tilldelat",
     "selectTemplate": "Välj arbetsflöde...",
     "syncFromTemplate": "Synka från mall",
     "assigned": "Tilldelat arbetsflöde",

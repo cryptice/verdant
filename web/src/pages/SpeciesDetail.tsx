@@ -1,6 +1,6 @@
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import { Masthead, Rule } from '../components/faltet'
@@ -83,6 +83,8 @@ export function SpeciesDetail() {
 
       <SpeciesEditForm speciesId={speciesId} />
 
+      <WorkflowAccessPanel speciesId={speciesId} />
+
       <div style={{ padding: '0 28px 28px' }}>
         <Rule variant="soft" />
         <div style={{ marginTop: 22, display: 'flex', justifyContent: 'flex-end' }}>
@@ -162,5 +164,125 @@ export function SpeciesDetail() {
         )}
       </div>
     </div>
+  )
+}
+
+/**
+ * Entry points into workflow management for this species. Keeps the
+ * shared SpeciesEditForm clean while restoring access to the workflow
+ * pages that used to be inline (assign / sync / add-step were a full
+ * WorkflowSection prior to the form refactor).
+ */
+function WorkflowAccessPanel({ speciesId }: { speciesId: number }) {
+  const { t } = useTranslation()
+
+  const { data: workflow } = useQuery({
+    queryKey: ['species-workflow', speciesId],
+    queryFn: () => api.workflows.getSpeciesWorkflow(speciesId),
+  })
+
+  const templateId = workflow?.templateId
+  const templateName = workflow?.templateName
+  const stepCount = workflow?.steps.length ?? 0
+
+  return (
+    <div style={{ padding: '0 28px 22px' }}>
+      <Rule variant="soft" />
+      <div style={{ marginTop: 22 }}>
+        <div
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 9,
+            letterSpacing: 1.4,
+            textTransform: 'uppercase',
+            color: 'var(--color-forest)',
+            opacity: 0.7,
+            marginBottom: 8,
+          }}
+        >
+          {t('workflows.title')}
+        </div>
+
+        {templateId ? (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              justifyContent: 'space-between',
+              gap: 18,
+              flexWrap: 'wrap',
+            }}
+          >
+            <div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 300 }}>
+                {templateName}
+              </div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10,
+                  letterSpacing: 1.4,
+                  textTransform: 'uppercase',
+                  color: 'var(--color-forest)',
+                  opacity: 0.7,
+                }}
+              >
+                {t('workflows.stepCount', { count: stepCount })}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 18 }}>
+              <WorkflowLink to={`/workflows/progress/${speciesId}`}>
+                → {t('workflows.viewProgress')}
+              </WorkflowLink>
+              <WorkflowLink to={`/workflows/${templateId}/edit`}>
+                → {t('workflows.editTemplate')}
+              </WorkflowLink>
+            </div>
+          </div>
+        ) : (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              justifyContent: 'space-between',
+              gap: 18,
+              flexWrap: 'wrap',
+            }}
+          >
+            <div
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontStyle: 'italic',
+                fontSize: 16,
+                color: 'var(--color-forest)',
+              }}
+            >
+              {t('workflows.noWorkflow')}
+            </div>
+            <WorkflowLink to="/workflows">
+              → {t('workflows.assignTemplate')}
+            </WorkflowLink>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function WorkflowLink({ to, children }: { to: string; children: React.ReactNode }) {
+  return (
+    <Link
+      to={to}
+      style={{
+        fontFamily: 'var(--font-mono)',
+        fontSize: 10,
+        letterSpacing: 1.4,
+        textTransform: 'uppercase',
+        color: 'var(--color-accent)',
+        textDecoration: 'none',
+      }}
+    >
+      {children}
+    </Link>
   )
 }
