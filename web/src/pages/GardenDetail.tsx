@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
+import { sortBedsByNaturalName } from '../lib/bed'
 import { Masthead, Chip, Stat } from '../components/faltet'
 import { Dialog } from '../components/Dialog'
 import { SunDirectionPicker } from '../components/SunDirectionPicker'
@@ -112,10 +113,7 @@ export function GardenDetail() {
     },
   })
 
-  const sortedBeds = useMemo(() =>
-    beds?.slice().sort((a, b) => a.name.localeCompare(b.name)) ?? [],
-    [beds]
-  )
+  const sortedBeds = useMemo(() => (beds ? sortBedsByNaturalName(beds) : []), [beds])
 
   // Plant count aggregation from beds (bedCount * approximate) — use garden's plantCount if available
   const plantCount = sortedBeds.reduce((sum, _b) => sum, 0)

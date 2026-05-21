@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import { api } from '../api/client'
 import type { ScheduledTaskResponse, TraySummaryEntry } from '../api/client'
+import { sortBedsWithGardenByNaturalName } from '../lib/bed'
 
 // Activity types whose subject is a bed, not a species. Mirrors
 // BED_ACTIVITY_TYPES in backend ScheduledTaskService.
@@ -411,7 +412,7 @@ export function Dashboard() {
           {/* Column 3 — Beds */}
           <section style={{ padding: '0 0 0 22px' }}>
             <ColumnHeader title={t('dashboard.beds.title')} />
-            {beds?.map((b) => (
+            {beds && sortBedsWithGardenByNaturalName(beds).map((b) => (
               <Link
                 key={b.id}
                 to={`/bed/${b.id}`}

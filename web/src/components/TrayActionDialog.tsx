@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../api/client'
+import { sortBedsWithGardenByNaturalName } from '../lib/bed'
 import { Dialog } from './Dialog'
 
 export interface TrayActionEntry {
@@ -187,7 +188,7 @@ export function TrayActionDialog({ open, entry, onClose }: Props) {
                 className="input"
               >
                 <option value="">{t('dashboard.trays.action.selectBed')}</option>
-                {(beds ?? []).map((b) => (
+                {sortBedsWithGardenByNaturalName(beds ?? []).map((b) => (
                   <option key={b.id} value={b.id}>
                     {b.gardenName ? `${b.gardenName} · ${b.name}` : b.name}
                   </option>

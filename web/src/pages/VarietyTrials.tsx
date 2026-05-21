@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type VarietyTrialResponse, type SpeciesResponse, type BedWithGardenResponse } from '../api/client'
+import { sortBedsWithGardenByNaturalName } from '../lib/bed'
 import { Masthead, Chip, LedgerPagination } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
@@ -170,7 +171,7 @@ export function VarietyTrials() {
         <label className="field-label">{tr('sow.bedLabel')}</label>
         <select value={formBedId} onChange={e => setFormBedId(e.target.value)} className="input">
           <option value="">—</option>
-          {beds?.map((b: BedWithGardenResponse) => (
+          {sortBedsWithGardenByNaturalName(beds ?? []).map((b: BedWithGardenResponse) => (
             <option key={b.id} value={b.id}>{b.gardenName} / {b.name}</option>
           ))}
         </select>

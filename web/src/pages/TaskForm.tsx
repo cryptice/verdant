@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api, type SpeciesResponse } from '../api/client'
+import { sortBedsWithGardenByNaturalName } from '../lib/bed'
 import { Masthead, Rule } from '../components/faltet'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
@@ -289,7 +290,7 @@ export function TaskForm() {
                 style={selectStyle}
               >
                 <option value="">{t('common.select')}</option>
-                {(beds ?? []).map(b => (
+                {sortBedsWithGardenByNaturalName(beds ?? []).map(b => (
                   <option key={b.id} value={b.id}>
                     {b.gardenName ? `${b.gardenName} · ${b.name}` : b.name}
                   </option>

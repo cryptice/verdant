@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Trans, useTranslation } from 'react-i18next'
 import { api, type SpeciesResponse } from '../api/client'
+import { sortBedsWithGardenByNaturalName } from '../lib/bed'
 import { Masthead } from '../components/faltet'
 import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
@@ -320,7 +321,7 @@ export function SowActivity() {
               <span style={selectLabelStyle}>{t('sow.bedLabel')}</span>
               <select value={bedId} onChange={e => setBedId(e.target.value)} style={selectStyle}>
                 <option value="">{t('sow.selectBed')}</option>
-                {beds?.map(b => <option key={b.id} value={b.id}>{b.gardenName} — {b.name}</option>)}
+                {sortBedsWithGardenByNaturalName(beds ?? []).map(b => <option key={b.id} value={b.id}>{b.gardenName} — {b.name}</option>)}
               </select>
             </label>
           )}

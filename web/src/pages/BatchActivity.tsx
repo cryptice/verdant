@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api, type PlantGroupResponse } from '../api/client'
+import { sortBedsWithGardenByNaturalName } from '../lib/bed'
 import { Masthead, Ledger } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
@@ -207,7 +208,7 @@ function BatchActivityInner({ kind }: { kind: BatchKind }) {
                   className="input"
                 >
                   <option value="">{t('common.select')}</option>
-                  {(bedsQuery.data ?? []).map((b) => (
+                  {sortBedsWithGardenByNaturalName(bedsQuery.data ?? []).map((b) => (
                     <option key={b.id} value={b.id}>
                       {b.name}{b.gardenName ? ` · ${b.gardenName}` : ''}
                     </option>

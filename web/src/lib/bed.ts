@@ -1,10 +1,36 @@
-import type { PlantResponse } from '../api/client'
+import type { BedResponse, BedWithGardenResponse, PlantResponse } from '../api/client'
 
 export const SOIL_TYPES = ['SANDY', 'LOAMY', 'CLAY', 'SILTY', 'PEATY', 'CHALKY'] as const
 export const SUN_EXPOSURES = ['FULL_SUN', 'PARTIAL_SUN', 'PARTIAL_SHADE', 'FULL_SHADE'] as const
 export const DRAINAGES = ['POOR', 'MODERATE', 'GOOD', 'SHARP'] as const
 export const IRRIGATION_TYPES = ['DRIP', 'SPRINKLER', 'SOAKER_HOSE', 'MANUAL', 'NONE'] as const
 export const PROTECTIONS = ['OPEN_FIELD', 'ROW_COVER', 'LOW_TUNNEL', 'HIGH_TUNNEL', 'GREENHOUSE', 'COLDFRAME'] as const
+
+/**
+ * Natural string comparison: digit runs are compared as integers, so
+ * "Bed #2" sorts before "Bed #10". Mirrors NaturalNameComparator on Android.
+ */
+export function compareNaturalNames(a: string, b: string): number {
+  return a.localeCompare(b, 'sv', { numeric: true, sensitivity: 'base' })
+}
+
+/** Sort beds within a single garden by name with natural numeric ordering. */
+export function sortBedsByNaturalName<T extends BedResponse>(beds: readonly T[]): T[] {
+  return beds.slice().sort((a, b) => compareNaturalNames(a.name, b.name))
+}
+
+/**
+ * Sort cross-garden beds: primary by garden name, secondary by bed name
+ * (both natural). Matches the Android implementation.
+ */
+export function sortBedsWithGardenByNaturalName<T extends BedWithGardenResponse>(
+  beds: readonly T[],
+): T[] {
+  return beds.slice().sort((a, b) => {
+    const g = compareNaturalNames(a.gardenName ?? '', b.gardenName ?? '')
+    return g !== 0 ? g : compareNaturalNames(a.name, b.name)
+  })
+}
 
 export function bedEventLabelSv(type: string): string {
   switch (type) {

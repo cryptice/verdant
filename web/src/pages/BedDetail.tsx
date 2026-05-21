@@ -11,7 +11,7 @@ import { BedPlantGroups } from '../components/bed/BedPlantGroups'
 import { BedMetaCell } from '../components/bed/BedMetaCell'
 import { BedSectionHeader } from '../components/bed/BedSectionHeader'
 import { BedPhotosSection } from '../components/bed/BedPhotosSection'
-import { bedEventLabelSv } from '../lib/bed'
+import { bedEventLabelSv, sortBedsByNaturalName } from '../lib/bed'
 
 export function BedDetail() {
   const { id } = useParams<{ id: string }>()
@@ -36,8 +36,8 @@ export function BedDetail() {
     enabled: !!bed,
   })
 
-  // Alphabetical prev/next navigation within the same garden.
-  const sortedSiblings = [...siblings].sort((a, b) => a.name.localeCompare(b.name))
+  // Natural prev/next navigation within the same garden (Bed #10 after Bed #9).
+  const sortedSiblings = sortBedsByNaturalName(siblings)
   const currentIdx = sortedSiblings.findIndex((s) => s.id === bedId)
   const prevBed = currentIdx > 0 ? sortedSiblings[currentIdx - 1] : null
   const nextBed =

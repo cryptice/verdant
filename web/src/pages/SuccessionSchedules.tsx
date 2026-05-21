@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type SuccessionScheduleResponse, type SpeciesResponse, type BedWithGardenResponse } from '../api/client'
+import { sortBedsWithGardenByNaturalName } from '../lib/bed'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
@@ -161,7 +162,7 @@ export function SuccessionSchedules() {
         <label className="field-label">{t('sow.bedLabel')}</label>
         <select value={formBedId} onChange={e => setFormBedId(e.target.value)} className="input">
           <option value="">—</option>
-          {beds?.map((b: BedWithGardenResponse) => (
+          {sortBedsWithGardenByNaturalName(beds ?? []).map((b: BedWithGardenResponse) => (
             <option key={b.id} value={b.id}>{b.gardenName} / {b.name}</option>
           ))}
         </select>
