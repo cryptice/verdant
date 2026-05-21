@@ -1641,6 +1641,7 @@
     "noTemplates": "No workflow templates yet",
     "noSteps": "No steps added",
     "assignTemplate": "Assign workflow",
+    "switchTemplate": "Switch template",
     "viewProgress": "View progress",
     "noWorkflow": "No workflow assigned",
     "selectTemplate": "Select workflow...",

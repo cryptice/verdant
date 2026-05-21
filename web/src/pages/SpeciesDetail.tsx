@@ -175,15 +175,40 @@ export function SpeciesDetail() {
  */
 function WorkflowAccessPanel({ speciesId }: { speciesId: number }) {
   const { t } = useTranslation()
+  const qc = useQueryClient()
+  const [pendingTemplateId, setPendingTemplateId] = useState<string>('')
 
   const { data: workflow } = useQuery({
     queryKey: ['species-workflow', speciesId],
     queryFn: () => api.workflows.getSpeciesWorkflow(speciesId),
   })
 
+  const { data: templates = [] } = useQuery({
+    queryKey: ['workflow-templates'],
+    queryFn: api.workflows.templates,
+  })
+
+  const invalidate = () => qc.invalidateQueries({ queryKey: ['species-workflow', speciesId] })
+
+  const assignMut = useMutation({
+    mutationFn: (templateId: number) => api.workflows.assignToSpecies(speciesId, templateId),
+    onSuccess: () => {
+      setPendingTemplateId('')
+      invalidate()
+    },
+  })
+
+  const syncMut = useMutation({
+    mutationFn: () => api.workflows.syncSpeciesWorkflow(speciesId),
+    onSuccess: invalidate,
+  })
+
   const templateId = workflow?.templateId
   const templateName = workflow?.templateName
   const stepCount = workflow?.steps.length ?? 0
+  // When a template is assigned we offer "switch template" via the same
+  // dropdown — preselect the current one so the change is explicit.
+  const selectValue = pendingTemplateId || (templateId ? String(templateId) : '')
 
   return (
     <div style={{ padding: '0 28px 22px' }}>
@@ -230,7 +255,15 @@ function WorkflowAccessPanel({ speciesId }: { speciesId: number }) {
                 {t('workflows.stepCount', { count: stepCount })}
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 18 }}>
+            <div style={{ display: 'flex', gap: 18, alignItems: 'center', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => syncMut.mutate()}
+                disabled={syncMut.isPending}
+                className="btn-secondary"
+                style={{ whiteSpace: 'nowrap' }}
+              >
+                {syncMut.isPending ? '…' : t('workflows.syncFromTemplate')}
+              </button>
               <WorkflowLink to={`/workflows/progress/${speciesId}`}>
                 → {t('workflows.viewProgress')}
               </WorkflowLink>
@@ -242,27 +275,70 @@ function WorkflowAccessPanel({ speciesId }: { speciesId: number }) {
         ) : (
           <div
             style={{
-              display: 'flex',
-              alignItems: 'baseline',
-              justifyContent: 'space-between',
-              gap: 18,
-              flexWrap: 'wrap',
+              fontFamily: 'var(--font-display)',
+              fontStyle: 'italic',
+              fontSize: 16,
+              color: 'var(--color-forest)',
+              marginBottom: 8,
             }}
           >
-            <div
+            {t('workflows.noWorkflow')}
+          </div>
+        )}
+
+        {/* Assign / switch row — visible whether or not a template is set. */}
+        <div style={{ marginTop: 18, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <select
+            value={selectValue}
+            onChange={(e) => setPendingTemplateId(e.target.value)}
+            className="input"
+            disabled={templates.length === 0 || assignMut.isPending}
+          >
+            <option value="">{t('workflows.selectTemplate')}</option>
+            {templates.map((tmpl) => (
+              <option key={tmpl.id} value={tmpl.id}>{tmpl.name}</option>
+            ))}
+          </select>
+          <button
+            className="btn-primary"
+            disabled={
+              !selectValue ||
+              assignMut.isPending ||
+              Number(selectValue) === templateId
+            }
+            onClick={() => assignMut.mutate(Number(selectValue))}
+          >
+            {assignMut.isPending
+              ? '…'
+              : templateId
+                ? t('workflows.switchTemplate')
+                : t('workflows.assignTemplate')}
+          </button>
+          {templates.length === 0 && (
+            <Link
+              to="/workflows"
               style={{
-                fontFamily: 'var(--font-display)',
-                fontStyle: 'italic',
-                fontSize: 16,
-                color: 'var(--color-forest)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 10,
+                letterSpacing: 1.4,
+                textTransform: 'uppercase',
+                color: 'var(--color-accent)',
+                textDecoration: 'none',
               }}
             >
-              {t('workflows.noWorkflow')}
-            </div>
-            <WorkflowLink to="/workflows">
-              → {t('workflows.assignTemplate')}
-            </WorkflowLink>
-          </div>
+              → {t('workflows.newTemplate')}
+            </Link>
+          )}
+        </div>
+        {assignMut.error && (
+          <p style={{ marginTop: 8, fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-accent)' }}>
+            {(assignMut.error as Error).message}
+          </p>
+        )}
+        {syncMut.error && (
+          <p style={{ marginTop: 8, fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--color-accent)' }}>
+            {(syncMut.error as Error).message}
+          </p>
         )}
       </div>
     </div>
