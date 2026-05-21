@@ -3,6 +3,7 @@ package app.verdant.dto
 import jakarta.validation.constraints.DecimalMax
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import java.time.Instant
 
@@ -53,6 +54,27 @@ data class BedEventResponse(
     val notes: String?,
     val plantsAffected: Int?,
     val createdAt: Instant,
+)
+
+data class BedPhotoResponse(
+    val id: Long,
+    val bedId: Long,
+    val photoUrl: String,
+    val reason: String,
+    val description: String?,
+    val capturedAt: Instant,
+    val createdAt: Instant,
+)
+
+data class CreateBedPhotoRequest(
+    @field:NotNull
+    val imageBase64: String,
+    @field:NotBlank @field:Size(max = 32)
+    val reason: String,
+    @field:Size(max = 2000)
+    val description: String? = null,
+    /** Optional client-supplied capture timestamp (ISO-8601). Falls back to server time. */
+    val capturedAt: Instant? = null,
 )
 
 data class UpdateBedRequest(

@@ -147,6 +147,21 @@ interface VerdantApi {
         @Query("limit") limit: Int = 50,
     ): List<BedEventResponse>
 
+    @GET("api/beds/{id}/photos")
+    suspend fun getBedPhotos(@Path("id") id: Long): List<BedPhotoResponse>
+
+    @POST("api/beds/{id}/photos")
+    suspend fun addBedPhoto(
+        @Path("id") id: Long,
+        @Body request: CreateBedPhotoRequest,
+    ): BedPhotoResponse
+
+    @DELETE("api/beds/{id}/photos/{photoId}")
+    suspend fun deleteBedPhoto(
+        @Path("id") id: Long,
+        @Path("photoId") photoId: Long,
+    )
+
     @PUT("api/plants/{id}")
     suspend fun updatePlant(@Path("id") id: Long, @Body request: UpdatePlantRequest): PlantResponse
 

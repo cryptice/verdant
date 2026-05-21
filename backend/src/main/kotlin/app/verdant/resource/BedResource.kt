@@ -1,5 +1,6 @@
 package app.verdant.resource
 
+import app.verdant.dto.CreateBedPhotoRequest
 import app.verdant.dto.CreateBedRequest
 import app.verdant.dto.UpdateBedRequest
 import app.verdant.filter.OrgContext
@@ -41,4 +42,20 @@ class BedResource(
     @GET
     @Path("/beds/{id}/history")
     fun history(@PathParam("id") id: Long) = bedService.getBedHistory(id, orgContext.orgId)
+
+    @GET
+    @Path("/beds/{id}/photos")
+    fun listPhotos(@PathParam("id") id: Long) = bedService.listPhotos(id, orgContext.orgId)
+
+    @POST
+    @Path("/beds/{id}/photos")
+    fun addPhoto(@PathParam("id") id: Long, @Valid request: CreateBedPhotoRequest) =
+        bedService.addPhoto(id, request, orgContext.orgId)
+
+    @DELETE
+    @Path("/beds/{id}/photos/{photoId}")
+    fun deletePhoto(@PathParam("id") id: Long, @PathParam("photoId") photoId: Long): Response {
+        bedService.deletePhoto(id, photoId, orgContext.orgId)
+        return Response.noContent().build()
+    }
 }

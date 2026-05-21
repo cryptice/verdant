@@ -8,7 +8,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.BedEventResponse
+import app.verdant.android.data.model.BedPhotoResponse
 import app.verdant.android.data.model.BedResponse
+import app.verdant.android.data.model.CreateBedPhotoRequest
 import app.verdant.android.data.model.CreateBedRequest
 import app.verdant.android.data.model.PlantResponse
 import app.verdant.android.data.model.SupplyApplicationResponse
@@ -34,6 +36,7 @@ sealed interface BedDetailUiState {
         val plants: List<PlantResponse>,
         val applications: List<SupplyApplicationResponse>,
         val bedEvents: List<BedEventResponse>,
+        val photos: List<BedPhotoResponse>,
         val isRefreshing: Boolean = false,
         val deleted: Boolean = false,
         val expandedGroups: Set<String> = emptySet(),
@@ -66,6 +69,7 @@ class BedDetailViewModel @Inject constructor(
                 val plants = plantRepository.listForBed(bedId)
                 val applications = runCatching { supplyApplicationRepository.listByBed(bedId, 10) }.getOrDefault(emptyList())
                 val bedEvents = runCatching { bedRepository.events(bedId, 20) }.getOrDefault(emptyList())
+                val photos = runCatching { bedRepository.photos(bedId) }.getOrDefault(emptyList())
                 val gardenName = runCatching { gardenApiRepository.get(bed.gardenId).name }.getOrNull()
                 val previous = current as? BedDetailUiState.Loaded
                 _uiState.value = BedDetailUiState.Loaded(
@@ -74,6 +78,7 @@ class BedDetailViewModel @Inject constructor(
                     plants = plants,
                     applications = applications,
                     bedEvents = bedEvents,
+                    photos = photos,
                     isRefreshing = false,
                     expandedGroups = previous?.expandedGroups ?: emptySet(),
                     scrollIndex = previous?.scrollIndex ?: 0,
@@ -182,6 +187,46 @@ class BedDetailViewModel @Inject constructor(
                 refresh()
             } catch (e: Exception) {
                 _uiState.value = current.copy(toastMessage = "Kunde inte vattna")
+            }
+        }
+    }
+
+    fun addPhoto(imageBase64: String, reason: String, description: String?) {
+        viewModelScope.launch {
+            val current = _uiState.value as? BedDetailUiState.Loaded ?: return@launch
+            _uiState.value = current.copy(isRefreshing = true)
+            try {
+                bedRepository.addPhoto(
+                    bedId,
+                    CreateBedPhotoRequest(
+                        imageBase64 = imageBase64,
+                        reason = reason,
+                        description = description?.takeIf { it.isNotBlank() },
+                    ),
+                )
+                (_uiState.value as? BedDetailUiState.Loaded)?.let {
+                    _uiState.value = it.copy(toastMessage = "Bild sparad")
+                }
+                refresh()
+            } catch (e: Exception) {
+                (_uiState.value as? BedDetailUiState.Loaded)?.let {
+                    _uiState.value = it.copy(
+                        isRefreshing = false,
+                        toastMessage = e.message ?: "Kunde inte spara bilden",
+                    )
+                }
+            }
+        }
+    }
+
+    fun deletePhoto(photoId: Long) {
+        viewModelScope.launch {
+            val current = _uiState.value as? BedDetailUiState.Loaded ?: return@launch
+            try {
+                bedRepository.deletePhoto(bedId, photoId)
+                refresh()
+            } catch (e: Exception) {
+                _uiState.value = current.copy(toastMessage = e.message ?: "Kunde inte ta bort bilden")
             }
         }
     }

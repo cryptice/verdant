@@ -2,16 +2,21 @@ package app.verdant.service
 
 import app.verdant.dto.*
 import app.verdant.entity.*
+import app.verdant.repository.BedPhotoRepository
 import app.verdant.repository.BedRepository
 import app.verdant.repository.GardenRepository
 import io.agroal.api.AgroalDataSource
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.ws.rs.BadRequestException
 import jakarta.ws.rs.NotFoundException
+import java.time.Instant
 
 @ApplicationScoped
 class BedService(
     private val bedRepository: BedRepository,
     private val gardenRepository: GardenRepository,
+    private val bedPhotoRepository: BedPhotoRepository,
+    private val storageService: StorageService,
     private val ds: AgroalDataSource,
 ) {
     fun getAllBedsForUser(orgId: Long): List<BedWithGardenResponse> {
@@ -96,6 +101,52 @@ class BedService(
         bedRepository.delete(bedId)
     }
 
+    fun listPhotos(bedId: Long, orgId: Long): List<BedPhotoResponse> {
+        requireBedOwnership(bedId, orgId)
+        return bedPhotoRepository.findByBedId(bedId).map { it.toResponse() }
+    }
+
+    fun addPhoto(bedId: Long, request: CreateBedPhotoRequest, orgId: Long): BedPhotoResponse {
+        requireBedOwnership(bedId, orgId)
+        val reason = parseReason(request.reason)
+        // Persist first to get an id we can use as the storage path, then
+        // patch the URL once the upload succeeds. Mirrors how plant event
+        // photos are stored (see PlantService.addEvent).
+        var photo = bedPhotoRepository.persist(
+            BedPhoto(
+                bedId = bedId,
+                photoUrl = "",
+                reason = reason,
+                description = request.description?.takeIf { it.isNotBlank() },
+                capturedAt = request.capturedAt ?: Instant.now(),
+            )
+        )
+        val url = storageService.uploadBedPhoto(bedId, photo.id!!, request.imageBase64)
+        bedPhotoRepository.updatePhotoUrl(photo.id, url)
+        photo = photo.copy(photoUrl = url)
+        return photo.toResponse()
+    }
+
+    fun deletePhoto(bedId: Long, photoId: Long, orgId: Long) {
+        requireBedOwnership(bedId, orgId)
+        val photo = bedPhotoRepository.findById(photoId)
+            ?: throw NotFoundException("Bed photo not found")
+        if (photo.bedId != bedId) throw NotFoundException("Bed photo not found")
+        storageService.deleteByPath(photo.photoUrl)
+        bedPhotoRepository.delete(photoId)
+    }
+
+    private fun requireBedOwnership(bedId: Long, orgId: Long): Bed {
+        val bed = bedRepository.findById(bedId) ?: throw NotFoundException("Bed not found")
+        val garden = gardenRepository.findById(bed.gardenId) ?: throw NotFoundException("Garden not found")
+        if (garden.orgId != orgId) throw NotFoundException("Bed not found")
+        return bed
+    }
+
+    private fun parseReason(value: String): BedPhotoReason =
+        try { BedPhotoReason.valueOf(value) }
+        catch (e: IllegalArgumentException) { throw BadRequestException("Unknown bed photo reason: $value") }
+
     fun getBedHistory(bedId: Long, orgId: Long): List<BedHistoryEntry> {
         val bed = bedRepository.findById(bedId) ?: throw NotFoundException("Bed not found")
         val garden = gardenRepository.findById(bed.gardenId) ?: throw NotFoundException("Garden not found")
@@ -175,6 +226,16 @@ class BedService(
             }
     }
 }
+
+fun BedPhoto.toResponse() = BedPhotoResponse(
+    id = id!!,
+    bedId = bedId,
+    photoUrl = photoUrl,
+    reason = reason.name,
+    description = description,
+    capturedAt = capturedAt,
+    createdAt = createdAt,
+)
 
 fun Bed.toResponse() = BedResponse(
     id = id!!, name = name, description = description,

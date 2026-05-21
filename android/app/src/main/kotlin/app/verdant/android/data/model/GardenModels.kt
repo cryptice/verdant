@@ -149,3 +149,29 @@ data class BedWithGardenResponse(
     @SerializedName("gardenName") val gardenName: String,
     @SerializedName("boundaryJson") val boundaryJson: String?,
 )
+
+data class BedPhotoResponse(
+    @SerializedName("id") val id: Long,
+    @SerializedName("bedId") val bedId: Long,
+    @SerializedName("photoUrl") val photoUrl: String,
+    @SerializedName("reason") val reason: String,
+    @SerializedName("description") val description: String?,
+    @SerializedName("capturedAt") val capturedAt: String,
+    @SerializedName("createdAt") val createdAt: String,
+)
+
+data class CreateBedPhotoRequest(
+    @SerializedName("imageBase64") val imageBase64: String,
+    @SerializedName("reason") val reason: String,
+    @SerializedName("description") val description: String? = null,
+    @SerializedName("capturedAt") val capturedAt: String? = null,
+)
+
+object BedPhotoReason {
+    const val PROGRESS = "PROGRESS"
+    const val ISSUE = "ISSUE"
+    const val HARVEST = "HARVEST"
+    const val PLANTING = "PLANTING"
+    const val OTHER = "OTHER"
+    val values = listOf(PROGRESS, ISSUE, HARVEST, PLANTING, OTHER)
+}

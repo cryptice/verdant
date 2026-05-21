@@ -18,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DeleteOutline
@@ -89,6 +90,8 @@ fun BedDetailScreen(
     }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showAddDialog by remember { mutableStateOf(false) }
+    var showPhotoDialog by remember { mutableStateOf(false) }
+    var photoToDelete by remember { mutableStateOf<Long?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(loaded?.toastMessage) {
         loaded?.toastMessage?.let {
@@ -293,12 +296,48 @@ fun BedDetailScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     ) { Text("Rensa ogräs") }
+                    androidx.compose.material3.OutlinedButton(
+                        onClick = { showAddDialog = false; showPhotoDialog = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(Icons.Default.AddAPhoto, null, Modifier.size(18.dp))
+                        Spacer(Modifier.size(8.dp))
+                        Text("Ta bild")
+                    }
                 }
             },
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showAddDialog = false }) { Text("Avbryt") }
             }
+        )
+    }
+
+    if (showPhotoDialog) {
+        AddBedPhotoDialog(
+            onDismiss = { showPhotoDialog = false },
+            onSave = { base64, reason, description ->
+                viewModel.addPhoto(base64, reason, description)
+                showPhotoDialog = false
+            },
+        )
+    }
+
+    photoToDelete?.let { pid ->
+        AlertDialog(
+            onDismissRequest = { photoToDelete = null },
+            title = { Text("Ta bort bild") },
+            text = { Text("Vill du ta bort den här bilden?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.deletePhoto(pid)
+                    photoToDelete = null
+                }) { Text("Ta bort", color = FaltetClay) }
+            },
+            dismissButton = {
+                TextButton(onClick = { photoToDelete = null }) { Text("Avbryt") }
+            },
         )
     }
 
@@ -444,6 +483,13 @@ fun BedDetailScreen(
                             )
                         }
                     }
+
+                    // Bilder section — chronological gallery of bed photos.
+                    item { FaltetSectionHeader(label = "Bilder") }
+                    bedPhotosSection(
+                        photos = state.photos,
+                        onDelete = { id -> photoToDelete = id },
+                    )
 
                     // Förhållanden section
                     val hasAnyCondition = listOf(
