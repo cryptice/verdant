@@ -115,6 +115,37 @@ class WorkflowResource(
         workflowService.getPlantProgress(plantId, orgContext.orgId)
 
     @POST
+    @Path("/plants/{plantId}/steps")
+    fun addPlantStep(@PathParam("plantId") plantId: Long, @Valid request: CreateWorkflowStepRequest): Response {
+        val step = workflowService.addPlantStep(plantId, request, orgContext.orgId)
+        return Response.status(Response.Status.CREATED).entity(step).build()
+    }
+
+    @PUT
+    @Path("/plant-steps/{stepId}")
+    fun updatePlantStep(@PathParam("stepId") stepId: Long, @Valid request: UpdateWorkflowStepRequest) =
+        workflowService.updatePlantStep(stepId, request, orgContext.orgId)
+
+    @DELETE
+    @Path("/plant-steps/{stepId}")
+    fun deletePlantStep(@PathParam("stepId") stepId: Long): Response {
+        workflowService.deletePlantStep(stepId, orgContext.orgId)
+        return Response.noContent().build()
+    }
+
+    @POST
+    @Path("/plant-steps/{stepId}/complete")
+    fun completePlantStep(@PathParam("stepId") stepId: Long): Response {
+        workflowService.completePlantStep(stepId, orgContext.orgId)
+        return Response.noContent().build()
+    }
+
+    @POST
+    @Path("/plants/{plantId}/resync")
+    fun resyncPlantFromSpecies(@PathParam("plantId") plantId: Long) =
+        workflowService.resyncPlantFromSpecies(plantId, orgContext.orgId)
+
+    @POST
     @Path("/species-steps/{stepId}/complete")
     fun completeStep(@PathParam("stepId") stepId: Long, @Valid request: CompleteWorkflowStepRequest) =
         workflowService.completeStep(stepId, request, orgContext.orgId)

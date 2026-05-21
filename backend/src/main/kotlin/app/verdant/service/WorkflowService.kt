@@ -1,6 +1,7 @@
 package app.verdant.service
 
 import app.verdant.dto.*
+import app.verdant.entity.PlantWorkflowStep
 import app.verdant.entity.SpeciesWorkflowStep
 import app.verdant.entity.WorkflowTemplate
 import app.verdant.entity.WorkflowTemplateStep
@@ -249,25 +250,16 @@ class WorkflowService(
         val plant = plantRepository.findById(plantId) ?: throw NotFoundException("Plant not found")
         if (plant.orgId != orgId) throw NotFoundException("Plant not found")
 
-        val speciesId = plant.speciesId ?: return PlantWorkflowProgressResponse(
-            steps = emptyList(),
-            completedStepIds = emptyList(),
-            currentStepId = null,
-            activeSideBranches = emptyList(),
-        )
-
-        val steps = workflowRepository.findStepsBySpeciesId(speciesId)
+        val steps = workflowRepository.findStepsByPlantId(plantId)
         val progress = workflowRepository.findProgressByPlantId(plantId)
         val completedStepIds = progress.map { it.stepId }
         val completedSet = completedStepIds.toSet()
 
-        // Current step = first main-flow required step not completed
         val currentStepId = steps
             .filter { !it.isSideBranch && !it.isOptional }
             .firstOrNull { it.id!! !in completedSet }
             ?.id
 
-        // Active side-branches = side-branch names where at least 1 step completed but not all
         val sideBranchSteps = steps.filter { it.isSideBranch && it.sideBranchName != null }
             .groupBy { it.sideBranchName!! }
         val activeSideBranches = sideBranchSteps.filter { (_, branchSteps) ->
@@ -277,45 +269,140 @@ class WorkflowService(
         }.keys.toList()
 
         return PlantWorkflowProgressResponse(
-            steps = steps.map { it.toSpeciesStepResponse() },
+            steps = steps.map { it.toPlantStepResponse() },
             completedStepIds = completedStepIds,
             currentStepId = currentStepId,
             activeSideBranches = activeSideBranches,
         )
     }
 
-    fun completeStep(stepId: Long, request: CompleteWorkflowStepRequest, orgId: Long): Int {
-        val step = findSpeciesStepById(stepId, orgId)
+    /**
+     * Bulk-complete the species step for a list of plants. Maps the species
+     * step to each plant's own clone (via species_step_id) and records
+     * progress against that plant step. Plants whose copy of the step has
+     * been deleted are silently skipped.
+     */
+    fun completeStep(speciesStepId: Long, request: CompleteWorkflowStepRequest, orgId: Long): Int {
+        findSpeciesStepById(speciesStepId, orgId)
 
+        var completed = 0
         for (plantId in request.plantIds) {
             val plant = plantRepository.findById(plantId) ?: throw NotFoundException("Plant $plantId not found")
             if (plant.orgId != orgId) throw NotFoundException("Plant $plantId not found")
-            workflowRepository.recordProgress(plantId, stepId)
+            val plantStep = workflowRepository.findPlantStepBySpeciesStep(plantId, speciesStepId) ?: continue
+            workflowRepository.recordProgress(plantId, plantStep.id!!)
+            completed++
         }
-
-        return request.plantIds.size
+        return completed
     }
 
     fun getPlantsAtStep(speciesId: Long, stepId: Long, orgId: Long): List<Long> {
         return workflowRepository.findPlantIdsByIncompleteStep(speciesId, stepId, orgId)
     }
 
+    // ── Plant-level workflow (per-plant copies) ──
+
+    fun addPlantStep(plantId: Long, request: CreateWorkflowStepRequest, orgId: Long): PlantWorkflowStepResponse {
+        val plant = plantRepository.findById(plantId) ?: throw NotFoundException("Plant not found")
+        if (plant.orgId != orgId) throw NotFoundException("Plant not found")
+        val step = workflowRepository.persistPlantStep(
+            PlantWorkflowStep(
+                plantId = plantId,
+                name = request.name,
+                description = request.description,
+                eventType = request.eventType,
+                daysAfterPrevious = request.daysAfterPrevious,
+                isOptional = request.isOptional,
+                isSideBranch = request.isSideBranch,
+                sideBranchName = request.sideBranchName,
+                sortOrder = request.sortOrder,
+                suggestedSupplyTypeId = request.suggestedSupplyTypeId,
+                suggestedQuantity = request.suggestedQuantity,
+            )
+        )
+        return step.toPlantStepResponse()
+    }
+
+    fun updatePlantStep(stepId: Long, request: UpdateWorkflowStepRequest, orgId: Long): PlantWorkflowStepResponse {
+        val step = findPlantStepById(stepId, orgId)
+        val clear = request.clearSuggestedSupply == true
+        val updated = step.copy(
+            name = request.name ?: step.name,
+            description = request.description ?: step.description,
+            eventType = request.eventType ?: step.eventType,
+            daysAfterPrevious = request.daysAfterPrevious ?: step.daysAfterPrevious,
+            isOptional = request.isOptional ?: step.isOptional,
+            isSideBranch = request.isSideBranch ?: step.isSideBranch,
+            sideBranchName = request.sideBranchName ?: step.sideBranchName,
+            sortOrder = request.sortOrder ?: step.sortOrder,
+            suggestedSupplyTypeId = if (clear) null else request.suggestedSupplyTypeId ?: step.suggestedSupplyTypeId,
+            suggestedQuantity = if (clear) null else request.suggestedQuantity ?: step.suggestedQuantity,
+        )
+        workflowRepository.updatePlantStep(updated)
+        return updated.toPlantStepResponse()
+    }
+
+    fun deletePlantStep(stepId: Long, orgId: Long) {
+        findPlantStepById(stepId, orgId)
+        workflowRepository.deletePlantStep(stepId)
+    }
+
+    /**
+     * Re-pull the plant's species workflow: add steps that exist on the
+     * species but not on this plant yet. Existing plant steps are left
+     * alone (including their completion state and any local edits).
+     */
+    fun resyncPlantFromSpecies(plantId: Long, orgId: Long): PlantWorkflowProgressResponse {
+        val plant = plantRepository.findById(plantId) ?: throw NotFoundException("Plant not found")
+        if (plant.orgId != orgId) throw NotFoundException("Plant not found")
+        val speciesId = plant.speciesId ?: throw NotFoundException("Plant has no species")
+
+        val currentPlantSteps = workflowRepository.findStepsByPlantId(plantId)
+        val existingSpeciesStepIds = currentPlantSteps.mapNotNull { it.speciesStepId }.toSet()
+        val speciesSteps = workflowRepository.findStepsBySpeciesId(speciesId)
+        for (ss in speciesSteps) {
+            if (ss.id !in existingSpeciesStepIds) {
+                workflowRepository.persistPlantStep(
+                    PlantWorkflowStep(
+                        plantId = plantId,
+                        speciesStepId = ss.id,
+                        name = ss.name,
+                        description = ss.description,
+                        eventType = ss.eventType,
+                        daysAfterPrevious = ss.daysAfterPrevious,
+                        isOptional = ss.isOptional,
+                        isSideBranch = ss.isSideBranch,
+                        sideBranchName = ss.sideBranchName,
+                        sortOrder = ss.sortOrder,
+                        suggestedSupplyTypeId = ss.suggestedSupplyTypeId,
+                        suggestedQuantity = ss.suggestedQuantity,
+                    )
+                )
+            }
+        }
+        return getPlantProgress(plantId, orgId)
+    }
+
+    /**
+     * Mark a plant step complete directly (no species mapping). The plant
+     * is inferred from the step row.
+     */
+    fun completePlantStep(stepId: Long, orgId: Long) {
+        val step = findPlantStepById(stepId, orgId)
+        workflowRepository.recordProgress(step.plantId, step.id!!)
+    }
+
     fun startSideBranch(request: StartSideBranchRequest, orgId: Long) {
         if (request.plantIds.isEmpty()) return
-
-        // Get species from first plant
-        val firstPlant = plantRepository.findById(request.plantIds.first())
-            ?: throw NotFoundException("Plant not found")
-        if (firstPlant.orgId != orgId) throw NotFoundException("Plant not found")
-        val speciesId = firstPlant.speciesId ?: throw NotFoundException("Plant has no species")
-
-        val steps = workflowRepository.findStepsBySpeciesId(speciesId)
-        val firstBranchStep = steps
-            .filter { it.isSideBranch && it.sideBranchName == request.sideBranchName }
-            .minByOrNull { it.sortOrder }
-            ?: throw NotFoundException("Side branch '${request.sideBranchName}' not found")
-
-        workflowRepository.recordProgressBatch(request.plantIds, firstBranchStep.id!!)
+        for (plantId in request.plantIds) {
+            val plant = plantRepository.findById(plantId) ?: throw NotFoundException("Plant $plantId not found")
+            if (plant.orgId != orgId) throw NotFoundException("Plant $plantId not found")
+            val firstBranchStep = workflowRepository.findStepsByPlantId(plantId)
+                .filter { it.isSideBranch && it.sideBranchName == request.sideBranchName }
+                .minByOrNull { it.sortOrder }
+                ?: continue
+            workflowRepository.recordProgress(plantId, firstBranchStep.id!!)
+        }
     }
 
     // ── Helpers ──
@@ -340,6 +427,13 @@ class WorkflowService(
         return step
     }
 
+    private fun findPlantStepById(stepId: Long, orgId: Long): PlantWorkflowStep {
+        val step = workflowRepository.findPlantStepById(stepId) ?: throw NotFoundException("Plant workflow step not found")
+        val plant = plantRepository.findById(step.plantId) ?: throw NotFoundException("Plant not found")
+        if (plant.orgId != orgId) throw NotFoundException("Plant workflow step not found")
+        return step
+    }
+
     // ── Mapping ──
 
     private fun WorkflowTemplate.toResponse(steps: List<WorkflowTemplateStep>) = WorkflowTemplateResponse(
@@ -352,6 +446,22 @@ class WorkflowService(
 
     private fun WorkflowTemplateStep.toResponse() = WorkflowStepResponse(
         id = id!!,
+        name = name,
+        description = description,
+        eventType = eventType,
+        daysAfterPrevious = daysAfterPrevious,
+        isOptional = isOptional,
+        isSideBranch = isSideBranch,
+        sideBranchName = sideBranchName,
+        sortOrder = sortOrder,
+        suggestedSupplyTypeId = suggestedSupplyTypeId,
+        suggestedQuantity = suggestedQuantity,
+    )
+
+    private fun PlantWorkflowStep.toPlantStepResponse() = PlantWorkflowStepResponse(
+        id = id!!,
+        plantId = plantId,
+        speciesStepId = speciesStepId,
         name = name,
         description = description,
         eventType = eventType,

@@ -1,6 +1,7 @@
 package app.verdant.repository
 
 import app.verdant.entity.PlantWorkflowProgress
+import app.verdant.entity.PlantWorkflowStep
 import app.verdant.entity.SpeciesWorkflowStep
 import app.verdant.entity.WorkflowTemplate
 import app.verdant.entity.WorkflowTemplateStep
@@ -242,6 +243,130 @@ class WorkflowRepository(private val ds: AgroalDataSource) {
         }
     }
 
+    // ── PlantWorkflowStep ──
+
+    fun findStepsByPlantId(plantId: Long): List<PlantWorkflowStep> =
+        ds.connection.use { conn ->
+            conn.prepareStatement("SELECT * FROM plant_workflow_step WHERE plant_id = ? ORDER BY sort_order").use { ps ->
+                ps.setLong(1, plantId)
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.toPlantStep()) }
+                }
+            }
+        }
+
+    fun findPlantStepById(stepId: Long): PlantWorkflowStep? =
+        ds.connection.use { conn ->
+            conn.prepareStatement("SELECT * FROM plant_workflow_step WHERE id = ?").use { ps ->
+                ps.setLong(1, stepId)
+                ps.executeQuery().use { rs -> if (rs.next()) rs.toPlantStep() else null }
+            }
+        }
+
+    fun persistPlantStep(step: PlantWorkflowStep): PlantWorkflowStep {
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                """INSERT INTO plant_workflow_step (plant_id, species_step_id, name, description, event_type,
+                   days_after_previous, is_optional, is_side_branch, side_branch_name, sort_order,
+                   suggested_supply_type_id, suggested_quantity)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                Statement.RETURN_GENERATED_KEYS
+            ).use { ps ->
+                ps.setLong(1, step.plantId)
+                ps.setObject(2, step.speciesStepId)
+                ps.setString(3, step.name)
+                ps.setString(4, step.description)
+                ps.setString(5, step.eventType)
+                ps.setObject(6, step.daysAfterPrevious)
+                ps.setBoolean(7, step.isOptional)
+                ps.setBoolean(8, step.isSideBranch)
+                ps.setString(9, step.sideBranchName)
+                ps.setInt(10, step.sortOrder)
+                step.suggestedSupplyTypeId?.let { ps.setLong(11, it) } ?: ps.setNull(11, Types.BIGINT)
+                step.suggestedQuantity?.let { ps.setBigDecimal(12, it) } ?: ps.setNull(12, Types.NUMERIC)
+                ps.executeUpdate()
+                ps.generatedKeys.use { rs ->
+                    rs.next()
+                    return step.copy(id = rs.getLong(1))
+                }
+            }
+        }
+    }
+
+    fun updatePlantStep(step: PlantWorkflowStep) {
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                """UPDATE plant_workflow_step SET name = ?, description = ?, event_type = ?, days_after_previous = ?,
+                   is_optional = ?, is_side_branch = ?, side_branch_name = ?, sort_order = ?,
+                   suggested_supply_type_id = ?, suggested_quantity = ?
+                   WHERE id = ?"""
+            ).use { ps ->
+                ps.setString(1, step.name)
+                ps.setString(2, step.description)
+                ps.setString(3, step.eventType)
+                ps.setObject(4, step.daysAfterPrevious)
+                ps.setBoolean(5, step.isOptional)
+                ps.setBoolean(6, step.isSideBranch)
+                ps.setString(7, step.sideBranchName)
+                ps.setInt(8, step.sortOrder)
+                step.suggestedSupplyTypeId?.let { ps.setLong(9, it) } ?: ps.setNull(9, Types.BIGINT)
+                step.suggestedQuantity?.let { ps.setBigDecimal(10, it) } ?: ps.setNull(10, Types.NUMERIC)
+                ps.setLong(11, step.id!!)
+                ps.executeUpdate()
+            }
+        }
+    }
+
+    fun deletePlantStep(id: Long) {
+        ds.connection.use { conn ->
+            conn.prepareStatement("DELETE FROM plant_workflow_step WHERE id = ?").use { ps ->
+                ps.setLong(1, id)
+                val rows = ps.executeUpdate()
+                if (rows == 0) throw jakarta.ws.rs.NotFoundException("Plant workflow step not found")
+            }
+        }
+    }
+
+    /**
+     * Copy all species steps into plant_workflow_step for the given plant.
+     * Idempotent across calls only via the no-op semantics of upstream
+     * callers — the table itself has no uniqueness; pass-through cloning
+     * is the responsibility of the caller (createPlant, resync, …).
+     */
+    fun cloneSpeciesStepsToPlant(plantId: Long, speciesId: Long): List<PlantWorkflowStep> {
+        val speciesSteps = findStepsBySpeciesId(speciesId)
+        return speciesSteps.map { ss ->
+            persistPlantStep(
+                PlantWorkflowStep(
+                    plantId = plantId,
+                    speciesStepId = ss.id,
+                    name = ss.name,
+                    description = ss.description,
+                    eventType = ss.eventType,
+                    daysAfterPrevious = ss.daysAfterPrevious,
+                    isOptional = ss.isOptional,
+                    isSideBranch = ss.isSideBranch,
+                    sideBranchName = ss.sideBranchName,
+                    sortOrder = ss.sortOrder,
+                    suggestedSupplyTypeId = ss.suggestedSupplyTypeId,
+                    suggestedQuantity = ss.suggestedQuantity,
+                )
+            )
+        }
+    }
+
+    /** Find a plant's step that originated from a given species_workflow_step. */
+    fun findPlantStepBySpeciesStep(plantId: Long, speciesStepId: Long): PlantWorkflowStep? =
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                "SELECT * FROM plant_workflow_step WHERE plant_id = ? AND species_step_id = ?"
+            ).use { ps ->
+                ps.setLong(1, plantId)
+                ps.setLong(2, speciesStepId)
+                ps.executeQuery().use { rs -> if (rs.next()) rs.toPlantStep() else null }
+            }
+        }
+
     // ── PlantWorkflowProgress ──
 
     fun findProgressByPlantId(plantId: Long): List<PlantWorkflowProgress> =
@@ -280,16 +405,25 @@ class WorkflowRepository(private val ds: AgroalDataSource) {
         }
     }
 
-    fun findPlantIdsByIncompleteStep(speciesId: Long, stepId: Long, orgId: Long): List<Long> =
+    /**
+     * Plants of the given species whose copy of the given *species* step is
+     * not yet marked complete. Each plant owns its own clone of the species
+     * step (via plant_workflow_step.species_step_id) and progress is now
+     * recorded per-plant.
+     */
+    fun findPlantIdsByIncompleteStep(speciesId: Long, speciesStepId: Long, orgId: Long): List<Long> =
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """SELECT p.id FROM plant p
-                   WHERE p.species_id = ? AND p.org_id = ?
-                   AND p.id NOT IN (SELECT plant_id FROM plant_workflow_progress WHERE step_id = ?)"""
+                   JOIN plant_workflow_step pws
+                     ON pws.plant_id = p.id AND pws.species_step_id = ?
+                   LEFT JOIN plant_workflow_progress pwp
+                     ON pwp.plant_id = p.id AND pwp.step_id = pws.id
+                   WHERE p.species_id = ? AND p.org_id = ? AND pwp.plant_id IS NULL"""
             ).use { ps ->
-                ps.setLong(1, speciesId)
-                ps.setLong(2, orgId)
-                ps.setLong(3, stepId)
+                ps.setLong(1, speciesStepId)
+                ps.setLong(2, speciesId)
+                ps.setLong(3, orgId)
                 ps.executeQuery().use { rs ->
                     buildList { while (rs.next()) add(rs.getLong("id")) }
                 }
@@ -356,6 +490,22 @@ class WorkflowRepository(private val ds: AgroalDataSource) {
     private fun ResultSet.toTemplateStep() = WorkflowTemplateStep(
         id = getLong("id"),
         templateId = getLong("template_id"),
+        name = getString("name"),
+        description = getString("description"),
+        eventType = getString("event_type"),
+        daysAfterPrevious = getObject("days_after_previous") as? Int,
+        isOptional = getBoolean("is_optional"),
+        isSideBranch = getBoolean("is_side_branch"),
+        sideBranchName = getString("side_branch_name"),
+        sortOrder = getInt("sort_order"),
+        suggestedSupplyTypeId = getLong("suggested_supply_type_id").takeIf { !wasNull() },
+        suggestedQuantity = getBigDecimal("suggested_quantity"),
+    )
+
+    private fun ResultSet.toPlantStep() = PlantWorkflowStep(
+        id = getLong("id"),
+        plantId = getLong("plant_id"),
+        speciesStepId = getObject("species_step_id") as? Long,
         name = getString("name"),
         description = getString("description"),
         eventType = getString("event_type"),

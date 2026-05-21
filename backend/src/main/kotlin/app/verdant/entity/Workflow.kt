@@ -48,3 +48,20 @@ data class PlantWorkflowProgress(
     val stepId: Long,
     val completedAt: Instant = Instant.now(),
 )
+
+data class PlantWorkflowStep(
+    val id: Long? = null,
+    val plantId: Long,
+    /** Origin row this was cloned from. Null for one-off steps added directly on the plant. */
+    val speciesStepId: Long? = null,
+    val name: String,
+    val description: String? = null,
+    val eventType: String? = null,
+    val daysAfterPrevious: Int? = null,
+    val isOptional: Boolean = false,
+    val isSideBranch: Boolean = false,
+    val sideBranchName: String? = null,
+    val sortOrder: Int = 0,
+    val suggestedSupplyTypeId: Long? = null,
+    val suggestedQuantity: BigDecimal? = null,
+)

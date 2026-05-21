@@ -167,8 +167,20 @@ class PlantService(
                 orgId = orgId,
             )
         )
+        cloneWorkflowFromSpecies(plant.id!!, plant.speciesId)
         val speciesName = plant.speciesId?.let { speciesRepository.findNamesByIds(setOf(it))[it] }
         return plant.toResponse(speciesName)
+    }
+
+    /**
+     * Give a freshly-created plant its own copy of the species' workflow
+     * steps so future per-plant customizations don't leak across plants.
+     * Silently no-ops if the plant has no species or the species has no
+     * workflow steps yet.
+     */
+    private fun cloneWorkflowFromSpecies(plantId: Long, speciesId: Long?) {
+        if (speciesId == null) return
+        workflowRepository.cloneSpeciesStepsToPlant(plantId, speciesId)
     }
 
     @Transactional
@@ -222,6 +234,7 @@ class PlantService(
                     imageUrl = imageUrl,
                 )
             )
+            cloneWorkflowFromSpecies(plant.id!!, plant.speciesId)
             plantIds.add(plant.id!!)
         }
         return BatchSowResponse(plantIds = plantIds, count = plantIds.size)
@@ -264,12 +277,6 @@ class PlantService(
         })
         val plantedDate = request.plantedDate?.let { java.time.LocalDate.parse(it) }
         val plants = plantRepository.findByGroup(orgId, request.speciesId, request.bedId, plantedDate, plantStatus, request.count)
-        // Pre-fetch workflow steps for the species (all plants in a batch share the same species)
-        val matchingStepIds = request.speciesId?.let { speciesId ->
-            workflowRepository.findStepsBySpeciesId(speciesId)
-                .filter { it.eventType == request.eventType }
-                .mapNotNull { it.id }
-        } ?: emptyList()
         var imageUrl: String? = null
         for ((i, plant) in plants.withIndex()) {
             if (i == 0 && request.imageBase64 != null) {
@@ -297,10 +304,10 @@ class PlantService(
             )
             plantRepository.update(updated)
 
-            // Auto-record workflow progress if a matching step exists
-            for (stepId in matchingStepIds) {
-                workflowRepository.recordProgress(plant.id!!, stepId)
-            }
+            // Auto-record workflow progress on the plant's own step copies.
+            workflowRepository.findStepsByPlantId(plant.id!!)
+                .filter { it.eventType == request.eventType }
+                .forEach { step -> workflowRepository.recordProgress(plant.id!!, step.id!!) }
         }
         return BatchEventResponse(updatedCount = plants.size)
     }
@@ -406,14 +413,11 @@ class PlantService(
             plantRepository.update(updatedPlant)
         }
 
-        // Auto-record workflow progress if a matching step exists
-        plant.speciesId?.let { speciesId ->
-            val steps = workflowRepository.findStepsBySpeciesId(speciesId)
-            val eventTypeName = request.eventType.name
-            steps.filter { it.eventType == eventTypeName }.forEach { step ->
-                workflowRepository.recordProgress(plantId, step.id!!)
-            }
-        }
+        // Auto-record workflow progress on the plant's own step copies.
+        val eventTypeName = request.eventType.name
+        workflowRepository.findStepsByPlantId(plantId)
+            .filter { it.eventType == eventTypeName }
+            .forEach { step -> workflowRepository.recordProgress(plantId, step.id!!) }
 
         return event.toResponse()
     }

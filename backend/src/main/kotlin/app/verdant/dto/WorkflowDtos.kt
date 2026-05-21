@@ -108,8 +108,24 @@ data class SpeciesWorkflowStepResponse(
     val suggestedQuantity: BigDecimal? = null,
 )
 
+data class PlantWorkflowStepResponse(
+    val id: Long,
+    val plantId: Long,
+    val speciesStepId: Long?,
+    val name: String,
+    val description: String?,
+    val eventType: String?,
+    val daysAfterPrevious: Int?,
+    @get:JsonProperty("isOptional") val isOptional: Boolean,
+    @get:JsonProperty("isSideBranch") val isSideBranch: Boolean,
+    val sideBranchName: String?,
+    val sortOrder: Int,
+    val suggestedSupplyTypeId: Long? = null,
+    val suggestedQuantity: BigDecimal? = null,
+)
+
 data class PlantWorkflowProgressResponse(
-    val steps: List<SpeciesWorkflowStepResponse>,
+    val steps: List<PlantWorkflowStepResponse>,
     val completedStepIds: List<Long>,
     val currentStepId: Long?,
     val activeSideBranches: List<String>,
