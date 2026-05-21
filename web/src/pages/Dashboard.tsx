@@ -34,7 +34,7 @@ function taskSubject(task: ScheduledTaskResponse, t: TFunction): string | null {
   }
   return [action, task.bedName].filter(Boolean).join(' · ')
 }
-import { Masthead, Chip } from '../components/faltet'
+import { Masthead } from '../components/faltet'
 import { Snackbar, useSnackbar } from '../components/Snackbar'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
@@ -342,24 +342,13 @@ export function Dashboard() {
                 key={task.id}
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: '40px 1fr 80px',
+                  gridTemplateColumns: '1fr 80px',
                   gap: 10,
                   padding: '10px 0',
                   borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
                   alignItems: 'center',
                 }}
               >
-                <span
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontStyle: 'italic',
-                    fontSize: 20,
-                    color: 'var(--color-accent)',
-                    fontVariationSettings: '"SOFT" 100, "opsz" 144',
-                  }}
-                >
-                  №
-                </span>
                 <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                   <span
                     style={{
@@ -422,20 +411,74 @@ export function Dashboard() {
           {/* Column 3 — Beds */}
           <section style={{ padding: '0 0 0 22px' }}>
             <ColumnHeader title={t('dashboard.beds.title')} />
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {beds?.map((b) => (
-                <Link
-                  key={b.id}
-                  to={`/bed/${b.id}`}
-                  style={{ textDecoration: 'none' }}
-                  aria-label={`${b.name}`}
+            {beds?.map((b) => (
+              <Link
+                key={b.id}
+                to={`/bed/${b.id}`}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '40px 1fr 20px',
+                  gap: 10,
+                  padding: '10px 0',
+                  borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                  alignItems: 'center',
+                  color: 'inherit',
+                  textDecoration: 'none',
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontStyle: 'italic',
+                    fontSize: 20,
+                    color: 'var(--color-sage)',
+                    fontVariationSettings: '"SOFT" 100, "opsz" 144',
+                  }}
                 >
-                  <Chip tone="sage">
-                    № {b.id} · {b.name}
-                  </Chip>
-                </Link>
-              ))}
-            </div>
+                  №
+                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: 16,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {b.name}
+                  </span>
+                  {b.gardenName && (
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 9,
+                        letterSpacing: 1.4,
+                        textTransform: 'uppercase',
+                        color: 'var(--color-forest)',
+                        opacity: 0.7,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {b.gardenName}
+                    </span>
+                  )}
+                </div>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 12,
+                    color: 'var(--color-forest)',
+                    textAlign: 'right',
+                  }}
+                >
+                  →
+                </span>
+              </Link>
+            ))}
             {(!beds || beds.length === 0) && (
               <p
                 style={{
