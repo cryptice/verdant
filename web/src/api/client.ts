@@ -493,8 +493,16 @@ export interface SpeciesWorkflowStepResponse {
   isSideBranch: boolean; sideBranchName?: string; sortOrder: number
   suggestedSupplyTypeId?: number; suggestedQuantity?: number
 }
+export interface PlantWorkflowStepResponse {
+  id: number; plantId: number; speciesStepId?: number
+  name: string; description?: string
+  eventType?: string; daysAfterPrevious?: number
+  isOptional: boolean; isSideBranch: boolean; sideBranchName?: string
+  sortOrder: number
+  suggestedSupplyTypeId?: number; suggestedQuantity?: number
+}
 export interface PlantWorkflowProgressResponse {
-  steps: SpeciesWorkflowStepResponse[]
+  steps: PlantWorkflowStepResponse[]
   completedStepIds: number[]; currentStepId?: number
   activeSideBranches: string[]
 }
@@ -840,6 +848,16 @@ export const api = {
     syncSpeciesWorkflow: (speciesId: number) =>
       apiRequest<SpeciesWorkflowResponse>(`/api/workflows/species/${speciesId}/sync`, { method: 'POST' }),
     getPlantProgress: (plantId: number) => apiRequest<PlantWorkflowProgressResponse>(`/api/workflows/plants/${plantId}`),
+    addPlantStep: (plantId: number, data: Record<string, unknown>) =>
+      apiRequest<PlantWorkflowStepResponse>(`/api/workflows/plants/${plantId}/steps`, { method: 'POST', body: JSON.stringify(data) }),
+    updatePlantStep: (stepId: number, data: Record<string, unknown>) =>
+      apiRequest<PlantWorkflowStepResponse>(`/api/workflows/plant-steps/${stepId}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deletePlantStep: (stepId: number) =>
+      apiRequest<void>(`/api/workflows/plant-steps/${stepId}`, { method: 'DELETE' }),
+    completePlantStep: (stepId: number) =>
+      apiRequest<void>(`/api/workflows/plant-steps/${stepId}/complete`, { method: 'POST' }),
+    resyncPlantFromSpecies: (plantId: number) =>
+      apiRequest<PlantWorkflowProgressResponse>(`/api/workflows/plants/${plantId}/resync`, { method: 'POST' }),
     completeStep: (stepId: number, data: { plantIds: number[]; notes?: string }) =>
       apiRequest<void>(`/api/workflows/species-steps/${stepId}/complete`, { method: 'POST', body: JSON.stringify(data) }),
     getPlantsAtStep: (stepId: number, speciesId: number) =>

@@ -6,6 +6,7 @@ import { api } from '../api/client'
 import { Masthead, Chip } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
+import { PlantWorkflowSection } from '../components/plant/PlantWorkflowSection'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
 const eventIcons: Record<string, string> = {
@@ -370,6 +371,8 @@ export function PlantDetail() {
             </>
           })()}
         </div>
+
+        <PlantWorkflowSection plantId={plantId} />
       </div>
 
       {/* Add event dialog */}
