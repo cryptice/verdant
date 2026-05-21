@@ -172,6 +172,18 @@ export interface BedEventResponse {
   plantsAffected: number | null
   createdAt: string
 }
+
+export type BedPhotoReason = 'PROGRESS' | 'ISSUE' | 'HARVEST' | 'PLANTING' | 'OTHER'
+
+export interface BedPhotoResponse {
+  id: number
+  bedId: number
+  photoUrl: string
+  reason: BedPhotoReason
+  description: string | null
+  capturedAt: string
+  createdAt: string
+}
 export interface MoveTrayLocationRequest {
   targetLocationId?: number | null
   count: number
@@ -533,6 +545,17 @@ export const api = {
       apiRequest<BulkLocationActionResponse>(`/api/beds/${id}/water`, { method: 'POST' }),
     events: (id: number, limit = 50) =>
       apiRequest<BedEventResponse[]>(`/api/beds/${id}/events?limit=${limit}`),
+    photos: (id: number) => apiRequest<BedPhotoResponse[]>(`/api/beds/${id}/photos`),
+    addPhoto: (
+      id: number,
+      data: { imageBase64: string; reason: BedPhotoReason; description?: string; capturedAt?: string },
+    ) =>
+      apiRequest<BedPhotoResponse>(`/api/beds/${id}/photos`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    deletePhoto: (id: number, photoId: number) =>
+      apiRequest<void>(`/api/beds/${id}/photos/${photoId}`, { method: 'DELETE' }),
   },
 
   plants: {

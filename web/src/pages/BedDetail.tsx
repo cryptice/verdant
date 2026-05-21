@@ -10,6 +10,7 @@ import { BedEditDialog } from '../components/bed/BedEditDialog'
 import { BedPlantGroups } from '../components/bed/BedPlantGroups'
 import { BedMetaCell } from '../components/bed/BedMetaCell'
 import { BedSectionHeader } from '../components/bed/BedSectionHeader'
+import { BedPhotosSection } from '../components/bed/BedPhotosSection'
 import { bedEventLabelSv } from '../lib/bed'
 
 export function BedDetail() {
@@ -302,6 +303,12 @@ export function BedDetail() {
             ))}
           </div>
         )}
+
+        <BedPhotosSection
+          bedId={bedId}
+          onError={(msg) => showToast(msg)}
+          onSuccess={(msg) => showToast(msg)}
+        />
 
         {/* Harvest card — TODO: wire to real harvest stats when available */}
         <div
