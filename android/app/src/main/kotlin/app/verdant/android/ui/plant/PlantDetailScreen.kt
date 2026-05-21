@@ -92,6 +92,9 @@ fun PlantDetailScreen(
     var harvestSellTarget by remember { mutableStateOf<PlantEventResponse?>(null) }
     var harvestSellAvailable by remember { mutableStateOf(0) }
     var eventsExpanded by remember { mutableStateOf(false) }
+    var workflowEditing by remember { mutableStateOf<app.verdant.android.data.model.PlantWorkflowStepResponse?>(null) }
+    var workflowAdding by remember { mutableStateOf(false) }
+    var workflowDeleting by remember { mutableStateOf<Long?>(null) }
     val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
     val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 
@@ -384,10 +387,57 @@ fun PlantDetailScreen(
                         }
                     }
 
+                    plantWorkflowSection(
+                        progress = uiState.workflowProgress,
+                        onAdd = { workflowAdding = true },
+                        onResync = { viewModel.resyncWorkflow() },
+                        onEdit = { workflowEditing = it },
+                        onComplete = { viewModel.completeWorkflowStep(it) },
+                        onDelete = { workflowDeleting = it },
+                    )
+
                     item { Spacer(Modifier.height(80.dp)) }
                 }
             }
         }
+    }
+
+    if (workflowAdding || workflowEditing != null) {
+        val target = workflowEditing
+        PlantWorkflowStepDialog(
+            initial = target,
+            onDismiss = { workflowAdding = false; workflowEditing = null },
+            onSave = { name, eventType, days, optional ->
+                if (target == null) {
+                    viewModel.addWorkflowStep(name, eventType, days, optional)
+                } else {
+                    viewModel.updateWorkflowStep(target.id, name, eventType, days, optional)
+                }
+                workflowAdding = false
+                workflowEditing = null
+            },
+        )
+    }
+
+    workflowDeleting?.let { stepId ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { workflowDeleting = null },
+            title = { androidx.compose.material3.Text("Ta bort steg") },
+            text = { androidx.compose.material3.Text("Vill du ta bort det här steget från plantan?") },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    viewModel.deleteWorkflowStep(stepId)
+                    workflowDeleting = null
+                }) {
+                    androidx.compose.material3.Text("Ta bort", color = FaltetClay)
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { workflowDeleting = null }) {
+                    androidx.compose.material3.Text("Avbryt")
+                }
+            },
+        )
     }
 }
 

@@ -6,10 +6,12 @@ import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.CreateOutletRequest
 import app.verdant.android.data.model.CreateSaleLotForHarvestRequest
 import app.verdant.android.data.model.CreateSaleLotForPlantRequest
+import app.verdant.android.data.model.CreateWorkflowStepRequest
 import app.verdant.android.data.model.OutletResponse
 import app.verdant.android.data.model.PlantEventResponse
 import app.verdant.android.data.model.PlantResponse
 import app.verdant.android.data.model.PlantWorkflowProgressResponse
+import app.verdant.android.data.model.UpdateWorkflowStepRequest
 import app.verdant.android.data.repository.OutletRepository
 import app.verdant.android.data.repository.PlantRepository
 import app.verdant.android.data.repository.SaleLotRepository
@@ -172,5 +174,86 @@ class PlantDetailViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(error = e.message)
             }
         }
+    }
+
+    // ── Workflow (per-plant) ──
+
+    fun completeWorkflowStep(stepId: Long) {
+        viewModelScope.launch {
+            try {
+                workflowRepository.completePlantStep(stepId)
+                refreshWorkflow()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(toastMessage = e.message ?: "Kunde inte slutföra steg")
+            }
+        }
+    }
+
+    fun addWorkflowStep(name: String, eventType: String?, daysAfterPrevious: Int?, isOptional: Boolean) {
+        if (name.isBlank()) return
+        viewModelScope.launch {
+            try {
+                val existing = _uiState.value.workflowProgress?.steps?.size ?: 0
+                workflowRepository.addPlantStep(
+                    plantId,
+                    CreateWorkflowStepRequest(
+                        name = name,
+                        eventType = eventType?.takeIf { it.isNotBlank() },
+                        daysAfterPrevious = daysAfterPrevious,
+                        isOptional = isOptional,
+                        sortOrder = existing,
+                    ),
+                )
+                refreshWorkflow()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(toastMessage = e.message ?: "Kunde inte lägga till steg")
+            }
+        }
+    }
+
+    fun updateWorkflowStep(stepId: Long, name: String, eventType: String?, daysAfterPrevious: Int?, isOptional: Boolean) {
+        viewModelScope.launch {
+            try {
+                workflowRepository.updatePlantStep(
+                    stepId,
+                    UpdateWorkflowStepRequest(
+                        name = name.takeIf { it.isNotBlank() },
+                        eventType = eventType?.takeIf { it.isNotBlank() },
+                        daysAfterPrevious = daysAfterPrevious,
+                        isOptional = isOptional,
+                    ),
+                )
+                refreshWorkflow()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(toastMessage = e.message ?: "Kunde inte uppdatera steget")
+            }
+        }
+    }
+
+    fun deleteWorkflowStep(stepId: Long) {
+        viewModelScope.launch {
+            try {
+                workflowRepository.deletePlantStep(stepId)
+                refreshWorkflow()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(toastMessage = e.message ?: "Kunde inte ta bort steget")
+            }
+        }
+    }
+
+    fun resyncWorkflow() {
+        viewModelScope.launch {
+            try {
+                val progress = workflowRepository.resyncPlant(plantId)
+                _uiState.value = _uiState.value.copy(workflowProgress = progress, toastMessage = "Synkat från art")
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(toastMessage = e.message ?: "Kunde inte synka")
+            }
+        }
+    }
+
+    private suspend fun refreshWorkflow() {
+        val progress = runCatching { workflowRepository.plantProgress(plantId) }.getOrNull()
+        _uiState.value = _uiState.value.copy(workflowProgress = progress)
     }
 }

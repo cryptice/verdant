@@ -478,11 +478,44 @@ interface VerdantApi {
 
     // ── Workflows ──
 
+    @GET("api/workflows/templates")
+    suspend fun getWorkflowTemplates(): List<WorkflowTemplateResponse>
+
     @GET("api/workflows/species/{speciesId}")
     suspend fun getSpeciesWorkflow(@Path("speciesId") speciesId: Long): SpeciesWorkflowResponse
 
+    @POST("api/workflows/species/{speciesId}/assign")
+    suspend fun assignSpeciesWorkflow(
+        @Path("speciesId") speciesId: Long,
+        @Body request: AssignWorkflowTemplateRequest,
+    ): SpeciesWorkflowResponse
+
+    @POST("api/workflows/species/{speciesId}/sync")
+    suspend fun syncSpeciesWorkflow(@Path("speciesId") speciesId: Long): SpeciesWorkflowResponse
+
     @GET("api/workflows/plants/{plantId}")
     suspend fun getPlantWorkflowProgress(@Path("plantId") plantId: Long): PlantWorkflowProgressResponse
+
+    @POST("api/workflows/plants/{plantId}/steps")
+    suspend fun addPlantWorkflowStep(
+        @Path("plantId") plantId: Long,
+        @Body request: CreateWorkflowStepRequest,
+    ): PlantWorkflowStepResponse
+
+    @PUT("api/workflows/plant-steps/{stepId}")
+    suspend fun updatePlantWorkflowStep(
+        @Path("stepId") stepId: Long,
+        @Body request: UpdateWorkflowStepRequest,
+    ): PlantWorkflowStepResponse
+
+    @DELETE("api/workflows/plant-steps/{stepId}")
+    suspend fun deletePlantWorkflowStep(@Path("stepId") stepId: Long): Response<Unit>
+
+    @POST("api/workflows/plant-steps/{stepId}/complete")
+    suspend fun completePlantWorkflowStep(@Path("stepId") stepId: Long): Response<Unit>
+
+    @POST("api/workflows/plants/{plantId}/resync")
+    suspend fun resyncPlantWorkflow(@Path("plantId") plantId: Long): PlantWorkflowProgressResponse
 
     @POST("api/workflows/species-steps/{stepId}/complete")
     suspend fun completeWorkflowStep(@Path("stepId") stepId: Long, @Body request: CompleteWorkflowStepRequest): Response<Unit>
