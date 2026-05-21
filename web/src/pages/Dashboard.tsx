@@ -2,8 +2,38 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import { api } from '../api/client'
-import type { TraySummaryEntry } from '../api/client'
+import type { ScheduledTaskResponse, TraySummaryEntry } from '../api/client'
+
+// Activity types whose subject is a bed, not a species. Mirrors
+// BED_ACTIVITY_TYPES in backend ScheduledTaskService.
+const BED_ACTIONS = new Set(['WATER', 'WEED', 'FERTILIZE'])
+
+function activityLabel(type: string, t: TFunction): string {
+  return t(`activityType.${type}`, type.replace(/_/g, ' '))
+}
+
+/** Headline for a dashboard task row — the *subject* of the action. */
+function taskTitle(task: ScheduledTaskResponse, t: TFunction): string {
+  if (task.activityType === 'TODO') {
+    return task.notes?.trim() || t('activityType.TODO', 'Att göra')
+  }
+  if (BED_ACTIONS.has(task.activityType) && task.bedName) return task.bedName
+  if (task.speciesName) return task.speciesName
+  return activityLabel(task.activityType, t)
+}
+
+/** Secondary line — the action verb, plus the other side of the relation
+ *  (bed for species-tasks, garden for bed-tasks) when present. */
+function taskSubject(task: ScheduledTaskResponse, t: TFunction): string | null {
+  if (task.activityType === 'TODO') return null
+  const action = activityLabel(task.activityType, t)
+  if (BED_ACTIONS.has(task.activityType)) {
+    return [action, task.gardenName].filter(Boolean).join(' · ')
+  }
+  return [action, task.bedName].filter(Boolean).join(' · ')
+}
 import { Masthead, Chip } from '../components/faltet'
 import { Snackbar, useSnackbar } from '../components/Snackbar'
 import { useOnboarding } from '../onboarding/OnboardingContext'
@@ -330,9 +360,36 @@ export function Dashboard() {
                 >
                   №
                 </span>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>
-                  {task.speciesName ?? task.activityType}
-                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: 16,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {taskTitle(task, t)}
+                  </span>
+                  {taskSubject(task, t) && (
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 9,
+                        letterSpacing: 1.4,
+                        textTransform: 'uppercase',
+                        color: 'var(--color-forest)',
+                        opacity: 0.7,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {taskSubject(task, t)}
+                    </span>
+                  )}
+                </div>
                 <span
                   style={{
                     fontFamily: 'var(--font-mono)',
@@ -367,9 +424,16 @@ export function Dashboard() {
             <ColumnHeader title={t('dashboard.beds.title')} />
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {beds?.map((b) => (
-                <Chip key={b.id} tone="sage">
-                  № {b.id} · {b.name}
-                </Chip>
+                <Link
+                  key={b.id}
+                  to={`/bed/${b.id}`}
+                  style={{ textDecoration: 'none' }}
+                  aria-label={`${b.name}`}
+                >
+                  <Chip tone="sage">
+                    № {b.id} · {b.name}
+                  </Chip>
+                </Link>
               ))}
             </div>
             {(!beds || beds.length === 0) && (

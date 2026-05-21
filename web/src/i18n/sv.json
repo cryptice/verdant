@@ -127,7 +127,8 @@
     "DISCARD": "Kasta",
     "WATER": "Vattna",
     "WEED": "Rensa ogräs",
-    "FERTILIZE": "Gödsla"
+    "FERTILIZE": "Gödsla",
+    "TODO": "Att göra"
   },
   "dashboard": {
     "greeting": "Hej, {{name}}",

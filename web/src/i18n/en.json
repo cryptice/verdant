@@ -127,7 +127,8 @@
     "DISCARD": "Discard",
     "WATER": "Water",
     "WEED": "Weed",
-    "FERTILIZE": "Fertilize"
+    "FERTILIZE": "Fertilize",
+    "TODO": "To do"
   },
   "dashboard": {
     "greeting": "Hello, {{name}}",
