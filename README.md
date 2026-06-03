@@ -185,6 +185,33 @@ PGPASSWORD=$(gcloud secrets versions access latest --secret=verdant-db-password 
   -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
 ```
 
+### Testing
+
+The full automated suite runs in containers — only Docker is required, no local JDK or Node:
+
+```bash
+./scripts/run-tests.sh            # backend + web; exits non-zero if either fails
+./scripts/run-tests.sh backend    # backend only
+./scripts/run-tests.sh web        # web only
+```
+
+Under the hood this uses `docker-compose.test.yml`, which you can also drive directly:
+
+```bash
+docker compose -f docker-compose.test.yml run --rm backend-tests
+docker compose -f docker-compose.test.yml run --rm web-tests
+docker compose -f docker-compose.test.yml down -v     # clean up the throwaway DB + caches
+```
+
+- **`backend-tests`** runs `gradle test` (Quarkus + Kotlin) against a throwaway `postgres:17` (`test-db`, tmpfs-backed). Quarkus Dev Services can't launch a container from inside the runner, so the datasource is pointed at `test-db` via `QUARKUS_DATASOURCE_*` and Flyway migrates the fresh DB on startup.
+- **`web-tests`** runs `npm ci && npm test` (Vitest). `shared/` is mounted alongside because the web app resolves `@verdant/shared` to `../shared/src`.
+
+Gradle and npm caches live in named volumes, so reruns are fast and nothing is written back into the working tree. The stack uses the `verdant-test` project name to stay isolated from the dev `docker-compose.yml` (port 5433, persistent data).
+
+> Not covered here: Playwright e2e (`cd web && npm run test:e2e`) needs the full app running, and the `admin/` UI has no test suite yet. Without Docker, run the suites natively instead — `cd backend && ./gradlew test` (needs a reachable Postgres) and `cd web && npm test`.
+
+To run the Android unit tests, see the Dev Container notes above (`cd android && ./gradlew :app:testDebugUnitTest`).
+
 ## Deployment
 
 Deployed to Google Cloud Run with Cloud SQL (PostgreSQL).

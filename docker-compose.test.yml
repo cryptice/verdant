@@ -1,0 +1,73 @@
+# Runs the full automated test suite in containers — no local JDK/Node needed,
+# only Docker. Backend (Quarkus + Kotlin) tests run against a throwaway
+# PostgreSQL; web (React) tests run under Vitest.
+#
+#   docker compose -f docker-compose.test.yml run --rm backend-tests
+#   docker compose -f docker-compose.test.yml run --rm web-tests
+#   docker compose -f docker-compose.test.yml down -v        # clean up
+#
+# Or run everything with ./scripts/run-tests.sh
+#
+# A distinct project name keeps this stack and its volumes isolated from the
+# dev stack in docker-compose.yml (which binds host port 5433 and persists data).
+name: verdant-test
+
+services:
+  # Ephemeral Postgres for the backend @QuarkusTest suite. Data lives in tmpfs
+  # so it never persists and starts clean every run. Not exposed on the host —
+  # only the backend-tests container reaches it over the compose network.
+  test-db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: verdant
+      POSTGRES_USER: verdant
+      POSTGRES_PASSWORD: verdant
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U verdant -d verdant"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  # Backend tests: `gradle test` (matches the image used by the prod Dockerfile).
+  # Quarkus Dev Services can't start a container from inside here, so we point
+  # the datasource at test-db; Flyway migrates the fresh DB at startup.
+  backend-tests:
+    image: gradle:8.12-jdk21
+    user: root
+    working_dir: /workspace
+    depends_on:
+      test-db:
+        condition: service_healthy
+    environment:
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://test-db:5432/verdant
+      QUARKUS_DATASOURCE_USERNAME: verdant
+      QUARKUS_DATASOURCE_PASSWORD: verdant
+    volumes:
+      - ./backend:/workspace
+      # Keep build output and caches in named volumes: hermetic between runs and
+      # never writes container-owned files back into the host working tree.
+      - backend-build:/workspace/build
+      - backend-dotgradle:/workspace/.gradle
+      - gradle-cache:/home/gradle/.gradle
+    command: ["gradle", "test", "--no-daemon", "--console=plain"]
+
+  # Web tests: Vitest. `shared/` is mounted as a sibling because web resolves
+  # `@verdant/shared` to ../shared/src via a path alias (it is not an npm dep).
+  # The node_modules volume shadows the bind mount so the container's install
+  # never collides with a host-architecture node_modules.
+  web-tests:
+    image: node:22
+    working_dir: /workspace/web
+    volumes:
+      - ./web:/workspace/web
+      - ./shared:/workspace/shared
+      - web-node-modules:/workspace/web/node_modules
+    command: ["sh", "-c", "npm ci --no-update-notifier && npm test"]
+
+volumes:
+  backend-build:
+  backend-dotgradle:
+  gradle-cache:
+  web-node-modules:
