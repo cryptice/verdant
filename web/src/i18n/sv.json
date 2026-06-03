@@ -189,7 +189,8 @@
     "harvest": {
       "headline": "{{stems}} stjälkar skördade från fältet",
       "season": "säsong {{year}}",
-      "bestWeek": "bästa vecka: v.{{week}}"
+      "bestWeek": "bästa vecka: v.{{week}}",
+      "delta": "{{pct}} % mot {{year}} {{arrow}}"
     }
   },
   "account": {

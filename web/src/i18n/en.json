@@ -189,7 +189,8 @@
     "harvest": {
       "headline": "{{stems}} stems harvested from the field",
       "season": "season {{year}}",
-      "bestWeek": "best week: w.{{week}}"
+      "bestWeek": "best week: w.{{week}}",
+      "delta": "{{pct}} % vs {{year}} {{arrow}}"
     }
   },
   "account": {

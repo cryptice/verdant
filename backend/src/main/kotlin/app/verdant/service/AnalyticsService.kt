@@ -1,15 +1,37 @@
 package app.verdant.service
 
 import app.verdant.dto.*
+import app.verdant.repository.PlantEventRepository
+import app.verdant.repository.SeasonRepository
 import app.verdant.repository.SpeciesRepository
 import io.agroal.api.AgroalDataSource
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.ws.rs.NotFoundException
 
 @ApplicationScoped
 class AnalyticsService(
     private val ds: AgroalDataSource,
     private val speciesRepo: SpeciesRepository,
+    private val seasonRepo: SeasonRepository,
+    private val plantEvents: PlantEventRepository,
 ) {
+
+    /**
+     * Season-scoped harvest headline: total stems, the best (highest-yield) ISO week,
+     * and the prior calendar year's total for a year-over-year delta. Org-scoped — the
+     * season must belong to [orgId] or this 404s.
+     */
+    fun getHarvestSummary(orgId: Long, seasonId: Long): HarvestSummaryResponse {
+        val season = seasonRepo.findById(seasonId) ?: throw NotFoundException("Season not found")
+        if (season.orgId != orgId) throw NotFoundException("Season not found")
+
+        val buckets = plantEvents.harvestWeeklyBucketsBySeason(orgId, seasonId)
+        return HarvestSummaryResponse(
+            totalStems = buckets.sumOf { it.stems },
+            bestWeek = buckets.maxByOrNull { it.stems }?.let { HarvestWeek(it.isoWeek, it.stems) },
+            prevYearTotalStems = plantEvents.totalStemsByOrgYear(orgId, season.year - 1),
+        )
+    }
 
     fun getSeasonSummaries(orgId: Long): List<SeasonSummaryResponse> {
         data class SpeciesRow(

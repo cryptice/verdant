@@ -117,6 +117,88 @@ class PlantEventRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    /**
+     * Harvested stems for one season, bucketed by ISO-8601 week of the harvest event.
+     * Org-scoped via `plant.org_id`, season-scoped via `plant.season_id`. Weeks with no
+     * stems are excluded so callers can treat the result as "weeks that produced stems".
+     */
+    fun harvestWeeklyBucketsBySeason(orgId: Long, seasonId: Long): List<HarvestWeekBucket> =
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                """SELECT EXTRACT(WEEK FROM pe.event_date)::int AS iso_week,
+                          COALESCE(SUM(pe.stem_count), 0)::int AS stems
+                   FROM plant_event pe
+                   JOIN plant p ON pe.plant_id = p.id
+                   WHERE pe.event_type = 'HARVESTED'
+                     AND p.org_id = ?
+                     AND p.season_id = ?
+                   GROUP BY iso_week
+                   HAVING COALESCE(SUM(pe.stem_count), 0) > 0
+                   ORDER BY iso_week"""
+            ).use { ps ->
+                ps.setLong(1, orgId)
+                ps.setLong(2, seasonId)
+                ps.executeQuery().use { rs ->
+                    buildList {
+                        while (rs.next()) add(HarvestWeekBucket(rs.getInt("iso_week"), rs.getInt("stems")))
+                    }
+                }
+            }
+        }
+
+    /** Total harvested stems for an org across every season of a given calendar year. */
+    fun totalStemsByOrgYear(orgId: Long, year: Int): Int =
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                """SELECT COALESCE(SUM(pe.stem_count), 0)::int AS stems
+                   FROM plant_event pe
+                   JOIN plant p ON pe.plant_id = p.id
+                   JOIN season s ON p.season_id = s.id
+                   WHERE pe.event_type = 'HARVESTED'
+                     AND p.org_id = ?
+                     AND s.year = ?"""
+            ).use { ps ->
+                ps.setLong(1, orgId)
+                ps.setInt(2, year)
+                ps.executeQuery().use { rs -> if (rs.next()) rs.getInt("stems") else 0 }
+            }
+        }
+
+    /** Total harvested stems for a single bed, optionally scoped to one season. */
+    fun totalStemsByBed(bedId: Long, seasonId: Long?): Int =
+        ds.connection.use { conn ->
+            val seasonFilter = if (seasonId != null) " AND p.season_id = ?" else ""
+            conn.prepareStatement(
+                """SELECT COALESCE(SUM(pe.stem_count), 0)::int AS stems
+                   FROM plant_event pe
+                   JOIN plant p ON pe.plant_id = p.id
+                   WHERE pe.event_type = 'HARVESTED'
+                     AND p.bed_id = ?$seasonFilter"""
+            ).use { ps ->
+                ps.setLong(1, bedId)
+                if (seasonId != null) ps.setLong(2, seasonId)
+                ps.executeQuery().use { rs -> if (rs.next()) rs.getInt("stems") else 0 }
+            }
+        }
+
+    /** Total harvested stems for a whole garden (across all its beds), optionally scoped to one season. */
+    fun totalStemsByGarden(gardenId: Long, seasonId: Long?): Int =
+        ds.connection.use { conn ->
+            val seasonFilter = if (seasonId != null) " AND p.season_id = ?" else ""
+            conn.prepareStatement(
+                """SELECT COALESCE(SUM(pe.stem_count), 0)::int AS stems
+                   FROM plant_event pe
+                   JOIN plant p ON pe.plant_id = p.id
+                   JOIN bed b ON p.bed_id = b.id
+                   WHERE pe.event_type = 'HARVESTED'
+                     AND b.garden_id = ?$seasonFilter"""
+            ).use { ps ->
+                ps.setLong(1, gardenId)
+                if (seasonId != null) ps.setLong(2, seasonId)
+                ps.executeQuery().use { rs -> if (rs.next()) rs.getInt("stems") else 0 }
+            }
+        }
+
     private fun ResultSet.toPlantEvent() = PlantEvent(
         id = getLong("id"),
         plantId = getLong("plant_id"),
@@ -145,4 +227,10 @@ data class HarvestStatResult(
     val totalQuantity: Int,
     val harvestCount: Int,
     val totalStems: Int,
+)
+
+/** One ISO-8601 week's harvested-stem total within a season. */
+data class HarvestWeekBucket(
+    val isoWeek: Int,
+    val stems: Int,
 )

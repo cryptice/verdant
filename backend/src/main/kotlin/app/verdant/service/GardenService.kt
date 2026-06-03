@@ -6,6 +6,7 @@ import app.verdant.entity.Garden
 import app.verdant.repository.BedRepository
 import app.verdant.repository.DailyWeatherRepository
 import app.verdant.repository.GardenRepository
+import app.verdant.repository.PlantEventRepository
 import app.verdant.service.weather.WeatherIngestionService
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.ws.rs.NotFoundException
@@ -18,6 +19,7 @@ class GardenService(
     private val aiService: AiService,
     private val weatherIngestion: WeatherIngestionService,
     private val dailyWeather: DailyWeatherRepository,
+    private val plantEvents: PlantEventRepository,
 ) {
 
     fun getGardensForUser(orgId: Long): List<GardenResponse> =
@@ -77,6 +79,13 @@ class GardenService(
             weatherIngestion.submitBackfill(gardenId)
         }
         return updated.toResponse()
+    }
+
+    /** Total harvested stems across a garden's beds, optionally scoped to one season. Garden must belong to [orgId]. */
+    fun getGardenHarvestStats(gardenId: Long, orgId: Long, seasonId: Long?): HarvestStatsResponse {
+        val garden = gardenRepository.findById(gardenId) ?: throw NotFoundException("Garden not found")
+        if (garden.orgId != orgId) throw NotFoundException("Garden not found")
+        return HarvestStatsResponse(totalStems = plantEvents.totalStemsByGarden(gardenId, seasonId))
     }
 
     fun deleteGarden(gardenId: Long, orgId: Long) {

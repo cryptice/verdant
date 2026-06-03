@@ -6,6 +6,7 @@ import type { TFunction } from 'i18next'
 import { api } from '../api/client'
 import type { ScheduledTaskResponse, TraySummaryEntry } from '../api/client'
 import { sortBedsWithGardenByNaturalName } from '../lib/bed'
+import { harvestDeltaPct } from '../lib/harvest'
 
 // Activity types whose subject is a bed, not a species. Mirrors
 // BED_ACTIVITY_TYPES in backend ScheduledTaskService.
@@ -88,17 +89,12 @@ export function Dashboard() {
     return earliest <= today
   })
 
-  const { data: harvests } = useQuery({
-    queryKey: ['harvest-stats'],
-    queryFn: api.stats.harvests,
-  })
-
   const { data: seasons } = useQuery({
     queryKey: ['seasons'],
     queryFn: () => api.seasons.list(),
   })
 
-  // Active season (or most recent) — drives the revenue card.
+  // Active season (or most recent) — drives the revenue and harvest cards.
   const activeSeason = seasons?.find((s) => s.isActive) ?? seasons?.[0]
   const { data: seasonLedger } = useQuery({
     queryKey: ['sale-ledger', activeSeason?.id ?? null],
@@ -108,12 +104,22 @@ export function Dashboard() {
   const seasonRevenueKr = Math.round((seasonLedger?.reduce((acc, e) => acc + e.totalCents, 0) ?? 0) / 100)
   const seasonSalesCount = seasonLedger?.length ?? 0
 
+  const { data: harvestSummary } = useQuery({
+    queryKey: ['harvest-summary', activeSeason?.id ?? null],
+    queryFn: () => api.analytics.harvestSummary(activeSeason!.id),
+    enabled: !!activeSeason,
+  })
+
   const activeBedCount = dashboard?.stats.totalBeds ?? beds?.length ?? 0
   const activePlantCount = dashboard?.stats.totalActivePlants ?? 0
   const activeSpeciesCount = dashboard?.stats.totalActiveSpecies ?? 0
 
-  // Harvest totals: sum totalStems across all species (TODO: wire to season-scoped data)
-  const totalStems = harvests?.reduce((acc, h) => acc + h.totalStems, 0) ?? 142
+  // Season-scoped harvest headline — total stems, best ISO week, and year-over-year delta.
+  const harvestSeasonYear = activeSeason?.year ?? new Date().getFullYear()
+  const totalStems = harvestSummary?.totalStems ?? 0
+  const bestWeek = harvestSummary?.bestWeek ?? null
+  const prevYearStems = harvestSummary?.prevYearTotalStems ?? 0
+  const deltaPct = harvestDeltaPct(totalStems, prevYearStems)
 
   return (
     <div>
@@ -530,9 +536,9 @@ export function Dashboard() {
               fontVariationSettings: '"SOFT" 100, "opsz" 144',
             }}
           >
-            {t('dashboard.harvest.headline', { stems: totalStems, year: 2025 })}{' '}
+            {t('dashboard.harvest.headline', { stems: totalStems, year: harvestSeasonYear })}{' '}
             <span style={{ color: 'var(--color-blush)' }}>
-              {t('dashboard.harvest.season', { year: 2025 })}
+              {t('dashboard.harvest.season', { year: harvestSeasonYear })}
             </span>
             .
           </div>
@@ -547,11 +553,20 @@ export function Dashboard() {
               gap: 18,
             }}
           >
-            {/* TODO: wire bestWeek and delta to real harvest analytics */}
-            <span style={{ color: 'var(--color-sage)' }}>
-              {t('dashboard.harvest.bestWeek', { week: 32 })}
-            </span>
-            <span style={{ color: 'var(--color-blush)' }}>+24 % vs 2024 ▲</span>
+            {bestWeek && (
+              <span style={{ color: 'var(--color-sage)' }}>
+                {t('dashboard.harvest.bestWeek', { week: bestWeek.isoWeek })}
+              </span>
+            )}
+            {deltaPct !== null && (
+              <span style={{ color: 'var(--color-blush)' }}>
+                {t('dashboard.harvest.delta', {
+                  pct: deltaPct >= 0 ? `+${deltaPct}` : `${deltaPct}`,
+                  year: harvestSeasonYear - 1,
+                  arrow: deltaPct >= 0 ? '▲' : '▼',
+                })}
+              </span>
+            )}
           </div>
         </div>
       </div>

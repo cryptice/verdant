@@ -417,6 +417,14 @@ export interface BedSeasonYield {
   seasonId: number; seasonName: string
   stemsHarvested: number; stemsPerM2?: number
 }
+export interface HarvestSummaryResponse {
+  totalStems: number
+  bestWeek: { isoWeek: number; stems: number } | null
+  prevYearTotalStems: number
+}
+export interface HarvestStatsResponse {
+  totalStems: number
+}
 
 // Bed History
 export interface BedHistoryEntry {
@@ -535,6 +543,8 @@ export const api = {
       apiRequest<GardenResponse>(`/api/gardens/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: number) => apiRequest<void>(`/api/gardens/${id}`, { method: 'DELETE' }),
     beds: (gardenId: number) => apiRequest<BedResponse[]>(`/api/gardens/${gardenId}/beds`),
+    harvestStats: (id: number, seasonId?: number) =>
+      apiRequest<HarvestStatsResponse>(`/api/gardens/${id}/harvest-stats${seasonId ? `?seasonId=${seasonId}` : ''}`),
   },
 
   beds: {
@@ -547,6 +557,8 @@ export const api = {
     delete: (id: number) => apiRequest<void>(`/api/beds/${id}`, { method: 'DELETE' }),
     plants: (bedId: number) => apiRequest<PlantResponse[]>(`/api/beds/${bedId}/plants`),
     history: (id: number) => apiRequest<BedHistoryEntry[]>(`/api/beds/${id}/history`),
+    harvestStats: (id: number, seasonId?: number) =>
+      apiRequest<HarvestStatsResponse>(`/api/beds/${id}/harvest-stats${seasonId ? `?seasonId=${seasonId}` : ''}`),
     weed: (id: number) =>
       apiRequest<BulkLocationActionResponse>(`/api/beds/${id}/weed`, { method: 'POST' }),
     water: (id: number) =>
@@ -870,6 +882,7 @@ export const api = {
     seasonSummaries: () => apiRequest<SeasonSummaryResponse[]>('/api/analytics/seasons'),
     speciesComparison: (speciesId: number) => apiRequest<SpeciesComparisonResponse>(`/api/analytics/species/${speciesId}/compare`),
     yieldPerBed: (seasonId?: number) => apiRequest<YieldPerBedResponse[]>(`/api/analytics/yield-per-bed${seasonId ? `?seasonId=${seasonId}` : ''}`),
+    harvestSummary: (seasonId: number) => apiRequest<HarvestSummaryResponse>(`/api/analytics/harvest-summary?seasonId=${seasonId}`),
   },
 
   organizations: {

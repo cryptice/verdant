@@ -44,6 +44,11 @@ class BedResource(
     fun history(@PathParam("id") id: Long) = bedService.getBedHistory(id, orgContext.orgId)
 
     @GET
+    @Path("/beds/{id}/harvest-stats")
+    fun harvestStats(@PathParam("id") id: Long, @QueryParam("seasonId") seasonId: Long?) =
+        bedService.getBedHarvestStats(id, orgContext.orgId, seasonId)
+
+    @GET
     @Path("/beds/{id}/photos")
     fun listPhotos(@PathParam("id") id: Long) = bedService.listPhotos(id, orgContext.orgId)
 

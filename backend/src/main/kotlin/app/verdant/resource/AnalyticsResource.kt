@@ -1,5 +1,6 @@
 package app.verdant.resource
 
+import app.verdant.dto.HarvestSummaryResponse
 import app.verdant.filter.OrgContext
 import app.verdant.service.AnalyticsService
 import io.quarkus.security.Authenticated
@@ -26,4 +27,11 @@ class AnalyticsResource(
     @Path("/yield-per-bed")
     fun yieldPerBed(@QueryParam("seasonId") seasonId: Long?) =
         analyticsService.getYieldPerBed(orgContext.orgId, seasonId)
+
+    @GET
+    @Path("/harvest-summary")
+    fun harvestSummary(@QueryParam("seasonId") seasonId: Long?): HarvestSummaryResponse {
+        if (seasonId == null) throw BadRequestException("seasonId is required")
+        return analyticsService.getHarvestSummary(orgContext.orgId, seasonId)
+    }
 }

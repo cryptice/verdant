@@ -52,3 +52,20 @@ data class BedSeasonYield(
     val stemsHarvested: Int,
     val stemsPerM2: Double?,
 )
+
+/** Season-scoped harvest headline for the dashboard. */
+data class HarvestSummaryResponse(
+    val totalStems: Int,
+    val bestWeek: HarvestWeek?,
+    val prevYearTotalStems: Int,
+)
+
+data class HarvestWeek(
+    val isoWeek: Int,
+    val stems: Int,
+)
+
+/** Single-scope harvest total (per bed or per garden). */
+data class HarvestStatsResponse(
+    val totalStems: Int,
+)

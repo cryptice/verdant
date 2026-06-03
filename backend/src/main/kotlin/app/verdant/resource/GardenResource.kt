@@ -51,6 +51,11 @@ class GardenResource(
     }
 
     @GET
+    @Path("/{id}/harvest-stats")
+    fun harvestStats(@PathParam("id") id: Long, @QueryParam("seasonId") seasonId: Long?) =
+        gardenService.getGardenHarvestStats(id, orgContext.orgId, seasonId)
+
+    @GET
     @Path("/{gardenId}/beds")
     fun listBeds(@PathParam("gardenId") gardenId: Long) =
         bedService.getBedsForGarden(gardenId, orgContext.orgId)

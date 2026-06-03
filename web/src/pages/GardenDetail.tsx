@@ -43,6 +43,14 @@ export function GardenDetail() {
     staleTime: 60_000,
   })
 
+  const { data: seasons } = useQuery({ queryKey: ['seasons'], queryFn: () => api.seasons.list() })
+  const activeSeason = seasons?.find((s) => s.isActive) ?? seasons?.[0]
+  const { data: gardenHarvest } = useQuery({
+    queryKey: ['garden-harvest-stats', gardenId, activeSeason?.id ?? null],
+    queryFn: () => api.gardens.harvestStats(gardenId, activeSeason?.id),
+    enabled: !Number.isNaN(gardenId),
+  })
+
   // Edit garden state
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState('')
@@ -118,8 +126,9 @@ export function GardenDetail() {
   // Plant count aggregation from beds (bedCount * approximate) — use garden's plantCount if available
   const plantCount = sortedBeds.reduce((sum, _b) => sum, 0)
 
-  // Harvest stems this year — placeholder; same pattern as BedDetail
-  const harvestStemsThisYear = 0
+  // Season-scoped harvested stems across the garden's beds.
+  const harvestStemsThisYear = gardenHarvest?.totalStems ?? 0
+  const harvestYear = activeSeason?.year ?? new Date().getFullYear()
 
   if (isLoading) return (
     <div className="flex justify-center p-16">
@@ -311,7 +320,7 @@ export function GardenDetail() {
           >
             {t('garden.stats.harvested')}{' '}
             <span style={{ color: 'var(--color-blush)' }}>
-              {new Date().getFullYear()}
+              {harvestYear}
             </span>.
           </div>
           <div

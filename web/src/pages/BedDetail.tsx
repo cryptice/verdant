@@ -35,6 +35,14 @@ export function BedDetail() {
     queryFn: () => api.gardens.beds(bed!.gardenId),
     enabled: !!bed,
   })
+  const { data: seasons } = useQuery({ queryKey: ['seasons'], queryFn: () => api.seasons.list() })
+  const activeSeason = seasons?.find((s) => s.isActive) ?? seasons?.[0]
+  const { data: bedHarvest } = useQuery({
+    queryKey: ['bed-harvest-stats', bedId, activeSeason?.id ?? null],
+    queryFn: () => api.beds.harvestStats(bedId, activeSeason?.id),
+    enabled: !Number.isNaN(bedId),
+  })
+  const harvestYear = activeSeason?.year ?? new Date().getFullYear()
 
   // Natural prev/next navigation within the same garden (Bed #10 after Bed #9).
   const sortedSiblings = sortBedsByNaturalName(siblings)
@@ -310,7 +318,7 @@ export function BedDetail() {
           onSuccess={(msg) => showToast(msg)}
         />
 
-        {/* Harvest card — TODO: wire to real harvest stats when available */}
+        {/* Harvest card — season-scoped stems for this bed */}
         <div
           style={{
             background: 'var(--color-ink)',
@@ -341,8 +349,8 @@ export function BedDetail() {
               fontVariationSettings: '"SOFT" 100, "opsz" 144',
             }}
           >
-            {t('bed.harvest.headline', { stems: 0 })}{' '}
-            <span style={{ color: 'var(--color-blush)' }}>{t('bed.harvest.season', { year: new Date().getFullYear() })}</span>.
+            {t('bed.harvest.headline', { stems: bedHarvest?.totalStems ?? 0 })}{' '}
+            <span style={{ color: 'var(--color-blush)' }}>{t('bed.harvest.season', { year: harvestYear })}</span>.
           </div>
         </div>
 

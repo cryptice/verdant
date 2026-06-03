@@ -5,6 +5,7 @@ import app.verdant.entity.*
 import app.verdant.repository.BedPhotoRepository
 import app.verdant.repository.BedRepository
 import app.verdant.repository.GardenRepository
+import app.verdant.repository.PlantEventRepository
 import io.agroal.api.AgroalDataSource
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.ws.rs.BadRequestException
@@ -17,6 +18,7 @@ class BedService(
     private val gardenRepository: GardenRepository,
     private val bedPhotoRepository: BedPhotoRepository,
     private val storageService: StorageService,
+    private val plantEvents: PlantEventRepository,
     private val ds: AgroalDataSource,
 ) {
     fun getAllBedsForUser(orgId: Long): List<BedWithGardenResponse> {
@@ -134,6 +136,12 @@ class BedService(
         if (photo.bedId != bedId) throw NotFoundException("Bed photo not found")
         storageService.deleteByPath(photo.photoUrl)
         bedPhotoRepository.delete(photoId)
+    }
+
+    /** Total harvested stems for a bed, optionally scoped to one season. Bed must belong to [orgId]. */
+    fun getBedHarvestStats(bedId: Long, orgId: Long, seasonId: Long?): HarvestStatsResponse {
+        requireBedOwnership(bedId, orgId)
+        return HarvestStatsResponse(totalStems = plantEvents.totalStemsByBed(bedId, seasonId))
     }
 
     private fun requireBedOwnership(bedId: Long, orgId: Long): Bed {
