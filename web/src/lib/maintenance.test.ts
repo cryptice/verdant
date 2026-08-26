@@ -51,9 +51,8 @@ describe('dueState', () => {
   const today = '2026-06-25'
 
   it('reports overdue when the due date has passed', () => {
-    const s = dueState(rule({ nextDueDate: '2026-06-20' }), today)
-    expect(s.kind).toBe('overdue')
-    expect(s.days).toBe(5)
+    expect(dueState(rule({ nextDueDate: '2026-06-20' }), today))
+      .toEqual({ kind: 'overdue', days: 5 })
   })
 
   it('reports due today on the due date itself', () => {
@@ -61,9 +60,8 @@ describe('dueState', () => {
   })
 
   it('reports upcoming with days remaining', () => {
-    const s = dueState(rule({ nextDueDate: '2026-07-02' }), today)
-    expect(s.kind).toBe('upcoming')
-    expect(s.days).toBe(7)
+    expect(dueState(rule({ nextDueDate: '2026-07-02' }), today))
+      .toEqual({ kind: 'upcoming', days: 7 })
   })
 
   it('reports inactive regardless of date, so a paused rule never nags', () => {
@@ -85,6 +83,20 @@ describe('formatInterval', () => {
 
   it('falls back to days when not a whole number of weeks', () => {
     expect(formatInterval(10)).toBe('Var 10:e dag')
+  })
+
+  it('picks the Swedish ordinal suffix off the last digit, not just single digits', () => {
+    // 1 (day) and 7 (day, i.e. 1 week) both short-circuit to "Varje X" and
+    // never reach the ordinal — so :a for n=1 is not observable through this
+    // public surface. n=2 and n=3 below exercise the day-ordinal branch,
+    // and n=21/22 exercise the same ordinal logic via the week branch.
+    expect(formatInterval(2)).toBe('Var 2:a dag')
+    expect(formatInterval(3)).toBe('Var 3:e dag')
+    expect(formatInterval(11)).toBe('Var 11:e dag')
+    expect(formatInterval(12)).toBe('Var 12:e dag')
+    expect(formatInterval(31)).toBe('Var 31:a dag')
+    expect(formatInterval(147)).toBe('Var 21:a vecka') // 147 / 7 = 21
+    expect(formatInterval(154)).toBe('Var 22:a vecka') // 154 / 7 = 22
   })
 })
 

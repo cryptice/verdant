@@ -39,9 +39,9 @@ export function maintenanceActivityLabelSv(activity: string): string {
 }
 
 export type DueState =
-  | { kind: 'inactive'; days?: undefined }
+  | { kind: 'inactive' }
   | { kind: 'overdue'; days: number }
-  | { kind: 'due'; days?: undefined }
+  | { kind: 'due' }
   | { kind: 'upcoming'; days: number }
 
 /** Whole days between two ISO yyyy-mm-dd strings, ignoring time and zone. */
@@ -64,9 +64,16 @@ export function dueState(rule: MaintenanceRuleResponse, todayIso: string): DueSt
   return { kind: 'upcoming', days: delta }
 }
 
+/**
+ * Swedish ordinal suffix keys off the last digit (1st/2nd → :a, 3rd+ → :e),
+ * except the teens (11, 12) which always take :e regardless of last digit —
+ * so 21:a (tjugoförsta) but 11:e (elfte).
+ */
 function ordinalSv(n: number): string {
-  // Swedish ordinals for intervals: 1:a, 2:a, 3:e, 4:e …
-  return n === 1 || n === 2 ? `${n}:a` : `${n}:e`
+  const lastTwo = n % 100
+  const last = n % 10
+  const useA = (last === 1 || last === 2) && lastTwo !== 11 && lastTwo !== 12
+  return `${n}:${useA ? 'a' : 'e'}`
 }
 
 export function formatInterval(days: number): string {
