@@ -9,6 +9,7 @@ import { SpeciesEditModal } from '../components/faltet/SpeciesEditModal'
 import { BedEditDialog } from '../components/bed/BedEditDialog'
 import { BedPlantGroups } from '../components/bed/BedPlantGroups'
 import { BedPhotosSection } from '../components/bed/BedPhotosSection'
+import { MaintenanceRules } from '../components/maintenance/MaintenanceRules'
 import { bedEventLabelSv, sortBedsByNaturalName } from '../lib/bed'
 
 export function BedDetail() {
@@ -61,6 +62,7 @@ export function BedDetail() {
     onSuccess: (r) => {
       showToast(`Rensade ogräs · ${r.plantsAffected} plantor`)
       qc.invalidateQueries({ queryKey: ['bed-events', bedId] })
+      qc.invalidateQueries({ queryKey: ['maintenance-rules', 'BED', bedId] })
     },
     onError: () => showToast('Kunde inte rensa ogräs'),
   })
@@ -70,6 +72,7 @@ export function BedDetail() {
     onSuccess: (r) => {
       showToast(`Vattnade · ${r.plantsAffected} plantor`)
       qc.invalidateQueries({ queryKey: ['bed-events', bedId] })
+      qc.invalidateQueries({ queryKey: ['maintenance-rules', 'BED', bedId] })
     },
     onError: () => showToast('Kunde inte vattna'),
   })
@@ -369,6 +372,9 @@ export function BedDetail() {
             <MetaCell label={t('bed.meta.area')} value={`${area} m²`} />
           </div>
         </div>
+
+        {/* Underhåll — shared rule component, generic over bed/area */}
+        <MaintenanceRules target={{ kind: 'BED', id: bedId }} />
 
         {/* Danger callout */}
         <div

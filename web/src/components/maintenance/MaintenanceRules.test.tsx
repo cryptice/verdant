@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MaintenanceRules } from './MaintenanceRules'
 import type { MaintenanceRuleResponse } from '../../api/client'
+import type { MaintenanceRuleTarget } from './MaintenanceRuleDialog'
 
 vi.mock('../../api/client', async (orig) => {
   const actual = await orig<typeof import('../../api/client')>()
@@ -35,11 +36,11 @@ function rule(over: Partial<MaintenanceRuleResponse> = {}): MaintenanceRuleRespo
   }
 }
 
-function renderRules() {
+function renderRules(target: MaintenanceRuleTarget = { kind: 'AREA', id: 5 }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <QueryClientProvider client={qc}>
-      <MaintenanceRules target={{ kind: 'AREA', id: 5 }} />
+      <MaintenanceRules target={target} />
     </QueryClientProvider>,
   )
 }
@@ -83,5 +84,12 @@ describe('MaintenanceRules', () => {
     renderRules()
     await screen.findByTestId('maintenance-rules')
     expect(api.maintenanceRules.list).toHaveBeenCalledWith({ areaId: 5 })
+  })
+
+  it('queries scoped to the bed, never with both filters', async () => {
+    vi.mocked(api.maintenanceRules.list).mockResolvedValue([])
+    renderRules({ kind: 'BED', id: 3 })
+    await screen.findByTestId('maintenance-rules')
+    expect(api.maintenanceRules.list).toHaveBeenCalledWith({ bedId: 3 })
   })
 })
