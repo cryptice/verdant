@@ -951,7 +951,7 @@ data class GardenAreaPhotoResponse(
 
 data class CreateGardenAreaPhotoRequest(
     @field:NotBlank
-    val photoUrl: String,
+    val imageBase64: String,
     @field:NotBlank
     val reason: String,
     @field:Size(max = 2000)
@@ -3413,6 +3413,20 @@ git commit -m "feat(backend): completing a maintenance task records the work"
 ```
 
 ---
+
+## Correction applied after the whole-branch review
+
+`CreateGardenAreaPhotoRequest` originally specified a client-supplied `photoUrl`.
+That was a defect in this plan and a deviation from the spec, which says
+`garden_area_photo` mirrors `bed_photo` field for field and that areas get photos
+through the existing `PhotoPicker` (which emits base64). Because `StorageService`
+uses a single bucket for every org, accepting a client URL and later passing it to
+`deleteByPath` let any authenticated user delete another org's blobs.
+
+The shipped shape takes `imageBase64` and mints the URL server-side —
+persist with `photoUrl = ""`, upload via `StorageService.uploadGardenAreaPhoto`,
+then patch the row — exactly as `BedService.addPhoto` does. Client plans must
+follow the shipped shape, not the text above.
 
 ## What this plan deliberately leaves out
 
