@@ -9,6 +9,7 @@ import {
   formatInterval,
   formatSeasonWindow,
   maintenanceActivityLabelSv,
+  todayIsoLocal,
   type DueState,
 } from '../../lib/maintenance'
 import { MaintenanceRuleDialog, type MaintenanceRuleTarget } from './MaintenanceRuleDialog'
@@ -50,7 +51,7 @@ export function MaintenanceRules({ target }: { target: MaintenanceRuleTarget }) 
     onError: () => showToast(t('maintenance.deleteError')),
   })
 
-  const todayIso = new Date().toISOString().slice(0, 10)
+  const todayIso = todayIsoLocal()
 
   return (
     <div data-testid="maintenance-rules">

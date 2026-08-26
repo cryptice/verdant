@@ -7,6 +7,7 @@ import {
   formatInterval,
   formatSeasonWindow,
   hasSeasonWindow,
+  todayIsoLocal,
 } from './maintenance'
 import type { MaintenanceRuleResponse } from '../api/client'
 
@@ -67,6 +68,18 @@ describe('dueState', () => {
   it('reports inactive regardless of date, so a paused rule never nags', () => {
     expect(dueState(rule({ active: false, nextDueDate: '2026-01-01' }), today).kind)
       .toBe('inactive')
+  })
+})
+
+describe('todayIsoLocal', () => {
+  it('returns the local calendar date as YYYY-MM-DD, not the UTC one', () => {
+    const now = new Date()
+    const expected = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, '0'),
+      String(now.getDate()).padStart(2, '0'),
+    ].join('-')
+    expect(todayIsoLocal()).toBe(expected)
   })
 })
 

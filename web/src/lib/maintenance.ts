@@ -38,6 +38,17 @@ export function maintenanceActivityLabelSv(activity: string): string {
   }
 }
 
+/**
+ * Today as `YYYY-MM-DD` in the *local* calendar. `toISOString()` converts to
+ * UTC first, so in CET/CEST it reads as yesterday between local midnight and
+ * 01:00/02:00 — enough to show "Om 1 dag" for a rule due today, and to date a
+ * logged event a day early, which shifts the server's derived next-due date.
+ * The `sv-SE` locale formats dates as `YYYY-MM-DD`.
+ */
+export function todayIsoLocal(): string {
+  return new Date().toLocaleDateString('sv-SE')
+}
+
 export type DueState =
   | { kind: 'inactive' }
   | { kind: 'overdue'; days: number }

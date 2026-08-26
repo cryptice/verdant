@@ -10,7 +10,7 @@ import { AreaPhotosSection } from '../components/area/AreaPhotosSection'
 import { AreaEditDialog } from '../components/area/AreaEditDialog'
 import { MaintenanceRules } from '../components/maintenance/MaintenanceRules'
 import { areaCategoryLabelSv, areaEventLabelSv } from '../lib/area'
-import { activitiesForTarget, maintenanceActivityLabelSv, type MaintenanceActivity } from '../lib/maintenance'
+import { activitiesForTarget, maintenanceActivityLabelSv, todayIsoLocal, type MaintenanceActivity } from '../lib/maintenance'
 
 type LogActivity = MaintenanceActivity | 'NOTE'
 
@@ -19,6 +19,7 @@ export function AreaDetail() {
   const areaId = Number(id)
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const qc = useQueryClient()
 
   const { data: area } = useQuery({ queryKey: ['area', areaId], queryFn: () => api.areas.get(areaId) })
   const { data: events = [] } = useQuery({
@@ -34,7 +35,13 @@ export function AreaDetail() {
 
   const deleteMut = useMutation({
     mutationFn: () => api.areas.delete(areaId),
-    onSuccess: () => navigate(area ? `/garden/${area.gardenId}` : '/gardens'),
+    onSuccess: () => {
+      // Without this the garden's area list stays cached (staleTime 30s) and
+      // the just-deleted place remains visible and clickable, landing on this
+      // page's `if (!area) return null` — a blank screen.
+      if (area) qc.invalidateQueries({ queryKey: ['garden-areas', area.gardenId] })
+      navigate(area ? `/garden/${area.gardenId}` : '/gardens')
+    },
     onError: () => showToast(t('area.deleteError')),
   })
 
@@ -279,7 +286,7 @@ function LogMaintenanceDialog({
   const activityOptions: LogActivity[] = [...activitiesForTarget('AREA'), 'NOTE']
 
   const [activityType, setActivityType] = useState<LogActivity | ''>('')
-  const [eventDate, setEventDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [eventDate, setEventDate] = useState(todayIsoLocal)
   const [notes, setNotes] = useState('')
 
   const canSave = activityType !== ''
