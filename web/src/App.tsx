@@ -11,6 +11,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m
 const GardenList = lazy(() => import('./pages/GardenList').then(m => ({ default: m.GardenList })))
 const GardenDetail = lazy(() => import('./pages/GardenDetail').then(m => ({ default: m.GardenDetail })))
 const BedDetail = lazy(() => import('./pages/BedDetail').then(m => ({ default: m.BedDetail })))
+const AreaDetail = lazy(() => import('./pages/AreaDetail').then(m => ({ default: m.AreaDetail })))
 const BedForm = lazy(() => import('./pages/BedForm').then(m => ({ default: m.BedForm })))
 const PlantDetail = lazy(() => import('./pages/PlantDetail').then(m => ({ default: m.PlantDetail })))
 const PlantedSpeciesList = lazy(() => import('./pages/PlantedSpeciesList').then(m => ({ default: m.PlantedSpeciesList })))
@@ -88,6 +89,7 @@ export function App() {
           <Route path="garden/:id" element={<GardenDetail />} />
           <Route path="garden/:gardenId/bed/new" element={<BedForm />} />
           <Route path="bed/:id" element={<BedDetail />} />
+          <Route path="area/:id" element={<AreaDetail />} />
           <Route path="plant/:id" element={<PlantDetail />} />
           <Route path="plants" element={<PlantedSpeciesList />} />
           <Route path="species/:id" element={<SpeciesDetail />} />

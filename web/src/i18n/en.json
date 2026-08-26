@@ -378,6 +378,38 @@
       }
     }
   },
+  "area": {
+    "masthead": {
+      "center": "— The Area Ledger —"
+    },
+    "logMaintenance": "Log maintenance",
+    "meta": {
+      "category": "Category",
+      "size": "Size"
+    },
+    "log": {
+      "title": "Log maintenance",
+      "activityLabel": "Activity",
+      "dateLabel": "Date",
+      "notesLabel": "Notes",
+      "notesPlaceholder": "Notes (optional)"
+    },
+    "logSuccess": "Maintenance logged",
+    "logError": "Could not log maintenance",
+    "history": {
+      "title": "History",
+      "meta": "{{count}} events",
+      "empty": "No events yet."
+    },
+    "danger": {
+      "title": "Danger zone",
+      "warning": "Permanent deletion of this area.",
+      "delete": "Delete area",
+      "confirmTitle": "Delete area",
+      "confirm": "This will permanently delete the area. Are you sure?"
+    },
+    "deleteError": "Could not delete the area"
+  },
   "maintenance": {
     "title": "Maintenance",
     "addRule": "+ Add maintenance",

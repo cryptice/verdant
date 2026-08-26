@@ -378,6 +378,38 @@
       }
     }
   },
+  "area": {
+    "masthead": {
+      "center": "— Platsloggen —"
+    },
+    "logMaintenance": "Logga underhåll",
+    "meta": {
+      "category": "Kategori",
+      "size": "Yta"
+    },
+    "log": {
+      "title": "Logga underhåll",
+      "activityLabel": "Aktivitet",
+      "dateLabel": "Datum",
+      "notesLabel": "Anteckningar",
+      "notesPlaceholder": "Anteckningar (valfritt)"
+    },
+    "logSuccess": "Underhåll loggat",
+    "logError": "Kunde inte logga underhåll",
+    "history": {
+      "title": "Historik",
+      "meta": "{{count}} händelser",
+      "empty": "Inga händelser ännu."
+    },
+    "danger": {
+      "title": "Farozon",
+      "warning": "Permanent radering av platsen.",
+      "delete": "Radera plats",
+      "confirmTitle": "Radera plats",
+      "confirm": "Detta raderar platsen permanent. Är du säker?"
+    },
+    "deleteError": "Kunde inte radera platsen"
+  },
   "maintenance": {
     "title": "Underhåll",
     "addRule": "+ Lägg till underhåll",
