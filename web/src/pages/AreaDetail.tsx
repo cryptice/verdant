@@ -3,11 +3,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
-import { Masthead, Chip } from '../components/faltet'
+import { Masthead, Chip, SectionHeader, MetaCell } from '../components/faltet'
 import { Dialog } from '../components/Dialog'
 import { Snackbar, useSnackbar } from '../components/Snackbar'
-import { BedSectionHeader } from '../components/bed/BedSectionHeader'
-import { BedMetaCell } from '../components/bed/BedMetaCell'
 import { AreaPhotosSection } from '../components/area/AreaPhotosSection'
 import { MaintenanceRules } from '../components/maintenance/MaintenanceRules'
 import { areaCategoryLabelSv, areaEventLabelSv } from '../lib/area'
@@ -108,15 +106,15 @@ export function AreaDetail() {
             border: '1px solid var(--color-ink)',
           }}
         >
-          <BedMetaCell label={t('area.meta.category')} value={areaCategoryLabelSv(area.category)} />
-          <BedMetaCell label={t('area.meta.size')} value={area.sizeSqm != null ? `${area.sizeSqm} m²` : '—'} />
+          <MetaCell label={t('area.meta.category')} value={areaCategoryLabelSv(area.category)} />
+          <MetaCell label={t('area.meta.size')} value={area.sizeSqm != null ? `${area.sizeSqm} m²` : '—'} />
         </div>
 
         {/* Underhåll — shared rule component, generic over bed/area */}
         <MaintenanceRules target={{ kind: 'AREA', id: areaId }} />
 
         {/* Historik — area-level maintenance log */}
-        <BedSectionHeader title={t('area.history.title')} meta={t('area.history.meta', { count: events.length })} />
+        <SectionHeader title={t('area.history.title')} meta={t('area.history.meta', { count: events.length })} />
         {events.length === 0 ? (
           <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-forest)', margin: '8px 0' }}>
             {t('area.history.empty')}

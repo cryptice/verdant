@@ -1,4 +1,6 @@
 export { Chip } from './Chip'
+export { SectionHeader } from './SectionHeader'
+export { MetaCell } from './MetaCell'
 export { Rule } from './Rule'
 export { Stat } from './Stat'
 export { Field } from './Field'

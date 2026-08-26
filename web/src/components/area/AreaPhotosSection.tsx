@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { api, type BedPhotoReason, type GardenAreaPhotoResponse } from '../../api/client'
 import { Dialog } from '../Dialog'
 import { PhotoPicker } from '../PhotoPicker'
-import { BedSectionHeader } from '../bed/BedSectionHeader'
+import { SectionHeader } from '../faltet'
 
 const REASONS: BedPhotoReason[] = ['PROGRESS', 'ISSUE', 'HARVEST', 'PLANTING', 'OTHER']
 
@@ -51,7 +51,7 @@ export function AreaPhotosSection({
 
   return (
     <>
-      <BedSectionHeader
+      <SectionHeader
         title="Bilder"
         meta={`${photos.length} ${photos.length === 1 ? 'bild' : 'bilder'}`}
         actions={

@@ -1,4 +1,4 @@
-export function BedMetaCell({ label, value }: { label: string; value: string }) {
+export function MetaCell({ label, value }: { label: string; value: string }) {
   return (
     <div
       style={{

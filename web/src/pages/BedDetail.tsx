@@ -3,13 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
-import { Masthead, Chip, Stat, PhotoPlaceholder } from '../components/faltet'
+import { Masthead, Chip, Stat, PhotoPlaceholder, SectionHeader, MetaCell } from '../components/faltet'
 import { Snackbar, useSnackbar } from '../components/Snackbar'
 import { SpeciesEditModal } from '../components/faltet/SpeciesEditModal'
 import { BedEditDialog } from '../components/bed/BedEditDialog'
 import { BedPlantGroups } from '../components/bed/BedPlantGroups'
-import { BedMetaCell } from '../components/bed/BedMetaCell'
-import { BedSectionHeader } from '../components/bed/BedSectionHeader'
 import { BedPhotosSection } from '../components/bed/BedPhotosSection'
 import { bedEventLabelSv, sortBedsByNaturalName } from '../lib/bed'
 
@@ -197,7 +195,7 @@ export function BedDetail() {
         </div>
 
         {/* Plantor section */}
-        <BedSectionHeader
+        <SectionHeader
           title={t('bed.plants.title')}
           meta={`${uniqueSpeciesCount} ${t('bed.plants.metaSuffix')}`}
           actions={
@@ -267,7 +265,7 @@ export function BedDetail() {
         <BedPlantGroups plants={plants ?? []} onSpeciesClick={setModalSpecies} />
 
         {/* Skötsel — bed-level maintenance log */}
-        <BedSectionHeader title="Skötsel" meta={`${bedEvents.length} händelser`} />
+        <SectionHeader title="Skötsel" meta={`${bedEvents.length} händelser`} />
         {bedEvents.length === 0 ? (
           <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-forest)', margin: '8px 0' }}>
             Inga skötselhändelser ännu.
@@ -365,10 +363,10 @@ export function BedDetail() {
               border: '1px solid var(--color-ink)',
             }}
           >
-            <BedMetaCell label={t('bed.meta.length')} value={bed.lengthMeters ? `${bed.lengthMeters} m` : '—'} />
-            <BedMetaCell label={t('bed.meta.width')} value={bed.widthMeters ? `${bed.widthMeters} m` : '—'} />
-            <BedMetaCell label={t('bed.meta.orient')} value={bed.sunDirections && bed.sunDirections.length > 0 ? bed.sunDirections.join(' · ') : '—'} />
-            <BedMetaCell label={t('bed.meta.area')} value={`${area} m²`} />
+            <MetaCell label={t('bed.meta.length')} value={bed.lengthMeters ? `${bed.lengthMeters} m` : '—'} />
+            <MetaCell label={t('bed.meta.width')} value={bed.widthMeters ? `${bed.widthMeters} m` : '—'} />
+            <MetaCell label={t('bed.meta.orient')} value={bed.sunDirections && bed.sunDirections.length > 0 ? bed.sunDirections.join(' · ') : '—'} />
+            <MetaCell label={t('bed.meta.area')} value={`${area} m²`} />
           </div>
         </div>
 

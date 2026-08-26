@@ -1,4 +1,4 @@
-export function BedSectionHeader({
+export function SectionHeader({
   title,
   meta,
   actions,
