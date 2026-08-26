@@ -8,6 +8,7 @@ import { Dialog } from '../components/Dialog'
 import { Snackbar, useSnackbar } from '../components/Snackbar'
 import { BedSectionHeader } from '../components/bed/BedSectionHeader'
 import { BedMetaCell } from '../components/bed/BedMetaCell'
+import { AreaPhotosSection } from '../components/area/AreaPhotosSection'
 import { MaintenanceRules } from '../components/maintenance/MaintenanceRules'
 import { areaCategoryLabelSv, areaEventLabelSv } from '../lib/area'
 import { activitiesForTarget, maintenanceActivityLabelSv, type MaintenanceActivity } from '../lib/maintenance'
@@ -159,6 +160,12 @@ export function AreaDetail() {
             ))}
           </div>
         )}
+
+        <AreaPhotosSection
+          areaId={areaId}
+          onError={(msg) => showToast(msg)}
+          onSuccess={(msg) => showToast(msg)}
+        />
 
         {/* Danger callout */}
         <div
