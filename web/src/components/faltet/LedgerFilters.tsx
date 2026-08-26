@@ -44,7 +44,8 @@ export function LedgerFilters<Id extends string>({
     const has = value.has(id)
     if (has && atLeastOne && value.size === 1) return // no-op: keep at least one active
     const next = new Set(value)
-    has ? next.delete(id) : next.add(id)
+    if (has) next.delete(id)
+    else next.add(id)
     onChange(next)
   }
 

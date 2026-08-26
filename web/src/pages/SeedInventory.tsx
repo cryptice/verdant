@@ -38,7 +38,8 @@ export function SeedInventory() {
   const [expanded, setExpanded] = useState<Set<number>>(new Set())
   const toggle = (speciesId: number) => setExpanded(prev => {
     const next = new Set(prev)
-    next.has(speciesId) ? next.delete(speciesId) : next.add(speciesId)
+    if (next.has(speciesId)) next.delete(speciesId)
+    else next.add(speciesId)
     return next
   })
 
