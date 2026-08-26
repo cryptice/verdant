@@ -54,6 +54,8 @@ data class UpdateMaintenanceRuleRequest(
     val seasonStartDay: Int? = null,
     val seasonEndMonth: Int? = null,
     val seasonEndDay: Int? = null,
+    /** Set true to remove an existing season window so the rule applies year-round. */
+    val clearSeasonWindow: Boolean = false,
     val active: Boolean? = null,
     @field:Size(max = 2000)
     val notes: String? = null,

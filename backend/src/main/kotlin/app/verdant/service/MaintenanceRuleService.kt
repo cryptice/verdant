@@ -68,20 +68,43 @@ class MaintenanceRuleService(
     fun updateRule(id: Long, request: UpdateMaintenanceRuleRequest, orgId: Long): MaintenanceRuleResponse {
         val rule = requireRule(id, orgId)
         val activity = request.activityType?.let { parseActivity(it, rule.target) } ?: rule.activity
-        validateSeason(
-            request.seasonStartMonth ?: rule.seasonStartMonth,
-            request.seasonStartDay ?: rule.seasonStartDay,
-            request.seasonEndMonth ?: rule.seasonEndMonth,
-            request.seasonEndDay ?: rule.seasonEndDay,
-        )
+
+        val suppliesSeasonBounds = listOfNotNull(
+            request.seasonStartMonth, request.seasonStartDay, request.seasonEndMonth, request.seasonEndDay,
+        ).isNotEmpty()
+        if (request.clearSeasonWindow && suppliesSeasonBounds) {
+            throw BadRequestException("Cannot clear the season window and supply new bounds at the same time")
+        }
+
+        // `?:` coalescing can only keep or replace a field — with every field of
+        // UpdateMaintenanceRuleRequest nullable, "omitted" and "explicitly null" are
+        // indistinguishable, so there is no way to null out a season bound that way.
+        // clearSeasonWindow is the explicit opt-in for that one case.
+        val seasonStartMonth: Int?
+        val seasonStartDay: Int?
+        val seasonEndMonth: Int?
+        val seasonEndDay: Int?
+        if (request.clearSeasonWindow) {
+            seasonStartMonth = null
+            seasonStartDay = null
+            seasonEndMonth = null
+            seasonEndDay = null
+        } else {
+            seasonStartMonth = request.seasonStartMonth ?: rule.seasonStartMonth
+            seasonStartDay = request.seasonStartDay ?: rule.seasonStartDay
+            seasonEndMonth = request.seasonEndMonth ?: rule.seasonEndMonth
+            seasonEndDay = request.seasonEndDay ?: rule.seasonEndDay
+            validateSeason(seasonStartMonth, seasonStartDay, seasonEndMonth, seasonEndDay)
+        }
+
         val updated = rule.copy(
             activity = activity,
             intervalDays = request.intervalDays ?: rule.intervalDays,
             anchorDate = request.anchorDate ?: rule.anchorDate,
-            seasonStartMonth = request.seasonStartMonth ?: rule.seasonStartMonth,
-            seasonStartDay = request.seasonStartDay ?: rule.seasonStartDay,
-            seasonEndMonth = request.seasonEndMonth ?: rule.seasonEndMonth,
-            seasonEndDay = request.seasonEndDay ?: rule.seasonEndDay,
+            seasonStartMonth = seasonStartMonth,
+            seasonStartDay = seasonStartDay,
+            seasonEndMonth = seasonEndMonth,
+            seasonEndDay = seasonEndDay,
             active = request.active ?: rule.active,
             notes = request.notes ?: rule.notes,
         )

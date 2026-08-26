@@ -148,4 +148,58 @@ class MaintenanceRuleServiceTest {
         assertEquals(false, result.active)
         assertEquals(21, result.intervalDays)
     }
+
+    @Test
+    fun `clearing the season window returns a rule to year-round`() {
+        val windowed = MaintenanceRule(
+            id = 7L, orgId = orgId, gardenAreaId = areaId,
+            activity = MaintenanceActivity.WEED, intervalDays = 21,
+            seasonStartMonth = 4, seasonStartDay = 1, seasonEndMonth = 10, seasonEndDay = 15,
+        )
+        whenever(rules.findById(7L)).thenReturn(windowed)
+        whenever(areaService.requireArea(areaId, orgId)).thenReturn(area)
+        whenever(lastDone.resolve(any())).thenReturn(null)
+
+        val result = service.updateRule(7L, UpdateMaintenanceRuleRequest(clearSeasonWindow = true), orgId)
+
+        assertEquals(null, result.seasonStartMonth)
+        assertEquals(null, result.seasonStartDay)
+        assertEquals(null, result.seasonEndMonth)
+        assertEquals(null, result.seasonEndDay)
+    }
+
+    @Test
+    fun `clearing the season window rejects supplied bounds`() {
+        val windowed = MaintenanceRule(
+            id = 7L, orgId = orgId, gardenAreaId = areaId,
+            activity = MaintenanceActivity.WEED, intervalDays = 21,
+            seasonStartMonth = 4, seasonStartDay = 1, seasonEndMonth = 10, seasonEndDay = 15,
+        )
+        whenever(rules.findById(7L)).thenReturn(windowed)
+        whenever(areaService.requireArea(areaId, orgId)).thenReturn(area)
+
+        assertThrows<BadRequestException> {
+            service.updateRule(7L, UpdateMaintenanceRuleRequest(clearSeasonWindow = true, seasonStartMonth = 4), orgId)
+        }
+    }
+
+    @Test
+    fun `an update without the flag leaves an existing season window intact`() {
+        val windowed = MaintenanceRule(
+            id = 7L, orgId = orgId, gardenAreaId = areaId,
+            activity = MaintenanceActivity.WEED, intervalDays = 21,
+            seasonStartMonth = 4, seasonStartDay = 1, seasonEndMonth = 10, seasonEndDay = 15,
+        )
+        whenever(rules.findById(7L)).thenReturn(windowed)
+        whenever(areaService.requireArea(areaId, orgId)).thenReturn(area)
+        whenever(lastDone.resolve(any())).thenReturn(null)
+
+        val result = service.updateRule(7L, UpdateMaintenanceRuleRequest(intervalDays = 30), orgId)
+
+        assertEquals(30, result.intervalDays)
+        assertEquals(4, result.seasonStartMonth)
+        assertEquals(1, result.seasonStartDay)
+        assertEquals(10, result.seasonEndMonth)
+        assertEquals(15, result.seasonEndDay)
+    }
 }
