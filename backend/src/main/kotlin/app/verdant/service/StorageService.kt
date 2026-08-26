@@ -65,6 +65,9 @@ class StorageService(
     fun uploadBedPhoto(bedId: Long, photoId: Long, base64: String): String =
         uploadImage(base64, "beds/$bedId/$photoId.jpg")
 
+    fun uploadGardenAreaPhoto(areaId: Long, photoId: Long, base64: String): String =
+        uploadImage(base64, "areas/$areaId/$photoId.jpg")
+
     fun deleteByPath(url: String) {
         val path = url.removePrefix("$publicBase/")
         if (path != url) {

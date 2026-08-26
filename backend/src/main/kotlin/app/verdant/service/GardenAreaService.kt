@@ -110,16 +110,25 @@ class GardenAreaService(
         requireArea(areaId, orgId)
         val reason = runCatching { BedPhotoReason.valueOf(request.reason) }
             .getOrElse { throw BadRequestException("Unknown photo reason: ${request.reason}") }
-        val saved = photoRepository.persist(
+        // Persist first to get an id we can use as the storage path, then patch
+        // the URL once the upload succeeds. Mirrors BedService.addPhoto. The
+        // URL is server-minted rather than client-supplied so that deletePhoto
+        // can only ever aim deleteByPath at this area's own blob — one bucket
+        // is shared by every org, so a caller-controlled URL would be a
+        // cross-tenant delete.
+        var photo = photoRepository.persist(
             GardenAreaPhoto(
                 gardenAreaId = areaId,
-                photoUrl = request.photoUrl,
+                photoUrl = "",
                 reason = reason,
                 description = request.description,
                 capturedAt = request.capturedAt ?: Instant.now(),
             )
         )
-        return saved.toResponse()
+        val url = storageService.uploadGardenAreaPhoto(areaId, photo.id!!, request.imageBase64)
+        photoRepository.updatePhotoUrl(photo.id!!, url)
+        photo = photo.copy(photoUrl = url)
+        return photo.toResponse()
     }
 
     fun deletePhoto(areaId: Long, photoId: Long, orgId: Long) {

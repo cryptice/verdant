@@ -44,6 +44,16 @@ class GardenAreaPhotoRepository(private val ds: AgroalDataSource) {
         }
     }
 
+    fun updatePhotoUrl(id: Long, url: String) {
+        ds.connection.use { conn ->
+            conn.prepareStatement("UPDATE garden_area_photo SET photo_url = ? WHERE id = ?").use { ps ->
+                ps.setString(1, url)
+                ps.setLong(2, id)
+                ps.executeUpdate()
+            }
+        }
+    }
+
     fun delete(id: Long) {
         ds.connection.use { conn ->
             conn.prepareStatement("DELETE FROM garden_area_photo WHERE id = ?").use { ps ->

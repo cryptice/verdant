@@ -70,11 +70,18 @@ data class GardenAreaPhotoResponse(
 )
 
 data class CreateGardenAreaPhotoRequest(
+    /**
+     * Raw image bytes. The server mints the storage path and public URL — a
+     * client-supplied URL would let a caller aim a later delete at another
+     * org's blob, since every org shares one bucket. Mirrors
+     * [CreateBedPhotoRequest].
+     */
     @field:NotBlank
-    val photoUrl: String,
-    @field:NotBlank
+    val imageBase64: String,
+    @field:NotBlank @field:Size(max = 32)
     val reason: String,
     @field:Size(max = 2000)
     val description: String? = null,
+    /** Optional client-supplied capture timestamp (ISO-8601). Falls back to server time. */
     val capturedAt: Instant? = null,
 )
