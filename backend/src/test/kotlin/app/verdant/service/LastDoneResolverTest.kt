@@ -112,4 +112,46 @@ class LastDoneResolverTest {
         // No bed_event row at all — the clock has to move on the application alone.
         assertEquals(LocalDate.of(2026, 5, 20), resolver.resolve(bedRule(MaintenanceActivity.FERTILIZE)))
     }
+
+    @Test
+    fun `fertilizing takes the later of a bed event and a supply application`() {
+        val userId = users.persist(User(email = "resolver2@test.com", displayName = "Resolver 2")).id!!
+        val supplyTypeId = supplyTypes.persist(
+            SupplyType(
+                orgId = orgId, name = "Hönsgödsel",
+                category = SupplyCategory.FERTILIZER, unit = SupplyUnit.KILOGRAMS,
+            )
+        ).id!!
+        val inventoryId = supplyInventories.persist(
+            SupplyInventory(orgId = orgId, supplyTypeId = supplyTypeId, quantity = BigDecimal("100.00"))
+        ).id!!
+
+        fun applyFertilizer(date: LocalDate) {
+            supplyApplications.insert(
+                SupplyApplication(
+                    orgId = orgId,
+                    bedId = bedId,
+                    supplyInventoryId = inventoryId,
+                    supplyTypeId = supplyTypeId,
+                    quantity = BigDecimal("5.00"),
+                    targetScope = SupplyApplicationScope.BED,
+                    appliedAt = date.atStartOfDay(ZoneId.systemDefault()).toInstant(),
+                    appliedBy = userId,
+                )
+            )
+        }
+
+        // The bed event is the later of the two sources.
+        bedEvents.persist(
+            BedEvent(bedId = bedId, eventType = PlantEventType.APPLIED_SUPPLY, eventDate = LocalDate.of(2026, 6, 15))
+        )
+        applyFertilizer(LocalDate.of(2026, 5, 20))
+
+        assertEquals(LocalDate.of(2026, 6, 15), resolver.resolve(bedRule(MaintenanceActivity.FERTILIZE)))
+
+        // A newer supply application flips which source is later.
+        applyFertilizer(LocalDate.of(2026, 7, 1))
+
+        assertEquals(LocalDate.of(2026, 7, 1), resolver.resolve(bedRule(MaintenanceActivity.FERTILIZE)))
+    }
 }

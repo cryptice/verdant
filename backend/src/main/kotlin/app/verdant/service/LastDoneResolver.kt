@@ -7,6 +7,7 @@ import app.verdant.repository.GardenAreaEventRepository
 import io.agroal.api.AgroalDataSource
 import jakarta.enterprise.context.ApplicationScoped
 import java.time.LocalDate
+import java.time.ZoneId
 
 /**
  * Works out when a rule's activity was last carried out.
@@ -46,13 +47,22 @@ class LastDoneResolver(
 
     private fun latestFertilizerApplication(bedId: Long): LocalDate? = ds.connection.use { conn ->
         conn.prepareStatement(
-            """SELECT MAX(sa.applied_at::date) AS latest
+            """SELECT MAX(sa.applied_at) AS latest
                FROM supply_application sa
                JOIN supply_type st ON sa.supply_type_id = st.id
                WHERE sa.bed_id = ? AND st.category = 'FERTILIZER'"""
         ).use { ps ->
             ps.setLong(1, bedId)
-            ps.executeQuery().use { rs -> if (rs.next()) rs.getDate("latest")?.toLocalDate() else null }
+            ps.executeQuery().use { rs ->
+                // Converted JVM-side (rather than sa.applied_at::date in SQL) to match
+                // SupplyApplicationService's precedent and avoid depending on the
+                // Postgres session timezone, which nothing in this repo pins.
+                if (rs.next()) {
+                    rs.getTimestamp("latest")?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDate()
+                } else {
+                    null
+                }
+            }
         }
     }
 }
