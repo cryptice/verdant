@@ -63,7 +63,12 @@ class MaintenanceScheduler(
                     )
                     created++
                 }
-            }.onFailure { log.warn("Maintenance rule ${rule.id} skipped: ${it.message}") }
+            }.onFailure {
+                log.warn(
+                    "Maintenance rule ${rule.id} (org=${rule.orgId}, activity=${rule.activity}) skipped",
+                    it,
+                )
+            }
         }
         return created
     }

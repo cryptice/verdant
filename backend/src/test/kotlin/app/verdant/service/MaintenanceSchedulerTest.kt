@@ -14,7 +14,6 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.time.LocalDate
-import java.time.MonthDay
 
 class MaintenanceSchedulerTest {
 
