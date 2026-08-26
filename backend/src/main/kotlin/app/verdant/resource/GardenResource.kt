@@ -1,8 +1,10 @@
 package app.verdant.resource
 
 import app.verdant.dto.*
+import app.verdant.dto.CreateGardenAreaRequest
 import app.verdant.filter.OrgContext
 import app.verdant.service.BedService
+import app.verdant.service.GardenAreaService
 import app.verdant.service.GardenService
 import io.quarkus.security.Authenticated
 import jakarta.validation.Valid
@@ -18,6 +20,7 @@ import java.util.logging.Logger
 class GardenResource(
     private val gardenService: GardenService,
     private val bedService: BedService,
+    private val gardenAreaService: GardenAreaService,
     private val orgContext: OrgContext
 ) {
     private val log = Logger.getLogger(GardenResource::class.java.name)
@@ -65,6 +68,18 @@ class GardenResource(
     fun createBed(@PathParam("gardenId") gardenId: Long, @Valid request: CreateBedRequest): Response {
         val bed = bedService.createBed(gardenId, request, orgContext.orgId)
         return Response.status(Response.Status.CREATED).entity(bed).build()
+    }
+
+    @GET
+    @Path("/{gardenId}/areas")
+    fun listAreas(@PathParam("gardenId") gardenId: Long) =
+        gardenAreaService.getAreasForGarden(gardenId, orgContext.orgId)
+
+    @POST
+    @Path("/{gardenId}/areas")
+    fun createArea(@PathParam("gardenId") gardenId: Long, @Valid request: CreateGardenAreaRequest): Response {
+        val area = gardenAreaService.createArea(gardenId, request, orgContext.orgId)
+        return Response.status(Response.Status.CREATED).entity(area).build()
     }
 
     @POST
