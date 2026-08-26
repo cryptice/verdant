@@ -56,10 +56,28 @@ describe('taskSubject', () => {
     expect(taskSubject(task({ activityType: 'SOW', speciesId: 2, speciesName: 'Tomat', bedId: 3, bedName: 'Bädd 3' }), t))
       .toBe('Så · Bädd 3')
   })
+})
 
-  it('has a Swedish label for every area-only activity', () => {
-    for (const a of ['MOW', 'RAKE', 'PRUNE', 'EDGE', 'SWEEP', 'TOP_UP', 'CLEAN', 'INSPECT']) {
-      expect(t(`activityType.${a}`)).not.toBe(a)
-    }
+// i18next returns the *full key path* on a miss ("activityType.MOW"), never the
+// bare enum — so asserting the lookup merely differs from 'MOW' passes even with
+// the key deleted. These pin the exact strings instead, in both locales, so
+// dropping or renaming a key in either file fails here.
+describe('area-only activityType labels', () => {
+  const tEn = i18n.getFixedT('en')
+
+  const LABELS: [activity: string, sv: string, en: string][] = [
+    ['MOW', 'Klippa gräs', 'Mow'],
+    ['RAKE', 'Kratta', 'Rake'],
+    ['PRUNE', 'Beskära', 'Prune'],
+    ['EDGE', 'Kantskära', 'Edge'],
+    ['SWEEP', 'Sopa', 'Sweep'],
+    ['TOP_UP', 'Fylla på', 'Top up'],
+    ['CLEAN', 'Rensa', 'Clean'],
+    ['INSPECT', 'Inspektera', 'Inspect'],
+  ]
+
+  it.each(LABELS)('%s resolves to its Swedish and English label', (activity, sv, en) => {
+    expect(t(`activityType.${activity}`)).toBe(sv)
+    expect(tEn(`activityType.${activity}`)).toBe(en)
   })
 })
