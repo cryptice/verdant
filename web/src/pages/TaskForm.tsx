@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api, type SpeciesResponse } from '../api/client'
 import { sortBedsWithGardenByNaturalName } from '../lib/bed'
+import { maintenanceActivityLabelSv } from '../lib/maintenance'
 import { Masthead, Rule } from '../components/faltet'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
@@ -143,9 +144,16 @@ export function TaskForm() {
   }
 
   const isGroupMode = selectedGroupId !== null
-  const hasSelection = isBedActivity
-    ? selectedBedId != null
-    : (isGroupMode ? checkedSpeciesIds.size > 0 : !!selectedSpecies)
+  // An area-scoped maintenance task has neither a species nor a bed — its
+  // subject is the area the backend already put on it. Without this the form
+  // could never satisfy hasSelection, leaving Update permanently disabled and
+  // the deadline/notes uneditable.
+  const isAreaTask = existing?.gardenAreaId != null
+  const hasSelection = isAreaTask || (
+    isBedActivity
+      ? selectedBedId != null
+      : (isGroupMode ? checkedSpeciesIds.size > 0 : !!selectedSpecies)
+  )
   const valid = hasSelection && deadline && Number(targetCount) > 0
 
   const earliestOrNull = earliestDate || null
@@ -236,20 +244,32 @@ export function TaskForm() {
         <div style={{ marginTop: 8 }}><Rule variant="soft" /></div>
 
         <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 28px' }}>
-          {/* Activity type */}
-          <label style={{ display: 'block' }}>
-            <span style={selectLabelStyle}>{t('tasks.form.type')}</span>
-            <select
-              value={activityType}
-              onChange={e => setActivityType(e.target.value)}
-              disabled={isRuleBacked}
-              style={selectStyle}
-            >
-              {activityTypes.map(tp => (
-                <option key={tp} value={tp}>{t(`activityType.${tp}`, { defaultValue: tp.replace(/_/g, ' ') })}</option>
-              ))}
-            </select>
-          </label>
+          {/* Activity type. A rule-backed task's activity belongs to the rule,
+              not the task, so it renders as read-only text — `activityTypes`
+              deliberately omits the area-only activities (there is no area
+              picker here to create one with), which would otherwise leave the
+              disabled select blank for e.g. MOW. */}
+          {isRuleBacked ? (
+            <div>
+              <span style={selectLabelStyle}>{t('tasks.form.type')}</span>
+              <div style={{ ...selectStyle, opacity: 0.7 }}>
+                {maintenanceActivityLabelSv(activityType)}
+              </div>
+            </div>
+          ) : (
+            <label style={{ display: 'block' }}>
+              <span style={selectLabelStyle}>{t('tasks.form.type')}</span>
+              <select
+                value={activityType}
+                onChange={e => setActivityType(e.target.value)}
+                style={selectStyle}
+              >
+                {activityTypes.map(tp => (
+                  <option key={tp} value={tp}>{t(`activityType.${tp}`, { defaultValue: tp.replace(/_/g, ' ') })}</option>
+                ))}
+              </select>
+            </label>
+          )}
 
           {/* Earliest date — optional. Tasks before this date stay in
               the dedicated Tasks list under "Kommande" and don't appear
@@ -309,8 +329,16 @@ export function TaskForm() {
         </div>
 
         <div style={{ marginTop: 14 }}>
-          {/* Bed picker for bed-scoped maintenance */}
-          {isBedActivity ? (
+          {/* Area-scoped maintenance names its place read-only — the species
+              branch below would render an empty "Art" field for it. */}
+          {isAreaTask ? (
+            <div>
+              <span style={selectLabelStyle}>{t('tasks.form.area')}</span>
+              <div style={{ paddingTop: 6, fontFamily: 'var(--font-display)', fontSize: 16, color: 'var(--color-forest)' }}>
+                {existing?.gardenAreaName ?? '—'}
+              </div>
+            </div>
+          ) : isBedActivity ? (
             <div>
               <span style={selectLabelStyle}>Bädd *</span>
               <select

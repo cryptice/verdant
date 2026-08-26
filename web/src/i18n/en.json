@@ -128,6 +128,14 @@
     "WATER": "Water",
     "WEED": "Weed",
     "FERTILIZE": "Fertilize",
+    "MOW": "Mow",
+    "RAKE": "Rake",
+    "PRUNE": "Prune",
+    "EDGE": "Edge",
+    "SWEEP": "Sweep",
+    "TOP_UP": "Top up",
+    "CLEAN": "Clean",
+    "INSPECT": "Inspect",
     "TODO": "To do"
   },
   "dashboard": {
@@ -699,6 +707,7 @@
       "earliestDate": "Earliest (optional)",
       "deadline": "Deadline",
       "bed": "Bed",
+      "area": "Place",
       "maintenanceRuleNotice": "This task comes from a maintenance rule. The activity and count are set by the rule.",
       "maintenanceRuleLink": "Change the rule"
     }

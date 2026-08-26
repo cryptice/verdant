@@ -17,21 +17,26 @@ function activityLabel(type: string, t: TFunction): string {
 }
 
 /** Headline for a dashboard task row — the *subject* of the action. */
-function taskTitle(task: ScheduledTaskResponse, t: TFunction): string {
+export function taskTitle(task: ScheduledTaskResponse, t: TFunction): string {
   if (task.activityType === 'TODO') {
     return task.notes?.trim() || t('activityType.TODO', 'Att göra')
   }
+  // Area-scoped maintenance names the place, exactly as bed-scoped work does —
+  // otherwise the row never says which place needs mowing.
+  if (task.gardenAreaName) return task.gardenAreaName
   if (BED_ACTIONS.has(task.activityType) && task.bedName) return task.bedName
   if (task.speciesName) return task.speciesName
   return activityLabel(task.activityType, t)
 }
 
 /** Secondary line — the action verb, plus the other side of the relation
- *  (bed for species-tasks, garden for bed-tasks) when present. */
-function taskSubject(task: ScheduledTaskResponse, t: TFunction): string | null {
+ *  (bed for species-tasks, garden for place-tasks) when present. */
+export function taskSubject(task: ScheduledTaskResponse, t: TFunction): string | null {
   if (task.activityType === 'TODO') return null
   const action = activityLabel(task.activityType, t)
-  if (BED_ACTIONS.has(task.activityType)) {
+  // Place-scoped work (bed or area) already has the place as its headline, so
+  // the secondary line carries the garden instead.
+  if (task.gardenAreaId != null || BED_ACTIONS.has(task.activityType)) {
     return [action, task.gardenName].filter(Boolean).join(' · ')
   }
   return [action, task.bedName].filter(Boolean).join(' · ')

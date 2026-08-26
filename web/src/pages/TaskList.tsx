@@ -196,6 +196,10 @@ export function TaskList() {
                     navigate(`/sow?${params}`)
                   } else if (drawerTask.bedId != null) {
                     navigate(`/bed/${drawerTask.bedId}`)
+                  } else if (drawerTask.gardenAreaId != null) {
+                    // Area-scoped maintenance is performed on the place itself —
+                    // that's where "Logga underhåll" lives.
+                    navigate(`/area/${drawerTask.gardenAreaId}`)
                   }
                   setDrawerTask(null)
                 }}

@@ -128,6 +128,14 @@
     "WATER": "Vattna",
     "WEED": "Rensa ogräs",
     "FERTILIZE": "Gödsla",
+    "MOW": "Klippa gräs",
+    "RAKE": "Kratta",
+    "PRUNE": "Beskära",
+    "EDGE": "Kantskära",
+    "SWEEP": "Sopa",
+    "TOP_UP": "Fylla på",
+    "CLEAN": "Rensa",
+    "INSPECT": "Inspektera",
     "TODO": "Att göra"
   },
   "dashboard": {
@@ -699,6 +707,7 @@
       "earliestDate": "Tidigast (valfri)",
       "deadline": "Deadline",
       "bed": "Bädd",
+      "area": "Plats",
       "maintenanceRuleNotice": "Uppgiften styrs av en underhållsregel. Aktivitet och antal sätts av regeln.",
       "maintenanceRuleLink": "Ändra regeln"
     }
