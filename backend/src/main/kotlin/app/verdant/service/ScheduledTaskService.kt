@@ -1,8 +1,15 @@
 package app.verdant.service
 
 import app.verdant.dto.*
+import app.verdant.entity.BedEvent
+import app.verdant.entity.GardenAreaEvent
+import app.verdant.entity.MaintenanceActivity
+import app.verdant.entity.MaintenanceTarget
+import app.verdant.entity.PlantEventType
 import app.verdant.entity.ScheduledTask
 import app.verdant.entity.ScheduledTaskStatus
+import app.verdant.repository.BedEventRepository
+import app.verdant.repository.GardenAreaEventRepository
 import app.verdant.repository.GardenAreaRepository
 import app.verdant.repository.ScheduledTaskRepository
 import app.verdant.repository.SpeciesGroupRepository
@@ -19,6 +26,9 @@ class ScheduledTaskService(
     private val bedRepository: app.verdant.repository.BedRepository,
     private val gardenRepository: app.verdant.repository.GardenRepository,
     private val gardenAreaRepository: GardenAreaRepository,
+    private val gardenAreaEventRepository: GardenAreaEventRepository,
+    private val bedEventRepository: BedEventRepository,
+    private val plantService: PlantService,
 ) {
     private fun checkOwnership(taskId: Long, orgId: Long): ScheduledTask {
         val task = taskRepository.findById(taskId) ?: throw NotFoundException("Task not found")
@@ -76,6 +86,10 @@ class ScheduledTaskService(
                 throw BadRequestException("targetCount must be >= 1")
         }
 
+        if (request.bedId != null && request.gardenAreaId != null) {
+            throw BadRequestException("A task targets a bed or an area, not both")
+        }
+
         // Bed-scoped maintenance tasks (WATER, FERTILIZE, WEED) don't carry species.
         if (request.bedId != null) {
             if (request.activityType !in BED_ACTIVITY_TYPES)
@@ -91,6 +105,35 @@ class ScheduledTaskService(
                     orgId = orgId,
                     speciesId = null,
                     bedId = request.bedId,
+                    activityType = request.activityType,
+                    earliestDate = request.earliestDate,
+                    deadline = request.deadline,
+                    targetCount = request.targetCount!!,
+                    remainingCount = request.targetCount!!,
+                    notes = request.notes,
+                    seasonId = request.seasonId,
+                    successionScheduleId = null,
+                    originGroupId = null,
+                )
+            )
+            return buildResponses(listOf(task)).first()
+        }
+
+        // Area-scoped maintenance tasks don't carry species either.
+        if (request.gardenAreaId != null) {
+            if (request.activityType !in AREA_ACTIVITY_TYPES)
+                throw BadRequestException("activityType ${request.activityType} cannot target an area")
+            val area = gardenAreaRepository.findById(request.gardenAreaId)
+                ?: throw NotFoundException("Area not found")
+            val garden = gardenRepository.findById(area.gardenId)
+                ?: throw NotFoundException("Area not found")
+            if (garden.orgId != orgId) throw NotFoundException("Area not found")
+
+            val task = taskRepository.persist(
+                ScheduledTask(
+                    orgId = orgId,
+                    speciesId = null,
+                    gardenAreaId = request.gardenAreaId,
                     activityType = request.activityType,
                     earliestDate = request.earliestDate,
                     deadline = request.deadline,
@@ -153,7 +196,10 @@ class ScheduledTaskService(
         return buildResponses(listOf(task)).first()
     }
 
-    private val BED_ACTIVITY_TYPES = setOf("WATER", "FERTILIZE", "WEED")
+    private val BED_ACTIVITY_TYPES =
+        MaintenanceActivity.forTarget(MaintenanceTarget.BED).map { it.name }.toSet()
+    private val AREA_ACTIVITY_TYPES =
+        MaintenanceActivity.forTarget(MaintenanceTarget.GARDEN_AREA).map { it.name }.toSet()
     private val TODO_ACTIVITY_TYPE = "TODO"
 
     fun updateTask(taskId: Long, request: UpdateScheduledTaskRequest, orgId: Long): ScheduledTaskResponse {
@@ -203,8 +249,8 @@ class ScheduledTaskService(
             task.activityType == TODO_ACTIVITY_TYPE -> {
                 // TODOs are done-or-not; speciesId is irrelevant.
             }
-            task.bedId != null -> {
-                // Bed-scoped tasks (WATER/WEED/FERTILIZE) don't carry species — speciesId is ignored.
+            task.bedId != null || task.gardenAreaId != null -> {
+                // Bed- and area-scoped maintenance tasks don't carry species.
             }
             else -> {
                 if (speciesId == null) {
@@ -218,7 +264,57 @@ class ScheduledTaskService(
         }
         taskRepository.decrementRemainingCount(taskId, processedCount)
         val updated = taskRepository.findById(taskId)!!
+
+        // A rule-backed task that has just been finished records the work, which
+        // is what moves the rule's derived clock. Without this the scheduler
+        // would recreate the same task tomorrow.
+        if (updated.maintenanceRuleId != null && updated.remainingCount <= 0) {
+            recordMaintenance(updated)
+        }
+
         return buildResponses(listOf(updated)).first()
+    }
+
+    /**
+     * Records the completion of a rule-backed maintenance task as an event.
+     *
+     * WEED and WATER on a bed route through [PlantService] so a completed
+     * maintenance task is indistinguishable from a tapped bed button in bed
+     * history — including the per-plant fan-out. FERTILIZE has no
+     * `fertilizeBed` equivalent (quantities are unknown, so a
+     * `supply_application` row can't be honestly fabricated), so it logs a
+     * bare bed event directly. Area activities always log directly, since
+     * there is no per-plant equivalent for an area.
+     */
+    private fun recordMaintenance(task: ScheduledTask) {
+        val activity = runCatching { MaintenanceActivity.parse(task.activityType) }.getOrNull() ?: return
+        val today = java.time.LocalDate.now()
+        when {
+            task.gardenAreaId != null -> gardenAreaEventRepository.persist(
+                GardenAreaEvent(
+                    gardenAreaId = task.gardenAreaId,
+                    eventType = activity.name,
+                    eventDate = today,
+                    notes = task.notes,
+                )
+            )
+            task.bedId != null -> when (activity) {
+                MaintenanceActivity.WEED -> plantService.weedBed(task.bedId, task.orgId)
+                MaintenanceActivity.WATER -> plantService.waterBed(task.bedId, task.orgId)
+                MaintenanceActivity.FERTILIZE -> bedEventRepository.persist(
+                    BedEvent(
+                        bedId = task.bedId,
+                        eventType = PlantEventType.APPLIED_SUPPLY,
+                        eventDate = today,
+                        notes = task.notes,
+                    )
+                )
+                else -> {
+                    // No other activity can currently target a bed (BED_ACTIVITY_TYPES
+                    // guards createTask); nothing to record.
+                }
+            }
+        }
     }
 
     fun addSpeciesToTask(taskId: Long, speciesId: Long, orgId: Long): ScheduledTaskResponse {

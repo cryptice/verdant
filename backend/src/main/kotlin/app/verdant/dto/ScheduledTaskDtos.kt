@@ -46,6 +46,7 @@ data class CreateScheduledTaskRequest(
     val speciesGroupId: Long? = null,
     val speciesIds: List<Long>? = null,
     val bedId: Long? = null,
+    val gardenAreaId: Long? = null,
     @field:NotBlank @field:Size(max = 255)
     val activityType: String,
     val earliestDate: LocalDate? = null,

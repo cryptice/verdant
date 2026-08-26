@@ -2,11 +2,19 @@ package app.verdant.service
 
 import app.verdant.dto.CreateScheduledTaskRequest
 import app.verdant.dto.UpdateScheduledTaskRequest
+import app.verdant.entity.BedEvent
+import app.verdant.entity.Garden
+import app.verdant.entity.GardenArea
+import app.verdant.entity.GardenAreaCategory
+import app.verdant.entity.GardenAreaEvent
+import app.verdant.entity.PlantEventType
 import app.verdant.entity.ScheduledTask
 import app.verdant.entity.ScheduledTaskStatus
 import app.verdant.entity.Species
 import app.verdant.entity.SpeciesGroup
+import app.verdant.repository.BedEventRepository
 import app.verdant.repository.BedRepository
+import app.verdant.repository.GardenAreaEventRepository
 import app.verdant.repository.GardenAreaRepository
 import app.verdant.repository.GardenRepository
 import app.verdant.repository.ScheduledTaskRepository
@@ -29,9 +37,13 @@ class ScheduledTaskServiceTest {
     private val bedRepository: BedRepository = mock()
     private val gardenRepository: GardenRepository = mock()
     private val gardenAreaRepository: GardenAreaRepository = mock()
+    private val gardenAreaEventRepository: GardenAreaEventRepository = mock()
+    private val bedEventRepository: BedEventRepository = mock()
+    private val plantService: PlantService = mock()
     private val service = ScheduledTaskService(
         taskRepository, speciesRepository, speciesGroupRepository,
         bedRepository, gardenRepository, gardenAreaRepository,
+        gardenAreaEventRepository, bedEventRepository, plantService,
     )
 
     private val orgId = 10L
@@ -492,5 +504,136 @@ class ScheduledTaskServiceTest {
 
         verify(taskRepository).decrementRemainingCount(9L, 1)
         assertEquals("COMPLETED", result.status)
+    }
+
+    // ── completePartially: recording the work (rule-backed tasks) ───────────
+
+    @Test
+    fun `completing a rule-backed area task logs an area event`() {
+        val task = ScheduledTask(
+            id = 42L, orgId = orgId, speciesId = null, gardenAreaId = 5L,
+            maintenanceRuleId = 7L, activityType = "WEED",
+            deadline = deadline, targetCount = 1, remainingCount = 1,
+        )
+        whenever(taskRepository.findById(42L)).thenReturn(task, task.copy(remainingCount = 0))
+        whenever(gardenAreaEventRepository.persist(any()))
+            .thenAnswer { it.arguments[0] as GardenAreaEvent }
+
+        service.completePartially(42L, speciesId = null, processedCount = 1, orgId = orgId)
+
+        val captor = argumentCaptor<GardenAreaEvent>()
+        verify(gardenAreaEventRepository).persist(captor.capture())
+        assertEquals(5L, captor.firstValue.gardenAreaId)
+        assertEquals("WEED", captor.firstValue.eventType)
+    }
+
+    @Test
+    fun `completing a rule-backed WEED bed task routes through plantService`() {
+        val task = ScheduledTask(
+            id = 43L, orgId = orgId, speciesId = null, bedId = 3L,
+            maintenanceRuleId = 8L, activityType = "WEED",
+            deadline = deadline, targetCount = 1, remainingCount = 1,
+        )
+        whenever(taskRepository.findById(43L)).thenReturn(task, task.copy(remainingCount = 0))
+
+        service.completePartially(43L, speciesId = null, processedCount = 1, orgId = orgId)
+
+        verify(plantService).weedBed(3L, orgId)
+        verify(bedEventRepository, never()).persist(any())
+    }
+
+    @Test
+    fun `completing a rule-backed WATER bed task routes through plantService`() {
+        val task = ScheduledTask(
+            id = 46L, orgId = orgId, speciesId = null, bedId = 3L,
+            maintenanceRuleId = 11L, activityType = "WATER",
+            deadline = deadline, targetCount = 1, remainingCount = 1,
+        )
+        whenever(taskRepository.findById(46L)).thenReturn(task, task.copy(remainingCount = 0))
+
+        service.completePartially(46L, speciesId = null, processedCount = 1, orgId = orgId)
+
+        verify(plantService).waterBed(3L, orgId)
+        verify(bedEventRepository, never()).persist(any())
+    }
+
+    @Test
+    fun `completing a rule-backed FERTILIZE bed task logs a bed event directly`() {
+        val task = ScheduledTask(
+            id = 47L, orgId = orgId, speciesId = null, bedId = 3L,
+            maintenanceRuleId = 12L, activityType = "FERTILIZE",
+            deadline = deadline, targetCount = 1, remainingCount = 1,
+        )
+        whenever(taskRepository.findById(47L)).thenReturn(task, task.copy(remainingCount = 0))
+
+        service.completePartially(47L, speciesId = null, processedCount = 1, orgId = orgId)
+
+        val captor = argumentCaptor<BedEvent>()
+        verify(bedEventRepository).persist(captor.capture())
+        assertEquals(3L, captor.firstValue.bedId)
+        assertEquals(PlantEventType.APPLIED_SUPPLY, captor.firstValue.eventType)
+        verifyNoInteractions(plantService)
+    }
+
+    @Test
+    fun `a partially completed task logs nothing yet`() {
+        val task = ScheduledTask(
+            id = 44L, orgId = orgId, speciesId = null, gardenAreaId = 5L,
+            maintenanceRuleId = 9L, activityType = "WEED",
+            deadline = deadline, targetCount = 3, remainingCount = 3,
+        )
+        whenever(taskRepository.findById(44L)).thenReturn(task, task.copy(remainingCount = 2))
+
+        service.completePartially(44L, speciesId = null, processedCount = 1, orgId = orgId)
+
+        verify(gardenAreaEventRepository, never()).persist(any())
+    }
+
+    @Test
+    fun `completing a hand-made bed task logs nothing`() {
+        val task = ScheduledTask(
+            id = 45L, orgId = orgId, speciesId = null, bedId = 3L,
+            maintenanceRuleId = null, activityType = "WEED",
+            deadline = deadline, targetCount = 1, remainingCount = 1,
+        )
+        whenever(taskRepository.findById(45L)).thenReturn(task, task.copy(remainingCount = 0))
+
+        service.completePartially(45L, speciesId = null, processedCount = 1, orgId = orgId)
+
+        verify(bedEventRepository, never()).persist(any())
+        verifyNoInteractions(plantService)
+    }
+
+    // ── createTask: garden areas ──────────────────────────────────────────
+
+    @Test
+    fun `an area-only activity is accepted when creating an area task`() {
+        whenever(gardenAreaRepository.findById(5L)).thenReturn(
+            GardenArea(id = 5L, gardenId = 1L, name = "Gång", category = GardenAreaCategory.WALKWAY)
+        )
+        whenever(gardenRepository.findById(1L)).thenReturn(Garden(id = 1L, name = "T", orgId = orgId))
+        // Mimic real persistence, which assigns an id — the mocked repository
+        // otherwise echoes back a task with id = null, and buildResponses
+        // requires a non-null id.
+        whenever(taskRepository.persist(any())).thenAnswer { (it.arguments[0] as ScheduledTask).copy(id = 50L) }
+
+        val result = service.createTask(
+            CreateScheduledTaskRequest(
+                gardenAreaId = 5L, activityType = "MOW", deadline = deadline, targetCount = 1,
+            ),
+            orgId,
+        )
+
+        assertEquals("MOW", result.activityType)
+    }
+
+    @Test
+    fun `createTask rejects a request naming both a bed and an area`() {
+        val request = CreateScheduledTaskRequest(
+            bedId = 3L, gardenAreaId = 5L, activityType = "WEED",
+            deadline = deadline, targetCount = 1,
+        )
+
+        assertThrows<BadRequestException> { service.createTask(request, orgId) }
     }
 }
