@@ -3,7 +3,9 @@ package app.verdant.resource
 import app.verdant.dto.AddSpeciesProviderRequest
 import app.verdant.dto.AuthResponse
 import app.verdant.dto.CreateSpeciesRequest
+import app.verdant.dto.GardenAreaResponse
 import app.verdant.dto.ImportResult
+import app.verdant.dto.ScheduledTaskResponse
 import app.verdant.dto.SpeciesProviderResponse
 import app.verdant.dto.SpeciesResponse
 import app.verdant.dto.UpdateSpeciesProviderRequest
@@ -117,6 +119,24 @@ class ApiContractTest {
     fun `ImportResult fields are pinned`() = assertFields(
         ImportResult::class,
         "created", "updated", "skipped",
+    )
+
+    @Test
+    fun `ScheduledTaskResponse fields are pinned`() = assertFields(
+        ScheduledTaskResponse::class,
+        "id", "speciesId", "speciesName", "bedId", "bedName", "gardenName",
+        "gardenAreaId", "gardenAreaName", "maintenanceRuleId",
+        "activityType", "earliestDate", "deadline", "targetCount",
+        "remainingCount", "status", "notes", "seasonId", "successionScheduleId",
+        "originGroupId", "originGroupName", "acceptableSpecies",
+        "createdAt", "updatedAt",
+    )
+
+    @Test
+    fun `GardenAreaResponse fields are pinned`() = assertFields(
+        GardenAreaResponse::class,
+        "id", "gardenId", "gardenName", "name", "description", "category",
+        "boundaryJson", "sizeSqm", "createdAt", "updatedAt",
     )
 
     private fun assertFields(klass: KClass<*>, vararg expected: String) {

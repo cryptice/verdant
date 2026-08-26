@@ -8,6 +8,8 @@ data class ScheduledTask(
     val orgId: Long,
     val speciesId: Long? = null,
     val bedId: Long? = null,
+    val gardenAreaId: Long? = null,
+    val maintenanceRuleId: Long? = null,
     val activityType: String,
     val earliestDate: LocalDate? = null,
     val deadline: LocalDate? = null,

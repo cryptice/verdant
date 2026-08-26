@@ -3,6 +3,7 @@ package app.verdant.service
 import app.verdant.dto.*
 import app.verdant.entity.ScheduledTask
 import app.verdant.entity.ScheduledTaskStatus
+import app.verdant.repository.GardenAreaRepository
 import app.verdant.repository.ScheduledTaskRepository
 import app.verdant.repository.SpeciesGroupRepository
 import app.verdant.repository.SpeciesRepository
@@ -17,6 +18,7 @@ class ScheduledTaskService(
     private val speciesGroupRepository: SpeciesGroupRepository,
     private val bedRepository: app.verdant.repository.BedRepository,
     private val gardenRepository: app.verdant.repository.GardenRepository,
+    private val gardenAreaRepository: GardenAreaRepository,
 ) {
     private fun checkOwnership(taskId: Long, orgId: Long): ScheduledTask {
         val task = taskRepository.findById(taskId) ?: throw NotFoundException("Task not found")
@@ -260,14 +262,20 @@ class ScheduledTaskService(
         val bedIds = tasks.mapNotNull { it.bedId }.toSet()
         val bedsById = if (bedIds.isEmpty()) emptyMap() else
             bedIds.mapNotNull { bedRepository.findById(it) }.associateBy { it.id!! }
-        val gardenIds = bedsById.values.map { it.gardenId }.toSet()
+        val areaIds = tasks.mapNotNull { it.gardenAreaId }.toSet()
+        val areasById = if (areaIds.isEmpty()) emptyMap() else
+            areaIds.mapNotNull { gardenAreaRepository.findById(it) }.associateBy { it.id!! }
+        val gardenIds = bedsById.values.map { it.gardenId }.toSet() +
+            areasById.values.map { it.gardenId }.toSet()
         val gardensById = if (gardenIds.isEmpty()) emptyMap() else
             gardenIds.mapNotNull { gardenRepository.findById(it) }.associateBy { it.id!! }
 
         return tasks.map { task ->
             val myAcceptable = acceptableByTask[task.id] ?: emptyList()
             val bed = task.bedId?.let { bedsById[it] }
-            val garden = bed?.gardenId?.let { gardensById[it] }
+            val area = task.gardenAreaId?.let { areasById[it] }
+            // An area task's garden name comes from the area, a bed task's from the bed.
+            val garden = (bed?.gardenId ?: area?.gardenId)?.let { gardensById[it] }
             ScheduledTaskResponse(
                 id = task.id!!,
                 speciesId = task.speciesId,
@@ -275,6 +283,9 @@ class ScheduledTaskService(
                 bedId = task.bedId,
                 bedName = bed?.name,
                 gardenName = garden?.name,
+                gardenAreaId = task.gardenAreaId,
+                gardenAreaName = area?.name,
+                maintenanceRuleId = task.maintenanceRuleId,
                 activityType = task.activityType,
                 earliestDate = task.earliestDate,
                 deadline = task.deadline,
