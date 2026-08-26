@@ -221,18 +221,28 @@ class ScheduledTaskService(
             throw BadRequestException("TODO tasks require a non-blank description")
         }
 
-        // A rule-backed task's activityType must stay one that recordMaintenance
-        // can actually log — otherwise completing it would silently strand the
-        // rule's derived clock. Ordinary hand-made tasks are unaffected.
-        if (task.maintenanceRuleId != null && request.activityType != null) {
-            val allowedForTarget = when {
-                task.bedId != null -> BED_ACTIVITY_TYPES
-                task.gardenAreaId != null -> AREA_ACTIVITY_TYPES
-                else -> emptySet()
-            }
-            if (request.activityType !in allowedForTarget) {
+        // A rule-backed task's activity IS its rule's, and such tasks are always
+        // targetCount = 1, so neither is meaningfully editable. Re-sending the
+        // current value is fine — the web/Android edit forms always echo both
+        // fields back — but a genuine change is rejected:
+        //
+        //  - Retargeting the activity (say a bed WEED task PUT to WATER) would
+        //    make completion write the wrong event type, leaving the rule's
+        //    derived clock unmoved and the scheduler recreating the task daily.
+        //  - Raising targetCount re-opens a COMPLETED task, which collides with
+        //    idx_scheduled_task_open_rule once the scheduler has already made
+        //    the successor, surfacing a raw PSQLException as a 500.
+        //
+        // Ordinary hand-made tasks are unaffected.
+        if (task.maintenanceRuleId != null) {
+            if (request.activityType != null && request.activityType != task.activityType) {
                 throw BadRequestException(
-                    "activityType ${request.activityType} is not valid for this rule-backed task"
+                    "Cannot change the activity of a maintenance-rule task; edit the rule instead"
+                )
+            }
+            if (request.targetCount != null && request.targetCount != task.targetCount) {
+                throw BadRequestException(
+                    "Cannot change the target count of a maintenance-rule task"
                 )
             }
         }

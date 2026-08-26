@@ -587,6 +587,10 @@ class ScheduledTaskServiceTest {
             deadline = deadline, targetCount = 3, remainingCount = 3,
         )
         whenever(taskRepository.findById(44L)).thenReturn(task, task.copy(remainingCount = 2))
+        // Without this the decrement returns Mockito's default 0 and the
+        // `changed > 0` gate short-circuits before the partial-completion
+        // check this test is named for is ever reached.
+        whenever(taskRepository.decrementRemainingCount(44L, 1)).thenReturn(1)
 
         service.completePartially(44L, speciesId = null, processedCount = 1, orgId = orgId)
 
@@ -601,6 +605,9 @@ class ScheduledTaskServiceTest {
             deadline = deadline, targetCount = 1, remainingCount = 1,
         )
         whenever(taskRepository.findById(45L)).thenReturn(task, task.copy(remainingCount = 0))
+        // As above: stub the decrement so the `maintenanceRuleId == null`
+        // guard — not the `changed > 0` gate — is what stops the logging.
+        whenever(taskRepository.decrementRemainingCount(45L, 1)).thenReturn(1)
 
         service.completePartially(45L, speciesId = null, processedCount = 1, orgId = orgId)
 
@@ -673,7 +680,78 @@ class ScheduledTaskServiceTest {
         verify(plantService, times(1)).weedBed(3L, orgId)
     }
 
-    // ── updateTask: rule-backed activityType guard ───────────────────────────
+    // ── updateTask: rule-backed edit guard ───────────────────────────────────
+
+    @Test
+    fun `updateTask rejects an activityType change on a rule-backed task even when valid for its target`() {
+        // WATER is a perfectly good bed activity — it is still rejected,
+        // because completing would move the WATER clock and leave the rule's
+        // WEED clock stranded, respawning this task tomorrow.
+        val task = ScheduledTask(
+            id = 51L, orgId = orgId, speciesId = null, bedId = 3L,
+            maintenanceRuleId = 15L, activityType = "WEED",
+            deadline = deadline, targetCount = 1, remainingCount = 1,
+        )
+        whenever(taskRepository.findById(51L)).thenReturn(task)
+
+        assertThrows<BadRequestException> {
+            service.updateTask(51L, UpdateScheduledTaskRequest(activityType = "WATER"), orgId)
+        }
+        verify(taskRepository, never()).update(any())
+    }
+
+    @Test
+    fun `updateTask rejects a targetCount change on a rule-backed task`() {
+        val task = ScheduledTask(
+            id = 52L, orgId = orgId, speciesId = null, bedId = 3L,
+            maintenanceRuleId = 16L, activityType = "WEED",
+            deadline = deadline, targetCount = 1, remainingCount = 0,
+            status = ScheduledTaskStatus.COMPLETED,
+        )
+        whenever(taskRepository.findById(52L)).thenReturn(task)
+
+        assertThrows<BadRequestException> {
+            service.updateTask(52L, UpdateScheduledTaskRequest(targetCount = 2), orgId)
+        }
+        verify(taskRepository, never()).update(any())
+    }
+
+    @Test
+    fun `updateTask allows editing a rule-backed task when activityType and targetCount are unchanged`() {
+        // The web/Android edit forms always echo both fields back, so an
+        // unchanged value must not be mistaken for an edit.
+        val task = ScheduledTask(
+            id = 53L, orgId = orgId, speciesId = null, bedId = 3L,
+            maintenanceRuleId = 17L, activityType = "WEED",
+            deadline = deadline, targetCount = 1, remainingCount = 1,
+        )
+        whenever(taskRepository.findById(53L)).thenReturn(task)
+
+        val request = UpdateScheduledTaskRequest(
+            activityType = "WEED", targetCount = 1,
+            deadline = deadline.plusDays(3), notes = "Efter regnet",
+        )
+        val result = service.updateTask(53L, request, orgId)
+
+        assertEquals("WEED", result.activityType)
+        assertEquals(deadline.plusDays(3), result.deadline)
+        assertEquals("Efter regnet", result.notes)
+    }
+
+    @Test
+    fun `updateTask still allows a targetCount change on a non-rule-backed task`() {
+        val task = ScheduledTask(
+            id = 54L, orgId = orgId, speciesId = null, bedId = 3L,
+            maintenanceRuleId = null, activityType = "WEED",
+            deadline = deadline, targetCount = 1, remainingCount = 1,
+        )
+        whenever(taskRepository.findById(54L)).thenReturn(task)
+
+        val result = service.updateTask(54L, UpdateScheduledTaskRequest(targetCount = 4), orgId)
+
+        assertEquals(4, result.targetCount)
+        verify(taskRepository).update(check { assertEquals(4, it.targetCount) })
+    }
 
     @Test
     fun `updateTask rejects an activityType change invalid for a rule-backed bed task`() {
