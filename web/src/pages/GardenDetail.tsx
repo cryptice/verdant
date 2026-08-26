@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { sortBedsByNaturalName } from '../lib/bed'
+import { sortAreasByNaturalName, areaCategoryLabelSv } from '../lib/area'
 import { Masthead, Chip, Stat } from '../components/faltet'
 import { Dialog } from '../components/Dialog'
 import { SunDirectionPicker } from '../components/SunDirectionPicker'
@@ -32,6 +33,11 @@ export function GardenDetail() {
   const { data: beds } = useQuery({
     queryKey: ['garden-beds', gardenId],
     queryFn: () => api.gardens.beds(gardenId),
+  })
+
+  const { data: areas } = useQuery({
+    queryKey: ['garden-areas', gardenId],
+    queryFn: () => api.areas.listByGarden(gardenId),
   })
 
   // Used to decide whether to surface a "+ New garden" shortcut here — when the
@@ -122,6 +128,7 @@ export function GardenDetail() {
   })
 
   const sortedBeds = useMemo(() => (beds ? sortBedsByNaturalName(beds) : []), [beds])
+  const sortedAreas = useMemo(() => (areas ? sortAreasByNaturalName(areas) : []), [areas])
 
   // Plant count aggregation from beds (bedCount * approximate) — use garden's plantCount if available
   const plantCount = sortedBeds.reduce((sum, _b) => sum, 0)
@@ -281,6 +288,68 @@ export function GardenDetail() {
                   {bed.protection && (
                     <Chip tone="berry">{t(`bed.conditions.protections.${bed.protection}`)}</Chip>
                   )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* Areas section heading */}
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginTop: 40, marginBottom: 14 }}>
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontStyle: 'italic',
+              fontSize: 30,
+              fontWeight: 300,
+              margin: 0,
+              fontVariationSettings: '"SOFT" 100, "opsz" 144',
+            }}
+          >
+            {t('garden.areas')}<span style={{ color: 'var(--color-accent)' }}>.</span>
+          </h2>
+          <Link
+            to={`/garden/${gardenId}/area/new`}
+            style={{
+              display: 'inline-block',
+              background: 'transparent',
+              border: '1px solid var(--color-accent)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 11,
+              letterSpacing: 1.6,
+              textTransform: 'uppercase',
+              color: 'var(--color-accent)',
+              textDecoration: 'none',
+              cursor: 'pointer',
+              padding: '6px 14px',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {t('garden.newArea')}
+          </Link>
+        </div>
+
+        {sortedAreas.length === 0 && (
+          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--color-forest)' }}>
+            {t('garden.noAreasYet')}
+          </p>
+        )}
+
+        {/* Area rows */}
+        {sortedAreas.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {sortedAreas.map((a) => (
+              <Link
+                key={a.id}
+                to={`/area/${a.id}`}
+                className="list-tile"
+              >
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 20, lineHeight: 1.1 }}>{a.name}</span>
+                  <span style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-mono)', fontSize: 14 }}>→</span>
+                </div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 'auto' }}>
+                  <Chip tone="sage">{areaCategoryLabelSv(a.category)}</Chip>
                 </div>
               </Link>
             ))}

@@ -13,6 +13,7 @@ const GardenDetail = lazy(() => import('./pages/GardenDetail').then(m => ({ defa
 const BedDetail = lazy(() => import('./pages/BedDetail').then(m => ({ default: m.BedDetail })))
 const AreaDetail = lazy(() => import('./pages/AreaDetail').then(m => ({ default: m.AreaDetail })))
 const BedForm = lazy(() => import('./pages/BedForm').then(m => ({ default: m.BedForm })))
+const AreaForm = lazy(() => import('./pages/AreaForm').then(m => ({ default: m.AreaForm })))
 const PlantDetail = lazy(() => import('./pages/PlantDetail').then(m => ({ default: m.PlantDetail })))
 const PlantedSpeciesList = lazy(() => import('./pages/PlantedSpeciesList').then(m => ({ default: m.PlantedSpeciesList })))
 const PlantedSpeciesDetail = lazy(() => import('./pages/PlantedSpeciesDetail').then(m => ({ default: m.PlantedSpeciesDetail })))
@@ -88,6 +89,7 @@ export function App() {
           <Route path="garden/new" element={<Navigate to="/" replace />} />
           <Route path="garden/:id" element={<GardenDetail />} />
           <Route path="garden/:gardenId/bed/new" element={<BedForm />} />
+          <Route path="garden/:gardenId/area/new" element={<AreaForm />} />
           <Route path="bed/:id" element={<BedDetail />} />
           <Route path="area/:id" element={<AreaDetail />} />
           <Route path="plant/:id" element={<PlantDetail />} />

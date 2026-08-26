@@ -7,6 +7,7 @@ import { Masthead, Chip, SectionHeader, MetaCell } from '../components/faltet'
 import { Dialog } from '../components/Dialog'
 import { Snackbar, useSnackbar } from '../components/Snackbar'
 import { AreaPhotosSection } from '../components/area/AreaPhotosSection'
+import { AreaEditDialog } from '../components/area/AreaEditDialog'
 import { MaintenanceRules } from '../components/maintenance/MaintenanceRules'
 import { areaCategoryLabelSv, areaEventLabelSv } from '../lib/area'
 import { activitiesForTarget, maintenanceActivityLabelSv, type MaintenanceActivity } from '../lib/maintenance'
@@ -29,6 +30,7 @@ export function AreaDetail() {
 
   const [showLog, setShowLog] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
+  const [editing, setEditing] = useState(false)
 
   const deleteMut = useMutation({
     mutationFn: () => api.areas.delete(areaId),
@@ -56,9 +58,14 @@ export function AreaDetail() {
         }
         center={t('area.masthead.center')}
         right={
-          <button onClick={() => setShowLog(true)} className="btn-secondary">
-            {t('area.logMaintenance')}
-          </button>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+            <button onClick={() => setEditing(true)} className="btn-secondary">
+              {t('common.edit')}
+            </button>
+            <button onClick={() => setShowLog(true)} className="btn-secondary">
+              {t('area.logMaintenance')}
+            </button>
+          </div>
         }
       />
 
@@ -207,6 +214,14 @@ export function AreaDetail() {
           </button>
         </div>
       </div>
+
+      {editing && (
+        <AreaEditDialog
+          open={editing}
+          area={area}
+          onClose={() => setEditing(false)}
+        />
+      )}
 
       {showLog && (
         <LogMaintenanceDialog
