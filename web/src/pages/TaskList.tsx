@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { api, type ScheduledTaskResponse } from '../api/client'
 import { Masthead } from '../components/faltet'
 import { Dialog } from '../components/Dialog'
-import { maintenanceActivityLabelSv } from '../lib/maintenance'
+import { maintenanceActivityLabelSv, todayIsoLocal } from '../lib/maintenance'
 
 type ActivityFilter = 'harvest' | 'sowing' | 'watering' | 'planting' | 'maintenance'
 const FILTERS: ActivityFilter[] = ['harvest', 'sowing', 'watering', 'planting', 'maintenance']
@@ -79,7 +79,7 @@ export function TaskList() {
     },
   })
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayIsoLocal()
   const isToday  = (d: string) => d === today
   const isFuture = (d: string) => d > today
 
