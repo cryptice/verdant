@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api, type SpeciesResponse } from '../api/client'
@@ -205,6 +205,15 @@ export function TaskForm() {
 
   const mutation = isEdit ? updateMut : createMut
 
+  // The backend rejects activityType/targetCount changes on a task whose
+  // maintenanceRuleId is set — those fields belong to the rule, not the task.
+  const isRuleBacked = isEdit && existing?.maintenanceRuleId != null
+  const ruleBackedPlaceLink = existing?.gardenAreaId != null
+    ? `/area/${existing.gardenAreaId}`
+    : existing?.bedId != null
+      ? `/bed/${existing.bedId}`
+      : null
+
   return (
     <div>
       <Masthead
@@ -230,7 +239,12 @@ export function TaskForm() {
           {/* Activity type */}
           <label style={{ display: 'block' }}>
             <span style={selectLabelStyle}>{t('tasks.form.type')}</span>
-            <select value={activityType} onChange={e => setActivityType(e.target.value)} style={selectStyle}>
+            <select
+              value={activityType}
+              onChange={e => setActivityType(e.target.value)}
+              disabled={isRuleBacked}
+              style={selectStyle}
+            >
               {activityTypes.map(tp => (
                 <option key={tp} value={tp}>{t(`activityType.${tp}`, { defaultValue: tp.replace(/_/g, ' ') })}</option>
               ))}
@@ -268,10 +282,25 @@ export function TaskForm() {
               type="number"
               value={targetCount}
               onChange={e => setTargetCount(e.target.value)}
+              disabled={isRuleBacked}
               style={{ ...selectStyle, fontFamily: 'var(--font-mono)', fontSize: 14 }}
             />
           </div>
         </div>
+
+        {isRuleBacked && (
+          <div style={{ marginTop: 14, border: '1px solid var(--color-ink)', background: 'var(--color-paper)', padding: '10px 14px', fontFamily: 'var(--font-mono)', fontSize: 11, lineHeight: 1.6 }}>
+            {t('tasks.form.maintenanceRuleNotice')}
+            {ruleBackedPlaceLink && (
+              <>
+                {' '}
+                <Link to={ruleBackedPlaceLink} style={{ color: 'var(--color-accent)' }}>
+                  {t('tasks.form.maintenanceRuleLink')}
+                </Link>
+              </>
+            )}
+          </div>
+        )}
 
         {/* § Schema */}
         <div style={{ marginTop: 28 }}>

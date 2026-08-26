@@ -664,6 +664,7 @@
     "perform": "Utför",
     "deleteTaskTitle": "Radera uppgift",
     "deleteTaskConfirm": "Är du säker på att du vill radera den här uppgiften?",
+    "deleteMaintenanceTaskConfirm": "Så länge regeln är aktiv skapas uppgiften på nytt nästa dag. Pausa regeln istället för att faktiskt stoppa den.",
     "newTaskTitle": "Ny uppgift",
     "editTaskTitle": "Redigera uppgift",
     "activityLabel": "Aktivitet *",
@@ -697,7 +698,9 @@
       "type": "Typ",
       "earliestDate": "Tidigast (valfri)",
       "deadline": "Deadline",
-      "bed": "Bädd"
+      "bed": "Bädd",
+      "maintenanceRuleNotice": "Uppgiften styrs av en underhållsregel. Aktivitet och antal sätts av regeln.",
+      "maintenanceRuleLink": "Ändra regeln"
     }
   },
   "seasons": {

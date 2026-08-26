@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { api, type ScheduledTaskResponse } from '../api/client'
 import { Masthead } from '../components/faltet'
 import { Dialog } from '../components/Dialog'
+import { maintenanceActivityLabelSv } from '../lib/maintenance'
 
 type ActivityFilter = 'harvest' | 'sowing' | 'watering' | 'planting' | 'maintenance'
 const FILTERS: ActivityFilter[] = ['harvest', 'sowing', 'watering', 'planting', 'maintenance']
@@ -16,11 +17,14 @@ const TONE: Record<ActivityFilter, string> = {
   maintenance: 'var(--color-berry)',
 }
 
-// Map backend activityType enum values to filter categories
+// Map backend activityType enum values to filter categories. Maintenance
+// activities not listed here (WEED, FERTILIZE, MOW, RAKE, PRUNE, EDGE,
+// SWEEP, TOP_UP, CLEAN, INSPECT) fall through to 'maintenance' below.
 const ACTIVITY_TO_FILTER: Record<string, ActivityFilter> = {
   HARVEST: 'harvest',
   SOW:     'sowing',
   SOAK:    'watering',
+  WATER:   'watering',
   PLANT:   'planting',
   POT_UP:  'planting',
   RECOVER: 'maintenance',
@@ -42,8 +46,11 @@ function loadFilters(): ActivityFilter[] {
   }
 }
 
-function taskTitle(task: ScheduledTaskResponse): string {
-  return task.speciesName ?? task.activityType
+export function taskTitle(task: ScheduledTaskResponse): string {
+  if (task.speciesName) return task.speciesName
+  const place = task.gardenAreaName ?? task.bedName
+  const activity = maintenanceActivityLabelSv(task.activityType)
+  return place ? `${activity} · ${place}` : activity
 }
 
 export function TaskList() {
@@ -236,7 +243,11 @@ export function TaskList() {
           </>
         }
       >
-        <p className="text-text-secondary">{t('tasks.deleteTaskConfirm')}</p>
+        <p className="text-text-secondary">
+          {deleteTask?.maintenanceRuleId != null
+            ? t('tasks.deleteMaintenanceTaskConfirm')
+            : t('tasks.deleteTaskConfirm')}
+        </p>
       </Dialog>
     </div>
   )
@@ -302,7 +313,7 @@ function TaskRow({ task, onOpen }: { task: ScheduledTaskResponse; onOpen: () => 
         <div style={{ fontFamily: 'var(--font-display)', fontSize: 18 }}>
           {task.bedId != null
             ? task.activityType.replace(/_/g, ' ')
-            : (task.speciesName ?? task.activityType)}
+            : (task.speciesName ?? maintenanceActivityLabelSv(task.activityType))}
         </div>
         {task.originGroupName && (
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7 }}>
@@ -312,7 +323,7 @@ function TaskRow({ task, onOpen }: { task: ScheduledTaskResponse; onOpen: () => 
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7 }}>
           {task.bedId != null
             ? [task.gardenName, task.bedName].filter(Boolean).join(' · ')
-            : task.activityType.replace(/_/g, ' ')}
+            : (task.gardenAreaName ?? task.activityType.replace(/_/g, ' '))}
         </div>
       </div>
       <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase' }}>

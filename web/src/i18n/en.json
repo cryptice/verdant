@@ -664,6 +664,7 @@
     "perform": "Perform",
     "deleteTaskTitle": "Delete Task",
     "deleteTaskConfirm": "Are you sure you want to delete this task?",
+    "deleteMaintenanceTaskConfirm": "While the rule is active, this task will be recreated the next day. Pause the rule instead to actually stop it.",
     "newTaskTitle": "New Task",
     "editTaskTitle": "Edit Task",
     "activityLabel": "Activity *",
@@ -697,7 +698,9 @@
       "type": "Type",
       "earliestDate": "Earliest (optional)",
       "deadline": "Deadline",
-      "bed": "Bed"
+      "bed": "Bed",
+      "maintenanceRuleNotice": "This task comes from a maintenance rule. The activity and count are set by the rule.",
+      "maintenanceRuleLink": "Change the rule"
     }
   },
   "seasons": {
