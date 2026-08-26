@@ -378,6 +378,41 @@
       }
     }
   },
+  "maintenance": {
+    "title": "Underhåll",
+    "addRule": "+ Lägg till underhåll",
+    "emptyState": "Inget återkommer förrän en regel läggs till.",
+    "newRuleTitle": "Ny underhållsregel",
+    "editRuleTitle": "Redigera underhållsregel",
+    "activityLabel": "Aktivitet",
+    "intervalLabel": "Intervall (dagar)",
+    "anchorDateLabel": "Senast utfört…",
+    "anchorDateHint": "Lämna tomt så blir regeln redo direkt.",
+    "activeLabel": "Aktiv",
+    "activeHint": "Pausar regeln istället för att radera den.",
+    "season": {
+      "toggle": "Säsongsfönster",
+      "hint": "Fönstret kan gå över årsskiftet, t.ex. 1 nov – 31 mar för en vintersäsong.",
+      "start": "Start",
+      "end": "Slut",
+      "month": "Månad",
+      "day": "Dag"
+    },
+    "due": {
+      "overdue_one": "Försenad {{count}} dag",
+      "overdue_other": "Försenad {{count}} dagar",
+      "today": "Idag",
+      "upcoming_one": "Om {{count}} dag",
+      "upcoming_other": "Om {{count}} dagar",
+      "paused": "Pausad"
+    },
+    "ruleSaved": "Regel sparad",
+    "ruleDeleted": "Regel borttagen",
+    "saveError": "Kunde inte spara regeln",
+    "deleteError": "Kunde inte radera regeln",
+    "deleteRuleTitle": "Radera underhållsregel",
+    "deleteRuleConfirm": "Detta raderar regeln. Är du säker?"
+  },
   "plant": {
     "timeline": "Tidslinje",
     "seedCount_one": "{{count}} frö",

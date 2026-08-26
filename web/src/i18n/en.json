@@ -378,6 +378,41 @@
       }
     }
   },
+  "maintenance": {
+    "title": "Maintenance",
+    "addRule": "+ Add maintenance",
+    "emptyState": "Nothing recurs until a rule is added.",
+    "newRuleTitle": "New maintenance rule",
+    "editRuleTitle": "Edit maintenance rule",
+    "activityLabel": "Activity",
+    "intervalLabel": "Interval (days)",
+    "anchorDateLabel": "Last done on…",
+    "anchorDateHint": "Leave blank to make the rule due immediately.",
+    "activeLabel": "Active",
+    "activeHint": "Pauses the rule instead of deleting it.",
+    "season": {
+      "toggle": "Season window",
+      "hint": "The window can wrap the new year, e.g. Nov 1 – Mar 31 for a winter season.",
+      "start": "Start",
+      "end": "End",
+      "month": "Month",
+      "day": "Day"
+    },
+    "due": {
+      "overdue_one": "Overdue by {{count}} day",
+      "overdue_other": "Overdue by {{count}} days",
+      "today": "Today",
+      "upcoming_one": "In {{count}} day",
+      "upcoming_other": "In {{count}} days",
+      "paused": "Paused"
+    },
+    "ruleSaved": "Rule saved",
+    "ruleDeleted": "Rule deleted",
+    "saveError": "Could not save the rule",
+    "deleteError": "Could not delete the rule",
+    "deleteRuleTitle": "Delete maintenance rule",
+    "deleteRuleConfirm": "This deletes the rule. Are you sure?"
+  },
   "plant": {
     "timeline": "Timeline",
     "seedCount_one": "{{count}} seed",
