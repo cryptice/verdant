@@ -140,6 +140,9 @@ export interface ScheduledTaskResponse {
   status: string; notes?: string; seasonId?: number; successionScheduleId?: number
   originGroupId?: number; originGroupName?: string
   acceptableSpecies: AcceptableSpeciesEntry[]
+  gardenAreaId?: number | null
+  gardenAreaName?: string | null
+  maintenanceRuleId?: number | null
   createdAt: string; updatedAt: string
 }
 
@@ -184,6 +187,66 @@ export interface BedPhotoResponse {
   capturedAt: string
   createdAt: string
 }
+
+export type GardenAreaCategory =
+  | 'WALKWAY' | 'LAWN' | 'HEDGE' | 'COMPOST'
+  | 'GREENHOUSE' | 'WATER_FEATURE' | 'STRUCTURE' | 'OTHER'
+
+export interface GardenAreaResponse {
+  id: number
+  gardenId: number
+  gardenName: string | null
+  name: string
+  description: string | null
+  category: string
+  boundaryJson: string | null
+  sizeSqm: number | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface GardenAreaEventResponse {
+  id: number
+  gardenAreaId: number
+  eventType: string
+  eventDate: string
+  notes: string | null
+  createdAt: string
+}
+
+export interface GardenAreaPhotoResponse {
+  id: number
+  gardenAreaId: number
+  photoUrl: string
+  reason: BedPhotoReason
+  description: string | null
+  capturedAt: string
+  createdAt: string
+}
+
+export interface MaintenanceRuleResponse {
+  id: number
+  bedId: number | null
+  bedName: string | null
+  gardenAreaId: number | null
+  gardenAreaName: string | null
+  activityType: string
+  intervalDays: number
+  anchorDate: string | null
+  seasonStartMonth: number | null
+  seasonStartDay: number | null
+  seasonEndMonth: number | null
+  seasonEndDay: number | null
+  active: boolean
+  notes: string | null
+  /** Derived server-side from the event log. Null when never done. */
+  lastDoneDate: string | null
+  /** Derived server-side: when the next task will be created. */
+  nextDueDate: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface MoveTrayLocationRequest {
   targetLocationId?: number | null
   count: number
@@ -576,6 +639,93 @@ export const api = {
       }),
     deletePhoto: (id: number, photoId: number) =>
       apiRequest<void>(`/api/beds/${id}/photos/${photoId}`, { method: 'DELETE' }),
+  },
+
+  areas: {
+    listByGarden: (gardenId: number) =>
+      apiRequest<GardenAreaResponse[]>(`/api/gardens/${gardenId}/areas`),
+    get: (id: number) => apiRequest<GardenAreaResponse>(`/api/areas/${id}`),
+    create: (
+      gardenId: number,
+      data: {
+        name: string; category: string
+        description?: string; boundaryJson?: string; sizeSqm?: number
+      },
+    ) =>
+      apiRequest<GardenAreaResponse>(`/api/gardens/${gardenId}/areas`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    update: (
+      id: number,
+      data: {
+        name?: string; category?: string
+        description?: string; boundaryJson?: string; sizeSqm?: number
+      },
+    ) =>
+      apiRequest<GardenAreaResponse>(`/api/areas/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    delete: (id: number) => apiRequest<void>(`/api/areas/${id}`, { method: 'DELETE' }),
+
+    events: (id: number, limit = 50) =>
+      apiRequest<GardenAreaEventResponse[]>(`/api/areas/${id}/events?limit=${limit}`),
+    logEvent: (
+      id: number,
+      data: { activityType: string; eventDate?: string; notes?: string },
+    ) =>
+      apiRequest<GardenAreaEventResponse>(`/api/areas/${id}/events`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    photos: (id: number) => apiRequest<GardenAreaPhotoResponse[]>(`/api/areas/${id}/photos`),
+    addPhoto: (
+      id: number,
+      data: { imageBase64: string; reason: BedPhotoReason; description?: string; capturedAt?: string },
+    ) =>
+      apiRequest<GardenAreaPhotoResponse>(`/api/areas/${id}/photos`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    deletePhoto: (id: number, photoId: number) =>
+      apiRequest<void>(`/api/areas/${id}/photos/${photoId}`, { method: 'DELETE' }),
+  },
+
+  maintenanceRules: {
+    // At most one filter — supplying both is a 400 server-side.
+    list: (filter?: { bedId?: number; areaId?: number }) => {
+      const qs = filter?.bedId != null ? `?bedId=${filter.bedId}`
+        : filter?.areaId != null ? `?areaId=${filter.areaId}`
+        : ''
+      return apiRequest<MaintenanceRuleResponse[]>(`/api/maintenance-rules${qs}`)
+    },
+    create: (data: {
+      bedId?: number; gardenAreaId?: number
+      activityType: string; intervalDays: number; anchorDate?: string
+      seasonStartMonth?: number; seasonStartDay?: number
+      seasonEndMonth?: number; seasonEndDay?: number
+      notes?: string
+    }) =>
+      apiRequest<MaintenanceRuleResponse>('/api/maintenance-rules', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    update: (id: number, data: {
+      activityType?: string; intervalDays?: number; anchorDate?: string
+      seasonStartMonth?: number; seasonStartDay?: number
+      seasonEndMonth?: number; seasonEndDay?: number
+      /** The ONLY way to remove a season window. Cannot be combined with season* values. */
+      clearSeasonWindow?: boolean
+      active?: boolean; notes?: string
+    }) =>
+      apiRequest<MaintenanceRuleResponse>(`/api/maintenance-rules/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    delete: (id: number) =>
+      apiRequest<void>(`/api/maintenance-rules/${id}`, { method: 'DELETE' }),
   },
 
   plants: {
