@@ -3,8 +3,11 @@ package app.verdant.resource
 import app.verdant.dto.AddSpeciesProviderRequest
 import app.verdant.dto.AuthResponse
 import app.verdant.dto.CreateSpeciesRequest
+import app.verdant.dto.GardenAreaEventResponse
+import app.verdant.dto.GardenAreaPhotoResponse
 import app.verdant.dto.GardenAreaResponse
 import app.verdant.dto.ImportResult
+import app.verdant.dto.MaintenanceRuleResponse
 import app.verdant.dto.ScheduledTaskResponse
 import app.verdant.dto.SpeciesProviderResponse
 import app.verdant.dto.SpeciesResponse
@@ -137,6 +140,34 @@ class ApiContractTest {
         GardenAreaResponse::class,
         "id", "gardenId", "gardenName", "name", "description", "category",
         "boundaryJson", "sizeSqm", "createdAt", "updatedAt",
+    )
+
+    @Test
+    fun `GardenAreaEventResponse fields are pinned`() = assertFields(
+        GardenAreaEventResponse::class,
+        "id", "gardenAreaId", "eventType", "eventDate", "notes", "createdAt",
+    )
+
+    @Test
+    fun `GardenAreaPhotoResponse fields are pinned`() = assertFields(
+        GardenAreaPhotoResponse::class,
+        "id", "gardenAreaId", "photoUrl", "reason", "description",
+        "capturedAt", "createdAt",
+    )
+
+    /**
+     * `lastDoneDate` and `nextDueDate` are derived from the event log rather
+     * than stored, so they exist nowhere else in the schema — a client that
+     * hand-types them wrong has nothing to check itself against but this pin.
+     */
+    @Test
+    fun `MaintenanceRuleResponse fields are pinned`() = assertFields(
+        MaintenanceRuleResponse::class,
+        "id", "bedId", "bedName", "gardenAreaId", "gardenAreaName",
+        "activityType", "intervalDays", "anchorDate",
+        "seasonStartMonth", "seasonStartDay", "seasonEndMonth", "seasonEndDay",
+        "active", "notes", "lastDoneDate", "nextDueDate",
+        "createdAt", "updatedAt",
     )
 
     private fun assertFields(klass: KClass<*>, vararg expected: String) {
