@@ -312,7 +312,7 @@ function TaskRow({ task, onOpen }: { task: ScheduledTaskResponse; onOpen: () => 
       <div>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: 18 }}>
           {task.bedId != null
-            ? task.activityType.replace(/_/g, ' ')
+            ? maintenanceActivityLabelSv(task.activityType)
             : (task.speciesName ?? maintenanceActivityLabelSv(task.activityType))}
         </div>
         {task.originGroupName && (
