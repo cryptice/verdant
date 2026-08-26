@@ -110,14 +110,23 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
         }
     }
 
-    fun decrementRemainingCount(id: Long, count: Int) {
+    /**
+     * Returns the number of rows updated (0 or 1). The `remaining_count > 0`
+     * guard makes this the atomic arbiter for "did this call actually finish
+     * the task" — a second call against an already-completed task (whether a
+     * sequential retry or a concurrent race, since this runs in autocommit
+     * with no surrounding transaction) touches nothing and returns 0, so the
+     * caller can gate one-time side effects (like recording a maintenance
+     * event) on the return value instead of re-reading remaining_count.
+     */
+    fun decrementRemainingCount(id: Long, count: Int): Int =
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """UPDATE scheduled_task
                    SET remaining_count = GREATEST(remaining_count - ?, 0),
                        status = CASE WHEN remaining_count - ? <= 0 THEN 'COMPLETED' ELSE status END,
                        updated_at = now()
-                   WHERE id = ?"""
+                   WHERE id = ? AND remaining_count > 0"""
             ).use { ps ->
                 ps.setInt(1, count)
                 ps.setInt(2, count)
@@ -125,7 +134,6 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
                 ps.executeUpdate()
             }
         }
-    }
 
     fun addAcceptableSpecies(taskId: Long, speciesId: Long) {
         ds.connection.use { conn ->

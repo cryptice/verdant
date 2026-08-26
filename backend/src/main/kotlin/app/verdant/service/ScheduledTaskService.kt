@@ -17,6 +17,7 @@ import app.verdant.repository.SpeciesRepository
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.ws.rs.BadRequestException
 import jakarta.ws.rs.NotFoundException
+import org.slf4j.LoggerFactory
 
 @ApplicationScoped
 class ScheduledTaskService(
@@ -30,6 +31,8 @@ class ScheduledTaskService(
     private val bedEventRepository: BedEventRepository,
     private val plantService: PlantService,
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     private fun checkOwnership(taskId: Long, orgId: Long): ScheduledTask {
         val task = taskRepository.findById(taskId) ?: throw NotFoundException("Task not found")
         if (task.orgId != orgId) throw NotFoundException("Task not found")
@@ -53,8 +56,8 @@ class ScheduledTaskService(
     fun createTask(request: CreateScheduledTaskRequest, orgId: Long): ScheduledTaskResponse {
         if (request.activityType == TODO_ACTIVITY_TYPE) {
             if (request.speciesId != null || request.speciesIds != null ||
-                request.speciesGroupId != null || request.bedId != null) {
-                throw BadRequestException("TODO tasks cannot reference species, group, or bed")
+                request.speciesGroupId != null || request.bedId != null || request.gardenAreaId != null) {
+                throw BadRequestException("TODO tasks cannot reference species, group, bed, or area")
             }
             if (request.notes.isNullOrBlank()) {
                 throw BadRequestException("TODO tasks require a description in notes")
@@ -218,6 +221,22 @@ class ScheduledTaskService(
             throw BadRequestException("TODO tasks require a non-blank description")
         }
 
+        // A rule-backed task's activityType must stay one that recordMaintenance
+        // can actually log — otherwise completing it would silently strand the
+        // rule's derived clock. Ordinary hand-made tasks are unaffected.
+        if (task.maintenanceRuleId != null && request.activityType != null) {
+            val allowedForTarget = when {
+                task.bedId != null -> BED_ACTIVITY_TYPES
+                task.gardenAreaId != null -> AREA_ACTIVITY_TYPES
+                else -> emptySet()
+            }
+            if (request.activityType !in allowedForTarget) {
+                throw BadRequestException(
+                    "activityType ${request.activityType} is not valid for this rule-backed task"
+                )
+            }
+        }
+
         val newTarget = request.targetCount ?: task.targetCount
         val newRemaining = if (request.targetCount != null) {
             val completed = task.targetCount - task.remainingCount
@@ -262,13 +281,20 @@ class ScheduledTaskService(
                 }
             }
         }
-        taskRepository.decrementRemainingCount(taskId, processedCount)
+        // The repository's `remaining_count > 0` guard is the atomic arbiter for
+        // "did this call actually finish the task" — decrementRemainingCount
+        // returns 0 rows changed for a call against an already-completed task
+        // (sequential retry or concurrent race; there is no surrounding
+        // transaction), so gating on it here — rather than re-reading
+        // remaining_count after the fact — prevents recordMaintenance from
+        // firing twice for one completion.
+        val changed = taskRepository.decrementRemainingCount(taskId, processedCount)
         val updated = taskRepository.findById(taskId)!!
 
         // A rule-backed task that has just been finished records the work, which
         // is what moves the rule's derived clock. Without this the scheduler
         // would recreate the same task tomorrow.
-        if (updated.maintenanceRuleId != null && updated.remainingCount <= 0) {
+        if (changed > 0 && updated.maintenanceRuleId != null && updated.remainingCount <= 0) {
             recordMaintenance(updated)
         }
 
@@ -287,7 +313,19 @@ class ScheduledTaskService(
      * there is no per-plant equivalent for an area.
      */
     private fun recordMaintenance(task: ScheduledTask) {
-        val activity = runCatching { MaintenanceActivity.parse(task.activityType) }.getOrNull() ?: return
+        val activity = runCatching { MaintenanceActivity.parse(task.activityType) }.getOrNull()
+        if (activity == null) {
+            // The decrement has already committed — the task is COMPLETED either
+            // way — so this can only be logged, not rejected with an error.
+            // updateTask guards against introducing this via a rule-backed task,
+            // but log loudly in case a task ever gets here with a stale/unknown
+            // activityType, since a silent no-op here strands the rule's clock.
+            log.warn(
+                "Cannot record maintenance for task {} (rule={}): unknown activity type '{}'",
+                task.id, task.maintenanceRuleId, task.activityType,
+            )
+            return
+        }
         val today = java.time.LocalDate.now()
         when {
             task.gardenAreaId != null -> gardenAreaEventRepository.persist(
@@ -311,7 +349,13 @@ class ScheduledTaskService(
                 )
                 else -> {
                     // No other activity can currently target a bed (BED_ACTIVITY_TYPES
-                    // guards createTask); nothing to record.
+                    // guards createTask and updateTask), but log rather than silently
+                    // stranding the rule's clock if one ever gets here regardless.
+                    log.warn(
+                        "Cannot record maintenance for bed task {} (rule={}): " +
+                            "activity '{}' has no bed recording path",
+                        task.id, task.maintenanceRuleId, activity.name,
+                    )
                 }
             }
         }

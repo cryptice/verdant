@@ -516,6 +516,7 @@ class ScheduledTaskServiceTest {
             deadline = deadline, targetCount = 1, remainingCount = 1,
         )
         whenever(taskRepository.findById(42L)).thenReturn(task, task.copy(remainingCount = 0))
+        whenever(taskRepository.decrementRemainingCount(42L, 1)).thenReturn(1)
         whenever(gardenAreaEventRepository.persist(any()))
             .thenAnswer { it.arguments[0] as GardenAreaEvent }
 
@@ -535,6 +536,7 @@ class ScheduledTaskServiceTest {
             deadline = deadline, targetCount = 1, remainingCount = 1,
         )
         whenever(taskRepository.findById(43L)).thenReturn(task, task.copy(remainingCount = 0))
+        whenever(taskRepository.decrementRemainingCount(43L, 1)).thenReturn(1)
 
         service.completePartially(43L, speciesId = null, processedCount = 1, orgId = orgId)
 
@@ -550,6 +552,7 @@ class ScheduledTaskServiceTest {
             deadline = deadline, targetCount = 1, remainingCount = 1,
         )
         whenever(taskRepository.findById(46L)).thenReturn(task, task.copy(remainingCount = 0))
+        whenever(taskRepository.decrementRemainingCount(46L, 1)).thenReturn(1)
 
         service.completePartially(46L, speciesId = null, processedCount = 1, orgId = orgId)
 
@@ -565,6 +568,7 @@ class ScheduledTaskServiceTest {
             deadline = deadline, targetCount = 1, remainingCount = 1,
         )
         whenever(taskRepository.findById(47L)).thenReturn(task, task.copy(remainingCount = 0))
+        whenever(taskRepository.decrementRemainingCount(47L, 1)).thenReturn(1)
 
         service.completePartially(47L, speciesId = null, processedCount = 1, orgId = orgId)
 
@@ -635,5 +639,68 @@ class ScheduledTaskServiceTest {
         )
 
         assertThrows<BadRequestException> { service.createTask(request, orgId) }
+    }
+
+    @Test
+    fun `createTask TODO with gardenAreaId is rejected`() {
+        val request = CreateScheduledTaskRequest(
+            activityType = "TODO",
+            gardenAreaId = 5L,
+            notes = "Boka tid",
+        )
+        assertThrows<BadRequestException> { service.createTask(request, orgId) }
+    }
+
+    // ── completePartially: atomic decrement prevents double-logging ─────────
+
+    @Test
+    fun `completing an already-completed rule-backed task fires recordMaintenance exactly once`() {
+        val task = ScheduledTask(
+            id = 48L, orgId = orgId, speciesId = null, bedId = 3L,
+            maintenanceRuleId = 13L, activityType = "WEED",
+            deadline = deadline, targetCount = 1, remainingCount = 1,
+        )
+        val completed = task.copy(remainingCount = 0, status = ScheduledTaskStatus.COMPLETED)
+        // First call actually decrements (1 row changed); a second call against
+        // an already-completed task changes nothing (0 rows), exactly like the
+        // real `remaining_count > 0` guard in ScheduledTaskRepository.
+        whenever(taskRepository.findById(48L)).thenReturn(task, completed, completed, completed)
+        whenever(taskRepository.decrementRemainingCount(48L, 1)).thenReturn(1, 0)
+
+        service.completePartially(48L, speciesId = null, processedCount = 1, orgId = orgId)
+        service.completePartially(48L, speciesId = null, processedCount = 1, orgId = orgId)
+
+        verify(plantService, times(1)).weedBed(3L, orgId)
+    }
+
+    // ── updateTask: rule-backed activityType guard ───────────────────────────
+
+    @Test
+    fun `updateTask rejects an activityType change invalid for a rule-backed bed task`() {
+        val task = ScheduledTask(
+            id = 49L, orgId = orgId, speciesId = null, bedId = 3L,
+            maintenanceRuleId = 14L, activityType = "WEED",
+            deadline = deadline, targetCount = 1, remainingCount = 1,
+        )
+        whenever(taskRepository.findById(49L)).thenReturn(task)
+
+        val request = UpdateScheduledTaskRequest(activityType = "MOW")
+        assertThrows<BadRequestException> { service.updateTask(49L, request, orgId) }
+    }
+
+    @Test
+    fun `updateTask still allows any activityType change on a non-rule-backed task`() {
+        val task = ScheduledTask(
+            id = 50L, orgId = orgId, speciesId = null, bedId = 3L,
+            maintenanceRuleId = null, activityType = "WEED",
+            deadline = deadline, targetCount = 1, remainingCount = 1,
+        )
+        whenever(taskRepository.findById(50L)).thenReturn(task)
+
+        val request = UpdateScheduledTaskRequest(activityType = "MOW")
+        val result = service.updateTask(50L, request, orgId)
+
+        assertEquals("MOW", result.activityType)
+        verify(taskRepository).update(check { assertEquals("MOW", it.activityType) })
     }
 }
