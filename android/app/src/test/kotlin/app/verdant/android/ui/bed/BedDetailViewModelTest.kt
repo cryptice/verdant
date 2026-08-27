@@ -9,6 +9,7 @@ import app.verdant.android.data.model.CreateMaintenanceRuleRequest
 import app.verdant.android.data.model.GardenResponse
 import app.verdant.android.data.model.MaintenanceRuleResponse
 import app.verdant.android.data.model.PlantResponse
+import app.verdant.android.data.model.UpdateBedRequest
 import app.verdant.android.data.model.UpdateMaintenanceRuleRequest
 import app.verdant.android.data.repository.BedRepository
 import app.verdant.android.data.repository.GardenApiRepository
@@ -68,6 +69,9 @@ class BedDetailViewModelTest {
         createdAt = "2026-01-01T00:00:00Z", updatedAt = "2026-01-01T00:00:00Z",
     )
 
+    /** Captures the body of the last updateBed call made through [fakeApi]. */
+    private var lastBedUpdate: UpdateBedRequest? = null
+
     private fun fakeApi(
         bed: BedResponse,
         garden: GardenResponse,
@@ -78,9 +82,13 @@ class BedDetailViewModelTest {
         return java.lang.reflect.Proxy.newProxyInstance(
             VerdantApi::class.java.classLoader,
             arrayOf(VerdantApi::class.java),
-        ) { _, method, _ ->
+        ) { _, method, args ->
             when (method.name) {
                 "getBed" -> bed
+                "updateBed" -> {
+                    lastBedUpdate = args[1] as UpdateBedRequest
+                    bed
+                }
                 "getPlants" -> plants
                 "listSupplyApplicationsByBed" -> emptyList<Any>()
                 "getBedEvents" -> emptyList<Any>()
@@ -187,5 +195,74 @@ class BedDetailViewModelTest {
         )
         val loaded = vm.uiState.value as BedDetailUiState.Loaded
         assertEquals("Vattnade · 2 plantor", loaded.toastMessage)
+    }
+
+    @Test
+    fun `a condition the user cleared is emptied with its flag, not left as null`() = runTest {
+        val bed = bed().copy(
+            soilType = "SANDY", soilPh = 6.5, sunExposure = "FULL_SUN", drainage = "GOOD",
+            sunDirections = listOf("S"), irrigationType = "DRIP", protection = "OPEN_FIELD",
+        )
+        val vm = viewModel(fakeApi(bed = bed, garden = garden()), FakeMaintenanceRuleRepository())
+        vm.refresh()
+        advanceUntilIdle()
+
+        vm.update(
+            name = "Bädd 5", description = "", soilType = null, soilPh = null,
+            sunExposure = null, drainage = null, sunDirections = emptySet(),
+            irrigationType = null, protection = null, raisedBed = false,
+        )
+        advanceUntilIdle()
+
+        val sent = lastBedUpdate!!
+        // A null reads as "keep the current value" server-side, so each
+        // cleared condition has to say so explicitly.
+        assertTrue(sent.clearSoilType)
+        assertTrue(sent.clearSoilPh)
+        assertTrue(sent.clearSunExposure)
+        assertTrue(sent.clearDrainage)
+        assertTrue(sent.clearSunDirections)
+        assertTrue(sent.clearIrrigationType)
+        assertTrue(sent.clearProtection)
+    }
+
+    @Test
+    fun `conditions a bed never had are not asked to be cleared`() = runTest {
+        val vm = viewModel(fakeApi(bed = bed(), garden = garden()), FakeMaintenanceRuleRepository())
+        vm.refresh()
+        advanceUntilIdle()
+
+        vm.update(
+            name = "Bädd 5", description = "", soilType = null, soilPh = null,
+            sunExposure = null, drainage = null, sunDirections = emptySet(),
+            irrigationType = null, protection = null, raisedBed = false,
+        )
+        advanceUntilIdle()
+
+        val sent = lastBedUpdate!!
+        assertEquals(false, sent.clearSoilType)
+        assertEquals(false, sent.clearSoilPh)
+        assertEquals(false, sent.clearSunDirections)
+    }
+
+    @Test
+    fun `a replacement value travels without the matching clear flag`() = runTest {
+        val bed = bed().copy(soilType = "SANDY", soilPh = 6.5)
+        val vm = viewModel(fakeApi(bed = bed, garden = garden()), FakeMaintenanceRuleRepository())
+        vm.refresh()
+        advanceUntilIdle()
+
+        vm.update(
+            name = "Bädd 5", description = "", soilType = "CLAY", soilPh = 7.0,
+            sunExposure = null, drainage = null, sunDirections = emptySet(),
+            irrigationType = null, protection = null, raisedBed = false,
+        )
+        advanceUntilIdle()
+
+        val sent = lastBedUpdate!!
+        // Sending both for one field is a 400 server-side.
+        assertEquals("CLAY", sent.soilType)
+        assertEquals(false, sent.clearSoilType)
+        assertEquals(false, sent.clearSoilPh)
     }
 }

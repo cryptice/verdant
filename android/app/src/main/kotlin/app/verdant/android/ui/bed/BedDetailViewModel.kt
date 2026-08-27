@@ -124,6 +124,11 @@ class BedDetailViewModel @Inject constructor(
         raisedBed: Boolean?,
     ) {
         viewModelScope.launch {
+            // A null field reads as "keep the current value" server-side, so
+            // a condition the user cleared has to say so with a flag — and a
+            // flag cannot travel with a replacement value for the same field.
+            // description is the exception: a blank string already clears it.
+            val current = (_uiState.value as? BedDetailUiState.Loaded)?.bed
             try {
                 bedRepository.update(
                     bedId,
@@ -138,6 +143,13 @@ class BedDetailViewModel @Inject constructor(
                         irrigationType = irrigationType,
                         protection = protection,
                         raisedBed = raisedBed,
+                        clearSoilType = soilType == null && current?.soilType != null,
+                        clearSoilPh = soilPh == null && current?.soilPh != null,
+                        clearSunExposure = sunExposure == null && current?.sunExposure != null,
+                        clearDrainage = drainage == null && current?.drainage != null,
+                        clearSunDirections = sunDirections.isEmpty() && !current?.sunDirections.isNullOrEmpty(),
+                        clearIrrigationType = irrigationType == null && current?.irrigationType != null,
+                        clearProtection = protection == null && current?.protection != null,
                     ),
                 )
                 refresh()

@@ -80,7 +80,22 @@ data class UpdateBedRequest(
     @SerializedName("sunDirections") val sunDirections: List<String>? = null,
     @SerializedName("irrigationType") val irrigationType: String? = null,
     @SerializedName("protection") val protection: String? = null,
-    @SerializedName("raisedBed") val raisedBed: Boolean? = null
+    @SerializedName("raisedBed") val raisedBed: Boolean? = null,
+    /**
+     * Emptying a field, one flag per field: a null reads as "not in the
+     * request, keep what is stored", so clearing needs an explicit opt-in.
+     * A flag cannot travel with a replacement value for the same field.
+     * [description] is the exception — a blank string already clears it.
+     */
+    @SerializedName("clearLengthMeters") val clearLengthMeters: Boolean = false,
+    @SerializedName("clearWidthMeters") val clearWidthMeters: Boolean = false,
+    @SerializedName("clearSoilType") val clearSoilType: Boolean = false,
+    @SerializedName("clearSoilPh") val clearSoilPh: Boolean = false,
+    @SerializedName("clearSunExposure") val clearSunExposure: Boolean = false,
+    @SerializedName("clearDrainage") val clearDrainage: Boolean = false,
+    @SerializedName("clearSunDirections") val clearSunDirections: Boolean = false,
+    @SerializedName("clearIrrigationType") val clearIrrigationType: Boolean = false,
+    @SerializedName("clearProtection") val clearProtection: Boolean = false
 )
 
 // Bed condition enum values (matches backend enums)
