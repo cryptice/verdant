@@ -540,4 +540,64 @@
     <string name="no_season_data">No seasons to summarise</string>
     <string name="no_bed_data">No bed yields yet</string>
     <string name="stems_per_plant_label">Stems per plant</string>
+
+    <!-- Garden Areas -->
+    <string name="area_edit_title">Edit area</string>
+    <string name="area_field_name">Name</string>
+    <string name="area_field_description">Description (optional)</string>
+    <string name="area_field_category">Category</string>
+    <string name="area_field_size">Size (m²)</string>
+    <string name="area_delete_title">Delete area</string>
+    <string name="area_delete_confirm">Delete the area \"%1$s\"?</string>
+    <string name="area_history_section_title">History</string>
+    <string name="area_history_empty">No maintenance logged yet.</string>
+    <string name="area_log_maintenance_title">Log maintenance</string>
+    <string name="area_log_maintenance_submit">Log</string>
+    <string name="area_category_walkway">Walkway</string>
+    <string name="area_category_lawn">Lawn</string>
+    <string name="area_category_hedge">Hedge</string>
+    <string name="area_category_compost">Compost</string>
+    <string name="area_category_greenhouse">Greenhouse</string>
+    <string name="area_category_water_feature">Water feature</string>
+    <string name="area_category_structure">Structure</string>
+    <string name="area_category_other">Other</string>
+
+    <!-- Maintenance Rules -->
+    <string name="maintenance_section_title">Maintenance</string>
+    <string name="maintenance_add_rule">+ Add rule</string>
+    <string name="maintenance_create_rule_title">New rule</string>
+    <string name="maintenance_edit_rule_title">Edit rule</string>
+    <string name="maintenance_activity_label">Activity</string>
+    <string name="maintenance_activity_notes_label">Notes (optional)</string>
+    <string name="maintenance_interval_label">Repeat every (days)</string>
+    <string name="maintenance_interval_summary">Every %1$d days</string>
+    <string name="maintenance_season_window_label">Season window</string>
+    <string name="maintenance_season_window_summary">Season %1$s–%2$s</string>
+    <string name="maintenance_remove_season_window">Remove season window</string>
+    <string name="maintenance_season_start_label">Start</string>
+    <string name="maintenance_season_end_label">End</string>
+    <string name="maintenance_season_month_label">Month</string>
+    <string name="maintenance_season_day_label">Day</string>
+    <string name="maintenance_due_overdue">%1$d d overdue</string>
+    <string name="maintenance_due_today">Due today</string>
+    <string name="maintenance_due_upcoming">In %1$d d</string>
+    <string name="maintenance_due_paused">Paused</string>
+    <string name="maintenance_empty_title">Nothing recurs here yet</string>
+    <string name="maintenance_empty_subtitle">Add a rule so this place gets reminders.</string>
+    <string name="maintenance_delete_rule_title">Delete rule</string>
+    <string name="maintenance_delete_rule_confirm">Delete this maintenance rule?</string>
+    <string name="maintenance_pause">Pause</string>
+    <string name="maintenance_resume">Resume</string>
+    <string name="maintenance_activity_water">Water</string>
+    <string name="maintenance_activity_weed">Weed</string>
+    <string name="maintenance_activity_fertilize">Fertilize</string>
+    <string name="maintenance_activity_mow">Mow</string>
+    <string name="maintenance_activity_rake">Rake</string>
+    <string name="maintenance_activity_prune">Prune</string>
+    <string name="maintenance_activity_edge">Edge</string>
+    <string name="maintenance_activity_sweep">Sweep</string>
+    <string name="maintenance_activity_top_up">Top up</string>
+    <string name="maintenance_activity_clean">Clean</string>
+    <string name="maintenance_activity_inspect">Inspect</string>
+    <string name="maintenance_activity_note">Note</string>
 </resources>

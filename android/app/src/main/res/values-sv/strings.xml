@@ -538,4 +538,64 @@
     <string name="no_season_data">Inga s\u00E4songer att sammanfatta</string>
     <string name="no_bed_data">Inga b\u00E4ddresultat \u00E4nnu</string>
     <string name="stems_per_plant_label">Stj\u00E4lkar per planta</string>
+
+    <!-- Garden Areas -->
+    <string name="area_edit_title">Redigera plats</string>
+    <string name="area_field_name">Namn</string>
+    <string name="area_field_description">Beskrivning (valfri)</string>
+    <string name="area_field_category">Kategori</string>
+    <string name="area_field_size">Storlek (m\u00B2)</string>
+    <string name="area_delete_title">Ta bort plats</string>
+    <string name="area_delete_confirm">Vill du ta bort platsen \"%1$s\"?</string>
+    <string name="area_history_section_title">Historik</string>
+    <string name="area_history_empty">Inget underh\u00E5ll loggat \u00E4n.</string>
+    <string name="area_log_maintenance_title">Logga underh\u00E5ll</string>
+    <string name="area_log_maintenance_submit">Logga</string>
+    <string name="area_category_walkway">G\u00E5ngv\u00E4g</string>
+    <string name="area_category_lawn">Gr\u00E4smatta</string>
+    <string name="area_category_hedge">H\u00E4ck</string>
+    <string name="area_category_compost">Kompost</string>
+    <string name="area_category_greenhouse">V\u00E4xthus</string>
+    <string name="area_category_water_feature">Vattenelement</string>
+    <string name="area_category_structure">Konstruktion</string>
+    <string name="area_category_other">\u00D6vrigt</string>
+
+    <!-- Maintenance Rules -->
+    <string name="maintenance_section_title">Underh\u00E5ll</string>
+    <string name="maintenance_add_rule">+ L\u00E4gg till regel</string>
+    <string name="maintenance_create_rule_title">Ny regel</string>
+    <string name="maintenance_edit_rule_title">Redigera regel</string>
+    <string name="maintenance_activity_label">Aktivitet</string>
+    <string name="maintenance_activity_notes_label">Anteckning (valfri)</string>
+    <string name="maintenance_interval_label">Upprepa var (dagar)</string>
+    <string name="maintenance_interval_summary">Var %1$d:e dag</string>
+    <string name="maintenance_season_window_label">S\u00E4songsf\u00F6nster</string>
+    <string name="maintenance_season_window_summary">S\u00E4song %1$s\u2013%2$s</string>
+    <string name="maintenance_remove_season_window">Ta bort s\u00E4songsf\u00F6nster</string>
+    <string name="maintenance_season_start_label">Start</string>
+    <string name="maintenance_season_end_label">Slut</string>
+    <string name="maintenance_season_month_label">M\u00E5nad</string>
+    <string name="maintenance_season_day_label">Dag</string>
+    <string name="maintenance_due_overdue">%1$d d f\u00F6rsenad</string>
+    <string name="maintenance_due_today">F\u00F6rfaller idag</string>
+    <string name="maintenance_due_upcoming">Om %1$d d</string>
+    <string name="maintenance_due_paused">Pausad</string>
+    <string name="maintenance_empty_title">Inget \u00E5terkommer h\u00E4r \u00E4n</string>
+    <string name="maintenance_empty_subtitle">L\u00E4gg till en regel s\u00E5 f\u00E5r platsen p\u00E5minnelser.</string>
+    <string name="maintenance_delete_rule_title">Ta bort regel</string>
+    <string name="maintenance_delete_rule_confirm">Vill du ta bort den h\u00E4r sk\u00F6tselregeln?</string>
+    <string name="maintenance_pause">Pausa</string>
+    <string name="maintenance_resume">\u00C5teruppta</string>
+    <string name="maintenance_activity_water">Vattna</string>
+    <string name="maintenance_activity_weed">Rensa ogr\u00E4s</string>
+    <string name="maintenance_activity_fertilize">G\u00F6dsla</string>
+    <string name="maintenance_activity_mow">Klipp gr\u00E4s</string>
+    <string name="maintenance_activity_rake">Kratta</string>
+    <string name="maintenance_activity_prune">Besk\u00E4r</string>
+    <string name="maintenance_activity_edge">Kantsk\u00E4r</string>
+    <string name="maintenance_activity_sweep">Sopa</string>
+    <string name="maintenance_activity_top_up">Fyll p\u00E5</string>
+    <string name="maintenance_activity_clean">Reng\u00F6r</string>
+    <string name="maintenance_activity_inspect">Inspektera</string>
+    <string name="maintenance_activity_note">Anteckning</string>
 </resources>

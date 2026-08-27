@@ -6,6 +6,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import app.verdant.android.ui.activity.BatchPlantOutScreen
+import app.verdant.android.ui.area.GardenAreaDetailScreen
 import app.verdant.android.ui.bed.BedDetailScreen
 import app.verdant.android.ui.bed.CreateBedScreen
 import app.verdant.android.ui.garden.CreateGardenScreen
@@ -63,6 +64,15 @@ fun NavGraphBuilder.gardenGraph(navController: NavController) {
                 }
             },
             openEditOnStart = openEditOnStart,
+        )
+    }
+    composable(
+        Screen.GardenAreaDetail.route,
+        arguments = listOf(navArgument("areaId") { type = NavType.LongType }),
+    ) {
+        GardenAreaDetailScreen(
+            onBack = { navController.popBackStack() },
+            onGardenClick = { gardenId -> navController.navigate(Screen.GardenDetail.create(gardenId)) },
         )
     }
     composable(
