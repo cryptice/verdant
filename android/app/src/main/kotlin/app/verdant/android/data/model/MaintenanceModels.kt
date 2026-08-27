@@ -55,4 +55,10 @@ data class UpdateMaintenanceRuleRequest(
     @SerializedName("clearSeasonWindow") val clearSeasonWindow: Boolean = false,
     @SerializedName("active") val active: Boolean? = null,
     @SerializedName("notes") val notes: String? = null,
+    /**
+     * The ONLY way to remove existing notes, for the same reason as
+     * [clearSeasonWindow]. Cannot be combined with a [notes] value; doing
+     * so is a 400.
+     */
+    @SerializedName("clearNotes") val clearNotes: Boolean = false,
 )

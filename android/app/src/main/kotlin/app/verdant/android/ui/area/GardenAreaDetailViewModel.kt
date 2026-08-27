@@ -49,16 +49,24 @@ class GardenAreaDetailViewModel @Inject constructor(
 
     /**
      * Shared with the bed detail screen (Task 7) — see
-     * [MaintenanceRulesController]'s doc. [refresh] reloads this alongside
-     * the area itself so a single call keeps both in step: the backend
-     * derives "last done" from the event log, not a stored timestamp, so a
-     * rule's `nextDueDate` only reflects newly logged work once the rules
-     * are reloaded too.
+     * [MaintenanceRulesController]'s doc.
+     *
+     * Reloaded by [load] and by [logEvent], not by [refresh]: the backend
+     * derives "last done" from the event log rather than a stored
+     * timestamp, so a rule's `nextDueDate` changes only when work is
+     * logged. Renaming an area or deleting a photo cannot move it, and
+     * refetching there would be a round-trip that can only return what the
+     * client already has.
      */
     val rulesController = MaintenanceRulesController(ruleRepository, MaintenanceTarget.AREA, areaId, viewModelScope)
 
-    fun refresh() {
+    /** Initial load and every RESUME: the area plus its rules. */
+    fun load() {
         rulesController.refresh()
+        refresh()
+    }
+
+    fun refresh() {
         viewModelScope.launch {
             val current = _uiState.value
             if (current is GardenAreaDetailUiState.Loaded) {
@@ -68,18 +76,25 @@ class GardenAreaDetailViewModel @Inject constructor(
                 val area = areaRepository.get(areaId)
                 val events = runCatching { areaRepository.events(areaId, 20) }.getOrDefault(emptyList())
                 val photos = runCatching { areaRepository.photos(areaId) }.getOrDefault(emptyList())
-                val previous = current as? GardenAreaDetailUiState.Loaded
+                // Read the toast as it stands NOW, not as captured before the
+                // round-trip above: the screen may have shown and consumed it
+                // while these calls were in flight, and restoring the stale
+                // value would fire the same snackbar a second time.
+                val latest = _uiState.value as? GardenAreaDetailUiState.Loaded
                 _uiState.value = GardenAreaDetailUiState.Loaded(
                     area = area,
                     events = events,
                     photos = photos,
                     isRefreshing = false,
-                    deleted = previous?.deleted ?: false,
-                    toastMessage = previous?.toastMessage,
+                    deleted = latest?.deleted ?: false,
+                    toastMessage = latest?.toastMessage,
                 )
             } catch (e: Exception) {
-                _uiState.value = if (current is GardenAreaDetailUiState.Loaded) {
-                    current.copy(isRefreshing = false)
+                // Same reasoning as above: write from the current state, so a
+                // toast raised while this was in flight is not rolled back.
+                val latest = _uiState.value
+                _uiState.value = if (latest is GardenAreaDetailUiState.Loaded) {
+                    latest.copy(isRefreshing = false)
                 } else {
                     GardenAreaDetailUiState.Error(e.message ?: "Kunde inte ladda platsen")
                 }
@@ -87,8 +102,18 @@ class GardenAreaDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * A null [description] or [sizeSqm] means the user emptied the field.
+     * The server reads an omitted/null field as "keep the current value",
+     * so emptying has to be an explicit flag — and the flag cannot be sent
+     * alongside a replacement value. Deriving both here, from what is
+     * currently loaded, keeps that contract in one place.
+     */
     fun update(name: String, description: String?, category: String, sizeSqm: Double?) {
         viewModelScope.launch {
+            val loaded = _uiState.value as? GardenAreaDetailUiState.Loaded
+            val clearDescription = description == null && loaded?.area?.description != null
+            val clearSizeSqm = sizeSqm == null && loaded?.area?.sizeSqm != null
             try {
                 areaRepository.update(
                     areaId,
@@ -97,6 +122,8 @@ class GardenAreaDetailViewModel @Inject constructor(
                         category = category,
                         description = description,
                         sizeSqm = sizeSqm,
+                        clearDescription = clearDescription,
+                        clearSizeSqm = clearSizeSqm,
                     ),
                 )
                 refresh()
@@ -127,6 +154,9 @@ class GardenAreaDetailViewModel @Inject constructor(
                         notes = notes?.takeIf { it.isNotBlank() },
                     ),
                 )
+                // Logging work is what moves a rule's next-due date, so this
+                // is the one mutation that must reload the rules as well.
+                rulesController.refresh()
                 refresh()
             } catch (e: Exception) {
                 _uiState.value = current.copy(toastMessage = e.message ?: "Kunde inte logga underhåll")

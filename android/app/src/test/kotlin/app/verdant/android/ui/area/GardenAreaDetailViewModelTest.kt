@@ -14,6 +14,7 @@ import app.verdant.android.data.model.UpdateGardenAreaRequest
 import app.verdant.android.data.model.UpdateMaintenanceRuleRequest
 import app.verdant.android.data.repository.GardenAreaRepository
 import app.verdant.android.data.repository.MaintenanceRuleRepository
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -67,15 +68,23 @@ class GardenAreaDetailViewModelTest {
     ) : GardenAreaRepository {
         var deletedIds = mutableListOf<Long>()
         var lastLogEvent: CreateGardenAreaEventRequest? = null
+        var lastUpdate: UpdateGardenAreaRequest? = null
         var eventsCallCount = 0
+
+        /** When set, get() parks here until the test completes it. */
+        var getGate: CompletableDeferred<Unit>? = null
 
         override suspend fun list(gardenId: Long): List<GardenAreaResponse> = listOf(area)
         override suspend fun get(id: Long): GardenAreaResponse {
             failGetWith?.let { throw it }
+            getGate?.await()
             return area
         }
         override suspend fun create(gardenId: Long, request: CreateGardenAreaRequest): GardenAreaResponse = area
-        override suspend fun update(id: Long, request: UpdateGardenAreaRequest): GardenAreaResponse = area
+        override suspend fun update(id: Long, request: UpdateGardenAreaRequest): GardenAreaResponse {
+            lastUpdate = request
+            return area
+        }
         override suspend fun delete(id: Long) {
             deletedIds.add(id)
         }
@@ -150,7 +159,7 @@ class GardenAreaDetailViewModelTest {
 
         vm.uiState.test {
             assertEquals(GardenAreaDetailUiState.Loading, awaitItem())
-            vm.refresh()
+            vm.load()
             advanceUntilIdle()
             val loaded = awaitItem() as GardenAreaDetailUiState.Loaded
             assertEquals("Grusgången", loaded.area.name)
@@ -169,7 +178,7 @@ class GardenAreaDetailViewModelTest {
 
         vm.uiState.test {
             assertEquals(GardenAreaDetailUiState.Loading, awaitItem())
-            vm.refresh()
+            vm.load()
             advanceUntilIdle()
             assertTrue(awaitItem() is GardenAreaDetailUiState.Error)
         }
@@ -180,7 +189,7 @@ class GardenAreaDetailViewModelTest {
         val areaRepo = FakeGardenAreaRepository(area = area())
         val ruleRepo = FakeMaintenanceRuleRepository(mutableListOf(rule()))
         val vm = viewModel(areaRepo, ruleRepo)
-        vm.refresh()
+        vm.load()
         advanceUntilIdle()
         val listCallsAfterInitialLoad = ruleRepo.listCallCount
         assertTrue(listCallsAfterInitialLoad > 0)
@@ -206,7 +215,7 @@ class GardenAreaDetailViewModelTest {
         val areaRepo = FakeGardenAreaRepository(area = area())
         val ruleRepo = FakeMaintenanceRuleRepository()
         val vm = viewModel(areaRepo, ruleRepo)
-        vm.refresh()
+        vm.load()
         advanceUntilIdle()
 
         vm.logEvent(activityType = "NOTE", notes = "Grus påfyllt")
@@ -221,7 +230,7 @@ class GardenAreaDetailViewModelTest {
         val areaRepo = FakeGardenAreaRepository(area = area())
         val ruleRepo = FakeMaintenanceRuleRepository()
         val vm = viewModel(areaRepo, ruleRepo)
-        vm.refresh()
+        vm.load()
         advanceUntilIdle()
 
         vm.delete()
@@ -237,7 +246,7 @@ class GardenAreaDetailViewModelTest {
         val areaRepo = FakeGardenAreaRepository(area = area(), failLogEventWith = RuntimeException("500"))
         val ruleRepo = FakeMaintenanceRuleRepository()
         val vm = viewModel(areaRepo, ruleRepo)
-        vm.refresh()
+        vm.load()
         advanceUntilIdle()
 
         vm.logEvent(activityType = "WEED")
@@ -246,5 +255,99 @@ class GardenAreaDetailViewModelTest {
         val loaded = vm.uiState.value as GardenAreaDetailUiState.Loaded
         assertNull(areaRepo.lastLogEvent) // never reached — logEvent threw
         assertTrue(loaded.toastMessage != null)
+    }
+
+    @Test
+    fun `emptying the description or size sends the clear flags, not nulls`() = runTest {
+        val areaRepo = FakeGardenAreaRepository(area = area())
+        val vm = viewModel(areaRepo, FakeMaintenanceRuleRepository())
+        vm.load()
+        advanceUntilIdle()
+
+        vm.update(name = "Grusgången", description = null, category = "WALKWAY", sizeSqm = null)
+        advanceUntilIdle()
+
+        val sent = areaRepo.lastUpdate!!
+        // A null reads as "keep the current value" server-side, so the only
+        // way to empty a field is the flag — and it may not carry a value.
+        assertTrue(sent.clearDescription)
+        assertTrue(sent.clearSizeSqm)
+        assertNull(sent.description)
+        assertNull(sent.sizeSqm)
+    }
+
+    @Test
+    fun `a rewritten description travels as a value, never with the clear flag`() = runTest {
+        val areaRepo = FakeGardenAreaRepository(area = area())
+        val vm = viewModel(areaRepo, FakeMaintenanceRuleRepository())
+        vm.load()
+        advanceUntilIdle()
+
+        vm.update(name = "Grusgången", description = "Ny text", category = "WALKWAY", sizeSqm = 4.0)
+        advanceUntilIdle()
+
+        val sent = areaRepo.lastUpdate!!
+        assertEquals("Ny text", sent.description)
+        assertEquals(4.0, sent.sizeSqm!!, 0.0001)
+        assertEquals(false, sent.clearDescription)
+        assertEquals(false, sent.clearSizeSqm)
+    }
+
+    @Test
+    fun `an area that never had a description does not ask to clear one`() = runTest {
+        val areaRepo = FakeGardenAreaRepository(area = area().copy(description = null, sizeSqm = null))
+        val vm = viewModel(areaRepo, FakeMaintenanceRuleRepository())
+        vm.load()
+        advanceUntilIdle()
+
+        vm.update(name = "Grusgången", description = null, category = "WALKWAY", sizeSqm = null)
+        advanceUntilIdle()
+
+        val sent = areaRepo.lastUpdate!!
+        assertEquals(false, sent.clearDescription)
+        assertEquals(false, sent.clearSizeSqm)
+    }
+
+    @Test
+    fun `a toast consumed while a refresh is in flight does not come back`() = runTest {
+        val areaRepo = FakeGardenAreaRepository(area = area(), failLogEventWith = RuntimeException("nätverksfel"))
+        val vm = viewModel(areaRepo, FakeMaintenanceRuleRepository())
+        vm.load()
+        advanceUntilIdle()
+
+        vm.logEvent(activityType = "WEED")
+        advanceUntilIdle()
+        assertEquals("nätverksfel", (vm.uiState.value as GardenAreaDetailUiState.Loaded).toastMessage)
+
+        // Park the reload mid-flight, then let the screen show and consume the
+        // snackbar exactly as it does in production.
+        val gate = CompletableDeferred<Unit>()
+        areaRepo.getGate = gate
+        vm.refresh()
+        advanceUntilIdle()
+        vm.consumeToast()
+        gate.complete(Unit)
+        advanceUntilIdle()
+
+        // Restoring the pre-flight snapshot here would fire the same snackbar
+        // a second time.
+        assertNull((vm.uiState.value as GardenAreaDetailUiState.Loaded).toastMessage)
+    }
+
+    @Test
+    fun `refreshing the area alone does not refetch the rules`() = runTest {
+        val ruleRepo = FakeMaintenanceRuleRepository(mutableListOf(rule()))
+        val vm = viewModel(FakeGardenAreaRepository(area = area()), ruleRepo)
+        vm.load()
+        advanceUntilIdle()
+        val callsAfterLoad = ruleRepo.listCallCount
+
+        vm.refresh()
+        advanceUntilIdle()
+
+        // Only logging work can move a rule's next-due date; renaming an area
+        // or deleting a photo cannot, so refetching there is a round-trip that
+        // can only return what the client already has.
+        assertEquals(callsAfterLoad, ruleRepo.listCallCount)
     }
 }

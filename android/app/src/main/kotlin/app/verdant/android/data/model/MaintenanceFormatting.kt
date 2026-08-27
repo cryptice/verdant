@@ -31,13 +31,24 @@ sealed interface DueState {
     data class Overdue(val days: Int) : DueState
     data object Due : DueState
     data class Upcoming(val days: Int) : DueState
+
+    /**
+     * The rule carries a date this client cannot read. [dueState] runs inside
+     * composition, so a parse failure here would take down the whole detail
+     * screen — this renders as no badge instead.
+     */
+    data object Unknown : DueState
 }
 
-/** Whole days between two ISO yyyy-MM-dd strings. */
-private fun daysBetween(fromIso: String, toIso: String): Int {
-    val from = java.time.LocalDate.parse(fromIso)
-    val to = java.time.LocalDate.parse(toIso)
-    return java.time.temporal.ChronoUnit.DAYS.between(from, to).toInt()
+/** Whole days between two ISO yyyy-MM-dd strings, or null if either will not parse. */
+private fun daysBetween(fromIso: String?, toIso: String?): Int? {
+    if (fromIso == null || toIso == null) return null
+    return runCatching {
+        java.time.temporal.ChronoUnit.DAYS.between(
+            java.time.LocalDate.parse(fromIso),
+            java.time.LocalDate.parse(toIso),
+        ).toInt()
+    }.getOrNull()
 }
 
 /**
@@ -47,7 +58,7 @@ private fun daysBetween(fromIso: String, toIso: String): Int {
  */
 fun dueState(rule: MaintenanceRuleResponse, todayIso: String): DueState {
     if (!rule.active) return DueState.Inactive
-    val delta = daysBetween(todayIso, rule.nextDueDate)
+    val delta = daysBetween(todayIso, rule.nextDueDate) ?: return DueState.Unknown
     return when {
         delta < 0 -> DueState.Overdue(-delta)
         delta == 0 -> DueState.Due
@@ -70,4 +81,41 @@ fun seasonWindowMonthDays(
     if (!hasSeasonWindow(rule)) return null
     return (rule.seasonStartMonth!! to rule.seasonStartDay!!) to
         (rule.seasonEndMonth!! to rule.seasonEndDay!!)
+}
+
+/**
+ * The update to send for an edited rule.
+ *
+ * Every field of [UpdateMaintenanceRuleRequest] is nullable, so the server
+ * cannot tell "omitted" from "explicitly null" and reads both as "keep the
+ * current value". Emptying a field is therefore an explicit flag — and the
+ * server rejects a flag that travels with a replacement value for the same
+ * field. Both rules are enforced here, once, rather than in each screen.
+ *
+ * A season window is all-or-none: pass all four bounds to set one, or none
+ * of them to remove whatever the rule currently has.
+ */
+fun maintenanceRuleUpdate(
+    rule: MaintenanceRuleResponse,
+    activityType: String,
+    intervalDays: Int,
+    seasonStartMonth: Int? = null,
+    seasonStartDay: Int? = null,
+    seasonEndMonth: Int? = null,
+    seasonEndDay: Int? = null,
+    notes: String? = null,
+): UpdateMaintenanceRuleRequest {
+    val wantsWindow = seasonStartMonth != null && seasonStartDay != null &&
+        seasonEndMonth != null && seasonEndDay != null
+    return UpdateMaintenanceRuleRequest(
+        activityType = activityType,
+        intervalDays = intervalDays,
+        seasonStartMonth = if (wantsWindow) seasonStartMonth else null,
+        seasonStartDay = if (wantsWindow) seasonStartDay else null,
+        seasonEndMonth = if (wantsWindow) seasonEndMonth else null,
+        seasonEndDay = if (wantsWindow) seasonEndDay else null,
+        clearSeasonWindow = !wantsWindow && hasSeasonWindow(rule),
+        notes = notes,
+        clearNotes = notes == null && rule.notes != null,
+    )
 }

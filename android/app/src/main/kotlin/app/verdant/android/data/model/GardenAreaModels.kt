@@ -30,6 +30,14 @@ data class UpdateGardenAreaRequest(
     @SerializedName("description") val description: String? = null,
     @SerializedName("boundaryJson") val boundaryJson: String? = null,
     @SerializedName("sizeSqm") val sizeSqm: Double? = null,
+    /**
+     * The ONLY way to empty the description — a null is indistinguishable
+     * from an omitted field server-side, so it means "keep". Cannot be
+     * combined with a [description] value; doing so is a 400.
+     */
+    @SerializedName("clearDescription") val clearDescription: Boolean = false,
+    /** The ONLY way to empty the size. See [clearDescription]. */
+    @SerializedName("clearSizeSqm") val clearSizeSqm: Boolean = false,
 )
 
 data class GardenAreaEventResponse(
