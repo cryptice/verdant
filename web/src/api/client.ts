@@ -618,7 +618,21 @@ export const api = {
     get: (id: number) => apiRequest<BedResponse>(`/api/beds/${id}`),
     create: (gardenId: number, data: { name: string; description?: string; lengthMeters?: number; widthMeters?: number; soilType?: string; soilPh?: number; sunExposure?: string; drainage?: string; sunDirections?: string[]; irrigationType?: string; protection?: string; raisedBed?: boolean }) =>
       apiRequest<BedResponse>(`/api/gardens/${gardenId}/beds`, { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: number, data: { name: string; description?: string; lengthMeters?: number; widthMeters?: number; soilType?: string; soilPh?: number; sunExposure?: string; drainage?: string; sunDirections?: string[]; irrigationType?: string; protection?: string; raisedBed?: boolean }) =>
+    update: (id: number, data: {
+      name: string; description?: string; lengthMeters?: number; widthMeters?: number
+      soilType?: string; soilPh?: number; sunExposure?: string; drainage?: string
+      sunDirections?: string[]; irrigationType?: string; protection?: string; raisedBed?: boolean
+      /**
+       * Emptying a field, one flag per field: an omitted field reads as "keep
+       * the current value" server-side. A flag may not be combined with a
+       * replacement value for the same field — that is a 400. `description` is
+       * the exception, and clears on an empty string.
+       */
+      clearLengthMeters?: boolean; clearWidthMeters?: boolean
+      clearSoilType?: boolean; clearSoilPh?: boolean
+      clearSunExposure?: boolean; clearDrainage?: boolean
+      clearSunDirections?: boolean; clearIrrigationType?: boolean; clearProtection?: boolean
+    }) =>
       apiRequest<BedResponse>(`/api/beds/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: number) => apiRequest<void>(`/api/beds/${id}`, { method: 'DELETE' }),
     plants: (bedId: number) => apiRequest<PlantResponse[]>(`/api/beds/${bedId}/plants`),
@@ -732,6 +746,8 @@ export const api = {
       active?: boolean; notes?: string
       /** The ONLY way to empty the notes. Cannot be combined with a notes value. */
       clearNotes?: boolean
+      /** The ONLY way to empty the anchor date. Cannot be combined with an anchorDate value. */
+      clearAnchorDate?: boolean
     }) =>
       apiRequest<MaintenanceRuleResponse>(`/api/maintenance-rules/${id}`, {
         method: 'PUT',

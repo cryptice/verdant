@@ -44,10 +44,16 @@ export function BedEditDialog({
   const editPhNum = editSoilPh !== '' ? parseFloat(editSoilPh) : undefined
   const editPhOutOfRange = editPhNum !== undefined && (editPhNum < 3.0 || editPhNum > 9.0)
 
+  // An omitted field reads as "keep the current value" server-side, so
+  // emptying one takes an explicit flag — and a flag may not travel with a
+  // replacement value for the same field. `description` is the exception:
+  // the server has always cleared it on a blank string.
+  const cleared = (emptied: boolean, had: unknown) => emptied && had != null
+
   const updateMut = useMutation({
     mutationFn: () => api.beds.update(bed.id, {
       name: editName,
-      description: editDescription || undefined,
+      description: editDescription,
       lengthMeters: editLength !== '' ? parseFloat(editLength) : undefined,
       widthMeters: editWidth !== '' ? parseFloat(editWidth) : undefined,
       soilType: editSoilType || undefined,
@@ -58,6 +64,15 @@ export function BedEditDialog({
       irrigationType: editIrrigationType || undefined,
       protection: editProtection || undefined,
       raisedBed: editRaisedBed,
+      clearLengthMeters: cleared(editLength === '', bed.lengthMeters),
+      clearWidthMeters: cleared(editWidth === '', bed.widthMeters),
+      clearSoilType: cleared(editSoilType === '', bed.soilType),
+      clearSoilPh: cleared(editSoilPh === '', bed.soilPh),
+      clearSunExposure: cleared(editSunExposure === '', bed.sunExposure),
+      clearDrainage: cleared(editDrainage === '', bed.drainage),
+      clearSunDirections: cleared(editSunDirections.length === 0, bed.sunDirections?.length ? true : null),
+      clearIrrigationType: cleared(editIrrigationType === '', bed.irrigationType),
+      clearProtection: cleared(editProtection === '', bed.protection),
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['bed', bed.id] })

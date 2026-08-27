@@ -87,6 +87,9 @@ export function MaintenanceRuleDialog({
           activityType,
           intervalDays: intervalNum,
           anchorDate: anchorDate || undefined,
+          // An omitted anchor date reads as "keep" server-side, so emptying
+          // the field takes the flag — which may not carry a value.
+          clearAnchorDate: anchorDate === '' && rule.anchorDate != null,
           active,
           ...seasonPatch,
         })
