@@ -561,6 +561,18 @@
     <string name="area_category_water_feature">Water feature</string>
     <string name="area_category_structure">Structure</string>
     <string name="area_category_other">Other</string>
+    <string name="area_photos_section_title">Photos</string>
+    <string name="area_photos_empty">No photos yet.</string>
+    <string name="area_photo_add">+ Add photo</string>
+    <string name="area_photo_add_title">New photo</string>
+    <string name="area_photo_reason_label">Reason</string>
+    <string name="area_photo_delete_title">Delete photo</string>
+    <string name="area_photo_delete_confirm">Delete this photo?</string>
+    <string name="area_photo_reason_progress">Growth</string>
+    <string name="area_photo_reason_issue">Issue</string>
+    <string name="area_photo_reason_harvest">Harvest</string>
+    <string name="area_photo_reason_planting">Planting</string>
+    <string name="area_photo_reason_other">Other</string>
 
     <!-- Maintenance Rules -->
     <string name="maintenance_section_title">Maintenance</string>

@@ -110,6 +110,8 @@ fun GardenAreaDetailScreen(
 
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showLogDialog by remember { mutableStateOf(false) }
+    var showPhotoDialog by remember { mutableStateOf(false) }
+    var photoToDelete by remember { mutableStateOf<Long?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(loaded?.toastMessage) {
         loaded?.toastMessage?.let {
@@ -201,6 +203,33 @@ fun GardenAreaDetailScreen(
             onLog = { activityType, notes ->
                 viewModel.logEvent(activityType, notes)
                 showLogDialog = false
+            },
+        )
+    }
+
+    if (showPhotoDialog) {
+        AddGardenAreaPhotoDialog(
+            onDismiss = { showPhotoDialog = false },
+            onSave = { base64, reason, description ->
+                viewModel.addPhoto(base64, reason, description)
+                showPhotoDialog = false
+            },
+        )
+    }
+
+    photoToDelete?.let { pid ->
+        AlertDialog(
+            onDismissRequest = { photoToDelete = null },
+            title = { Text(stringResource(R.string.area_photo_delete_title)) },
+            text = { Text(stringResource(R.string.area_photo_delete_confirm)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.deletePhoto(pid)
+                    photoToDelete = null
+                }) { Text(stringResource(R.string.delete), color = FaltetClay) }
+            },
+            dismissButton = {
+                TextButton(onClick = { photoToDelete = null }) { Text(stringResource(R.string.cancel)) }
             },
         )
     }
@@ -345,6 +374,21 @@ fun GardenAreaDetailScreen(
                             AreaEventRow(ev)
                         }
                     }
+
+                    item {
+                        FaltetSectionHeader(
+                            label = stringResource(R.string.area_photos_section_title),
+                            trailing = {
+                                TextButton(onClick = { showPhotoDialog = true }) {
+                                    Text(stringResource(R.string.area_photo_add), color = FaltetAccent, fontSize = 12.sp)
+                                }
+                            },
+                        )
+                    }
+                    gardenAreaPhotosSection(
+                        photos = state.photos,
+                        onDelete = { id -> photoToDelete = id },
+                    )
 
                     item { Spacer(Modifier.height(80.dp)) }
                 }

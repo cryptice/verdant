@@ -559,6 +559,18 @@
     <string name="area_category_water_feature">Vattenelement</string>
     <string name="area_category_structure">Konstruktion</string>
     <string name="area_category_other">\u00D6vrigt</string>
+    <string name="area_photos_section_title">Bilder</string>
+    <string name="area_photos_empty">Inga bilder \u00E4nnu.</string>
+    <string name="area_photo_add">+ L\u00E4gg till bild</string>
+    <string name="area_photo_add_title">Ny bild</string>
+    <string name="area_photo_reason_label">Anledning</string>
+    <string name="area_photo_delete_title">Ta bort bild</string>
+    <string name="area_photo_delete_confirm">Vill du ta bort den h\u00E4r bilden?</string>
+    <string name="area_photo_reason_progress">Tillv\u00E4xt</string>
+    <string name="area_photo_reason_issue">Problem</string>
+    <string name="area_photo_reason_harvest">Sk\u00F6rd</string>
+    <string name="area_photo_reason_planting">Plantering</string>
+    <string name="area_photo_reason_other">\u00D6vrigt</string>
 
     <!-- Maintenance Rules -->
     <string name="maintenance_section_title">Underh\u00E5ll</string>

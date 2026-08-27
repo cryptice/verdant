@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.CreateGardenAreaEventRequest
+import app.verdant.android.data.model.CreateGardenAreaPhotoRequest
 import app.verdant.android.data.model.GardenAreaEventResponse
 import app.verdant.android.data.model.GardenAreaPhotoResponse
 import app.verdant.android.data.model.GardenAreaResponse
@@ -144,6 +145,46 @@ class GardenAreaDetailViewModel @Inject constructor(
                 (_uiState.value as? GardenAreaDetailUiState.Loaded)?.let {
                     _uiState.value = it.copy(toastMessage = e.message ?: "Kunde inte ta bort platsen")
                 }
+            }
+        }
+    }
+
+    fun addPhoto(imageBase64: String, reason: String, description: String?) {
+        viewModelScope.launch {
+            val current = _uiState.value as? GardenAreaDetailUiState.Loaded ?: return@launch
+            _uiState.value = current.copy(isRefreshing = true)
+            try {
+                areaRepository.addPhoto(
+                    areaId,
+                    CreateGardenAreaPhotoRequest(
+                        imageBase64 = imageBase64,
+                        reason = reason,
+                        description = description?.takeIf { it.isNotBlank() },
+                    ),
+                )
+                (_uiState.value as? GardenAreaDetailUiState.Loaded)?.let {
+                    _uiState.value = it.copy(toastMessage = "Bild sparad")
+                }
+                refresh()
+            } catch (e: Exception) {
+                (_uiState.value as? GardenAreaDetailUiState.Loaded)?.let {
+                    _uiState.value = it.copy(
+                        isRefreshing = false,
+                        toastMessage = e.message ?: "Kunde inte spara bilden",
+                    )
+                }
+            }
+        }
+    }
+
+    fun deletePhoto(photoId: Long) {
+        viewModelScope.launch {
+            val current = _uiState.value as? GardenAreaDetailUiState.Loaded ?: return@launch
+            try {
+                areaRepository.deletePhoto(areaId, photoId)
+                refresh()
+            } catch (e: Exception) {
+                _uiState.value = current.copy(toastMessage = e.message ?: "Kunde inte ta bort bilden")
             }
         }
     }
