@@ -1,6 +1,7 @@
 package app.verdant.android.ui.bed
 import app.verdant.android.data.repository.BedRepository
 import app.verdant.android.data.repository.GardenApiRepository
+import app.verdant.android.data.repository.MaintenanceRuleRepository
 import app.verdant.android.data.repository.PlantRepository
 import app.verdant.android.data.repository.SupplyApplicationRepository
 
@@ -12,9 +13,11 @@ import app.verdant.android.data.model.BedPhotoResponse
 import app.verdant.android.data.model.BedResponse
 import app.verdant.android.data.model.CreateBedPhotoRequest
 import app.verdant.android.data.model.CreateBedRequest
+import app.verdant.android.data.model.MaintenanceTarget
 import app.verdant.android.data.model.PlantResponse
 import app.verdant.android.data.model.SupplyApplicationResponse
 import app.verdant.android.data.model.UpdateBedRequest
+import app.verdant.android.ui.maintenance.MaintenanceRulesController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -53,12 +56,24 @@ class BedDetailViewModel @Inject constructor(
     private val plantRepository: PlantRepository,
     private val supplyApplicationRepository: SupplyApplicationRepository,
     private val gardenApiRepository: GardenApiRepository,
+    ruleRepository: MaintenanceRuleRepository,
 ) : ViewModel() {
     private val bedId: Long = savedStateHandle.get<Long>("bedId")!!
     private val _uiState = MutableStateFlow<BedDetailUiState>(BedDetailUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
+    /**
+     * Shared with the area detail screen — see [MaintenanceRulesController]'s
+     * doc. [refresh] reloads this alongside the bed itself so a single call
+     * keeps both in step: the backend derives "last done" from the event
+     * log, not a stored timestamp, so a rule's `nextDueDate` only reflects
+     * work logged by [weed]/[water] once the rules are reloaded too — which
+     * both already do by calling [refresh] on success.
+     */
+    val rulesController = MaintenanceRulesController(ruleRepository, MaintenanceTarget.BED, bedId, viewModelScope)
+
     fun refresh() {
+        rulesController.refresh()
         viewModelScope.launch {
             val current = _uiState.value
             if (current is BedDetailUiState.Loaded) {

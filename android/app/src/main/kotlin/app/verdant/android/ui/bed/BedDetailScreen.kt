@@ -52,6 +52,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import app.verdant.android.data.model.MaintenanceTarget
+import app.verdant.android.data.model.UpdateMaintenanceRuleRequest
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetFab
@@ -61,6 +63,7 @@ import app.verdant.android.ui.faltet.FaltetMetadataRow
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.FaltetSectionHeader
 import app.verdant.android.ui.faltet.Field
+import app.verdant.android.ui.maintenance.MaintenanceRulesSection
 import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetClay
 import app.verdant.android.ui.theme.FaltetDisplay
@@ -81,6 +84,7 @@ fun BedDetailScreen(
     viewModel: BedDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val rulesState by viewModel.rulesController.state.collectAsStateWithLifecycle()
     val loaded = uiState as? BedDetailUiState.Loaded
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     LaunchedEffect(lifecycleOwner) {
@@ -453,6 +457,30 @@ fun BedDetailScreen(
                                 )
                             }
                         }
+                    }
+
+                    item {
+                        MaintenanceRulesSection(
+                            state = rulesState,
+                            target = MaintenanceTarget.BED,
+                            onCreate = { activityType, intervalDays, sm, sd, em, ed, notes ->
+                                viewModel.rulesController.create(
+                                    activityType = activityType,
+                                    intervalDays = intervalDays,
+                                    seasonStartMonth = sm,
+                                    seasonStartDay = sd,
+                                    seasonEndMonth = em,
+                                    seasonEndDay = ed,
+                                    notes = notes,
+                                )
+                            },
+                            onUpdate = viewModel.rulesController::update,
+                            onClearSeasonWindow = viewModel.rulesController::clearSeasonWindow,
+                            onDelete = viewModel.rulesController::delete,
+                            onToggleActive = { id, active ->
+                                viewModel.rulesController.update(id, UpdateMaintenanceRuleRequest(active = active))
+                            },
+                        )
                     }
 
                     // Skötsel section — bed-level maintenance log (water, weed, …).

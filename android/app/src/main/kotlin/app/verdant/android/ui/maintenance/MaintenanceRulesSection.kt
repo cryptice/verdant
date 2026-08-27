@@ -151,7 +151,10 @@ fun MaintenanceRulesSection(
                 onUpdate(id, request)
                 showEditSheet = false
             },
-            onClearSeasonWindow = onClearSeasonWindow,
+            onClearSeasonWindow = { ruleId ->
+                onClearSeasonWindow(ruleId)
+                showEditSheet = false
+            },
         )
     }
 
