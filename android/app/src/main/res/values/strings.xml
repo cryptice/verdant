@@ -76,6 +76,9 @@
     <string name="bed_name">Bed Name</string>
     <string name="description">Description</string>
     <string name="add_bed">Add bed</string>
+    <string name="garden_areas_section_title">Places</string>
+    <string name="garden_areas_add">+ Add place</string>
+    <string name="garden_areas_empty">No places yet. Tap + to create.</string>
     <string name="create_garden">Create Garden</string>
     <string name="default_garden_name">My Garden</string>
     <string name="default_bed_name">New Bed</string>
@@ -542,8 +545,10 @@
     <string name="stems_per_plant_label">Stems per plant</string>
 
     <!-- Garden Areas -->
+    <string name="area_create_title">New area</string>
     <string name="area_edit_title">Edit area</string>
     <string name="area_field_name">Name</string>
+    <string name="area_field_name_required">Name is required</string>
     <string name="area_field_description">Description (optional)</string>
     <string name="area_field_category">Category</string>
     <string name="area_field_size">Size (m²)</string>

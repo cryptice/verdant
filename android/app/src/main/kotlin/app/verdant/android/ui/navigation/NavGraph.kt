@@ -72,6 +72,9 @@ sealed class Screen(val route: String) {
     data object CreateBed : Screen("garden/{gardenId}/bed/create") {
         fun create(gardenId: Long) = "garden/$gardenId/bed/create"
     }
+    data object CreateGardenArea : Screen("garden/{gardenId}/area/create") {
+        fun create(gardenId: Long) = "garden/$gardenId/area/create"
+    }
     data object BedDetail : Screen("bed/{bedId}?edit={edit}") {
         fun create(bedId: Long, edit: Boolean = false) = "bed/$bedId?edit=$edit"
     }

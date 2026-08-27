@@ -6,6 +6,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import app.verdant.android.ui.activity.BatchPlantOutScreen
+import app.verdant.android.ui.area.CreateGardenAreaScreen
 import app.verdant.android.ui.area.GardenAreaDetailScreen
 import app.verdant.android.ui.bed.BedDetailScreen
 import app.verdant.android.ui.bed.CreateBedScreen
@@ -29,6 +30,8 @@ fun NavGraphBuilder.gardenGraph(navController: NavController) {
             onBack = { navController.popBackStack() },
             onBedClick = { bedId -> navController.navigate(Screen.BedDetail.create(bedId)) },
             onCreateBed = { gardenId -> navController.navigate(Screen.CreateBed.create(gardenId)) },
+            onAreaClick = { areaId -> navController.navigate(Screen.GardenAreaDetail.create(areaId)) },
+            onCreateArea = { gardenId -> navController.navigate(Screen.CreateGardenArea.create(gardenId)) },
             onSpeciesClick = { speciesId ->
                 navController.navigate(Screen.PlantedSpeciesDetail.create(speciesId))
             },
@@ -39,6 +42,15 @@ fun NavGraphBuilder.gardenGraph(navController: NavController) {
         arguments = listOf(navArgument("gardenId") { type = NavType.LongType }),
     ) {
         CreateBedScreen(
+            onBack = { navController.popBackStack() },
+            onCreated = { _ -> navController.popBackStack() },
+        )
+    }
+    composable(
+        Screen.CreateGardenArea.route,
+        arguments = listOf(navArgument("gardenId") { type = NavType.LongType }),
+    ) {
+        CreateGardenAreaScreen(
             onBack = { navController.popBackStack() },
             onCreated = { _ -> navController.popBackStack() },
         )

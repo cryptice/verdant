@@ -75,6 +75,9 @@
     <string name="bed_name">B\u00E4ddnamn</string>
     <string name="description">Beskrivning</string>
     <string name="add_bed">L\u00E4gg till b\u00E4dd</string>
+    <string name="garden_areas_section_title">Platser</string>
+    <string name="garden_areas_add">+ L\u00E4gg till plats</string>
+    <string name="garden_areas_empty">Inga platser \u00E4n. Tryck + f\u00F6r att skapa.</string>
     <string name="create_garden">Skapa tr\u00E4dg\u00E5rd</string>
     <string name="default_garden_name">Min tr\u00E4dg\u00E5rd</string>
     <string name="default_bed_name">Ny b\u00E4dd</string>
@@ -540,8 +543,10 @@
     <string name="stems_per_plant_label">Stj\u00E4lkar per planta</string>
 
     <!-- Garden Areas -->
+    <string name="area_create_title">Ny plats</string>
     <string name="area_edit_title">Redigera plats</string>
     <string name="area_field_name">Namn</string>
+    <string name="area_field_name_required">Namn krävs</string>
     <string name="area_field_description">Beskrivning (valfri)</string>
     <string name="area_field_category">Kategori</string>
     <string name="area_field_size">Storlek (m\u00B2)</string>

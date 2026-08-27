@@ -1,8 +1,11 @@
 package app.verdant.android.ui.garden
+import app.verdant.android.ui.area.areaCategoryLabelRes
+import app.verdant.android.ui.bed.NaturalNameComparator
 import app.verdant.android.ui.bed.sortedByNaturalName
 import app.verdant.android.ui.faltet.BotanicalPlate
 import app.verdant.android.data.repository.BedRepository
 import app.verdant.android.data.repository.GardenApiRepository
+import app.verdant.android.data.repository.GardenAreaRepository
 import app.verdant.android.data.repository.PlantRepository
 
 import android.util.Log
@@ -43,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,7 +60,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.R
 import app.verdant.android.data.model.BedResponse
+import app.verdant.android.data.model.GardenAreaResponse
 import app.verdant.android.data.model.GardenResponse
 import app.verdant.android.data.model.UpdateGardenRequest
 import app.verdant.android.ui.common.ConnectionErrorState
@@ -84,6 +90,7 @@ data class GardenDetailState(
     val isLoading: Boolean = true,
     val garden: GardenResponse? = null,
     val beds: List<BedResponse> = emptyList(),
+    val areas: List<GardenAreaResponse> = emptyList(),
     val trayPlants: List<app.verdant.android.data.model.TraySummaryEntry> = emptyList(),
     val error: String? = null,
     val deleted: Boolean = false,
@@ -95,6 +102,7 @@ class GardenDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val gardenApiRepository: GardenApiRepository,
     private val bedRepository: BedRepository,
+    private val gardenAreaRepository: GardenAreaRepository,
     private val plantRepository: PlantRepository
 ) : ViewModel() {
     private val gardenId: Long = savedStateHandle.get<Long>("gardenId")!!
@@ -119,11 +127,16 @@ class GardenDetailViewModel @Inject constructor(
                     Log.d(TAG, "Garden loaded: ${garden.name}")
                     val beds = bedRepository.list(gardenId).sortedByNaturalName()
                     Log.d(TAG, "Beds loaded: ${beds.size}")
+                    val areas = runCatching {
+                        gardenAreaRepository.list(gardenId).sortedWith(compareBy(NaturalNameComparator) { it.name })
+                    }.getOrDefault(emptyList())
+                    Log.d(TAG, "Areas loaded: ${areas.size}")
                     val tray = runCatching { plantRepository.traySummary() }.getOrDefault(emptyList())
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         garden = garden,
                         beds = beds,
+                        areas = areas,
                         trayPlants = tray,
                         error = null,
                     )
@@ -178,6 +191,8 @@ fun GardenDetailScreen(
     onBack: () -> Unit,
     onBedClick: (Long) -> Unit,
     onCreateBed: (Long) -> Unit,
+    onAreaClick: (Long) -> Unit = {},
+    onCreateArea: (Long) -> Unit = {},
     onSpeciesClick: (Long) -> Unit = {},
     viewModel: GardenDetailViewModel = hiltViewModel(),
 ) {
@@ -295,6 +310,29 @@ fun GardenDetailScreen(
                                     )
                                 }
                             }
+                        }
+                    }
+                    item {
+                        FaltetSectionHeader(
+                            label = stringResource(R.string.garden_areas_section_title),
+                            trailing = uiState.garden?.let { garden ->
+                                {
+                                    TextButton(onClick = { onCreateArea(garden.id) }) {
+                                        Text(
+                                            stringResource(R.string.garden_areas_add),
+                                            color = FaltetAccent,
+                                            fontSize = 12.sp,
+                                        )
+                                    }
+                                }
+                            },
+                        )
+                    }
+                    if (uiState.areas.isEmpty()) {
+                        item { InlineEmpty(stringResource(R.string.garden_areas_empty)) }
+                    } else {
+                        items(uiState.areas, key = { "area_${it.id}" }) { area ->
+                            AreaRow(area = area, onClick = { onAreaClick(area.id) })
                         }
                     }
                     if (uiState.trayPlants.isNotEmpty()) {
@@ -449,6 +487,47 @@ private fun BedRow(bed: BedResponse, onClick: () -> Unit) {
                 modifier = Modifier.weight(1f),
             )
         }
+    }
+}
+
+@Composable
+private fun AreaRow(area: GardenAreaResponse, onClick: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 64.dp)
+            .clickable(onClick = onClick)
+            .drawBehind {
+                drawLine(
+                    color = FaltetInkLine20,
+                    start = Offset(0f, size.height),
+                    end = Offset(size.width, size.height),
+                    strokeWidth = 1.dp.toPx(),
+                )
+            }
+            .padding(horizontal = 18.dp, vertical = 14.dp),
+    ) {
+        Text(
+            text = area.name,
+            fontFamily = FaltetDisplay,
+            fontStyle = FontStyle.Italic,
+            fontSize = 18.sp,
+            color = FaltetInk,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Spacer(Modifier.width(10.dp))
+        Text(
+            text = stringResource(areaCategoryLabelRes(area.category)).uppercase(),
+            fontFamily = FontFamily.Monospace,
+            fontSize = 10.sp,
+            letterSpacing = 1.2.sp,
+            color = FaltetForest,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 
