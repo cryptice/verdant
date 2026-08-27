@@ -132,6 +132,36 @@ class GardenDetailViewModelTest {
         val state = vm.uiState.value
         assertFalse(state.areasLoadFailed)
         assertEquals(listOf("Gång #2", "Gång #10"), state.areas.map { it.name })
+        // Beds are empty (default) but areas are present, so delete must stay hidden.
+        assertFalse(canDeleteGarden(state))
+    }
+
+    @Test
+    fun `canDeleteGarden is false when beds are present, regardless of areas`() = runTest {
+        val g = garden(id = 4)
+        val areaRepo = FakeGardenAreaRepository(areas = emptyList())
+        val vm = viewModel(areaRepo, gardenResponse = g, beds = listOf(bed(id = 1, gardenId = 4)), gardenId = 4)
+
+        vm.refresh()
+        advanceUntilIdle()
+
+        val state = vm.uiState.value
+        assertFalse(state.areasLoadFailed)
+        assertFalse(canDeleteGarden(state))
+    }
+
+    @Test
+    fun `canDeleteGarden is true when beds and areas are both empty and the areas load succeeded`() = runTest {
+        val g = garden(id = 6)
+        val areaRepo = FakeGardenAreaRepository(areas = emptyList())
+        val vm = viewModel(areaRepo, gardenResponse = g, beds = emptyList(), gardenId = 6)
+
+        vm.refresh()
+        advanceUntilIdle()
+
+        val state = vm.uiState.value
+        assertFalse(state.areasLoadFailed)
+        assertTrue(canDeleteGarden(state))
     }
 
     @Test
@@ -149,11 +179,14 @@ class GardenDetailViewModelTest {
             state.areasLoadFailed,
         )
         assertTrue(state.areas.isEmpty())
-        // This is the exact condition GardenDetailScreen's delete-garden gate
-        // evaluates. Both beds and areas read empty here, but the fetch failed —
-        // the gate must still resolve to "don't offer delete".
-        val wouldOfferDelete = state.beds.isEmpty() && state.areas.isEmpty() && !state.areasLoadFailed
-        assertFalse("delete must not be offered while areas are unaccounted for", wouldOfferDelete)
+        // canDeleteGarden is the exact condition GardenDetailScreen's
+        // delete-garden gate evaluates. Both beds and areas read empty here,
+        // but the fetch failed — the gate must still resolve to "don't offer
+        // delete".
+        assertFalse(
+            "delete must not be offered while areas are unaccounted for",
+            canDeleteGarden(state),
+        )
     }
 
     @Test

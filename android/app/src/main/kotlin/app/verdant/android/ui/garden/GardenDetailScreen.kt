@@ -106,6 +106,18 @@ data class GardenDetailState(
     val expandedBedGroups: Set<String> = emptySet(),
 )
 
+/**
+ * Whether the delete-garden affordance may be offered.
+ *
+ * A garden cascade-deletes its beds AND its areas — along with each area's
+ * photos, event history, maintenance rules, and any open scheduled tasks —
+ * and the backend performs no child check, so this client-side gate is the
+ * only protection. An unknown areas state (a failed fetch) must read as
+ * "not safe", never as "empty".
+ */
+internal fun canDeleteGarden(state: GardenDetailState): Boolean =
+    state.beds.isEmpty() && state.areas.isEmpty() && !state.areasLoadFailed
+
 @HiltViewModel
 class GardenDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -267,14 +279,8 @@ fun GardenDetailScreen(
                     IconButton(onClick = { showEditDialog = true }, modifier = Modifier.size(36.dp)) {
                         Icon(Icons.Default.Edit, "Redigera", tint = FaltetAccent, modifier = Modifier.size(18.dp))
                     }
-                    // Deleting cascades through beds AND areas (plus their events,
-                    // photos, maintenance rules, and scheduled tasks) at the
-                    // database level with no server-side child check — this gate
-                    // is the only thing standing between "empty garden" and
-                    // silent data loss, so it must not offer delete while areas
-                    // are unaccounted for (either present or unknown because the
-                    // fetch failed).
-                    if (uiState.beds.isEmpty() && uiState.areas.isEmpty() && !uiState.areasLoadFailed) {
+                    // See canDeleteGarden's KDoc for why this gate matters.
+                    if (canDeleteGarden(uiState)) {
                         IconButton(onClick = { showDeleteDialog = true }, modifier = Modifier.size(36.dp)) {
                             Icon(Icons.Default.DeleteOutline, "Ta bort", tint = FaltetClay, modifier = Modifier.size(18.dp))
                         }
