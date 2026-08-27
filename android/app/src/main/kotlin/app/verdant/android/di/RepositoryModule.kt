@@ -1,8 +1,12 @@
 package app.verdant.android.di
 
 import app.verdant.android.data.repository.AuthRepository
+import app.verdant.android.data.repository.DefaultGardenAreaRepository
+import app.verdant.android.data.repository.DefaultMaintenanceRuleRepository
 import app.verdant.android.data.repository.DefaultTaskRepository
+import app.verdant.android.data.repository.GardenAreaRepository
 import app.verdant.android.data.repository.InviteOps
+import app.verdant.android.data.repository.MaintenanceRuleRepository
 import app.verdant.android.data.repository.OrgRepository
 import app.verdant.android.data.repository.OrgRepositoryImpl
 import app.verdant.android.data.repository.OutletRepository
@@ -38,6 +42,16 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindOrgRepository(impl: OrgRepositoryImpl): OrgRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindGardenAreaRepository(impl: DefaultGardenAreaRepository): GardenAreaRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindMaintenanceRuleRepository(
+        impl: DefaultMaintenanceRuleRepository,
+    ): MaintenanceRuleRepository
 
     @Binds abstract fun bindInviteOps(impl: AuthRepository): InviteOps
     @Binds abstract fun bindUserRefresher(impl: AuthRepository): UserRefresher

@@ -162,6 +162,79 @@ interface VerdantApi {
         @Path("photoId") photoId: Long,
     )
 
+    // ── Garden Areas ──
+
+    @GET("api/gardens/{gardenId}/areas")
+    suspend fun getGardenAreas(@Path("gardenId") gardenId: Long): List<GardenAreaResponse>
+
+    @POST("api/gardens/{gardenId}/areas")
+    suspend fun createGardenArea(
+        @Path("gardenId") gardenId: Long,
+        @Body request: CreateGardenAreaRequest,
+    ): GardenAreaResponse
+
+    @GET("api/areas/{id}")
+    suspend fun getGardenArea(@Path("id") id: Long): GardenAreaResponse
+
+    @PUT("api/areas/{id}")
+    suspend fun updateGardenArea(
+        @Path("id") id: Long,
+        @Body request: UpdateGardenAreaRequest,
+    ): GardenAreaResponse
+
+    @DELETE("api/areas/{id}")
+    suspend fun deleteGardenArea(@Path("id") id: Long)
+
+    @GET("api/areas/{id}/events")
+    suspend fun getGardenAreaEvents(
+        @Path("id") id: Long,
+        @Query("limit") limit: Int = 50,
+    ): List<GardenAreaEventResponse>
+
+    @POST("api/areas/{id}/events")
+    suspend fun logGardenAreaEvent(
+        @Path("id") id: Long,
+        @Body request: CreateGardenAreaEventRequest,
+    ): GardenAreaEventResponse
+
+    @GET("api/areas/{id}/photos")
+    suspend fun getGardenAreaPhotos(@Path("id") id: Long): List<GardenAreaPhotoResponse>
+
+    @POST("api/areas/{id}/photos")
+    suspend fun addGardenAreaPhoto(
+        @Path("id") id: Long,
+        @Body request: CreateGardenAreaPhotoRequest,
+    ): GardenAreaPhotoResponse
+
+    @DELETE("api/areas/{id}/photos/{photoId}")
+    suspend fun deleteGardenAreaPhoto(
+        @Path("id") id: Long,
+        @Path("photoId") photoId: Long,
+    )
+
+    // ── Maintenance Rules ──
+
+    // At most one filter — supplying both is a 400.
+    @GET("api/maintenance-rules")
+    suspend fun getMaintenanceRules(
+        @Query("bedId") bedId: Long? = null,
+        @Query("areaId") areaId: Long? = null,
+    ): List<MaintenanceRuleResponse>
+
+    @POST("api/maintenance-rules")
+    suspend fun createMaintenanceRule(
+        @Body request: CreateMaintenanceRuleRequest,
+    ): MaintenanceRuleResponse
+
+    @PUT("api/maintenance-rules/{id}")
+    suspend fun updateMaintenanceRule(
+        @Path("id") id: Long,
+        @Body request: UpdateMaintenanceRuleRequest,
+    ): MaintenanceRuleResponse
+
+    @DELETE("api/maintenance-rules/{id}")
+    suspend fun deleteMaintenanceRule(@Path("id") id: Long)
+
     @PUT("api/plants/{id}")
     suspend fun updatePlant(@Path("id") id: Long, @Body request: UpdatePlantRequest): PlantResponse
 
