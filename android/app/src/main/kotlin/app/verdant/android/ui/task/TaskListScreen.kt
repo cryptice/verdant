@@ -185,7 +185,6 @@ fun TaskListScreen(
     onBack: () -> Unit,
     onCreateTask: () -> Unit,
     onEditTask: (Long) -> Unit,
-    onPerformTask: (ScheduledTaskResponse) -> Unit,
     viewModel: TaskListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
