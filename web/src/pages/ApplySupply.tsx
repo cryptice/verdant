@@ -140,6 +140,10 @@ export function ApplySupply() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['bed-applications', bedId] })
       qc.invalidateQueries({ queryKey: ['supply-inventory'] })
+      // A fertiliser application moves a bed FERTILIZE rule's derived clock
+      // (LastDoneResolver reads supply_application), so the rule's next-due
+      // date is stale until it refetches.
+      qc.invalidateQueries({ queryKey: ['maintenance-rules', 'BED', bedId] })
       if (stepId) qc.invalidateQueries({ queryKey: ['workflow-progress'] })
       navigate(-1)
     },
