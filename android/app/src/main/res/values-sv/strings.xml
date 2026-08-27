@@ -86,7 +86,7 @@
     <!-- Garden Detail -->
     <string name="garden">Tr\u00E4dg\u00E5rd</string>
     <string name="delete_garden">Radera tr\u00E4dg\u00E5rd</string>
-    <string name="delete_garden_confirm">Detta raderar tr\u00E4dg\u00E5rden och alla dess b\u00E4ddar, platser och plantor. \u00C4r du s\u00E4ker?</string>
+    <string name="delete_garden_confirm">Detta raderar \"%1$s\" och alla dess b\u00E4ddar, platser och plantor. \u00C4r du s\u00E4ker?</string>
     <string name="no_beds_yet">Inga b\u00E4ddar \u00E4nnu. Tryck + f\u00F6r att l\u00E4gga till en.</string>
 
     <!-- Bed Creation -->

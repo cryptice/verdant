@@ -257,7 +257,7 @@ fun GardenDetailScreen(
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             title = { Text("Ta bort trädgård") },
-            text = { Text("Vill du ta bort trädgården \"${gardenName}\"? Detta tar även bort alla bäddar, platser och plantor i den.") },
+            text = { Text(stringResource(R.string.delete_garden_confirm, gardenName)) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.delete()

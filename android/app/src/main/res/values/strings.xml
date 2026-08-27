@@ -87,7 +87,7 @@
     <!-- Garden Detail -->
     <string name="garden">Garden</string>
     <string name="delete_garden">Delete Garden</string>
-    <string name="delete_garden_confirm">This will delete the garden and all its beds, areas, and plants. Are you sure?</string>
+    <string name="delete_garden_confirm">This will delete \"%1$s\" and all its beds, areas, and plants. Are you sure?</string>
     <string name="no_beds_yet">No beds yet. Tap + to add one.</string>
 
     <!-- Bed Creation -->
