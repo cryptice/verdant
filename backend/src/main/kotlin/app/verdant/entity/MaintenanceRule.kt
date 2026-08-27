@@ -16,6 +16,11 @@ data class MaintenanceRule(
     val gardenAreaId: Long? = null,
     val activity: MaintenanceActivity,
     val intervalDays: Int,
+    /**
+     * Seed for work done before the rule existed. Combined with the resolved
+     * event date by [app.verdant.service.MaintenanceDueCalculator.effectiveLastDone],
+     * which takes the later of the two.
+     */
     val anchorDate: LocalDate? = null,
     val seasonStartMonth: Int? = null,
     val seasonStartDay: Int? = null,

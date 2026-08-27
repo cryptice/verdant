@@ -68,4 +68,16 @@ object MaintenanceDueCalculator {
     fun windowOf(rule: MaintenanceRule): SeasonWindow? = SeasonWindow.of(
         rule.seasonStartMonth, rule.seasonStartDay, rule.seasonEndMonth, rule.seasonEndDay,
     )
+
+    /**
+     * The date [dueDate] should count from: the later of the rule's anchor and
+     * the newest matching event ([resolved], from LastDoneResolver).
+     *
+     * The anchor seeds a rule for work already done before the rule existed —
+     * "prune every 90 days, last done three weeks ago" must wait, not fire
+     * today. Taking the later of the two means an anchor can never drag the
+     * clock backwards once real events exist.
+     */
+    fun effectiveLastDone(rule: MaintenanceRule, resolved: LocalDate?): LocalDate? =
+        listOfNotNull(resolved, rule.anchorDate).maxOrNull()
 }

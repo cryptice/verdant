@@ -1,5 +1,7 @@
 package app.verdant.service
 
+import app.verdant.entity.MaintenanceActivity
+import app.verdant.entity.MaintenanceRule
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
@@ -134,5 +136,68 @@ class MaintenanceDueCalculatorTest {
     fun `a february 29 window opening falls back to february 28 in a common year`() {
         val leapWindow = SeasonWindow(MonthDay.of(2, 29), MonthDay.of(3, 31))
         assertEquals(LocalDate.of(2027, 2, 28), leapWindow.nextOpening(LocalDate.of(2027, 1, 1)))
+    }
+
+    // --- effectiveLastDone ------------------------------------------------
+
+    private fun rule(anchorDate: LocalDate? = null) = MaintenanceRule(
+        id = 1L, orgId = 10L, gardenAreaId = 5L,
+        activity = MaintenanceActivity.WEED, intervalDays = 21,
+        anchorDate = anchorDate,
+    )
+
+    @Test
+    fun `with neither anchor nor event there is no last-done date`() {
+        assertNull(MaintenanceDueCalculator.effectiveLastDone(rule(), null))
+    }
+
+    @Test
+    fun `an anchor alone is the last-done date`() {
+        assertEquals(
+            LocalDate.of(2026, 6, 1),
+            MaintenanceDueCalculator.effectiveLastDone(rule(LocalDate.of(2026, 6, 1)), null),
+        )
+    }
+
+    @Test
+    fun `a resolved event alone is the last-done date`() {
+        assertEquals(
+            LocalDate.of(2026, 6, 4),
+            MaintenanceDueCalculator.effectiveLastDone(rule(), LocalDate.of(2026, 6, 4)),
+        )
+    }
+
+    @Test
+    fun `a newer event wins over an older anchor`() {
+        assertEquals(
+            LocalDate.of(2026, 6, 20),
+            MaintenanceDueCalculator.effectiveLastDone(
+                rule(LocalDate.of(2026, 5, 1)), LocalDate.of(2026, 6, 20),
+            ),
+        )
+    }
+
+    @Test
+    fun `a newer anchor wins over an older event`() {
+        assertEquals(
+            LocalDate.of(2026, 6, 20),
+            MaintenanceDueCalculator.effectiveLastDone(
+                rule(LocalDate.of(2026, 6, 20)), LocalDate.of(2026, 5, 1),
+            ),
+        )
+    }
+
+    @Test
+    fun `an anchor pushes the due date out by the full interval`() {
+        val r = rule(LocalDate.of(2026, 6, 1))
+        assertEquals(
+            LocalDate.of(2026, 6, 22),
+            MaintenanceDueCalculator.dueDate(
+                MaintenanceDueCalculator.effectiveLastDone(r, null),
+                r.intervalDays,
+                MaintenanceDueCalculator.windowOf(r),
+                LocalDate.of(2026, 6, 1),
+            ),
+        )
     }
 }

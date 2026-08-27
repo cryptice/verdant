@@ -41,7 +41,9 @@ class MaintenanceScheduler(
             // not stop the rest of the garden from being scheduled.
             runCatching {
                 val due = MaintenanceDueCalculator.dueDate(
-                    lastDone = lastDoneResolver.resolve(rule),
+                    lastDone = MaintenanceDueCalculator.effectiveLastDone(
+                        rule, lastDoneResolver.resolve(rule),
+                    ),
                     intervalDays = rule.intervalDays,
                     window = MaintenanceDueCalculator.windowOf(rule),
                     today = today,

@@ -165,7 +165,9 @@ class MaintenanceRuleService(
     }
 
     private fun MaintenanceRule.toResponse(orgId: Long): MaintenanceRuleResponse {
-        val lastDone = lastDoneResolver.resolve(this)
+        // The anchor is part of the clock, not just a stored field: a rule
+        // created with "last done three weeks ago" must wait out its interval.
+        val lastDone = MaintenanceDueCalculator.effectiveLastDone(this, lastDoneResolver.resolve(this))
         val nextDue = MaintenanceDueCalculator.dueDate(
             lastDone, intervalDays, MaintenanceDueCalculator.windowOf(this), LocalDate.now(),
         )

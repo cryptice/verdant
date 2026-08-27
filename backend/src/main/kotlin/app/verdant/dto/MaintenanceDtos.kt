@@ -21,7 +21,10 @@ data class MaintenanceRuleResponse(
     val seasonEndDay: Int?,
     val active: Boolean,
     val notes: String?,
-    /** Derived from the event log, not stored. Null when never done. */
+    /**
+     * Derived, not stored: the later of [anchorDate] and the newest matching
+     * event. Null when the rule has neither.
+     */
     val lastDoneDate: LocalDate?,
     /** Derived: when the next task will be created. */
     val nextDueDate: LocalDate,

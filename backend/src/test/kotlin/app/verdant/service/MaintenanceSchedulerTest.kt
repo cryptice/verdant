@@ -29,6 +29,7 @@ class MaintenanceSchedulerTest {
     private fun rule(
         id: Long = 1L,
         intervalDays: Int = 21,
+        anchorDate: LocalDate? = null,
         seasonStartMonth: Int? = null,
         seasonStartDay: Int? = null,
         seasonEndMonth: Int? = null,
@@ -36,6 +37,7 @@ class MaintenanceSchedulerTest {
     ) = MaintenanceRule(
         id = id, orgId = orgId, gardenAreaId = areaId,
         activity = MaintenanceActivity.WEED, intervalDays = intervalDays,
+        anchorDate = anchorDate,
         seasonStartMonth = seasonStartMonth, seasonStartDay = seasonStartDay,
         seasonEndMonth = seasonEndMonth, seasonEndDay = seasonEndDay,
     )
@@ -133,6 +135,61 @@ class MaintenanceSchedulerTest {
         whenever(tasks.persist(any())).thenAnswer { it.arguments[0] as ScheduledTask }
 
         assertEquals(1, scheduler.run(today))
+    }
+
+    @Test
+    fun `a rule anchored recently is not due yet even with no events`() {
+        // "weed every 21 days, last done on the 20th" typed on the 25th.
+        val r = rule(anchorDate = LocalDate.of(2026, 6, 20))
+        whenever(rules.findActiveWithoutOpenTask()).thenReturn(listOf(r))
+        whenever(lastDone.resolve(r)).thenReturn(null)
+
+        assertEquals(0, scheduler.run(today))
+        verify(tasks, never()).persist(any())
+    }
+
+    @Test
+    fun `an anchored rule falls due one interval after the anchor`() {
+        val r = rule(anchorDate = LocalDate.of(2026, 6, 1))
+        whenever(rules.findActiveWithoutOpenTask()).thenReturn(listOf(r))
+        whenever(lastDone.resolve(r)).thenReturn(null)
+        whenever(tasks.persist(any())).thenAnswer { it.arguments[0] as ScheduledTask }
+
+        assertEquals(1, scheduler.run(today))
+
+        val captor = argumentCaptor<ScheduledTask>()
+        verify(tasks).persist(captor.capture())
+        assertEquals(LocalDate.of(2026, 6, 22), captor.firstValue.deadline)
+    }
+
+    @Test
+    fun `a newer event wins over an older anchor`() {
+        val r = rule(anchorDate = LocalDate.of(2026, 5, 1))
+        whenever(rules.findActiveWithoutOpenTask()).thenReturn(listOf(r))
+        whenever(lastDone.resolve(r)).thenReturn(LocalDate.of(2026, 6, 20))
+
+        assertEquals(0, scheduler.run(today))
+        verify(tasks, never()).persist(any())
+    }
+
+    @Test
+    fun `a newer anchor never drags the clock back to an older event`() {
+        val r = rule(anchorDate = LocalDate.of(2026, 6, 20))
+        whenever(rules.findActiveWithoutOpenTask()).thenReturn(listOf(r))
+        whenever(lastDone.resolve(r)).thenReturn(LocalDate.of(2026, 5, 1))
+
+        assertEquals(0, scheduler.run(today))
+        verify(tasks, never()).persist(any())
+    }
+
+    @Test
+    fun `a rule anchored in the future produces nothing now`() {
+        val r = rule(anchorDate = LocalDate.of(2026, 8, 1))
+        whenever(rules.findActiveWithoutOpenTask()).thenReturn(listOf(r))
+        whenever(lastDone.resolve(r)).thenReturn(null)
+
+        assertEquals(0, scheduler.run(today))
+        verify(tasks, never()).persist(any())
     }
 
     @Test

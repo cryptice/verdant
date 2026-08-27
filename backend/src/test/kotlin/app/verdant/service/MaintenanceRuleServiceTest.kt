@@ -129,6 +129,49 @@ class MaintenanceRuleServiceTest {
     }
 
     @Test
+    fun `an anchor with no events pushes next-due out by a full interval`() {
+        val persisted = MaintenanceRule(
+            id = 7L, orgId = orgId, gardenAreaId = areaId,
+            activity = MaintenanceActivity.WEED, intervalDays = 21,
+            anchorDate = LocalDate.of(2026, 6, 1),
+        )
+        whenever(areaService.requireArea(areaId, orgId)).thenReturn(area)
+        whenever(rules.persist(any())).thenReturn(persisted)
+        whenever(lastDone.resolve(persisted)).thenReturn(null)
+
+        val result = service.createRule(areaRequest().copy(anchorDate = LocalDate.of(2026, 6, 1)), orgId)
+
+        assertEquals(LocalDate.of(2026, 6, 1), result.lastDoneDate)
+        assertEquals(LocalDate.of(2026, 6, 22), result.nextDueDate)
+    }
+
+    @Test
+    fun `the later of anchor and event drives next-due`() {
+        val anchored = MaintenanceRule(
+            id = 7L, orgId = orgId, gardenAreaId = areaId,
+            activity = MaintenanceActivity.WEED, intervalDays = 21,
+            anchorDate = LocalDate.of(2026, 5, 1),
+        )
+        whenever(areaService.requireArea(areaId, orgId)).thenReturn(area)
+        whenever(rules.persist(any())).thenReturn(anchored)
+        // An event newer than the anchor must win.
+        whenever(lastDone.resolve(anchored)).thenReturn(LocalDate.of(2026, 6, 10))
+
+        val newerEvent = service.createRule(areaRequest().copy(anchorDate = LocalDate.of(2026, 5, 1)), orgId)
+        assertEquals(LocalDate.of(2026, 6, 10), newerEvent.lastDoneDate)
+        assertEquals(LocalDate.of(2026, 7, 1), newerEvent.nextDueDate)
+
+        // …and an anchor newer than the newest event must not be dragged back.
+        val newerAnchor = anchored.copy(anchorDate = LocalDate.of(2026, 6, 10))
+        whenever(rules.persist(any())).thenReturn(newerAnchor)
+        whenever(lastDone.resolve(newerAnchor)).thenReturn(LocalDate.of(2026, 5, 1))
+
+        val result = service.createRule(areaRequest().copy(anchorDate = LocalDate.of(2026, 6, 10)), orgId)
+        assertEquals(LocalDate.of(2026, 6, 10), result.lastDoneDate)
+        assertEquals(LocalDate.of(2026, 7, 1), result.nextDueDate)
+    }
+
+    @Test
     fun `listing rejects both filters at once`() {
         assertThrows<BadRequestException> { service.listRules(bedId, areaId, orgId) }
     }
