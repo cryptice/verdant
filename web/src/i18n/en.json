@@ -461,7 +461,9 @@
     "saveError": "Could not save the rule",
     "deleteError": "Could not delete the rule",
     "deleteRuleTitle": "Delete maintenance rule",
-    "deleteRuleConfirm": "This deletes the rule. Are you sure?"
+    "deleteRuleConfirm": "This deletes the rule. Are you sure?",
+    "markDone": "Mark as done",
+    "markDoneError": "Could not mark the task as done"
   },
   "plant": {
     "timeline": "Timeline",
@@ -688,6 +690,7 @@
     "masthead": {
       "center": "— Today's rows —"
     },
+    "overdue": "Overdue",
     "today": "Today",
     "upcoming": "Upcoming",
     "filters": {
@@ -698,7 +701,8 @@
       "maintenance": "Care"
     },
     "drawer": {
-      "placeholder": "Task details coming soon."
+      "placeholder": "Task details coming soon.",
+      "maintenanceHint": "Marking it done logs the work and closes the task. Perform opens the place, where photos and history live."
     },
     "editTitle": "Edit task",
     "newTitle": "New task",

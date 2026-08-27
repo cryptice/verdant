@@ -842,7 +842,9 @@ export const api = {
     update: (id: number, data: {
       activityType?: string; earliestDate?: string | null; deadline?: string; targetCount?: number; notes?: string
     }) => apiRequest<ScheduledTaskResponse>(`/api/tasks/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    complete: (id: number, speciesId: number, processedCount: number) =>
+    // speciesId is null for place-scoped tasks (bed/area maintenance and
+    // TODOs) — the server ignores it for those and requires it otherwise.
+    complete: (id: number, speciesId: number | null, processedCount: number) =>
       apiRequest<void>(`/api/tasks/${id}/complete`, { method: 'POST', body: JSON.stringify({ speciesId, processedCount }) }),
     delete: (id: number) => apiRequest<void>(`/api/tasks/${id}`, { method: 'DELETE' }),
     addSpecies: (id: number, speciesId: number) =>

@@ -46,6 +46,15 @@ function loadFilters(): ActivityFilter[] {
   }
 }
 
+/**
+ * A task carried out on a bed or a garden area rather than on a species —
+ * every maintenance task, rule-backed or hand-made. Completing one is what
+ * writes the bed/area event that moves a maintenance rule's derived clock.
+ */
+export function isPlaceScoped(task: ScheduledTaskResponse): boolean {
+  return task.bedId != null || task.gardenAreaId != null
+}
+
 export function taskTitle(task: ScheduledTaskResponse): string {
   if (task.speciesName) return task.speciesName
   const place = task.gardenAreaName ?? task.bedName
@@ -79,11 +88,46 @@ export function TaskList() {
     },
   })
 
+  // The only thing that moves a task off PENDING. For a rule-backed task the
+  // server also records the work as a bed/area event, which is what lets the
+  // scheduler create the next one — without this the rule fires exactly once.
+  const completeMut = useMutation({
+    mutationFn: (task: ScheduledTaskResponse) =>
+      api.tasks.complete(task.id, null, task.remainingCount),
+    onSuccess: (_result, task) => {
+      qc.invalidateQueries({ queryKey: ['tasks'] })
+      if (task.gardenAreaId != null) {
+        qc.invalidateQueries({ queryKey: ['maintenance-rules', 'AREA', task.gardenAreaId] })
+        qc.invalidateQueries({ queryKey: ['area-events', task.gardenAreaId] })
+      } else if (task.bedId != null) {
+        qc.invalidateQueries({ queryKey: ['maintenance-rules', 'BED', task.bedId] })
+        qc.invalidateQueries({ queryKey: ['bed-events', task.bedId] })
+      }
+      setDrawerTask(null)
+    },
+  })
+
+  // Reset so a failed completion's error never greets the next task opened.
+  const openDrawer = (task: ScheduledTaskResponse) => {
+    completeMut.reset()
+    setDrawerTask(task)
+  }
+
   const today = todayIsoLocal()
   const isToday  = (d: string) => d === today
   const isFuture = (d: string) => d > today
+  const isPast   = (d: string) => d < today
 
-  const filtered  = tasks.filter((task) => filters.includes(activityFilter(task.activityType)))
+  // Completed tasks stay in the API's response (it sorts them last rather than
+  // dropping them), so the page has to exclude them itself — otherwise the
+  // overdue bucket below fills with every task ever finished.
+  const filtered  = tasks.filter(
+    (task) => task.status === 'PENDING' && filters.includes(activityFilter(task.activityType)),
+  )
+  // Without this bucket a task vanishes from the page the day after its
+  // deadline — including a maintenance task whose rule stays blocked until
+  // it is completed or deleted.
+  const overdue   = filtered.filter((task) => isPast(task.deadline))
   const todays    = filtered.filter((task) => isToday(task.deadline))
   const upcoming  = filtered.filter((task) => isFuture(task.deadline))
 
@@ -159,10 +203,21 @@ export function TaskList() {
           })}
         </div>
 
+        {/* Försenat */}
+        {overdue.length > 0 && (
+          <>
+            <SectionHeader title={t('tasks.overdue')} count={overdue.length} />
+            {overdue.map((task) => (
+              <TaskRow key={task.id} task={task} onOpen={() => openDrawer(task)} />
+            ))}
+            <div style={{ height: 40 }} />
+          </>
+        )}
+
         {/* Idag */}
         <SectionHeader title={t('tasks.today')} count={todays.length} />
         {todays.map((task) => (
-          <TaskRow key={task.id} task={task} onOpen={() => setDrawerTask(task)} />
+          <TaskRow key={task.id} task={task} onOpen={() => openDrawer(task)} />
         ))}
 
         <div style={{ height: 40 }} />
@@ -170,7 +225,7 @@ export function TaskList() {
         {/* Kommande */}
         <SectionHeader title={t('tasks.upcoming')} count={upcoming.length} />
         {upcoming.map((task) => (
-          <TaskRow key={task.id} task={task} onOpen={() => setDrawerTask(task)} />
+          <TaskRow key={task.id} task={task} onOpen={() => openDrawer(task)} />
         ))}
       </div>
 
@@ -197,16 +252,30 @@ export function TaskList() {
                   } else if (drawerTask.bedId != null) {
                     navigate(`/bed/${drawerTask.bedId}`)
                   } else if (drawerTask.gardenAreaId != null) {
-                    // Area-scoped maintenance is performed on the place itself —
-                    // that's where "Logga underhåll" lives.
                     navigate(`/area/${drawerTask.gardenAreaId}`)
                   }
                   setDrawerTask(null)
                 }}
-                className="btn-primary text-sm py-2 px-4"
+                className={
+                  // Going to the place is where photos and history live, but it
+                  // does not close the task — so for a place-scoped task it is
+                  // the secondary action and "mark done" is the primary one.
+                  isPlaceScoped(drawerTask)
+                    ? 'px-4 py-2 text-sm text-text-secondary border border-divider rounded-xl'
+                    : 'btn-primary text-sm py-2 px-4'
+                }
               >
                 {t('tasks.perform')}
               </button>
+              {isPlaceScoped(drawerTask) && (
+                <button
+                  onClick={() => completeMut.mutate(drawerTask)}
+                  disabled={completeMut.isPending}
+                  className="btn-primary text-sm py-2 px-4"
+                >
+                  {t('maintenance.markDone')}
+                </button>
+              )}
               <button
                 onClick={() => { setDeleteTask(drawerTask); setDrawerTask(null) }}
                 className="px-4 py-2 text-sm text-error"
@@ -224,6 +293,18 @@ export function TaskList() {
             </p>
             <p><strong>{t('tasks.remaining', { remaining: drawerTask.remainingCount, total: drawerTask.targetCount })}</strong></p>
             <p style={{ color: 'var(--color-forest)', marginTop: 4 }}>{drawerTask.deadline}</p>
+            {isPlaceScoped(drawerTask) && (
+              <p style={{ color: 'var(--color-forest)', marginTop: 12 }}>
+                {t('tasks.drawer.maintenanceHint')}
+              </p>
+            )}
+            {/* Inline rather than a snackbar: the drawer stays open on failure,
+                and a native modal's top layer would hide a fixed-position toast. */}
+            {completeMut.isError && (
+              <p className="text-error" style={{ marginTop: 12 }}>
+                {t('maintenance.markDoneError')}
+              </p>
+            )}
           </div>
         )}
       </Dialog>

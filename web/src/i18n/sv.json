@@ -461,7 +461,9 @@
     "saveError": "Kunde inte spara regeln",
     "deleteError": "Kunde inte radera regeln",
     "deleteRuleTitle": "Radera underhållsregel",
-    "deleteRuleConfirm": "Detta raderar regeln. Är du säker?"
+    "deleteRuleConfirm": "Detta raderar regeln. Är du säker?",
+    "markDone": "Markera som utförd",
+    "markDoneError": "Kunde inte markera uppgiften som utförd"
   },
   "plant": {
     "timeline": "Tidslinje",
@@ -688,6 +690,7 @@
     "masthead": {
       "center": "— Dagens rader —"
     },
+    "overdue": "Försenat",
     "today": "Idag",
     "upcoming": "Kommande",
     "filters": {
@@ -698,7 +701,8 @@
       "maintenance": "Underhåll"
     },
     "drawer": {
-      "placeholder": "Uppgiftsdetaljer kommer snart."
+      "placeholder": "Uppgiftsdetaljer kommer snart.",
+      "maintenanceHint": "Markera som utförd loggar arbetet och stänger uppgiften. Utför öppnar platsen, där foton och historik finns."
     },
     "editTitle": "Redigera uppgift",
     "newTitle": "Ny uppgift",
