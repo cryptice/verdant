@@ -276,4 +276,39 @@ class MaintenanceRuleServiceTest {
             service.updateRule(7L, UpdateMaintenanceRuleRequest(clearNotes = true, notes = "Ny text"), orgId)
         }
     }
+
+    @Test
+    fun `clearing the anchor date empties it instead of keeping the old one`() {
+        val anchored = MaintenanceRule(
+            id = 7L, orgId = orgId, gardenAreaId = areaId,
+            activity = MaintenanceActivity.WEED, intervalDays = 21,
+            anchorDate = LocalDate.of(2026, 5, 1),
+        )
+        whenever(rules.findById(7L)).thenReturn(anchored)
+        whenever(areaService.requireArea(areaId, orgId)).thenReturn(area)
+        whenever(lastDone.resolve(any())).thenReturn(null)
+
+        val result = service.updateRule(7L, UpdateMaintenanceRuleRequest(clearAnchorDate = true), orgId)
+
+        assertEquals(null, result.anchorDate)
+    }
+
+    @Test
+    fun `clearing the anchor date rejects a supplied anchor date`() {
+        val anchored = MaintenanceRule(
+            id = 7L, orgId = orgId, gardenAreaId = areaId,
+            activity = MaintenanceActivity.WEED, intervalDays = 21,
+            anchorDate = LocalDate.of(2026, 5, 1),
+        )
+        whenever(rules.findById(7L)).thenReturn(anchored)
+        whenever(areaService.requireArea(areaId, orgId)).thenReturn(area)
+
+        assertThrows<BadRequestException> {
+            service.updateRule(
+                7L,
+                UpdateMaintenanceRuleRequest(clearAnchorDate = true, anchorDate = LocalDate.of(2026, 6, 1)),
+                orgId,
+            )
+        }
+    }
 }

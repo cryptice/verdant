@@ -75,25 +75,50 @@ class BedService(
         val bed = bedRepository.findById(bedId) ?: throw NotFoundException("Bed not found")
         val garden = gardenRepository.findById(bed.gardenId) ?: throw NotFoundException("Garden not found")
         if (garden.orgId != orgId) throw NotFoundException("Bed not found")
+        // A clear* flag and a replacement value for the same field are
+        // contradictory, so the request is rejected rather than one silently
+        // winning. Mirrors MaintenanceRuleService's clearSeasonWindow check.
+        rejectClearWithValue("lengthMeters", request.clearLengthMeters, request.lengthMeters)
+        rejectClearWithValue("widthMeters", request.clearWidthMeters, request.widthMeters)
+        rejectClearWithValue("soilType", request.clearSoilType, request.soilType)
+        rejectClearWithValue("soilPh", request.clearSoilPh, request.soilPh)
+        rejectClearWithValue("sunExposure", request.clearSunExposure, request.sunExposure)
+        rejectClearWithValue("drainage", request.clearDrainage, request.drainage)
+        rejectClearWithValue("sunDirections", request.clearSunDirections, request.sunDirections)
+        rejectClearWithValue("irrigationType", request.clearIrrigationType, request.irrigationType)
+        rejectClearWithValue("protection", request.clearProtection, request.protection)
+
         val updated = bed.copy(
             name = request.name ?: bed.name,
             // Empty/blank string means "clear" — null means "not in request, keep"
             description = if (request.description == null) bed.description
                 else request.description.ifBlank { null },
             boundaryJson = request.boundaryJson ?: bed.boundaryJson,
-            lengthMeters = request.lengthMeters ?: bed.lengthMeters,
-            widthMeters = request.widthMeters ?: bed.widthMeters,
-            soilType = request.soilType?.let { SoilType.valueOf(it) } ?: bed.soilType,
-            soilPh = request.soilPh ?: bed.soilPh,
-            sunExposure = request.sunExposure?.let { SunExposure.valueOf(it) } ?: bed.sunExposure,
-            drainage = request.drainage?.let { Drainage.valueOf(it) } ?: bed.drainage,
-            sunDirections = request.sunDirections?.map { CompassDirection.valueOf(it) } ?: bed.sunDirections,
-            irrigationType = request.irrigationType?.let { IrrigationType.valueOf(it) } ?: bed.irrigationType,
-            protection = request.protection?.let { Protection.valueOf(it) } ?: bed.protection,
+            lengthMeters = if (request.clearLengthMeters) null else request.lengthMeters ?: bed.lengthMeters,
+            widthMeters = if (request.clearWidthMeters) null else request.widthMeters ?: bed.widthMeters,
+            soilType = if (request.clearSoilType) null
+                else request.soilType?.let { SoilType.valueOf(it) } ?: bed.soilType,
+            soilPh = if (request.clearSoilPh) null else request.soilPh ?: bed.soilPh,
+            sunExposure = if (request.clearSunExposure) null
+                else request.sunExposure?.let { SunExposure.valueOf(it) } ?: bed.sunExposure,
+            drainage = if (request.clearDrainage) null
+                else request.drainage?.let { Drainage.valueOf(it) } ?: bed.drainage,
+            sunDirections = if (request.clearSunDirections) emptyList()
+                else request.sunDirections?.map { CompassDirection.valueOf(it) } ?: bed.sunDirections,
+            irrigationType = if (request.clearIrrigationType) null
+                else request.irrigationType?.let { IrrigationType.valueOf(it) } ?: bed.irrigationType,
+            protection = if (request.clearProtection) null
+                else request.protection?.let { Protection.valueOf(it) } ?: bed.protection,
             raisedBed = request.raisedBed ?: bed.raisedBed,
         )
         bedRepository.update(updated)
         return updated.toResponse()
+    }
+
+    private fun rejectClearWithValue(field: String, clear: Boolean, value: Any?) {
+        if (clear && value != null) {
+            throw BadRequestException("Cannot clear $field and supply a new value at the same time")
+        }
     }
 
     fun deleteBed(bedId: Long, orgId: Long) {

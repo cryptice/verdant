@@ -78,6 +78,9 @@ class MaintenanceRuleService(
         if (request.clearNotes && request.notes != null) {
             throw BadRequestException("Cannot clear the notes and supply new notes at the same time")
         }
+        if (request.clearAnchorDate && request.anchorDate != null) {
+            throw BadRequestException("Cannot clear the anchor date and supply a new one at the same time")
+        }
 
         // `?:` coalescing can only keep or replace a field — with every field of
         // UpdateMaintenanceRuleRequest nullable, "omitted" and "explicitly null" are
@@ -103,7 +106,7 @@ class MaintenanceRuleService(
         val updated = rule.copy(
             activity = activity,
             intervalDays = request.intervalDays ?: rule.intervalDays,
-            anchorDate = request.anchorDate ?: rule.anchorDate,
+            anchorDate = if (request.clearAnchorDate) null else request.anchorDate ?: rule.anchorDate,
             seasonStartMonth = seasonStartMonth,
             seasonStartDay = seasonStartDay,
             seasonEndMonth = seasonEndMonth,

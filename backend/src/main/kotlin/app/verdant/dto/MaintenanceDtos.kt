@@ -64,4 +64,6 @@ data class UpdateMaintenanceRuleRequest(
     val notes: String? = null,
     /** Set true to remove existing notes. Same reasoning as [clearSeasonWindow]. */
     val clearNotes: Boolean = false,
+    /** Set true to remove an existing anchor date. Same reasoning as [clearSeasonWindow]. */
+    val clearAnchorDate: Boolean = false,
 )

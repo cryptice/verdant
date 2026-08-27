@@ -94,4 +94,24 @@ data class UpdateBedRequest(
     val irrigationType: String? = null,
     val protection: String? = null,
     val raisedBed: Boolean? = null,
+    /**
+     * Emptying a field, one flag per field.
+     *
+     * A null here means "not in the request, keep what is stored" — it cannot
+     * also mean "empty this", so clearing needs an explicit opt-in. Mirrors
+     * [UpdateMaintenanceRuleRequest.clearSeasonWindow]. Supplying a flag and a
+     * replacement value for the same field is a 400.
+     *
+     * [description] is the exception: it has always taken a blank string as
+     * "clear", and keeps that behaviour rather than growing a tenth flag.
+     */
+    val clearLengthMeters: Boolean = false,
+    val clearWidthMeters: Boolean = false,
+    val clearSoilType: Boolean = false,
+    val clearSoilPh: Boolean = false,
+    val clearSunExposure: Boolean = false,
+    val clearDrainage: Boolean = false,
+    val clearSunDirections: Boolean = false,
+    val clearIrrigationType: Boolean = false,
+    val clearProtection: Boolean = false,
 )
