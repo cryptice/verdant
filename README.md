@@ -154,17 +154,17 @@ cd backend
 
 1. Start the Cloud SQL Auth Proxy:
    ```bash
-   cloud-sql-proxy verdant-planner-staging:europe-north1:verdant-staging --port 5433
+   cloud-sql-proxy verdant-prod:europe-north2:verdant-prod --port 5433
    ```
 
 2. Fetch the password from Secret Manager:
    ```bash
-   gcloud secrets versions access latest --secret=verdant-db-password --project=verdant-planner-staging
+   gcloud secrets versions access latest --secret=verdant-db-password --project=verdant-prod
    ```
 
 3. Connect with psql:
    ```bash
-   PGPASSWORD=$(gcloud secrets versions access latest --secret=verdant-db-password --project=verdant-planner-staging) \
+   PGPASSWORD=$(gcloud secrets versions access latest --secret=verdant-db-password --project=verdant-prod) \
      psql -h localhost -p 5433 -U verdant -d verdant
    ```
 
@@ -180,7 +180,7 @@ PGPASSWORD=verdant psql -h localhost -p 5433 -U verdant -d verdant \
   -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
 
 # Production (with proxy running)
-PGPASSWORD=$(gcloud secrets versions access latest --secret=verdant-db-password --project=verdant-planner-staging) \
+PGPASSWORD=$(gcloud secrets versions access latest --secret=verdant-db-password --project=verdant-prod) \
   psql -h localhost -p 5433 -U verdant -d verdant \
   -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
 ```
@@ -216,12 +216,13 @@ To run the Android unit tests, see the Dev Container notes above (`cd android &&
 
 Deployed to Google Cloud Run with Cloud SQL (PostgreSQL).
 
-Two environments, each with its own project, Cloud SQL instance, and secrets:
+One environment. `verdant-planner-staging` was deleted in August 2026; the
+scripts stay environment-agnostic so a second project can be added back by
+passing different arguments, not by editing them.
 
-| | Project | Region | Cloud SQL |
-|---|---|---|---|
-| Staging | `verdant-planner-staging` | `europe-north1` | `verdant-staging` (`europe-north2`) |
-| Production | `verdant-prod` | `europe-north2` | `verdant-prod` |
+| | Project | Region | Cloud SQL | Bucket |
+|---|---|---|---|---|
+| Production | `verdant-prod` | `europe-north2` | `verdant-prod` (POSTGRES_18, db-f1-micro) | `verdant-prod-media` |
 
 ```bash
 # One-time setup. DB_INSTANCE is required — it is not defaulted, so that
