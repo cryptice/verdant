@@ -21,6 +21,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.sp
@@ -32,6 +33,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -39,6 +41,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.verdant.android.R
 import app.verdant.android.data.model.CreateScheduledTaskRequest
 import app.verdant.android.data.model.ScheduledTaskResponse
 import app.verdant.android.data.model.SpeciesResponse
@@ -52,6 +55,7 @@ import app.verdant.android.ui.faltet.FaltetFormSubmitBar
 import app.verdant.android.ui.faltet.FaltetLoadingState
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.Field
+import app.verdant.android.ui.maintenance.activityLabelRes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -272,6 +276,7 @@ private fun speciesDisplayName(s: SpeciesResponse): String {
 @Composable
 fun TaskFormScreen(
     onBack: () -> Unit,
+    onOpenRulePlace: (bedId: Long?, gardenAreaId: Long?) -> Unit = { _, _ -> },
     viewModel: TaskFormViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -297,8 +302,16 @@ fun TaskFormScreen(
     var staggerBedsPerBatchText by remember { mutableStateOf("1") }
     var staggerDaysBetweenText by remember { mutableStateOf("7") }
 
-    val isBedActivity = selectedActivityType in BED_ACTIVITY_TYPES
+    // An area task (e.g. MOW, RAKE) isn't in BED_ACTIVITY_TYPES — those are
+    // the bed-only activities from before areas existed — so an existing
+    // task's own place decides it too, once loaded.
+    val isAreaTask = isEdit && existing?.gardenAreaId != null
+    val isPlaceActivity = selectedActivityType in BED_ACTIVITY_TYPES || isAreaTask
     val isTodoActivity = selectedActivityType == TODO_ACTIVITY_TYPE
+    // The server rejects activityType/targetCount edits when a task came
+    // from a maintenance rule — the activity belongs to the rule and the
+    // count is always 1.
+    val isRuleBacked = existing?.isRuleBacked() == true
 
     // Compute the sibling family for the currently-selected bed. Only
     // surfaces in create mode and only when there's at least one other
@@ -337,7 +350,10 @@ fun TaskFormScreen(
         !uiState.isLoading &&
         when {
             isTodoActivity -> notes.isNotBlank()
-            isBedActivity -> deadline != null && selectedBed != null &&
+            // An area task's place can't be reassigned from this form (there's
+            // no bed to pick), so only the deadline gates it once loaded.
+            isAreaTask -> deadline != null
+            isPlaceActivity -> deadline != null && selectedBed != null &&
                 (bedFamily.isEmpty() || siblingBedIds.isNotEmpty())
             else -> deadline != null && selectedSpecies != null
         }
@@ -359,10 +375,10 @@ fun TaskFormScreen(
             )
             return
         }
-        val targetCount = if (isBedActivity) 1
+        val targetCount = if (isPlaceActivity) 1
         else targetCountText.toIntOrNull()?.coerceAtLeast(1) ?: 1
         val notesOrNull = notes.ifBlank { null }
-        if (isBedActivity && bedFamily.isNotEmpty()) {
+        if (isPlaceActivity && bedFamily.isNotEmpty()) {
             val orderedBeds = bedFamily.filter { it.id in siblingBedIds }
             val perBatch = staggerBedsPerBatchText.toIntOrNull()?.coerceAtLeast(1) ?: 1
             val daysBetween = staggerDaysBetweenText.toIntOrNull()?.coerceAtLeast(0) ?: 0
@@ -383,8 +399,8 @@ fun TaskFormScreen(
             )
         } else {
             viewModel.save(
-                speciesId = if (isBedActivity) null else selectedSpecies?.id,
-                bedId = if (isBedActivity) selectedBed?.id else null,
+                speciesId = if (isPlaceActivity) null else selectedSpecies?.id,
+                bedId = if (isPlaceActivity) selectedBed?.id else null,
                 activityType = selectedActivityType!!,
                 earliestDate = earliestDate?.toString(),
                 deadline = deadline?.toString(),
@@ -396,7 +412,15 @@ fun TaskFormScreen(
 
     FaltetScreenScaffold(
         mastheadLeft = "",
-        mastheadCenter = if (isEdit) (existing?.let { it.speciesName ?: "Uppgift" } ?: "Uppgift") else "Ny uppgift",
+        mastheadCenter = if (isEdit) {
+            existing?.let {
+                when {
+                    it.activityType == "TODO" -> it.notes?.takeIf { n -> n.isNotBlank() } ?: "Uppgift"
+                    isPlaceScopedTask(it) -> stringResource(activityLabelRes(it.activityType))
+                    else -> it.speciesName ?: "Uppgift"
+                }
+            } ?: "Uppgift"
+        } else "Ny uppgift",
         bottomBar = {
             FaltetFormSubmitBar(
                 label = if (isEdit) "Spara" else "Skapa",
@@ -418,51 +442,86 @@ fun TaskFormScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 item {
-                    FaltetDropdown(
-                        label = "Aktivitet",
-                        options = ACTIVITY_TYPES,
-                        selected = selectedActivityType,
-                        onSelectedChange = { if (!isEdit) selectedActivityType = it },
-                        labelFor = { activityTypeLabelSvStr(it) },
-                        searchable = false,
-                        required = true,
-                    )
+                    if (isRuleBacked) {
+                        Field(
+                            label = "Aktivitet",
+                            value = existing?.let { stringResource(activityLabelRes(it.activityType)) } ?: "",
+                            onValueChange = null,
+                        )
+                    } else {
+                        FaltetDropdown(
+                            label = "Aktivitet",
+                            options = ACTIVITY_TYPES,
+                            selected = selectedActivityType,
+                            onSelectedChange = { if (!isEdit) selectedActivityType = it },
+                            labelFor = { activityTypeLabelSvStr(it) },
+                            searchable = false,
+                            required = true,
+                        )
+                    }
+                }
+                if (isRuleBacked) {
+                    item {
+                        Text(
+                            text = stringResource(R.string.task_rule_backed_explanation),
+                            fontSize = 12.sp,
+                            color = app.verdant.android.ui.theme.FaltetForest,
+                        )
+                    }
+                    item {
+                        TextButton(
+                            onClick = { onOpenRulePlace(existing?.bedId, existing?.gardenAreaId) },
+                            contentPadding = PaddingValues(0.dp),
+                        ) {
+                            Text(stringResource(R.string.task_rule_backed_open_place))
+                        }
+                    }
                 }
                 if (!isTodoActivity) {
-                    if (isBedActivity) {
-                        item {
-                            FaltetDropdown(
-                                label = "Bädd",
-                                options = uiState.beds,
-                                selected = selectedBed,
-                                onSelectedChange = { selectedBed = it },
-                                labelFor = { "${it.gardenName} · ${it.name}" },
-                                searchable = true,
-                                required = true,
-                            )
-                        }
-                        if (bedFamily.isNotEmpty()) {
+                    if (isPlaceActivity) {
+                        if (isEdit) {
                             item {
-                                val familyByBed = bedFamily.associateBy { it.id }
-                                FaltetChecklistGroup(
-                                    label = "Schemalägg även för",
-                                    options = bedFamily,
-                                    selected = siblingBedIds.mapNotNull { familyByBed[it] }.toSet(),
-                                    onSelectedChange = { picks -> siblingBedIds = picks.map { it.id }.toSet() },
-                                    labelFor = { it.name },
-                                    selectAllEnabled = true,
+                                Field(
+                                    label = if (isAreaTask) stringResource(R.string.task_place_label) else "Bädd",
+                                    value = existing?.let { taskPlaceName(it) } ?: "",
+                                    onValueChange = null,
+                                )
+                            }
+                        } else {
+                            item {
+                                FaltetDropdown(
+                                    label = "Bädd",
+                                    options = uiState.beds,
+                                    selected = selectedBed,
+                                    onSelectedChange = { selectedBed = it },
+                                    labelFor = { "${it.gardenName} · ${it.name}" },
+                                    searchable = true,
                                     required = true,
                                 )
                             }
-                            item {
-                                StaggerOption(
-                                    enabled = staggerEnabled,
-                                    onEnabledChange = { staggerEnabled = it },
-                                    bedsPerBatchText = staggerBedsPerBatchText,
-                                    onBedsPerBatchChange = { staggerBedsPerBatchText = it },
-                                    daysBetweenText = staggerDaysBetweenText,
-                                    onDaysBetweenChange = { staggerDaysBetweenText = it },
-                                )
+                            if (bedFamily.isNotEmpty()) {
+                                item {
+                                    val familyByBed = bedFamily.associateBy { it.id }
+                                    FaltetChecklistGroup(
+                                        label = "Schemalägg även för",
+                                        options = bedFamily,
+                                        selected = siblingBedIds.mapNotNull { familyByBed[it] }.toSet(),
+                                        onSelectedChange = { picks -> siblingBedIds = picks.map { it.id }.toSet() },
+                                        labelFor = { it.name },
+                                        selectAllEnabled = true,
+                                        required = true,
+                                    )
+                                }
+                                item {
+                                    StaggerOption(
+                                        enabled = staggerEnabled,
+                                        onEnabledChange = { staggerEnabled = it },
+                                        bedsPerBatchText = staggerBedsPerBatchText,
+                                        onBedsPerBatchChange = { staggerBedsPerBatchText = it },
+                                        daysBetweenText = staggerDaysBetweenText,
+                                        onDaysBetweenChange = { staggerDaysBetweenText = it },
+                                    )
+                                }
                             }
                         }
                     } else {
@@ -494,7 +553,7 @@ fun TaskFormScreen(
                         required = !isTodoActivity,
                     )
                 }
-                if (!isBedActivity && !isTodoActivity) {
+                if (!isPlaceActivity && !isTodoActivity) {
                     item {
                         Field(
                             label = "Målantal (valfri)",

@@ -17,6 +17,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -75,6 +76,74 @@ class TaskListViewModelTest {
     }
 
     @Test
+    fun `completeTask on area-scoped task posts speciesId null and processedCount remainingCount`() = runTest {
+        val task = ScheduledTaskResponse(
+            id = 42,
+            speciesId = null,
+            speciesName = null,
+            bedId = null,
+            bedName = null,
+            gardenAreaId = 7,
+            gardenAreaName = "Komposthög",
+            maintenanceRuleId = 3,
+            activityType = "MOW",
+            deadline = "2026-05-01",
+            targetCount = 1,
+            remainingCount = 1,
+            status = "PENDING",
+            notes = null,
+            createdAt = "2026-04-01T00:00:00Z",
+            updatedAt = "2026-04-01T00:00:00Z",
+        )
+        val repo = FakeTaskRepository(listOf(task))
+        val vm = TaskListViewModel(repo)
+        advanceUntilIdle()
+
+        vm.completeTask(task)
+        advanceUntilIdle()
+
+        val (id, request) = repo.completedRequests.single()
+        assertEquals(42L, id)
+        assertNull(request.speciesId)
+        assertEquals(1, request.processedCount)
+        assertEquals(emptyList<Long>(), vm.uiState.value.tasks.map { it.id })
+    }
+
+    @Test
+    fun `isPlaceScopedTask is true for an area task and drives a readable title, not the raw enum`() {
+        val areaTask = ScheduledTaskResponse(
+            id = 1,
+            speciesId = null,
+            speciesName = null,
+            bedId = null,
+            bedName = null,
+            gardenAreaId = 7,
+            gardenAreaName = "Komposthög",
+            maintenanceRuleId = 3,
+            activityType = "MOW",
+            deadline = "2026-05-01",
+            targetCount = 1,
+            remainingCount = 1,
+            status = "PENDING",
+            notes = null,
+            createdAt = "2026-04-01T00:00:00Z",
+            updatedAt = "2026-04-01T00:00:00Z",
+        )
+
+        assertTrue(isPlaceScopedTask(areaTask))
+        assertEquals("Komposthög", taskPlaceName(areaTask))
+        assertTrue(areaTask.isRuleBacked())
+    }
+
+    @Test
+    fun `isPlaceScopedTask is false for a species task so it keeps the species-based title`() {
+        val speciesTask = sampleTask(id = 5, deadline = "2026-05-01")
+
+        assertFalse(isPlaceScopedTask(speciesTask))
+        assertFalse(speciesTask.isRuleBacked())
+    }
+
+    @Test
     fun `TODO task uses notes as title and has no species or bed`() = runTest {
         val tasks = listOf(
             ScheduledTaskResponse(
@@ -120,6 +189,7 @@ private class FakeTaskRepository(
     private val throwOnList: Throwable? = null,
 ) : TaskRepository {
     val deletedIds = mutableListOf<Long>()
+    val completedRequests = mutableListOf<Pair<Long, CompleteTaskPartiallyRequest>>()
 
     override suspend fun list(): List<ScheduledTaskResponse> {
         throwOnList?.let { throw it }
@@ -128,6 +198,8 @@ private class FakeTaskRepository(
     override suspend fun get(id: Long) = initial.first { it.id == id }
     override suspend fun create(request: CreateScheduledTaskRequest) = error("not used")
     override suspend fun update(id: Long, request: UpdateScheduledTaskRequest) = error("not used")
-    override suspend fun completePartially(id: Long, request: CompleteTaskPartiallyRequest) {}
+    override suspend fun completePartially(id: Long, request: CompleteTaskPartiallyRequest) {
+        completedRequests += id to request
+    }
     override suspend fun delete(id: Long) { deletedIds += id }
 }

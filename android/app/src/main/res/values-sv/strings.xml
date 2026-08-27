@@ -287,6 +287,10 @@
     <string name="tap_plus_to_create_task">Tryck + f\u00F6r att schemal\u00E4gga din f\u00F6rsta uppgift</string>
     <string name="select_activity_type">V\u00E4lj aktivitetstyp</string>
     <string name="select_deadline">V\u00E4lj deadline</string>
+    <string name="task_place_label">Plats</string>
+    <string name="task_rule_backed_explanation">Den h\u00E4r uppgiften kommer fr\u00E5n en sk\u00F6tselregel. Aktivitet och antal styrs av regeln \u2014 \u00F6ppna platsen f\u00F6r att \u00E4ndra den.</string>
+    <string name="task_rule_backed_open_place">\u00D6ppna platsen</string>
+    <string name="task_delete_rule_backed_message">\u201D%1$s\u201D dyker upp igen imorgon eftersom sk\u00F6tselregeln fortfarande \u00E4r aktiv. Pausa regeln om du vill stoppa den.</string>
 
     <!-- Planted Species -->
     <string name="next_activities">N\u00E4sta aktiviteter</string>

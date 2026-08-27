@@ -38,6 +38,14 @@ fun NavGraphBuilder.taskGraph(navController: NavController) {
         Screen.EditTask.route,
         arguments = listOf(navArgument("taskId") { type = NavType.LongType }),
     ) {
-        TaskFormScreen(onBack = { navController.popBackStack() })
+        TaskFormScreen(
+            onBack = { navController.popBackStack() },
+            onOpenRulePlace = { bedId, gardenAreaId ->
+                when {
+                    bedId != null -> navController.navigate(Screen.BedDetail.create(bedId))
+                    gardenAreaId != null -> navController.navigate(Screen.GardenAreaDetail.create(gardenAreaId))
+                }
+            },
+        )
     }
 }

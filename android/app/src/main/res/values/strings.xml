@@ -289,6 +289,10 @@
     <string name="tap_plus_to_create_task">Tap + to schedule your first task</string>
     <string name="select_activity_type">Select activity type</string>
     <string name="select_deadline">Select deadline</string>
+    <string name="task_place_label">Place</string>
+    <string name="task_rule_backed_explanation">This task comes from a maintenance rule. Its activity and count are controlled by the rule — open the place to change it.</string>
+    <string name="task_rule_backed_open_place">Open the place</string>
+    <string name="task_delete_rule_backed_message">\"%1$s\" will come back tomorrow because the maintenance rule is still active. Pause the rule if you want to stop it.</string>
 
     <!-- Planted Species -->
     <string name="next_activities">Next Activities</string>
