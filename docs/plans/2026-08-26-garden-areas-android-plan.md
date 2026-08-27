@@ -12,6 +12,46 @@
 **Backend plan (shipped):** `docs/plans/2026-08-26-garden-areas-backend-plan.md`
 **Web plan (sibling client):** `docs/plans/2026-08-26-garden-areas-web-plan.md`
 
+## Amendment — 2026-08-27, after the backend and web halves shipped
+
+This plan was written before the web client was executed and before a cross-stack
+review of the shipped backend + web. Three things changed. Read this before Task 8.
+
+**1. The backend contract moved. `anchorDate` is now honoured.**
+When this plan was written, `anchor_date` was persisted and read by nothing — a
+rule's due date derived only from the event log, so a rule created with "last done
+three weeks ago" fired immediately. That is fixed:
+`MaintenanceDueCalculator.effectiveLastDone` now takes the LATER of the resolved
+event date and `anchorDate`, and both due-computing sites use it. Consequently
+`MaintenanceRuleResponse.lastDoneDate` now reports that combined value, not the raw
+event date. No model change is needed — the field already exists — but the Android
+rule editor's "last done" field genuinely delays a rule now, so its hint copy should
+say so rather than hedging.
+
+**2. The web client had a Critical bug that Android does NOT have. Do not "fix" it here.**
+On web, the task drawer navigated to the place instead of completing the task, so
+rule-backed tasks never left `PENDING`, and `findActiveWithoutOpenTask`'s
+`NOT EXISTS (… status = 'PENDING')` locked that rule out forever — the engine fired
+once per rule. Android is already correct, verified against the current code:
+
+- `ui/task/TaskListScreen.kt:240` puts `onCompleteToggle` on **every** `TaskRow`,
+  ungated by task type, so an area task can already be completed.
+- `ui/task/TaskListScreen.kt:108-120` `completeTask` sends
+  `speciesId = if (task.bedId != null) null else task.speciesId`. For an area task
+  `speciesId` is null anyway, and the server's place-scoped branch
+  (`ScheduledTaskService.completePartially`) skips species validation for
+  `bedId != null || gardenAreaId != null`. So it already works.
+- `ui/task/TaskListScreen.kt:149,164` already buckets **overdue** — web had no
+  overdue bucket at all, which is what made its bug unrecoverable.
+- It already floors `processedCount` with `coerceAtLeast(1)`.
+
+**Do not add a second completion path.** Task 8's job on this point is to verify the
+existing one behaves correctly for area-scoped tasks, not to build one.
+
+**3. What Task 8 must still do**, unchanged from the original: render area tasks with
+a readable title rather than a raw enum, guard the edits the server rejects on
+rule-backed tasks, and keep the delete copy honest about the task reappearing.
+
 ## Global Constraints
 
 - **Write against the API as shipped, not as the design doc describes it.** The shapes below were read out of the merged backend.
@@ -1299,6 +1339,22 @@ Add cases to `TaskListViewModelTest`:
 - [ ] **Step 2: Fix the title**
 
 Wherever the task list derives a display title (mirroring the web app's `taskTitle`), a maintenance task has no species and must not render as the raw enum `"MOW"`. Fall back through the place: activity label plus `gardenAreaName ?: bedName`, resolving the activity through `strings.xml`.
+
+- [ ] **Step 2b: VERIFY the existing completion path — do not add one**
+
+Android already completes tasks from the list; see the Amendment at the top of this
+plan. Confirm, by reading `ui/task/TaskListScreen.kt`, that:
+
+- the complete affordance is reachable for a task with `speciesId == null`,
+  `bedId == null`, `gardenAreaId != null`
+- `completeTask` sends `speciesId = null` for such a task (it does, because
+  `task.speciesId` is already null — but confirm rather than assume)
+- the overdue bucket includes it once its deadline passes
+
+Then add a ViewModel test asserting `completeTask` on an area-scoped task posts
+`speciesId = null` and `processedCount = remainingCount`, using a hand-written fake
+repository. This pins the behaviour that, on web, was missing entirely and locked
+every rule permanently. Do NOT build a second completion path.
 
 - [ ] **Step 3: Guard rule-backed task edits**
 
