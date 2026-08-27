@@ -28,12 +28,20 @@ export function AreaEditDialog({
   const editSizeNum = editSizeSqm !== '' ? parseFloat(editSizeSqm) : undefined
   const editSizeInvalid = editSizeNum !== undefined && (Number.isNaN(editSizeNum) || editSizeNum <= 0)
 
+  // An omitted field reads as "keep the current value" server-side, so
+  // emptying one has to be an explicit flag — and the flag may not travel
+  // with a replacement value for the same field.
+  const clearDescription = editDescription === '' && area.description != null
+  const clearSizeSqm = editSizeSqm === '' && area.sizeSqm != null
+
   const updateMut = useMutation({
     mutationFn: () => api.areas.update(area.id, {
       name: editName,
       category: editCategory,
       description: editDescription || undefined,
       sizeSqm: editSizeNum,
+      clearDescription,
+      clearSizeSqm,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['area', area.id] })

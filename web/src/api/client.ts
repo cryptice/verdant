@@ -664,6 +664,14 @@ export const api = {
       data: {
         name?: string; category?: string
         description?: string; boundaryJson?: string; sizeSqm?: number
+        /**
+         * The ONLY way to empty the description — an omitted or null field
+         * reads as "keep the current value" server-side. Cannot be combined
+         * with a description value; doing so is a 400.
+         */
+        clearDescription?: boolean
+        /** The ONLY way to empty the size. See clearDescription. */
+        clearSizeSqm?: boolean
       },
     ) =>
       apiRequest<GardenAreaResponse>(`/api/areas/${id}`, {
@@ -722,6 +730,8 @@ export const api = {
       /** The ONLY way to remove a season window. Cannot be combined with season* values. */
       clearSeasonWindow?: boolean
       active?: boolean; notes?: string
+      /** The ONLY way to empty the notes. Cannot be combined with a notes value. */
+      clearNotes?: boolean
     }) =>
       apiRequest<MaintenanceRuleResponse>(`/api/maintenance-rules/${id}`, {
         method: 'PUT',
