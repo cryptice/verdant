@@ -16,9 +16,14 @@ import java.util.logging.Logger
 @ApplicationScoped
 class StorageService(
     @ConfigProperty(name = "verdant.gcs.service-account-key") private val serviceAccountKeyPath: Optional<String>,
+    /**
+     * Per-environment: each project owns its own bucket, so the name cannot
+     * be baked in. Object URLs are stored in the database as absolute paths
+     * under this bucket, so changing it does not rewrite existing rows.
+     */
+    @ConfigProperty(name = "verdant.gcs.bucket") private val bucketName: String,
 ) {
     private val log = Logger.getLogger(StorageService::class.java.name)
-    private val bucketName = "verdant-species"
     private val publicBase = "https://storage.googleapis.com/$bucketName"
     private val MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024 // 5MB
 

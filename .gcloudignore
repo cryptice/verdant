@@ -1,0 +1,31 @@
+# What Cloud Build uploads as build context.
+#
+# Without this file gcloud decides for itself what to send, and this tree
+# carries things that must never leave the machine: secrets/ holds the
+# Android signing keystore and two service-account keys. Everything the
+# image actually needs is listed by exception at the bottom.
+.git/
+.gitignore
+.gcloudignore
+
+# Credentials and signing material — never upload.
+secrets/
+**/.env
+**/.env.*
+**/*.jks
+**/*.keystore
+**/service-account*.json
+
+# Build output and dependency trees; the image builds these itself.
+**/node_modules/
+**/build/
+**/dist/
+**/.gradle/
+**/.kotlin/
+.idea/
+**/.DS_Store
+db-backups/
+
+# The container serves the backend plus the admin/web UIs. The Android app
+# is not part of it, and is by far the largest directory here.
+android/

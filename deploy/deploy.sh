@@ -19,6 +19,7 @@ PROJECT_ID="${1:?Usage: $0 <PROJECT_ID> <REGION> <SQL_CONNECTION_NAME> [MIN_INST
 REGION="${2:?Usage: $0 <PROJECT_ID> <REGION> <SQL_CONNECTION_NAME> [MIN_INSTANCES]}"
 SQL_INSTANCE="${3:?Usage: $0 <PROJECT_ID> <REGION> <SQL_CONNECTION_NAME> [MIN_INSTANCES]}"
 MIN_INSTANCES="${4:-0}"
+GCS_BUCKET="${GCS_BUCKET:-verdant-prod-media}"
 SERVICE_NAME="verdant-api"
 
 # The connection name must belong to the project being deployed to, or the
@@ -40,7 +41,7 @@ echo "    region:   $REGION"
 echo "    database: $SQL_INSTANCE"
 gcloud builds submit \
   --project="$PROJECT_ID" \
-  --substitutions="_REGION=$REGION,_SQL_INSTANCE=$SQL_INSTANCE,_MIN_INSTANCES=$MIN_INSTANCES"
+  --substitutions="_REGION=$REGION,_SQL_INSTANCE=$SQL_INSTANCE,_MIN_INSTANCES=$MIN_INSTANCES,_GCS_BUCKET=$GCS_BUCKET"
 
 URL=$(gcloud run services describe "$SERVICE_NAME" --project="$PROJECT_ID" --region="$REGION" --format='value(status.url)')
 
