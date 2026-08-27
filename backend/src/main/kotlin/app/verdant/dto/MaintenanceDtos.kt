@@ -62,4 +62,6 @@ data class UpdateMaintenanceRuleRequest(
     val active: Boolean? = null,
     @field:Size(max = 2000)
     val notes: String? = null,
+    /** Set true to remove existing notes. Same reasoning as [clearSeasonWindow]. */
+    val clearNotes: Boolean = false,
 )

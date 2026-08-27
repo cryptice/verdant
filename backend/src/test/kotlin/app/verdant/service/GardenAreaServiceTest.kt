@@ -118,6 +118,43 @@ class GardenAreaServiceTest {
     }
 
     @Test
+    fun `clearing the description empties it instead of keeping the old text`() {
+        whenever(areas.findById(areaId)).thenReturn(area.copy(description = "Vid växthuset"))
+        whenever(gardens.findById(gardenId)).thenReturn(garden)
+
+        val result = service.updateArea(areaId, UpdateGardenAreaRequest(clearDescription = true), orgId)
+
+        assertEquals(null, result.description)
+    }
+
+    @Test
+    fun `clearing the size empties it instead of keeping the old value`() {
+        whenever(areas.findById(areaId)).thenReturn(area.copy(sizeSqm = 12.5))
+        whenever(gardens.findById(gardenId)).thenReturn(garden)
+
+        val result = service.updateArea(areaId, UpdateGardenAreaRequest(clearSizeSqm = true), orgId)
+
+        assertEquals(null, result.sizeSqm)
+    }
+
+    @Test
+    fun `clearing a field rejects a replacement value for that same field`() {
+        whenever(areas.findById(areaId)).thenReturn(area.copy(description = "Vid växthuset", sizeSqm = 12.5))
+        whenever(gardens.findById(gardenId)).thenReturn(garden)
+
+        assertThrows<BadRequestException> {
+            service.updateArea(
+                areaId,
+                UpdateGardenAreaRequest(clearDescription = true, description = "Ny text"),
+                orgId,
+            )
+        }
+        assertThrows<BadRequestException> {
+            service.updateArea(areaId, UpdateGardenAreaRequest(clearSizeSqm = true, sizeSqm = 4.0), orgId)
+        }
+    }
+
+    @Test
     fun `logEvent accepts an activity that applies to areas`() {
         whenever(areas.findById(areaId)).thenReturn(area)
         whenever(gardens.findById(gardenId)).thenReturn(garden)

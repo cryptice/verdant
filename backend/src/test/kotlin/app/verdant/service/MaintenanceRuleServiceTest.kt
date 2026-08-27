@@ -245,4 +245,35 @@ class MaintenanceRuleServiceTest {
         assertEquals(10, result.seasonEndMonth)
         assertEquals(15, result.seasonEndDay)
     }
+
+    @Test
+    fun `clearing the notes empties them instead of keeping the old text`() {
+        val noted = MaintenanceRule(
+            id = 7L, orgId = orgId, gardenAreaId = areaId,
+            activity = MaintenanceActivity.WEED, intervalDays = 21,
+            notes = "Bara torra veckor",
+        )
+        whenever(rules.findById(7L)).thenReturn(noted)
+        whenever(areaService.requireArea(areaId, orgId)).thenReturn(area)
+        whenever(lastDone.resolve(any())).thenReturn(null)
+
+        val result = service.updateRule(7L, UpdateMaintenanceRuleRequest(clearNotes = true), orgId)
+
+        assertEquals(null, result.notes)
+    }
+
+    @Test
+    fun `clearing the notes rejects supplied notes`() {
+        val noted = MaintenanceRule(
+            id = 7L, orgId = orgId, gardenAreaId = areaId,
+            activity = MaintenanceActivity.WEED, intervalDays = 21,
+            notes = "Bara torra veckor",
+        )
+        whenever(rules.findById(7L)).thenReturn(noted)
+        whenever(areaService.requireArea(areaId, orgId)).thenReturn(area)
+
+        assertThrows<BadRequestException> {
+            service.updateRule(7L, UpdateMaintenanceRuleRequest(clearNotes = true, notes = "Ny text"), orgId)
+        }
+    }
 }

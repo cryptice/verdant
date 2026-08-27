@@ -40,6 +40,15 @@ data class UpdateGardenAreaRequest(
     val boundaryJson: String? = null,
     @field:Positive
     val sizeSqm: Double? = null,
+    /**
+     * Set true to remove an existing description. Every field here is nullable,
+     * so "omitted" and "explicitly null" are indistinguishable and `?:`
+     * coalescing can only keep or replace — these flags are the explicit opt-in
+     * for emptying a field. Mirrors [UpdateMaintenanceRuleRequest.clearSeasonWindow].
+     */
+    val clearDescription: Boolean = false,
+    /** Set true to remove an existing size. See [clearDescription]. */
+    val clearSizeSqm: Boolean = false,
 )
 
 data class GardenAreaEventResponse(

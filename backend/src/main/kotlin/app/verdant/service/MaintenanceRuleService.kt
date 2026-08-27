@@ -75,6 +75,9 @@ class MaintenanceRuleService(
         if (request.clearSeasonWindow && suppliesSeasonBounds) {
             throw BadRequestException("Cannot clear the season window and supply new bounds at the same time")
         }
+        if (request.clearNotes && request.notes != null) {
+            throw BadRequestException("Cannot clear the notes and supply new notes at the same time")
+        }
 
         // `?:` coalescing can only keep or replace a field — with every field of
         // UpdateMaintenanceRuleRequest nullable, "omitted" and "explicitly null" are
@@ -106,7 +109,7 @@ class MaintenanceRuleService(
             seasonEndMonth = seasonEndMonth,
             seasonEndDay = seasonEndDay,
             active = request.active ?: rule.active,
-            notes = request.notes ?: rule.notes,
+            notes = if (request.clearNotes) null else request.notes ?: rule.notes,
         )
         ruleRepository.update(updated)
         return updated.toResponse(orgId)

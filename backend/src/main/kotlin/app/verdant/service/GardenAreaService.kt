@@ -66,12 +66,18 @@ class GardenAreaService(
 
     fun updateArea(areaId: Long, request: UpdateGardenAreaRequest, orgId: Long): GardenAreaResponse {
         val area = requireArea(areaId, orgId)
+        if (request.clearDescription && request.description != null) {
+            throw BadRequestException("Cannot clear the description and supply a new one at the same time")
+        }
+        if (request.clearSizeSqm && request.sizeSqm != null) {
+            throw BadRequestException("Cannot clear the size and supply a new one at the same time")
+        }
         val updated = area.copy(
             name = request.name ?: area.name,
-            description = request.description ?: area.description,
+            description = if (request.clearDescription) null else request.description ?: area.description,
             category = request.category?.let { parseCategory(it) } ?: area.category,
             boundaryJson = request.boundaryJson ?: area.boundaryJson,
-            sizeSqm = request.sizeSqm ?: area.sizeSqm,
+            sizeSqm = if (request.clearSizeSqm) null else request.sizeSqm ?: area.sizeSqm,
         )
         areaRepository.update(updated)
         return updated.toResponse(gardenRepository.findById(area.gardenId)?.name)
