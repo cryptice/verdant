@@ -107,25 +107,38 @@ describe('TaskList buckets', () => {
       task({ id: 1, gardenAreaId: 5, gardenAreaName: 'Gången', deadline: isoOffsetDays(-3) }),
     ])
     renderList()
-    expect(await screen.findByText('tasks.overdue')).toBeInTheDocument()
+    // Wait on the row so the section assertion cannot win on an empty page.
+    expect(await screen.findByText('Klippa gräs')).toBeInTheDocument()
+    expect(screen.getByText('tasks.overdue')).toBeInTheDocument()
     expect(screen.getByText(isoOffsetDays(-3))).toBeInTheDocument()
   })
 
   it('leaves the overdue section out entirely when nothing is late', async () => {
-    vi.mocked(api.tasks.list).mockResolvedValue([task({ deadline: isoOffsetDays(0) })])
+    vi.mocked(api.tasks.list).mockResolvedValue([
+      task({ id: 1, gardenAreaId: 5, gardenAreaName: 'Gången', deadline: isoOffsetDays(0) }),
+    ])
     renderList()
-    await screen.findByText('tasks.today')
+    // Wait on the row, not on the "Idag" header: that header renders on first
+    // paint, before the query resolves, so awaiting it asserts against nothing.
+    await screen.findByText('Klippa gräs')
     expect(screen.queryByText('tasks.overdue')).not.toBeInTheDocument()
   })
 
   it('does not surface completed tasks in any bucket', async () => {
     vi.mocked(api.tasks.list).mockResolvedValue([
-      task({ id: 2, status: 'COMPLETED', deadline: isoOffsetDays(-5), remainingCount: 0 }),
+      // Pending, and the anchor this test waits on — without a row that does
+      // render, the negative assertions below would run against an empty page.
+      task({ id: 1, gardenAreaId: 5, gardenAreaName: 'Gången', deadline: isoOffsetDays(0) }),
+      task({
+        id: 2, bedId: 3, bedName: 'Bädd 3', activityType: 'WEED',
+        status: 'COMPLETED', deadline: isoOffsetDays(-5), remainingCount: 0,
+      }),
     ])
     renderList()
-    await screen.findByText('tasks.today')
-    expect(screen.queryByText('tasks.overdue')).not.toBeInTheDocument()
+    await screen.findByText('Klippa gräs')
+    expect(screen.queryByText('Rensa ogräs')).not.toBeInTheDocument()
     expect(screen.queryByText(isoOffsetDays(-5))).not.toBeInTheDocument()
+    expect(screen.queryByText('tasks.overdue')).not.toBeInTheDocument()
   })
 })
 
@@ -178,6 +191,33 @@ describe('TaskList drawer completion', () => {
 
     expect(screen.getByText('tasks.perform')).toBeInTheDocument()
     expect(screen.queryByText('maintenance.markDone')).not.toBeInTheDocument()
+  })
+
+  it('promises automatic logging only for a rule-backed task', async () => {
+    vi.mocked(api.tasks.list).mockResolvedValue([
+      task({ id: 12, bedId: 3, bedName: 'Bädd 3', activityType: 'WATER', deadline: isoOffsetDays(0) }),
+    ])
+    renderList()
+    fireEvent.click(await screen.findByText('Vattna'))
+
+    // A hand-made bed task is closed without an event — recordMaintenance is
+    // gated on maintenanceRuleId — so the logging promise must not appear.
+    expect(screen.getByText('tasks.drawer.placeHint')).toBeInTheDocument()
+    expect(screen.queryByText('tasks.drawer.maintenanceHint')).not.toBeInTheDocument()
+  })
+
+  it('promises automatic logging when the task comes from a rule', async () => {
+    vi.mocked(api.tasks.list).mockResolvedValue([
+      task({
+        id: 13, bedId: 3, bedName: 'Bädd 3', activityType: 'WATER',
+        maintenanceRuleId: 4, deadline: isoOffsetDays(0),
+      }),
+    ])
+    renderList()
+    fireEvent.click(await screen.findByText('Vattna'))
+
+    expect(screen.getByText('tasks.drawer.placeHint')).toBeInTheDocument()
+    expect(screen.getByText('tasks.drawer.maintenanceHint')).toBeInTheDocument()
   })
 
   it('reports a failed completion inside the drawer', async () => {

@@ -702,7 +702,8 @@
     },
     "drawer": {
       "placeholder": "Task details coming soon.",
-      "maintenanceHint": "Marking it done logs the work and closes the task. Perform opens the place, where photos and history live."
+      "placeHint": "Marking it done closes the task. Perform opens the place, where photos and history live.",
+      "maintenanceHint": "Work from a maintenance rule is logged automatically when you mark it done — no need to log it at the place as well."
     },
     "editTitle": "Edit task",
     "newTitle": "New task",

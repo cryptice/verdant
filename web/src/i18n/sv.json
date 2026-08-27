@@ -702,7 +702,8 @@
     },
     "drawer": {
       "placeholder": "Uppgiftsdetaljer kommer snart.",
-      "maintenanceHint": "Markera som utförd loggar arbetet och stänger uppgiften. Utför öppnar platsen, där foton och historik finns."
+      "placeHint": "Markera som utförd stänger uppgiften. Utför öppnar platsen, där foton och historik finns.",
+      "maintenanceHint": "Regelstyrt underhåll loggas automatiskt när du markerar det som utfört – du behöver inte logga det på platsen också."
     },
     "editTitle": "Redigera uppgift",
     "newTitle": "Ny uppgift",

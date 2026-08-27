@@ -239,7 +239,10 @@ export interface MaintenanceRuleResponse {
   seasonEndDay: number | null
   active: boolean
   notes: string | null
-  /** Derived server-side from the event log. Null when never done. */
+  /**
+   * Derived server-side: the later of `anchorDate` and the newest matching
+   * event. Null when the rule has neither.
+   */
   lastDoneDate: string | null
   /** Derived server-side: when the next task will be created. */
   nextDueDate: string

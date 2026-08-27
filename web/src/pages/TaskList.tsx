@@ -93,7 +93,9 @@ export function TaskList() {
   // scheduler create the next one — without this the rule fires exactly once.
   const completeMut = useMutation({
     mutationFn: (task: ScheduledTaskResponse) =>
-      api.tasks.complete(task.id, null, task.remainingCount),
+      // Floor at 1 to match Android: a PENDING task always has remainingCount
+      // > 0 today, but processedCount is @Min(1) and would 400 if that slipped.
+      api.tasks.complete(task.id, null, Math.max(task.remainingCount, 1)),
     onSuccess: (_result, task) => {
       qc.invalidateQueries({ queryKey: ['tasks'] })
       if (task.gardenAreaId != null) {
@@ -295,6 +297,14 @@ export function TaskList() {
             <p style={{ color: 'var(--color-forest)', marginTop: 4 }}>{drawerTask.deadline}</p>
             {isPlaceScoped(drawerTask) && (
               <p style={{ color: 'var(--color-forest)', marginTop: 12 }}>
+                {t('tasks.drawer.placeHint')}
+              </p>
+            )}
+            {/* Only a rule-backed task is logged on completion: recordMaintenance
+                is gated on maintenanceRuleId, so promising it for a hand-made
+                bed task would be a lie. */}
+            {drawerTask.maintenanceRuleId != null && (
+              <p style={{ color: 'var(--color-forest)', marginTop: 8 }}>
                 {t('tasks.drawer.maintenanceHint')}
               </p>
             )}
