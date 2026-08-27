@@ -43,6 +43,7 @@ import app.verdant.android.data.model.activitiesForTarget
 import app.verdant.android.data.model.dueState
 import app.verdant.android.data.model.hasSeasonWindow
 import app.verdant.android.data.model.seasonWindowMonthDays
+import app.verdant.android.ui.common.InlineErrorBanner
 import app.verdant.android.ui.faltet.Chip
 import app.verdant.android.ui.faltet.FaltetCheckbox
 import app.verdant.android.ui.faltet.FaltetChipSelector
@@ -123,6 +124,12 @@ fun MaintenanceRulesSection(
                 }
             },
         )
+        state.error?.let { error ->
+            InlineErrorBanner(
+                message = error,
+                modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp),
+            )
+        }
         if (state.rules.isEmpty()) {
             EmptyRulesState()
         } else {

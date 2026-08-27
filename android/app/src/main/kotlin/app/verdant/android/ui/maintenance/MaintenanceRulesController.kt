@@ -117,4 +117,14 @@ class MaintenanceRulesController(
             }
         }
     }
+
+    /**
+     * Clears a previously surfaced [MaintenanceRulesState.error]. A
+     * successful create/update/delete already clears it via the [refresh]
+     * that follows — this is for a caller that wants to dismiss it
+     * explicitly (e.g. before showing a fresh mutation attempt).
+     */
+    fun clearError() {
+        _state.value = _state.value.copy(error = null)
+    }
 }

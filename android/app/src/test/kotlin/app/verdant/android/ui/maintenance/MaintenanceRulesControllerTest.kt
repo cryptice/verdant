@@ -170,4 +170,84 @@ class MaintenanceRulesControllerTest {
             assertEquals(1, s.rules.size)
         }
     }
+
+    @Test
+    fun `a create failure surfaces an error and adds no rule`() = runTest {
+        val repo = FakeRuleRepository(failWith = RuntimeException("nätverksfel"))
+        val controller = MaintenanceRulesController(repo, MaintenanceTarget.AREA, 5, this)
+
+        controller.create(activityType = "MOW", intervalDays = 14)
+        advanceUntilIdle()
+
+        controller.state.test {
+            val s = awaitItem()
+            assertNotNull(s.error)
+            assertTrue(s.rules.isEmpty())
+        }
+    }
+
+    @Test
+    fun `an update failure surfaces an error`() = runTest {
+        val repo = FakeRuleRepository(mutableListOf(rule()), failWith = RuntimeException("nätverksfel"))
+        val controller = MaintenanceRulesController(repo, MaintenanceTarget.AREA, 5, this)
+
+        controller.update(1, UpdateMaintenanceRuleRequest(intervalDays = 30))
+        advanceUntilIdle()
+
+        controller.state.test { assertNotNull(awaitItem().error) }
+    }
+
+    @Test
+    fun `a delete failure surfaces an error without removing the rule`() = runTest {
+        val repo = FakeRuleRepository(mutableListOf(rule()))
+        val controller = MaintenanceRulesController(repo, MaintenanceTarget.AREA, 5, this)
+        controller.refresh()
+        advanceUntilIdle()
+
+        repo.failWith = RuntimeException("nätverksfel")
+        controller.delete(1)
+        advanceUntilIdle()
+
+        controller.state.test {
+            val s = awaitItem()
+            assertNotNull(s.error)
+            assertEquals(1, s.rules.size)
+        }
+    }
+
+    @Test
+    fun `a subsequent successful mutation clears a previous error`() = runTest {
+        val repo = FakeRuleRepository(mutableListOf(rule()), failWith = RuntimeException("nätverksfel"))
+        val controller = MaintenanceRulesController(repo, MaintenanceTarget.AREA, 5, this)
+        controller.delete(1)
+        advanceUntilIdle()
+        controller.state.test { assertNotNull(awaitItem().error) }
+
+        repo.failWith = null
+        controller.delete(1)
+        advanceUntilIdle()
+
+        controller.state.test { assertNull(awaitItem().error) }
+    }
+
+    @Test
+    fun `clearError resets the error without touching rules`() = runTest {
+        val repo = FakeRuleRepository(mutableListOf(rule()))
+        val controller = MaintenanceRulesController(repo, MaintenanceTarget.AREA, 5, this)
+        controller.refresh()
+        advanceUntilIdle()
+
+        repo.failWith = RuntimeException("nätverksfel")
+        controller.refresh()
+        advanceUntilIdle()
+        controller.state.test { assertNotNull(awaitItem().error) }
+
+        controller.clearError()
+
+        controller.state.test {
+            val s = awaitItem()
+            assertNull(s.error)
+            assertEquals(1, s.rules.size)
+        }
+    }
 }
