@@ -66,6 +66,7 @@ import app.verdant.android.data.model.GardenAreaResponse
 import app.verdant.android.data.model.GardenResponse
 import app.verdant.android.data.model.UpdateGardenRequest
 import app.verdant.android.ui.common.ConnectionErrorState
+import app.verdant.android.ui.common.InlineErrorBanner
 import app.verdant.android.ui.faltet.Field
 import app.verdant.android.ui.faltet.FaltetEmptyState
 import app.verdant.android.ui.faltet.FaltetFab
@@ -91,6 +92,14 @@ data class GardenDetailState(
     val garden: GardenResponse? = null,
     val beds: List<BedResponse> = emptyList(),
     val areas: List<GardenAreaResponse> = emptyList(),
+    /**
+     * True when the last [GardenAreaRepository.list] call failed. Areas load is
+     * a soft-fail (unlike beds), so [areas] alone can't distinguish "no areas"
+     * from "we don't know" — callers that treat an empty [areas] list as proof
+     * a garden has no area content (e.g. the delete-garden gate) MUST also check
+     * this flag, or a failed fetch masquerades as an empty garden.
+     */
+    val areasLoadFailed: Boolean = false,
     val trayPlants: List<app.verdant.android.data.model.TraySummaryEntry> = emptyList(),
     val error: String? = null,
     val deleted: Boolean = false,
@@ -127,16 +136,23 @@ class GardenDetailViewModel @Inject constructor(
                     Log.d(TAG, "Garden loaded: ${garden.name}")
                     val beds = bedRepository.list(gardenId).sortedByNaturalName()
                     Log.d(TAG, "Beds loaded: ${beds.size}")
-                    val areas = runCatching {
+                    val areasResult = runCatching {
                         gardenAreaRepository.list(gardenId).sortedWith(compareBy(NaturalNameComparator) { it.name })
-                    }.getOrDefault(emptyList())
-                    Log.d(TAG, "Areas loaded: ${areas.size}")
+                    }
+                    val areas = areasResult.getOrDefault(emptyList())
+                    val areasLoadFailed = areasResult.isFailure
+                    if (areasLoadFailed) {
+                        Log.e(TAG, "Failed to load areas: ${areasResult.exceptionOrNull()?.message}")
+                    } else {
+                        Log.d(TAG, "Areas loaded: ${areas.size}")
+                    }
                     val tray = runCatching { plantRepository.traySummary() }.getOrDefault(emptyList())
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         garden = garden,
                         beds = beds,
                         areas = areas,
+                        areasLoadFailed = areasLoadFailed,
                         trayPlants = tray,
                         error = null,
                     )
@@ -229,7 +245,7 @@ fun GardenDetailScreen(
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             title = { Text("Ta bort trädgård") },
-            text = { Text("Vill du ta bort trädgården \"${gardenName}\"?") },
+            text = { Text("Vill du ta bort trädgården \"${gardenName}\"? Detta tar även bort alla bäddar, platser och plantor i den.") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.delete()
@@ -251,7 +267,14 @@ fun GardenDetailScreen(
                     IconButton(onClick = { showEditDialog = true }, modifier = Modifier.size(36.dp)) {
                         Icon(Icons.Default.Edit, "Redigera", tint = FaltetAccent, modifier = Modifier.size(18.dp))
                     }
-                    if (uiState.beds.isEmpty()) {
+                    // Deleting cascades through beds AND areas (plus their events,
+                    // photos, maintenance rules, and scheduled tasks) at the
+                    // database level with no server-side child check — this gate
+                    // is the only thing standing between "empty garden" and
+                    // silent data loss, so it must not offer delete while areas
+                    // are unaccounted for (either present or unknown because the
+                    // fetch failed).
+                    if (uiState.beds.isEmpty() && uiState.areas.isEmpty() && !uiState.areasLoadFailed) {
                         IconButton(onClick = { showDeleteDialog = true }, modifier = Modifier.size(36.dp)) {
                             Icon(Icons.Default.DeleteOutline, "Ta bort", tint = FaltetClay, modifier = Modifier.size(18.dp))
                         }
@@ -328,7 +351,9 @@ fun GardenDetailScreen(
                             },
                         )
                     }
-                    if (uiState.areas.isEmpty()) {
+                    if (uiState.areasLoadFailed) {
+                        item { InlineAreasLoadError(onRetry = { viewModel.refresh() }) }
+                    } else if (uiState.areas.isEmpty()) {
                         item { InlineEmpty(stringResource(R.string.garden_areas_empty)) }
                     } else {
                         items(uiState.areas, key = { "area_${it.id}" }) { area ->
@@ -423,6 +448,25 @@ private fun EditGardenDialog(
             TextButton(onClick = onDismiss) { Text("Avbryt") }
         },
     )
+}
+
+/**
+ * Shown in place of the areas empty state when the areas fetch itself failed
+ * (see [GardenDetailState.areasLoadFailed]) — silence here would look
+ * identical to "no areas", which is exactly the state the delete-garden gate
+ * must not trust.
+ */
+@Composable
+private fun InlineAreasLoadError(onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        InlineErrorBanner(message = stringResource(R.string.garden_areas_load_failed))
+        TextButton(onClick = onRetry) {
+            Text(stringResource(R.string.try_again), color = FaltetAccent, fontSize = 12.sp)
+        }
+    }
 }
 
 @Composable

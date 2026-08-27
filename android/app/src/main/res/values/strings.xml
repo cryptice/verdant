@@ -79,6 +79,7 @@
     <string name="garden_areas_section_title">Places</string>
     <string name="garden_areas_add">+ Add place</string>
     <string name="garden_areas_empty">No places yet. Tap + to create.</string>
+    <string name="garden_areas_load_failed">Couldn\'t load places.</string>
     <string name="create_garden">Create Garden</string>
     <string name="default_garden_name">My Garden</string>
     <string name="default_bed_name">New Bed</string>
@@ -86,7 +87,7 @@
     <!-- Garden Detail -->
     <string name="garden">Garden</string>
     <string name="delete_garden">Delete Garden</string>
-    <string name="delete_garden_confirm">This will delete the garden and all its beds and plants. Are you sure?</string>
+    <string name="delete_garden_confirm">This will delete the garden and all its beds, areas, and plants. Are you sure?</string>
     <string name="no_beds_yet">No beds yet. Tap + to add one.</string>
 
     <!-- Bed Creation -->

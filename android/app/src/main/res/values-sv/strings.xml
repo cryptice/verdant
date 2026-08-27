@@ -78,6 +78,7 @@
     <string name="garden_areas_section_title">Platser</string>
     <string name="garden_areas_add">+ L\u00E4gg till plats</string>
     <string name="garden_areas_empty">Inga platser \u00E4n. Tryck + f\u00F6r att skapa.</string>
+    <string name="garden_areas_load_failed">Kunde inte ladda platser.</string>
     <string name="create_garden">Skapa tr\u00E4dg\u00E5rd</string>
     <string name="default_garden_name">Min tr\u00E4dg\u00E5rd</string>
     <string name="default_bed_name">Ny b\u00E4dd</string>
@@ -85,7 +86,7 @@
     <!-- Garden Detail -->
     <string name="garden">Tr\u00E4dg\u00E5rd</string>
     <string name="delete_garden">Radera tr\u00E4dg\u00E5rd</string>
-    <string name="delete_garden_confirm">Detta raderar tr\u00E4dg\u00E5rden och alla dess b\u00E4ddar och plantor. \u00C4r du s\u00E4ker?</string>
+    <string name="delete_garden_confirm">Detta raderar tr\u00E4dg\u00E5rden och alla dess b\u00E4ddar, platser och plantor. \u00C4r du s\u00E4ker?</string>
     <string name="no_beds_yet">Inga b\u00E4ddar \u00E4nnu. Tryck + f\u00F6r att l\u00E4gga till en.</string>
 
     <!-- Bed Creation -->
