@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -93,6 +94,7 @@ fun ConnectionErrorState(
 fun InlineErrorBanner(
     message: String,
     modifier: Modifier = Modifier,
+    onDismiss: (() -> Unit)? = null,
 ) {
     Card(
         shape = RoundedCornerShape(12.dp),
@@ -116,8 +118,19 @@ fun InlineErrorBanner(
                 text = message,
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onErrorContainer,
-                lineHeight = 18.sp
+                lineHeight = 18.sp,
+                modifier = Modifier.weight(1f)
             )
+            if (onDismiss != null) {
+                IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = stringResource(R.string.dismiss),
+                        tint = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
         }
     }
 }

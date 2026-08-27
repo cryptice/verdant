@@ -122,21 +122,17 @@ class MaintenanceRulesControllerTest {
     }
 
     @Test
-    fun `clearing a season window never sends season values alongside the flag`() = runTest {
+    fun `clearError dismisses a surfaced mutation failure`() = runTest {
         val repo = FakeRuleRepository(mutableListOf(rule()))
         val controller = MaintenanceRulesController(repo, MaintenanceTarget.AREA, 5, this)
+        repo.failWith = RuntimeException("boom")
 
-        controller.clearSeasonWindow(ruleId = 1)
+        controller.delete(1)
         advanceUntilIdle()
+        assertNotNull(controller.state.value.error)
 
-        val (id, request) = repo.lastUpdate!!
-        assertEquals(1L, id)
-        assertTrue(request.clearSeasonWindow)
-        // Sending any season* value with the flag is a 400 server-side.
-        assertNull(request.seasonStartMonth)
-        assertNull(request.seasonStartDay)
-        assertNull(request.seasonEndMonth)
-        assertNull(request.seasonEndDay)
+        controller.clearError()
+        assertNull(controller.state.value.error)
     }
 
     @Test

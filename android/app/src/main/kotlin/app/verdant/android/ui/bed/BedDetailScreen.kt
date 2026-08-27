@@ -475,11 +475,11 @@ fun BedDetailScreen(
                                 )
                             },
                             onUpdate = viewModel.rulesController::update,
-                            onClearSeasonWindow = viewModel.rulesController::clearSeasonWindow,
                             onDelete = viewModel.rulesController::delete,
                             onToggleActive = { id, active ->
                                 viewModel.rulesController.update(id, UpdateMaintenanceRuleRequest(active = active))
                             },
+                            onDismissError = viewModel.rulesController::clearError,
                         )
                     }
 

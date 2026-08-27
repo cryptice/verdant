@@ -20,8 +20,7 @@ data class MaintenanceRulesState(
  * Loads and mutates maintenance rules for a single target — a bed or a
  * garden area. Shared by [app.verdant.android.ui.area]'s and
  * [app.verdant.android.ui.bed]'s detail ViewModels so the "exactly one of
- * bedId/areaId" and "clearSeasonWindow alone" server rules are enforced
- * in exactly one place.
+ * bedId/areaId" server rule is enforced in exactly one place.
  *
  * Plain class, not a ViewModel: [scope] is the host ViewModel's
  * `viewModelScope` in production and a `TestScope` in tests.
@@ -97,14 +96,6 @@ class MaintenanceRulesController(
                 _state.value = _state.value.copy(error = e.message ?: "Kunde inte uppdatera skötselregel")
             }
         }
-    }
-
-    /**
-     * The only way to remove a season window. Sends the flag and nothing
-     * season-related — combining them is a 400 server-side.
-     */
-    fun clearSeasonWindow(ruleId: Long) {
-        update(ruleId, UpdateMaintenanceRuleRequest(clearSeasonWindow = true))
     }
 
     fun delete(id: Long) {

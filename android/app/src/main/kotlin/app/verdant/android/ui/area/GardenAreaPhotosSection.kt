@@ -58,14 +58,6 @@ fun gardenAreaPhotoReasonLabelRes(reason: String): Int = when (reason) {
     else -> R.string.area_photo_reason_other
 }
 
-/** Mirrors [formattedEventDate] in `GardenAreaDetailScreen.kt` — locale-neutral, numeric. */
-private fun formattedPhotoDate(dateIso: String): String = try {
-    val d = java.time.LocalDate.parse(dateIso)
-    "%02d.%02d.%04d".format(d.dayOfMonth, d.monthValue, d.year)
-} catch (e: Exception) {
-    dateIso
-}
-
 /** Render the "Photos" section of the area detail screen. */
 fun LazyListScope.gardenAreaPhotosSection(
     photos: List<GardenAreaPhotoResponse>,
@@ -105,7 +97,7 @@ private fun GardenAreaPhotoRow(
         },
         stat = {
             Text(
-                formattedPhotoDate(photo.capturedAt.take(10)),
+                formattedAreaDate(photo.capturedAt.take(10)),
                 fontFamily = FontFamily.Monospace,
                 fontSize = 10.sp,
                 letterSpacing = 1.2.sp,

@@ -151,8 +151,12 @@ class GardenDetailViewModel @Inject constructor(
                     val areasResult = runCatching {
                         gardenAreaRepository.list(gardenId).sortedWith(compareBy(NaturalNameComparator) { it.name })
                     }
-                    val areas = areasResult.getOrDefault(emptyList())
+                    // Keep the areas already on screen when a refresh fails —
+                    // matching MaintenanceRulesController's "once loaded, stay
+                    // loaded". areasLoadFailed still closes the delete-garden
+                    // gate, so a stale list cannot green-light a delete.
                     val areasLoadFailed = areasResult.isFailure
+                    val areas = areasResult.getOrDefault(_uiState.value.areas)
                     if (areasLoadFailed) {
                         Log.e(TAG, "Failed to load areas: ${areasResult.exceptionOrNull()?.message}")
                     } else {

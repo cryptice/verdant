@@ -51,7 +51,6 @@ fun NavGraphBuilder.gardenGraph(navController: NavController) {
         arguments = listOf(navArgument("gardenId") { type = NavType.LongType }),
     ) {
         CreateGardenAreaScreen(
-            onBack = { navController.popBackStack() },
             onCreated = { _ -> navController.popBackStack() },
         )
     }

@@ -333,8 +333,13 @@ fun TaskFormScreen(
     }
 
     var prefilled by remember { mutableStateOf(false) }
+    // A non-null `existing` is itself proof the reference data landed —
+    // loadData() writes species, beds and existingTask in one update. Waiting
+    // for a non-empty species list instead would leave the form permanently
+    // blank, with Save disabled, for an org whose only tasks are area
+    // maintenance and which therefore has no species at all.
     LaunchedEffect(existing, uiState.species, uiState.beds) {
-        if (existing != null && !prefilled && uiState.species.isNotEmpty()) {
+        if (existing != null && !prefilled) {
             selectedActivityType = existing.activityType
             selectedSpecies = existing.speciesId?.let { id -> uiState.species.find { it.id == id } }
             selectedBed = existing.bedId?.let { id -> uiState.beds.find { it.id == id } }

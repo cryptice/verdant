@@ -592,10 +592,15 @@
     <string name="maintenance_activity_label">Activity</string>
     <string name="maintenance_activity_notes_label">Notes (optional)</string>
     <string name="maintenance_interval_label">Repeat every (days)</string>
-    <string name="maintenance_interval_summary">Every %1$d days</string>
+    <plurals name="maintenance_interval_summary">
+        <item quantity="one">Every day</item>
+        <item quantity="other">Every %1$d days</item>
+    </plurals>
+    <string name="maintenance_interval_every_other_day">Every other day</string>
     <string name="maintenance_season_window_label">Season window</string>
     <string name="maintenance_season_window_summary">Season %1$s–%2$s</string>
-    <string name="maintenance_remove_season_window">Remove season window</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="maintenance_season_window_will_clear">Saving now removes the season window.</string>
     <string name="maintenance_season_start_label">Start</string>
     <string name="maintenance_season_end_label">End</string>
     <string name="maintenance_season_month_label">Month</string>

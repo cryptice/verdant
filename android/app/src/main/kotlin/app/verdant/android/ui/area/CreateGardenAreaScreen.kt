@@ -82,7 +82,6 @@ class CreateGardenAreaViewModel @Inject constructor(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateGardenAreaScreen(
-    onBack: () -> Unit,
     onCreated: (Long) -> Unit,
     viewModel: CreateGardenAreaViewModel = hiltViewModel()
 ) {

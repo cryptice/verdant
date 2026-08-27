@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -42,6 +43,7 @@ import app.verdant.android.data.model.UpdateMaintenanceRuleRequest
 import app.verdant.android.data.model.activitiesForTarget
 import app.verdant.android.data.model.dueState
 import app.verdant.android.data.model.hasSeasonWindow
+import app.verdant.android.data.model.maintenanceRuleUpdate
 import app.verdant.android.data.model.seasonWindowMonthDays
 import app.verdant.android.ui.common.InlineErrorBanner
 import app.verdant.android.ui.faltet.Chip
@@ -80,6 +82,14 @@ fun activityLabelRes(activityType: String): Int = when (activityType) {
     else -> R.string.maintenance_activity_note
 }
 
+/**
+ * Longest a month can be, so the day picker cannot offer a date the server
+ * rejects — Feb 29 is valid in a season window, which is a month-day pair
+ * with no year, so a leap year is the right yardstick.
+ */
+internal fun daysInMonth(month: Int): Int =
+    java.time.YearMonth.of(2024, month.coerceIn(1, 12)).lengthOfMonth()
+
 /** `(month, day)` formatted locale-agnostically as `"DD.MM"`. */
 private fun monthDay(month: Int, day: Int): String = "%02d.%02d".format(day, month)
 
@@ -105,9 +115,9 @@ fun MaintenanceRulesSection(
         notes: String?,
     ) -> Unit,
     onUpdate: (id: Long, request: UpdateMaintenanceRuleRequest) -> Unit,
-    onClearSeasonWindow: (ruleId: Long) -> Unit,
     onDelete: (id: Long) -> Unit,
     onToggleActive: (id: Long, active: Boolean) -> Unit,
+    onDismissError: () -> Unit,
     modifier: Modifier = Modifier,
     today: String = java.time.LocalDate.now().toString(),
 ) {
@@ -127,11 +137,15 @@ fun MaintenanceRulesSection(
         state.error?.let { error ->
             InlineErrorBanner(
                 message = error,
+                onDismiss = onDismissError,
                 modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp),
             )
         }
         if (state.rules.isEmpty()) {
-            EmptyRulesState()
+            // Only claim there is nothing here once we have actually looked —
+            // otherwise every RESUME flashes "nothing recurs here yet" at a
+            // target that has rules.
+            if (!state.isLoading) EmptyRulesState()
         } else {
             state.rules.forEach { rule ->
                 RuleRow(
@@ -156,10 +170,6 @@ fun MaintenanceRulesSection(
             },
             onUpdate = { id, request ->
                 onUpdate(id, request)
-                showEditSheet = false
-            },
-            onClearSeasonWindow = { ruleId ->
-                onClearSeasonWindow(ruleId)
                 showEditSheet = false
             },
         )
@@ -191,7 +201,19 @@ private fun RuleRow(
     onToggleActive: (Boolean) -> Unit,
 ) {
     val meta = buildList {
-        add(stringResource(R.string.maintenance_interval_summary, rule.intervalDays))
+        // "Every 1 days" / "Var 1:e dag" are both wrong; Swedish also wants
+        // "Varannan dag" rather than "Var 2:e dag" for a two-day interval.
+        add(
+            if (rule.intervalDays == 2) {
+                stringResource(R.string.maintenance_interval_every_other_day)
+            } else {
+                pluralStringResource(
+                    R.plurals.maintenance_interval_summary,
+                    rule.intervalDays,
+                    rule.intervalDays,
+                )
+            },
+        )
         if (hasSeasonWindow(rule)) {
             val (start, end) = seasonWindowMonthDays(rule)!!
             add(
@@ -246,6 +268,8 @@ private fun DueBadge(state: DueState) {
         DueState.Due -> stringResource(R.string.maintenance_due_today) to FaltetTone.Mustard
         is DueState.Upcoming -> stringResource(R.string.maintenance_due_upcoming, state.days) to FaltetTone.Sage
         DueState.Inactive -> stringResource(R.string.maintenance_due_paused) to FaltetTone.Forest
+        // A date this client cannot read: show nothing rather than guess.
+        DueState.Unknown -> return
     }
     Chip(text = label, tone = tone, filled = state is DueState.Overdue)
 }
@@ -286,7 +310,6 @@ private fun MaintenanceRuleEditSheet(
         notes: String?,
     ) -> Unit,
     onUpdate: (id: Long, request: UpdateMaintenanceRuleRequest) -> Unit,
-    onClearSeasonWindow: (ruleId: Long) -> Unit,
 ) {
     val activityOptions = activitiesForTarget(target)
     val activityLabels = activityOptions.associateWith { stringResource(activityLabelRes(it)) }
@@ -295,16 +318,24 @@ private fun MaintenanceRuleEditSheet(
     var intervalDays by remember(rule) { mutableStateOf(rule?.intervalDays ?: 7) }
     var notes by remember(rule) { mutableStateOf(rule?.notes ?: "") }
 
-    // The season window is all-or-none. An existing window is only ever
-    // removed via the dedicated "remove" action below (which calls
-    // onClearSeasonWindow directly) — never by folding null season fields
-    // into a general Save, which the server would treat as "no change".
+    // The season window is all-or-none, and unticking the box on a rule that
+    // has one is what removes it. Save sends that as clearSeasonWindow
+    // alongside the rest of the edits — the server rejects the flag only
+    // when season BOUNDS accompany it, so nothing else in the sheet has to
+    // be dropped to remove a window.
     val existingWindow = rule?.let { seasonWindowMonthDays(it) }
-    var addSeasonWindow by remember(rule) { mutableStateOf(false) }
-    var startMonth by remember(rule) { mutableStateOf(4) }
-    var startDay by remember(rule) { mutableStateOf(1) }
-    var endMonth by remember(rule) { mutableStateOf(10) }
-    var endDay by remember(rule) { mutableStateOf(1) }
+    var addSeasonWindow by remember(rule) { mutableStateOf(existingWindow != null) }
+    var startMonth by remember(rule) { mutableStateOf(existingWindow?.first?.first ?: 4) }
+    // Clamped on the way in as well as on month change: a rule stored before
+    // the day picker was month-aware can hold something like Feb 30, which
+    // the server now rejects on save.
+    var startDay by remember(rule) {
+        mutableStateOf((existingWindow?.first?.second ?: 1).coerceAtMost(daysInMonth(startMonth)))
+    }
+    var endMonth by remember(rule) { mutableStateOf(existingWindow?.second?.first ?: 10) }
+    var endDay by remember(rule) {
+        mutableStateOf((existingWindow?.second?.second ?: 1).coerceAtMost(daysInMonth(endMonth)))
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -345,47 +376,36 @@ private fun MaintenanceRuleEditSheet(
                     )
                 }
 
-                if (rule != null && existingWindow != null) {
-                    Column {
-                        Text(
-                            text = stringResource(
-                                R.string.maintenance_season_window_summary,
-                                monthDay(existingWindow.first.first, existingWindow.first.second),
-                                monthDay(existingWindow.second.first, existingWindow.second.second),
-                            ),
-                            fontSize = 13.sp,
-                            color = FaltetInk,
-                        )
-                        TextButton(onClick = { onClearSeasonWindow(rule.id) }) {
-                            Text(stringResource(R.string.maintenance_remove_season_window), color = FaltetClay)
-                        }
-                    }
-                } else {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        FaltetCheckbox(checked = addSeasonWindow, onCheckedChange = { addSeasonWindow = it })
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(R.string.maintenance_season_window_label),
-                            fontSize = 14.sp,
-                            color = FaltetInk,
-                        )
-                    }
-                    if (addSeasonWindow) {
-                        SeasonBoundPicker(
-                            label = stringResource(R.string.maintenance_season_start_label),
-                            month = startMonth,
-                            day = startDay,
-                            onMonthChange = { startMonth = it },
-                            onDayChange = { startDay = it },
-                        )
-                        SeasonBoundPicker(
-                            label = stringResource(R.string.maintenance_season_end_label),
-                            month = endMonth,
-                            day = endDay,
-                            onMonthChange = { endMonth = it },
-                            onDayChange = { endDay = it },
-                        )
-                    }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    FaltetCheckbox(checked = addSeasonWindow, onCheckedChange = { addSeasonWindow = it })
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.maintenance_season_window_label),
+                        fontSize = 14.sp,
+                        color = FaltetInk,
+                    )
+                }
+                if (addSeasonWindow) {
+                    SeasonBoundPicker(
+                        label = stringResource(R.string.maintenance_season_start_label),
+                        month = startMonth,
+                        day = startDay,
+                        onMonthChange = { startMonth = it; startDay = startDay.coerceAtMost(daysInMonth(it)) },
+                        onDayChange = { startDay = it },
+                    )
+                    SeasonBoundPicker(
+                        label = stringResource(R.string.maintenance_season_end_label),
+                        month = endMonth,
+                        day = endDay,
+                        onMonthChange = { endMonth = it; endDay = endDay.coerceAtMost(daysInMonth(it)) },
+                        onDayChange = { endDay = it },
+                    )
+                } else if (existingWindow != null) {
+                    Text(
+                        text = stringResource(R.string.maintenance_season_window_will_clear),
+                        fontSize = 12.sp,
+                        color = FaltetClay,
+                    )
                 }
 
                 Field(
@@ -405,9 +425,12 @@ private fun MaintenanceRuleEditSheet(
                 if (rule == null) {
                     onCreate(activityType, intervalDays, sm, sd, em, ed, trimmedNotes)
                 } else {
+                    // maintenanceRuleUpdate owns the "empty a field with a
+                    // flag, never a null" contract — see its doc.
                     onUpdate(
                         rule.id,
-                        UpdateMaintenanceRuleRequest(
+                        maintenanceRuleUpdate(
+                            rule = rule,
                             activityType = activityType,
                             intervalDays = intervalDays,
                             seasonStartMonth = sm,
@@ -461,7 +484,7 @@ private fun SeasonBoundPicker(
                     onDecrement = { onDayChange(day - 1) },
                     onIncrement = { onDayChange(day + 1) },
                     min = 1,
-                    max = 31,
+                    max = daysInMonth(month),
                 )
             }
         }

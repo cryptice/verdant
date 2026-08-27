@@ -84,7 +84,12 @@ fun areaCategoryLabelRes(category: String): Int = when (category) {
     else -> R.string.area_category_other
 }
 
-private fun formattedEventDate(dateIso: String): String = try {
+/**
+ * Locale-neutral numeric date, shared by every row on the area screens.
+ * Falls back to the raw string rather than throwing: these run inside
+ * composition, where an exception takes the screen down.
+ */
+internal fun formattedAreaDate(dateIso: String): String = try {
     val d = java.time.LocalDate.parse(dateIso)
     "%02d.%02d.%04d".format(d.dayOfMonth, d.monthValue, d.year)
 } catch (e: Exception) {
@@ -104,7 +109,7 @@ fun GardenAreaDetailScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            viewModel.refresh()
+            viewModel.load()
         }
     }
 
@@ -142,6 +147,9 @@ fun GardenAreaDetailScreen(
 
     if (editing) {
         val categoryLabels = AREA_CATEGORIES.associateWith { stringResource(areaCategoryLabelRes(it)) }
+        // Save stays disabled until a category is picked, so the confirm
+        // handler below can use this without a fallback.
+        val category = editCategory
         AlertDialog(
             onDismissRequest = editGuard.requestDismiss { editing = false },
             title = { Text(stringResource(R.string.area_edit_title)) },
@@ -183,12 +191,12 @@ fun GardenAreaDetailScreen(
                         viewModel.update(
                             name = editName,
                             description = editDescription.takeIf { it.isNotBlank() },
-                            category = editCategory ?: source?.category ?: AREA_CATEGORIES.first(),
+                            category = category!!,
                             sizeSqm = editSizeText.toDoubleOrNull(),
                         )
                         editing = false
                     },
-                    enabled = editName.isNotBlank() && editCategory != null,
+                    enabled = editName.isNotBlank() && category != null,
                 ) { Text(stringResource(R.string.save)) }
             },
             dismissButton = {
@@ -309,7 +317,7 @@ fun GardenAreaDetailScreen(
                 Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center,
             ) {
-                ConnectionErrorState(onRetry = { viewModel.refresh() })
+                ConnectionErrorState(onRetry = { viewModel.load() })
             }
             is GardenAreaDetailUiState.Loaded -> {
                 val state = uiState as GardenAreaDetailUiState.Loaded
@@ -358,11 +366,11 @@ fun GardenAreaDetailScreen(
                                 )
                             },
                             onUpdate = viewModel.rulesController::update,
-                            onClearSeasonWindow = viewModel.rulesController::clearSeasonWindow,
                             onDelete = viewModel.rulesController::delete,
                             onToggleActive = { id, active ->
                                 viewModel.rulesController.update(id, UpdateMaintenanceRuleRequest(active = active))
                             },
+                            onDismissError = viewModel.rulesController::clearError,
                         )
                     }
 
@@ -406,7 +414,7 @@ private fun AreaEventRow(ev: GardenAreaEventResponse) {
         metaMaxLines = 2,
         stat = {
             Text(
-                formattedEventDate(ev.eventDate.take(10)),
+                formattedAreaDate(ev.eventDate.take(10)),
                 fontFamily = FontFamily.Monospace,
                 fontSize = 10.sp,
                 letterSpacing = 1.2.sp,
