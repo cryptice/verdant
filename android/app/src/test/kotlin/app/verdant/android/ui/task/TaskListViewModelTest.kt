@@ -88,8 +88,12 @@ class TaskListViewModelTest {
             maintenanceRuleId = 3,
             activityType = "MOW",
             deadline = "2026-05-01",
-            targetCount = 1,
-            remainingCount = 1,
+            // Real maintenance tasks are always targetCount/remainingCount
+            // == 1, but the test uses 3 here so the assertion below can only
+            // pass if completeTask actually forwards task.remainingCount —
+            // not a hardcoded 1 that happens to match.
+            targetCount = 3,
+            remainingCount = 3,
             status = "PENDING",
             notes = null,
             createdAt = "2026-04-01T00:00:00Z",
@@ -105,7 +109,7 @@ class TaskListViewModelTest {
         val (id, request) = repo.completedRequests.single()
         assertEquals(42L, id)
         assertNull(request.speciesId)
-        assertEquals(1, request.processedCount)
+        assertEquals(3, request.processedCount)
         assertEquals(emptyList<Long>(), vm.uiState.value.tasks.map { it.id })
     }
 

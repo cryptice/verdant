@@ -77,6 +77,7 @@ import app.verdant.android.ui.faltet.FaltetSectionHeader
 import app.verdant.android.ui.task.COMPLETE_TASK_DELAY_MS
 import app.verdant.android.ui.task.TaskDeleteDialog
 import app.verdant.android.ui.task.TaskRow
+import app.verdant.android.ui.task.isPlaceScopedTask
 import app.verdant.android.ui.theme.FaltetAccent
 import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
@@ -155,7 +156,7 @@ class DashboardViewModel @Inject constructor(
                     task.id,
                     CompleteTaskPartiallyRequest(
                         processedCount = task.remainingCount.coerceAtLeast(1),
-                        speciesId = if (task.bedId != null) null else task.speciesId,
+                        speciesId = if (isPlaceScopedTask(task)) null else task.speciesId,
                     ),
                 )
                 _uiState.value = _uiState.value.copy(

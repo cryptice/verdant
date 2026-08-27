@@ -21,10 +21,16 @@ fun NavGraphBuilder.dashboardGraph(navController: NavController) {
                     "HARVEST" -> navController.navigate("activity/plant-picker/GROWING/harvest?taskId=${task.id}$speciesParam")
                     "RECOVER" -> navController.navigate("activity/plant-picker/GROWING/recover?taskId=${task.id}$speciesParam")
                     "DISCARD" -> navController.navigate("activity/plant-picker/SEEDED,POTTED_UP,PLANTED_OUT,GROWING,HARVESTED,RECOVERED/discard?taskId=${task.id}$speciesParam")
-                    "WATER", "WEED", "FERTILIZE" -> task.bedId?.let { id ->
-                        navController.navigate(Screen.BedDetail.create(id))
+                    else -> when {
+                        // Place-scoped tasks (WATER/WEED on either a bed or
+                        // an area, FERTILIZE on a bed, or any area-only
+                        // maintenance activity like MOW/RAKE) open their
+                        // place. Branch on the place, not the activity name,
+                        // so an area WATER task doesn't silently no-op.
+                        task.gardenAreaId != null -> navController.navigate(Screen.GardenAreaDetail.create(task.gardenAreaId))
+                        task.bedId != null -> navController.navigate(Screen.BedDetail.create(task.bedId))
+                        else -> navController.navigate(Screen.TaskList.route)
                     }
-                    else -> navController.navigate(Screen.TaskList.route)
                 }
             },
             onOpenTasks = { navController.navigate(Screen.TaskList.route) },

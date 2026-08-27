@@ -117,7 +117,7 @@ class TaskListViewModel @Inject constructor(
                     task.id,
                     CompleteTaskPartiallyRequest(
                         processedCount = task.remainingCount.coerceAtLeast(1),
-                        speciesId = if (task.bedId != null) null else task.speciesId,
+                        speciesId = if (isPlaceScopedTask(task)) null else task.speciesId,
                     ),
                 )
                 _uiState.value = _uiState.value.copy(
