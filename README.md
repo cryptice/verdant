@@ -216,20 +216,35 @@ To run the Android unit tests, see the Dev Container notes above (`cd android &&
 
 Deployed to Google Cloud Run with Cloud SQL (PostgreSQL).
 
-```bash
-# One-time setup
-./deploy/setup-gcp.sh <PROJECT_ID> <REGION>
+Two environments, each with its own project, Cloud SQL instance, and secrets:
 
-# Store secrets
-gcloud secrets create verdant-gemini-key --data-file=<(echo -n 'KEY')
-gcloud secrets create verdant-admin-password --data-file=<(echo -n 'PASSWORD')
+| | Project | Region | Cloud SQL |
+|---|---|---|---|
+| Staging | `verdant-planner-staging` | `europe-north1` | `verdant-staging` (`europe-north2`) |
+| Production | `verdant-prod` | `europe-north2` | `verdant-prod` |
+
+```bash
+# One-time setup. DB_INSTANCE is required — it is not defaulted, so that
+# pointing this at a new project cannot inherit another environment's name.
+./deploy/setup-gcp.sh <PROJECT_ID> <REGION> <DB_INSTANCE> [TIER] [STORAGE_TYPE]
+
+# The script generates the JWT keypair and admin password, and creates
+# REPLACE_ME placeholders for the two secrets only you can supply:
+printf %s 'YOUR_GEMINI_KEY'      | gcloud secrets versions add verdant-gemini-key      --data-file=- --project=<PROJECT_ID>
+printf %s 'YOUR_OAUTH_CLIENT_ID' | gcloud secrets versions add verdant-google-client-id --data-file=- --project=<PROJECT_ID>
 
 # Configure Docker auth
 gcloud auth configure-docker <REGION>-docker.pkg.dev
 
-# Build and deploy (backend + admin UI in one container)
-./deploy/deploy.sh <PROJECT_ID> <REGION>
+# Build and deploy (backend + admin UI in one container). The Cloud SQL
+# connection name is required and must belong to <PROJECT_ID>.
+./deploy/deploy.sh <PROJECT_ID> <REGION> <SQL_CONNECTION_NAME> [MIN_INSTANCES]
 ```
+
+`cloudbuild.yaml` takes every environment-specific value as a substitution.
+`_SQL_INSTANCE` has no default and the build fails without it — it was once
+hardcoded to staging, which meant a build submitted against any other project
+deployed that project's image wired to the staging database.
 
 ## Configuration
 
