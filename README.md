@@ -154,7 +154,7 @@ cd backend
 
 1. Start the Cloud SQL Auth Proxy:
    ```bash
-   cloud-sql-proxy verdant-prod:europe-north2:verdant-prod --port 5433
+   cloud-sql-proxy verdant-prod:europe-north1:verdant --port 5433
    ```
 
 2. Fetch the password from Secret Manager:
@@ -222,7 +222,19 @@ passing different arguments, not by editing them.
 
 | | Project | Region | Cloud SQL | Bucket |
 |---|---|---|---|---|
-| Production | `verdant-prod` | `europe-north2` | `verdant-prod` (POSTGRES_18, db-f1-micro) | `verdant-prod-media` |
+| Production | `verdant-prod` | `europe-north1` | `verdant` (POSTGRES_18, db-f1-micro) | `verdant-prod-media` |
+
+Served at **https://verdantplanner.com** via a Cloud Run domain mapping. The
+region is not free to change: **Cloud Run domain mappings are not supported in
+`europe-north2`** (the API returns 501 there), which is why prod runs in
+`europe-north1`. Moving regions means either giving up the mapping for an
+external load balancer, or re-mapping and re-issuing the certificate.
+
+The domain's DNS lives at namesystem.se, not Cloud DNS. The four apex A
+records (`216.239.32.21`, `.34.21`, `.36.21`, `.38.21`) are the standard
+Cloud Run anycast addresses and already point at Google, so a region change
+within Cloud Run needs no registrar change — but a switch to a load balancer
+would.
 
 ```bash
 # One-time setup. DB_INSTANCE is required — it is not defaulted, so that
