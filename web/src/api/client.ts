@@ -8,7 +8,7 @@ export function setActiveOrgId(orgId: number | null) {
 }
 
 let onUnauthorized: (() => void) | null = null
-export function setOnUnauthorized(cb: () => void) {
+export function setOnUnauthorized(cb: (() => void) | null) {
   onUnauthorized = cb
 }
 

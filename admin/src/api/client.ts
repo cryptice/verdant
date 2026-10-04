@@ -6,7 +6,7 @@ export const apiRequest = makeApiRequest({
   getToken: () => localStorage.getItem('admin_token'),
   onUnauthorized: () => {
     localStorage.removeItem('admin_token')
-    window.location.href = '/login'
+    window.location.href = '/admin/login'
   },
   networkErrorMessage: 'Unable to connect to the server. Is the backend running?',
   treat403AsUnauthorized: true,

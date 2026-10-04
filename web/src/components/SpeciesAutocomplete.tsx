@@ -70,12 +70,12 @@ export function SpeciesAutocomplete({ value, onChange, onGroupSelect, placeholde
 
   // Auto-clear when no results remain (e.g. all matching species already added to group)
   useEffect(() => {
-    if (keepSearchOnSelect && debouncedSearch && filteredResults && filteredResults.length === 0 && filteredGroups.length === 0 && !isFetching) {
+    if (keepSearchOnSelect && debouncedSearch && filteredResults?.length === 0 && filteredGroups.length === 0 && !isFetching) {
       setSearch('')
       setDebouncedSearch('')
       setOpen(false)
     }
-  }, [keepSearchOnSelect, debouncedSearch, filteredResults, filteredGroups, isFetching])
+  }, [keepSearchOnSelect, debouncedSearch, filteredResults?.length, filteredGroups.length, isFetching])
 
   const displayValue = value ? speciesLabel(value, i18n.language) : ''
 
@@ -133,7 +133,7 @@ export function SpeciesAutocomplete({ value, onChange, onGroupSelect, placeholde
               {speciesLabel(s, i18n.language)}
             </button>
           ))}
-          {filteredResults && filteredResults.length === 0 && filteredGroups.length === 0 && !isFetching && (
+          {filteredResults?.length === 0 && filteredGroups.length === 0 && !isFetching && (
             <p className="px-3 py-2 text-sm text-text-secondary">{t('species.noSpeciesFoundDropdown')}</p>
           )}
         </div>

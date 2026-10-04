@@ -1,4 +1,48 @@
 steps:
+  - id: 'test-db'
+    name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args:
+      - '-ceu'
+      - |
+        docker run -d --name verdant-test-db --network cloudbuild \
+          -e POSTGRES_DB=verdant -e POSTGRES_USER=verdant -e POSTGRES_PASSWORD=verdant \
+          --tmpfs /var/lib/postgresql/data postgres:17
+        for attempt in {1..60}; do
+          if docker exec verdant-test-db pg_isready -h 127.0.0.1 -U verdant -d verdant; then
+            exit 0
+          fi
+          sleep 1
+        done
+        docker logs verdant-test-db
+        exit 1
+
+  - id: 'backend-tests'
+    name: 'gradle:8.12-jdk21'
+    dir: 'backend'
+    entrypoint: 'gradle'
+    args: ['test', '--rerun', '--no-daemon', '--console=plain']
+    env:
+      - 'QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://verdant-test-db:5432/verdant'
+      - 'QUARKUS_DATASOURCE_USERNAME=verdant'
+      - 'QUARKUS_DATASOURCE_PASSWORD=verdant'
+
+  - id: 'stop-test-db'
+    name: 'gcr.io/cloud-builders/docker'
+    args: ['rm', '-f', 'verdant-test-db']
+
+  - id: 'web-checks'
+    name: 'node:22'
+    dir: 'web'
+    entrypoint: 'sh'
+    args: ['-ec', 'npm ci --no-update-notifier && npm run lint && npm test && npm run build']
+
+  - id: 'admin-checks'
+    name: 'node:22'
+    dir: 'admin'
+    entrypoint: 'sh'
+    args: ['-ec', 'npm ci --no-update-notifier && npm run lint && npm run build']
+
   - id: 'image-build'
     name: 'gcr.io/kaniko-project/executor:latest'
     args:
@@ -28,7 +72,12 @@ steps:
         # would deploy that project's image pointed at the staging database.
         if [ -z "${_SQL_INSTANCE}" ]; then
           echo "ERROR: _SQL_INSTANCE substitution is required (PROJECT:REGION:INSTANCE)." >&2
-          echo "       e.g. --substitutions=_SQL_INSTANCE=verdant-prod:europe-north1:verdant-prod" >&2
+          echo "       e.g. --substitutions=_SQL_INSTANCE=verdant-prod:europe-north1:verdant" >&2
+          exit 1
+        fi
+
+        if ! [[ "${_MIN_INSTANCES}" =~ ^[1-9][0-9]*$ ]]; then
+          echo "ERROR: _MIN_INSTANCES must be at least 1 for recurring maintenance." >&2
           exit 1
         fi
 
@@ -40,6 +89,7 @@ steps:
           --port=8080 \
           --memory=${_MEMORY} \
           --cpu=1 \
+          --no-cpu-throttling \
           --min-instances=${_MIN_INSTANCES} \
           --max-instances=${_MAX_INSTANCES} \
           --set-cloudsql-instances=${_SQL_INSTANCE} \
@@ -62,7 +112,7 @@ substitutions:
   # Each project owns its bucket; photo URLs are absolute under this name.
   _GCS_BUCKET: 'verdant-prod-media'
   _MEMORY: '512Mi'
-  _MIN_INSTANCES: '0'
+  _MIN_INSTANCES: '1'
   _MAX_INSTANCES: '3'
 
 options:

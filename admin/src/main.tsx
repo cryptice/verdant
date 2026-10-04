@@ -4,13 +4,14 @@ import './i18n'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './App'
+import { ApiError } from '@verdant/shared'
 import './index.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error) => {
-        if (error instanceof Error && error.name === 'ApiError' && (error as any).isNetworkError) {
+        if (error instanceof ApiError && error.isNetworkError) {
           return failureCount < 2
         }
         return false

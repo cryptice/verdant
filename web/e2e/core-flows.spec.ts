@@ -1,24 +1,22 @@
 import { test, expect, type Page } from '@playwright/test'
-import { loginAsAdmin } from './helpers'
+import { apiHeaders, loginAsAdmin } from './helpers'
 
 const API_BASE = 'http://localhost:8081'
 
 // ── API helpers ──────────────────────────────────────────────────────────────
 
 async function apiPost<T>(page: Page, path: string, body: unknown): Promise<T> {
-  const token = await page.evaluate(() => localStorage.getItem('verdant_token'))
   const res = await page.request.post(`${API_BASE}${path}`, {
     data: body,
-    headers: { Authorization: `Bearer ${token}` },
+    headers: await apiHeaders(page),
   })
   if (!res.ok()) throw new Error(`POST ${path} failed: ${res.status()} ${await res.text()}`)
   return res.json()
 }
 
 async function apiDelete(page: Page, path: string): Promise<void> {
-  const token = await page.evaluate(() => localStorage.getItem('verdant_token'))
   await page.request.delete(`${API_BASE}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: await apiHeaders(page),
   })
 }
 
@@ -87,9 +85,7 @@ test.describe.serial('core CRUD flows', () => {
 
     // Capture the season id for cleanup via the API
     const res = await page.request.get(`${API_BASE}/api/seasons`, {
-      headers: {
-        Authorization: `Bearer ${await page.evaluate(() => localStorage.getItem('verdant_token'))}`,
-      },
+      headers: await apiHeaders(page),
     })
     const seasons = await res.json()
     const created = seasons.find((s: { name: string; id: number }) => s.name === 'E2E Test Season')
@@ -146,9 +142,8 @@ test.describe.serial('core CRUD flows', () => {
     await expect(page.locator('text=E2E Test Bed')).toBeVisible({ timeout: 8000 })
 
     // Capture bed id via the API
-    const token = await page.evaluate(() => localStorage.getItem('verdant_token'))
     const res = await page.request.get(`${API_BASE}/api/gardens/${gardenId}/beds`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: await apiHeaders(page),
     })
     const beds = await res.json()
     const created = beds.find((b: { name: string; id: number }) => b.name === 'E2E Test Bed')

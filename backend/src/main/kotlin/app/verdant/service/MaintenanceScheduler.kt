@@ -7,9 +7,11 @@ import io.quarkus.scheduler.Scheduled
 import jakarta.enterprise.context.ApplicationScoped
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
+import java.time.ZoneId
 
 /**
- * Turns due maintenance rules into ordinary scheduled tasks once a day, so
+ * Checks due maintenance rules hourly, so restarts cannot lose a whole day's
+ * run. Turns due rules into ordinary scheduled tasks, so
  * recurring work shows up in the same task list as everything else.
  *
  * The only creator of rule-backed tasks. Completing a task does not chain
@@ -24,9 +26,10 @@ class MaintenanceScheduler(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @Scheduled(cron = "0 30 3 * * ?")
+    @Scheduled(cron = "0 30 * * * ?", timeZone = "Europe/Stockholm",
+        concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     fun materialiseDueTasks() {
-        val created = run(LocalDate.now())
+        val created = run(LocalDate.now(ZoneId.of("Europe/Stockholm")))
         if (created > 0) log.info("Maintenance scheduler created $created task(s)")
     }
 

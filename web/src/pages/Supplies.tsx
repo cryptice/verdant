@@ -184,9 +184,6 @@ export function Supplies() {
   const isLoading = typesLoading || batchesLoading
   const error = typesError || batchesError
 
-  if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
-  if (error) return <ErrorDisplay error={error} onRetry={() => { refetchTypes(); refetchBatches() }} />
-
   const grouped = groupByCategory(types ?? [], batches ?? [], t)
 
   // Flat ordered list of all supply type entries for pagination
@@ -196,6 +193,9 @@ export function Supplies() {
   const [inventoryPage, setInventoryPage] = useState(0)
   const inventoryPageSize = 50
   useEffect(() => { setInventoryPage(0) }, [allInventoryEntries.length])
+  if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
+  if (error) return <ErrorDisplay error={error} onRetry={() => { refetchTypes(); refetchBatches() }} />
+
   const pagedEntries = allInventoryEntries.slice(inventoryPage * inventoryPageSize, (inventoryPage + 1) * inventoryPageSize)
 
   // Rebuild a per-category map from the visible slice for rendering

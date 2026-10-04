@@ -1,4 +1,5 @@
 import { type Page } from '@playwright/test'
+import type { AuthResponse } from '../src/api/client'
 
 const API_BASE = 'http://localhost:8081'
 
@@ -14,12 +15,30 @@ export async function loginAsAdmin(page: Page) {
     },
   })
   if (!res.ok()) throw new Error(`Admin login failed: ${res.status()}`)
-  const { token } = await res.json()
-  await page.evaluate((t) => localStorage.setItem('verdant_token', t), token)
+  const { token, user } = await res.json() as AuthResponse
+  const requestedOrg = process.env.TEST_ORG_ID
+  const org = requestedOrg
+    ? user.organizations.find(org => String(org.orgId) === requestedOrg)
+    : user.organizations[0]
+  if (!org) throw new Error('E2E admin must belong to the selected test organization (TEST_ORG_ID)')
+  await page.evaluate(({ token, orgId }) => {
+    localStorage.setItem('verdant_token', token)
+    localStorage.setItem('verdant_org_id', String(orgId))
+  }, { token, orgId: org.orgId })
 }
 
 /** Navigate to the app root and wait for the main heading */
 export async function goToDashboard(page: Page) {
   await page.goto('/')
   await page.waitForSelector('h1', { timeout: 10000 })
+}
+
+/** Headers for direct Playwright API calls, matching the browser client. */
+export async function apiHeaders(page: Page) {
+  return page.evaluate(() => {
+    const token = localStorage.getItem('verdant_token')
+    const orgId = localStorage.getItem('verdant_org_id')
+    if (!token || !orgId) throw new Error('Log in and select an organization first')
+    return { Authorization: `Bearer ${token}`, 'X-Organization-Id': orgId }
+  })
 }

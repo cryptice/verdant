@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
@@ -18,7 +18,11 @@ type Props = {
   error?: string | null
 }
 
-export function EditSaleDialog({ entry, onClose, onSubmit, isSaving, error }: Props) {
+export function EditSaleDialog(props: Props) {
+  return <EditSaleForm key={props.entry?.id ?? 'closed'} {...props} />
+}
+
+function EditSaleForm({ entry, onClose, onSubmit, isSaving, error }: Props) {
   const { t } = useTranslation()
   const open = entry !== null
 
@@ -28,21 +32,11 @@ export function EditSaleDialog({ entry, onClose, onSubmit, isSaving, error }: Pr
     enabled: open,
   })
 
-  const [qty, setQty] = useState('')
-  const [price, setPrice] = useState('')
-  const [customerId, setCustomerId] = useState<number | ''>('')
-  const [soldAt, setSoldAt] = useState('')
-  const [notes, setNotes] = useState('')
-
-  useEffect(() => {
-    if (entry) {
-      setQty(String(entry.quantity))
-      setPrice((entry.pricePerUnitCents / 100).toString())
-      setCustomerId(entry.customerId ?? '')
-      setSoldAt(entry.soldAt.slice(0, 10))
-      setNotes(entry.notes ?? '')
-    }
-  }, [entry?.id])
+  const [qty, setQty] = useState(() => entry ? String(entry.quantity) : '')
+  const [price, setPrice] = useState(() => entry ? (entry.pricePerUnitCents / 100).toString() : '')
+  const [customerId, setCustomerId] = useState<number | ''>(() => entry?.customerId ?? '')
+  const [soldAt, setSoldAt] = useState(() => entry?.soldAt.slice(0, 10) ?? '')
+  const [notes, setNotes] = useState(() => entry?.notes ?? '')
 
   const qtyNum = parseInt(qty, 10)
   const priceCents = price ? Math.round(parseFloat(price.replace(',', '.')) * 100) : NaN

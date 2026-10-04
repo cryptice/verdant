@@ -109,7 +109,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     setLastCompletedStepId(stepId)
     setDrawerOpen(true)
     setTimeout(() => setLastCompletedStepId(null), 3000)
-  }, [syncToBackend])
+  }, [syncToBackend, setDrawerOpen])
 
   // Auto-complete visit-type steps when the user navigates to the page
   useEffect(() => {
@@ -143,19 +143,19 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         setTimeout(() => setActiveTour(config), 400)
       }
     })
-  }, [navigate])
+  }, [navigate, setDrawerOpen])
 
   const minimizeForSession = useCallback(() => {
     setMinimized(true)
     setDrawerOpen(false)
-  }, [])
+  }, [setDrawerOpen])
 
   const dismissPermanently = useCallback(() => {
     const updated = { ...state, dismissed: true }
     setState(updated)
     setDrawerOpen(false)
     syncToBackend(updated)
-  }, [state, syncToBackend])
+  }, [state, syncToBackend, setDrawerOpen])
 
   const clearActiveTour = useCallback(() => setActiveTour(null), [])
 

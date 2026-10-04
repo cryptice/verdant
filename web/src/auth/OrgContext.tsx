@@ -17,6 +17,7 @@ interface OrgContextValue {
 }
 
 const OrgContext = createContext<OrgContextValue | null>(null)
+const NO_ORGANIZATIONS: UserOrgMembership[] = []
 
 export function OrgProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth()
@@ -25,8 +26,18 @@ export function OrgProvider({ children }: { children: ReactNode }) {
     return stored ? Number(stored) : null
   })
 
-  const organizations = user?.organizations ?? []
+  const organizations = user?.organizations ?? NO_ORGANIZATIONS
   const needsOrg = !authLoading && !!user && organizations.length === 0
+
+  useEffect(() => {
+    const syncOrg = (event: StorageEvent) => {
+      if (event.key !== null && event.key !== 'verdant_org_id') return
+      const stored = localStorage.getItem('verdant_org_id')
+      setActiveOrgIdState(stored ? Number(stored) : null)
+    }
+    window.addEventListener('storage', syncOrg)
+    return () => window.removeEventListener('storage', syncOrg)
+  }, [])
 
   // Resolve active org from the user's membership list
   const activeOrg = organizations.find(o => o.orgId === activeOrgId)
@@ -35,7 +46,7 @@ export function OrgProvider({ children }: { children: ReactNode }) {
 
   // Sync activeOrgId when user data changes
   useEffect(() => {
-    if (!user) return
+    if (authLoading) return
     if (organizations.length === 0) {
       setActiveOrgId(null)
       setActiveOrgIdState(null)
@@ -47,12 +58,13 @@ export function OrgProvider({ children }: { children: ReactNode }) {
       setActiveOrgId(validOrg.orgId)
       setActiveOrgIdState(validOrg.orgId)
     }
-  }, [user, organizations, activeOrgId])
+  }, [authLoading, organizations, activeOrgId])
 
   const switchOrg = useCallback((orgId: number) => {
+    if (!organizations.some(org => org.orgId === orgId)) return
     setActiveOrgId(orgId)
     setActiveOrgIdState(orgId)
-  }, [])
+  }, [organizations])
 
   return (
     <OrgContext.Provider value={{
@@ -60,7 +72,7 @@ export function OrgProvider({ children }: { children: ReactNode }) {
       organizations,
       switchOrg,
       needsOrg,
-      loading: authLoading,
+      loading: authLoading || activeOrgId !== (activeOrg?.orgId ?? null),
     }}>
       {children}
     </OrgContext.Provider>

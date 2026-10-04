@@ -4,11 +4,9 @@
 #
 # Usage: ./deploy/deploy.sh <PROJECT_ID> <REGION> <SQL_CONNECTION_NAME> [MIN_INSTANCES]
 #
-# Examples:
-#   ./deploy/deploy.sh verdant-planner-staging europe-north1 \
-#       verdant-planner-staging:europe-north2:verdant-staging
-#   ./deploy/deploy.sh verdant-prod europe-north2 \
-#       verdant-prod:europe-north2:verdant-prod 1
+# Example:
+#   ./deploy/deploy.sh verdant-prod europe-north1 \
+#       verdant-prod:europe-north1:verdant
 #
 # SQL_CONNECTION_NAME is required. It was previously hardcoded in
 # cloudbuild.yaml, so a build submitted against any project deployed that
@@ -18,9 +16,14 @@ set -euo pipefail
 PROJECT_ID="${1:?Usage: $0 <PROJECT_ID> <REGION> <SQL_CONNECTION_NAME> [MIN_INSTANCES]}"
 REGION="${2:?Usage: $0 <PROJECT_ID> <REGION> <SQL_CONNECTION_NAME> [MIN_INSTANCES]}"
 SQL_INSTANCE="${3:?Usage: $0 <PROJECT_ID> <REGION> <SQL_CONNECTION_NAME> [MIN_INSTANCES]}"
-MIN_INSTANCES="${4:-0}"
+MIN_INSTANCES="${4:-1}"
 GCS_BUCKET="${GCS_BUCKET:-verdant-prod-media}"
 SERVICE_NAME="verdant-api"
+
+if ! [[ "$MIN_INSTANCES" =~ ^[1-9][0-9]*$ ]]; then
+  echo "ERROR: MIN_INSTANCES must be at least 1 for recurring maintenance." >&2
+  exit 1
+fi
 
 # The connection name must belong to the project being deployed to, or the
 # service comes up talking to another environment's database.

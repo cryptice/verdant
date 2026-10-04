@@ -119,7 +119,7 @@ export function Ledger<T>({
                     color: 'var(--color-ink)',
                   }}
                 >
-                  {col.render ? col.render(row, globalIndex) : String((row as any)[col.key] ?? '')}
+                  {col.render ? col.render(row, globalIndex) : String((row as Record<string, unknown>)[col.key] ?? '')}
                 </div>
               ))}
             </RowComponent>

@@ -31,7 +31,6 @@ export function useUnsavedGuard(
 
   useEffect(() => {
     if (blocker.state === 'blocked') {
-      // eslint-disable-next-line no-alert
       if (window.confirm(message)) blocker.proceed()
       else blocker.reset()
     }

@@ -52,7 +52,8 @@ export function makeApiRequest(config: ApiClientConfig): ApiRequest {
     const isAuthFailure =
       response.status === 401 || (config.treat403AsUnauthorized && response.status === 403)
     if (isAuthFailure) {
-      config.onUnauthorized()
+      // A late response from a previous login must not log out the new user.
+      if (config.getToken() === token) config.onUnauthorized()
       throw new ApiError('Unauthorized', response.status)
     }
 

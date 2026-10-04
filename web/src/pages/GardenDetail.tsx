@@ -40,6 +40,8 @@ export function GardenDetail() {
     queryFn: () => api.areas.listByGarden(gardenId),
   })
 
+  const { data: dashboard } = useQuery({ queryKey: ['dashboard'], queryFn: api.dashboard })
+
   // Used to decide whether to surface a "+ New garden" shortcut here — when the
   // user only has this one garden, the sidebar skips the Gardens index, so the
   // create-garden affordance would otherwise be unreachable.
@@ -130,8 +132,7 @@ export function GardenDetail() {
   const sortedBeds = useMemo(() => (beds ? sortBedsByNaturalName(beds) : []), [beds])
   const sortedAreas = useMemo(() => (areas ? sortAreasByNaturalName(areas) : []), [areas])
 
-  // Plant count aggregation from beds (bedCount * approximate) — use garden's plantCount if available
-  const plantCount = sortedBeds.reduce((sum, _b) => sum, 0)
+  const plantCount = dashboard?.gardens.find(g => g.id === gardenId)?.plantCount
 
   // Season-scoped harvested stems across the garden's beds.
   const harvestStemsThisYear = gardenHarvest?.totalStems ?? 0
@@ -222,7 +223,7 @@ export function GardenDetail() {
           }}
         >
           <Stat size="medium" value={sortedBeds.length} label={t('garden.stats.activeBeds')} hue="sage" />
-          <Stat size="medium" value={plantCount} label={t('garden.stats.activePlants')} hue="mustard" />
+          <Stat size="medium" value={plantCount ?? '—'} label={t('nav.plants')} hue="mustard" />
           <Stat size="medium" value={harvestStemsThisYear} unit="st" label={t('garden.stats.harvested')} hue="clay" />
         </div>
 

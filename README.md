@@ -1,6 +1,6 @@
 # Verdant
 
-A garden planning and plant lifecycle tracking system with three components: a Quarkus backend, an Android app, and a React admin UI.
+A garden planning and plant lifecycle tracking system with four applications: a Quarkus backend, a React web app, a native Android app, and a React admin UI. Browser clients share request handling in `shared/`.
 
 ## Components
 
@@ -16,6 +16,15 @@ Quarkus + Kotlin REST API with PostgreSQL.
 - **AI integration**: Gemini-powered extraction of species info from seed packet photos
 - **Storage**: Google Cloud Storage for images
 - **Auth**: JWT-based authentication with Google OAuth for the app and email/password for admin
+
+### Web App (`web/`)
+
+React + TypeScript + Tailwind CSS, served at `/`.
+
+- Garden, bed, and area planning with event logs and photos
+- Plant lifecycles, seed and supply inventory, workflows, and recurring maintenance
+- Organizations, seasons, customers, sales, bouquets, production targets, and analytics
+- Swedish and English UI, with a query cache isolated per login and organization
 
 ### Android App (`android/`)
 
@@ -37,7 +46,7 @@ React + TypeScript + Tailwind CSS (Notion-inspired design).
 - **Users/Gardens**: View and manage registered users and their gardens
 - **Providers**: Manage seed providers (Impecta, Florea, Wexthuset, etc.)
 - **Import/Export**: JSON export/import of species data including provider info
-- **Bundled with backend**: Built into the Quarkus JAR and served as static files at `/`
+- **Bundled with backend**: Built into the Quarkus JAR and served as static files at `/admin`
 
 ## Development
 
@@ -106,11 +115,20 @@ cp .env.yaml.template .env.yaml  # edit with your keys
 ./gradlew quarkusDev              # starts on port 8081, auto-provisions PostgreSQL
 ```
 
+### Web App
+
+```bash
+cd web
+npm ci
+cp .env.example .env  # set VITE_GOOGLE_CLIENT_ID for Google sign-in
+npm run dev          # http://localhost:5175, proxies /api to localhost:8081
+```
+
 ### Admin UI
 
 ```bash
 cd admin
-npm install
+npm ci
 npm run dev    # starts on port 5174, proxies /api to backend
 ```
 
@@ -125,24 +143,18 @@ Open in Android Studio and run on device/emulator.
 
 ### Sample Data
 
-To populate the database with 3 seasons of realistic flower production data, first log in with Google to create your account, then:
+The sample-data API is available **only in the backend's dev profile** and requires an admin JWT. Sign in with Google first to create the target user's account, then use an admin token:
 
 ```bash
-# Local development
-curl -X POST http://localhost:8081/api/dev/seed
-
-# Production
-curl -X POST https://verdantplanner.com/api/dev/seed
-
-# For a different user
-curl -X POST https://verdantplanner.com/api/dev/seed?email=someone@example.com
+curl -X POST 'http://localhost:8081/api/dev/seed?email=you@example.com' \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
 ```
 
-Defaults to `erik@l2c.se`. Creates 16 cut flower species, 5 customers, 6 beds, ~45 plants across 2024-2026 with full harvest data, succession schedules, production targets, variety trials, bouquet recipes, and pest/disease logs.
+This creates a sample organization with gardens, beds, species, plants, harvests, and production data. It is not a production endpoint.
 
 ### Database
 
-The schema is managed by Flyway with a single migration (`V1__schema.sql`). Flyway runs automatically on startup (`quarkus.flyway.migrate-at-start=true`).
+The schema is managed by versioned Flyway migrations in [`backend/src/main/resources/db/migration`](backend/src/main/resources/db/migration/). Apply schema changes as new migrations; do not edit migrations already applied to a database. Flyway runs automatically on startup (`quarkus.flyway.migrate-at-start=true`).
 
 ```bash
 cd backend
@@ -190,9 +202,10 @@ PGPASSWORD=$(gcloud secrets versions access latest --secret=verdant-db-password 
 The full automated suite runs in containers — only Docker is required, no local JDK or Node:
 
 ```bash
-./scripts/run-tests.sh            # backend + web; exits non-zero if either fails
+./scripts/run-tests.sh            # backend tests + web tests/lint/build + admin lint/build
 ./scripts/run-tests.sh backend    # backend only
-./scripts/run-tests.sh web        # web only
+./scripts/run-tests.sh web        # web tests, lint, build
+./scripts/run-tests.sh admin      # admin lint, build
 ```
 
 Under the hood this uses `docker-compose.test.yml`, which you can also drive directly:
@@ -200,15 +213,28 @@ Under the hood this uses `docker-compose.test.yml`, which you can also drive dir
 ```bash
 docker compose -f docker-compose.test.yml run --rm backend-tests
 docker compose -f docker-compose.test.yml run --rm web-tests
+docker compose -f docker-compose.test.yml run --rm admin-checks
 docker compose -f docker-compose.test.yml down -v     # clean up the throwaway DB + caches
 ```
 
 - **`backend-tests`** runs `gradle test` (Quarkus + Kotlin) against a throwaway `postgres:17` (`test-db`, tmpfs-backed). Quarkus Dev Services can't launch a container from inside the runner, so the datasource is pointed at `test-db` via `QUARKUS_DATASOURCE_*` and Flyway migrates the fresh DB on startup.
-- **`web-tests`** runs `npm ci && npm test` (Vitest). `shared/` is mounted alongside because the web app resolves `@verdant/shared` to `../shared/src`.
+- **`web-tests`** runs `npm ci`, strict ESLint (zero warnings), Vitest, and the TypeScript/Vite production build. `shared/` is mounted alongside because the web app resolves `@verdant/shared` to `../shared/src`.
 
-Gradle and npm caches live in named volumes, so reruns are fast and nothing is written back into the working tree. The stack uses the `verdant-test` project name to stay isolated from the dev `docker-compose.yml` (port 5433, persistent data).
+- **`admin-checks`** runs `npm ci`, strict ESLint, and the production build. Admin does not yet have an automated test suite.
 
-> Not covered here: Playwright e2e (`cd web && npm run test:e2e`) needs the full app running, and the `admin/` UI has no test suite yet. Without Docker, run the suites natively instead — `cd backend && ./gradlew test` (needs a reachable Postgres) and `cd web && npm test`.
+Gradle and npm caches live in named volumes, so reruns can reuse dependencies and Gradle output. The script removes the temporary database and network on exit, retaining caches. Browser build outputs may appear in the ignored `dist/` directories. The stack uses the `verdant-test` project name to stay isolated from the dev `docker-compose.yml` (port 5433, persistent data).
+
+Playwright end-to-end tests require the dev backend, a test admin who belongs to a disposable test organization, and installed browsers:
+
+```bash
+cd web
+npx playwright install chromium
+TEST_ADMIN_EMAIL=admin@example.com TEST_ADMIN_PASSWORD=... TEST_ORG_ID=123 npm run test:e2e
+```
+
+`TEST_ORG_ID` can be omitted to use the admin's first organization. The tests create and delete data. Playwright starts the web dev server on port 5175; the backend must already be running on 8081. These browser tests are not part of the deployment gate.
+
+For native browser checks, run `npm run lint`, `npm test`, and `npm run build` in `web/`; run lint and build in `admin/`. Backend tests can also run with `cd backend && ./gradlew test` (Docker Dev Services or an explicit test datasource).
 
 To run the Android unit tests, see the Dev Container notes above (`cd android && ./gradlew :app:testDebugUnitTest`).
 
@@ -249,7 +275,7 @@ printf %s 'YOUR_OAUTH_CLIENT_ID' | gcloud secrets versions add verdant-google-cl
 # Configure Docker auth
 gcloud auth configure-docker <REGION>-docker.pkg.dev
 
-# Build and deploy (backend + admin UI in one container). The Cloud SQL
+# Build and deploy (backend + web + admin in one container). The Cloud SQL
 # connection name is required and must belong to <PROJECT_ID>.
 ./deploy/deploy.sh <PROJECT_ID> <REGION> <SQL_CONNECTION_NAME> [MIN_INSTANCES]
 ```
@@ -259,11 +285,24 @@ gcloud auth configure-docker <REGION>-docker.pkg.dev
 hardcoded to staging, which meant a build submitted against any other project
 deployed that project's image wired to the staging database.
 
+### Release checks and recurring maintenance
+
+Cloud Build runs backend tests against a throwaway PostgreSQL instance, then web tests/lint/build and admin lint/build before building and deploying the image. A failed check stops the release. Android and Playwright tests remain separate checks.
+
+Maintenance rules are checked every hour at minute 30 using the `Europe/Stockholm` calendar day. An overdue rule is picked up on the next run after a restart; a database uniqueness constraint prevents multiple pending tasks for one rule.
+
+Deployment defaults to **one minimum instance with CPU throttling disabled** so in-process maintenance can run between requests. `MIN_INSTANCES` must be at least 1. This incurs idle instance cost. Scaling to zero requires moving maintenance to an external scheduler first; raising minimum instances alone is insufficient without background CPU allocation. See [Cloud Run background execution](https://docs.cloud.google.com/run/docs/about-instance-autoscaling).
+
+### Experimental weather
+
+Weather is an unfinished experiment. Forecast ingestion and read endpoints exist, but historical observation parsing and alert evaluation are stubs. Backfill completion does not establish that historical data was collected. Weather alerts, historical data, and the broader weather plans are not supported product features.
+
 ## Configuration
 
-Each module has its own `.env.yaml` (not checked in):
+Local configuration files are not checked in:
 
-- `backend/.env.yaml` — Gemini API key, GCS credentials, admin password, database connection
+- `backend/.env.yaml` — local Gradle/dev settings; production runtime values come from environment variables and Secret Manager
+- `web/.env` — `VITE_GOOGLE_CLIENT_ID` for local Google sign-in
 - `android/.env.yaml` — Backend API URL, Google OAuth client ID, Maps API key
 
 Deployed at [verdantplanner.com](https://verdantplanner.com)

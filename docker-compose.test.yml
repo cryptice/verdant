@@ -1,6 +1,6 @@
 # Runs the full automated test suite in containers — no local JDK/Node needed,
 # only Docker. Backend (Quarkus + Kotlin) tests run against a throwaway
-# PostgreSQL; web (React) tests run under Vitest.
+# PostgreSQL; web tests, lint, and builds run under Node.
 #
 #   docker compose -f docker-compose.test.yml run --rm backend-tests
 #   docker compose -f docker-compose.test.yml run --rm web-tests
@@ -51,7 +51,7 @@ services:
       - backend-build:/workspace/build
       - backend-dotgradle:/workspace/.gradle
       - gradle-cache:/home/gradle/.gradle
-    command: ["gradle", "test", "--no-daemon", "--console=plain"]
+    command: ["gradle", "test", "--rerun", "--no-daemon", "--console=plain"]
 
   # Web tests: Vitest. `shared/` is mounted as a sibling because web resolves
   # `@verdant/shared` to ../shared/src via a path alias (it is not an npm dep).
@@ -64,10 +64,20 @@ services:
       - ./web:/workspace/web
       - ./shared:/workspace/shared
       - web-node-modules:/workspace/web/node_modules
-    command: ["sh", "-c", "npm ci --no-update-notifier && npm test"]
+    command: ["sh", "-ec", "npm ci --no-update-notifier && npm run lint && npm test && npm run build"]
+
+  admin-checks:
+    image: node:22
+    working_dir: /workspace/admin
+    volumes:
+      - ./admin:/workspace/admin
+      - ./shared:/workspace/shared
+      - admin-node-modules:/workspace/admin/node_modules
+    command: ["sh", "-ec", "npm ci --no-update-notifier && npm run lint && npm run build"]
 
 volumes:
   backend-build:
   backend-dotgradle:
   gradle-cache:
   web-node-modules:
+  admin-node-modules:

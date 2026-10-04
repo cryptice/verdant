@@ -4,11 +4,12 @@ This file provides guidance for Claude and other AI coding assistants working in
 
 ## Repository overview
 
-This repository contains three main applications:
+This repository contains four main applications:
 
 - **Backend**: Quarkus + Kotlin
 - **Android app**: Kotlin-based native Android application
-- **Admin UI**: React-based web frontend
+- **Web app**: React end-user frontend (`web/`)
+- **Admin UI**: React administration frontend (`admin/`)
 
 The system is treated as a single product with multiple clients. Changes should preserve consistency across API contracts, validation rules, naming, and business logic.
 
@@ -17,7 +18,7 @@ The system is treated as a single product with multiple clients. Changes should 
 ## General working principles
 
 - I am a single person working on this project, always commit to main without worktrees
-- No data is in production yet, not need for backwards compatibility.
+- Production is deployed to `verdant-prod`. Preserve data and applied migrations; do not assume production is empty.
 - Prefer **small, targeted changes** over large speculative refactors.
 - Preserve existing architecture and conventions unless explicitly asked to change them.
 - Favor **readability, maintainability, and correctness** over cleverness.
@@ -25,7 +26,7 @@ The system is treated as a single product with multiple clients. Changes should 
 - When making cross-cutting changes, update all affected layers:
   - backend DTOs / API contracts
   - Android client models / API usage
-  - React admin UI models / API usage
+  - React web and admin UI models / API usage
   - tests
   - documentation where relevant
 - Do not silently change public API shapes, database semantics, or behavior relied on by clients.
@@ -39,7 +40,9 @@ Actual folder names may vary, but the repository typically contains areas simila
 
 - `backend/` — Quarkus Kotlin service
 - `android/` — Android app
-- `admin-ui/` or `web/` — React admin UI
+- `web/` — React end-user UI
+- `admin/` — React admin UI
+- `shared/` — shared browser request handling
 
 Before making changes:
 - inspect the actual module structure
