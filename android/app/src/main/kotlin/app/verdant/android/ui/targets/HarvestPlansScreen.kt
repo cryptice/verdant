@@ -38,6 +38,9 @@ fun HarvestPlansScreen(onWeekly: () -> Unit, onSeasonsRequired: () -> Unit, plan
     }
     if (state.needsSeason) return
     var season by remember { mutableStateOf("") }
+    LaunchedEffect(state.seasons) {
+        if (season.isBlank()) season = state.seasons.latestByYear()?.id?.toString().orEmpty()
+    }
     var speciesId by remember { mutableStateOf<Long?>(null) }
     var groupId by remember { mutableStateOf<Long?>(null) }
     var targetName by remember { mutableStateOf("") }
@@ -73,7 +76,10 @@ fun HarvestPlansScreen(onWeekly: () -> Unit, onSeasonsRequired: () -> Unit, plan
                 }
                 if (plan.status == "ACTIVE") TextButton(onClick = { cancel = plan }, enabled = enabled) { Text("Avbryt planen") }
             }
-            if (state.selected != null) TextButton(onClick = viewModel::newPlan, enabled = enabled) { Text("Ny skördeplan") }
+            if (state.selected != null) TextButton(onClick = {
+                season = state.seasons.latestByYear()?.id?.toString().orEmpty()
+                viewModel.newPlan()
+            }, enabled = enabled) { Text("Ny skördeplan") }
             if (state.selected == null) {
                 Text("Planera säljbara enheter till ett skördedatum. Verdant föreslår lika stor skörd från arter med kompatibla, kompletta scheman.")
                 Choice("Säsong", season, state.seasons.map { it.id.toString() to it.name }, enabled) { season = it; viewModel.invalidatePreview() }

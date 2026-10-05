@@ -195,7 +195,7 @@ Plan staggered sowings for continuous bloom:
 
 ### Harvest Plans
 
-If no season exists, opening **Targets / Mål** takes you to **Seasons / Säsonger**. Create a season, then return to Targets to plan production.
+If no season exists, opening **Targets / Mål** takes you to **Seasons / Säsonger**. Create a season, then return to Targets to plan production. New targets preselect the season with the highest year; you can choose a different season.
 
 Open **Targets → Harvest plans** on web, or **Mål → Skördeplaner** on Android. Set a season, species or species group, sellable quantity, output unit (stems or individual flowers), and harvest date. Use your existing species groups to define a market category such as “large pom pom dahlias.”
 

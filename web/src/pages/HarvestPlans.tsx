@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { latestSeason } from '../lib/season'
 import { api, type SpeciesResponse } from '../api/client'
 import { harvestPlans, type HarvestPlanPreview, type HarvestPlanResponse, type PlanningSpecies, type ProductionProfile, type SellableUnit } from '../api/harvestPlans'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
@@ -86,6 +87,10 @@ export function HarvestPlans() {
   const [species, setSpecies] = useState<SpeciesResponse | null>(null)
   const [group, setGroup] = useState<{ id: number; name: string } | null>(null)
   const [seasonId, setSeasonId] = useState('')
+  const defaultSeasonId = latestSeason(seasons.data)?.id.toString() ?? ''
+  useEffect(() => {
+    if (defaultSeasonId) setSeasonId(current => current || defaultSeasonId)
+  }, [defaultSeasonId])
   const [quantity, setQuantity] = useState('300')
   const [date, setDate] = useState('')
   const [unit, setUnit] = useState<SellableUnit>('STEM')

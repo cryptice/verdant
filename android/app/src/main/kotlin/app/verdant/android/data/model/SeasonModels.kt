@@ -19,6 +19,9 @@ data class SeasonResponse(
     @SerializedName("updatedAt") val updatedAt: String,
 )
 
+/** Use the season year, independent of active status or API ordering. */
+fun List<SeasonResponse>.latestByYear(): SeasonResponse? = maxByOrNull { it.year }
+
 data class CreateSeasonRequest(
     @SerializedName("name") val name: String,
     @SerializedName("year") val year: Int,

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { HarvestPlans } from './HarvestPlans'
@@ -37,13 +37,28 @@ async function fillTarget() {
 }
 beforeEach(() => {
   vi.clearAllMocks()
-  vi.mocked(api.seasons.list).mockResolvedValue([{ id: 1, name: '2027' } as Awaited<ReturnType<typeof api.seasons.list>>[number]])
+  vi.mocked(api.seasons.list).mockResolvedValue([{ id: 1, name: '2027', year: 2027 } as Awaited<ReturnType<typeof api.seasons.list>>[number]])
   vi.mocked(harvestPlans.list).mockResolvedValue([])
   vi.mocked(harvestPlans.species).mockResolvedValue([candidate])
   vi.mocked(harvestPlans.preview).mockResolvedValue(preview)
 })
 
 describe('harvest planning', () => {
+  it('preselects the highest year after loading and preserves a manual selection on refresh', async () => {
+    const seasons = [
+      { id: 99, name: 'Older active', year: 2026, isActive: true, createdAt: '', updatedAt: '' },
+      { id: 2, name: 'Latest', year: 2028, isActive: false, createdAt: '', updatedAt: '' },
+      { id: 7, name: 'Middle', year: 2027, isActive: false, createdAt: '', updatedAt: '' },
+    ]
+    vi.mocked(api.seasons.list).mockResolvedValue(seasons)
+    const qc = renderPage()
+    await screen.findByRole('option', { name: 'Latest' })
+    await waitFor(() => expect(screen.getByLabelText('planning.season')).toHaveValue('2'))
+    fireEvent.change(screen.getByLabelText('planning.season'), { target: { value: '99' } })
+    act(() => qc.setQueryData(['seasons'], [...seasons, { ...seasons[1], id: 3, year: 2029 }]))
+    expect(screen.getByLabelText('planning.season')).toHaveValue('99')
+  })
+
   it('invalidates a preview after target or allocation edits', async () => {
     renderPage()
     await fillTarget()

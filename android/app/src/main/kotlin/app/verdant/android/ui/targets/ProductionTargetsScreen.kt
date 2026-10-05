@@ -59,6 +59,7 @@ import androidx.lifecycle.viewModelScope
 import app.verdant.android.data.model.ProductionForecastResponse
 import app.verdant.android.data.model.ProductionTargetResponse
 import app.verdant.android.data.model.SeasonResponse
+import app.verdant.android.data.model.latestByYear
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.sortedBySwedishName
 import app.verdant.android.ui.common.ConnectionErrorState
@@ -259,7 +260,7 @@ fun WeeklyProductionTargetsScreen(
         TargetDialog(
             species = uiState.species,
             seasons = uiState.seasons,
-            defaultSeasonId = uiState.activeSeasonId,
+            defaultSeasonId = uiState.seasons.latestByYear()?.id,
             saving = uiState.saving,
             onDismiss = { showDialog = false },
             onSave = { payload ->

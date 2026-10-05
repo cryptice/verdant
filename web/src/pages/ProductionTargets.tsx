@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { HarvestPlans } from './HarvestPlans'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { latestSeason } from '../lib/season'
 import { api, type ProductionTargetResponse, type SpeciesResponse } from '../api/client'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
@@ -141,7 +142,7 @@ function WeeklyProductionTargets() {
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const resetForm = () => {
-    setFormSeasonId(''); setFormSpecies(null)
+    setFormSeasonId(latestSeason(seasons)?.id.toString() ?? ''); setFormSpecies(null)
     setFormStemsPerWeek(''); setFormStartDate(''); setFormEndDate('')
     setFormNotes(''); setFormError(null)
   }
