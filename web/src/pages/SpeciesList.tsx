@@ -10,11 +10,12 @@ import { OnboardingHint } from '../onboarding/OnboardingHint'
 import type { LedgerFilterOption } from '../components/faltet'
 import { matchesAllTokens } from '../utils/search'
 
-const ALL_TYPES = ['ANNUAL', 'PERENNIAL', 'BULB', 'TUBER'] as const
+const ALL_TYPES = ['ANNUAL', 'BIENNIAL', 'PERENNIAL', 'BULB', 'TUBER'] as const
 type PlantType = typeof ALL_TYPES[number]
 
 const PLANT_TYPE_TONE: Record<PlantType, LedgerFilterOption<PlantType>['tone']> = {
   ANNUAL: 'sage',
+  BIENNIAL: 'berry',
   PERENNIAL: 'berry',
   BULB: 'mustard',
   TUBER: 'clay',

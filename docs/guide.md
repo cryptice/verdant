@@ -107,7 +107,7 @@ The species database contains all plant varieties you work with. Each species re
 - **Names**: Common name, Swedish name, variant/cultivar name (in both languages), and scientific name
 - **Growing info**: Days to sprout, days to harvest, sowing depth, height, germination rate, bloom months, sowing months, growing positions (sun requirements), and soil types
 - **Production data**: Expected stems per plant, expected vase life (days), cost per seed
-- **Plant type**: Annual, Perennial, Bulb, or Tuber
+- **Plant type**: Annual, Biennial, Perennial, Bulb, or Tuber
 - **Photos**: Multiple photos can be attached
 - **Tags and groups**: Organize species into groups and apply tags for filtering
 - **Providers**: Link to seed/bulb vendors with product URLs and per-unit cost

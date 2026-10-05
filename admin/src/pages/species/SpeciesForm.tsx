@@ -643,6 +643,7 @@ export function SpeciesForm({
               >
                 <option value="">—</option>
                 <option value="ANNUAL">{t('species.plantTypeAnnual')}</option>
+                <option value="BIENNIAL">{t('species.plantTypeBiennial')}</option>
                 <option value="PERENNIAL">{t('species.plantTypePerennial')}</option>
                 <option value="BULB">{t('species.plantTypeBulb')}</option>
                 <option value="TUBER">{t('species.plantTypeTuber')}</option>

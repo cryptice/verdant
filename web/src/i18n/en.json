@@ -885,6 +885,7 @@
   },
   "plantType": {
     "ANNUAL": "Annual",
+    "BIENNIAL": "Biennial",
     "PERENNIAL": "Perennial",
     "BULB": "Bulb",
     "TUBER": "Tuber"
@@ -1152,7 +1153,7 @@
           "- Names: common, Swedish, variant (both languages), and scientific name",
           "- Growing info: days to sprout/harvest, sowing depth, height, germination rate, bloom and sowing months",
           "- Production data: expected stems per plant, expected vase life, cost per seed",
-          "- Plant type: Annual, Perennial, Bulb, or Tuber",
+          "- Plant type: Annual, Biennial, Perennial, Bulb, or Tuber",
           "- Tags, groups, photos, and seed provider links with per-unit cost",
           "The list is searchable across all name fields and sorted by Swedish name."
         ]

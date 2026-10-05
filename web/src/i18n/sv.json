@@ -885,6 +885,7 @@
   },
   "plantType": {
     "ANNUAL": "Ettårig",
+    "BIENNIAL": "Tvåårig",
     "PERENNIAL": "Flerårig",
     "BULB": "Lök",
     "TUBER": "Knöl"

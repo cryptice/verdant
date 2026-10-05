@@ -82,5 +82,5 @@ data class FrequentComment(
     val useCount: Int = 1,
 )
 
-enum class PlantType { ANNUAL, PERENNIAL, BULB, TUBER }
+enum class PlantType { ANNUAL, BIENNIAL, PERENNIAL, BULB, TUBER }
 enum class UnitType { SEED, PLUG, BULB, TUBER, PLANT }
