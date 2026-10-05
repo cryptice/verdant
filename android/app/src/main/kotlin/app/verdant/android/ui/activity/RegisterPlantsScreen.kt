@@ -218,7 +218,7 @@ fun RegisterPlantsScreen(
         var newLocationName by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { showAddTrayLocation = false },
-            title = { Text("Ny plats") },
+            title = { Text("Ny odlingsplats") },
             text = {
                 androidx.compose.material3.OutlinedTextField(
                     value = newLocationName,
@@ -328,7 +328,7 @@ fun RegisterPlantsScreen(
             if (placement == Placement.TRAY && uiState.trayLocations.size >= 2) {
                 item {
                     FaltetDropdown(
-                        label = "Plats",
+                        label = "Odlingsplats",
                         options = uiState.trayLocations,
                         selected = selectedTrayLocation,
                         onSelectedChange = { selectedTrayLocation = it },
@@ -337,7 +337,7 @@ fun RegisterPlantsScreen(
                         required = true,
                     )
                     TextButton(onClick = { showAddTrayLocation = true }) {
-                        Text("+ Ny plats", color = FaltetAccent, fontSize = 12.sp)
+                        Text("+ Ny odlingsplats", color = FaltetAccent, fontSize = 12.sp)
                     }
                 }
             }

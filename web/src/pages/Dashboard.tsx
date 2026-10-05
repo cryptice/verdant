@@ -246,7 +246,7 @@ export function Dashboard() {
                         color: 'var(--color-forest)',
                       }}
                     >
-                      <span style={{ flex: 1 }}>{locName ?? 'Utan plats'}</span>
+                      <span style={{ flex: 1 }}>{locName ?? 'Utan odlingsplats'}</span>
                       <span>{total} ST</span>
                       {locId !== null && (
                         <>

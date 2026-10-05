@@ -32,13 +32,13 @@ export function TrayLocations() {
   return (
     <div>
       <Masthead
-        left="Platser"
-        center="— Brättens platser —"
+        left="Odlingsplatser"
+        center="— Odlingsplatser —"
         right={
           <button
             onClick={() => { reset(); setShowAdd(true) }}
-            aria-label="Ny plats"
-            title="Ny plats"
+            aria-label="Ny odlingsplats"
+            title="Ny odlingsplats"
             style={{
               background: 'transparent',
               border: '1px solid var(--color-accent)',
@@ -83,7 +83,7 @@ export function TrayLocations() {
         />
         {locations.length === 0 && (
           <p style={{ marginTop: 24, fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-forest)' }}>
-            Inga platser ännu. Skapa en där dina brätten står.
+            Inga odlingsplatser ännu. Skapa en där dina brätten står.
           </p>
         )}
       </div>
@@ -91,7 +91,7 @@ export function TrayLocations() {
       <Dialog
         open={showAdd}
         onClose={() => { setShowAdd(false); reset() }}
-        title="Ny plats"
+        title="Ny odlingsplats"
         actions={
           <>
             <button onClick={() => { setShowAdd(false); reset() }} className="px-4 py-2 text-sm text-text-secondary">Avbryt</button>

@@ -335,7 +335,7 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
                         DrawerSection("§ Odling")
                         DrawerItem("Översikt", Screen.Dashboard.route, currentRoute, navController, scope, drawerState)
                         DrawerItem(myWorldLabel, myWorldRoute, currentRoute, navController, scope, drawerState)
-                        DrawerItem("Platser", Screen.TrayLocations.route, currentRoute, navController, scope, drawerState)
+                        DrawerItem("Odlingsplatser", Screen.TrayLocations.route, currentRoute, navController, scope, drawerState)
                         DrawerItem("Växter", Screen.PlantedSpeciesList.route, currentRoute, navController, scope, drawerState)
                         DrawerItem("Arter", Screen.SpeciesList.route, currentRoute, navController, scope, drawerState)
 

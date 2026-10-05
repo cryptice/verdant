@@ -184,7 +184,7 @@ fun TrayLocationDetailScreen(
 
     FaltetScreenScaffold(
         mastheadLeft = "",
-        mastheadCenter = ui.location?.name ?: "Plats",
+        mastheadCenter = ui.location?.name ?: "Odlingsplats",
         mastheadRight = {
             if (ui.location != null) {
                 IconButton(
@@ -193,7 +193,7 @@ fun TrayLocationDetailScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Edit,
-                        contentDescription = "Redigera plats",
+                        contentDescription = "Redigera odlingsplats",
                         tint = FaltetForest,
                         modifier = Modifier.size(18.dp),
                     )
@@ -211,8 +211,8 @@ fun TrayLocationDetailScreen(
                 ConnectionErrorState(onRetry = { viewModel.refresh() })
             }
             ui.location == null -> FaltetEmptyState(
-                headline = "Plats saknas",
-                subtitle = "Den här platsen finns inte längre.",
+                headline = "Odlingsplats saknas",
+                subtitle = "Den här odlingsplatsen finns inte längre.",
                 modifier = Modifier.padding(padding),
             )
             else -> LazyColumn(
@@ -393,11 +393,11 @@ fun TrayLocationDetailScreen(
         val loc = ui.location!!
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Ta bort plats") },
+            title = { Text("Ta bort odlingsplats") },
             text = {
                 Text(
                     if (loc.activePlantCount > 0)
-                        "${loc.activePlantCount} plantor i ${loc.name} blir utan plats. Fortsätt?"
+                        "${loc.activePlantCount} plantor i ${loc.name} blir utan odlingsplats. Fortsätt?"
                     else
                         "Ta bort ${loc.name}?"
                 )
@@ -431,7 +431,7 @@ private fun EditLocationDialog(
     guard.RenderConfirmDialog()
     AlertDialog(
         onDismissRequest = guard.requestDismiss(onDismiss),
-        title = { Text("Redigera plats") },
+        title = { Text("Redigera odlingsplats") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
@@ -441,7 +441,7 @@ private fun EditLocationDialog(
                     singleLine = true,
                 )
                 TextButton(onClick = onDelete) {
-                    Text("Ta bort plats", color = FaltetAccent)
+                    Text("Ta bort odlingsplats", color = FaltetAccent)
                 }
             }
         },
@@ -576,7 +576,7 @@ private fun MoveDialog(
                 )
                 TextButton(onClick = { detach = !detach; if (detach) target = null }) {
                     Text(
-                        text = if (detach) "✓ Inget mål (utan plats)" else "Eller: ta bort plats",
+                        text = if (detach) "✓ Inget mål (utan odlingsplats)" else "Eller: ta bort odlingsplats",
                         color = FaltetAccent,
                         fontSize = 12.sp,
                     )

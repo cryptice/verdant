@@ -75,9 +75,9 @@ export function TrayLocationDetail() {
   if (!location) {
     return (
       <div>
-        <Masthead left="Plats" center="—" />
+        <Masthead left="Odlingsplats" center="—" />
         <div className="page-body">
-          <p>Den här platsen finns inte längre.</p>
+          <p>Den här odlingsplatsen finns inte längre.</p>
           <button onClick={() => navigate('/tray-locations')} className="btn-primary mt-4">Tillbaka</button>
         </div>
       </div>
@@ -89,13 +89,13 @@ export function TrayLocationDetail() {
   return (
     <div>
       <Masthead
-        left="Platser"
+        left="Odlingsplatser"
         center={`— ${location.name} —`}
         right={
           <button
             onClick={() => { setEditName(location.name); setShowEdit(true) }}
-            aria-label="Redigera plats"
-            title="Redigera plats"
+            aria-label="Redigera odlingsplats"
+            title="Redigera odlingsplats"
             style={{
               background: 'transparent',
               border: 'none',
@@ -276,7 +276,7 @@ export function TrayLocationDetail() {
       <Dialog
         open={showEdit}
         onClose={() => setShowEdit(false)}
-        title="Redigera plats"
+        title="Redigera odlingsplats"
         actions={
           <>
             <button onClick={() => setShowEdit(false)} className="px-4 py-2 text-sm text-text-secondary">Avbryt</button>
@@ -305,7 +305,7 @@ export function TrayLocationDetail() {
             onClick={() => { setShowEdit(false); setShowDelete(true) }}
             className="text-sm text-error hover:underline"
           >
-            Ta bort plats
+            Ta bort odlingsplats
           </button>
         </div>
       </Dialog>
@@ -313,7 +313,7 @@ export function TrayLocationDetail() {
       <Dialog
         open={showDelete}
         onClose={() => setShowDelete(false)}
-        title="Ta bort plats"
+        title="Ta bort odlingsplats"
         actions={
           <>
             <button onClick={() => setShowDelete(false)} className="px-4 py-2 text-sm text-text-secondary">Avbryt</button>
@@ -329,7 +329,7 @@ export function TrayLocationDetail() {
       >
         <p className="text-text-secondary">
           {location.activePlantCount > 0
-            ? `${location.activePlantCount} plantor i ${location.name} blir utan plats. Fortsätt?`
+            ? `${location.activePlantCount} plantor i ${location.name} blir utan odlingsplats. Fortsätt?`
             : `Ta bort ${location.name}?`}
         </p>
       </Dialog>
@@ -392,7 +392,7 @@ function MoveDialog(props: {
             {props.otherLocations.map((l) => (
               <option key={l.id} value={l.id}>{l.name}</option>
             ))}
-            <option value="__detach">Ingen plats (utan plats)</option>
+            <option value="__detach">Ingen odlingsplats (utan odlingsplats)</option>
           </select>
         </div>
 

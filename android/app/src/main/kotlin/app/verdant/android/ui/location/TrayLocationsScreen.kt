@@ -96,7 +96,7 @@ fun TrayLocationsScreen(
 
     FaltetScreenScaffold(
         mastheadLeft = "",
-        mastheadCenter = "Platser",
+        mastheadCenter = "Odlingsplatser",
         mastheadRight = {
             IconButton(
                 onClick = { showAdd = true },
@@ -104,7 +104,7 @@ fun TrayLocationsScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Ny plats",
+                    contentDescription = "Ny odlingsplats",
                     tint = FaltetAccent,
                     modifier = Modifier.size(18.dp),
                 )
@@ -121,10 +121,10 @@ fun TrayLocationsScreen(
                 ConnectionErrorState(onRetry = { viewModel.refresh() })
             }
             ui.locations.isEmpty() -> FaltetEmptyState(
-                headline = "Inga platser",
-                subtitle = "Skapa en plats där dina brätten står.",
+                headline = "Inga odlingsplatser",
+                subtitle = "Ange var dina brätten står, till exempel ett växthus eller en hylla.",
                 modifier = Modifier.padding(padding),
-                action = { Button(onClick = { showAdd = true }) { Text("+ Ny plats") } },
+                action = { Button(onClick = { showAdd = true }) { Text("+ Ny odlingsplats") } },
             )
             else -> LazyColumn(Modifier.fillMaxSize().padding(padding)) {
                 items(ui.locations, key = { it.id }) { loc ->
@@ -140,7 +140,7 @@ fun TrayLocationsScreen(
 
     if (showAdd) {
         NameDialog(
-            title = "Ny plats",
+            title = "Ny odlingsplats",
             initial = "",
             onDismiss = { showAdd = false },
             onConfirm = { name -> viewModel.create(name); showAdd = false },

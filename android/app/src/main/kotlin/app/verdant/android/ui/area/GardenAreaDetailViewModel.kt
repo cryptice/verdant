@@ -96,7 +96,7 @@ class GardenAreaDetailViewModel @Inject constructor(
                 _uiState.value = if (latest is GardenAreaDetailUiState.Loaded) {
                     latest.copy(isRefreshing = false)
                 } else {
-                    GardenAreaDetailUiState.Error(e.message ?: "Kunde inte ladda platsen")
+                    GardenAreaDetailUiState.Error(e.message ?: "Kunde inte ladda skötselobjektet")
                 }
             }
         }
@@ -129,7 +129,7 @@ class GardenAreaDetailViewModel @Inject constructor(
                 refresh()
             } catch (e: Exception) {
                 (_uiState.value as? GardenAreaDetailUiState.Loaded)?.let {
-                    _uiState.value = it.copy(toastMessage = e.message ?: "Kunde inte spara platsen")
+                    _uiState.value = it.copy(toastMessage = e.message ?: "Kunde inte spara skötselobjektet")
                 }
             }
         }
@@ -173,7 +173,7 @@ class GardenAreaDetailViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 (_uiState.value as? GardenAreaDetailUiState.Loaded)?.let {
-                    _uiState.value = it.copy(toastMessage = e.message ?: "Kunde inte ta bort platsen")
+                    _uiState.value = it.copy(toastMessage = e.message ?: "Kunde inte ta bort skötselobjektet")
                 }
             }
         }

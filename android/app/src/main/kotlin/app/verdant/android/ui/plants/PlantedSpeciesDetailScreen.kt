@@ -299,7 +299,7 @@ fun PlantedSpeciesDetailScreen(
         val item = selectedSubItem!!
         val count = actionCount.toIntOrNull() ?: 0
         val targetOptions = (loaded?.trayLocations ?: emptyList()).filter { it.id != item.trayLocationId }
-        val sourceLabel = item.trayLocationName ?: "Utan plats"
+        val sourceLabel = item.trayLocationName ?: "Utan odlingsplats"
         val canSubmit = (detachLocation || selectedTargetTrayLocationId != null) &&
             count in 1..item.count && !actionSubmitting
         AlertDialog(
@@ -308,7 +308,7 @@ fun PlantedSpeciesDetailScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        text = "Välj plats",
+                        text = "Välj odlingsplats",
                         fontSize = 14.sp,
                         color = FaltetForest,
                     )
@@ -317,14 +317,14 @@ fun PlantedSpeciesDetailScreen(
                         onExpandedChange = { if (!detachLocation) trayLocationExpanded = it },
                     ) {
                         val displayText = when {
-                            detachLocation -> "Utan plats"
+                            detachLocation -> "Utan odlingsplats"
                             else -> targetOptions.find { it.id == selectedTargetTrayLocationId }?.name ?: ""
                         }
                         OutlinedTextField(
                             value = displayText,
                             onValueChange = {},
                             readOnly = true,
-                            placeholder = { Text("Välj plats") },
+                            placeholder = { Text("Välj odlingsplats") },
                             modifier = Modifier.fillMaxWidth().menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryEditable, true),
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(trayLocationExpanded) },
                             enabled = !detachLocation,
@@ -350,7 +350,7 @@ fun PlantedSpeciesDetailScreen(
                         if (detachLocation) selectedTargetTrayLocationId = null
                     }) {
                         Text(
-                            text = if (detachLocation) "✓ Utan plats" else "Eller: utan plats",
+                            text = if (detachLocation) "✓ Utan odlingsplats" else "Eller: utan odlingsplats",
                             color = FaltetAccent,
                             fontSize = 12.sp,
                         )

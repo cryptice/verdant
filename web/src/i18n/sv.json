@@ -20,7 +20,7 @@
     "tasks": "Uppgifter",
     "seeds": "Utsäde",
     "seasons": "Säsonger",
-    "trayLocations": "Platser",
+    "trayLocations": "Odlingsplatser",
     "customers": "Kunder",
     "pestDisease": "Skadedjur & sjukdomar",
     "trials": "Försök",
@@ -236,9 +236,9 @@
   "garden": {
     "beds": "Bäddar",
     "newBed": "+ Ny bädd",
-    "areas": "Platser",
-    "newArea": "+ Ny plats",
-    "noAreasYet": "Inga platser ännu.",
+    "areas": "Skötselobjekt",
+    "newArea": "+ Nytt skötselobjekt",
+    "noAreasYet": "Inga skötselobjekt ännu.",
     "deleteGarden": "Radera trädgård",
     "noBedsYet": "Inga bäddar ännu.",
     "editGardenTitle": "Redigera trädgård",
@@ -397,13 +397,13 @@
   },
   "area": {
     "masthead": {
-      "center": "— Platsloggen —"
+      "center": "— Skötselloggen —"
     },
-    "newAreaTitle": "Ny plats",
-    "editAreaTitle": "Redigera plats",
-    "createArea": "Skapa plats",
+    "newAreaTitle": "Nytt skötselobjekt",
+    "editAreaTitle": "Redigera skötselobjekt",
+    "createArea": "Skapa skötselobjekt",
     "creatingArea": "Skapar...",
-    "areaNamePlaceholder": "Platsnamn",
+    "areaNamePlaceholder": "Objektets namn",
     "sizeSqmLabel": "Yta (m²)",
     "sizeSqmHint": "Måste vara positiv",
     "logMaintenance": "Logga underhåll",
@@ -427,12 +427,12 @@
     },
     "danger": {
       "title": "Farozon",
-      "warning": "Permanent radering av platsen.",
-      "delete": "Radera plats",
-      "confirmTitle": "Radera plats",
-      "confirm": "Detta raderar platsen permanent. Är du säker?"
+      "warning": "Permanent radering av skötselobjektet.",
+      "delete": "Radera skötselobjekt",
+      "confirmTitle": "Radera skötselobjekt",
+      "confirm": "Detta raderar skötselobjektet permanent. Är du säker?"
     },
-    "deleteError": "Kunde inte radera platsen"
+    "deleteError": "Kunde inte radera skötselobjektet"
   },
   "maintenance": {
     "title": "Underhåll",
@@ -718,7 +718,7 @@
       "earliestDate": "Tidigast (valfri)",
       "deadline": "Deadline",
       "bed": "Bädd",
-      "area": "Plats",
+      "area": "Skötselobjekt",
       "maintenanceRuleNotice": "Uppgiften styrs av en underhållsregel. Aktivitet och antal sätts av regeln.",
       "maintenanceRuleLink": "Ändra regeln"
     }

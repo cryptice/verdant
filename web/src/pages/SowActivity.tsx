@@ -329,13 +329,13 @@ export function SowActivity() {
           {/* Tray location — only when sowing to tray with 2+ locations */}
           {speciesId && sowInTray && trayLocations.length >= 2 && (
             <div>
-              <span style={selectLabelStyle}>Plats</span>
+              <span style={selectLabelStyle}>Odlingsplats</span>
               <select
                 value={trayLocationId}
                 onChange={e => setTrayLocationId(e.target.value)}
                 style={selectStyle}
               >
-                <option value="">Välj plats…</option>
+                <option value="">Välj odlingsplats…</option>
                 {trayLocations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
               </select>
               <button
@@ -343,7 +343,7 @@ export function SowActivity() {
                 onClick={() => { setNewLocationName(''); setShowAddLocation(true) }}
                 style={{ marginTop: 6, background: 'none', border: 'none', color: 'var(--color-accent)', fontFamily: 'var(--font-mono)', fontSize: 11, cursor: 'pointer', padding: 0 }}
               >
-                + Ny plats
+                + Ny odlingsplats
               </button>
             </div>
           )}
@@ -463,7 +463,7 @@ export function SowActivity() {
       <Dialog
         open={showAddLocation}
         onClose={() => setShowAddLocation(false)}
-        title="Ny plats"
+        title="Ny odlingsplats"
         actions={
           <>
             <button onClick={() => setShowAddLocation(false)} className="px-4 py-2 text-sm text-text-secondary">Avbryt</button>

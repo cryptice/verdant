@@ -48,6 +48,10 @@ Verdant is a planning and tracking tool for commercial flower production. It hel
 
 **Garden** — A physical location where you grow. A garden contains one or more beds.
 
+**Tray location (Odlingsplats)** — Where portable trays stand, such as a greenhouse or shelf.
+
+**Garden area (Skötselobjekt)** — A named part of a garden, such as a lawn, path, or hedge, with maintenance history.
+
 **Bed** — A growing area within a garden. Beds can have dimensions (length and width) for yield-per-area calculations. Plants are assigned to beds, or to a portable tray if not yet planted out.
 
 **Species** — A type of plant, with common name, Swedish name, variant/cultivar name, and scientific name. Species carry growing information (days to sprout, days to harvest, bloom months, sowing months) and production data (expected stems per plant, expected vase life, cost per seed).

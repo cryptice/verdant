@@ -355,7 +355,7 @@ function MovePlantsDialog({
     >
       <div className="space-y-3">
         <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-forest)' }}>
-          {source.trayLocationName ?? 'Utan plats'} · {STATUS_LABEL_PLURAL_SV[source.status] ?? source.status}
+          {source.trayLocationName ?? 'Utan odlingsplats'} · {STATUS_LABEL_PLURAL_SV[source.status] ?? source.status}
         </p>
         <div>
           <label className="field-label">Mål</label>
@@ -373,7 +373,7 @@ function MovePlantsDialog({
             {others.map((l) => (
               <option key={l.id} value={l.id}>{l.name}</option>
             ))}
-            <option value="__detach">Ingen plats (utan plats)</option>
+            <option value="__detach">Ingen odlingsplats (utan odlingsplats)</option>
           </select>
         </div>
         <div>

@@ -272,7 +272,7 @@ fun SowActivityScreen(
         var newLocationName by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { showAddTrayLocation = false },
-            title = { Text("Ny plats") },
+            title = { Text("Ny odlingsplats") },
             text = {
                 androidx.compose.material3.OutlinedTextField(
                     value = newLocationName,
@@ -397,7 +397,7 @@ fun SowActivityScreen(
             if (destination == SowDestination.TRAY && uiState.trayLocations.size >= 2) {
                 item {
                     FaltetDropdown(
-                        label = "Plats",
+                        label = "Odlingsplats",
                         options = uiState.trayLocations,
                         selected = selectedTrayLocation,
                         onSelectedChange = { selectedTrayLocation = it },
@@ -407,7 +407,7 @@ fun SowActivityScreen(
                     )
                     androidx.compose.material3.TextButton(onClick = { showAddTrayLocation = true }) {
                         androidx.compose.material3.Text(
-                            text = "+ Ny plats",
+                            text = "+ Ny odlingsplats",
                             color = app.verdant.android.ui.theme.FaltetAccent,
                             fontSize = 12.sp,
                         )

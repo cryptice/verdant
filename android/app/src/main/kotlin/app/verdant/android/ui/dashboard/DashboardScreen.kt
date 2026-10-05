@@ -624,7 +624,7 @@ private fun TrayLocationGroup(
                 )
             }
             Text(
-                text = locName ?: "Utan plats",
+                text = locName ?: "Utan odlingsplats",
                 fontFamily = FaltetDisplay,
                 fontStyle = FontStyle.Italic,
                 fontSize = 16.sp,
