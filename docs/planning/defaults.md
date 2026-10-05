@@ -110,6 +110,19 @@ review requirement and source links. Review-required defaults cannot generate
 harvest tasks until configured and saved for the organization. No tasks are created
 by populating groups or by deploying the defaults.
 
+## Production population (2026-10-06, Europe/Stockholm)
+
+Applied to all 1,990 shared catalogue entries in `verdant-prod`: 417 groups and
+2,090 memberships, including eight dahlia form subgroups. The 45 schedule templates
+resolve to usable defaults for 940 entries and review-required drafts for 1,050;
+544 drafts still need grower-supplied timing. Usable defaults remain subject to
+target-date and planting-season validation.
+
+The live before/after comparison preserved every species field other than the
+added groups, as well as all existing memberships. Repeating population created
+zero groups and added zero memberships. Counts, distributions, source hash and
+deployment identifiers are recorded in [the production verification](production-2026-10-06.json).
+
 ## Sources (accessed 2026-10-05)
 
 - [Johnny’s Flower Growing Guide](https://www.johnnyseeds.com/on/demandware.static/-/Library-Sites-JSSSharedLibrary/default/dw377bb4f5/assets/information/flower-growing-guide.pdf)
