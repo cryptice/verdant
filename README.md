@@ -144,7 +144,11 @@ Open in Android Studio and run on device/emulator.
 
 Google sign-in uses `android.google-web-client-id` from `.env.yaml` (the **web** OAuth client ID used by the backend). The OAuth project also needs an Android client for package `app.verdant.android` and the SHA-1 of the key signing the installed build. Obtain the debug SHA-1 with `./gradlew :app:signingReport`; a debug build, a locally signed release, and a Play-signed release can use different keys.
 
+When pointing Android at production, use the web client ID configured by `verdant-google-client-id` in `verdant-prod`, and register the Android signing certificate in that same project. Switching the API URL alone leaves the previous OAuth client in place. Rebuild and reinstall after changing `.env.yaml`; these values are compiled into the APK.
+
 The sign-in button uses Google's explicit button flow (`GetSignInWithGoogleOption`); startup discovery uses the authorized-account bottom sheet. A `NoCredentialException` from discovery does not prove that the device has no Google account: disabled sign-in prompts or accounts needing reauthentication can also cause it. See [Google's troubleshooting guide](https://developer.android.com/identity/sign-in/credential-manager-troubleshooting-guide). Android auth fixes require rebuilding/installing the app; deploying Cloud Run does not update an installed APK.
+
+If account selection returns to the sign-in button before a backend request, check the web client ID, OAuth project, package name, and signing SHA-1. A credential cancellation can also indicate provider configuration problems; it does not necessarily mean the user dismissed sign-in.
 
 ### Sample Data
 
