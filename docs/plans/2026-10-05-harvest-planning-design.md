@@ -1,6 +1,6 @@
 # Harvest targets and backward production planning
 
-Status: draft. The requested outcome is clear; target units/date semantics and group-allocation behavior are awaiting clarification. This document is a proposed design, not implemented functionality.
+Status: design updated with the grower’s decisions on 2026-10-05. Targets count sellable units, and Verdant suggests an editable species mix. The rules below describe proposed functionality; implementation has not started.
 
 ## Outcome
 
@@ -8,10 +8,34 @@ A grower enters a target such as “300 large pom pom dahlias ready for harvest 
 
 Dates and quantities are planning estimates with visible assumptions. The system should expose an infeasible target or missing information rather than fill the gaps with arbitrary agronomic defaults.
 
-## Decisions to settle
+## Confirmed requirements
 
-1. Does the quantity mean harvestable stems within a date window, stems on one exact date, or plants ready to start harvesting? Model an explicit output unit and an inclusive harvest window; a single date is a window with identical start/end dates. Do not interpret a readiness date as permission to count all earlier harvests.
-2. For a group, should Verdant suggest an editable mix, require explicit allocations, or choose the mix automatically? Group membership determines eligibility; it does not by itself determine what to grow or how much.
+1. **Count sellable units.** A target is an output commitment, not a count of plants. Some species are sold as stems, others as individual flowers. Keep target output units separate from the plants and propagation material needed to produce them.
+2. **Verdant suggests the species mix.** A group target opens with a proposed allocation; the grower can adjust or exclude varieties before saving. Manual allocation must not be a prerequisite for obtaining a plan.
+3. **Use the requested harvest date.** The original request specifies a particular date, so the initial interface defaults to that date. A future date-window option can use the same model, with a single date represented as an inclusive window whose start and end match.
+
+## Sellable-unit rules
+
+- Configure a default sellable unit for each species, initially supporting at least `STEM` and `FLOWER`. The target records the selected unit explicitly and preserves it when defaults later change.
+- The target’s quantity, suggested species contributions, forecast, and harvest completion all use this output unit.
+- Yield means expected **sellable units per productive plant in the target window**, including the intended quality threshold. Plants, seeds, plugs, bulbs, and tubers remain distinct input/stage units.
+- A species group supplies acceptable species, but does not make incompatible output units interchangeable. Suggest the common unit when the group has one. If its members have different defaults, require an explicit target unit and show which species can contribute; never silently add stems and individual flowers.
+- Do not automatically assume that one stem equals one sellable flower. Any supported conversion must be explicit, species-specific, and copied into the plan.
+- The existing sales `UnitKind` has `STEM` but no `FLOWER`. Add flower units consistently to planning, harvest recording, and sales contracts/UI rather than introducing a planning-only label that cannot be recorded or sold.
+- Preserve existing stem-based data as stems. Do not reinterpret earlier production targets, harvests, or sales when adding flower support.
+
+## Proposed default mix
+
+Start with a transparent rule, not a hidden optimization score:
+
+1. Resolve the group’s eligible species and compatible output units.
+2. Check the effective lifecycle, yield assumptions, and whether a new batch or an explicitly allocated existing batch can meet the target date. Show excluded or incomplete candidates and the reason; do not invent missing timings or yields.
+3. Suggest an equal share of **sellable output** across the feasible species. For a 300-flower target with three feasible species, suggest 100 flowers from each, then calculate each species’ required plants and starting material separately.
+4. Allocate integer remainders deterministically using species ID order, so refreshing a preview does not reshuffle the plan. The contributions must total the requested quantity exactly, before separately disclosed production buffers.
+5. Use suitable unreserved stock to reduce purchases within each suggested allocation once reservation support is available. Show shortages and procurement deadlines. Stock availability must not silently distort the intended variety mix.
+6. Let the grower edit quantities or percentages, pin particular contributions, exclude a species, and redistribute the remainder across unpinned feasible species. Preserve pinned contributions on regeneration. Reject pinned totals above the target; if nothing can receive a remaining quantity, show it as unallocated demand.
+
+Equal output share is a proposed first-version default, not an assumption that all species have equal yield or growing time. A later “prefer existing stock” strategy can make a different tradeoff explicit. A target with no feasible mix remains a draft with the unmet quantity visible and no misleading ready-to-harvest promise.
 
 ## Existing foundations and gaps
 
@@ -25,19 +49,19 @@ Dates and quantities are planning estimates with visible assumptions. The system
 ## Grower experience
 
 1. Enter the output quantity, species/group, harvest date or window, and season.
-2. View the eligible species, proposed or explicit allocations, existing stock, required new production, and missing assumptions.
+2. View Verdant’s suggested sellable-unit allocations, eligible species, existing stock, required new production, and missing assumptions; adjust the mix if desired.
 3. Inspect a backward timeline for each planned batch. Override a duration, quantity, propagation method, or date for this plan without changing every future plan.
 4. Save the plan to create its tasks automatically in the existing task list and calendar. A purchase task is a reminder, not an automatic supplier order.
 5. Record actual purchases/receipts, sowings, plant movements, losses, and harvests through existing activities. Show their effects on the target's forecast and remaining demand.
 
-Each generated task shows its target, species, batch, quantity/unit, date window, and prerequisite. Example task labels should use actual calculated quantities: “Order [N] tubers,” “Sow [N] seeds,” “Pot up [N] plants,” and “Harvest [N] stems.” Use one task per batch/step, not hundreds of per-plant reminders.
+Each generated task shows its target, species, batch, quantity/unit, date window, and prerequisite. Example task labels should use actual calculated quantities: “Order [N] tubers,” “Sow [N] seeds,” “Pot up [N] plants,” and “Harvest [N] stems” or “Harvest [N] flowers.” Use one task per batch/step, not hundreds of per-plant reminders.
 
 ## Lifecycle configuration
 
 Use the existing template → species → individual production hierarchy, extended with a versioned plan snapshot:
 
 - A reusable template supplies the default ordered lifecycle.
-- Species settings override timings, propagation method, losses, and yield assumptions.
+- Species settings override timings, propagation method, default sellable unit, losses, and yield assumptions.
 - Organization-specific settings are needed for shared catalog species; one grower's changes must not mutate another grower's schedule. Existing workflow mutation checks currently require species ownership.
 - A plan copies the effective settings and records their source. Changes to defaults affect new plans; updating an active plan is an explicit replan operation with a visible diff.
 
@@ -82,13 +106,19 @@ Put calculations in a deterministic planning service that accepts the target, li
 
 Roll out in usable increments:
 
-1. Dated species/group targets, configurable lifecycle snapshots, explicit species allocation, backward-plan preview, and idempotent generation of purchase-to-harvest tasks. Add typed procurement tasks and client routing instead of disguising them as sowing events.
+1. Dated species/group targets in sellable units, configurable lifecycle snapshots, a default suggested mix with editable allocations, backward-plan preview, and idempotent generation of purchase-to-harvest tasks. Include consistent flower/stem units across harvest and sales. Add typed procurement tasks and client routing instead of disguising them as sowing events.
 2. Stock reservations and linked actual batches/events, partial completion, remaining-demand forecasts, and safe replanning. These are required before presenting existing stock/output as committed to a target.
-3. Suggested species mixes, allocation across competing targets, succession recommendations, and optional space/labor constraints.
+3. More advanced mix strategies, allocation across competing targets, succession recommendations, and optional space/labor constraints.
 
 Weather-derived timing and the unfinished weather experiment are outside this scope. Initial schedules use explicit grower-configured assumptions; optional seasonal constraints can be entered directly.
 
 ## Acceptance scenarios
+
+- A 300-flower target and a 300-stem target retain their respective units through planning, harvest completion, and sales.
+- Three feasible species receive a default 100/100/100 sellable-unit allocation for a target of 300, even when their required plant counts differ.
+- Non-divisible target quantities are allocated deterministically with no fractional sellable items and no missing/excess demand.
+- Mixed-unit groups cannot silently count incompatible outputs toward the same target.
+- Changing one species allocation preserves pinned quantities and redistributes only the remaining demand.
 
 - A same-day target retains the full requested quantity instead of becoming zero weeks of demand.
 - A group with two differently timed species produces separate schedules and a combined output forecast.
