@@ -128,7 +128,7 @@ class ApiContractTest {
     fun `ScheduledTaskResponse fields are pinned`() = assertFields(
         ScheduledTaskResponse::class,
         "id", "speciesId", "speciesName", "bedId", "bedName", "gardenName",
-        "gardenAreaId", "gardenAreaName", "maintenanceRuleId",
+        "gardenAreaId", "gardenAreaName", "maintenanceRuleId", "harvestPlanId", "quantityUnit",
         "activityType", "earliestDate", "deadline", "targetCount",
         "remainingCount", "status", "notes", "seasonId", "successionScheduleId",
         "originGroupId", "originGroupName", "acceptableSpecies",

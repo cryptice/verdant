@@ -222,6 +222,8 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
         successionScheduleId = getObject("succession_schedule_id") as? Long,
         originGroupId = getObject("origin_group_id") as? Long,
         createdAt = getTimestamp("created_at").toInstant(),
+        harvestPlanId = getObject("harvest_plan_id", java.lang.Long::class.java)?.toLong(),
+        quantityUnit = getString("quantity_unit"),
         updatedAt = getTimestamp("updated_at").toInstant(),
     )
 }

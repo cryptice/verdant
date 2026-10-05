@@ -84,7 +84,7 @@ class TaskListViewModel @Inject constructor(
             val showLoading = _uiState.value.tasks.isEmpty()
             if (showLoading) _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val tasks = repo.list().filter { it.status != "COMPLETED" }
+                val tasks = repo.list().filter { it.status == "PENDING" }
                 _uiState.value = TaskListState(isLoading = false, tasks = tasks)
             } catch (e: Exception) {
                 if (showLoading) _uiState.value = TaskListState(isLoading = false, error = e.message)
@@ -185,6 +185,7 @@ fun TaskListScreen(
     onBack: () -> Unit,
     onCreateTask: () -> Unit,
     onEditTask: (Long) -> Unit,
+    onOpenPlan: (Long) -> Unit,
     viewModel: TaskListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -235,9 +236,9 @@ fun TaskListScreen(
                         TaskRow(
                             task = task,
                             isCompleting = task.id in uiState.completingTaskIds,
-                            onClick = { onEditTask(task.id) },
-                            onCompleteToggle = { viewModel.completeTask(task) },
-                            onDelete = { taskToDelete = task },
+                            onClick = { task.harvestPlanId?.let(onOpenPlan) ?: onEditTask(task.id) },
+                            onCompleteToggle = { task.harvestPlanId?.let(onOpenPlan) ?: viewModel.completeTask(task) },
+                            onDelete = { task.harvestPlanId?.let(onOpenPlan) ?: run { taskToDelete = task } },
                             modifier = Modifier.animateItem(),
                         )
                     }

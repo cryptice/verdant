@@ -5,6 +5,25 @@ import retrofit2.Response
 import retrofit2.http.*
 
 interface VerdantApi {
+    @GET("api/harvest-plans")
+    suspend fun getHarvestPlans(@Query("offset") offset: Int = 0): List<HarvestPlanResponse>
+    @GET("api/harvest-plans/{id}")
+    suspend fun getHarvestPlan(@Path("id") id: Long): HarvestPlanResponse
+    @GET("api/harvest-plans/species")
+    suspend fun getPlanningSpecies(@Query("speciesId") speciesId: Long?, @Query("groupId") groupId: Long?): List<PlanningSpecies>
+    @PUT("api/harvest-plans/species/{id}")
+    suspend fun saveProductionProfile(@Path("id") id: Long, @Body profile: ProductionProfile): PlanningSpecies
+    @POST("api/harvest-plans/preview")
+    suspend fun previewHarvestPlan(@Body request: HarvestPlanRequest): HarvestPlanPreview
+    @POST("api/harvest-plans")
+    suspend fun createHarvestPlan(@Body request: CreateHarvestPlanRequest): HarvestPlanResponse
+    @POST("api/harvest-plans/{id}/cancel")
+    suspend fun cancelHarvestPlan(@Path("id") id: Long): HarvestPlanResponse
+    @POST("api/harvest-plans/{id}/tasks/{taskId}/complete")
+    suspend fun completeHarvestPlanTask(@Path("id") id: Long, @Path("taskId") taskId: Long, @Body request: CompleteHarvestPlanTaskRequest): HarvestPlanResponse
+    @GET("api/species")
+    suspend fun searchPlanningSpecies(@Query("q") query: String): List<SpeciesResponse>
+
     @POST("api/auth/google")
     suspend fun googleAuth(@Body request: GoogleAuthRequest): AuthResponse
 

@@ -207,6 +207,7 @@ class ScheduledTaskService(
 
     fun updateTask(taskId: Long, request: UpdateScheduledTaskRequest, orgId: Long): ScheduledTaskResponse {
         val task = checkOwnership(taskId, orgId)
+        requireUnplanned(task)
 
         if (task.activityType == TODO_ACTIVITY_TYPE &&
             request.activityType != null && request.activityType != TODO_ACTIVITY_TYPE) {
@@ -274,6 +275,7 @@ class ScheduledTaskService(
 
     fun completePartially(taskId: Long, speciesId: Long?, processedCount: Int, orgId: Long): ScheduledTaskResponse {
         val task = checkOwnership(taskId, orgId)
+        requireUnplanned(task)
         when {
             task.activityType == TODO_ACTIVITY_TYPE -> {
                 // TODOs are done-or-not; speciesId is irrelevant.
@@ -373,6 +375,7 @@ class ScheduledTaskService(
 
     fun addSpeciesToTask(taskId: Long, speciesId: Long, orgId: Long): ScheduledTaskResponse {
         val task = checkOwnership(taskId, orgId)
+        requireUnplanned(task)
         speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
         taskRepository.addAcceptableSpecies(taskId, speciesId)
         return buildResponses(listOf(taskRepository.findById(taskId)!!)).first()
@@ -380,6 +383,7 @@ class ScheduledTaskService(
 
     fun syncTaskWithGroup(taskId: Long, orgId: Long): ScheduledTaskResponse {
         val task = checkOwnership(taskId, orgId)
+        requireUnplanned(task)
         val groupId = task.originGroupId
             ?: throw BadRequestException("Task is not associated with a group")
         val currentGroupSpeciesIds = speciesRepository.findByGroupId(groupId).map { it.id!! }.toSet()
@@ -393,8 +397,12 @@ class ScheduledTaskService(
     }
 
     fun deleteTask(taskId: Long, orgId: Long) {
-        checkOwnership(taskId, orgId)
+        requireUnplanned(checkOwnership(taskId, orgId))
         taskRepository.delete(taskId)
+    }
+
+    private fun requireUnplanned(task: ScheduledTask) {
+        if (task.harvestPlanId != null) throw BadRequestException("Manage this task through its harvest plan")
     }
 
     private fun buildResponses(tasks: List<ScheduledTask>): List<ScheduledTaskResponse> {
@@ -459,6 +467,8 @@ class ScheduledTaskService(
                     )
                 },
                 createdAt = task.createdAt,
+                harvestPlanId = task.harvestPlanId,
+                quantityUnit = task.quantityUnit,
                 updatedAt = task.updatedAt,
             )
         }

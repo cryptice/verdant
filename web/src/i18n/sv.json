@@ -136,7 +136,9 @@
     "TOP_UP": "Fylla på",
     "CLEAN": "Rensa",
     "INSPECT": "Inspektera",
-    "TODO": "Att göra"
+    "TODO": "Att göra",
+    "PURCHASE": "Inköp",
+    "SUPPORT": "Stöd"
   },
   "dashboard": {
     "greeting": "Hej, {{name}}",
@@ -1793,5 +1795,62 @@
     },
     "seedCount": "Antal frön",
     "date": "Datum"
+  },
+  "planning": {
+    "title": "Skördeplaner",
+    "weekly": "Veckomål",
+    "intro": "Planera säljbara enheter för ett skördedatum, med uppgifter bakåt till inköp och förökning.",
+    "profileHelp": "Inställningarna gäller din organisation. Avkastning avser säljbara enheter på måldatumet, inte hela säsongen. Kontrollera föreslagna tider och etableringsgrad för dina odlingsförhållanden.",
+    "unit": "Säljbar enhet",
+    "yield": "Säljbara enheter per planta på skördedatumet",
+    "success": "Etableringsgrad (%)",
+    "startingUnit": "Utgångsmaterial",
+    "scheduleHelp": "Ange stegen i livscykelns ordning. Inköp först, skörd sist på dag 0. Saknade värden måste fyllas i.",
+    "stepName": "Stegets namn",
+    "activity": "Aktivitet",
+    "daysBefore": "Dagar före skörd",
+    "quantityBasis": "Mät antal som",
+    "addStep": "Lägg till livscykelsteg",
+    "progressHelp": "Registrera framsteg här. Inköp, växthändelser och verklig skörd registreras separat; dessa uppgifter ändrar inte lagersaldon.",
+    "cancelled": "Avbruten",
+    "remaining": "{{count}} återstår",
+    "processed": "Utfört antal",
+    "recordProgress": "Registrera framsteg",
+    "cancelPlan": "Avbryt planen",
+    "cancelHelp": "Återstående uppgifter avbryts. Utfört arbete och den ursprungliga planen sparas.",
+    "season": "Säsong",
+    "choose": "Välj en säsong",
+    "species": "Art eller grupp",
+    "quantity": "Målantal",
+    "harvestDate": "Skördedatum",
+    "mixHelp": "Verdant föreslår lika stor skörd från kompatibla arter med kompletta scheman. Lämna antal tomt för förslag, ange 0 för att utesluta eller ange ett fast antal.",
+    "suggested": "Föreslagen andel",
+    "configure": "Konfigurera livscykel",
+    "preview": "Förhandsgranska plan",
+    "savePlan": "Spara plan och skapa uppgifter",
+    "saved": "Sparade planer",
+    "empty": "Inga skördeplaner ännu.",
+    "loading": "Laddar…",
+    "previous": "Föregående",
+    "next": "Nästa",
+    "units": {
+      "STEM": "stjälkar",
+      "FLOWER": "blommor",
+      "SEED": "frön",
+      "PLUG": "pluggplantor",
+      "BULB": "lökar",
+      "TUBER": "knölar",
+      "PLANT": "plantor"
+    },
+    "basis": {
+      "START": "Utgångsmaterial",
+      "PLANT": "Plantor",
+      "OUTPUT": "Säljbara enheter"
+    },
+    "status": {
+      "PENDING": "Återstår",
+      "COMPLETED": "Klar",
+      "CANCELLED": "Avbruten"
+    }
   }
 }

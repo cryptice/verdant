@@ -111,6 +111,7 @@ export function TaskList() {
 
   // Reset so a failed completion's error never greets the next task opened.
   const openDrawer = (task: ScheduledTaskResponse) => {
+    if (task.harvestPlanId) { navigate(`/targets?plan=${task.harvestPlanId}`); return }
     completeMut.reset()
     setDrawerTask(task)
   }
@@ -371,6 +372,7 @@ function SectionHeader({ title, count }: { title: string; count: number }) {
 }
 
 function TaskRow({ task, onOpen }: { task: ScheduledTaskResponse; onOpen: () => void }) {
+  const { t } = useTranslation()
   const filter = activityFilter(task.activityType)
   const color  = TONE[filter]
   return (
@@ -416,7 +418,9 @@ function TaskRow({ task, onOpen }: { task: ScheduledTaskResponse; onOpen: () => 
           </div>
         )}
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7 }}>
-          {task.bedId != null
+          {task.harvestPlanId != null
+            ? `${task.notes ?? task.activityType} · ${task.remainingCount} ${t(`planning.units.${task.quantityUnit}`)}`
+            : task.bedId != null
             ? [task.gardenName, task.bedName].filter(Boolean).join(' · ')
             : (task.gardenAreaName ?? task.activityType.replace(/_/g, ' '))}
         </div>

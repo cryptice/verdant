@@ -14,6 +14,7 @@ fun NavGraphBuilder.taskGraph(navController: NavController) {
         TaskListScreen(
             onBack = { navController.popBackStack() },
             onCreateTask = { navController.navigate(Screen.CreateTask.route) },
+            onOpenPlan = { id -> navController.navigate(Screen.HarvestPlan.create(id)) },
             onEditTask = { taskId -> navController.navigate(Screen.EditTask.create(taskId)) },
         )
     }

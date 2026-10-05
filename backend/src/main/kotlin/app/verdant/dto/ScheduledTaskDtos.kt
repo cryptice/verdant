@@ -29,6 +29,8 @@ data class ScheduledTaskResponse(
     val originGroupName: String?,
     val acceptableSpecies: List<AcceptableSpeciesEntry>,
     val createdAt: Instant,
+    val harvestPlanId: Long? = null,
+    val quantityUnit: String? = null,
     val updatedAt: Instant,
 )
 

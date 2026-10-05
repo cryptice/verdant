@@ -30,6 +30,16 @@ class TaskListViewModelTest {
     @After fun tearDown() { Dispatchers.resetMain() }
 
     @Test
+    fun `cancelled planning tasks are not active tasks`() = runTest {
+        val vm = TaskListViewModel(FakeTaskRepository(listOf(
+            sampleTask(id = 1, deadline = "2027-05-01"),
+            sampleTask(id = 2, deadline = "2027-05-01").copy(status = "CANCELLED", harvestPlanId = 9),
+        )))
+        advanceUntilIdle()
+        assertEquals(listOf(1L), vm.uiState.value.tasks.map { it.id })
+    }
+
+    @Test
     fun `loadTasks emits success state with tasks`() = runTest {
         val tasks = listOf(
             sampleTask(id = 1, deadline = "2026-05-01"),

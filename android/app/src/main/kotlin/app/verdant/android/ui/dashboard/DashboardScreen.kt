@@ -188,7 +188,7 @@ class DashboardViewModel @Inject constructor(
                 // at-a-glance feed.
                 val today = java.time.LocalDate.now()
                 val pending = tasks
-                    .filter { it.status != "COMPLETED" && it.remainingCount > 0 }
+                    .filter { it.status == "PENDING" && it.remainingCount > 0 }
                     .filter {
                         val earliest = it.earliestDate?.let { d -> runCatching { java.time.LocalDate.parse(d) }.getOrNull() }
                         earliest == null || !earliest.isAfter(today)

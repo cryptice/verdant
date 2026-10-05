@@ -182,7 +182,7 @@ private fun periodLabel(startDate: String, endDate: String): String {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductionTargetsScreen(
+fun WeeklyProductionTargetsScreen(
     onBack: () -> Unit,
     viewModel: TargetsViewModel = hiltViewModel(),
 ) {
@@ -491,4 +491,15 @@ private fun ProductionTargetsScreenPreview() {
             )
         }
     }
+}
+
+@Composable
+fun ProductionTargetsScreen(onBack: () -> Unit) {
+    var weekly by remember { mutableStateOf(false) }
+    if (weekly) {
+        Column {
+            TextButton(onClick = { weekly = false }) { Text("Skördeplaner") }
+            Box(Modifier.weight(1f)) { WeeklyProductionTargetsScreen(onBack = onBack) }
+        }
+    } else HarvestPlansScreen(onWeekly = { weekly = true })
 }

@@ -1,5 +1,7 @@
 package app.verdant.android.ui.task
 
+import app.verdant.android.data.model.planningUnit
+
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -99,6 +101,7 @@ fun TaskRow(
     }
     val meta = buildString {
         task.deadline?.let { append(formatTaskDeadline(it)) }
+        if (task.harvestPlanId != null) append(" · ${task.notes.orEmpty()} · ${planningUnit(task.quantityUnit.orEmpty())}")
         if (isTodo) {
             // No species/place suffix for TODOs.
         } else if (isPlaceTask) {
@@ -119,7 +122,7 @@ fun TaskRow(
         title = title,
         meta = meta,
         leading = {
-            if (isPlaceTask || isTodo) {
+            if ((isPlaceTask || isTodo) && task.harvestPlanId == null) {
                 Checkbox(
                     checked = isCompleting,
                     onCheckedChange = { if (!isCompleting) onCompleteToggle() },
@@ -137,7 +140,7 @@ fun TaskRow(
                 )
             }
         },
-        stat = if (!isPlaceTask && !isTodo) {
+        stat = if (task.harvestPlanId != null || (!isPlaceTask && !isTodo)) {
             {
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
@@ -147,7 +150,7 @@ fun TaskRow(
                         color = FaltetInk,
                     )
                     Text(
-                        text = " ST",
+                        text = task.quantityUnit?.let { " ${planningUnit(it)}" } ?: " ST",
                         fontFamily = FontFamily.Monospace,
                         fontSize = 9.sp,
                         letterSpacing = 1.2.sp,
@@ -157,7 +160,7 @@ fun TaskRow(
             }
         } else null,
         actions = {
-            IconButton(
+            if (task.harvestPlanId == null) IconButton(
                 onClick = onDelete,
                 modifier = Modifier.size(36.dp),
             ) {

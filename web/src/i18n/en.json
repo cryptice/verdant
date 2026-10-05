@@ -136,7 +136,9 @@
     "TOP_UP": "Top up",
     "CLEAN": "Clean",
     "INSPECT": "Inspect",
-    "TODO": "To do"
+    "TODO": "To do",
+    "PURCHASE": "Purchase",
+    "SUPPORT": "Support"
   },
   "dashboard": {
     "greeting": "Hello, {{name}}",
@@ -1793,5 +1795,62 @@
     },
     "seedCount": "Seed count",
     "date": "Date"
+  },
+  "planning": {
+    "title": "Harvest plans",
+    "weekly": "Weekly targets",
+    "intro": "Plan sellable output for a harvest date, then work backwards to purchase and propagation.",
+    "profileHelp": "These settings apply to your organization. Yield means sellable output ready on the target date, not total seasonal yield. Confirm the suggested timings and establishment rate for your growing conditions.",
+    "unit": "Sellable unit",
+    "yield": "Sellable units per plant on harvest date",
+    "success": "Establishment success (%)",
+    "startingUnit": "Starting material",
+    "scheduleHelp": "Enter steps in lifecycle order. Purchase comes first; harvest is last at day 0. Missing values must be filled in.",
+    "stepName": "Step name",
+    "activity": "Activity",
+    "daysBefore": "Days before harvest",
+    "quantityBasis": "Measure quantity as",
+    "addStep": "Add lifecycle step",
+    "progressHelp": "Record progress here. Purchases, plant events and actual harvests are recorded separately; these tasks do not change stock.",
+    "cancelled": "Cancelled",
+    "remaining": "{{count}} remaining",
+    "processed": "Quantity completed",
+    "recordProgress": "Record progress",
+    "cancelPlan": "Cancel plan",
+    "cancelHelp": "Pending tasks will be cancelled. Completed work and the original plan are kept.",
+    "season": "Season",
+    "choose": "Choose a season",
+    "species": "Species or group",
+    "quantity": "Target quantity",
+    "harvestDate": "Harvest date",
+    "mixHelp": "Verdant suggests equal output shares across compatible species with complete schedules. Leave quantities blank for suggestions, enter 0 to exclude, or fix a quantity.",
+    "suggested": "Suggested share",
+    "configure": "Configure lifecycle",
+    "preview": "Preview plan",
+    "savePlan": "Save plan and create tasks",
+    "saved": "Saved plans",
+    "empty": "No harvest plans yet.",
+    "loading": "Loading…",
+    "previous": "Previous",
+    "next": "Next",
+    "units": {
+      "STEM": "stems",
+      "FLOWER": "flowers",
+      "SEED": "seeds",
+      "PLUG": "plugs",
+      "BULB": "bulbs",
+      "TUBER": "tubers",
+      "PLANT": "plants"
+    },
+    "basis": {
+      "START": "Starting material",
+      "PLANT": "Plants",
+      "OUTPUT": "Sellable output"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled"
+    }
   }
 }

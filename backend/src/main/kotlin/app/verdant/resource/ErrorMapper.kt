@@ -16,6 +16,7 @@ class ErrorMapper : ExceptionMapper<Exception> {
             is jakarta.ws.rs.BadRequestException -> 400
             is IllegalArgumentException -> 400
             is io.quarkus.security.UnauthorizedException -> 401
+            is jakarta.ws.rs.ClientErrorException -> exception.response.status
             else -> 500
         }
         if (status >= 500) {

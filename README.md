@@ -13,6 +13,7 @@ Quarkus + Kotlin REST API with PostgreSQL.
 - **Garden structure**: Gardens with geo-located beds and boundary polygons
 - **Seed inventory**: Track seed batches with collection/expiration dates, auto-decrement on sowing
 - **Scheduled tasks**: Recurring garden activities with deadlines and progress tracking
+- **Harvest planning**: Dated sellable-unit targets for species or groups, editable suggested mixes, configurable lifecycle schedules, and linked tasks. See [usage and scope](docs/guide.md#harvest-plans).
 - **AI integration**: Gemini-powered extraction of species info from seed packet photos
 - **Storage**: Google Cloud Storage for images
 - **Auth**: JWT-based authentication with Google OAuth for the app and email/password for admin

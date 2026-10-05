@@ -13,6 +13,8 @@ data class ScheduledTaskResponse(
     @SerializedName("gardenName") val gardenName: String? = null,
     @SerializedName("gardenAreaId") val gardenAreaId: Long? = null,
     @SerializedName("gardenAreaName") val gardenAreaName: String? = null,
+    @SerializedName("harvestPlanId") val harvestPlanId: Long? = null,
+    @SerializedName("quantityUnit") val quantityUnit: String? = null,
     @SerializedName("maintenanceRuleId") val maintenanceRuleId: Long? = null,
     @SerializedName("activityType") val activityType: String,
     @SerializedName("earliestDate") val earliestDate: String? = null,

@@ -21,7 +21,9 @@ data class ScheduledTask(
     val successionScheduleId: Long? = null,
     val originGroupId: Long? = null,
     val createdAt: Instant = Instant.now(),
+    val harvestPlanId: Long? = null,
+    val quantityUnit: String? = null,
     val updatedAt: Instant = Instant.now(),
 )
 
-enum class ScheduledTaskStatus { PENDING, COMPLETED }
+enum class ScheduledTaskStatus { PENDING, COMPLETED, CANCELLED }

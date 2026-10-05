@@ -1,6 +1,18 @@
 # Harvest targets and backward production planning
 
-Status: design updated with the grower’s decisions on 2026-10-05. Targets count sellable units, and Verdant suggests an editable species mix. The rules below describe proposed functionality; implementation has not started.
+Status: first implementation added on 2026-10-05. Targets count sellable units, and Verdant suggests an editable species mix. The implemented scope is described below; the rest of this document remains the longer-term design.
+
+## Implemented increment
+
+Web and Android now support dated species/group targets, organization-specific production profiles, previewing editable output allocations, and saving linked lifecycle tasks. Profiles import timed main workflow steps when possible, otherwise use known days-to-harvest for the starting step. Purchase lead time and date-specific yield require configuration; seasonal yield is never silently reused. Existing weekly targets remain available.
+
+The first mix rule allocates equal output shares among compatible, fully configured species whose steps do not fall in the past. Fixed quantities, including zero exclusions, are preserved. Input quantities round up separately: `plants = ceil(output / outputPerPlant)`; `starting = ceil(plants × 100 / establishmentPercent)`. Profiles and steps are snapshotted when the plan is saved.
+
+`V45__harvest_plans.sql` adds profiles, plans, and task links without rewriting existing targets. Plan creation and task insertion use one transaction and an organization-scoped idempotency key. A preview fingerprint detects changed assumptions before saving. Partial completion uses an expected remaining quantity to prevent retry double-counting. Cancellation retains completed/partial progress and marks pending tasks cancelled. Saved plans are immutable; cancel and create a replacement to change dates or quantities. Deleting a season detaches its plan relation and retains the snapshot.
+
+Task completion in this increment records **planning progress only**. Inventory reservations, existing-batch allocation, automatic replanning, and links to purchase/plant/harvest events remain future work. In particular, `FLOWER` is supported as an explicit planning output unit, but actual flower harvest/sales integration below is still unimplemented. Do not treat completed plan tasks as harvested stock or sellable inventory. The separate production-profile editor currently configures a backward schedule initialized from existing workflows; changes do not rewrite those workflows.
+
+See [the grower guide](../guide.md#harvest-plans) for the flow and [the API notes](../harvest-planning.md) for contracts and validation.
 
 ## Outcome
 

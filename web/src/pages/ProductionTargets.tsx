@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { HarvestPlans } from './HarvestPlans'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type ProductionTargetResponse, type SpeciesResponse } from '../api/client'
@@ -81,6 +82,18 @@ function ForecastPanel({ targetId }: { targetId: number }) {
 }
 
 export function ProductionTargets() {
+  const { t } = useTranslation()
+  const [weekly, setWeekly] = useState(false)
+  return <>
+    <nav className="flex gap-3 mb-6" aria-label={t('planning.title')}>
+      <button className={!weekly ? 'btn-primary' : 'btn-secondary'} onClick={() => setWeekly(false)}>{t('planning.title')}</button>
+      <button className={weekly ? 'btn-primary' : 'btn-secondary'} onClick={() => setWeekly(true)}>{t('planning.weekly')}</button>
+    </nav>
+    {weekly ? <WeeklyProductionTargets /> : <HarvestPlans />}
+  </>
+}
+
+function WeeklyProductionTargets() {
   const qc = useQueryClient()
   const { t } = useTranslation()
   const { completeStep } = useOnboarding()

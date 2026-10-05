@@ -12,7 +12,7 @@ export function setOnUnauthorized(cb: (() => void) | null) {
   onUnauthorized = cb
 }
 
-const apiRequest = makeApiRequest({
+export const apiRequest = makeApiRequest({
   getToken: () => localStorage.getItem('verdant_token'),
   getOrgId: () => localStorage.getItem('verdant_org_id'),
   onUnauthorized: () => {
@@ -142,6 +142,8 @@ export interface ScheduledTaskResponse {
   acceptableSpecies: AcceptableSpeciesEntry[]
   gardenAreaId?: number | null
   gardenAreaName?: string | null
+  harvestPlanId?: number | null
+  quantityUnit?: string | null
   maintenanceRuleId?: number | null
   createdAt: string; updatedAt: string
 }

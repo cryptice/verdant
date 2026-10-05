@@ -32,6 +32,7 @@ export function taskTitle(task: ScheduledTaskResponse, t: TFunction): string {
 /** Secondary line — the action verb, plus the other side of the relation
  *  (bed for species-tasks, garden for place-tasks) when present. */
 export function taskSubject(task: ScheduledTaskResponse, t: TFunction): string | null {
+  if (task.harvestPlanId != null) return `${task.notes ?? activityLabel(task.activityType, t)} · ${task.remainingCount} ${t(`planning.units.${task.quantityUnit}`)}`
   if (task.activityType === 'TODO') return null
   const action = activityLabel(task.activityType, t)
   // Place-scoped work (bed or area) already has the place as its headline, so
@@ -87,6 +88,7 @@ export function Dashboard() {
   // Tasks with a future earliestDate are "kommande" — they live on the
   // dedicated Tasks list, not on the dashboard's at-a-glance feed.
   const dashboardTasks = tasks?.filter(t => {
+    if (t.status !== 'PENDING') return false
     const earliest = t.earliestDate ? new Date(t.earliestDate) : null
     if (earliest == null) return true
     const today = new Date()
@@ -371,7 +373,7 @@ export function Dashboard() {
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {taskTitle(task, t)}
+                    {task.harvestPlanId ? <Link to={`/targets?plan=${task.harvestPlanId}`}>{taskTitle(task, t)}</Link> : taskTitle(task, t)}
                   </span>
                   {taskSubject(task, t) && (
                     <span

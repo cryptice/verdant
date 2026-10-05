@@ -143,6 +143,17 @@ describe('TaskList buckets', () => {
 })
 
 describe('TaskList drawer completion', () => {
+  it('opens the harvest plan for a generated task', async () => {
+    vi.mocked(api.tasks.list).mockResolvedValue([task({
+      speciesName: 'Dahlia', speciesId: 5, activityType: 'SOW',
+      harvestPlanId: 9, quantityUnit: 'SEED', deadline: isoOffsetDays(0),
+    })])
+    renderList()
+    fireEvent.click(await screen.findByText('Dahlia'))
+    expect(navigate).toHaveBeenCalledWith('/targets?plan=9')
+    expect(api.tasks.complete).not.toHaveBeenCalled()
+  })
+
   it('completes an area maintenance task without a species', async () => {
     const areaTask = task({ id: 7, gardenAreaId: 5, gardenAreaName: 'Gången', deadline: isoOffsetDays(-1) })
     vi.mocked(api.tasks.list).mockResolvedValue([areaTask])

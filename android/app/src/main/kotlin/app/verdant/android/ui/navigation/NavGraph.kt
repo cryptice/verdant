@@ -128,6 +128,10 @@ sealed class Screen(val route: String) {
     data object Outlets : Screen("outlets")
     data object Successions : Screen("successions")
     data object Targets : Screen("targets")
+    data object WeeklyTargets : Screen("weekly-targets")
+    data object HarvestPlan : Screen("harvest-plan/{planId}") {
+        fun create(id: Long) = "harvest-plan/$id"
+    }
     data object Trials : Screen("trials")
     data object Bouquets : Screen("bouquets")
     data object BouquetRecipes : Screen("bouquet-recipes")

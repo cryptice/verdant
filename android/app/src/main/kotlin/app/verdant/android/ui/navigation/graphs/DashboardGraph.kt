@@ -14,7 +14,8 @@ fun NavGraphBuilder.dashboardGraph(navController: NavController) {
         DashboardScreen(
             onTaskClick = { task ->
                 val speciesParam = task.speciesId?.let { "&speciesId=$it" } ?: ""
-                when (task.activityType) {
+                if (task.harvestPlanId != null) navController.navigate(Screen.HarvestPlan.create(task.harvestPlanId))
+                else when (task.activityType) {
                     "SOW" -> navController.navigate("activity/sow?taskId=${task.id}$speciesParam")
                     "POT_UP" -> navController.navigate(Screen.BatchPotUp.create(taskId = task.id, speciesId = task.speciesId))
                     "PLANT" -> navController.navigate("activity/plant-picker/SEEDED,POTTED_UP/plant-out?taskId=${task.id}$speciesParam")

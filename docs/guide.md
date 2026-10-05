@@ -18,7 +18,8 @@ Verdant is a planning and tracking tool for commercial flower production. It hel
    - [Tasks](#tasks)
    - [Seed Inventory](#seed-inventory)
    - [Succession Planting](#succession-planting)
-   - [Production Targets & Forecasting](#production-targets--forecasting)
+   - [Harvest Plans](#harvest-plans)
+   - [Weekly Production Targets & Forecasting](#production-targets--forecasting)
    - [Crop Calendar](#crop-calendar)
    - [Customers](#customers)
    - [Bouquet Recipes](#bouquet-recipes)
@@ -192,7 +193,28 @@ Plan staggered sowings for continuous bloom:
 
 **Generate tasks**: Click the button to automatically create a scheduled task for each succession round. For example, a schedule with first sow April 1, interval 14 days, and 6 rounds generates tasks on April 1, April 15, April 29, May 13, May 27, and June 10.
 
+### Harvest Plans
+
+Open **Targets → Harvest plans** on web, or **Mål → Skördeplaner** on Android. Set a season, species or species group, sellable quantity, output unit (stems or individual flowers), and harvest date. Use your existing species groups to define a market category such as “large pom pom dahlias.”
+
+For each candidate, open **Configure lifecycle**:
+
+- Choose the sellable unit and expected output **per plant on the target date**, not the total across the season. For example, a plant producing ten stems throughout summer does not necessarily supply ten stems on one delivery date.
+- Set establishment success: the proportion of starting material expected to become productive plants. A species' germination rate can provide an initial value for seed starts; adjust it for subsequent losses.
+- Choose starting material: seeds, plugs, bulbs, tubers, or plants.
+- Review the ordered steps and days before harvest. Purchase comes first; sowing or planting uses starting-material quantities; later cultivation can use plant counts; harvest uses sellable output at day zero. Add or remove cultivation steps as needed.
+
+Verdant copies timings from an existing complete main workflow where available, otherwise it uses known days to harvest for the starting step. Fill missing timing and yield values before planning. Settings belong to your organization, including overrides for shared species. They do not change other organizations' settings or existing plant workflows.
+
+**Preview plan** suggests equal output shares across compatible species with complete schedules. Leave a candidate's quantity blank to use the suggestion, enter a fixed quantity to pin its contribution, or enter zero to exclude it. Integer remainders are assigned consistently. Different yields lead to different plant/input counts even when output shares are equal. Species with incompatible units, missing data, or a start date in the past are explained in the preview. Unallocated demand must be resolved before saving.
+
+**Save plan and create tasks** saves the assumptions and generates tasks from purchase through harvest. Repeating a failed save does not create a second task set. Editing a profile later does not change saved plans. Generated tasks appear in the existing task list and open their harvest plan. Record partial or full progress there. To replace a plan, cancel it and create another; cancellation preserves completed and partial work and cancels pending tasks.
+
+This version plans new production without stock reservations or existing-batch allocation. Task progress does not record purchases, change stock, or create plant/harvest events. Record those actuals separately. Individual flowers are supported as planning units; actual harvest and sales workflows still use their existing units. Weather, growing-space capacity, frost dates, and automatic replanning are not included in feasibility checks.
+
 ### Production Targets & Forecasting
+
+Existing weekly targets remain under **Weekly targets / Veckomål**. These forecasts are independent of dated harvest plans and do not create lifecycle tasks.
 
 Set delivery targets and let Verdant calculate what you need to grow:
 
@@ -205,7 +227,7 @@ Set delivery targets and let Verdant calculate what you need to grow:
 - **Suggested sow date**: delivery start date minus days to harvest
 - **Warnings**: If species data is missing (e.g., no expected stems/plant set), defaults are used and a warning is shown
 
-This is the core planning loop: set your sales target, and Verdant tells you how many seeds to sow and when.
+These are legacy estimates. Use a dated harvest plan when you need configurable lifecycle tasks for a specific delivery date.
 
 ### Crop Calendar
 
@@ -370,7 +392,7 @@ Click **Generate tasks** to create 6 sowing tasks automatically.
 
 ### Step 6: Set production targets
 
-Go to **Targets** (🎯) and click **+ New target**.
+Go to **Targets** (🎯), choose **Weekly targets**, and click **+ New target**.
 
 - Species: `Dahlia — Cafe au Lait`
 - Stems per week: `100`

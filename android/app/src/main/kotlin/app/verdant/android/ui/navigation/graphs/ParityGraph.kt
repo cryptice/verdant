@@ -14,6 +14,8 @@ import app.verdant.android.ui.outlets.OutletListScreen
 import app.verdant.android.ui.pest.PestDiseaseLogScreen
 import app.verdant.android.ui.succession.SuccessionSchedulesScreen
 import app.verdant.android.ui.targets.ProductionTargetsScreen
+import app.verdant.android.ui.targets.HarvestPlansScreen
+import app.verdant.android.ui.targets.WeeklyProductionTargetsScreen
 import app.verdant.android.ui.trials.VarietyTrialsScreen
 import app.verdant.android.ui.workflow.WorkflowProgressScreen
 
@@ -33,6 +35,12 @@ fun NavGraphBuilder.parityGraph(navController: NavController) {
     }
     composable(Screen.Successions.route) {
         SuccessionSchedulesScreen(onBack = { navController.popBackStack() })
+    }
+    composable(Screen.WeeklyTargets.route) {
+        WeeklyProductionTargetsScreen(onBack = { navController.popBackStack() })
+    }
+    composable(Screen.HarvestPlan.route, arguments = listOf(navArgument("planId") { type = NavType.LongType })) { entry ->
+        HarvestPlansScreen(onWeekly = { navController.navigate(Screen.WeeklyTargets.route) }, planId = entry.arguments?.getLong("planId"))
     }
     composable(Screen.Targets.route) {
         ProductionTargetsScreen(onBack = { navController.popBackStack() })
