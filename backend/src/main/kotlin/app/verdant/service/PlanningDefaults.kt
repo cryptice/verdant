@@ -45,9 +45,10 @@ class PlanningDefaults(private val repository: SharedScheduleRepository) {
                 else -> step.daysBeforeHarvest
             }) })
         }
-        if (species.defaultUnitType == UnitType.SEED && species.germinationRate != null && profile.establishmentPercent != null) {
+        val germinationRate = species.germinationRate
+        if (species.defaultUnitType == UnitType.SEED && germinationRate != null && profile.establishmentPercent != null) {
             profile = profile.copy(establishmentPercent = minOf(profile.establishmentPercent!!,
-                BigDecimal(species.germinationRate.coerceIn(0, 100)).multiply(BigDecimal("0.9"))))
+                BigDecimal(germinationRate.coerceIn(0, 100)).multiply(BigDecimal("0.9"))))
         }
         val months = schedule.harvestMonths
         val harvestMonths = if (species.bloomMonths.isEmpty()) months else
