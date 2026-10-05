@@ -1,6 +1,8 @@
 package app.verdant.android.ui.auth
 
 import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -17,12 +19,14 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -30,20 +34,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.credentials.CredentialManager
-import androidx.credentials.GetCredentialRequest
+import androidx.credentials.CustomCredential
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.NoCredentialException
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.verdant.android.BuildConfig
+import app.verdant.android.R
 import app.verdant.android.data.repository.AuthRepository
 import app.verdant.android.ui.theme.FaltetClay
 import app.verdant.android.ui.theme.FaltetCream
 import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
 import app.verdant.android.ui.theme.FaltetInk
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -65,6 +72,16 @@ class AuthViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState = _uiState.asStateFlow()
 
+    fun beginCredentialRequest(): Boolean {
+        if (_uiState.value.isLoading) return false
+        _uiState.value = AuthUiState(isLoading = true)
+        return true
+    }
+
+    fun cancelCredentialRequest() {
+        _uiState.value = AuthUiState()
+    }
+
     fun setError(message: String) {
         _uiState.value = AuthUiState(error = message)
     }
@@ -81,6 +98,9 @@ class AuthViewModel @Inject constructor(
                 } else {
                     AuthUiState(success = true)
                 }
+            } catch (e: CancellationException) {
+                _uiState.value = AuthUiState()
+                throw e
             } catch (e: Exception) {
                 Log.e(TAG, "Backend auth failed: ${e.javaClass.simpleName}: ${e.message}", e)
                 _uiState.value = AuthUiState(error = e.message ?: "Sign in failed")
@@ -97,6 +117,7 @@ fun AuthScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val credentialScope = rememberCoroutineScope()
 
     LaunchedEffect(uiState.success) {
         if (uiState.success) onAuthSuccess()
@@ -133,32 +154,38 @@ fun AuthScreen(
 
             Button(
                 onClick = {
-                    Log.d(TAG, "Sign in button clicked")
-                    val credentialManager = CredentialManager.create(context)
-                    val googleIdOption = GetGoogleIdOption.Builder()
-                        .setFilterByAuthorizedAccounts(false)
-                        .setServerClientId(BuildConfig.GOOGLE_WEB_CLIENT_ID)
-                        .build()
-                    val request = GetCredentialRequest.Builder()
-                        .addCredentialOption(googleIdOption)
-                        .build()
-                    Log.d(TAG, "Launching credential request...")
-
-                    (context as? Activity)?.let { activity ->
-                        viewModel.viewModelScope.launch {
-                            try {
-                                val result = credentialManager.getCredential(activity, request)
-                                Log.d(TAG, "Got credential, type=${result.credential.type}")
-                                val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
-                                Log.d(TAG, "Google ID token obtained, sending to backend...")
-                                viewModel.signInWithGoogle(googleIdTokenCredential.idToken)
-                            } catch (e: androidx.credentials.exceptions.NoCredentialException) {
-                                Log.e(TAG, "No credentials available", e)
-                                viewModel.setError("No Google account found. Check that you're signed into a Google account in Settings.")
-                            } catch (e: Exception) {
-                                Log.e(TAG, "Credential request failed: ${e.javaClass.simpleName}: ${e.message}", e)
-                                viewModel.setError(e.message ?: "Sign in failed")
+                    if (viewModel.beginCredentialRequest()) credentialScope.launch {
+                        try {
+                            val activity = context.findActivity()
+                            if (activity == null) {
+                                viewModel.setError(context.getString(R.string.google_sign_in_unavailable))
+                                return@launch
                             }
+                            if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isBlank()) {
+                                viewModel.setError(context.getString(R.string.google_sign_in_not_configured))
+                                return@launch
+                            }
+                            val request = googleButtonSignInRequest(BuildConfig.GOOGLE_WEB_CLIENT_ID)
+                            val result = CredentialManager.create(activity).getCredential(activity, request)
+                            val credential = result.credential
+                            check(credential is CustomCredential &&
+                                credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                                context.getString(R.string.google_sign_in_invalid_response)
+                            }
+                            val token = GoogleIdTokenCredential.createFrom(credential.data).idToken
+                            viewModel.signInWithGoogle(token)
+                        } catch (e: GetCredentialCancellationException) {
+                            // Dismissing the picker is not a sign-in failure. Let the user retry.
+                            viewModel.cancelCredentialRequest()
+                        } catch (e: CancellationException) {
+                            viewModel.cancelCredentialRequest()
+                            throw e
+                        } catch (e: NoCredentialException) {
+                            Log.w(TAG, "Google button flow returned no credential", e)
+                            viewModel.setError(context.getString(R.string.google_sign_in_no_credential))
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Credential request failed: ${e.javaClass.simpleName}: ${e.message}", e)
+                            viewModel.setError(context.getString(R.string.google_sign_in_failed))
                         }
                     }
                 },
@@ -182,7 +209,7 @@ fun AuthScreen(
                     )
                 } else {
                     Text(
-                        text = "LOGGA IN MED GOOGLE",
+                        text = stringResource(R.string.sign_in_with_google),
                         fontFamily = FontFamily.Monospace,
                         fontSize = 11.sp,
                         letterSpacing = 2.sp,
@@ -243,7 +270,7 @@ private fun AuthScreenPreview() {
                     .height(56.dp),
             ) {
                 Text(
-                    text = "LOGGA IN MED GOOGLE",
+                    text = stringResource(R.string.sign_in_with_google),
                     fontFamily = FontFamily.Monospace,
                     fontSize = 11.sp,
                     letterSpacing = 2.sp,
@@ -251,4 +278,10 @@ private fun AuthScreenPreview() {
             }
         }
     }
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }

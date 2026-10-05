@@ -22,6 +22,11 @@
     <!-- Auth -->
     <string name="your_garden_companion">Your garden companion</string>
     <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="google_sign_in_no_credential">Google could not complete sign-in. Check your Google account and Google Play services, then try again.</string>
+    <string name="google_sign_in_unavailable">Google sign-in is unavailable. Reopen Verdant and try again.</string>
+    <string name="google_sign_in_not_configured">Google sign-in is not configured in this app build.</string>
+    <string name="google_sign_in_invalid_response">Google returned an unexpected sign-in response.</string>
+    <string name="google_sign_in_failed">Could not sign in with Google. Please try again.</string>
 
     <!-- Navigation -->
     <string name="my_world">My World</string>

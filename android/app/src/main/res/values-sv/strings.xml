@@ -22,6 +22,11 @@
     <!-- Auth -->
     <string name="your_garden_companion">Din tr\u00E4dg\u00E5rdskompanjon</string>
     <string name="sign_in_with_google">Logga in med Google</string>
+    <string name="google_sign_in_no_credential">Google kunde inte slutföra inloggningen. Kontrollera ditt Google-konto och Google Play-tjänster och försök igen.</string>
+    <string name="google_sign_in_unavailable">Google-inloggning är inte tillgänglig. Öppna Verdant igen och försök på nytt.</string>
+    <string name="google_sign_in_not_configured">Google-inloggning är inte konfigurerad i den här appversionen.</string>
+    <string name="google_sign_in_invalid_response">Google returnerade ett oväntat inloggningssvar.</string>
+    <string name="google_sign_in_failed">Det gick inte att logga in med Google. Försök igen.</string>
 
     <!-- Navigation -->
     <string name="my_world">Min v\u00E4rld</string>
