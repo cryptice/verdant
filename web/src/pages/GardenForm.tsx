@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { api } from '../api/client'
+import { createGardenWithDestination } from '../lib/gardenCreation'
 import { Masthead, Field } from '../components/faltet'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 
@@ -22,10 +22,11 @@ export function GardenForm() {
   const [emoji, setEmoji] = useState('')
 
   const mutation = useMutation({
-    mutationFn: () => api.gardens.create({ name, description: description || undefined, emoji: emoji || undefined }),
-    onSuccess: (g) => {
+    mutationFn: () => createGardenWithDestination({ name, description: description || undefined, emoji: emoji || undefined }),
+    onSuccess: ({ destination }) => {
+      qc.invalidateQueries({ queryKey: ['gardens'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
-      navigate(`/garden/${g.id}`, { replace: true })
+      navigate(destination, { replace: true })
     },
   })
 

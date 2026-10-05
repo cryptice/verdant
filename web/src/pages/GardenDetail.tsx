@@ -123,6 +123,8 @@ export function GardenDetail() {
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['garden-beds', gardenId] })
+      qc.invalidateQueries({ queryKey: ['beds'] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
       setShowNewBed(false)
       resetNewBed()
       completeStep('create_bed')

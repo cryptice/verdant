@@ -19,7 +19,18 @@ fun NavGraphBuilder.gardenGraph(navController: NavController) {
     composable(Screen.CreateGarden.route) {
         CreateGardenScreen(
             onBack = { navController.popBackStack() },
-            onCreated = { navController.navigate(Screen.MyWorld.route) { popUpTo(Screen.MyWorld.route) { inclusive = true } } },
+            onCreated = { isFirstGarden ->
+                if (isFirstGarden) {
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo(navController.graph.id)
+                        launchSingleTop = true
+                    }
+                } else {
+                    navController.navigate(Screen.MyWorld.route) {
+                        popUpTo(Screen.MyWorld.route) { inclusive = true }
+                    }
+                }
+            },
         )
     }
     composable(

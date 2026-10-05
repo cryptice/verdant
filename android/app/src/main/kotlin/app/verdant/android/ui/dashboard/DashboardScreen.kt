@@ -46,6 +46,10 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.ui.res.stringResource
+import app.verdant.android.R
+import app.verdant.android.data.model.GardenSummary
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -112,7 +116,10 @@ data class DashboardState(
     val seasonRevenueKr: Int = 0,
     val seasonSalesCount: Int = 0,
     val seasonRevenueLoaded: Boolean = false,
-)
+) {
+    val gardenNeedingBeds: GardenSummary?
+        get() = dashboard?.gardens?.singleOrNull()?.takeIf { it.bedCount == 0 }
+}
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
@@ -229,6 +236,7 @@ class DashboardViewModel @Inject constructor(
 fun DashboardScreen(
     onTaskClick: (ScheduledTaskResponse) -> Unit = {},
     onOpenTasks: () -> Unit = {},
+    onCreateBed: (Long) -> Unit = {},
     onSpeciesClick: (Long) -> Unit = {},
     onOpenTrayLocation: (Long) -> Unit = {},
     onOpenSupplies: () -> Unit = {},
@@ -298,6 +306,34 @@ fun DashboardScreen(
             else -> {
                 val dashboard = uiState.dashboard!!
                 LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+                    uiState.gardenNeedingBeds?.let { garden ->
+                        item {
+                            Column(
+                                modifier = Modifier
+                                    .padding(horizontal = 14.dp, vertical = 8.dp)
+                                    .fillMaxWidth()
+                                    .background(FaltetPaper, RoundedCornerShape(12.dp))
+                                    .border(1.dp, FaltetAccent, RoundedCornerShape(12.dp))
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.dashboard_add_beds_title, garden.name),
+                                    fontFamily = FaltetDisplay,
+                                    fontSize = 22.sp,
+                                    lineHeight = 28.sp,
+                                    color = FaltetInk,
+                                )
+                                Text(
+                                    text = stringResource(R.string.dashboard_add_beds_hint),
+                                    color = FaltetForest,
+                                )
+                                Button(onClick = { onCreateBed(garden.id) }) {
+                                    Text(stringResource(R.string.add_bed))
+                                }
+                            }
+                        }
+                    }
                     item {
                         HeroStats(
                             beds = dashboard.stats.totalBeds,

@@ -34,6 +34,7 @@ fun NavGraphBuilder.dashboardGraph(navController: NavController) {
                     }
                 }
             },
+            onCreateBed = { gardenId -> navController.navigate(Screen.CreateBed.create(gardenId)) },
             onOpenTasks = { navController.navigate(Screen.TaskList.route) },
             onSpeciesClick = { speciesId ->
                 navController.navigate(Screen.PlantedSpeciesDetail.create(speciesId))

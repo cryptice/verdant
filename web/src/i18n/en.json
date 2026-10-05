@@ -141,6 +141,8 @@
     "SUPPORT": "Support"
   },
   "dashboard": {
+    "addBedsTitle": "Add beds to {{name}}",
+    "addBedsHint": "Create your first bed to start planning where to grow.",
     "greeting": "Hello, {{name}}",
     "gardens_one": "{{count}} garden",
     "gardens_other": "{{count}} gardens",

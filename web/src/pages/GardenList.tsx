@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
+import { createGardenWithDestination } from '../lib/gardenCreation'
 import { Masthead, Ledger } from '../components/faltet'
 import { Dialog } from '../components/Dialog'
 import { useOnboarding } from '../onboarding/OnboardingContext'
@@ -39,14 +40,14 @@ export function GardenList() {
   const resetGardenForm = () => { setGardenName(''); setGardenDescription(''); setGardenEmoji('') }
 
   const gardenMutation = useMutation({
-    mutationFn: () => api.gardens.create({ name: gardenName, description: gardenDescription || undefined, emoji: gardenEmoji || undefined }),
-    onSuccess: (g) => {
+    mutationFn: () => createGardenWithDestination({ name: gardenName, description: gardenDescription || undefined, emoji: gardenEmoji || undefined }),
+    onSuccess: ({ destination }) => {
       qc.invalidateQueries({ queryKey: ['gardens'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
       setShowNewGarden(false)
       resetGardenForm()
       completeStep('create_garden')
-      navigate(`/garden/${g.id}`)
+      navigate(destination, { replace: destination === '/' })
     },
   })
 

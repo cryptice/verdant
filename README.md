@@ -36,6 +36,7 @@ Kotlin Android app with Jetpack Compose.
 - **Tasks**: Scheduled activities with species-specific workflows
 - **Sowing**: Select species, choose bed or portable tray, auto-creates individual plants
 - **Gardens**: Map-based garden/bed creation with boundary drawing, inline editing
+- **First garden**: Android and web return to Dashboard after creating the first garden. When exactly one garden has no beds, a prompt at the top opens its bed creation form.
 - **Seed inventory**: Track and manage seed batches with FAB to add
 - **Swedish-first**: All UI strings localized, Swedish names shown as primary
 

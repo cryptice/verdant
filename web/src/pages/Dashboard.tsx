@@ -6,6 +6,7 @@ import type { TFunction } from 'i18next'
 import { api } from '../api/client'
 import type { ScheduledTaskResponse, TraySummaryEntry } from '../api/client'
 import { sortBedsWithGardenByNaturalName } from '../lib/bed'
+import { GardenBedsPrompt } from '../components/GardenBedsPrompt'
 import { harvestDeltaPct } from '../lib/harvest'
 
 // Activity types whose subject is a bed, not a species. Mirrors
@@ -131,6 +132,8 @@ export function Dashboard() {
   return (
     <div>
       <Masthead left={t('nav.dashboard')} center={t('dashboard.masthead.center')} />
+
+      <GardenBedsPrompt gardens={dashboard?.gardens} />
 
       {isActive && (
         <div

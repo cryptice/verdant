@@ -165,6 +165,8 @@ class CreateGardenViewModel @Inject constructor(
 
     // Result
     var createdGardenId by mutableStateOf<Long?>(null)
+    var createdFirstGarden by mutableStateOf(false)
+        private set
     var error by mutableStateOf<String?>(null)
     var isCreating by mutableStateOf(false)
 
@@ -211,6 +213,7 @@ class CreateGardenViewModel @Inject constructor(
     }
 
     fun createGarden() {
+        if (isCreating || createdGardenId != null) return
         isCreating = true
         error = null
         viewModelScope.launch {
@@ -231,7 +234,9 @@ class CreateGardenViewModel @Inject constructor(
                     }
                 )
                 android.util.Log.d("CreateGarden", "Sending request: name=${request.name}, beds=${request.beds.size}")
+                val isFirstGarden = gardenApiRepository.list().isEmpty()
                 val result = gardenApiRepository.createWithLayout(request)
+                createdFirstGarden = isFirstGarden
                 android.util.Log.d("CreateGarden", "Created garden id=${result.garden.id}, name=${result.garden.name}")
                 createdGardenId = result.garden.id
             } catch (e: Exception) {
@@ -275,7 +280,7 @@ class CreateGardenViewModel @Inject constructor(
 @Composable
 fun CreateGardenScreen(
     onBack: () -> Unit,
-    onCreated: () -> Unit,
+    onCreated: (isFirstGarden: Boolean) -> Unit,
     viewModel: CreateGardenViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -283,7 +288,7 @@ fun CreateGardenScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(viewModel.error) { viewModel.error?.let { snackbarHostState.showSnackbar(it) } }
     LaunchedEffect(viewModel.createdGardenId) {
-        if (viewModel.createdGardenId != null) onCreated()
+        if (viewModel.createdGardenId != null) onCreated(viewModel.createdFirstGarden)
     }
 
     val mastheadCenter = when (viewModel.currentStep) {

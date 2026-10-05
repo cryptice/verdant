@@ -86,6 +86,8 @@ export function BedForm() {
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['garden-beds', Number(gardenId)] })
+      qc.invalidateQueries({ queryKey: ['beds'] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
       completeStep('create_bed')
       navigate(`/garden/${gardenId}`, { replace: true })
     },
