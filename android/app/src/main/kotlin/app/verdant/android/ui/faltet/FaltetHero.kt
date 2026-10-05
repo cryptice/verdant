@@ -67,6 +67,7 @@ fun FaltetHero(
                 fontFamily = FaltetDisplay,
                 fontStyle = FontStyle.Italic,
                 fontSize = 32.sp,
+                lineHeight = 40.sp,
                 color = FaltetInk,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
