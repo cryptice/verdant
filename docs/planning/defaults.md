@@ -92,6 +92,11 @@ The test starts the admin frontend at port 5174, uses `TEST_ADMIN_EMAIL` and
 and removes its own species, group and schedule. It checks the CRUD/assignment
 workflow, reload persistence, deletion guards and mobile overflow.
 
+Production rollout on 2026-10-06 verified all 1,990 species, 417 groups and 2,090
+memberships unchanged, with identical resolved default profiles before and after
+the migration. All 45 schedules are now editable in admin. See the
+[deployment verification](admin-management-2026-10-06.json).
+
 ## Quantity and season assumptions
 
 - Default output is **one sellable unit per established plant on the target date**,

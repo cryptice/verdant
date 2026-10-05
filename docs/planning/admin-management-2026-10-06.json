@@ -1,0 +1,24 @@
+{
+  "species": 1990,
+  "schedules": 45,
+  "groups": 417,
+  "memberships": 2090,
+  "allSpeciesFieldsAndMembershipsPreserved": true,
+  "changedDefaultSpeciesIds": [],
+  "ready": 940,
+  "reviewRequired": 1050,
+  "adminBundleVerified": "/admin/assets/index-BqJVDWfE.js",
+  "verifiedAt": "2026-10-05T23:13:43.954211+00:00",
+  "environment": "verdant-prod",
+  "codeCommit": "416715af396f1a996441964960aaf969dd67aa58",
+  "cloudBuild": "66746b88-6797-4807-a747-6f37d08806f7",
+  "cloudRunRevision": "verdant-api-00010-dk5",
+  "trafficPercent": 100,
+  "validation": {
+    "backendTests": 368,
+    "webTests": 142,
+    "adminBrowserFlows": 1,
+    "adminAndWebLintAndBuild": "passed",
+    "cloudBuild": "SUCCESS"
+  }
+}
