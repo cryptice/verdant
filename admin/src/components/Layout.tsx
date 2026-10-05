@@ -46,6 +46,9 @@ export default function Layout() {
       </div>
       <nav className="flex-1 px-3 pt-2 md:pt-0 space-y-0.5 overflow-y-auto">
         <NavLink to="/species" className={linkClass} onClick={closeDrawer}>{t('nav.species')}</NavLink>
+        <NavLink to="/groups" className={linkClass} onClick={closeDrawer}>{t('planning.groups')}</NavLink>
+        <NavLink to="/schedules" className={linkClass} onClick={closeDrawer}>{t('planning.schedules')}</NavLink>
+        <NavLink to="/planning/species" className={linkClass} onClick={closeDrawer}>{t('planning.assignments')}</NavLink>
         <NavLink to="/users" className={linkClass} onClick={closeDrawer}>{t('nav.users')}</NavLink>
         <NavLink to="/gardens" className={linkClass} onClick={closeDrawer}>{t('nav.gardens')}</NavLink>
         <NavLink to="/providers" className={linkClass} onClick={closeDrawer}>{t('nav.providers')}</NavLink>

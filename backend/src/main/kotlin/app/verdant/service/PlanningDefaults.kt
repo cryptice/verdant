@@ -3,66 +3,74 @@ package app.verdant.service
 import app.verdant.dto.*
 import app.verdant.entity.Species
 import app.verdant.entity.UnitType
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
+import app.verdant.repository.SharedScheduleRepository
 import jakarta.enterprise.context.ApplicationScoped
 import java.math.BigDecimal
 import java.text.Normalizer
 
 data class SuggestedProductionProfile(val profile: ProductionProfile, val info: DefaultScheduleInfo)
+data class SharedScheduleCatalogue(val schedules: List<SharedSchedule>, val assignments: Map<Long, String>)
 
-/** Versioned horticultural defaults. Organization profiles always take precedence. */
+/** Shared editable defaults. Organization profiles and existing workflows take precedence. */
 @ApplicationScoped
-class PlanningDefaults(private val mapper: ObjectMapper) {
-    private val catalogue: JsonNode = javaClass.getResourceAsStream("/planning/defaults.json")!!.use(mapper::readTree)
-    private val schedules = catalogue["schedules"].toList()
+class PlanningDefaults(private val repository: SharedScheduleRepository) {
+    fun catalogue() = SharedScheduleCatalogue(repository.findAll(), repository.assignments())
 
-    fun suggest(species: Species): SuggestedProductionProfile {
+    fun suggest(species: Species, catalogue: SharedScheduleCatalogue = catalogue()): SuggestedProductionProfile {
         val genus = genus(species)
         val botanical = normalize(species.scientificName.orEmpty())
-        val schedule = schedules.firstOrNull { rule ->
-            rule["startingUnits"].any { it.asText() == species.defaultUnitType.name } &&
-                (rule["plantTypes"].isEmpty || rule["plantTypes"].any { it.asText() == species.plantType.name }) &&
-                (rule["genera"].isEmpty || rule["genera"].any { normalize(it.asText()) == genus }) &&
-                (rule["scientificPrefixes"].isEmpty || rule["scientificPrefixes"].any {
-                    botanical == normalize(it.asText()) || botanical.startsWith(normalize(it.asText()) + " ")
-                })
-        } ?: schedules.first { it["key"].asText() == "perennial-seed" }
-        var profile = mapper.treeToValue(schedule["profile"], ProductionProfile::class.java)
-            .copy(startingUnit = species.defaultUnitType)
-        val sourceLead = species.daysToHarvestMin?.takeIf { it in 1..3629 }
+        val assigned = catalogue.assignments[species.id]
+        val schedule = catalogue.schedules.firstOrNull { it.key == assigned }
+            ?: catalogue.schedules.firstOrNull { rule ->
+                rule.autoMatch && species.defaultUnitType in rule.startingUnits &&
+                    (rule.plantTypes.isEmpty() || species.plantType in rule.plantTypes) &&
+                    (rule.genera.isEmpty() || rule.genera.any { normalize(it) == genus }) &&
+                    (rule.scientificPrefixes.isEmpty() || rule.scientificPrefixes.any {
+                        botanical == normalize(it) || botanical.startsWith(normalize(it) + " ")
+                    })
+            } ?: return unassigned(species)
+        // An assigned species may later have its starting material changed in the species editor.
+        if (schedule.profile.startingUnit != species.defaultUnitType) return unassigned(species)
+        var profile = schedule.profile
+        val sourceLead = species.daysToHarvestMin?.takeIf { schedule.useSpeciesTiming && it in 1..3629 }
+        val propagation = if (profile.startingUnit == UnitType.SEED) "SOW" else "PLANT"
+        val start = profile.steps.first { it.quantityBasis == PlanningQuantityBasis.START && it.activityType == propagation }
         if (sourceLead != null) {
-            val templateLead = profile.steps.first { it.key == "start" }.daysBeforeHarvest
+            val templateLead = start.daysBeforeHarvest
             profile = profile.copy(steps = profile.steps.map { step -> step.copy(daysBeforeHarvest = when {
-                step.key == "purchase" -> sourceLead + 21
-                step.key == "start" -> sourceLead
+                step.activityType == "PURCHASE" -> sourceLead + 21
+                step.key == start.key -> sourceLead
                 step.daysBeforeHarvest == 0 -> 0
                 templateLead != null && templateLead > 0 -> step.daysBeforeHarvest?.let { it * sourceLead / templateLead }
                 else -> step.daysBeforeHarvest
             }) })
         }
-        // A supplier germination percentage is a ceiling, not establishment success.
-        if (species.defaultUnitType == UnitType.SEED && species.germinationRate != null) {
+        if (species.defaultUnitType == UnitType.SEED && species.germinationRate != null && profile.establishmentPercent != null) {
             profile = profile.copy(establishmentPercent = minOf(profile.establishmentPercent!!,
                 BigDecimal(species.germinationRate.coerceIn(0, 100)).multiply(BigDecimal("0.9"))))
         }
-        val months = schedule["harvestMonths"].map { it.asInt() }
-        // Do not silently discard a supplier's flowering window when it conflicts.
+        val months = schedule.harvestMonths
         val harvestMonths = if (species.bloomMonths.isEmpty()) months else
             if (months.isEmpty()) species.bloomMonths else months.intersect(species.bloomMonths.toSet()).sorted()
         val conflict = months.isNotEmpty() && species.bloomMonths.isNotEmpty() && harvestMonths.isEmpty()
         return SuggestedProductionProfile(profile, DefaultScheduleInfo(
-            schedule["key"].asText(), schedule["name"].asText(), catalogue["version"].asText(),
-            catalogue["climate"].asText(), schedule["description"].asText() +
-                " Tider och etableringsgrad är justerbara planeringsantaganden. Räkna med en säljbar enhet per etablerad planta på måldatumet, inte säsongsskörden." +
+            schedule.key, schedule.name, "${schedule.version} / ${schedule.revision}", schedule.climate,
+            schedule.description + " Tider och etableringsgrad är justerbara planeringsantaganden." +
                 (if (sourceLead != null) " Tiden till skörd ($sourceLead dagar) kommer från artens befintliga uppgifter." else "") +
                 (if (conflict) " Leverantörens blomningsmånader avviker från grundschemat; kontrollera säsongen." else ""),
-            schedule["reviewRequired"].asBoolean() || conflict, harvestMonths,
-            schedule["plantingMonths"].map { it.asInt() }, schedule["sourceKeys"].map {
-                mapper.treeToValue(catalogue["sources"][it.asText()], PlanningSource::class.java)
-            },
+            schedule.reviewRequired || conflict, harvestMonths, schedule.plantingMonths, schedule.sources,
         ))
     }
+
+    private fun unassigned(species: Species) = SuggestedProductionProfile(
+        ProductionProfile(startingUnit = species.defaultUnitType, steps = listOf(
+            LifecycleStep("purchase", "Purchase starting material", "PURCHASE", null, PlanningQuantityBasis.START),
+            LifecycleStep("start", "Start growing", if (species.defaultUnitType == UnitType.SEED) "SOW" else "PLANT", null, PlanningQuantityBasis.START),
+            LifecycleStep("harvest", "Harvest", "HARVEST", 0, PlanningQuantityBasis.OUTPUT),
+        )),
+        DefaultScheduleInfo("unassigned", "No matching schedule", "1", "", "Assign a shared schedule or configure a production profile.",
+            true, emptyList(), emptyList(), emptyList()),
+    )
 
     fun groupNames(species: Species): List<String> {
         val genus = genus(species)

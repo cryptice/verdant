@@ -35,12 +35,13 @@ class HarvestPlanService(
             species.findByGroupId(groupId).filter { it.orgId == null || it.orgId == orgId }
         }
         if (members.size > 200) throw BadRequestException("Use a planning group with at most 200 species")
-        return members.sortedBy { it.id }.map { planningSpecies(orgId, it) }
+        val catalogue = defaults.catalogue()
+        return members.sortedBy { it.id }.map { planningSpecies(orgId, it, catalogue) }
     }
 
-    private fun planningSpecies(orgId: Long, sp: Species): PlanningSpecies {
+    private fun planningSpecies(orgId: Long, sp: Species, catalogue: SharedScheduleCatalogue = defaults.catalogue()): PlanningSpecies {
         val profile = plans.profile(orgId, sp.id!!)
-        val suggested = if (profile == null && workflows.findStepsBySpeciesId(sp.id).isEmpty()) defaults.suggest(sp) else null
+        val suggested = if (profile == null && workflows.findStepsBySpeciesId(sp.id).isEmpty()) defaults.suggest(sp, catalogue) else null
         return PlanningSpecies(sp.id, listOfNotNull(sp.commonName, sp.variantName).joinToString(" — "),
             profile ?: suggested?.profile ?: defaultProfile(sp), profile != null, suggested?.info)
     }

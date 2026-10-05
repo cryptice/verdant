@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, type AddSpeciesProviderRequest } from '../../api/client'
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import { useTranslation } from 'react-i18next'
 import { InfoField } from '../../components/species/InfoField'
@@ -280,6 +280,7 @@ export function SpeciesDetailPage() {
               <div className="mb-3">
                 <label className="block text-xs font-medium text-[#787774] mb-1">{t('species.groups')}</label>
                 <span className="text-sm text-[#37352F]">{species.groups.map(g => g.name).join(', ')}</span>
+                {species.isSystem && <Link className="block mt-2 text-sm text-[#2EAADC] hover:underline" to="/groups">{t('planning.groups')}</Link>}
               </div>
             )}
             {species.tags.length > 0 && (
@@ -296,6 +297,10 @@ export function SpeciesDetailPage() {
         )}
 
         {/* Commercial & Classification */}
+        {species.isSystem && <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
+          <h3 className="text-sm font-semibold uppercase tracking-wider mb-3">{t('planning.lifecycle')}</h3>
+          <Link className="text-sm text-[#2EAADC] hover:underline" to={`/planning/species?species=${species.id}`}>{t('planning.manageSpeciesSchedule')}</Link>
+        </section>}
         {(species.costPerSeedCents != null || species.expectedStemsPerPlant != null || species.expectedVaseLifeDays != null || species.plantType || species.defaultUnitType) && (
           <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
             <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.commercialClassification')}</h3>

@@ -19,10 +19,13 @@ class PlanningCatalogueService(
     private val groups: SpeciesGroupRepository,
     private val defaults: PlanningDefaults,
 ) {
-    fun preview(): List<PlanningCatalogueEntry> = species.findAll().filter { it.orgId == null }.map { sp ->
-        val suggested = defaults.suggest(sp)
-        PlanningCatalogueEntry(sp.id!!, listOfNotNull(sp.commonNameSv ?: sp.commonName, sp.variantName).joinToString(" — "),
-            defaults.groupNames(sp), suggested.info.key, suggested.info.reviewRequired, suggested.profile)
+    fun preview(): List<PlanningCatalogueEntry> {
+        val catalogue = defaults.catalogue()
+        return species.findAll().filter { it.orgId == null }.map { sp ->
+            val suggested = defaults.suggest(sp, catalogue)
+            PlanningCatalogueEntry(sp.id!!, listOfNotNull(sp.commonNameSv ?: sp.commonName, sp.variantName).joinToString(" — "),
+                defaults.groupNames(sp), suggested.info.key, suggested.info.reviewRequired, suggested.profile)
+        }
     }
 
     /** Additive and repeatable: never removes memberships, edits species, or changes org profiles. */

@@ -9,20 +9,21 @@ import java.time.LocalDate
 
 @ApplicationScoped
 class HarvestPlanCalculator {
-    fun profileIssues(profile: ProductionProfile): List<String> = buildList {
-        if (profile.outputPerPlant == null || profile.outputPerPlant < BigDecimal("0.01") ||
-            profile.outputPerPlant > BigDecimal("1000000")) add("Set sellable output per plant for the harvest date (0.01–1,000,000).")
-        if (profile.establishmentPercent == null || profile.establishmentPercent < BigDecimal("0.01") ||
-            profile.establishmentPercent > BigDecimal(100)) add("Set establishment success (0.01–100%).")
+    fun profileIssues(profile: ProductionProfile, allowIncomplete: Boolean = false): List<String> = buildList {
+        if ((profile.outputPerPlant == null && !allowIncomplete) || profile.outputPerPlant?.let {
+            it < BigDecimal("0.01") || it > BigDecimal("1000000") } == true)
+            add("Set sellable output per plant for the harvest date (0.01–1,000,000).")
+        if ((profile.establishmentPercent == null && !allowIncomplete) || profile.establishmentPercent?.let {
+            it < BigDecimal("0.01") || it > BigDecimal(100) } == true) add("Set establishment success (0.01–100%).")
         val steps = profile.steps
         if (steps.size !in 3..30) add("Include purchase, propagation and harvest, with at most 30 steps.")
         if (steps.map { it.key }.distinct().size != steps.size || steps.any { !it.key.matches(Regex("[a-zA-Z0-9_-]{1,40}")) })
             add("Each lifecycle step needs a unique key.")
         if (steps.any { it.name.isBlank() || it.name.length > 255 || it.activityType !in ACTIVITIES })
             add("Each step needs a name and a supported activity.")
-        if (steps.any { it.daysBeforeHarvest == null || it.daysBeforeHarvest !in 0..3650 })
+        if (steps.any { (it.daysBeforeHarvest == null && !allowIncomplete) || it.daysBeforeHarvest?.let { d -> d !in 0..3650 } == true })
             add("Set days before harvest for every step (0–3650).")
-        if (steps.zipWithNext().any { (a, b) -> (a.daysBeforeHarvest ?: 0) < (b.daysBeforeHarvest ?: 0) })
+        if (steps.mapNotNull { it.daysBeforeHarvest }.zipWithNext().any { (a, b) -> a < b })
             add("Lifecycle steps must run in order from purchase to harvest.")
         if (steps.firstOrNull()?.let { it.activityType == "PURCHASE" && it.quantityBasis == PlanningQuantityBasis.START } != true)
             add("The first step must purchase starting material.")

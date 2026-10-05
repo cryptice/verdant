@@ -9,6 +9,9 @@ import ResetData from './pages/ResetData'
 import Outlets from './pages/Outlets'
 import Providers from './pages/Providers'
 import ProtectedRoute from './components/ProtectedRoute'
+import { PlanningGroups, PlanningGroupDetail } from './pages/PlanningGroups'
+import { PlanningSchedules, PlanningScheduleDetail } from './pages/PlanningSchedules'
+import PlanningAssignments from './pages/PlanningAssignments'
 
 export default function App() {
   return (
@@ -23,6 +26,11 @@ export default function App() {
           <Route path="/species/new" element={<SpeciesCreatePage />} />
           <Route path="/species/:id" element={<SpeciesDetailPage />} />
           <Route path="/species/:id/edit" element={<SpeciesEditPage />} />
+          <Route path="/groups" element={<PlanningGroups />} />
+          <Route path="/groups/:id" element={<PlanningGroupDetail />} />
+          <Route path="/schedules" element={<PlanningSchedules />} />
+          <Route path="/schedules/:key" element={<PlanningScheduleDetail />} />
+          <Route path="/planning/species" element={<PlanningAssignments />} />
           <Route path="/providers" element={<Providers />} />
           <Route path="/outlets" element={<Outlets />} />
           <Route path="/reset" element={<ResetData />} />

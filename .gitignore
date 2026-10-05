@@ -12,6 +12,8 @@ backend/.kotlin/
 # Node
 node_modules/
 dist/
+web/test-results/
+web/playwright-report/
 
 # Python import tooling
 __pycache__/

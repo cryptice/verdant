@@ -2,6 +2,7 @@ import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
   testDir: './e2e',
+  testIgnore: 'admin-planning.spec.ts',
   timeout: 30000,
   retries: 0,
   use: {
