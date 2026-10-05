@@ -217,8 +217,6 @@ class NavViewModel @Inject constructor(
     private val _gardens = kotlinx.coroutines.flow.MutableStateFlow<List<app.verdant.android.data.model.GardenResponse>>(emptyList())
     val gardens = _gardens.asStateFlow()
 
-    init { refreshGardens() }
-
     fun refreshGardens() {
         viewModelScope.launch {
             runCatching { gardenApiRepository.list() }.onSuccess { _gardens.value = it }
@@ -256,10 +254,8 @@ fun VerdantNavHost(viewModel: NavViewModel = hiltViewModel()) {
     )
 
     // Re-fetch the gardens list whenever the user lands on a chrome-having
-    // screen. NavViewModel.init only fires once at app start, so without
-    // this the bottom-bar 'My world' tab keeps showing the placeholder
-    // label after a user authenticates or creates their first garden —
-    // until the app is fully restarted.
+    // screen. Do not fetch from init: an unauthenticated startup request
+    // can return 401 while Google sign-in is in progress.
     LaunchedEffect(currentRoute) {
         if (currentRoute != null && !hideChrome) viewModel.refreshGardens()
     }

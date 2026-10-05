@@ -21,7 +21,7 @@ fun NavGraphBuilder.authGraph(navController: NavController) {
     }
     composable(Screen.Auth.route) {
         AuthScreen(
-            onAuthSuccess = { navController.navigate(Screen.Splash.route) { popUpTo(0) { inclusive = true } } },
+            onAuthSuccess = { navController.navigate(Screen.Dashboard.route) { popUpTo(0) { inclusive = true } } },
             onNeedsOnboarding = { navController.navigate(Screen.Splash.route) { popUpTo(0) { inclusive = true } } },
         )
     }

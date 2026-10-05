@@ -79,9 +79,9 @@ object NetworkModule {
                 }
 
                 if (!response.isSuccessful) {
-                    // 401 side-effect always — even for Response<*> callers, the
-                    // session is dead and SessionManager must broadcast it.
-                    if (response.code == 401) {
+                    // An anonymous request or rejected Google exchange is not
+                    // evidence that an existing Verdant session has expired.
+                    if (response.code == 401 && token != null && request.url.encodedPath != "/api/auth/google") {
                         runBlocking { sessionManager.onUnauthorized() }
                     }
                     // Only map to AppError when the call declares a bare `T` return.
