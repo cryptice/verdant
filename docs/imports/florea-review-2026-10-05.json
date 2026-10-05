@@ -1,0 +1,1417 @@
+{
+  "matchedExisting": [
+    {
+      "url": "https://floreagarden.com/products/anemon-the-bride",
+      "id": 1439,
+      "name": "Bukettanemon"
+    },
+    {
+      "url": "https://floreagarden.com/products/dahlia-eveline",
+      "id": 1575,
+      "name": "Dekorativdahlia"
+    },
+    {
+      "url": "https://floreagarden.com/products/dahlia-salmon-runner",
+      "id": 1591,
+      "name": "Dekorativdahlia"
+    },
+    {
+      "url": "https://floreagarden.com/products/dahlia-sam-hopkins",
+      "id": 1641,
+      "name": "Näckrosdahlia"
+    },
+    {
+      "url": "https://floreagarden.com/products/dahlia-white-aster",
+      "id": 1663,
+      "name": "Pompondahlia"
+    },
+    {
+      "url": "https://floreagarden.com/products/dahlia-yvonne",
+      "id": 1642,
+      "name": "Näckrosdahlia"
+    },
+    {
+      "url": "https://floreagarden.com/products/enkel-vallmo-bread-seed-poppy",
+      "id": 303,
+      "name": "Poppy"
+    },
+    {
+      "url": "https://floreagarden.com/products/fjarilsranunkel-hestia",
+      "id": 1685,
+      "name": "Fjärilsranunkel"
+    },
+    {
+      "url": "https://floreagarden.com/products/fjarilsranunkel-musa",
+      "id": 1686,
+      "name": "Fjärilsranunkel"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-amarant-coral-fountain",
+      "id": 874,
+      "name": "Love-lies-bleeding"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-amarant-viridis",
+      "id": 347,
+      "name": "Love-lies-bleeding"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-aster-king-size-apricot",
+      "id": 732,
+      "name": "China Aster"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-blaklint-blue-ball",
+      "id": 218,
+      "name": "Cornflower"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-blomstermorot-dara",
+      "id": 245,
+      "name": "Wild Carrot"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-buskkrasse-bloody-mary",
+      "id": 270,
+      "name": "Buskkrasse"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-buskkrasse-ladybird-rose",
+      "id": 393,
+      "name": "Nasturtium"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-buskkrasse-tip-top-pink-blush",
+      "id": 273,
+      "name": "Nasturtium"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-doftklint-the-bride",
+      "id": 290,
+      "name": "Sweet Sultan"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-fingerborgsblomma-apricot-delight",
+      "id": 1101,
+      "name": "Common Foxglove"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-gilia",
+      "id": 344,
+      "name": "Fineflower Gilia"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-italienskt-darrgras",
+      "id": 400,
+      "name": "Greater Quaking Grass"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-jatteverbena",
+      "id": 406,
+      "name": "Jätteverbena"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-jungfrun-i-det-grona-persian-jewels",
+      "id": 411,
+      "name": "Love-in-a-mist"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-kantnepeta",
+      "id": 1176,
+      "name": "Catmint"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-klocktobak-bronze-queen",
+      "id": 427,
+      "name": "Flowering Tobacco"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-kolvhirs-red-jewel",
+      "id": 435,
+      "name": "Italian Millet"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-lejongap-doubleshot-appleblossom",
+      "id": 453,
+      "name": "Snapdragon"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-lejongap-doubleshot-peach",
+      "id": 454,
+      "name": "Snapdragon"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-lejongap-madame-butterfly-bronze-storpack",
+      "id": 456,
+      "name": "Snapdragon"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-lejongap-madame-butterfly-bronze-white",
+      "id": 457,
+      "name": "Snapdragon"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-lejongap-madame-butterfly-ivory",
+      "id": 458,
+      "name": "Snapdragon"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-luktart-nimbus",
+      "id": 65,
+      "name": "Luktärt"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-luktart-old-times",
+      "id": 66,
+      "name": "Luktärt"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-luktart-spencer-arthur-hellyer",
+      "id": 61,
+      "name": "Luktärt"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-luktart-spring-sunshine-blush",
+      "id": 69,
+      "name": "Luktärt"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-luktart-spring-sunshine-cream",
+      "id": 71,
+      "name": "Luktärt"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-luktart-spring-sunshine-light-blue",
+      "id": 72,
+      "name": "Luktärt"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-luktart-spring-sunshine-nancy",
+      "id": 74,
+      "name": "Luktärt"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-luktart-spring-sunshine-peach",
+      "id": 75,
+      "name": "Luktärt"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-madame-butterfly-bronze",
+      "id": 456,
+      "name": "Snapdragon"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-petunia-ingrid-f1",
+      "id": 556,
+      "name": "Petunia"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-praktvadd-fata-morgana",
+      "id": 581,
+      "name": "Pincushion Flower"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-praktvadd-oxford-blue",
+      "id": 584,
+      "name": "Pincushion Flower"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-praktvadd-snowmaiden",
+      "id": 586,
+      "name": "Pincushion Flower"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-prastkrage-may-queen",
+      "id": 1250,
+      "name": "Prästkrage"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-ringblomma-pink-surprise",
+      "id": 635,
+      "name": "English Marigold"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-rosenskara-apollo-lovesong",
+      "id": 671,
+      "name": "Cosmos"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-rosenskara-apricot-lemonade",
+      "id": 96,
+      "name": "Cosmos"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-rosenskara-apricotta",
+      "id": 97,
+      "name": "Cosmos"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-rosenskara-cosmos-double-click-rose-bonbon",
+      "id": 106,
+      "name": "Cosmos"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-rosenskara-cosmos-double-click-snowpuff",
+      "id": 107,
+      "name": "Cosmos"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-rosenskara-double-click-cranberries",
+      "id": 105,
+      "name": "Cosmos"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-rosenskara-velouette",
+      "id": 115,
+      "name": "Cosmos"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-rosenskara-xanthos",
+      "id": 116,
+      "name": "Cosmos"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-rosenskara-xsenia",
+      "id": 117,
+      "name": "Cosmos"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-rysk-martorn-blue-glitter",
+      "id": 1275,
+      "name": "Sea Holly"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-rysk-martorn-white-glitter",
+      "id": 1276,
+      "name": "Sea Holly"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-salvia-white-swan",
+      "id": 259,
+      "name": "Annual Clary"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-slingerkrasse-milkmaid",
+      "id": 877,
+      "name": "Nasturtium"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-slingerkrasse-purple-emperor",
+      "id": 706,
+      "name": "Nasturtium"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-slojsilja",
+      "id": 708,
+      "name": "Bishop's weed"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-solros-astra-rose",
+      "id": 604,
+      "name": "Sunflower"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-solros-giganteus",
+      "id": 404,
+      "name": "Giant Sunflower"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-solros-pro-cut-white-nite-f1",
+      "id": 714,
+      "name": "Sunflower"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-sommarflox-cherry-caramel",
+      "id": 131,
+      "name": "Sommarflox"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-sommarflox-creme-brule",
+      "id": 132,
+      "name": "Sommarflox"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-sommarmalva-mont-blanc",
+      "id": 768,
+      "name": "Rose Mallow"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-sommarrudbeckia-herbstwald",
+      "id": 138,
+      "name": "Black-eyed Susan"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-sommarrudbeckia-sahara",
+      "id": 141,
+      "name": "Black-eyed Susan"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-somntuta-thai-silk-pink-champagne",
+      "id": 780,
+      "name": "California Poppy"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-somntuta-thai-silk-rose-chiffon",
+      "id": 781,
+      "name": "California Poppy"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-spanadslin",
+      "id": 1022,
+      "name": "Common Flax"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-spetsblomma-lace-blue",
+      "id": 228,
+      "name": "Blue Lace Flower"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-stockros-nigra",
+      "id": 1327,
+      "name": "Hollyhock"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-tradgardsriddarsporre-guardian-lavender-f1",
+      "id": 1316,
+      "name": "Candle Larkspur"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-tradgardsriddarsporre-guardian-white",
+      "id": 1317,
+      "name": "Candle Larkspur"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-vallmo-bread-seed-poppy",
+      "id": 303,
+      "name": "Poppy"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-vallmo-bridal-silk",
+      "id": 439,
+      "name": "Corn Poppy"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-vit-blomsterkorvel-white-lance",
+      "id": 239,
+      "name": "Large Flowered Orlaya"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-zinnia-isabellina-creamy-yellow",
+      "id": 148,
+      "name": "Zinnia"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-zinnia-oklahoma-salmon",
+      "id": 151,
+      "name": "Zinnia"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-zinnia-queeny-lime-red",
+      "id": 158,
+      "name": "Zinnia"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-zinnia-zinderella-lilac",
+      "id": 162,
+      "name": "Zinnia"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-zinnia-zinderella-peach",
+      "id": 163,
+      "name": "Zinnia"
+    },
+    {
+      "url": "https://floreagarden.com/products/honungsfacelia",
+      "id": 981,
+      "name": "Lacy Phacelia"
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-bacardi",
+      "id": 1565,
+      "name": "Dekorativdahlia"
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-break-out",
+      "id": 1596,
+      "name": "Dinnerplatedahlia"
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-cafe-au-lait",
+      "id": 1597,
+      "name": "Dinnerplatedahlia"
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-copperboy",
+      "id": 1651,
+      "name": "Pompondahlia"
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-cornel-bronze",
+      "id": 1652,
+      "name": "Pompondahlia"
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-fleurel",
+      "id": 1602,
+      "name": "Dinnerplatedahlia"
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-honey-dew",
+      "id": 1583,
+      "name": "Dekorativdahlia"
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-kelsey-annie-joy",
+      "id": 1625,
+      "name": "Halskråsdahlia"
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-preference",
+      "id": 1634,
+      "name": "Kaktusdahlia"
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-small-world",
+      "id": 1659,
+      "name": "Pompondahlia"
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-teesbrooke-audrey",
+      "id": 1627,
+      "name": "Halskråsdahlia"
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-tyrell",
+      "id": 1611,
+      "name": "Dinnerplatedahlia"
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-wine-eyed-jill",
+      "id": 1664,
+      "name": "Pompondahlia"
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-wizard-of-oz",
+      "id": 1665,
+      "name": "Pompondahlia"
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-allium-mount-everest",
+      "id": 1390,
+      "name": "Skägglök"
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-hyacint-carnegie",
+      "id": 1394,
+      "name": "Hyacint"
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-hyacint-gipsy-queen",
+      "id": 1393,
+      "name": "Hyacint"
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-krokus-blue-pearl",
+      "id": 1399,
+      "name": "Blå Bägarkrokus"
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-narciss-bridal-crown-eko",
+      "id": 1433,
+      "name": "Bukettnarciss"
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-narciss-british-gamble",
+      "id": 1469,
+      "name": "Påsklilja"
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-narciss-thalia-eko",
+      "id": 1419,
+      "name": "Orkidénarciss"
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-parlhyacint-white-magic",
+      "id": 1451,
+      "name": "Persisk Pärlhyacint"
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-tulpan-apricot-pride",
+      "id": 1525,
+      "name": "Darwinhybridtulpan"
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-tulpan-avant-garde",
+      "id": 1495,
+      "name": "Tulpan"
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-tulpan-copper-image",
+      "id": 1499,
+      "name": "Tulpan"
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-tulpan-creme-upstar",
+      "id": 1500,
+      "name": "Tulpan"
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-tulpan-design-impression",
+      "id": 1489,
+      "name": "Darwinhybridtulpan"
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-tulpan-dreamer",
+      "id": 1505,
+      "name": "Tulpan"
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-tulpan-finola",
+      "id": 1506,
+      "name": "Tulpan"
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-tulpan-la-belle-epoque",
+      "id": 1511,
+      "name": "Tulpan"
+    },
+    {
+      "url": "https://floreagarden.com/products/luktart-spring-sunshine-champagne",
+      "id": 70,
+      "name": "Luktärt"
+    },
+    {
+      "url": "https://floreagarden.com/products/narciss-geranium",
+      "id": 1415,
+      "name": "Bukettnarciss"
+    },
+    {
+      "url": "https://floreagarden.com/products/narciss-ice-king",
+      "id": 1424,
+      "name": "Stjärnnarciss"
+    },
+    {
+      "url": "https://floreagarden.com/products/narciss-sir-winston-churchill",
+      "id": 1416,
+      "name": "Bukettnarciss"
+    },
+    {
+      "url": "https://floreagarden.com/products/rosenskara-double-click-bicolour-pink",
+      "id": 103,
+      "name": "Cosmos"
+    },
+    {
+      "url": "https://floreagarden.com/products/sommarflox-sugar-stars",
+      "id": 133,
+      "name": "Sommarflox"
+    },
+    {
+      "url": "https://floreagarden.com/products/sommarsnoklocka-gravetye-giant",
+      "id": 1449,
+      "name": "Sommarsnöklocka"
+    },
+    {
+      "url": "https://floreagarden.com/products/tulpan-black-hero",
+      "id": 1496,
+      "name": "Tulpan"
+    },
+    {
+      "url": "https://floreagarden.com/products/tulpan-dream-touch",
+      "id": 1504,
+      "name": "Tulpan"
+    },
+    {
+      "url": "https://floreagarden.com/products/tulpan-menton",
+      "id": 1548,
+      "name": "Tulpan"
+    },
+    {
+      "url": "https://floreagarden.com/products/tulpan-pink-star",
+      "id": 1514,
+      "name": "Tulpan"
+    },
+    {
+      "url": "https://floreagarden.com/products/tulpan-queen-of-night",
+      "id": 1549,
+      "name": "Tulpan"
+    },
+    {
+      "url": "https://floreagarden.com/products/vitpytta-the-pearl",
+      "id": 1369,
+      "name": "Sneezewort"
+    }
+  ],
+  "duplicateProducts": [
+    {
+      "url": "https://floreagarden.com/products/fro-till-madame-butterfly-bronze",
+      "reason": "Same species/variety already included"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-vallmo-bread-seed-poppy",
+      "reason": "Same species/variety already included"
+    }
+  ],
+  "disambiguatedNames": [],
+  "excluded": [
+    {
+      "url": "https://floreagarden.com/products/bella-lindas-spring-mix",
+      "reason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+    },
+    {
+      "url": "https://floreagarden.com/products/blushing-white-mix",
+      "reason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+    },
+    {
+      "url": "https://floreagarden.com/products/dahlia-blush-collection",
+      "reason": "Assorted tuber cultivar bundle; not an individual variety"
+    },
+    {
+      "url": "https://floreagarden.com/products/dahlia-pastel-collection",
+      "reason": "Assorted tuber cultivar bundle; not an individual variety"
+    },
+    {
+      "url": "https://floreagarden.com/products/dahlia-sunset-collection",
+      "reason": "Assorted tuber cultivar bundle; not an individual variety"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-angsblandning-bee-mixture",
+      "reason": "Mixed-species product"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-angsblandning-rockgarden",
+      "reason": "Mixed-species product"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-atbar-blomstermix",
+      "reason": "Mixed-species product"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-bukettmix-pastell",
+      "reason": "Mixed-species product"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-bukettmix-vit",
+      "reason": "Mixed-species product"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-sommarblomsmix",
+      "reason": "Mixed-species product"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-svensk-angsblandning",
+      "reason": "Mixed-species product"
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-svensk-fjarilsblandning",
+      "reason": "Mixed-species product"
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-hanna-wendelbo-mix",
+      "reason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+    },
+    {
+      "url": "https://floreagarden.com/products/lokpaket-aterkommande-tulpaner",
+      "reason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+    },
+    {
+      "url": "https://floreagarden.com/products/lokpaket-blush-berry",
+      "reason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+    },
+    {
+      "url": "https://floreagarden.com/products/lokpaket-krukmix",
+      "reason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+    },
+    {
+      "url": "https://floreagarden.com/products/lokpaket-langa-stjalkar-for-buketter",
+      "reason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+    },
+    {
+      "url": "https://floreagarden.com/products/lokpaket-loklasagne",
+      "reason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+    },
+    {
+      "url": "https://floreagarden.com/products/lokpaket-narcissfavoriter",
+      "reason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+    },
+    {
+      "url": "https://floreagarden.com/products/lokpaket-radjurssakra-favoriter",
+      "reason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+    },
+    {
+      "url": "https://floreagarden.com/products/lokpaket-vara-alskade-sorter",
+      "reason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+    },
+    {
+      "url": "https://floreagarden.com/products/luktartsbonanza",
+      "reason": "Assorted seed cultivar bundle; not an individual variety"
+    },
+    {
+      "url": "https://floreagarden.com/products/perfect-match-mix",
+      "reason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+    },
+    {
+      "url": "https://floreagarden.com/products/svensk-skarbona-stastorp",
+      "reason": "Vegetable seeds"
+    },
+    {
+      "url": "https://floreagarden.com/products/svensk-sockerart-lokforare-bergfalts-jatteart",
+      "reason": "Vegetable seeds"
+    },
+    {
+      "url": "https://floreagarden.com/products/tulpanmix-la-fine-fleur",
+      "reason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+    }
+  ],
+  "errors": [],
+  "totalProducts": 458,
+  "importEntries": 429,
+  "listingOnly": [],
+  "reviewedAdjustments": [
+    {
+      "url": "https://floreagarden.com/products/anemon-the-bride",
+      "match": [
+        "Bukettanemon",
+        "Bride"
+      ],
+      "reason": "Bride and The Bride are supplier spellings of the same named Anemone coronaria cultivar.",
+      "references": [
+        "https://www.blomgarden.nl/products/anemone-bride",
+        "https://www.rhs.org.uk/plants/25510/anemone-coronaria-the-bride/details"
+      ]
+    },
+    {
+      "url": "https://floreagarden.com/products/bella-lindas-spring-mix",
+      "corrections": {
+        "excludeReason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+      },
+      "reason": "Consistent with the Impecta import: omit assorted bulb bundles; import their individually listed varieties."
+    },
+    {
+      "url": "https://floreagarden.com/products/blushing-white-mix",
+      "corrections": {
+        "excludeReason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+      },
+      "reason": "Consistent with the Impecta import: omit assorted bulb bundles; import their individually listed varieties."
+    },
+    {
+      "url": "https://floreagarden.com/products/dahlia-blush-collection",
+      "corrections": {
+        "excludeReason": "Assorted tuber cultivar bundle; not an individual variety"
+      },
+      "reason": "The description lists multiple named dahlias; these cultivars are collected from their individual product pages."
+    },
+    {
+      "url": "https://floreagarden.com/products/dahlia-eveline",
+      "match": [
+        "Dekorativdahlia",
+        "Eveline"
+      ],
+      "reason": "Same named Dahlia cultivar; the existing catalogue uses a flower-form group as its common name."
+    },
+    {
+      "url": "https://floreagarden.com/products/dahlia-pastel-collection",
+      "corrections": {
+        "excludeReason": "Assorted tuber cultivar bundle; not an individual variety"
+      },
+      "reason": "The description lists multiple named dahlias; these cultivars are collected from their individual product pages."
+    },
+    {
+      "url": "https://floreagarden.com/products/dahlia-salmon-runner",
+      "match": [
+        "Dekorativdahlia",
+        "Salmon Runner"
+      ],
+      "reason": "Same named Dahlia cultivar; the existing catalogue uses a flower-form group as its common name."
+    },
+    {
+      "url": "https://floreagarden.com/products/dahlia-sam-hopkins",
+      "match": [
+        "Näckrosdahlia",
+        "Sam Hopkins"
+      ],
+      "reason": "Same named Dahlia cultivar; the existing catalogue uses a flower-form group as its common name."
+    },
+    {
+      "url": "https://floreagarden.com/products/dahlia-sunset-collection",
+      "corrections": {
+        "excludeReason": "Assorted tuber cultivar bundle; not an individual variety"
+      },
+      "reason": "The description lists multiple named dahlias; these cultivars are collected from their individual product pages."
+    },
+    {
+      "url": "https://floreagarden.com/products/dahlia-white-aster",
+      "match": [
+        "Pompondahlia",
+        "White Aster"
+      ],
+      "reason": "Same named Dahlia cultivar; the existing catalogue uses a flower-form group as its common name."
+    },
+    {
+      "url": "https://floreagarden.com/products/dahlia-yvonne",
+      "match": [
+        "Näckrosdahlia",
+        "Yvonne"
+      ],
+      "reason": "Same named Dahlia cultivar; the existing catalogue uses a flower-form group as its common name."
+    },
+    {
+      "url": "https://floreagarden.com/products/fjarilsranunkel-hestia",
+      "match": [
+        "Fjärilsranunkel",
+        "Butterfly Hestia"
+      ],
+      "reason": "Butterfly is the series name, also present in the Florea botanical label."
+    },
+    {
+      "url": "https://floreagarden.com/products/fjarilsranunkel-musa",
+      "match": [
+        "Fjärilsranunkel",
+        "Butterfly Musa"
+      ],
+      "reason": "Butterfly is the series name, also present in the Florea botanical label."
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-buskkrasse-bloody-mary",
+      "corrections": {
+        "specifications": {
+          "Årighet": "Ettårig"
+        }
+      },
+      "reason": "Missing lifecycle; use the annual cultivation classification stated by Florea for other cultivars of the same species.",
+      "references": [
+        "https://floreagarden.com/products/fro-till-buskkrasse-ladybird-rose"
+      ]
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-eucalypthus-cinerea",
+      "corrections": {
+        "specifications": {
+          "Årighet": "Flerårig"
+        }
+      },
+      "reason": "Product description explicitly describes overwintering and eventual growth into a tree."
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-islandsk-vallmo-champagne-bubbles-pink",
+      "corrections": {
+        "scientificName": "Papaver nudicaule"
+      },
+      "reason": "Correct the botanical spelling Papaver nudicale to Papaver nudicaule.",
+      "references": [
+        "https://www.florensis.com/en/products/bedding-plants/perennials/papaver-nudicaule/papaver-nudicaule-champagne-bubbles-f1"
+      ]
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-jatteeternell-white",
+      "corrections": {
+        "specifications": {
+          "Årighet": "Ettårig"
+        }
+      },
+      "reason": "Missing lifecycle; use the annual cultivation classification stated by Florea for other cultivars of the same species.",
+      "references": [
+        "https://floreagarden.com/products/fro-till-jatteeternell-silvery-white"
+      ]
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-lejongap-madame-butterfly-bronze-white",
+      "match": [
+        "Snapdragon",
+        "Madame Butterfly Bronze with White"
+      ],
+      "reason": "The source abbreviates with to w in the cultivar name."
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-luktart-nimbus",
+      "match": [
+        "Luktärt",
+        "Spencer Nimbus"
+      ],
+      "reason": "Same Nimbus sweet pea cultivar; Verdant includes the Spencer group prefix."
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-luktart-old-times",
+      "match": [
+        "Luktärt",
+        "Spencer Old Times"
+      ],
+      "reason": "Same Old Times sweet pea cultivar; Verdant includes the Spencer group prefix."
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-luktart-spring-sunshine-mix",
+      "corrections": {
+        "specifications": {
+          "Årighet": "Ettårig"
+        }
+      },
+      "reason": "Missing lifecycle; use the annual cultivation classification stated by Florea for other cultivars of the same species.",
+      "references": [
+        "https://floreagarden.com/products/fro-till-luktart-spring-sunshine-blush"
+      ]
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-sibirisk-vallmo-champagne-bubbles-white",
+      "corrections": {
+        "scientificName": "Papaver nudicaule"
+      },
+      "reason": "Correct the botanical spelling Papaver nudicale to Papaver nudicaule.",
+      "references": [
+        "https://www.florensis.com/en/products/bedding-plants/perennials/papaver-nudicaule/papaver-nudicaule-champagne-bubbles-f1"
+      ]
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-sibirisk-vallmo-ciclamino",
+      "corrections": {
+        "scientificName": "Papaver nudicaule"
+      },
+      "reason": "Correct the botanical spelling Papaver nudicale to Papaver nudicaule.",
+      "references": [
+        "https://www.florensis.com/en/products/bedding-plants/perennials/papaver-nudicaule/papaver-nudicaule-champagne-bubbles-f1"
+      ]
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-sibirisk-vallmo-corallo",
+      "corrections": {
+        "scientificName": "Papaver nudicaule"
+      },
+      "reason": "Correct the botanical spelling Papaver nudicale to Papaver nudicaule.",
+      "references": [
+        "https://www.florensis.com/en/products/bedding-plants/perennials/papaver-nudicaule/papaver-nudicaule-champagne-bubbles-f1"
+      ]
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-sibirisk-vallmo-giallo-chiaro",
+      "corrections": {
+        "scientificName": "Papaver nudicaule"
+      },
+      "reason": "Correct the botanical spelling Papaver nudicale to Papaver nudicaule.",
+      "references": [
+        "https://www.florensis.com/en/products/bedding-plants/perennials/papaver-nudicaule/papaver-nudicaule-champagne-bubbles-f1"
+      ]
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-sibirisk-vallmo-rosa-chiaro-pastello",
+      "corrections": {
+        "scientificName": "Papaver nudicaule"
+      },
+      "reason": "Correct the botanical spelling Papaver nudicale to Papaver nudicaule.",
+      "references": [
+        "https://www.florensis.com/en/products/bedding-plants/perennials/papaver-nudicaule/papaver-nudicaule-champagne-bubbles-f1"
+      ]
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-sibirisk-vallmo-salmone",
+      "corrections": {
+        "scientificName": "Papaver nudicaule"
+      },
+      "reason": "Correct the botanical spelling Papaver nudicale to Papaver nudicaule.",
+      "references": [
+        "https://www.florensis.com/en/products/bedding-plants/perennials/papaver-nudicaule/papaver-nudicaule-champagne-bubbles-f1"
+      ]
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-solros-astra-rose",
+      "match": [
+        "Sunflower",
+        "Astra Rose"
+      ],
+      "reason": "Same named cultivar and botanical genus; Florea uses a shorter botanical name or a different horticultural group."
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-solros-giganteus",
+      "match": [
+        "Giant Sunflower",
+        "Giganteus"
+      ],
+      "reason": "Same named cultivar and botanical genus; Florea uses a shorter botanical name or a different horticultural group."
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-solros-solero-mix",
+      "corrections": {
+        "scientificName": null
+      },
+      "reason": "The source value Hellianthus Mix is a mixture label, not a botanical species name."
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-tradgardsriddarsporre-guardian-lavender-f1",
+      "match": [
+        "Candle Larkspur",
+        "Guardian Lavender"
+      ],
+      "reason": "Same named cultivar and botanical genus; Florea uses a shorter botanical name or a different horticultural group."
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-zinnia-dahl-flow-luminosa",
+      "corrections": {
+        "specifications": {
+          "Årighet": "Ettårig"
+        }
+      },
+      "reason": "Missing lifecycle; use the annual cultivation classification stated by Florea for other cultivars of the same species.",
+      "references": [
+        "https://floreagarden.com/products/fro-till-zinnia-isabellina-creamy-yellow"
+      ]
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-zinnia-isabellina-creamy-yellow",
+      "match": [
+        "Zinnia",
+        "Isabellina"
+      ],
+      "reason": "Dahl Flow and Creamy Yellow describe flower form and colour around the Isabellina cultivar name."
+    },
+    {
+      "url": "https://floreagarden.com/products/fro-till-zinnia-peaches-cream",
+      "corrections": {
+        "specifications": {
+          "Årighet": "Ettårig"
+        }
+      },
+      "reason": "Missing lifecycle; use the annual cultivation classification stated by Florea for other cultivars of the same species.",
+      "references": [
+        "https://floreagarden.com/products/fro-till-zinnia-amalfi-mix"
+      ]
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-bacardi",
+      "match": [
+        "Dekorativdahlia",
+        "Bacardi"
+      ],
+      "reason": "Same named Dahlia cultivar; the existing catalogue uses a flower-form group as its common name."
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-break-out",
+      "match": [
+        "Dinnerplatedahlia",
+        "Break Out"
+      ],
+      "reason": "Same named Dahlia cultivar; the existing catalogue uses a flower-form group as its common name."
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-cafe-au-lait",
+      "match": [
+        "Dinnerplatedahlia",
+        "Café au Lait"
+      ],
+      "reason": "Same named Dahlia cultivar; the existing catalogue uses a flower-form group as its common name."
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-copperboy",
+      "match": [
+        "Pompondahlia",
+        "Copperboy"
+      ],
+      "reason": "Same named Dahlia cultivar; the existing catalogue uses a flower-form group as its common name."
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-cornel-bronze",
+      "match": [
+        "Pompondahlia",
+        "Cornel Bronze"
+      ],
+      "reason": "Same named Dahlia cultivar; the existing catalogue uses a flower-form group as its common name."
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-fleurel",
+      "match": [
+        "Dinnerplatedahlia",
+        "Fleurel"
+      ],
+      "reason": "Same named Dahlia cultivar; the existing catalogue uses a flower-form group as its common name."
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-honey-dew",
+      "match": [
+        "Dekorativdahlia",
+        "Honey Dew"
+      ],
+      "reason": "Same named Dahlia cultivar; the existing catalogue uses a flower-form group as its common name."
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-kelsey-annie-joy",
+      "match": [
+        "Halskråsdahlia",
+        "Kelsey Annie Joy"
+      ],
+      "reason": "Same named Dahlia cultivar; the existing catalogue uses a flower-form group as its common name."
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-preference",
+      "match": [
+        "Kaktusdahlia",
+        "Preference"
+      ],
+      "reason": "Same named Dahlia cultivar; the existing catalogue uses a flower-form group as its common name."
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-small-world",
+      "match": [
+        "Pompondahlia",
+        "Small World"
+      ],
+      "reason": "Same named Dahlia cultivar; the existing catalogue uses a flower-form group as its common name."
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-teesbrooke-audrey",
+      "match": [
+        "Halskråsdahlia",
+        "Teesbrooke Audrey"
+      ],
+      "reason": "Same named Dahlia cultivar; the existing catalogue uses a flower-form group as its common name."
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-tyrell",
+      "match": [
+        "Dinnerplatedahlia",
+        "Tyrell"
+      ],
+      "reason": "Same named Dahlia cultivar; the existing catalogue uses a flower-form group as its common name."
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-wine-eyed-jill",
+      "match": [
+        "Pompondahlia",
+        "Wine Eyed Jill"
+      ],
+      "reason": "Same named Dahlia cultivar; the existing catalogue uses a flower-form group as its common name."
+    },
+    {
+      "url": "https://floreagarden.com/products/knol-till-dahlia-wizard-of-oz",
+      "match": [
+        "Pompondahlia",
+        "Wizard of Oz"
+      ],
+      "reason": "Same named Dahlia cultivar; the existing catalogue uses a flower-form group as its common name."
+    },
+    {
+      "url": "https://floreagarden.com/products/lampborstgras",
+      "corrections": {
+        "specifications": {
+          "Årighet": "Flerårig"
+        }
+      },
+      "reason": "Missing lifecycle; Florea classifies the other Pennisetum alopecuroides plants as perennial.",
+      "references": [
+        "https://floreagarden.com/products/lampborstgras-hameln",
+        "https://floreagarden.com/products/lampborstgras-red-head"
+      ]
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-allium-mount-everest",
+      "match": [
+        "Skägglök",
+        "Mount Everest"
+      ],
+      "reason": "Same named cultivar and botanical genus; Florea uses a shorter botanical name or a different horticultural group."
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-hanna-wendelbo-mix",
+      "corrections": {
+        "excludeReason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+      },
+      "reason": "Consistent with the Impecta import: omit assorted bulb bundles; import their individually listed varieties."
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-krokus-blue-pearl",
+      "match": [
+        "Blå Bägarkrokus",
+        "Blue Pearl"
+      ],
+      "reason": "Same named cultivar and botanical genus; Florea uses a shorter botanical name or a different horticultural group."
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-narciss-bridal-crown-eko",
+      "match": [
+        "Bukettnarciss",
+        "Bridal Crown"
+      ],
+      "reason": "Same named cultivar and botanical genus; Florea uses a shorter botanical name or a different horticultural group."
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-narciss-british-gamble",
+      "match": [
+        "Påsklilja",
+        "British Gamble"
+      ],
+      "reason": "Same named cultivar and botanical genus; Florea uses a shorter botanical name or a different horticultural group."
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-narciss-thalia-eko",
+      "match": [
+        "Orkidénarciss",
+        "Thalia"
+      ],
+      "reason": "Same named cultivar and botanical genus; Florea uses a shorter botanical name or a different horticultural group."
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-parlhyacint-white-magic",
+      "match": [
+        "Persisk Pärlhyacint",
+        "White Magic"
+      ],
+      "reason": "Same named cultivar and botanical genus; Florea uses a shorter botanical name or a different horticultural group."
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-tulpan-apricot-pride",
+      "match": [
+        "Darwinhybridtulpan",
+        "Apricot Pride"
+      ],
+      "reason": "Same named cultivar and botanical genus; Florea uses a shorter botanical name or a different horticultural group."
+    },
+    {
+      "url": "https://floreagarden.com/products/lok-till-tulpan-design-impression",
+      "match": [
+        "Darwinhybridtulpan",
+        "Design Impression"
+      ],
+      "reason": "Same named cultivar and botanical genus; Florea uses a shorter botanical name or a different horticultural group."
+    },
+    {
+      "url": "https://floreagarden.com/products/lokpaket-aterkommande-tulpaner",
+      "corrections": {
+        "excludeReason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+      },
+      "reason": "Consistent with the Impecta import: omit assorted bulb bundles; import their individually listed varieties."
+    },
+    {
+      "url": "https://floreagarden.com/products/lokpaket-blush-berry",
+      "corrections": {
+        "excludeReason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+      },
+      "reason": "Consistent with the Impecta import: omit assorted bulb bundles; import their individually listed varieties."
+    },
+    {
+      "url": "https://floreagarden.com/products/lokpaket-krukmix",
+      "corrections": {
+        "excludeReason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+      },
+      "reason": "Consistent with the Impecta import: omit assorted bulb bundles; import their individually listed varieties."
+    },
+    {
+      "url": "https://floreagarden.com/products/lokpaket-langa-stjalkar-for-buketter",
+      "corrections": {
+        "excludeReason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+      },
+      "reason": "Consistent with the Impecta import: omit assorted bulb bundles; import their individually listed varieties."
+    },
+    {
+      "url": "https://floreagarden.com/products/lokpaket-loklasagne",
+      "corrections": {
+        "excludeReason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+      },
+      "reason": "Consistent with the Impecta import: omit assorted bulb bundles; import their individually listed varieties."
+    },
+    {
+      "url": "https://floreagarden.com/products/lokpaket-narcissfavoriter",
+      "corrections": {
+        "excludeReason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+      },
+      "reason": "Consistent with the Impecta import: omit assorted bulb bundles; import their individually listed varieties."
+    },
+    {
+      "url": "https://floreagarden.com/products/lokpaket-radjurssakra-favoriter",
+      "corrections": {
+        "excludeReason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+      },
+      "reason": "Consistent with the Impecta import: omit assorted bulb bundles; import their individually listed varieties."
+    },
+    {
+      "url": "https://floreagarden.com/products/lokpaket-vara-alskade-sorter",
+      "corrections": {
+        "excludeReason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+      },
+      "reason": "Consistent with the Impecta import: omit assorted bulb bundles; import their individually listed varieties."
+    },
+    {
+      "url": "https://floreagarden.com/products/luktartsbonanza",
+      "corrections": {
+        "excludeReason": "Assorted seed cultivar bundle; not an individual variety"
+      },
+      "reason": "Sweet-pea seed kit; individual named cultivars are collected separately."
+    },
+    {
+      "url": "https://floreagarden.com/products/narciss-geranium",
+      "match": [
+        "Bukettnarciss",
+        "Geranium"
+      ],
+      "reason": "Same named cultivar and botanical genus; Florea uses a shorter botanical name or a different horticultural group."
+    },
+    {
+      "url": "https://floreagarden.com/products/narciss-ice-king",
+      "match": [
+        "Stjärnnarciss",
+        "Ice King"
+      ],
+      "reason": "Same named cultivar and botanical genus; Florea uses a shorter botanical name or a different horticultural group."
+    },
+    {
+      "url": "https://floreagarden.com/products/narciss-sir-winston-churchill",
+      "match": [
+        "Bukettnarciss",
+        "Sir Winston Churchill"
+      ],
+      "reason": "Same named cultivar and botanical genus; Florea uses a shorter botanical name or a different horticultural group."
+    },
+    {
+      "url": "https://floreagarden.com/products/perfect-match-mix",
+      "corrections": {
+        "excludeReason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+      },
+      "reason": "Consistent with the Impecta import: omit assorted bulb bundles; import their individually listed varieties."
+    },
+    {
+      "url": "https://floreagarden.com/products/solhatt-butterfly-kisses",
+      "corrections": {
+        "scientificName": "Echinacea purpurea"
+      },
+      "reason": "Correct the botanical spelling Echinacea purpureua to Echinacea purpurea.",
+      "references": [
+        "https://www.rhs.org.uk/plants/echinacea"
+      ]
+    },
+    {
+      "url": "https://floreagarden.com/products/solhatt-cherry-fluff",
+      "corrections": {
+        "scientificName": "Echinacea purpurea"
+      },
+      "reason": "Correct the botanical spelling Echinacea purpureua to Echinacea purpurea.",
+      "references": [
+        "https://www.rhs.org.uk/plants/echinacea"
+      ]
+    },
+    {
+      "url": "https://floreagarden.com/products/solhatt-sunseekers-salmon",
+      "corrections": {
+        "specifications": {
+          "Årighet": "Flerårig"
+        },
+        "scientificName": "Echinacea purpurea"
+      },
+      "reason": "Missing lifecycle; Florea classifies the other Echinacea plants of the same species as perennial. Correct the botanical spelling Echinacea purpureua to Echinacea purpurea.",
+      "references": [
+        "https://floreagarden.com/products/solhatt-butterfly-kisses",
+        "https://floreagarden.com/products/solhatt-cherry-fluff",
+        "https://www.rhs.org.uk/plants/echinacea"
+      ]
+    },
+    {
+      "url": "https://floreagarden.com/products/sommarflox-coral-reef",
+      "corrections": {
+        "specifications": {
+          "Växtläge": "Sol, Halvskugga"
+        }
+      },
+      "reason": "Correct the source typo Halvskygga to Halvskugga."
+    },
+    {
+      "url": "https://floreagarden.com/products/tulpanmix-la-fine-fleur",
+      "corrections": {
+        "excludeReason": "Assorted bulb species/cultivar bundle; not an individual species/variety"
+      },
+      "reason": "Consistent with the Impecta import: omit assorted bulb bundles; import their individually listed varieties."
+    }
+  ]
+}

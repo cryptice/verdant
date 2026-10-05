@@ -36,14 +36,15 @@ class NoRedirect(HTTPRedirectHandler):
 class Fetcher:
     """Sequential, cached requests with 1/2/3 seconds after the last response."""
 
-    def __init__(self, cache):
+    def __init__(self, cache, allowed_hosts=("www.impecta.se",)):
         self.cache = cache
         cache.mkdir(parents=True, exist_ok=True)
         self.opener = build_opener(NoRedirect())
         self.has_requested = False
+        self.allowed_hosts = set(allowed_hosts)
 
     def get(self, url, redirects=0):
-        if urlparse(url).netloc != "www.impecta.se" or redirects > 5:
+        if urlparse(url).netloc not in self.allowed_hosts or redirects > 5:
             raise ValueError(f"Unexpected URL/redirect: {url}")
         path = self.cache / (hashlib.sha256(url.encode()).hexdigest() + ".html")
         if path.exists():

@@ -127,7 +127,19 @@ def convert(fact):
     }
 
 
-def prepare(facts, existing):
+def impecta_exclusion(fact):
+    name = fact["name"].lower()
+    if any(part in fact["url"] for part in ("/gronsaker/", "/vitlok", "/potatis", "/sattlok")) or name.startswith("paprika "):
+        return "Vegetable seeds or planting stock"
+    if (name in ("prydnadsgräs", "kaktusmix") or re.fullmatch(r"\S+\s+(?:mix|spp\.?)", fact["scientificName"] or "", re.IGNORECASE)
+            or "blandade arter" in name or "/" in split_name(name)[0]
+            or name.startswith(("sommarblom ", "fröpaket ", "dahliakit ", "tulpanmix ", "narcissmix "))):
+        return "Mixed-species product or missing botanical identity"
+    return None
+
+
+def prepare(facts, existing, *, converter=convert, exclusion=impecta_exclusion,
+            provider_hosts=("impecta.se", "www.impecta.se"), match_overrides=None):
     records, review = [], {"matchedExisting": [], "duplicateProducts": [], "disambiguatedNames": [], "excluded": [], "errors": []}
     by_identity, by_url = {}, {}
     for entry in existing:
@@ -137,22 +149,17 @@ def prepare(facts, existing):
             by_identity.setdefault(key, []).append(entry)
         for provider in entry.get("providers", []):
             if provider.get("productUrl"):
-                if urlparse(provider["productUrl"]).netloc in ("impecta.se", "www.impecta.se"):
+                if urlparse(provider["productUrl"]).netloc in provider_hosts:
                     by_url[product_path(provider["productUrl"])] = entry
     pending = {}
     existing_import_keys = {(e["commonName"], e.get("variantName")) for e in existing}
     for fact in facts:
-        name = fact["name"].lower()
-        if any(part in fact["url"] for part in ("/gronsaker/", "/vitlok", "/potatis", "/sattlok")) or name.startswith("paprika "):
-            review["excluded"].append({"url": fact["url"], "reason": "Vegetable seeds or planting stock"})
-            continue
-        if (name in ("prydnadsgräs", "kaktusmix") or re.fullmatch(r"\S+\s+(?:mix|spp\.?)", fact["scientificName"] or "", re.IGNORECASE)
-                or "blandade arter" in name or "/" in split_name(name)[0]
-                or name.startswith(("sommarblom ", "fröpaket ", "dahliakit ", "tulpanmix ", "narcissmix "))):
-            review["excluded"].append({"url": fact["url"], "reason": "Mixed-species product or missing botanical identity"})
+        reason = exclusion(fact)
+        if reason:
+            review["excluded"].append({"url": fact["url"], "reason": reason})
             continue
         try:
-            entry = convert(fact)
+            entry = converter(fact)
         except (KeyError, ValueError) as error:
             review["errors"].append({"url": fact["url"], "error": str(error)})
             continue
@@ -172,6 +179,14 @@ def prepare(facts, existing):
         url_match = by_url.get(product_path(fact["url"]))
         if url_match:
             matches = {url_match.get("id", id(url_match)): url_match}
+        override = (match_overrides or {}).get(fact["url"])
+        if override:
+            matches = {e.get("id", id(e)): e for e in existing
+                       if e.get("isSystem", True)
+                       and (e["commonName"], e.get("variantName")) == tuple(override)}
+            if len(matches) != 1:
+                review["errors"].append({"url": fact["url"], "error": "Reviewed match is missing or ambiguous"})
+                continue
         if len(matches) > 1:
             exact_keys = {(e["commonName"], e.get("variantName")) for e in matches.values()}
             if len(exact_keys) == 1:
