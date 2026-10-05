@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Navigate } from 'react-router-dom'
 import { HarvestPlans } from './HarvestPlans'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -84,6 +85,10 @@ function ForecastPanel({ targetId }: { targetId: number }) {
 export function ProductionTargets() {
   const { t } = useTranslation()
   const [weekly, setWeekly] = useState(false)
+  const seasons = useQuery({ queryKey: ['seasons'], queryFn: api.seasons.list })
+  if (seasons.isPending) return <p>{t('planning.loading')}</p>
+  if (seasons.error) return <ErrorDisplay error={seasons.error} onRetry={() => { void seasons.refetch() }} />
+  if (seasons.data.length === 0) return <Navigate to="/seasons" replace />
   return <>
     <nav className="flex gap-3 mb-6" aria-label={t('planning.title')}>
       <button className={!weekly ? 'btn-primary' : 'btn-secondary'} onClick={() => setWeekly(false)}>{t('planning.title')}</button>

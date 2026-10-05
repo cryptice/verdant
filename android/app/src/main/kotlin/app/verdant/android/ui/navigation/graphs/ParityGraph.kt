@@ -37,13 +37,23 @@ fun NavGraphBuilder.parityGraph(navController: NavController) {
         SuccessionSchedulesScreen(onBack = { navController.popBackStack() })
     }
     composable(Screen.WeeklyTargets.route) {
-        WeeklyProductionTargetsScreen(onBack = { navController.popBackStack() })
+        WeeklyProductionTargetsScreen(
+            onBack = { navController.popBackStack() },
+            onSeasonsRequired = { navController.openSeasonsInsteadOf(Screen.WeeklyTargets.route) },
+        )
     }
     composable(Screen.HarvestPlan.route, arguments = listOf(navArgument("planId") { type = NavType.LongType })) { entry ->
-        HarvestPlansScreen(onWeekly = { navController.navigate(Screen.WeeklyTargets.route) }, planId = entry.arguments?.getLong("planId"))
+        HarvestPlansScreen(
+            onWeekly = { navController.navigate(Screen.WeeklyTargets.route) },
+            onSeasonsRequired = { navController.openSeasonsInsteadOf(Screen.HarvestPlan.route) },
+            planId = entry.arguments?.getLong("planId"),
+        )
     }
     composable(Screen.Targets.route) {
-        ProductionTargetsScreen(onBack = { navController.popBackStack() })
+        ProductionTargetsScreen(
+            onBack = { navController.popBackStack() },
+            onSeasonsRequired = { navController.openSeasonsInsteadOf(Screen.Targets.route) },
+        )
     }
     composable(Screen.Trials.route) {
         VarietyTrialsScreen(onBack = { navController.popBackStack() })
@@ -78,5 +88,12 @@ fun NavGraphBuilder.parityGraph(navController: NavController) {
                 )
             },
         )
+    }
+}
+
+private fun NavController.openSeasonsInsteadOf(targetRoute: String) {
+    navigate(Screen.Seasons.route) {
+        popUpTo(targetRoute) { inclusive = true }
+        launchSingleTop = true
     }
 }

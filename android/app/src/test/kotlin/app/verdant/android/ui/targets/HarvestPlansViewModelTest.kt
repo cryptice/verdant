@@ -81,4 +81,43 @@ class HarvestPlansViewModelTest {
         assertEquals(1, saves)
         assertFalse(vm.uiState.value.busy)
     }
+
+    @Test fun `no seasons requests redirect without loading target data`() = runTest {
+        val calls = mutableListOf<String>()
+        val vm = model { method, _ ->
+            calls += method
+            if (method == "getSeasons") emptyList<SeasonResponse>() else error(method)
+        }
+        assertFalse(vm.uiState.value.needsSeason)
+        vm.load()
+        assertFalse(vm.uiState.value.needsSeason)
+        advanceUntilIdle()
+        assertTrue(vm.uiState.value.needsSeason)
+        assertFalse(vm.uiState.value.busy)
+        assertNull(vm.uiState.value.error)
+        assertEquals(listOf("getSeasons"), calls)
+    }
+
+    @Test fun `inactive season allows targets after returning from season creation`() = runTest {
+        var seasons = emptyList<SeasonResponse>()
+        val vm = model { method, _ -> when (method) {
+            "getSeasons" -> seasons
+            "getSpeciesGroups", "getHarvestPlans" -> emptyList<Any>()
+            else -> error(method)
+        } }
+        vm.load(); advanceUntilIdle()
+        assertTrue(vm.uiState.value.needsSeason)
+        seasons = listOf(SeasonResponse(1, "2026", 2026, null, null, null, null, null, null, false, "", ""))
+        vm.load(); advanceUntilIdle()
+        assertFalse(vm.uiState.value.needsSeason)
+        assertEquals(seasons, vm.uiState.value.seasons)
+        assertNull(vm.uiState.value.error)
+    }
+
+    @Test fun `season load failure does not redirect`() = runTest {
+        val vm = model { _, _ -> error("Offline") }
+        vm.load(); advanceUntilIdle()
+        assertFalse(vm.uiState.value.needsSeason)
+        assertEquals("Offline", vm.uiState.value.error)
+    }
 }

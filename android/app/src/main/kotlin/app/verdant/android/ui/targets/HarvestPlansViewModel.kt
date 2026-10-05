@@ -16,6 +16,7 @@ import javax.inject.Inject
 
 data class HarvestPlansState(
     val busy: Boolean = false,
+    val needsSeason: Boolean = false,
     val error: String? = null,
     val seasons: List<SeasonResponse> = emptyList(),
     val groups: List<SpeciesGroupResponse> = emptyList(),
@@ -50,8 +51,10 @@ class HarvestPlansViewModel @Inject constructor(private val repo: HarvestPlanRep
 
     fun load(planId: Long? = null) = work {
         invalidatePreview()
-        state.value = state.value.copy(candidates = emptyList(), searchResults = emptyList())
+        state.value = state.value.copy(candidates = emptyList(), searchResults = emptyList(), needsSeason = false)
         val seasons = repo.seasons()
+        state.value = state.value.copy(seasons = seasons, needsSeason = seasons.isEmpty())
+        if (seasons.isEmpty()) return@work
         val groups = repo.groups()
         val plans = repo.list()
         val selected = planId?.let { repo.get(it) }

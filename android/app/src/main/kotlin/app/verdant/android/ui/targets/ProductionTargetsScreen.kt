@@ -39,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -82,6 +83,7 @@ import javax.inject.Inject
 
 data class TargetsState(
     val isLoading: Boolean = true,
+    val needsSeason: Boolean = false,
     val items: List<ProductionTargetResponse> = emptyList(),
     val species: List<SpeciesResponse> = emptyList(),
     val seasons: List<SeasonResponse> = emptyList(),
@@ -105,9 +107,13 @@ class TargetsViewModel @Inject constructor(
 
     fun refresh() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null, needsSeason = false)
             try {
                 val seasons = seasonRepository.list()
+                if (seasons.isEmpty()) {
+                    _uiState.value = TargetsState(isLoading = false, needsSeason = true)
+                    return@launch
+                }
                 val active = seasons.firstOrNull { it.isActive }
                 val items = analyticsRepository.productionTargets(active?.id)
                 val species = speciesRepository.list().sortedBySwedishName()
@@ -184,9 +190,14 @@ private fun periodLabel(startDate: String, endDate: String): String {
 @Composable
 fun WeeklyProductionTargetsScreen(
     onBack: () -> Unit,
+    onSeasonsRequired: () -> Unit,
     viewModel: TargetsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(uiState.needsSeason) {
+        if (uiState.needsSeason) onSeasonsRequired()
+    }
+    if (uiState.needsSeason) return
     var showDialog by remember { mutableStateOf(false) }
 
     FaltetScreenScaffold(
@@ -494,12 +505,12 @@ private fun ProductionTargetsScreenPreview() {
 }
 
 @Composable
-fun ProductionTargetsScreen(onBack: () -> Unit) {
+fun ProductionTargetsScreen(onBack: () -> Unit, onSeasonsRequired: () -> Unit) {
     var weekly by remember { mutableStateOf(false) }
     if (weekly) {
         Column {
             TextButton(onClick = { weekly = false }) { Text("Skördeplaner") }
-            Box(Modifier.weight(1f)) { WeeklyProductionTargetsScreen(onBack = onBack) }
+            Box(Modifier.weight(1f)) { WeeklyProductionTargetsScreen(onBack = onBack, onSeasonsRequired = onSeasonsRequired) }
         }
-    } else HarvestPlansScreen(onWeekly = { weekly = true })
+    } else HarvestPlansScreen(onWeekly = { weekly = true }, onSeasonsRequired = onSeasonsRequired)
 }

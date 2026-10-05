@@ -30,9 +30,13 @@ private fun Choice(label: String, value: String, options: List<Pair<String, Stri
 }
 
 @Composable
-fun HarvestPlansScreen(onWeekly: () -> Unit, planId: Long? = null, viewModel: HarvestPlansViewModel = hiltViewModel()) {
+fun HarvestPlansScreen(onWeekly: () -> Unit, onSeasonsRequired: () -> Unit, planId: Long? = null, viewModel: HarvestPlansViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(planId) { viewModel.load(planId) }
+    LaunchedEffect(state.needsSeason) {
+        if (state.needsSeason) onSeasonsRequired()
+    }
+    if (state.needsSeason) return
     var season by remember { mutableStateOf("") }
     var speciesId by remember { mutableStateOf<Long?>(null) }
     var groupId by remember { mutableStateOf<Long?>(null) }
