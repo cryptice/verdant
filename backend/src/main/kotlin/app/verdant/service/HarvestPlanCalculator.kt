@@ -43,6 +43,16 @@ class HarvestPlanCalculator {
         val issues = mutableListOf<PlanningIssue>()
         val eligible = candidates.sortedBy { it.speciesId }.filter { species ->
             val reasons = profileIssues(species.profile).toMutableList()
+            species.defaultSchedule?.takeIf { !species.customized }?.let { schedule ->
+                if (schedule.reviewRequired) reasons.add("Review and save the suggested lifecycle for this species before planning its harvest.")
+                if (schedule.harvestMonths.isNotEmpty() && request.harvestDate.monthValue !in schedule.harvestMonths)
+                    reasons.add("The target is outside the default flowering season. Choose a suitable date or configure a profile for your growing conditions.")
+                val planting = (species.profile.steps.lastOrNull { it.activityType == "PLANT" }
+                    ?: species.profile.steps.firstOrNull { it.activityType == "SOW" })?.daysBeforeHarvest
+                if (planting != null && schedule.plantingMonths.isNotEmpty() &&
+                    request.harvestDate.minusDays(planting.toLong()).monthValue !in schedule.plantingMonths)
+                    reasons.add("The default would plant outside the crop's planting season. Adjust the target or configure its lifecycle.")
+            }
             if (species.profile.sellableUnit != request.sellableUnit) reasons.add("Sellable unit does not match the target.")
             if (species.profile.steps.any { it.daysBeforeHarvest != null && it.daysBeforeHarvest in 0..3650 &&
                     request.harvestDate.minusDays(it.daysBeforeHarvest.toLong()).isBefore(today) })

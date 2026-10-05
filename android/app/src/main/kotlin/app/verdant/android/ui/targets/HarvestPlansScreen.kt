@@ -6,6 +6,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -99,6 +100,9 @@ fun HarvestPlansScreen(onWeekly: () -> Unit, onSeasonsRequired: () -> Unit, plan
                 state.candidates.forEach { sp ->
                     OutlinedTextField(fixed[sp.speciesId].orEmpty(), { fixed = fixed + (sp.speciesId to it); viewModel.invalidatePreview() }, label = { Text(sp.speciesName) }, placeholder = { Text("Föreslagen andel") }, enabled = enabled, modifier = Modifier.fillMaxWidth())
                     TextButton(onClick = { edit = sp; viewModel.invalidatePreview() }, enabled = enabled) { Text("Konfigurera livscykel") }
+                    sp.defaultSchedule?.let { schedule ->
+                        Text(schedule.name + if (schedule.reviewRequired) " – kontrollera och spara före planering" else " – justerbart planeringsestimat")
+                    }
                 }
                 Button(enabled = enabled && season.isNotBlank() && (speciesId != null || groupId != null) && validDate &&
                     (quantity.toIntOrNull() ?: 0) in 1..1_000_000 && fixed.values.all { it.isBlank() || (it.toIntOrNull() ?: -1) >= 0 }, onClick = {
@@ -143,12 +147,22 @@ private fun ProgressInput(task: HarvestPlanTask, enabled: Boolean, complete: (In
 
 @Composable
 private fun ProfileDialog(species: PlanningSpecies, enabled: Boolean, error: String?, close: () -> Unit, save: (ProductionProfile) -> Unit) {
+    val uriHandler = LocalUriHandler.current
     var profile by remember(species.speciesId) { mutableStateOf(species.profile) }
     var yield by remember { mutableStateOf(profile.outputPerPlant?.toString().orEmpty()) }
     var success by remember { mutableStateOf(profile.establishmentPercent?.toString().orEmpty()) }
     AlertDialog(onDismissRequest = close, title = { Text(species.speciesName) }, text = {
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("Organisationens inställningar. Ange säljbara enheter per planta på måldatumet, inte hela säsongens avkastning. Kontrollera föreslagna tider och etableringsgrad för din odling.")
+            species.defaultSchedule?.let { schedule ->
+                Text(schedule.name, style = MaterialTheme.typography.titleSmall)
+                Text(schedule.climate)
+                Text(schedule.description)
+                if (schedule.reviewRequired) Text("Kontrollera och anpassa grundschemat innan du sparar det för din odling.")
+                schedule.sources.forEach { source ->
+                    TextButton(onClick = { uriHandler.openUri(source.url) }) { Text(source.title) }
+                }
+            }
             Choice("Säljbar enhet", profile.sellableUnit, listOf("STEM", "FLOWER").map { it to planningUnit(it) }, enabled) { profile = profile.copy(sellableUnit = it) }
             OutlinedTextField(yield, { yield = it }, label = { Text("Enheter per planta på måldatumet") }, enabled = enabled)
             OutlinedTextField(success, { success = it }, label = { Text("Etableringsgrad (%)") }, enabled = enabled)

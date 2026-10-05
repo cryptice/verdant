@@ -9,6 +9,11 @@ import java.sql.Statement
 @ApplicationScoped
 class SpeciesGroupRepository(private val ds: AgroalDataSource) {
 
+    /** Called inside the catalogue service transaction to serialize shared group creation. */
+    fun lockPlanningCatalogue() = ds.connection.use { conn ->
+        conn.prepareStatement("SELECT pg_advisory_xact_lock(865402, 1)").use { it.execute() }
+    }
+
     fun findById(id: Long): SpeciesGroup? =
         ds.connection.use { conn ->
             conn.prepareStatement("SELECT * FROM species_group WHERE id = ?").use { ps ->

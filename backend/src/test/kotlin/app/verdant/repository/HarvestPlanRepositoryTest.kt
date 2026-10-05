@@ -123,7 +123,8 @@ class HarvestPlanRepositoryTest {
     @Test fun `system species settings are private to each organization`() {
         val system = species.persist(Species(commonName = "Shared", expectedStemsPerPlant = 50))
         service.saveProfile(orgId, system.id!!, profile())
-        assertNull(service.candidates(otherOrg, system.id, null).single().profile.outputPerPlant)
+        assertEquals(java.math.BigDecimal.ONE, service.candidates(otherOrg, system.id, null).single().profile.outputPerPlant)
+        assertTrue(service.candidates(otherOrg, system.id, null).single().defaultSchedule!!.reviewRequired)
         assertFalse(service.candidates(otherOrg, system.id, null).single().customized)
         assertEquals(profile(), service.candidates(orgId, system.id, null).single().profile)
     }

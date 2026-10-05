@@ -12,6 +12,7 @@ import app.verdant.repository.UserRepository
 import app.verdant.repository.WorkflowRepository
 import app.verdant.service.AiService
 import app.verdant.service.SpeciesService
+import app.verdant.service.PlanningCatalogueService
 import app.verdant.service.toResponse
 import jakarta.annotation.security.RolesAllowed
 import jakarta.validation.Valid
@@ -31,6 +32,7 @@ class AdminResource(
     private val workflowRepository: WorkflowRepository,
     private val outletRepository: OutletRepository,
     private val organizationRepository: OrganizationRepository,
+    private val planningCatalogue: PlanningCatalogueService,
 ) {
     @GET
     @Path("/users")
@@ -56,6 +58,14 @@ class AdminResource(
     fun listSpecies(@QueryParam("q") query: String?, @QueryParam("limit") limit: Int?) =
         if (query.isNullOrBlank()) speciesService.getAllSpecies()
         else speciesService.searchAllSpecies(query.trim(), limit ?: 20)
+
+    @GET
+    @Path("/species/planning-defaults")
+    fun previewPlanningDefaults() = planningCatalogue.preview()
+
+    @POST
+    @Path("/species/planning-defaults")
+    fun applyPlanningGroups() = planningCatalogue.apply()
 
     @GET
     @Path("/species/export")

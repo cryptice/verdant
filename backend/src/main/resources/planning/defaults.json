@@ -1,0 +1,3349 @@
+{
+  "version": "2026-10-05",
+  "climate": "Mellansverige: friland med förodling inomhus; lokal frost och sort avgör exakta datum.",
+  "sources": {
+    "johnny-guide": {
+      "title": "Johnny’s Flower Growing Guide",
+      "url": "https://www.johnnyseeds.com/on/demandware.static/-/Library-Sites-JSSSharedLibrary/default/dw377bb4f5/assets/information/flower-growing-guide.pdf"
+    },
+    "zinnia": {
+      "title": "Johnny’s: growing zinnias",
+      "url": "https://www.johnnyseeds.com/growers-library/flowers/zinnia/zinnia-key-growing-information.html"
+    },
+    "cosmos": {
+      "title": "Johnny’s: growing cosmos",
+      "url": "https://www.johnnyseeds.com/growers-library/flowers/cosmos/cosmos-key-growing-information.html"
+    },
+    "lisianthus": {
+      "title": "Johnny’s: growing lisianthus",
+      "url": "https://www.johnnyseeds.com/growers-library/flowers/lisianthus/lisianthus-key-growing-information.html"
+    },
+    "dahlia": {
+      "title": "RHS: growing dahlias",
+      "url": "https://www.rhs.org.uk/plants/dahlia/growing-guide"
+    },
+    "bulbs": {
+      "title": "RHS: planting bulbs",
+      "url": "https://www.rhs.org.uk/plants/types/bulbs/planting"
+    },
+    "ranunculus": {
+      "title": "Johnny’s: growing ranunculus",
+      "url": "https://prod-na02.johnnyseeds.com/growers-library/flowers/ranunculus/ranunculus-key-growing-information.html"
+    },
+    "perennials": {
+      "title": "RHS: growing perennials from seed",
+      "url": "https://www.rhs.org.uk/membership/rhs-members-seed-scheme/germination-guide"
+    },
+    "peony": {
+      "title": "RHS: growing peonies",
+      "url": "https://www.rhs.org.uk/plants/peony/herbaceous/growing-guide"
+    }
+  },
+  "schedules": [
+    {
+      "key": "zinnia",
+      "name": "Zinnia från frö",
+      "genera": [
+        "Zinnia"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [
+        5,
+        6,
+        7
+      ],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "zinnia"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 105,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 84,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 63,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 56,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "pinch",
+            "name": "Toppa etablerade plantor ovanför bladpar",
+            "activityType": "PINCH",
+            "daysBeforeHarvest": 42,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 28,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "cosmos",
+      "name": "Rosenskära från frö",
+      "genera": [
+        "Cosmos"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [
+        5,
+        6,
+        7
+      ],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "cosmos"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 119,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 98,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 77,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 70,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 63,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "pinch",
+            "name": "Toppa etablerade plantor ovanför bladpar",
+            "activityType": "PINCH",
+            "daysBeforeHarvest": 49,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 31,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "sunflower",
+      "name": "Solros från frö",
+      "genera": [
+        "Helianthus"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [
+        5,
+        6,
+        7
+      ],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 98,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 77,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 38,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "sweet-pea",
+      "name": "Luktärt från frö",
+      "genera": [
+        "Lathyrus"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 133,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 112,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 91,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 77,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 70,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 35,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "snapdragon",
+      "name": "Lejongap från frö",
+      "genera": [
+        "Antirrhinum"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 161,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 140,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 119,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 77,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 70,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 35,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "lisianthus",
+      "name": "Prärieklocka från frö",
+      "genera": [
+        "Eustoma"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": true,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Långsam småplantsutveckling; cirka 12–13 veckors förodling. Växthus eller skyddad produktion rekommenderas. Anpassa temperatur, sortgrupp och tid till skörd för Mellansverige innan schemat sparas.",
+      "sourceKeys": [
+        "lisianthus"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 231,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 210,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 189,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 126,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 119,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 56,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "aster",
+      "name": "Sommaraster från frö",
+      "genera": [
+        "Callistephus"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 147,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 126,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 105,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 91,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 84,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 42,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "statice",
+      "name": "Risp från frö",
+      "genera": [
+        "Limonium"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 147,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 126,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 105,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 91,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 84,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 35,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "scabiosa",
+      "name": "Praktvädd från frö",
+      "genera": [
+        "Scabiosa"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 133,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 112,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 91,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 77,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 70,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 35,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "strawflower",
+      "name": "Eternell från frö",
+      "genera": [
+        "Xerochrysum",
+        "Helichrysum",
+        "Helipterum",
+        "Rhodanthe"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 133,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 112,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 91,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 77,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 70,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "pinch",
+            "name": "Toppa etablerade plantor ovanför bladpar",
+            "activityType": "PINCH",
+            "daysBeforeHarvest": 56,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 35,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "celosia",
+      "name": "Celosia från frö",
+      "genera": [
+        "Celosia"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [
+        5,
+        6,
+        7
+      ],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 133,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 112,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 91,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 77,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 70,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 35,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "amaranth",
+      "name": "Amarant från frö",
+      "genera": [
+        "Amaranthus"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [
+        5,
+        6,
+        7
+      ],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 126,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 105,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 84,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 77,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 70,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 35,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "gomphrena",
+      "name": "Klotamarant från frö",
+      "genera": [
+        "Gomphrena"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [
+        5,
+        6,
+        7
+      ],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 133,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 112,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 91,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 63,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 56,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 28,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "rudbeckia",
+      "name": "Sommarrudbeckia från frö",
+      "genera": [
+        "Rudbeckia"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 161,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 140,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 119,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 91,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 84,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 42,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "ammi",
+      "name": "Slöjsilja från frö",
+      "genera": [
+        "Ammi"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 147,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 126,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 105,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 91,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 84,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 42,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "daucus",
+      "name": "Blomstermorot från frö",
+      "genera": [
+        "Daucus"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 133,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 112,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 56,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "orlaya",
+      "name": "Blomsterkörvel från frö",
+      "genera": [
+        "Orlaya"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 119,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 98,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 49,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "nigella",
+      "name": "Nigella från frö",
+      "genera": [
+        "Nigella"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 119,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 98,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 49,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "calendula",
+      "name": "Ringblomma från frö",
+      "genera": [
+        "Calendula"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 105,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 84,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 42,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "cornflower",
+      "name": "Ettårig klint från frö",
+      "genera": [
+        "Centaurea",
+        "Amberboa"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 112,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 91,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 45,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "poppy",
+      "name": "Ettårig vallmo från frö",
+      "genera": [
+        "Papaver"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 112,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 91,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 45,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "eschscholzia",
+      "name": "Sömntuta från frö",
+      "genera": [
+        "Eschscholzia"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 105,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 84,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 42,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "clarkia",
+      "name": "Atlasblomma från frö",
+      "genera": [
+        "Clarkia"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 112,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 91,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 45,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "phlox",
+      "name": "Sommarflox från frö",
+      "genera": [
+        "Phlox"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 133,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 112,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 91,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 77,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 70,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 35,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "stock",
+      "name": "Lövkoja från frö",
+      "genera": [
+        "Matthiola"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 140,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 119,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 98,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 70,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 63,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 31,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "nasturtium",
+      "name": "Krasse – ätbara blommor",
+      "genera": [
+        "Tropaeolum"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [
+        5,
+        6,
+        7
+      ],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "FLOWER",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 105,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 84,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 42,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "viola",
+      "name": "Violer – enskilda blommor",
+      "genera": [
+        "Viola"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": true,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planering av enskilda blommor som säljs separat. Bekräfta sort, blomningssäsong och odlingssätt; tvåårig odling kräver en annan tidsplan.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "FLOWER",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 161,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 140,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 119,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 77,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 70,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 35,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "marigold",
+      "name": "Tagetes från frö",
+      "genera": [
+        "Tagetes"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [
+        5,
+        6,
+        7
+      ],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 119,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 98,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 77,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 70,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 63,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 31,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "larkspur",
+      "name": "Ettårig riddarsporre från frö",
+      "genera": [
+        "Consolida",
+        "Delphinium"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 147,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 126,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 63,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "gypsophila",
+      "name": "Ettårig brudslöja från frö",
+      "genera": [
+        "Gypsophila"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 112,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 91,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 45,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "basil",
+      "name": "Blommande basilika från frö",
+      "genera": [
+        "Ocimum"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 119,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 98,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 77,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 70,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 63,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "pinch",
+            "name": "Toppa etablerade plantor ovanför bladpar",
+            "activityType": "PINCH",
+            "daysBeforeHarvest": 49,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 31,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "dahlia-seed",
+      "name": "Dahlia från frö",
+      "genera": [
+        "Dahlia"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [
+        5,
+        6,
+        7
+      ],
+      "description": "Planeringsestimat till första skördeomgången, inte ett sortlöfte. Anpassa efter sort, ljus och temperatur. Förodling antas ske ljust inomhus. En säljbar enhet per etablerad planta på måldatumet; etableringsgraden är en justerbar planeringsbuffert.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 161,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 140,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 119,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 91,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 84,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "pinch",
+            "name": "Toppa etablerade plantor ovanför bladpar",
+            "activityType": "PINCH",
+            "daysBeforeHarvest": 70,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 42,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "dahlia-tuber",
+      "name": "Dahlia från knöl",
+      "genera": [
+        "Dahlia"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "TUBER"
+      ],
+      "plantTypes": [
+        "TUBER"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [
+        5,
+        6,
+        7
+      ],
+      "description": "Förkultivera knölar frostfritt. Plantera ut först efter lokal sista frost. Toppa när plantan är etablerad. Skörd avser en skördeomgång; säsongens totala antal stjälkar används inte.",
+      "sourceKeys": [
+        "dahlia"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 85,
+        "startingUnit": "TUBER",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 133,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Plantera utgångsmaterial",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 112,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 91,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 84,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "pinch",
+            "name": "Toppa etablerade plantor ovanför bladpar",
+            "activityType": "PINCH",
+            "daysBeforeHarvest": 70,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 42,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "ranunculus",
+      "name": "Ranunkel från knöl",
+      "genera": [
+        "Ranunculus"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "TUBER"
+      ],
+      "plantTypes": [
+        "TUBER"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        5,
+        6,
+        7
+      ],
+      "plantingMonths": [],
+      "description": "Vårstart i sval, skyddad odling. Blötlägg och förgro knölar enligt leverantörens råd; cirka tre veckors sval förgroning. Skydda mot hård frost och hög värme. Butterfly-sorter har ett annat skördestadium.",
+      "sourceKeys": [
+        "ranunculus"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 85,
+        "startingUnit": "TUBER",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 147,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Plantera utgångsmaterial",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 126,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 112,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 105,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 52,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "anemone",
+      "name": "Bukettanemon från knöl",
+      "genera": [
+        "Anemone"
+      ],
+      "scientificPrefixes": [
+        "Anemone coronaria"
+      ],
+      "startingUnits": [
+        "TUBER"
+      ],
+      "plantTypes": [
+        "TUBER"
+      ],
+      "reviewRequired": true,
+      "harvestMonths": [
+        5,
+        6,
+        7
+      ],
+      "plantingMonths": [],
+      "description": "Gäller bukettanemon, inte höstanemon eller balkansippa. Bekräfta art, förgroning och temperatur före användning.",
+      "sourceKeys": [
+        "bulbs"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 85,
+        "startingUnit": "TUBER",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 133,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Plantera utgångsmaterial",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 112,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 98,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 91,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 45,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "spring-bulb",
+      "name": "Höstplanterade vårblommande lökar",
+      "genera": [
+        "Tulipa",
+        "Narcissus",
+        "Crocus",
+        "Muscari",
+        "Hyacinthus",
+        "Galanthus",
+        "Leucojum",
+        "Scilla",
+        "Chionodoxa",
+        "Allium",
+        "Fritillaria"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "BULB"
+      ],
+      "plantTypes": [
+        "BULB"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "plantingMonths": [
+        9,
+        10,
+        11
+      ],
+      "description": "Plantera blomningsmogna lökar föregående höst. Naturlig vinterkyla krävs. Välj mål inom sortens normala blomning, inte valfri drivning. Kontrollera sortens blomningsmånad och höstens planteringsdatum.",
+      "sourceKeys": [
+        "bulbs"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 90,
+        "startingUnit": "BULB",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 231,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Plantera utgångsmaterial",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 210,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 105,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "gladiolus",
+      "name": "Gladiolus från knöl/lök",
+      "genera": [
+        "Gladiolus"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "BULB"
+      ],
+      "plantTypes": [
+        "BULB"
+      ],
+      "reviewRequired": false,
+      "harvestMonths": [
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [
+        4,
+        5,
+        6
+      ],
+      "description": "Vårplantering när jorden blivit lämplig och frostrisken kan hanteras. Stöd höga sorter. Tid till skörd varierar med sort och temperatur.",
+      "sourceKeys": [
+        "bulbs"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 90,
+        "startingUnit": "BULB",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 133,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Plantera utgångsmaterial",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 112,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 56,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "peony",
+      "name": "Pion – etablering från rot/planta",
+      "genera": [
+        "Paeonia"
+      ],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "PLANT"
+      ],
+      "plantTypes": [
+        "PERENNIAL"
+      ],
+      "reviewRequired": true,
+      "harvestMonths": [
+        5,
+        6,
+        7
+      ],
+      "plantingMonths": [],
+      "description": "Nyplanterade pioner behöver etableras under flera säsonger. Ange verkligt antal år till försiktig första skörd utifrån plantans ålder; skörda inte nyplanterade rötter som etablerade plantor.",
+      "sourceKeys": [
+        "peony"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 85,
+        "startingUnit": "PLANT",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": null,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Plantera utgångsmaterial",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": null,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "biennial",
+      "name": "Tvåårig blomma – sådd och övervintring",
+      "genera": [],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "BIENNIAL"
+      ],
+      "reviewRequired": true,
+      "harvestMonths": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "plantingMonths": [],
+      "description": "Grundstruktur: så föregående sommar, etablera bladrosett, övervintra och skörda nästa säsong. Bekräfta artens kylbehov och kalender. Förstaårsblommande sorter behöver en annan tidsplan.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 441,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 420,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 399,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 371,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 364,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 182,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "annual-review",
+      "name": "Ettårig blomma – sortanpassning krävs",
+      "genera": [],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "ANNUAL"
+      ],
+      "reviewRequired": true,
+      "harvestMonths": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "plantingMonths": [],
+      "description": "Generellt utkast för ettårig odling. Bekräfta direktsådd eller förodling, sortens tid till blomning och lämpligt skördestadium innan planen används.",
+      "sourceKeys": [
+        "johnny-guide"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": 133,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": 112,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "pot-up",
+            "name": "Skola om vid utvecklade karaktärsblad",
+            "activityType": "POT_UP",
+            "daysBeforeHarvest": 91,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harden",
+            "name": "Börja avhärda – kontrollera lokal frostrisk",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 77,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "plant-out",
+            "name": "Plantera ut när väder och jordtemperatur tillåter",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": 70,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "check",
+            "name": "Kontrollera etablering, vattenbehov och växtstöd",
+            "activityType": "TODO",
+            "daysBeforeHarvest": 35,
+            "quantityBasis": "PLANT"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "perennial-seed",
+      "name": "Flerårig växt från frö – etablering",
+      "genera": [],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "SEED"
+      ],
+      "plantTypes": [
+        "PERENNIAL"
+      ],
+      "reviewRequired": true,
+      "harvestMonths": [],
+      "plantingMonths": [],
+      "description": "Kontrollera artens stratifiering, groning, övervintring och ålder vid första blomning. Vedartade växter kan kräva många år. Fyll i tid till första hållbara skörd; en generell dagangivelse vore missvisande.",
+      "sourceKeys": [
+        "perennials"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 70,
+        "startingUnit": "SEED",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": null,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Så",
+            "activityType": "SOW",
+            "daysBeforeHarvest": null,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "review-bulb",
+      "name": "Etablering från lök",
+      "genera": [],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "BULB"
+      ],
+      "plantTypes": [],
+      "reviewRequired": true,
+      "harvestMonths": [],
+      "plantingMonths": [],
+      "description": "Kontrollera art, utgångsmaterialets ålder, eventuell kylbehandling och normal blomningssäsong. Ange tiden till skörd innan målet planeras.",
+      "sourceKeys": [
+        "bulbs",
+        "perennials"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 90,
+        "startingUnit": "BULB",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": null,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Plantera utgångsmaterial",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": null,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "review-tuber",
+      "name": "Etablering från knöl",
+      "genera": [],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "TUBER"
+      ],
+      "plantTypes": [],
+      "reviewRequired": true,
+      "harvestMonths": [],
+      "plantingMonths": [],
+      "description": "Kontrollera art, utgångsmaterialets ålder, eventuell kylbehandling och normal blomningssäsong. Ange tiden till skörd innan målet planeras.",
+      "sourceKeys": [
+        "bulbs",
+        "perennials"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 85,
+        "startingUnit": "TUBER",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": null,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Plantera utgångsmaterial",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": null,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "review-plug",
+      "name": "Etablering från plugg",
+      "genera": [],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "PLUG"
+      ],
+      "plantTypes": [],
+      "reviewRequired": true,
+      "harvestMonths": [],
+      "plantingMonths": [],
+      "description": "Kontrollera art, utgångsmaterialets ålder, eventuell kylbehandling och normal blomningssäsong. Ange tiden till skörd innan målet planeras.",
+      "sourceKeys": [
+        "bulbs",
+        "perennials"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 85,
+        "startingUnit": "PLUG",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": null,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Plantera utgångsmaterial",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": null,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    },
+    {
+      "key": "review-plant",
+      "name": "Etablering från planta",
+      "genera": [],
+      "scientificPrefixes": [],
+      "startingUnits": [
+        "PLANT"
+      ],
+      "plantTypes": [],
+      "reviewRequired": true,
+      "harvestMonths": [],
+      "plantingMonths": [],
+      "description": "Kontrollera art, utgångsmaterialets ålder, eventuell kylbehandling och normal blomningssäsong. Ange tiden till skörd innan målet planeras.",
+      "sourceKeys": [
+        "bulbs",
+        "perennials"
+      ],
+      "profile": {
+        "sellableUnit": "STEM",
+        "outputPerPlant": 1,
+        "establishmentPercent": 85,
+        "startingUnit": "PLANT",
+        "steps": [
+          {
+            "key": "purchase",
+            "name": "Beställ utgångsmaterial",
+            "activityType": "PURCHASE",
+            "daysBeforeHarvest": null,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "start",
+            "name": "Plantera utgångsmaterial",
+            "activityType": "PLANT",
+            "daysBeforeHarvest": null,
+            "quantityBasis": "START"
+          },
+          {
+            "key": "harvest",
+            "name": "Skörda i rätt mognadsstadium",
+            "activityType": "HARVEST",
+            "daysBeforeHarvest": 0,
+            "quantityBasis": "OUTPUT"
+          }
+        ]
+      }
+    }
+  ]
+}

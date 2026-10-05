@@ -22,6 +22,7 @@ class HarvestPlanService(
     private val workflows: WorkflowRepository,
     private val calculator: HarvestPlanCalculator,
     private val mapper: ObjectMapper,
+    private val defaults: PlanningDefaults,
 ) {
     private fun ownedSpecies(orgId: Long, id: Long): Species = species.findById(id)
         ?.takeIf { it.orgId == null || it.orgId == orgId } ?: throw NotFoundException("Species not found")
@@ -33,14 +34,15 @@ class HarvestPlanService(
                 ?: throw NotFoundException("Species group not found")
             species.findByGroupId(groupId).filter { it.orgId == null || it.orgId == orgId }
         }
-        if (members.size > 100) throw BadRequestException("Use a planning group with at most 100 species")
+        if (members.size > 200) throw BadRequestException("Use a planning group with at most 200 species")
         return members.sortedBy { it.id }.map { planningSpecies(orgId, it) }
     }
 
     private fun planningSpecies(orgId: Long, sp: Species): PlanningSpecies {
         val profile = plans.profile(orgId, sp.id!!)
+        val suggested = if (profile == null && workflows.findStepsBySpeciesId(sp.id).isEmpty()) defaults.suggest(sp) else null
         return PlanningSpecies(sp.id, listOfNotNull(sp.commonName, sp.variantName).joinToString(" — "),
-            profile ?: defaultProfile(sp), profile != null)
+            profile ?: suggested?.profile ?: defaultProfile(sp), profile != null, suggested?.info)
     }
 
     private fun defaultProfile(sp: Species): ProductionProfile {

@@ -22,7 +22,21 @@ data class PlanningSpecies(
     @SerializedName("speciesId") val speciesId: Long,
     @SerializedName("speciesName") val speciesName: String,
     @SerializedName("profile") val profile: ProductionProfile,
-    @SerializedName("customized") val customized: Boolean
+    @SerializedName("customized") val customized: Boolean,
+    @SerializedName("defaultSchedule") val defaultSchedule: DefaultScheduleInfo? = null,
+)
+
+data class PlanningSource(@SerializedName("title") val title: String, @SerializedName("url") val url: String)
+data class DefaultScheduleInfo(
+    @SerializedName("key") val key: String,
+    @SerializedName("name") val name: String,
+    @SerializedName("version") val version: String,
+    @SerializedName("climate") val climate: String,
+    @SerializedName("description") val description: String,
+    @SerializedName("reviewRequired") val reviewRequired: Boolean,
+    @SerializedName("harvestMonths") val harvestMonths: List<Int>,
+    @SerializedName("plantingMonths") val plantingMonths: List<Int>,
+    @SerializedName("sources") val sources: List<PlanningSource>,
 )
 
 data class HarvestPlanRequest(

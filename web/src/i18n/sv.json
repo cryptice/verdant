@@ -1805,6 +1805,8 @@
     "title": "Skördeplaner",
     "weekly": "Veckomål",
     "intro": "Planera säljbara enheter för ett skördedatum, med uppgifter bakåt till inköp och förökning.",
+    "defaultReview": "Kontrollera och spara grundschemat före planering.",
+    "defaultEstimate": "Justerbart planeringsestimat – kontrollera sort och odlingsförhållanden.",
     "profileHelp": "Inställningarna gäller din organisation. Avkastning avser säljbara enheter på måldatumet, inte hela säsongen. Kontrollera föreslagna tider och etableringsgrad för dina odlingsförhållanden.",
     "unit": "Säljbar enhet",
     "yield": "Säljbara enheter per planta på skördedatumet",

@@ -44,6 +44,22 @@ beforeEach(() => {
 })
 
 describe('harvest planning', () => {
+  it('shows the default assumptions and sources before editing a profile', async () => {
+    vi.mocked(harvestPlans.species).mockResolvedValue([{ ...candidate, customized: false, defaultSchedule: {
+      key: 'dahlia-tuber', name: 'Dahlia från knöl', version: '2026-10-05', climate: 'Mellansverige',
+      description: 'Plantera ut efter sista frost.', reviewRequired: true, harvestMonths: [7, 8, 9], plantingMonths: [5, 6],
+      sources: [{ title: 'RHS dahlias', url: 'https://www.rhs.org.uk/plants/dahlia/growing-guide' }],
+    } }])
+    renderPage()
+    fireEvent.click(screen.getByText('Choose dahlias'))
+    await screen.findByLabelText('Dahlia')
+    fireEvent.click(screen.getByRole('button', { name: 'planning.configure' }))
+    expect(screen.getByText('Mellansverige')).toBeInTheDocument()
+    expect(screen.getByText('Plantera ut efter sista frost.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'RHS dahlias' })).toHaveAttribute('href', 'https://www.rhs.org.uk/plants/dahlia/growing-guide')
+    expect(screen.getByText('planning.defaultReview', { selector: 'aside p' })).toBeInTheDocument()
+  })
+
   it('preselects the highest year after loading and preserves a manual selection on refresh', async () => {
     const seasons = [
       { id: 99, name: 'Older active', year: 2026, isActive: true, createdAt: '', updatedAt: '' },

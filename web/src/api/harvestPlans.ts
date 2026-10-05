@@ -11,6 +11,11 @@ export interface ProductionProfile {
 }
 export interface PlanningSpecies {
   speciesId: number; speciesName: string; profile: ProductionProfile; customized: boolean
+  defaultSchedule?: {
+    key: string; name: string; version: string; climate: string; description: string
+    reviewRequired: boolean; harvestMonths: number[]; plantingMonths: number[]
+    sources: { title: string; url: string }[]
+  } | null
 }
 export interface HarvestPlanRequest {
   seasonId: number; speciesId?: number; groupId?: number; quantity: number

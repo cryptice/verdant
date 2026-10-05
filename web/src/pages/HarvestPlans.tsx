@@ -20,6 +20,13 @@ function ProfileEditor({ species, onClose, onSaved }: { species: PlanningSpecies
   return <Dialog open onClose={onClose} title={species.speciesName}>
     <form className="space-y-4" onSubmit={e => { e.preventDefault(); save.mutate() }}>
       <p>{t('planning.profileHelp')}</p>
+      {species.defaultSchedule && <aside className="rounded border p-3 space-y-2">
+        <strong>{species.defaultSchedule.name}</strong>
+        <p>{species.defaultSchedule.climate}</p>
+        <p>{species.defaultSchedule.description}</p>
+        {species.defaultSchedule.reviewRequired && <p>{t('planning.defaultReview')}</p>}
+        <ul>{species.defaultSchedule.sources.map(source => <li key={source.url}><a className="underline" href={source.url} target="_blank" rel="noreferrer">{source.title}</a></li>)}</ul>
+      </aside>}
       <fieldset disabled={save.isPending} className="space-y-4">
         <label className="block">{t('planning.unit')}<select className="input" value={profile.sellableUnit} onChange={e => setProfile({ ...profile, sellableUnit: e.target.value as SellableUnit })}>{['STEM', 'FLOWER'].map(u => <option key={u} value={u}>{t(`planning.units.${u}`)}</option>)}</select></label>
         <label className="block">{t('planning.yield')}<input className="input" type="number" min="0.01" max="1000000" step="any" required value={profile.outputPerPlant ?? ''} onChange={e => setProfile({ ...profile, outputPerPlant: e.target.value === '' ? null : Number(e.target.value) })} /></label>
@@ -130,6 +137,7 @@ export function HarvestPlans() {
         {candidates.data?.map(sp => <div key={sp.speciesId} className="flex flex-wrap items-end gap-3 border-b py-3">
           <label className="grow">{sp.speciesName}<input className="input" type="number" min="0" max={quantity} placeholder={t('planning.suggested')} value={fixed[sp.speciesId] ?? ''} onChange={e => { setFixed({ ...fixed, [sp.speciesId]: e.target.value }); resetPreview() }} /></label>
           <button type="button" className="btn-secondary" onClick={() => { setEdit(sp); resetPreview() }}>{t('planning.configure')}</button>
+          {sp.defaultSchedule && <p className="w-full text-sm">{sp.defaultSchedule.name} · {t(sp.defaultSchedule.reviewRequired ? 'planning.defaultReview' : 'planning.defaultEstimate')}</p>}
         </div>)}
         <button className="btn-primary" disabled={!seasonId || (!species && !group) || candidates.isFetching || !!candidates.error}>{t('planning.preview')}</button>
       </fieldset>

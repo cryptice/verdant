@@ -1805,6 +1805,8 @@
     "title": "Harvest plans",
     "weekly": "Weekly targets",
     "intro": "Plan sellable output for a harvest date, then work backwards to purchase and propagation.",
+    "defaultReview": "Review and save this default before planning.",
+    "defaultEstimate": "Editable planning estimate — check cultivar and growing conditions.",
     "profileHelp": "These settings apply to your organization. Yield means sellable output ready on the target date, not total seasonal yield. Confirm the suggested timings and establishment rate for your growing conditions.",
     "unit": "Sellable unit",
     "yield": "Sellable units per plant on harvest date",

@@ -31,6 +31,15 @@ data class PlanningSpecies(
     val speciesName: String,
     val profile: ProductionProfile,
     val customized: Boolean,
+    val defaultSchedule: DefaultScheduleInfo? = null,
+)
+
+data class PlanningSource(val title: String, val url: String)
+data class DefaultScheduleInfo(
+    val key: String, val name: String, val version: String, val climate: String,
+    val description: String, val reviewRequired: Boolean,
+    val harvestMonths: List<Int>, val plantingMonths: List<Int>,
+    val sources: List<PlanningSource>,
 )
 
 data class HarvestPlanRequest(
