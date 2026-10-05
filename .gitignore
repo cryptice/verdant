@@ -13,6 +13,9 @@ backend/.kotlin/
 node_modules/
 dist/
 
+# Python import tooling
+__pycache__/
+
 # Docker
 postgres-data/
 
