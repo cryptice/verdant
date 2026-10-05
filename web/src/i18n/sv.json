@@ -141,6 +141,8 @@
     "SUPPORT": "Stöd"
   },
   "dashboard": {
+    "bedLabel_one": "Bädd",
+    "bedLabel_other": "Bäddar",
     "addBedsTitle": "Lägg till bäddar i {{name}}",
     "addBedsHint": "Skapa din första bädd för att börja planera var du ska odla.",
     "greeting": "Hej, {{name}}",

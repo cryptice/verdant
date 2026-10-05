@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import { api } from '../api/client'
-import type { ScheduledTaskResponse, TraySummaryEntry } from '../api/client'
+import type { ScheduledTaskResponse, TraySummaryEntry, GardenSummary } from '../api/client'
 import { sortBedsWithGardenByNaturalName } from '../lib/bed'
 import { GardenBedsPrompt } from '../components/GardenBedsPrompt'
 import { harvestDeltaPct } from '../lib/harvest'
@@ -184,7 +184,7 @@ export function Dashboard() {
             flexWrap: 'wrap',
           }}
         >
-          <CenteredHeroStat value={activeBedCount} label="Bäddar" />
+          <DashboardBedStat count={activeBedCount} gardens={dashboard?.gardens} />
           <CenteredHeroStat value={activePlantCount} label="Plantor" />
           <CenteredHeroStat value={activeSpeciesCount} label="Arter" />
           {activeSeason && (
@@ -668,10 +668,26 @@ function RevenueHeroStat({
   )
 }
 
-function CenteredHeroStat({ value, label }: { value: number; label: string }) {
+export function DashboardBedStat({ count, gardens }: { count: number; gardens: GardenSummary[] | undefined }) {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const firstGarden = gardens?.[0]
   return (
-    <div
+    <CenteredHeroStat
+      value={count}
+      label={t('dashboard.bedLabel', { count })}
+      onClick={firstGarden ? () => navigate(`/garden/${firstGarden.id}#beds`) : undefined}
+    />
+  )
+}
+
+function CenteredHeroStat({ value, label, onClick }: { value: number; label: string; onClick?: () => void }) {
+  const Element = onClick ? 'button' : 'div'
+  return (
+    <Element
+      onClick={onClick}
       style={{
+        cursor: onClick ? 'pointer' : undefined,
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
@@ -709,7 +725,7 @@ function CenteredHeroStat({ value, label }: { value: number; label: string }) {
       >
         {label}
       </div>
-    </div>
+    </Element>
   )
 }
 

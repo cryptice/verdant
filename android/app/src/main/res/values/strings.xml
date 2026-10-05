@@ -634,4 +634,8 @@
     <string name="maintenance_activity_note">Note</string>
     <string name="dashboard_add_beds_title">Add beds to %1$s</string>
     <string name="dashboard_add_beds_hint">Create your first bed to start planning where to grow.</string>
+    <plurals name="dashboard_bed_label">
+        <item quantity="one">Bed</item>
+        <item quantity="other">Beds</item>
+    </plurals>
 </resources>

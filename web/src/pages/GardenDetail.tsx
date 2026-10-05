@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useParams, useNavigate, Link } from 'react-router-dom'
-import { useState, useMemo } from 'react'
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
+import { useState, useMemo, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { sortBedsByNaturalName } from '../lib/bed'
@@ -19,6 +19,7 @@ const GARDEN_ICONS = [
 
 export function GardenDetail() {
   const { id } = useParams<{ id: string }>()
+  const { hash } = useLocation()
   const gardenId = Number(id)
   const navigate = useNavigate()
   const qc = useQueryClient()
@@ -29,6 +30,10 @@ export function GardenDetail() {
     queryKey: ['garden', gardenId],
     queryFn: () => api.gardens.get(gardenId),
   })
+
+  useEffect(() => {
+    if (hash === '#beds' && garden) document.getElementById('beds')?.scrollIntoView()
+  }, [hash, garden])
 
   const { data: beds } = useQuery({
     queryKey: ['garden-beds', gardenId],
@@ -230,7 +235,7 @@ export function GardenDetail() {
         </div>
 
         {/* Beds section heading */}
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginTop: 40, marginBottom: 14 }}>
+        <div id="beds" style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginTop: 40, marginBottom: 14 }}>
           <h2
             style={{
               fontFamily: 'var(--font-display)',

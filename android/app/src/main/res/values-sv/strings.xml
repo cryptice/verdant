@@ -632,4 +632,8 @@
     <string name="maintenance_activity_note">Anteckning</string>
     <string name="dashboard_add_beds_title">Lägg till bäddar i %1$s</string>
     <string name="dashboard_add_beds_hint">Skapa din första bädd för att börja planera var du ska odla.</string>
+    <plurals name="dashboard_bed_label">
+        <item quantity="one">Bädd</item>
+        <item quantity="other">Bäddar</item>
+    </plurals>
 </resources>

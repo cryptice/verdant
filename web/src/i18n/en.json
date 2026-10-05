@@ -141,6 +141,8 @@
     "SUPPORT": "Support"
   },
   "dashboard": {
+    "bedLabel_one": "Bed",
+    "bedLabel_other": "Beds",
     "addBedsTitle": "Add beds to {{name}}",
     "addBedsHint": "Create your first bed to start planning where to grow.",
     "greeting": "Hello, {{name}}",

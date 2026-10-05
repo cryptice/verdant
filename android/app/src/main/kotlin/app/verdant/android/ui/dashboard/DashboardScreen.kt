@@ -48,6 +48,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Button
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.semantics.Role
 import app.verdant.android.R
 import app.verdant.android.data.model.GardenSummary
 import androidx.compose.runtime.Composable
@@ -237,6 +239,7 @@ fun DashboardScreen(
     onTaskClick: (ScheduledTaskResponse) -> Unit = {},
     onOpenTasks: () -> Unit = {},
     onCreateBed: (Long) -> Unit = {},
+    onOpenGardenBeds: (Long) -> Unit = {},
     onSpeciesClick: (Long) -> Unit = {},
     onOpenTrayLocation: (Long) -> Unit = {},
     onOpenSupplies: () -> Unit = {},
@@ -339,6 +342,9 @@ fun DashboardScreen(
                             beds = dashboard.stats.totalBeds,
                             plants = dashboard.stats.totalActivePlants,
                             species = dashboard.stats.totalActiveSpecies,
+                            onOpenBeds = dashboard.gardens.firstOrNull()?.let { garden ->
+                                { onOpenGardenBeds(garden.id) }
+                            },
                         )
                     }
 
@@ -715,7 +721,7 @@ private fun EmptySuppliesBanner(onOpenSupplies: () -> Unit) {
 }
 
 @Composable
-private fun HeroStats(beds: Int, plants: Int, species: Int) {
+private fun HeroStats(beds: Int, plants: Int, species: Int, onOpenBeds: (() -> Unit)?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -723,7 +729,14 @@ private fun HeroStats(beds: Int, plants: Int, species: Int) {
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        HeroStatCell(value = beds, label = "Bäddar", modifier = Modifier.weight(1f))
+        HeroStatCell(
+            value = beds,
+            label = pluralStringResource(R.plurals.dashboard_bed_label, beds),
+            modifier = Modifier.weight(1f).then(
+                if (onOpenBeds != null) Modifier.clickable(role = Role.Button, onClick = onOpenBeds)
+                else Modifier,
+            ),
+        )
         HeroStatCell(value = plants, label = "Plantor", modifier = Modifier.weight(1f))
         HeroStatCell(value = species, label = "Arter", modifier = Modifier.weight(1f))
     }
