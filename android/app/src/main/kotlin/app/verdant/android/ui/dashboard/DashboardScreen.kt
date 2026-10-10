@@ -187,22 +187,13 @@ class DashboardViewModel @Inject constructor(
             if (showLoading) _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
                 val dashboard = analyticsRepository.dashboard()
-                val tasks = runCatching { taskRepository.list() }.getOrDefault(emptyList())
+                val tasks = runCatching { taskRepository.listAll() }.getOrDefault(emptyList())
                 val tray = runCatching { plantRepository.traySummary() }.getOrDefault(emptyList())
                 val stats = runCatching { analyticsRepository.harvestStats() }.getOrDefault(emptyList())
                 val supplyInv = runCatching { supplyRepository.listInventory() }.getOrDefault(emptyList())
                 val supplyTypes = runCatching { supplyRepository.listTypes() }.getOrDefault(emptyList())
-                // Tasks whose earliestDate is still in the future ("kommande")
-                // belong on the dedicated Tasks list, not the dashboard's
-                // at-a-glance feed.
                 val today = java.time.LocalDate.now()
-                val pending = tasks
-                    .filter { it.status == "PENDING" && it.remainingCount > 0 }
-                    .filter {
-                        val earliest = it.earliestDate?.let { d -> runCatching { java.time.LocalDate.parse(d) }.getOrNull() }
-                        earliest == null || !earliest.isAfter(today)
-                    }
-                    .sortedBy { it.deadline ?: "9999-12-31" }
+                val pending = dashboardTaskDays(tasks, today).flatMap { it.tasks }
                 val revenue = runCatching {
                     val seasons = seasonRepository.list()
                     val activeSeason = seasons.firstOrNull { s ->
@@ -267,6 +258,8 @@ fun DashboardScreen(
     // as the at-a-glance summary.
     val expandedTrayKeys = remember { androidx.compose.runtime.mutableStateMapOf<String, Boolean>() }
     var showQuickActions by remember { mutableStateOf(false) }
+    var weekExpanded by remember { mutableStateOf(false) }
+    val taskDays = dashboardTaskDays(uiState.pendingTasks)
     var taskToDelete by remember { mutableStateOf<ScheduledTaskResponse?>(null) }
 
     taskToDelete?.let { task ->
@@ -383,24 +376,48 @@ fun DashboardScreen(
 
                     item {
                         FaltetSectionHeader(
-                            label = "Pågående uppgifter",
-                            trailing = if (uiState.pendingTasks.isNotEmpty()) {
-                                { TextButton(onClick = onOpenTasks) { Text("Alla", fontSize = 12.sp) } }
-                            } else null,
+                            label = "Att göra",
+                            trailing = { TextButton(onClick = onOpenTasks) { Text("Alla", fontSize = 12.sp) } },
                         )
                     }
                     if (uiState.pendingTasks.isEmpty()) {
-                        item { InlineMuted("Inget väntar på dig.") }
+                        item {
+                            InlineMuted("Inga uppgifter de kommande sju dagarna.")
+                            TextButton(onClick = onOpenTasks) { Text("Visa alla uppgifter") }
+                        }
                     } else {
-                        items(uiState.pendingTasks.take(6), key = { "task_${it.id}" }) { task ->
-                            TaskRow(
-                                task = task,
-                                isCompleting = task.id in uiState.completingTaskIds,
-                                onClick = { onTaskClick(task) },
-                                onCompleteToggle = { viewModel.completeTask(task) },
-                                onDelete = { taskToDelete = task },
-                                modifier = Modifier.animateItem(),
-                            )
+                        taskDays.forEachIndexed { index, day ->
+                            if (index == 2) {
+                                item {
+                                    TextButton(onClick = { weekExpanded = !weekExpanded }) {
+                                        Text("Kommande vecka (${taskDays.drop(2).sumOf { it.tasks.size }})")
+                                        Icon(if (weekExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, contentDescription = if (weekExpanded) "Dölj" else "Visa")
+                                    }
+                                }
+                            }
+                            if (index < 2 || (weekExpanded && day.tasks.isNotEmpty())) {
+                                item {
+                                    FaltetSectionHeader(label = when (index) {
+                                        0 -> "Idag"
+                                        1 -> "Imorgon"
+                                        else -> day.date.format(java.time.format.DateTimeFormatter.ofPattern("EEEE d MMM", java.util.Locale.forLanguageTag("sv")))
+                                    })
+                                    if (day.tasks.isEmpty()) InlineMuted("Inga uppgifter.")
+                                }
+                                items(day.tasks, key = { "task_${it.id}" }) { task ->
+                                    TaskRow(
+                                        task = task,
+                                        isCompleting = task.id in uiState.completingTaskIds,
+                                        onClick = { onTaskClick(task) },
+                                        onCompleteToggle = { viewModel.completeTask(task) },
+                                        onDelete = { taskToDelete = task },
+                                        modifier = Modifier.animateItem(),
+                                    )
+                                }
+                            }
+                        }
+                        if (weekExpanded && taskDays.drop(2).all { it.tasks.isEmpty() }) {
+                            item { InlineMuted("Inga uppgifter.") }
                         }
                     }
 

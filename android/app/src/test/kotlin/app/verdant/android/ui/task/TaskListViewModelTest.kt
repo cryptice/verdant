@@ -202,6 +202,7 @@ private class FakeTaskRepository(
     private val initial: List<ScheduledTaskResponse> = emptyList(),
     private val throwOnList: Throwable? = null,
 ) : TaskRepository {
+    override suspend fun listAll() = list()
     val deletedIds = mutableListOf<Long>()
     val completedRequests = mutableListOf<Pair<Long, CompleteTaskPartiallyRequest>>()
 

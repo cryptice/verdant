@@ -382,7 +382,7 @@ interface VerdantApi {
     // ── Scheduled Tasks ──
 
     @GET("api/tasks")
-    suspend fun getTasks(): List<ScheduledTaskResponse>
+    suspend fun getTasks(@Query("limit") limit: Int = 50, @Query("offset") offset: Int = 0): List<ScheduledTaskResponse>
 
     @GET("api/tasks/{id}")
     suspend fun getTask(@Path("id") id: Long): ScheduledTaskResponse

@@ -10,6 +10,7 @@ import javax.inject.Singleton
 
 /** Scheduled tasks. Interface so ViewModels can be tested with a fake. */
 interface TaskRepository {
+    suspend fun listAll(): List<ScheduledTaskResponse>
     suspend fun list(): List<ScheduledTaskResponse>
     suspend fun get(id: Long): ScheduledTaskResponse
     suspend fun create(request: CreateScheduledTaskRequest): ScheduledTaskResponse
@@ -20,6 +21,16 @@ interface TaskRepository {
 
 @Singleton
 class DefaultTaskRepository @Inject constructor(private val api: VerdantApi) : TaskRepository {
+    override suspend fun listAll(): List<ScheduledTaskResponse> {
+        val tasks = mutableListOf<ScheduledTaskResponse>()
+        var offset = 0
+        while (true) {
+            val page = api.getTasks(limit = 200, offset = offset)
+            tasks.addAll(page)
+            if (page.size < 200) return tasks
+            offset += 200
+        }
+    }
     override suspend fun list() = api.getTasks()
     override suspend fun get(id: Long) = api.getTask(id)
     override suspend fun create(request: CreateScheduledTaskRequest) = api.createTask(request)
