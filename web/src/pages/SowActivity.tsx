@@ -78,7 +78,11 @@ export function SowActivity() {
     queryKey: ['species'],
     queryFn: api.species.list,
   })
-  const presetSpecies = presetId ? allSpecies?.find(s => s.id === presetId) ?? null : null
+  const { data: presetSpecies } = useQuery({
+    queryKey: ['species-by-id', presetId],
+    queryFn: () => api.species.get(presetId!),
+    enabled: presetId != null,
+  })
 
   // Fetch all seed stock for the recent list
   const { data: allSeedStock } = useQuery({

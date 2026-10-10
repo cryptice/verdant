@@ -69,7 +69,7 @@ export function TaskForm() {
 
   const { data: presetSpecies } = useQuery({
     queryKey: ['species-by-id', existing?.speciesId],
-    queryFn: () => api.species.search(String(existing!.speciesId), 1).then(list => list.find(s => s.id === existing!.speciesId) ?? null),
+    queryFn: () => api.species.get(existing!.speciesId!),
     enabled: !!existing?.speciesId,
   })
 
