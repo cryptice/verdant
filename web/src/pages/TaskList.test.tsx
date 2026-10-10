@@ -64,6 +64,16 @@ beforeEach(() => {
 })
 
 describe('taskTitle', () => {
+  it('uses the description as the title for a TODO task', () => {
+    expect(taskTitle(task({ activityType: 'TODO', notes: '  Beställ chilifrön  ' })))
+      .toBe('Beställ chilifrön')
+  })
+
+  it('uses a translated fallback for a TODO without a description', () => {
+    expect(taskTitle(task({ activityType: 'TODO', notes: '  ' }), 'To do'))
+      .toBe('To do')
+  })
+
   it('renders the species name unchanged when a species task', () => {
     expect(taskTitle(task({ speciesName: 'Tomat', activityType: 'SOW' }))).toBe('Tomat')
   })
@@ -102,6 +112,17 @@ describe('isPlaceScoped', () => {
 })
 
 describe('TaskList buckets', () => {
+  it('shows the TODO description in its row and drawer with a translated activity label', async () => {
+    vi.mocked(api.tasks.list).mockResolvedValue([
+      task({ activityType: 'TODO', notes: 'Beställ chilifrön', deadline: isoOffsetDays(1) }),
+    ])
+    renderList()
+    fireEvent.click(await screen.findByText('Beställ chilifrön'))
+    expect(await screen.findByRole('dialog')).toHaveAccessibleName('Beställ chilifrön')
+    expect(screen.getByText('activityType.TODO')).toBeInTheDocument()
+    expect(screen.queryByText('TODO')).not.toBeInTheDocument()
+  })
+
   it('renders a task past its deadline in the overdue section', async () => {
     vi.mocked(api.tasks.list).mockResolvedValue([
       task({ id: 1, gardenAreaId: 5, gardenAreaName: 'Gången', deadline: isoOffsetDays(-3) }),

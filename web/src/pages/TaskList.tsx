@@ -55,7 +55,8 @@ export function isPlaceScoped(task: ScheduledTaskResponse): boolean {
   return task.bedId != null || task.gardenAreaId != null
 }
 
-export function taskTitle(task: ScheduledTaskResponse): string {
+export function taskTitle(task: ScheduledTaskResponse, todoLabel = 'Att göra'): string {
+  if (task.activityType === 'TODO') return task.notes?.trim() || todoLabel
   if (task.speciesName) return task.speciesName
   const place = task.gardenAreaName ?? task.bedName
   const activity = maintenanceActivityLabelSv(task.activityType)
@@ -236,7 +237,7 @@ export function TaskList() {
       <Dialog
         open={drawerTask !== null}
         onClose={() => setDrawerTask(null)}
-        title={drawerTask ? taskTitle(drawerTask) : ''}
+        title={drawerTask ? taskTitle(drawerTask, t('activityType.TODO')) : ''}
         actions={
           drawerTask ? (
             <>
@@ -408,7 +409,9 @@ function TaskRow({ task, onOpen }: { task: ScheduledTaskResponse; onOpen: () => 
       </span>
       <div>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: 18 }}>
-          {task.bedId != null
+          {task.activityType === 'TODO'
+            ? taskTitle(task, t('activityType.TODO'))
+            : task.bedId != null
             ? maintenanceActivityLabelSv(task.activityType)
             : (task.speciesName ?? maintenanceActivityLabelSv(task.activityType))}
         </div>
@@ -420,6 +423,8 @@ function TaskRow({ task, onOpen }: { task: ScheduledTaskResponse; onOpen: () => 
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7 }}>
           {task.harvestPlanId != null
             ? `${task.notes ?? task.activityType} · ${task.remainingCount} ${t(`planning.units.${task.quantityUnit}`)}`
+            : task.activityType === 'TODO'
+            ? t('activityType.TODO')
             : task.bedId != null
             ? [task.gardenName, task.bedName].filter(Boolean).join(' · ')
             : (task.gardenAreaName ?? task.activityType.replace(/_/g, ' '))}
