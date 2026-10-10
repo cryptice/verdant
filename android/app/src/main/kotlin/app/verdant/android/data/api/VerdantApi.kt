@@ -321,6 +321,9 @@ interface VerdantApi {
     @GET("api/species")
     suspend fun getSpecies(): List<SpeciesResponse>
 
+    @GET("api/species/{id}")
+    suspend fun getSpeciesById(@Path("id") id: Long): SpeciesResponse
+
     @POST("api/species")
     suspend fun createSpecies(@Body request: CreateSpeciesRequest): SpeciesResponse
 

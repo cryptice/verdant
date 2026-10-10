@@ -15,6 +15,7 @@ import javax.inject.Singleton
 
 /** Species, groups, tags, frequent comments. Interface so ViewModels can be tested with a fake. */
 interface SpeciesRepository {
+    suspend fun get(id: Long): SpeciesResponse
     suspend fun list(): List<SpeciesResponse>
     suspend fun create(request: CreateSpeciesRequest): SpeciesResponse
     suspend fun update(id: Long, request: UpdateSpeciesRequest): SpeciesResponse
@@ -32,6 +33,7 @@ interface SpeciesRepository {
 
 @Singleton
 class SpeciesRepositoryImpl @Inject constructor(private val api: VerdantApi) : SpeciesRepository {
+    override suspend fun get(id: Long) = api.getSpeciesById(id)
     override suspend fun list() = api.getSpecies()
     override suspend fun create(request: CreateSpeciesRequest) = api.createSpecies(request)
     override suspend fun update(id: Long, request: UpdateSpeciesRequest) = api.updateSpecies(id, request)

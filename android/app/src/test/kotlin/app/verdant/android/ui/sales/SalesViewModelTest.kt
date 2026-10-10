@@ -206,6 +206,7 @@ private class FakeSeasonRepo(
 private class FakeSpeciesRepo(
     private val species: List<SpeciesResponse> = emptyList(),
 ) : SpeciesRepository {
+    override suspend fun get(id: Long): SpeciesResponse = species.first { it.id == id }
     override suspend fun list(): List<SpeciesResponse> = species
     override suspend fun create(request: CreateSpeciesRequest): SpeciesResponse = error("not used")
     override suspend fun update(id: Long, request: UpdateSpeciesRequest): SpeciesResponse = error("not used")

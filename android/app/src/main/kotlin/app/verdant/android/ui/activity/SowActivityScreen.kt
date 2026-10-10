@@ -107,10 +107,14 @@ class SowActivityViewModel @Inject constructor(
     private fun loadData() {
         viewModelScope.launch {
             try {
-                val species = speciesRepository.list().sortedBySwedishName()
+                var species = speciesRepository.list().sortedBySwedishName()
                 val beds = bedRepository.listAll().sortedByNaturalName()
                 val comments = speciesRepository.frequentComments().map { it.text }
                 val task = taskId?.let { taskRepository.get(it) }
+                val linkedSpeciesId = task?.speciesId ?: preselectedSpeciesId
+                if (linkedSpeciesId != null && species.none { it.id == linkedSpeciesId }) {
+                    species = (species + speciesRepository.get(linkedSpeciesId)).sortedBySwedishName()
+                }
                 val trayLocations = runCatching { trayLocationRepository.list() }.getOrDefault(emptyList())
                 _uiState.value = _uiState.value.copy(
                     species = species, beds = beds, comments = comments, task = task,
@@ -246,7 +250,7 @@ fun SowActivityScreen(
     var taskPrefilled by remember { mutableStateOf(false) }
     LaunchedEffect(uiState.task) {
         if (uiState.task != null && !taskPrefilled) {
-            selectedSpecies = uiState.species.find { it.id == uiState.task!!.speciesId }
+            selectedSpecies = uiState.species.find { it.id == (uiState.task!!.speciesId ?: viewModel.preselectedSpeciesId) }
             countText = uiState.task!!.remainingCount.toString()
             taskPrefilled = true
         }

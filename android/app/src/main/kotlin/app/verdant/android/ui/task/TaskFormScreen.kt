@@ -98,9 +98,13 @@ class TaskFormViewModel @Inject constructor(
     private fun loadData() {
         viewModelScope.launch {
             try {
-                val species = speciesRepository.list().sortedBySwedishName()
+                var species = speciesRepository.list().sortedBySwedishName()
                 val beds = runCatching { bedRepository.listAll().sortedByNaturalName() }.getOrDefault(emptyList())
                 val task = taskId?.let { taskRepository.get(it) }
+                val linkedSpeciesId = task?.speciesId
+                if (linkedSpeciesId != null && species.none { it.id == linkedSpeciesId }) {
+                    species = (species + speciesRepository.get(linkedSpeciesId)).sortedBySwedishName()
+                }
                 _uiState.value = _uiState.value.copy(species = species, beds = beds, existingTask = task)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load task form data", e)
