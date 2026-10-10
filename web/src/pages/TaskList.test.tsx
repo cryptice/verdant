@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { isPlaceScoped, taskTitle, TaskList } from './TaskList'
 import type { ScheduledTaskResponse } from '../api/client'
@@ -118,8 +118,10 @@ describe('TaskList buckets', () => {
     ])
     renderList()
     fireEvent.click(await screen.findByText('Beställ chilifrön'))
-    expect(await screen.findByRole('dialog')).toHaveAccessibleName('Beställ chilifrön')
-    expect(screen.getByText('activityType.TODO')).toBeInTheDocument()
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toHaveAccessibleName('activityType.TODO')
+    expect(within(dialog).getByText('Beställ chilifrön')).toBeInTheDocument()
+    expect(within(dialog).queryByText('tasks.drawer.placeholder')).not.toBeInTheDocument()
     expect(screen.queryByText('TODO')).not.toBeInTheDocument()
   })
 
@@ -164,6 +166,20 @@ describe('TaskList buckets', () => {
 })
 
 describe('TaskList drawer completion', () => {
+  it('shows saved instructions for a species task instead of placeholder details', async () => {
+    vi.mocked(api.tasks.list).mockResolvedValue([task({
+      speciesName: 'Chilipeppar', speciesId: 5, activityType: 'POT_UP',
+      notes: 'Plantera om till 9 cm-kruka när plantan har 2–4 riktiga blad.',
+      deadline: isoOffsetDays(0),
+    })])
+    renderList()
+    fireEvent.click(await screen.findByText('Chilipeppar'))
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText('Plantera om till 9 cm-kruka när plantan har 2–4 riktiga blad.'))
+      .toBeInTheDocument()
+    expect(within(dialog).queryByText('tasks.drawer.placeholder')).not.toBeInTheDocument()
+  })
+
   it('opens the harvest plan for a generated task', async () => {
     vi.mocked(api.tasks.list).mockResolvedValue([task({
       speciesName: 'Dahlia', speciesId: 5, activityType: 'SOW',

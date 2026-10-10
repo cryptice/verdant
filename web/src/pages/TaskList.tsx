@@ -237,7 +237,11 @@ export function TaskList() {
       <Dialog
         open={drawerTask !== null}
         onClose={() => setDrawerTask(null)}
-        title={drawerTask ? taskTitle(drawerTask, t('activityType.TODO')) : ''}
+        title={drawerTask
+          ? drawerTask.activityType === 'TODO'
+            ? t('activityType.TODO')
+            : taskTitle(drawerTask)
+          : ''}
         actions={
           drawerTask ? (
             <>
@@ -292,9 +296,11 @@ export function TaskList() {
       >
         {drawerTask && (
           <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, lineHeight: 1.6 }}>
-            <p style={{ fontFamily: 'var(--font-display)', fontSize: 16, marginBottom: 12 }}>
-              {t('tasks.drawer.placeholder')}
-            </p>
+            {drawerTask.notes?.trim() && (
+              <p style={{ fontSize: 16, marginBottom: 12, whiteSpace: 'pre-wrap' }}>
+                {drawerTask.notes}
+              </p>
+            )}
             <p><strong>{t('tasks.remaining', { remaining: drawerTask.remainingCount, total: drawerTask.targetCount })}</strong></p>
             <p style={{ color: 'var(--color-forest)', marginTop: 4 }}>{drawerTask.deadline}</p>
             {isPlaceScoped(drawerTask) && (
