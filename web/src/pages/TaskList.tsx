@@ -118,9 +118,9 @@ export function TaskList() {
   }
 
   const today = todayIsoLocal()
-  const isToday  = (d: string) => d === today
-  const isFuture = (d: string) => d > today
-  const isPast   = (d: string) => d < today
+  const isToday  = (d: string | null) => d === today
+  const isFuture = (d: string | null) => d != null && d > today
+  const isPast   = (d: string | null) => d != null && d < today
 
   // Completed tasks stay in the API's response (it sorts them last rather than
   // dropping them), so the page has to exclude them itself — otherwise the

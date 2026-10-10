@@ -136,7 +136,7 @@ export interface ScheduledTaskResponse {
   bedId: number | null; bedName: string | null; gardenName: string | null
   activityType: string
   earliestDate?: string | null
-  deadline: string; targetCount: number; remainingCount: number
+  deadline: string | null; targetCount: number; remainingCount: number
   status: string; notes?: string; seasonId?: number; successionScheduleId?: number
   originGroupId?: number; originGroupName?: string
   acceptableSpecies: AcceptableSpeciesEntry[]
@@ -863,6 +863,14 @@ export const api = {
   },
 
   tasks: {
+    listAll: async () => {
+      const tasks: ScheduledTaskResponse[] = []
+      for (let offset = 0; ; offset += 200) {
+        const page = await apiRequest<ScheduledTaskResponse[]>(`/api/tasks?limit=200&offset=${offset}`)
+        tasks.push(...page)
+        if (page.length < 200) return tasks
+      }
+    },
     list: () => apiRequest<ScheduledTaskResponse[]>('/api/tasks'),
     get: (id: number) => apiRequest<ScheduledTaskResponse>(`/api/tasks/${id}`),
     create: (data: {

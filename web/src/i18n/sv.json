@@ -195,7 +195,13 @@
       }
     },
     "tasks": {
-      "title": "Uppgifter"
+      "title": "Att göra",
+      "today": "Idag",
+      "tomorrow": "Imorgon",
+      "week": "Kommande vecka",
+      "empty": "Inga uppgifter de kommande sju dagarna.",
+      "none": "Inga uppgifter.",
+      "all": "Visa alla uppgifter"
     },
     "beds": {
       "title": "Bäddar"

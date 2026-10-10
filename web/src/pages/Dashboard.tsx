@@ -81,20 +81,9 @@ export function Dashboard() {
     queryFn: () => api.plants.traySummary(),
   })
 
-  const { data: tasks } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => api.tasks.list(),
-  })
-
-  // Tasks with a future earliestDate are "kommande" — they live on the
-  // dedicated Tasks list, not on the dashboard's at-a-glance feed.
-  const dashboardTasks = tasks?.filter(t => {
-    if (t.status !== 'PENDING') return false
-    const earliest = t.earliestDate ? new Date(t.earliestDate) : null
-    if (earliest == null) return true
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    return earliest <= today
+  const { data: tasks, isPending: tasksLoading, isError: tasksError } = useQuery({
+    queryKey: ['tasks', 'dashboard'],
+    queryFn: () => api.tasks.listAll(),
   })
 
   const { data: seasons } = useQuery({
@@ -354,75 +343,7 @@ export function Dashboard() {
                 </Link>
               }
             />
-            {dashboardTasks?.slice(0, 6).map((task) => (
-              <div
-                key={task.id}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 80px',
-                  gap: 10,
-                  padding: '10px 0',
-                  borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
-                  alignItems: 'center',
-                }}
-              >
-                <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-display)',
-                      fontSize: 16,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {task.harvestPlanId ? <Link to={`/targets?plan=${task.harvestPlanId}`}>{taskTitle(task, t)}</Link> : taskTitle(task, t)}
-                  </span>
-                  {taskSubject(task, t) && (
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: 9,
-                        letterSpacing: 1.4,
-                        textTransform: 'uppercase',
-                        color: 'var(--color-forest)',
-                        opacity: 0.7,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {taskSubject(task, t)}
-                    </span>
-                  )}
-                </div>
-                <span
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 10,
-                    textAlign: 'right',
-                    letterSpacing: 1.2,
-                  }}
-                >
-                  {task.deadline?.slice(0, 10) ?? '—'}
-                </span>
-              </div>
-            ))}
-            {(!dashboardTasks || dashboardTasks.length === 0) && (
-              <p
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 10,
-                  letterSpacing: 1.4,
-                  textTransform: 'uppercase',
-                  color: 'var(--color-forest)',
-                  opacity: 0.6,
-                  marginTop: 12,
-                }}
-              >
-                —
-              </p>
-            )}
+            {tasksLoading ? <p>{t('common.loading')}</p> : tasksError ? <Link to="/tasks">{t('dashboard.tasks.all')}</Link> : <DashboardTasks tasks={tasks ?? []} />}
           </section>
 
           {/* Column 3 — Beds */}
@@ -754,4 +675,96 @@ function ColumnHeader({ title, right }: { title: string; right?: React.ReactNode
       {right}
     </div>
   )
+}
+
+/** Use local calendar dates so the seven-day window stays correct across DST. */
+export function dashboardTaskDays(tasks: ScheduledTaskResponse[], now = new Date()) {
+  const dateKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+  return Array.from({ length: 7 }, (_, offset) => {
+    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset)
+    const key = dateKey(date)
+    return { date, tasks: tasks.filter(task => task.status === 'PENDING' && (task.earliestDate ?? task.deadline) === key)
+      .sort((a, b) => (a.deadline ?? '').localeCompare(b.deadline ?? '') || a.id - b.id) }
+  })
+}
+
+export function DashboardTasks({ tasks, now = new Date() }: { tasks: ScheduledTaskResponse[]; now?: Date }) {
+  const { t, i18n } = useTranslation()
+  const days = dashboardTaskDays(tasks, now)
+  const renderRows = (items: ScheduledTaskResponse[]) => <>
+            {items.map((task) => (
+              <div
+                key={task.id}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 80px',
+                  gap: 10,
+                  padding: '10px 0',
+                  borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+                  alignItems: 'center',
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: 16,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {task.harvestPlanId ? <Link to={`/targets?plan=${task.harvestPlanId}`}>{taskTitle(task, t)}</Link> : taskTitle(task, t)}
+                  </span>
+                  {taskSubject(task, t) && (
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 9,
+                        letterSpacing: 1.4,
+                        textTransform: 'uppercase',
+                        color: 'var(--color-forest)',
+                        opacity: 0.7,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {taskSubject(task, t)}
+                    </span>
+                  )}
+                </div>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 10,
+                    textAlign: 'right',
+                    letterSpacing: 1.2,
+                  }}
+                >
+                  {task.deadline?.slice(0, 10) ?? '—'}
+                </span>
+              </div>
+            ))}
+
+  </>
+  if (days.every(day => day.tasks.length === 0)) return (
+    <p>{t('dashboard.tasks.empty')} <Link to="/tasks">{t('dashboard.tasks.all')}</Link></p>
+  )
+  const renderDay = (day: typeof days[number], index: number) => (
+    <div key={day.date.toISOString()}>
+      <h3 style={{ fontFamily: 'var(--font-mono)', fontSize: 11, margin: '16px 0 4px' }}>
+        {index === 0 ? t('dashboard.tasks.today') : index === 1 ? t('dashboard.tasks.tomorrow') : day.date.toLocaleDateString(i18n.language, { weekday: 'long', day: 'numeric', month: 'short' })}
+      </h3>
+      {day.tasks.length ? renderRows(day.tasks) : <p style={{ fontSize: 12, opacity: 0.6 }}>{t('dashboard.tasks.none')}</p>}
+    </div>
+  )
+  const later = days.slice(2)
+  return <>
+    {days.slice(0, 2).map(renderDay)}
+    <details style={{ marginTop: 16 }}>
+      <summary style={{ cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: 11 }}>{t('dashboard.tasks.week')} ({later.reduce((total, day) => total + day.tasks.length, 0)})</summary>
+      {later.some(day => day.tasks.length) ? later.map((day, index) => day.tasks.length > 0 && renderDay(day, index + 2)) : <p>{t('dashboard.tasks.none')}</p>}
+    </details>
+  </>
 }

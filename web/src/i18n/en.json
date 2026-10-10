@@ -195,7 +195,13 @@
       }
     },
     "tasks": {
-      "title": "Tasks"
+      "title": "To do",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "week": "Coming week",
+      "empty": "No tasks in the next seven days.",
+      "none": "No tasks.",
+      "all": "View all tasks"
     },
     "beds": {
       "title": "Beds"

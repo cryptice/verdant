@@ -102,7 +102,7 @@ export function TaskForm() {
     if (existing) {
       setActivityType(existing.activityType)
       setEarliestDate(existing.earliestDate ?? '')
-      setDeadline(existing.deadline)
+      setDeadline(existing.deadline ?? '')
       setTargetCount(String(existing.targetCount))
       setNotes(existing.notes ?? '')
       setSelectedBedId(existing.bedId ?? null)
