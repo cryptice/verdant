@@ -15,6 +15,7 @@ fun NavGraphBuilder.taskGraph(navController: NavController) {
             onBack = { navController.popBackStack() },
             onCreateTask = { navController.navigate(Screen.CreateTask.route) },
             onOpenPlan = { id -> navController.navigate(Screen.HarvestPlan.create(id)) },
+            onSowTask = { task -> navController.navigate(Screen.Sow.create(taskId = task.id, speciesId = task.speciesId, bedId = task.bedId)) },
             onEditTask = { taskId -> navController.navigate(Screen.EditTask.create(taskId)) },
         )
     }

@@ -183,6 +183,16 @@ class TaskListViewModelTest {
         assertEquals("Beställ nya pinnar", loaded.notes)
     }
 
+    @Test
+    fun `sow tasks show a completion checkbox including quantities and species groups`() {
+        val task = sampleTask(id = 50, deadline = "2026-10-19")
+        assertTrue(hasTaskCompletionCheckbox(task))
+        assertTrue(hasTaskCompletionCheckbox(task.copy(speciesId = null, originGroupId = 3)))
+        assertFalse(hasTaskCompletionCheckbox(task.copy(harvestPlanId = 9)))
+        assertTrue(hasTaskCompletionCheckbox(task.copy(speciesId = null, activityType = "TODO")))
+        assertTrue(hasTaskCompletionCheckbox(task.copy(speciesId = null, activityType = "WATER", bedId = 1)))
+    }
+
     private fun sampleTask(id: Long, deadline: String) = ScheduledTaskResponse(
         id = id,
         speciesId = 100,

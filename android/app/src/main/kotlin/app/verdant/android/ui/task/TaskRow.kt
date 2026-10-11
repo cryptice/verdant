@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -66,6 +67,11 @@ fun taskDotColor(activityType: String): Color = when (activityType) {
 fun isPlaceScopedTask(task: ScheduledTaskResponse): Boolean =
     task.activityType != "TODO" && (task.bedId != null || task.gardenAreaId != null)
 
+/** Sow tasks open their counted activity form; planned tasks are handled through the plan. */
+fun hasTaskCompletionCheckbox(task: ScheduledTaskResponse): Boolean =
+    task.harvestPlanId == null &&
+        (task.activityType == "TODO" || isPlaceScopedTask(task) || task.activityType == "SOW")
+
 /** The place a task is anchored to. A rule targets exactly one of a bed or
  *  a garden area, so at most one of these is ever non-null. */
 fun taskPlaceName(task: ScheduledTaskResponse): String? = task.gardenAreaName ?: task.bedName
@@ -90,6 +96,7 @@ fun TaskRow(
     onCompleteToggle: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
+    onEdit: (() -> Unit)? = null,
 ) {
     val isTodo = task.activityType == "TODO"
     val isPlaceTask = isPlaceScopedTask(task)
@@ -122,7 +129,7 @@ fun TaskRow(
         title = title,
         meta = meta,
         leading = {
-            if ((isPlaceTask || isTodo) && task.harvestPlanId == null) {
+            if (hasTaskCompletionCheckbox(task)) {
                 Checkbox(
                     checked = isCompleting,
                     onCheckedChange = { if (!isCompleting) onCompleteToggle() },
@@ -160,6 +167,11 @@ fun TaskRow(
             }
         } else null,
         actions = {
+            onEdit?.let { edit ->
+                IconButton(onClick = edit, modifier = Modifier.size(36.dp)) {
+                    Icon(Icons.Default.Edit, contentDescription = "Redigera uppgift", tint = FaltetForest, modifier = Modifier.size(18.dp))
+                }
+            }
             if (task.harvestPlanId == null) IconButton(
                 onClick = onDelete,
                 modifier = Modifier.size(36.dp),

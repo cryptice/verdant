@@ -390,18 +390,18 @@ fun DashboardScreen(
                             if (index == 2) {
                                 item {
                                     TextButton(onClick = { weekExpanded = !weekExpanded }) {
-                                        Text("Kommande vecka (${taskDays.drop(2).sumOf { it.tasks.size }})")
+                                        DashboardTaskLabel("Kommande vecka (${taskDays.drop(2).sumOf { it.tasks.size }})")
                                         Icon(if (weekExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, contentDescription = if (weekExpanded) "Dölj" else "Visa")
                                     }
                                 }
                             }
                             if (index < 2 || (weekExpanded && day.tasks.isNotEmpty())) {
                                 item {
-                                    FaltetSectionHeader(label = when (index) {
+                                    DashboardTaskLabel(text = when (index) {
                                         0 -> "Idag"
                                         1 -> "Imorgon"
                                         else -> day.date.format(java.time.format.DateTimeFormatter.ofPattern("EEEE d MMM", java.util.Locale.forLanguageTag("sv")))
-                                    })
+                                    }, modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp))
                                     if (day.tasks.isEmpty()) InlineMuted("Inga uppgifter.")
                                 }
                                 items(day.tasks, key = { "task_${it.id}" }) { task ->
@@ -409,7 +409,7 @@ fun DashboardScreen(
                                         task = task,
                                         isCompleting = task.id in uiState.completingTaskIds,
                                         onClick = { onTaskClick(task) },
-                                        onCompleteToggle = { viewModel.completeTask(task) },
+                                        onCompleteToggle = { if (task.activityType == "SOW") onTaskClick(task) else viewModel.completeTask(task) },
                                         onDelete = { taskToDelete = task },
                                         modifier = Modifier.animateItem(),
                                     )
@@ -827,4 +827,15 @@ private fun activityLabelSv(activity: String): String = when (activity) {
 private fun formatWeight(grams: Double): String {
     return if (grams >= 1000) "${"%.1f".format(grams / 1000)} KG"
     else "${"%.0f".format(grams)} G"
+}
+
+@Composable
+private fun DashboardTaskLabel(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text = text,
+        modifier = modifier,
+        fontFamily = FontFamily.Monospace,
+        fontSize = 12.sp,
+        color = FaltetForest,
+    )
 }

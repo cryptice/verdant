@@ -17,7 +17,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -186,11 +186,15 @@ fun TaskListScreen(
     onCreateTask: () -> Unit,
     onEditTask: (Long) -> Unit,
     onOpenPlan: (Long) -> Unit,
+    onSowTask: (ScheduledTaskResponse) -> Unit,
     viewModel: TaskListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) { viewModel.loadTasks() }
+    LifecycleResumeEffect(Unit) {
+        viewModel.loadTasks()
+        onPauseOrDispose { }
+    }
 
     var taskToDelete by remember { mutableStateOf<ScheduledTaskResponse?>(null) }
 
@@ -236,8 +240,21 @@ fun TaskListScreen(
                         TaskRow(
                             task = task,
                             isCompleting = task.id in uiState.completingTaskIds,
-                            onClick = { task.harvestPlanId?.let(onOpenPlan) ?: onEditTask(task.id) },
-                            onCompleteToggle = { task.harvestPlanId?.let(onOpenPlan) ?: viewModel.completeTask(task) },
+                            onClick = {
+                                when {
+                                    task.harvestPlanId != null -> onOpenPlan(task.harvestPlanId)
+                                    task.activityType == "SOW" -> onSowTask(task)
+                                    else -> onEditTask(task.id)
+                                }
+                            },
+                            onCompleteToggle = {
+                                when {
+                                    task.harvestPlanId != null -> onOpenPlan(task.harvestPlanId)
+                                    task.activityType == "SOW" -> onSowTask(task)
+                                    else -> viewModel.completeTask(task)
+                                }
+                            },
+                            onEdit = if (task.activityType == "SOW" && task.harvestPlanId == null) ({ onEditTask(task.id) }) else null,
                             onDelete = { task.harvestPlanId?.let(onOpenPlan) ?: run { taskToDelete = task } },
                             modifier = Modifier.animateItem(),
                         )
