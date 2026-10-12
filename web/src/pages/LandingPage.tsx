@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthContext'
 import { api } from '../api/client'
+import { loginReturnTo } from '../auth/loginReturnTo'
 import { Rule } from '../components/faltet'
 
 declare global {
@@ -23,23 +24,24 @@ const featureKeys = ['gardens', 'plants', 'seeds', 'tasks'] as const
 export function LandingPage() {
   const { login, token } = useAuth()
   const navigate = useNavigate()
+  const returnTo = loginReturnTo(useLocation().search)
   const { t, i18n } = useTranslation()
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (token) navigate('/', { replace: true })
-  }, [token, navigate])
+    if (token) navigate(returnTo, { replace: true })
+  }, [token, navigate, returnTo])
 
   const handleCredentialResponse = useCallback(async (response: { credential: string }) => {
     setError(null)
     try {
       const res = await api.auth.google(response.credential)
       login(res.token, res.user)
-      navigate('/')
+      navigate(returnTo)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Sign-in failed')
     }
-  }, [login, navigate])
+  }, [login, navigate, returnTo])
 
   useEffect(() => {
     const script = document.createElement('script')

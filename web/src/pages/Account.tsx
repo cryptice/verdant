@@ -70,6 +70,8 @@ export function Account() {
           </div>
         </div>
 
+        <p><Link to="/account/mcp">{i18n.language.startsWith('sv') ? 'AI-anslutningar (MCP)' : 'AI connections (MCP)'}</Link></p>
+
         {/* Settings grid */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 28px' }}>
           <div>

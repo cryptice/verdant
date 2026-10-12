@@ -2,8 +2,11 @@ import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './auth/AuthContext'
 import { useOrg } from './auth/OrgContext'
+import { loginReturnTo } from './auth/loginReturnTo'
 import { LandingPage } from './pages/LandingPage'
 
+const McpAuthorizePage = lazy(() => import('./pages/McpAuthorizePage').then(m => ({ default: m.McpAuthorizePage })))
+const McpConnections = lazy(() => import('./pages/McpConnections').then(m => ({ default: m.McpConnections })))
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })))
 const OrgSetup = lazy(() => import('./pages/OrgSetup').then(m => ({ default: m.OrgSetup })))
 const Layout = lazy(() => import('./components/Layout').then(m => ({ default: m.Layout })))
@@ -60,9 +63,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function PublicOnly({ children }: { children: React.ReactNode }) {
+  const location = useLocation()
   const { token, loading } = useAuth()
   if (loading) return null
-  if (token) return <Navigate to="/" replace />
+  if (token) return <Navigate to={loginReturnTo(location.search)} replace />
   return <>{children}</>
 }
 
@@ -81,6 +85,7 @@ export function App() {
     <Suspense fallback={null}>
       <Routes>
         <Route path="/login" element={<PublicOnly><LandingPage /></PublicOnly>} />
+        <Route path="/mcp/authorize" element={<McpAuthorizePage />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/org/setup" element={<ProtectedRoute><OrgSetup /></ProtectedRoute>} />
         <Route element={<ProtectedRoute><RequireOrg><Layout /></RequireOrg></ProtectedRoute>}>
@@ -130,6 +135,7 @@ export function App() {
           <Route path="guide" element={<Guide />} />
           <Route path="org/settings" element={<OrgSettings />} />
           <Route path="account" element={<Account />} />
+          <Route path="account/mcp" element={<McpConnections />} />
         </Route>
         {!loading && !token && <Route path="*" element={<Navigate to="/login" replace />} />}
       </Routes>

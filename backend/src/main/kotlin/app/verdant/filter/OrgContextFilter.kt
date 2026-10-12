@@ -1,6 +1,8 @@
 package app.verdant.filter
 
 import app.verdant.repository.OrgMemberRepository
+import app.verdant.mcp.McpOAuthService
+import app.verdant.mcp.McpConfig
 import jakarta.annotation.Priority
 import jakarta.ws.rs.Priorities
 import jakarta.ws.rs.container.ContainerRequestContext
@@ -15,10 +17,15 @@ class OrgContextFilter(
     private val jwt: JsonWebToken,
     private val orgMemberRepository: OrgMemberRepository,
     private val orgContext: OrgContext,
+    private val mcp: McpOAuthService,
+    private val mcpConfig: McpConfig,
 ) : ContainerRequestFilter {
 
     private val exemptPrefixes = listOf(
         "api/auth/",
+        "api/mcp/oauth/",
+        "mcp/oauth/",
+        ".well-known/",
         "api/users/me",
         "api/organizations",
         "api/invites",
@@ -31,6 +38,22 @@ class OrgContextFilter(
 
     override fun filter(requestContext: ContainerRequestContext) {
         val path = requestContext.uriInfo.path.removePrefix("/")
+
+        if (path == "mcp") {
+            val grant = mcp.delegatedGrant(jwt)
+            if (grant == null) {
+                requestContext.abortWith(Response.status(401).header("WWW-Authenticate", mcpConfig.challenge).build())
+            } else {
+                orgContext.orgId = grant.orgId
+                orgContext.userId = grant.userId
+            }
+            return
+        }
+        // Delegated read-only credentials must never authorize the regular application API.
+        if (jwt.getClaim<String>("token_type") == "mcp") {
+            requestContext.abortWith(Response.status(403).build())
+            return
+        }
 
         if (exemptPrefixes.any { path.startsWith(it) }) return
 

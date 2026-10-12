@@ -12,7 +12,7 @@ class SpaRouting {
             val path = ctx.normalizedPath()
             when {
                 // Let API calls, static files (with extensions), and Quarkus paths pass through
-                path.startsWith("/api/") || path.startsWith("/q/") || path.contains(".") -> ctx.next()
+                path == "/mcp" || path.startsWith("/mcp/oauth/") || path.startsWith("/api/") || path.startsWith("/q/") || path.contains(".") -> ctx.next()
                 // Admin SPA
                 path.startsWith("/admin") -> ctx.reroute("/admin/index.html")
                 // Main web SPA

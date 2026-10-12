@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { mcpLoginUrl } from './loginReturnTo'
 import { api, setOnUnauthorized, type UserResponse } from '../api/client'
 
 interface AuthState {
@@ -26,7 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null)
     setUser(null)
     setLoading(false)
-    navigate('/login')
+    navigate(mcpLoginUrl(window.location.pathname, window.location.search))
   }, [navigate])
 
   useEffect(() => {
