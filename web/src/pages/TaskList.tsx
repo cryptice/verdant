@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api, type ScheduledTaskResponse } from '../api/client'
 import { Masthead } from '../components/faltet'
+import { TaskCompletionSummary } from '../components/TaskCompletionSummary'
 import { Snackbar } from '../components/Snackbar'
 import { useUndoableCompletion } from '../lib/useUndoableCompletion'
 import { Dialog } from '../components/Dialog'
@@ -299,13 +300,7 @@ export function TaskList() {
       >
         {drawerTask && (
           <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, lineHeight: 1.6 }}>
-            {drawerTask.notes?.trim() && (
-              <p style={{ fontSize: 16, marginBottom: 12, whiteSpace: 'pre-wrap' }}>
-                {drawerTask.notes}
-              </p>
-            )}
-            <p><strong>{t('tasks.remaining', { remaining: drawerTask.remainingCount, total: drawerTask.targetCount })}</strong></p>
-            <p style={{ color: 'var(--color-forest)', marginTop: 4 }}>{drawerTask.deadline}</p>
+            <TaskCompletionSummary key={drawerTask.id} task={drawerTask} />
             {isPlaceScoped(drawerTask) && (
               <p style={{ color: 'var(--color-forest)', marginTop: 12 }}>
                 {t('tasks.drawer.placeHint')}
