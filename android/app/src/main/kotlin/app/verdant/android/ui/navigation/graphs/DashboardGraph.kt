@@ -45,6 +45,7 @@ fun NavGraphBuilder.dashboardGraph(navController: NavController) {
             },
             onOpenSupplies = { navController.navigate(Screen.Supplies.route) },
             onOpenSales = { navController.navigate(Screen.Sales.route) },
+            onCreateTask = { navController.navigate(Screen.CreateTask.route) },
             onSow = { navController.navigate(Screen.Sow.create()) },
             onRegister = { navController.navigate(Screen.RegisterPlants.route) },
         )

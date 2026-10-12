@@ -17,6 +17,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.AddTask
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.ExpandLess
@@ -266,6 +267,7 @@ fun DashboardScreen(
     onOpenTrayLocation: (Long) -> Unit = {},
     onOpenSupplies: () -> Unit = {},
     onOpenSales: () -> Unit = {},
+    onCreateTask: () -> Unit = {},
     onSow: () -> Unit = {},
     onRegister: () -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel(),
@@ -522,6 +524,10 @@ fun DashboardScreen(
     if (showQuickActions) {
         QuickActionsDialog(
             onDismiss = { showQuickActions = false },
+            onCreateTask = {
+                showQuickActions = false
+                onCreateTask()
+            },
             onSow = {
                 showQuickActions = false
                 onSow()
@@ -537,6 +543,7 @@ fun DashboardScreen(
 @Composable
 private fun QuickActionsDialog(
     onDismiss: () -> Unit,
+    onCreateTask: () -> Unit,
     onSow: () -> Unit,
     onRegister: () -> Unit,
 ) {
@@ -562,6 +569,12 @@ private fun QuickActionsDialog(
                 fontStyle = FontStyle.Italic,
                 fontSize = 26.sp,
                 color = FaltetInk,
+            )
+            QuickActionCard(
+                icon = Icons.Default.AddTask,
+                title = "Lägg till uppgift",
+                subtitle = "Planera något som behöver göras",
+                onClick = onCreateTask,
             )
             QuickActionCard(
                 icon = Icons.Default.Spa,
