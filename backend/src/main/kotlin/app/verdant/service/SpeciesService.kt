@@ -46,7 +46,7 @@ class SpeciesService(
         if (species.orgId != null && species.orgId != orgId) throw NotFoundException("Species not found")
         val groupIds = groupRepository.findGroupIdsBySpeciesId(species.id!!)
         val groups = if (groupIds.isNotEmpty()) {
-            groupIds.mapNotNull { groupRepository.findById(it) }.associateBy { it.id }
+            groupIds.mapNotNull { groupRepository.findById(it) }.filter { it.orgId == null || it.orgId == orgId }.associateBy { it.id }
         } else emptyMap<Long?, SpeciesGroup>()
         val tags = tagRepository.findByOrgId(orgId).associateBy { it.id }
         return species.toResponse(groups, tags)

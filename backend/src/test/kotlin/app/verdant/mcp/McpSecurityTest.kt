@@ -41,6 +41,7 @@ class McpSecurityTest {
     @Inject lateinit var orgs: OrganizationRepository
     @Inject lateinit var members: OrgMemberRepository
     @Inject lateinit var planning: McpPlanningRepository
+    @Inject lateinit var groups: SpeciesGroupRepository
     @Inject lateinit var species: SpeciesRepository
     @Inject lateinit var seasons: SeasonRepository
     @Inject lateinit var tokens: TokenService
@@ -119,6 +120,20 @@ class McpSecurityTest {
         insert(other, otherSeason, "STEM", "ACTIVE", 1000)
         assertEquals(listOf(PlannedStems(10, java.time.LocalDate.of(2027, 7, 1), 80)), planning.plannedStems(orgId, season))
         assertTrue(planning.plannedStems(orgId, otherSeason).isEmpty())
+    }
+
+    @Test fun `shared catalogue does not expose another organizations private groups`() {
+        val other = orgs.persist(Organization(name = "Private org")).id!!
+        val sharedSpecies = species.persist(Species(commonName = "Shared catalogue species")).id!!
+        val ownGroup = groups.persist(SpeciesGroup(orgId = orgId, name = "Our growing group")).id!!
+        val privateGroup = groups.persist(SpeciesGroup(orgId = other, name = "Secret other growing group")).id!!
+        ds.connection.use { c -> c.prepareStatement("INSERT INTO species_group_membership(group_id,species_id) VALUES (?,?),(?,?)").use { p -> p.setLong(1, ownGroup); p.setLong(2, sharedSpecies); p.setLong(3, privateGroup); p.setLong(4, sharedSpecies); p.executeUpdate() } }
+        val token = access().path("access_token").asText()
+        val result = rpc(token, "get_species_details", mapOf("speciesId" to sharedSpecies)).body()
+        assertTrue(result.contains("Our growing group"))
+        assertFalse(result.contains("Secret other growing group"))
+        val blocked = mapper.readTree(rpc(token, "get_planning_candidates", mapOf("groupId" to privateGroup)).body())
+        assertTrue(blocked.path("result").path("isError").asBoolean())
     }
 
     @Test fun `HTTP authorization requires explicit consent and expires`() {
