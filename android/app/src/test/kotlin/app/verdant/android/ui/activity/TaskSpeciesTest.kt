@@ -95,4 +95,15 @@ class TaskSpeciesTest {
         assertNotNull(vm.uiState.value.error)
     }
 
+    @Test fun `sowing includes the selected image in the upload request`() = runTest {
+        val vm = sow(api(), SavedStateHandle(mapOf("taskId" to 1L)))
+        advanceUntilIdle()
+        val photo = "encoded-jpeg-photo"
+        vm.sow(bedId = null, trayLocationId = 1, speciesId = 1991, name = "Naga Black", seedCount = 5, notes = null, imageBase64 = photo, seedBatchId = null, sowDate = null)
+        advanceUntilIdle()
+        assertEquals(photo, sowRequests.single().imageBase64)
+        assertTrue(vm.uiState.value.created)
+        assertNull(vm.uiState.value.error)
+    }
+
 }

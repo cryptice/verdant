@@ -1,6 +1,9 @@
 // android/app/src/main/kotlin/app/verdant/android/ui/faltet/FaltetImagePicker.kt
 package app.verdant.android.ui.faltet
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -61,6 +64,20 @@ fun FaltetImagePicker(
         if (bitmap != null) onValueChange(bitmap)
     }
 
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (granted) cameraLauncher.launch(null)
+    }
+
+    fun launchCamera() {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            cameraLauncher.launch(null)
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
     ) { uri ->
@@ -88,7 +105,7 @@ fun FaltetImagePicker(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 OutlinedButton(
-                    onClick = { cameraLauncher.launch(null) },
+                    onClick = { launchCamera() },
                     shape = RectangleShape,
                     border = BorderStroke(1.dp, FaltetInkLine40),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = FaltetAccent),
