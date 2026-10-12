@@ -2,19 +2,27 @@ package app.verdant.android.ui.task
 
 import app.verdant.android.data.model.planningUnit
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -91,12 +99,13 @@ fun taskTargetLabel(task: ScheduledTaskResponse): String? = when {
 fun TaskRow(
     task: ScheduledTaskResponse,
     isCompleting: Boolean,
-    onClick: () -> Unit,
+    onExecute: () -> Unit,
     onCompleteToggle: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
     onEdit: (() -> Unit)? = null,
 ) {
+    var actionsExpanded by remember { mutableStateOf(false) }
     val isTodo = task.activityType == "TODO"
     val isPlaceTask = isPlaceScopedTask(task)
     val dotColor = taskDotColor(task.activityType)
@@ -165,25 +174,30 @@ fun TaskRow(
                 }
             }
         } else null,
-        actions = {
-            onEdit?.let { edit ->
-                IconButton(onClick = edit, modifier = Modifier.size(36.dp)) {
-                    Icon(Icons.Default.Edit, contentDescription = "Redigera uppgift", tint = FaltetForest, modifier = Modifier.size(18.dp))
+        actions = if (task.harvestPlanId == null) {
+            {
+                Box {
+                    IconButton(onClick = { actionsExpanded = true }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = "Fler uppgiftsåtgärder", tint = FaltetForest)
+                    }
+                    DropdownMenu(expanded = actionsExpanded, onDismissRequest = { actionsExpanded = false }) {
+                        onEdit?.let { edit ->
+                            DropdownMenuItem(
+                                text = { Text("Redigera uppgift") },
+                                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                                onClick = { actionsExpanded = false; edit() },
+                            )
+                        }
+                        DropdownMenuItem(
+                            text = { Text("Ta bort") },
+                            leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
+                            onClick = { actionsExpanded = false; onDelete() },
+                        )
+                    }
                 }
             }
-            if (task.harvestPlanId == null) IconButton(
-                onClick = onDelete,
-                modifier = Modifier.size(36.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Ta bort",
-                    tint = FaltetAccent,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-        },
-        onClick = onClick,
+        } else null,
+        onClick = onExecute,
     )
 }
 

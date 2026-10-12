@@ -284,7 +284,7 @@ fun TaskListScreen(
                         TaskRow(
                             task = task,
                             isCompleting = task.id in uiState.completingTaskIds,
-                            onClick = {
+                            onExecute = {
                                 when {
                                     task.harvestPlanId != null -> onOpenPlan(task.harvestPlanId)
                                     taskActivityRoute(task) != null -> onPerformTask(task)

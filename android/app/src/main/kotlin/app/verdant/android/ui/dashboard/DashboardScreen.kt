@@ -453,7 +453,7 @@ fun DashboardScreen(
                                     TaskRow(
                                         task = task,
                                         isCompleting = task.id in uiState.completingTaskIds,
-                                        onClick = { if (hasTaskCompletionCheckbox(task) && task.activityType != "SOW") taskToComplete = task else onTaskClick(task) },
+                                        onExecute = { if (hasTaskCompletionCheckbox(task) && task.activityType != "SOW") taskToComplete = task else onTaskClick(task) },
                                         onCompleteToggle = { if (task.activityType == "SOW") onTaskClick(task) else viewModel.completeTask(task) },
                                         onDelete = { taskToDelete = task },
                                         modifier = Modifier.animateItem(),
