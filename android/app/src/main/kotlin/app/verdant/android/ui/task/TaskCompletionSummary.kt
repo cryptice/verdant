@@ -77,7 +77,7 @@ fun TaskCompletionSummary(task: ScheduledTaskResponse) {
 @Composable
 private fun TaskSummaryRow(label: String, value: String) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(text = label, fontSize = 13.sp, color = FaltetForest, modifier = Modifier.weight(0.4f))
-        Text(text = value, fontSize = 14.sp, color = FaltetInk, modifier = Modifier.weight(0.6f))
+        Text(text = label, fontSize = 12.sp, color = FaltetForest, modifier = Modifier.weight(0.4f))
+        Text(text = value, fontSize = 16.sp, color = FaltetInk, modifier = Modifier.weight(0.6f))
     }
 }

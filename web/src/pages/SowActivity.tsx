@@ -5,6 +5,7 @@ import { Trans, useTranslation } from 'react-i18next'
 import { api, type SpeciesResponse } from '../api/client'
 import { sortBedsWithGardenByNaturalName } from '../lib/bed'
 import { Masthead } from '../components/faltet'
+import { TaskCompletionSummary } from '../components/TaskCompletionSummary'
 import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
@@ -206,18 +207,7 @@ export function SowActivity() {
         <OnboardingHint />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-7 gap-y-5">
-          {task && <section style={{ gridColumn: '1 / -1' }}>
-            <h2 style={selectLabelStyle}>{t('tasks.completionSummary')}</h2>
-            {task.notes && <p>{task.notes}</p>}
-            <dl>
-              <dt>{t('common.speciesLabel')}</dt><dd>{task.speciesName ?? task.originGroupName}</dd>
-              <dt>{t('tasks.plannedQuantity')}</dt><dd>{task.targetCount}</dd>
-              <dt>{t('tasks.remaining', { remaining: task.remainingCount, total: task.targetCount })}</dt>
-              {task.earliestDate && <><dt>{t('tasks.form.earliestDate')}</dt><dd>{task.earliestDate}</dd></>}
-              {task.deadline && <><dt>{t('tasks.form.deadline')}</dt><dd>{task.deadline}</dd></>}
-              {task.bedId && <><dt>{t('sow.bedLabel')}</dt><dd>{task.bedName}</dd></>}
-            </dl>
-          </section>}
+          {task && <TaskCompletionSummary key={task.id} task={task} />}
           {/* Species */}
           {(!task || task.speciesId == null) && <div data-onboarding="sow-species">
             {isGroupTask && task ? (

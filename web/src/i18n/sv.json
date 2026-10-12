@@ -684,7 +684,16 @@
     "newTask": "+ Ny uppgift",
     "noTasks": "Inga schemalagda uppgifter",
     "completionNotes": "Anteckningar om denna sådd",
-    "completionSummary": "Uppgift att slutföra",
+    "summary": {
+      "species": "Art",
+      "remaining": "Återstår",
+      "earliest": "Tidigast",
+      "latest": "Senast",
+      "place": "Plats",
+      "expand": "Visa hela beskrivningen",
+      "collapse": "Visa mindre",
+      "fields": "Fasta uppgiftsdetaljer"
+    },
     "plannedQuantity": "Planerat antal",
     "markedDone": "Uppgift markerad som klar",
     "remaining": "{{remaining}} / {{total}} kvar",

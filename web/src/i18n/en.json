@@ -684,7 +684,16 @@
     "newTask": "+ New task",
     "noTasks": "No scheduled tasks",
     "completionNotes": "Notes about this sowing",
-    "completionSummary": "Task to complete",
+    "summary": {
+      "species": "Species",
+      "remaining": "Remaining",
+      "earliest": "Earliest",
+      "latest": "Latest",
+      "place": "Location",
+      "expand": "Show full description",
+      "collapse": "Show less",
+      "fields": "Fixed task details"
+    },
     "plannedQuantity": "Planned quantity",
     "markedDone": "Task marked as done",
     "remaining": "{{remaining}} / {{total}} remaining",
