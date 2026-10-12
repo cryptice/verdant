@@ -45,9 +45,9 @@ export function McpAuthorizePage() {
       <p>{sv ? 'Du kan återkalla åtkomsten under Konto → AI-anslutningar.' : 'You can revoke access under Account → AI connections.'}</p>
       {!orgId && <p>{sv ? 'Du behöver tillhöra en organisation för att ansluta.' : 'Join an organization before connecting.'}</p>}
       {error && <p role="alert">{error}</p>}
-      <div style={{ display: 'flex', gap: 16 }}>
-        <button disabled={busy || !orgId} onClick={() => consent(true)}>{sv ? 'Tillåt läsåtkomst' : 'Allow read access'}</button>
-        <button disabled={busy} onClick={() => consent(false)}>{sv ? 'Avbryt' : 'Cancel'}</button>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 24 }}>
+        <button className="btn-primary" disabled={busy || !orgId} onClick={() => consent(true)}>{sv ? 'Tillåt läsåtkomst' : 'Allow read access'}</button>
+        <button className="btn-secondary" disabled={busy} onClick={() => consent(false)}>{sv ? 'Avbryt' : 'Cancel'}</button>
       </div>
     </>}
     {details.isLoading && <p>{sv ? 'Laddar…' : 'Loading…'}</p>}

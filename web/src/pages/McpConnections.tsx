@@ -17,7 +17,7 @@ export function McpConnections() {
     {query.data?.map(connection => <article key={connection.id} style={{ borderTop: '1px solid var(--color-rule)', padding: '20px 0' }}>
       <strong>{connection.clientName}</strong><p>{connection.organizationName}</p>
       <p>{sv ? 'Ansluten' : 'Connected'}: {new Date(connection.createdAt).toLocaleDateString(i18n.language)}</p>
-      <button disabled={revoke.isPending} onClick={() => revoke.mutate(connection.id)}>{sv ? 'Återkalla åtkomst' : 'Revoke access'}</button>
+      <button className="btn-secondary" disabled={revoke.isPending} onClick={() => revoke.mutate(connection.id)}>{sv ? 'Återkalla åtkomst' : 'Revoke access'}</button>
     </article>)}
   </main>
 }
