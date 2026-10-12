@@ -42,7 +42,7 @@ export function Snackbar({ message, actionLabel, onAction }: { message: string |
       }}
     >
       {message}
-      {actionLabel && onAction && <button onClick={onAction} style={{ marginLeft: 18, color: 'var(--color-cream)', textDecoration: 'underline' }}>{actionLabel}</button>}
+      {actionLabel && onAction && <button type="button" onClick={onAction} style={{ marginLeft: 18, color: 'var(--color-cream)', textDecoration: 'underline' }}>{actionLabel}</button>}
     </div>
   )
 }

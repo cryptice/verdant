@@ -254,7 +254,7 @@ export function TaskList() {
               >
                 {t('common.edit')}
               </button>
-              <button
+              {drawerTask.activityType !== 'TODO' && <button
                 onClick={() => {
                   if (drawerTask.activityType === 'SOW') {
                     const params = new URLSearchParams({ taskId: String(drawerTask.id) })
@@ -277,7 +277,7 @@ export function TaskList() {
                 }
               >
                 {t('tasks.perform')}
-              </button>
+              </button>}
               {(isPlaceScoped(drawerTask) || drawerTask.activityType === 'TODO') && (
                 <button
                   onClick={() => { completion.schedule(drawerTask); setDrawerTask(null) }}

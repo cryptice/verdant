@@ -123,6 +123,8 @@ describe('TaskList buckets', () => {
     expect(dialog).toHaveAccessibleName('activityType.TODO')
     expect(within(dialog).getByText('Beställ chilifrön')).toBeInTheDocument()
     expect(within(dialog).queryByText('tasks.drawer.placeholder')).not.toBeInTheDocument()
+    expect(within(dialog).getByText('maintenance.markDone')).toBeInTheDocument()
+    expect(within(dialog).queryByText('tasks.perform')).not.toBeInTheDocument()
     expect(screen.queryByText('TODO')).not.toBeInTheDocument()
   })
 
