@@ -39,9 +39,8 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /** Time the checked-but-not-yet-sent state is shown before the API call fires
- *  and the row animates out. Tuned so the user gets a beat of visual feedback
- *  but doesn't have to wait long. */
-const val COMPLETE_TASK_DELAY_MS = 1500L
+ *  and the row animates out. Leaves time to use the snackbar Undo action. */
+const val COMPLETE_TASK_DELAY_MS = 6000L
 
 private val svDateFormatter = DateTimeFormatter.ofPattern("d MMM", Locale("sv"))
 
@@ -221,5 +220,16 @@ fun TaskDeleteDialog(
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Avbryt") }
         },
+    )
+}
+
+@Composable
+fun TaskCompletionDialog(task: ScheduledTaskResponse, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Slutför uppgift") },
+        text = { TaskCompletionSummary(task) },
+        confirmButton = { TextButton(onClick = onConfirm) { Text("Markera som klar") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Avbryt") } },
     )
 }

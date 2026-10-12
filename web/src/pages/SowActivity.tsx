@@ -58,7 +58,7 @@ export function SowActivity() {
     enabled: !!taskId,
   })
 
-  const isGroupTask = task ? task.acceptableSpecies.length > 1 : false
+  const isGroupTask = task ? task.speciesId == null && task.acceptableSpecies.length > 0 : false
 
   const { data: sowBed } = useQuery({
     queryKey: ['bed', presetBedId],
@@ -73,7 +73,7 @@ export function SowActivity() {
   })
 
   // Fetch species list to resolve names
-  const presetId = presetSpeciesId ?? (task?.speciesId ?? null)
+  const presetId = task?.speciesId ?? presetSpeciesId
   const { data: allSpecies } = useQuery({
     queryKey: ['species'],
     queryFn: api.species.list,
@@ -118,11 +118,12 @@ export function SowActivity() {
   })
 
   useEffect(() => {
-    if (presetSpecies && !selectedSpecies) setSelectedSpecies(presetSpecies)
-  }, [presetSpecies, selectedSpecies])
+    if (presetSpecies && (!selectedSpecies || (task?.speciesId && selectedSpecies.id !== task.speciesId))) setSelectedSpecies(presetSpecies)
+  }, [presetSpecies, selectedSpecies, task?.speciesId])
 
   useEffect(() => {
     if (task && !seedCount) setSeedCount(String(task.remainingCount))
+    if (task?.bedId) { setBedId(String(task.bedId)); setSowInTray(false) }
   }, [task, seedCount])
 
   const speciesId = selectedSpecies?.id ? String(selectedSpecies.id) : ''
@@ -149,6 +150,10 @@ export function SowActivity() {
         ? ((lang === 'sv' ? selectedSpecies.commonNameSv ?? selectedSpecies.commonName : selectedSpecies.commonName) +
            (selectedSpecies.variantName ? ` — ${lang === 'sv' ? selectedSpecies.variantNameSv ?? selectedSpecies.variantName : selectedSpecies.variantName}` : ''))
         : ''
+      if (taskId && !task) throw new Error(t('common.loading'))
+      if (task && !task.acceptableSpecies.some(entry => entry.speciesId === Number(speciesId))) throw new Error(t('tasks.editTask'))
+      if (task?.speciesId && selectedSpecies?.id !== task.speciesId) throw new Error(t('tasks.editTask'))
+      if (task?.bedId && (sowInTray || Number(bedId) !== task.bedId)) throw new Error(t('tasks.editTask'))
       const count = Number(seedCount)
       await api.plants.batchSow({
         bedId: sowInTray ? undefined : Number(bedId),
@@ -181,7 +186,7 @@ export function SowActivity() {
 
   const trayLocationRequired = sowInTray && trayLocations.length >= 2
   const trayLocationOk = !sowInTray || !trayLocationRequired || trayLocationId !== ''
-  const valid = speciesId && (sowInTray || bedId) && Number(seedCount) > 0 && trayLocationOk
+  const valid = (!taskId || !!task) && speciesId && (sowInTray || bedId) && Number(seedCount) > 0 && trayLocationOk
 
   // Build masthead breadcrumb context
   const mastheadLeft = taskId
@@ -201,16 +206,29 @@ export function SowActivity() {
         <OnboardingHint />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-7 gap-y-5">
+          {task && <section style={{ gridColumn: '1 / -1' }}>
+            <h2 style={selectLabelStyle}>{t('tasks.completionSummary')}</h2>
+            {task.notes && <p>{task.notes}</p>}
+            <dl>
+              <dt>{t('common.speciesLabel')}</dt><dd>{task.speciesName ?? task.originGroupName}</dd>
+              <dt>{t('tasks.plannedQuantity')}</dt><dd>{task.targetCount}</dd>
+              <dt>{t('tasks.remaining', { remaining: task.remainingCount, total: task.targetCount })}</dt>
+              {task.earliestDate && <><dt>{t('tasks.form.earliestDate')}</dt><dd>{task.earliestDate}</dd></>}
+              {task.deadline && <><dt>{t('tasks.form.deadline')}</dt><dd>{task.deadline}</dd></>}
+              {task.bedId && <><dt>{t('sow.bedLabel')}</dt><dd>{task.bedName}</dd></>}
+            </dl>
+          </section>}
           {/* Species */}
-          <div data-onboarding="sow-species">
+          {(!task || task.speciesId == null) && <div data-onboarding="sow-species">
             {isGroupTask && task ? (
               <div>
                 <span style={selectLabelStyle}>{t('common.speciesLabel')}</span>
                 <select
                   value={speciesId}
                   onChange={e => {
-                    const sp = allSpecies?.find(s => s.id === Number(e.target.value)) ?? null
-                    setSelectedSpecies(sp)
+                    const id = Number(e.target.value)
+                    if (id) void api.species.get(id).then(setSelectedSpecies)
+                    else setSelectedSpecies(null)
                   }}
                   style={selectStyle}
                 >
@@ -236,7 +254,7 @@ export function SowActivity() {
                 onChange={s => { setSelectedSpecies(s); setSeedBatchId('') }}
               />
             )}
-          </div>
+          </div>}
 
           {/* Stock (seed batch) */}
           {speciesId ? (
@@ -280,7 +298,7 @@ export function SowActivity() {
           )}
 
           {/* Destination toggle — full-width row */}
-          {speciesId && !presetBedId && (
+          {speciesId && !presetBedId && !task?.bedId && (
             <div className="md:col-span-2" style={{ display: 'flex', gap: 16 }}>
               <button
                 type="button"
@@ -320,7 +338,7 @@ export function SowActivity() {
           )}
 
           {/* Bed */}
-          {speciesId && !sowInTray && (
+          {speciesId && !sowInTray && !task?.bedId && (
             <label style={{ display: 'block' }} data-onboarding="sow-location">
               <span style={selectLabelStyle}>{t('sow.bedLabel')}</span>
               <select value={bedId} onChange={e => setBedId(e.target.value)} style={selectStyle}>
@@ -387,7 +405,7 @@ export function SowActivity() {
 
           {/* Notes — full-width */}
           <div className="md:col-span-2" style={{ border: '1px solid var(--color-ink)', background: 'var(--color-paper)', padding: '14px 16px' }}>
-            <div style={selectLabelStyle}>{t('common.notesLabel')}</div>
+            <div style={selectLabelStyle}>{task ? t('tasks.completionNotes') : t('common.notesLabel')}</div>
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
@@ -405,7 +423,7 @@ export function SowActivity() {
         )}
 
         {/* Recent seed stock quick-pick */}
-        {allSeedStock && allSeedStock.length > 0 && (
+        {!taskId && allSeedStock && allSeedStock.length > 0 && (
           <div style={{ marginTop: 40 }}>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.6, marginBottom: 12 }}>
               {t('sow.recentSeedStock')}

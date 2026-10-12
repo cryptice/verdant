@@ -19,7 +19,7 @@ export function useSnackbar(autoDismissMs = 2500) {
   return { message, setMessage, show }
 }
 
-export function Snackbar({ message }: { message: string | null }) {
+export function Snackbar({ message, actionLabel, onAction }: { message: string | null; actionLabel?: string; onAction?: () => void }) {
   if (!message) return null
   return (
     <div
@@ -42,6 +42,7 @@ export function Snackbar({ message }: { message: string | null }) {
       }}
     >
       {message}
+      {actionLabel && onAction && <button onClick={onAction} style={{ marginLeft: 18, color: 'var(--color-cream)', textDecoration: 'underline' }}>{actionLabel}</button>}
     </div>
   )
 }

@@ -53,6 +53,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Dispatchers
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SnackbarDuration
 import android.util.Log
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -68,6 +77,7 @@ data class TaskListState(
     /** Task IDs whose checkbox is checked but not yet sent to the backend.
      *  Drives the checked visual + scheduled removal. */
     val completingTaskIds: Set<Long> = emptySet(),
+    val undoableTaskId: Long? = null,
 )
 
 @HiltViewModel
@@ -76,6 +86,9 @@ class TaskListViewModel @Inject constructor(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TaskListState())
     val uiState = _uiState.asStateFlow()
+    private val completionJobs = mutableMapOf<Long, Job>()
+    // A confirmed checkmark must still finish if the user leaves this screen.
+    private val completionScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     init { loadTasks() }
 
@@ -85,7 +98,7 @@ class TaskListViewModel @Inject constructor(
             if (showLoading) _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
                 val tasks = repo.list().filter { it.status == "PENDING" }
-                _uiState.value = TaskListState(isLoading = false, tasks = tasks)
+                _uiState.value = _uiState.value.copy(isLoading = false, error = null, tasks = tasks)
             } catch (e: Exception) {
                 if (showLoading) _uiState.value = TaskListState(isLoading = false, error = e.message)
             }
@@ -93,6 +106,7 @@ class TaskListViewModel @Inject constructor(
     }
 
     fun deleteTask(taskId: Long) {
+        undoTaskCompletion(taskId)
         viewModelScope.launch {
             try {
                 repo.delete(taskId)
@@ -105,13 +119,25 @@ class TaskListViewModel @Inject constructor(
         }
     }
 
+    fun undoTaskCompletion(taskId: Long) {
+        val job = completionJobs.remove(taskId) ?: return
+        job.cancel()
+        _uiState.value = _uiState.value.copy(
+            undoableTaskId = _uiState.value.undoableTaskId.takeUnless { it == taskId },
+            completingTaskIds = _uiState.value.completingTaskIds - taskId,
+        )
+    }
+
     fun completeTask(task: ScheduledTaskResponse) {
         if (task.id in _uiState.value.completingTaskIds) return
-        viewModelScope.launch {
+        completionJobs[task.id] = completionScope.launch {
             _uiState.value = _uiState.value.copy(
+                undoableTaskId = task.id,
                 completingTaskIds = _uiState.value.completingTaskIds + task.id,
             )
             kotlinx.coroutines.delay(COMPLETE_TASK_DELAY_MS)
+            completionJobs.remove(task.id)
+            _uiState.value = _uiState.value.copy(undoableTaskId = _uiState.value.undoableTaskId.takeUnless { it == task.id })
             try {
                 repo.completePartially(
                     task.id,
@@ -122,13 +148,17 @@ class TaskListViewModel @Inject constructor(
                 )
                 _uiState.value = _uiState.value.copy(
                     tasks = _uiState.value.tasks.filter { it.id != task.id },
+                    undoableTaskId = _uiState.value.undoableTaskId.takeUnless { it == task.id },
                     completingTaskIds = _uiState.value.completingTaskIds - task.id,
                 )
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to complete task", e)
                 _uiState.value = _uiState.value.copy(
+                    undoableTaskId = _uiState.value.undoableTaskId.takeUnless { it == task.id },
                     completingTaskIds = _uiState.value.completingTaskIds - task.id,
                 )
+            } finally {
+                completionJobs.remove(task.id)
             }
         }
     }
@@ -186,7 +216,7 @@ fun TaskListScreen(
     onCreateTask: () -> Unit,
     onEditTask: (Long) -> Unit,
     onOpenPlan: (Long) -> Unit,
-    onSowTask: (ScheduledTaskResponse) -> Unit,
+    onPerformTask: (ScheduledTaskResponse) -> Unit,
     viewModel: TaskListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -196,6 +226,10 @@ fun TaskListScreen(
         onPauseOrDispose { }
     }
 
+    var taskToComplete by remember { mutableStateOf<ScheduledTaskResponse?>(null) }
+    taskToComplete?.let { task ->
+        TaskCompletionDialog(task, onConfirm = { viewModel.completeTask(task); taskToComplete = null }, onDismiss = { taskToComplete = null })
+    }
     var taskToDelete by remember { mutableStateOf<ScheduledTaskResponse?>(null) }
 
     taskToDelete?.let { task ->
@@ -209,11 +243,21 @@ fun TaskListScreen(
         )
     }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(uiState.undoableTaskId) {
+        uiState.undoableTaskId?.let { taskId ->
+            if (snackbarHostState.showSnackbar("Uppgift markerad som klar", actionLabel = "Ångra", duration = SnackbarDuration.Indefinite) == SnackbarResult.ActionPerformed) {
+                viewModel.undoTaskCompletion(taskId)
+            }
+        }
+    }
+
     val groups = remember(uiState.tasks) { groupTasks(uiState.tasks) }
 
     FaltetScreenScaffold(
         mastheadLeft = "",
         mastheadCenter = "Uppgifter",
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         fab = { FaltetFab(onClick = onCreateTask, contentDescription = "Lägg till uppgift") },
         watermark = app.verdant.android.ui.faltet.BotanicalPlate.Trellis,
     ) { padding ->
@@ -243,18 +287,18 @@ fun TaskListScreen(
                             onClick = {
                                 when {
                                     task.harvestPlanId != null -> onOpenPlan(task.harvestPlanId)
-                                    task.activityType == "SOW" -> onSowTask(task)
-                                    else -> onEditTask(task.id)
+                                    taskActivityRoute(task) != null -> onPerformTask(task)
+                                    else -> { taskToComplete = task }
                                 }
                             },
                             onCompleteToggle = {
                                 when {
                                     task.harvestPlanId != null -> onOpenPlan(task.harvestPlanId)
-                                    task.activityType == "SOW" -> onSowTask(task)
+                                    task.activityType == "SOW" -> onPerformTask(task)
                                     else -> viewModel.completeTask(task)
                                 }
                             },
-                            onEdit = if (task.activityType == "SOW" && task.harvestPlanId == null) ({ onEditTask(task.id) }) else null,
+                            onEdit = if (task.harvestPlanId == null) ({ onEditTask(task.id) }) else null,
                             onDelete = { task.harvestPlanId?.let(onOpenPlan) ?: run { taskToDelete = task } },
                             modifier = Modifier.animateItem(),
                         )

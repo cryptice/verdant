@@ -41,6 +41,7 @@
     "sales": "Försäljning"
   },
   "common": {
+    "undo": "Ångra",
     "cancel": "Avbryt",
     "select": "Välj…",
     "save": "Spara",
@@ -682,6 +683,10 @@
     "title": "Uppgifter",
     "newTask": "+ Ny uppgift",
     "noTasks": "Inga schemalagda uppgifter",
+    "completionNotes": "Anteckningar om denna sådd",
+    "completionSummary": "Uppgift att slutföra",
+    "plannedQuantity": "Planerat antal",
+    "markedDone": "Uppgift markerad som klar",
     "remaining": "{{remaining}} / {{total}} kvar",
     "perform": "Utför",
     "deleteTaskTitle": "Radera uppgift",

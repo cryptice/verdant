@@ -1,5 +1,6 @@
 package app.verdant.android.ui.task
 
+import androidx.lifecycle.ViewModelStore
 import app.cash.turbine.test
 import app.verdant.android.data.model.CompleteTaskPartiallyRequest
 import app.verdant.android.data.model.CreateScheduledTaskRequest
@@ -10,6 +11,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -191,6 +194,56 @@ class TaskListViewModelTest {
         assertFalse(hasTaskCompletionCheckbox(task.copy(harvestPlanId = 9)))
         assertTrue(hasTaskCompletionCheckbox(task.copy(speciesId = null, activityType = "TODO")))
         assertTrue(hasTaskCompletionCheckbox(task.copy(speciesId = null, activityType = "WATER", bedId = 1)))
+    }
+
+    @Test
+    fun `undo cancels pending completion without sending a request`() = runTest {
+        val task = sampleTask(51, "2026-10-19").copy(activityType = "WATER", bedId = 1, speciesId = null)
+        val repo = FakeTaskRepository(listOf(task))
+        val vm = TaskListViewModel(repo)
+        advanceUntilIdle()
+        vm.completeTask(task)
+        runCurrent()
+        assertEquals(51L, vm.uiState.value.undoableTaskId)
+        assertTrue(51L in vm.uiState.value.completingTaskIds)
+        advanceTimeBy(3000)
+        vm.undoTaskCompletion(51)
+        advanceUntilIdle()
+        assertTrue(repo.completedRequests.isEmpty())
+        assertEquals(listOf(task), vm.uiState.value.tasks)
+        assertNull(vm.uiState.value.undoableTaskId)
+        assertTrue(vm.uiState.value.completingTaskIds.isEmpty())
+    }
+
+    @Test
+    fun `completion is sent once after the undo window closes`() = runTest {
+        val task = sampleTask(52, "2026-10-19").copy(activityType = "TODO", speciesId = null)
+        val repo = FakeTaskRepository(listOf(task))
+        val vm = TaskListViewModel(repo)
+        advanceUntilIdle()
+        vm.completeTask(task)
+        runCurrent()
+        advanceTimeBy(COMPLETE_TASK_DELAY_MS - 1)
+        assertTrue(repo.completedRequests.isEmpty())
+        advanceUntilIdle()
+        assertEquals(1, repo.completedRequests.size)
+        assertTrue(vm.uiState.value.tasks.isEmpty())
+        assertNull(vm.uiState.value.undoableTaskId)
+    }
+
+    @Test
+    fun `leaving the task screen does not cancel a confirmed checkmark`() = runTest {
+        val task = sampleTask(53, "2026-10-19").copy(activityType = "TODO", speciesId = null)
+        val repo = FakeTaskRepository(listOf(task))
+        val vm = TaskListViewModel(repo)
+        val store = ViewModelStore()
+        store.put("tasks", vm)
+        advanceUntilIdle()
+        vm.completeTask(task)
+        runCurrent()
+        store.clear()
+        advanceUntilIdle()
+        assertEquals(1, repo.completedRequests.size)
     }
 
     private fun sampleTask(id: Long, deadline: String) = ScheduledTaskResponse(

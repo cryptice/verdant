@@ -53,9 +53,12 @@ function renderPage(url: string) {
 
 describe('Task species selection', () => {
   it.each(['/sow?taskId=1&speciesId=1991', '/sow?taskId=1'])(
-    'prefills the species field from its ID outside the first catalogue page: %s', async url => {
+    'summarizes the linked species without an editable species field: %s', async url => {
       renderPage(url)
-      expect(await screen.findByDisplayValue('Chilipeppar — Naga Black')).toBeInTheDocument()
+      expect(await screen.findByText('Chilipeppar – Naga Black')).toBeInTheDocument()
+      expect(screen.queryByPlaceholderText('Sök art...')).not.toBeInTheDocument()
+      expect(screen.getByText('Så chilifrön.')).toBeInTheDocument()
+      expect(await screen.findByDisplayValue('15')).toBeEnabled()
       expect(api.species.get).toHaveBeenCalledWith(1991)
       expect(api.species.search).not.toHaveBeenCalled()
     },

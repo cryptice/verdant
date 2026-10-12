@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api, type ScheduledTaskResponse } from '../api/client'
 import { Masthead } from '../components/faltet'
+import { Snackbar } from '../components/Snackbar'
+import { useUndoableCompletion } from '../lib/useUndoableCompletion'
 import { Dialog } from '../components/Dialog'
 import { maintenanceActivityLabelSv, todayIsoLocal } from '../lib/maintenance'
 
@@ -106,9 +108,10 @@ export function TaskList() {
         qc.invalidateQueries({ queryKey: ['maintenance-rules', 'BED', task.bedId] })
         qc.invalidateQueries({ queryKey: ['bed-events', task.bedId] })
       }
-      setDrawerTask(null)
     },
   })
+
+  const completion = useUndoableCompletion(task => completeMut.mutateAsync(task))
 
   // Reset so a failed completion's error never greets the next task opened.
   const openDrawer = (task: ScheduledTaskResponse) => {
@@ -126,7 +129,7 @@ export function TaskList() {
   // dropping them), so the page has to exclude them itself — otherwise the
   // overdue bucket below fills with every task ever finished.
   const filtered  = tasks.filter(
-    (task) => task.status === 'PENDING' && filters.includes(activityFilter(task.activityType)),
+    (task) => task.status === 'PENDING' && !completion.hiddenIds.has(task.id) && filters.includes(activityFilter(task.activityType)),
   )
   // Without this bucket a task vanishes from the page the day after its
   // deadline — including a maintenance task whose rule stays blocked until
@@ -275,9 +278,9 @@ export function TaskList() {
               >
                 {t('tasks.perform')}
               </button>
-              {isPlaceScoped(drawerTask) && (
+              {(isPlaceScoped(drawerTask) || drawerTask.activityType === 'TODO') && (
                 <button
-                  onClick={() => completeMut.mutate(drawerTask)}
+                  onClick={() => { completion.schedule(drawerTask); setDrawerTask(null) }}
                   disabled={completeMut.isPending}
                   className="btn-primary text-sm py-2 px-4"
                 >
@@ -326,6 +329,8 @@ export function TaskList() {
           </div>
         )}
       </Dialog>
+
+      <Snackbar message={completion.undoTask ? t('tasks.markedDone') : completion.failed ? t('maintenance.markDoneError') : null} actionLabel={completion.undoTask ? t('common.undo') : undefined} onAction={completion.undoTask ? completion.undo : undefined} />
 
       {/* Delete confirmation */}
       <Dialog

@@ -8,6 +8,7 @@ import androidx.navigation.navArgument
 import app.verdant.android.ui.navigation.Screen
 import app.verdant.android.ui.task.TaskFormScreen
 import app.verdant.android.ui.task.TaskListScreen
+import app.verdant.android.ui.task.taskActivityRoute
 
 fun NavGraphBuilder.taskGraph(navController: NavController) {
     composable(Screen.TaskList.route) {
@@ -15,7 +16,7 @@ fun NavGraphBuilder.taskGraph(navController: NavController) {
             onBack = { navController.popBackStack() },
             onCreateTask = { navController.navigate(Screen.CreateTask.route) },
             onOpenPlan = { id -> navController.navigate(Screen.HarvestPlan.create(id)) },
-            onSowTask = { task -> navController.navigate(Screen.Sow.create(taskId = task.id, speciesId = task.speciesId, bedId = task.bedId)) },
+            onPerformTask = { task -> taskActivityRoute(task)?.let { navController.navigate(it) } },
             onEditTask = { taskId -> navController.navigate(Screen.EditTask.create(taskId)) },
         )
     }

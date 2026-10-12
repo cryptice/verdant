@@ -84,4 +84,15 @@ class TaskSpeciesTest {
         assertNull(vm.uiState.value.error)
     }
 
+    @Test fun `completing a task cannot substitute another species`() = runTest {
+        val vm = sow(api(), SavedStateHandle(mapOf("taskId" to 1L)))
+        advanceUntilIdle()
+        vm.sow(bedId = null, trayLocationId = 1, speciesId = 143, name = "Other chili", seedCount = 5, notes = null, imageBase64 = null, seedBatchId = null, sowDate = null)
+        advanceUntilIdle()
+        assertTrue(sowRequests.isEmpty())
+        assertTrue(completedRequests.isEmpty())
+        assertFalse(vm.uiState.value.created)
+        assertNotNull(vm.uiState.value.error)
+    }
+
 }

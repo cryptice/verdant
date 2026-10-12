@@ -55,6 +55,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import app.verdant.android.data.model.ScheduledTaskResponse
+import app.verdant.android.ui.task.TaskCompletionSummary
 import javax.inject.Inject
 
 data class BatchPotUpState(
@@ -62,6 +64,7 @@ data class BatchPotUpState(
     val submitting: Boolean = false,
     val created: Boolean = false,
     val error: String? = null,
+    val task: ScheduledTaskResponse? = null,
     val groups: List<PlantGroupResponse> = emptyList(),
     val comments: List<String> = emptyList(),
 )
@@ -85,11 +88,15 @@ class BatchPotUpViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val groups = plantRepository.groupedByStatus("SEEDED", trayOnly = true)
-                val filtered = if (preselectedSpeciesId != null) {
-                    groups.filter { it.speciesId == preselectedSpeciesId }
-                } else groups
+                val task = taskId?.let { taskRepository.get(it) }
+                val linkedSpeciesId = task?.speciesId ?: preselectedSpeciesId
+                val filtered = groups.filter { group ->
+                    if (linkedSpeciesId != null) group.speciesId == linkedSpeciesId
+                    else if (task != null) task.acceptableSpecies.any { it.speciesId == group.speciesId }
+                    else true
+                }
                 val comments = speciesRepository.frequentComments().map { it.text }
-                _uiState.value = BatchPotUpState(isLoading = false, groups = filtered, comments = comments)
+                _uiState.value = BatchPotUpState(isLoading = false, groups = filtered, comments = comments, task = task)
             } catch (e: Exception) {
                 _uiState.value = BatchPotUpState(isLoading = false, error = e.message)
             }
@@ -238,6 +245,7 @@ fun BatchPotUpScreen(
                 )
             } else {
                 LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+                    uiState.task?.let { item { TaskCompletionSummary(it) } }
                     items(uiState.groups, key = { "${it.speciesId}_${it.plantedDate}" }) { group ->
                         FaltetListRow(
                             title = (group.variantName?.let { "${group.speciesName} – $it" } ?: group.speciesName ?: "Okänd art"),
@@ -257,6 +265,7 @@ fun BatchPotUpScreen(
                 contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
+                uiState.task?.let { item { TaskCompletionSummary(it) } }
                 item {
                     Field(
                         label = "Antal att skola om",

@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { isPlaceScoped, taskTitle, TaskList } from './TaskList'
 import type { ScheduledTaskResponse } from '../api/client'
@@ -26,6 +26,7 @@ vi.mock('react-router-dom', () => ({
 }))
 
 import { api } from '../api/client'
+afterEach(() => vi.useRealTimers())
 
 function task(over: Partial<ScheduledTaskResponse> = {}): ScheduledTaskResponse {
   return {
@@ -198,7 +199,11 @@ describe('TaskList drawer completion', () => {
 
     renderList()
     fireEvent.click(await screen.findByText('Klippa gräs'))
-    fireEvent.click(await screen.findByText('maintenance.markDone'))
+    const done = await screen.findByText('maintenance.markDone')
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    fireEvent.click(done)
+    await act(() => vi.advanceTimersByTimeAsync(6000))
+    vi.useRealTimers()
 
     await waitFor(() => expect(api.tasks.complete).toHaveBeenCalledWith(7, null, 1))
   })
@@ -213,7 +218,11 @@ describe('TaskList drawer completion', () => {
 
     renderList()
     fireEvent.click(await screen.findByText('Rensa ogräs'))
-    fireEvent.click(await screen.findByText('maintenance.markDone'))
+    const done = await screen.findByText('maintenance.markDone')
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    fireEvent.click(done)
+    await act(() => vi.advanceTimersByTimeAsync(6000))
+    vi.useRealTimers()
 
     await waitFor(() => expect(api.tasks.complete).toHaveBeenCalledWith(8, null, 2))
   })
@@ -268,7 +277,7 @@ describe('TaskList drawer completion', () => {
     expect(screen.getByText('tasks.drawer.maintenanceHint')).toBeInTheDocument()
   })
 
-  it('reports a failed completion inside the drawer', async () => {
+  it('reports a failed completion in the snackbar and restores the task', async () => {
     vi.mocked(api.tasks.list).mockResolvedValue([
       task({ id: 11, gardenAreaId: 5, gardenAreaName: 'Gången', deadline: isoOffsetDays(0) }),
     ])
@@ -276,8 +285,25 @@ describe('TaskList drawer completion', () => {
 
     renderList()
     fireEvent.click(await screen.findByText('Klippa gräs'))
-    fireEvent.click(await screen.findByText('maintenance.markDone'))
+    const done = await screen.findByText('maintenance.markDone')
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    fireEvent.click(done)
+    await act(() => vi.advanceTimersByTimeAsync(6000))
+    vi.useRealTimers()
 
     expect(await screen.findByText('maintenance.markDoneError')).toBeInTheDocument()
   })
+  it('undo restores the task without recording completion', async () => {
+    vi.mocked(api.tasks.list).mockResolvedValue([task({ id: 12, gardenAreaId: 5, deadline: isoOffsetDays(0) })])
+    renderList()
+    fireEvent.click(await screen.findByText('Klippa gräs'))
+    const done = await screen.findByText('maintenance.markDone')
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    fireEvent.click(done)
+    fireEvent.click(screen.getByRole('button', { name: 'common.undo' }))
+    await act(() => vi.advanceTimersByTimeAsync(6000))
+    expect(api.tasks.complete).not.toHaveBeenCalled()
+    expect(screen.getByText('Klippa gräs')).toBeInTheDocument()
+  })
+
 })

@@ -5,6 +5,7 @@ import app.verdant.android.data.repository.PlantRepository
 import app.verdant.android.data.repository.SpeciesRepository
 import app.verdant.android.data.repository.TaskRepository
 
+import app.verdant.android.ui.task.TaskCompletionSummary
 import android.graphics.Bitmap
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -168,6 +169,7 @@ fun PotUpActivityScreen(
         submitEnabled = !uiState.isLoading,
         submitting = uiState.isLoading,
         snackbarHostState = snackbarHostState,
+        task = uiState.task,
     ) {
         item {
             PhotoSection(
@@ -227,6 +229,7 @@ fun PlantActivityScreen(
         submitEnabled = !uiState.isLoading,
         submitting = uiState.isLoading,
         snackbarHostState = snackbarHostState,
+        task = uiState.task,
     ) {
         item {
             PhotoSection(
@@ -290,6 +293,7 @@ fun HarvestActivityScreen(
         submitEnabled = !uiState.isLoading,
         submitting = uiState.isLoading,
         snackbarHostState = snackbarHostState,
+        task = uiState.task,
     ) {
         item {
             PhotoSection(
@@ -365,6 +369,7 @@ fun RecoverActivityScreen(
         submitEnabled = !uiState.isLoading,
         submitting = uiState.isLoading,
         snackbarHostState = snackbarHostState,
+        task = uiState.task,
     ) {
         item {
             PhotoSection(
@@ -424,6 +429,7 @@ fun DiscardActivityScreen(
         submitEnabled = !uiState.isLoading,
         submitting = uiState.isLoading,
         snackbarHostState = snackbarHostState,
+        task = uiState.task,
     ) {
         item {
             PhotoSection(
@@ -461,6 +467,7 @@ private fun ActivityScaffold(
     submitEnabled: Boolean,
     submitting: Boolean,
     snackbarHostState: SnackbarHostState,
+    task: ScheduledTaskResponse? = null,
     content: LazyListScope.() -> Unit,
 ) {
     FaltetScreenScaffold(
@@ -482,7 +489,10 @@ private fun ActivityScaffold(
                 .padding(padding),
             contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            content = content,
+            content = {
+                task?.let { item { TaskCompletionSummary(it) } }
+                content()
+            },
         )
     }
 }

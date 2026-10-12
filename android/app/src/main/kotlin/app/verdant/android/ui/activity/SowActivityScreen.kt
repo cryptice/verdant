@@ -8,6 +8,7 @@ import app.verdant.android.data.repository.SpeciesRepository
 import app.verdant.android.data.repository.TaskRepository
 import app.verdant.android.data.repository.TrayLocationRepository
 
+import app.verdant.android.ui.task.TaskCompletionSummary
 import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -115,6 +116,10 @@ class SowActivityViewModel @Inject constructor(
                 if (linkedSpeciesId != null && species.none { it.id == linkedSpeciesId }) {
                     species = (species + speciesRepository.get(linkedSpeciesId)).sortedBySwedishName()
                 }
+                if (task != null && task.speciesId == null) {
+                    val missingIds = task.acceptableSpecies.map { it.speciesId }.filter { id -> species.none { it.id == id } }
+                    species = (species + missingIds.map { speciesRepository.get(it) }).sortedBySwedishName()
+                }
                 val trayLocations = runCatching { trayLocationRepository.list() }.getOrDefault(emptyList())
                 _uiState.value = _uiState.value.copy(
                     species = species, beds = beds, comments = comments, task = task,
@@ -156,6 +161,11 @@ class SowActivityViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
+                val task = _uiState.value.task
+                require(taskId == null || task != null) { "Uppgiften har inte laddats" }
+                require(task == null || task.acceptableSpecies.any { it.speciesId == speciesId } || task.speciesId == speciesId) { "Välj en art som hör till uppgiften" }
+                require(task?.speciesId == null || task.speciesId == speciesId) { "Ändra arten genom att redigera uppgiften" }
+                require(task?.bedId == null || task.bedId == bedId) { "Ändra bädden genom att redigera uppgiften" }
                 val count = seedCount ?: 1
                 plantRepository.batchSow(
                     BatchSowRequest(
@@ -251,6 +261,10 @@ fun SowActivityScreen(
     LaunchedEffect(uiState.task) {
         if (uiState.task != null && !taskPrefilled) {
             selectedSpecies = uiState.species.find { it.id == (uiState.task!!.speciesId ?: viewModel.preselectedSpeciesId) }
+            uiState.task!!.bedId?.let { id ->
+                selectedBed = uiState.beds.find { it.id == id }
+                destination = SowDestination.BED
+            }
             countText = uiState.task!!.remainingCount.toString()
             taskPrefilled = true
         }
@@ -316,7 +330,7 @@ fun SowActivityScreen(
         // Tray destination needs a location picked when 2+ exist.
         (destination == SowDestination.BED || uiState.trayLocations.size < 2 || selectedTrayLocation != null) &&
         countText.toIntOrNull()?.let { it > 0 } == true &&
-        !uiState.isLoading
+        (viewModel.taskId == null || uiState.task != null) && !uiState.isLoading
 
     val submitAction: () -> Unit = {
         viewModel.sow(
@@ -356,10 +370,11 @@ fun SowActivityScreen(
             contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            item {
+            uiState.task?.let { task -> item { TaskCompletionSummary(task) } }
+            if (uiState.task?.speciesId == null) item {
                 FaltetDropdown(
                     label = "Art",
-                    options = uiState.species,
+                    options = if (uiState.task != null) uiState.species.filter { species -> uiState.task!!.acceptableSpecies.any { it.speciesId == species.id } } else uiState.species,
                     selected = selectedSpecies,
                     onSelectedChange = { selectedSpecies = it },
                     labelFor = { speciesDisplayName(it) },
@@ -376,7 +391,7 @@ fun SowActivityScreen(
                     required = true,
                 )
             }
-            item {
+            if (uiState.task?.bedId == null) item {
                 FaltetScopeToggle(
                     label = "Destination",
                     options = listOf(SowDestination.TRAY, SowDestination.BED),
@@ -385,7 +400,7 @@ fun SowActivityScreen(
                     labelFor = { if (it == SowDestination.TRAY) "Så i brätte" else "Så direkt i bädd" },
                 )
             }
-            if (destination == SowDestination.BED) {
+            if (destination == SowDestination.BED && uiState.task?.bedId == null) {
                 item {
                     FaltetDropdown(
                         label = "Bädd",
@@ -455,7 +470,7 @@ fun SowActivityScreen(
             }
             item {
                 Field(
-                    label = "Anteckningar (valfri)",
+                    label = if (uiState.task != null) "Anteckningar om denna sådd (valfri)" else "Anteckningar (valfri)",
                     value = notes,
                     onValueChange = { notes = it },
                 )
