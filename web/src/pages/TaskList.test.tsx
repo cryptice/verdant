@@ -166,6 +166,20 @@ describe('TaskList buckets', () => {
     expect(screen.queryByText(isoOffsetDays(-5))).not.toBeInTheDocument()
     expect(screen.queryByText('tasks.overdue')).not.toBeInTheDocument()
   })
+
+  it('divides rows only where the date changes', async () => {
+    vi.mocked(api.tasks.list).mockResolvedValue([
+      task({ id: 1, speciesId: 1, speciesName: 'Tomat', activityType: 'SOW', deadline: isoOffsetDays(2) }),
+      task({ id: 2, speciesId: 2, speciesName: 'Dill', activityType: 'SOW', deadline: isoOffsetDays(2) }),
+      task({ id: 3, speciesId: 3, speciesName: 'Zinnia', activityType: 'SOW', deadline: isoOffsetDays(3) }),
+    ])
+    renderList()
+    await screen.findByText('Zinnia')
+    const dividers = screen.getAllByRole('separator')
+    expect(dividers).toHaveLength(1)
+    const rowAfter = dividers[0].nextElementSibling!
+    expect(within(rowAfter as HTMLElement).getByText('Zinnia')).toBeInTheDocument()
+  })
 })
 
 describe('TaskList drawer completion', () => {

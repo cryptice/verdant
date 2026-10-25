@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -215,26 +215,20 @@ export function TaskList() {
         {overdue.length > 0 && (
           <>
             <SectionHeader title={t('tasks.overdue')} count={overdue.length} />
-            {overdue.map((task) => (
-              <TaskRow key={task.id} task={task} onOpen={() => openDrawer(task)} />
-            ))}
+            <TaskRows tasks={overdue} onOpen={openDrawer} />
             <div style={{ height: 40 }} />
           </>
         )}
 
         {/* Idag */}
         <SectionHeader title={t('tasks.today')} count={todays.length} />
-        {todays.map((task) => (
-          <TaskRow key={task.id} task={task} onOpen={() => openDrawer(task)} />
-        ))}
+        <TaskRows tasks={todays} onOpen={openDrawer} />
 
         <div style={{ height: 40 }} />
 
         {/* Kommande */}
         <SectionHeader title={t('tasks.upcoming')} count={upcoming.length} />
-        {upcoming.map((task) => (
-          <TaskRow key={task.id} task={task} onOpen={() => openDrawer(task)} />
-        ))}
+        <TaskRows tasks={upcoming} onOpen={openDrawer} />
       </div>
 
       {/* Task detail drawer */}
@@ -376,6 +370,18 @@ function SectionHeader({ title, count }: { title: string; count: number }) {
       </span>
     </div>
   )
+}
+
+// Tasks arrive sorted by deadline, so a change from the previous row is a new date.
+function TaskRows({ tasks, onOpen }: { tasks: ScheduledTaskResponse[]; onOpen: (task: ScheduledTaskResponse) => void }) {
+  return tasks.map((task, i) => (
+    <Fragment key={task.id}>
+      {i > 0 && task.deadline !== tasks[i - 1].deadline && (
+        <hr style={{ border: 'none', borderTop: '1px solid var(--color-ink)', margin: '14px 0 0' }} />
+      )}
+      <TaskRow task={task} onOpen={() => onOpen(task)} />
+    </Fragment>
+  ))
 }
 
 function TaskRow({ task, onOpen }: { task: ScheduledTaskResponse; onOpen: () => void }) {
