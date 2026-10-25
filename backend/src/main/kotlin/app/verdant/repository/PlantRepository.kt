@@ -3,6 +3,7 @@ package app.verdant.repository
 import app.verdant.dto.PlantLocationGroup
 import app.verdant.dto.SpeciesPlantSummary
 import app.verdant.entity.Plant
+import app.verdant.entity.PlantOrigin
 import app.verdant.entity.PlantStatus
 import io.agroal.api.AgroalDataSource
 import jakarta.enterprise.context.ApplicationScoped
@@ -106,8 +107,8 @@ class PlantRepository(private val ds: AgroalDataSource) {
     fun persist(plant: Plant): Plant {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO plant (name, species_id, planted_date, status, seed_count, surviving_count, bed_id, tray_location_id, org_id, season_id, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
+                """INSERT INTO plant (name, species_id, planted_date, status, seed_count, surviving_count, bed_id, tray_location_id, org_id, season_id, origin, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setString(1, plant.name)
@@ -120,6 +121,7 @@ class PlantRepository(private val ds: AgroalDataSource) {
                 ps.setObject(8, plant.trayLocationId)
                 ps.setLong(9, plant.orgId)
                 ps.setObject(10, plant.seasonId)
+                ps.setString(11, plant.origin.name)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -562,6 +564,7 @@ class PlantRepository(private val ds: AgroalDataSource) {
         trayLocationId = getObject("tray_location_id") as? Long,
         orgId = getLong("org_id"),
         seasonId = getObject("season_id") as? Long,
+        origin = PlantOrigin.valueOf(getString("origin")),
         createdAt = getTimestamp("created_at").toInstant(),
         updatedAt = getTimestamp("updated_at").toInstant(),
     )

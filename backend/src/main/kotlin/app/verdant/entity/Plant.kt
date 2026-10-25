@@ -15,8 +15,11 @@ data class Plant(
     val trayLocationId: Long? = null,
     val orgId: Long,
     val seasonId: Long? = null,
+    val origin: PlantOrigin = PlantOrigin.SOWN,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),
 )
 
 enum class PlantStatus { SEEDED, POTTED_UP, PLANTED_OUT, GROWING, HARVESTED, RECOVERED, REMOVED, DORMANT }
+
+enum class PlantOrigin { SOWN, REGISTERED }
