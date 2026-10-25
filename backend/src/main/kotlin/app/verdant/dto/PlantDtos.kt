@@ -1,5 +1,6 @@
 package app.verdant.dto
 
+import app.verdant.entity.PlantOrigin
 import app.verdant.entity.PlantStatus
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
@@ -75,6 +76,11 @@ data class BatchSowRequest(
     /** When set, the plants are recorded as if they were sown on this date
      *  rather than today. Used for backdating when registering existing plants. */
     val plantedDate: java.time.LocalDate? = null,
+    /** Seed batch to draw the sown seeds from. */
+    val seedBatchId: Long? = null,
+    /** Allow sowing more seeds than the batch holds; the batch is emptied. */
+    val allowShortfall: Boolean = false,
+    val origin: PlantOrigin = PlantOrigin.SOWN,
 )
 
 data class BatchSowResponse(

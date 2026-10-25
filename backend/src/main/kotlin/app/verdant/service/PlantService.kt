@@ -1,10 +1,13 @@
 package app.verdant.service
 
 import app.verdant.dto.*
+import app.verdant.entity.MovementKind
 import app.verdant.entity.Plant
 import app.verdant.entity.PlantEvent
 import app.verdant.entity.PlantEventType
 import app.verdant.entity.PlantStatus
+import app.verdant.entity.SeedInventory
+import app.verdant.entity.SeedStockMovement
 import app.verdant.repository.*
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
@@ -23,6 +26,9 @@ class PlantService(
     private val trayLocationRepository: app.verdant.repository.TrayLocationRepository,
     private val bedEventRepository: app.verdant.repository.BedEventRepository,
     private val saleLotRepository: app.verdant.repository.SaleLotRepository,
+    private val seedInventoryRepository: SeedInventoryRepository,
+    private val seedStockMovementRepository: SeedStockMovementRepository,
+    private val seasonRepository: SeasonRepository,
 ) {
     @Transactional
     fun weedBed(bedId: Long, orgId: Long): BulkLocationActionResponse =
@@ -204,6 +210,7 @@ class PlantService(
             if (loc.orgId != orgId) throw NotFoundException("Tray location not found")
         }
         val today = request.plantedDate ?: java.time.LocalDate.now()
+        val batch = request.seedBatchId?.let { validateSeedBatch(it, request, orgId) }
         val plantIds = mutableListOf<Long>()
         // Upload image once if provided
         var imageUrl: String? = null
@@ -219,6 +226,7 @@ class PlantService(
                     bedId = request.bedId,
                     trayLocationId = if (request.bedId == null) request.trayLocationId else null,
                     orgId = orgId,
+                    origin = request.origin,
                 )
             )
             if (i == 1 && request.imageBase64 != null) {
@@ -237,7 +245,51 @@ class PlantService(
             cloneWorkflowFromSpecies(plant.id!!, plant.speciesId)
             plantIds.add(plant.id!!)
         }
+        if (batch != null) drawFromSeedBatch(batch, request, plantIds, today)
         return BatchSowResponse(plantIds = plantIds, count = plantIds.size)
+    }
+
+    private fun validateSeedBatch(batchId: Long, request: BatchSowRequest, orgId: Long): SeedInventory {
+        val batch = seedInventoryRepository.findById(batchId)
+            ?.takeIf { it.orgId == orgId }
+            ?: throw NotFoundException("Seed stock not found")
+        if (batch.speciesId != request.speciesId) {
+            throw BadRequestException("Seed batch belongs to a different species")
+        }
+        if (!request.allowShortfall && batch.quantity < request.seedCount) {
+            throw BadRequestException("Insufficient seeds (have ${batch.quantity}, need ${request.seedCount})")
+        }
+        return batch
+    }
+
+    private fun drawFromSeedBatch(
+        batch: SeedInventory,
+        request: BatchSowRequest,
+        plantIds: List<Long>,
+        sownOn: java.time.LocalDate,
+    ) {
+        val batchId = batch.id!!
+        val shortfall = if (request.allowShortfall) maxOf(request.seedCount - batch.quantity, 0) else 0
+        if (shortfall > 0) {
+            seedInventoryRepository.useUpQuantity(batchId, request.seedCount)
+        } else if (!seedInventoryRepository.decrementQuantity(batchId, request.seedCount)) {
+            throw BadRequestException("Insufficient seeds (have ${batch.quantity}, need ${request.seedCount})")
+        }
+        seedStockMovementRepository.persist(
+            SeedStockMovement(
+                orgId = batch.orgId,
+                seedInventoryId = batchId,
+                speciesId = batch.speciesId,
+                kind = MovementKind.SOWN,
+                quantity = request.seedCount,
+                shortfall = shortfall,
+                unitCostCents = batch.costPerUnitCents,
+                occurredOn = sownOn,
+                seasonId = SeasonRanges.seasonFor(sownOn, seasonRepository.findByOrgId(batch.orgId))?.id,
+                firstPlantId = plantIds.first(),
+                plantCount = plantIds.size,
+            )
+        )
     }
 
     fun getTraySummary(orgId: Long): List<TraySummaryEntry> {

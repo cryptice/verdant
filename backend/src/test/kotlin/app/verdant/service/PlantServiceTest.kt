@@ -63,6 +63,9 @@ class PlantServiceTest {
             trayLocationRepository,
             bedEventRepository,
             saleLotRepository,
+            mock(),
+            mock(),
+            mock(),
         )
     }
 
