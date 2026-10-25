@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { api, type ScheduledTaskResponse, type SpeciesResponse } from '../api/client'
@@ -70,5 +70,14 @@ describe('Task species selection', () => {
     expect(await screen.findByRole('button', { name: 'tasks.updateTask' })).toBeEnabled()
     expect(api.species.get).toHaveBeenCalledWith(1991)
     expect(api.species.search).not.toHaveBeenCalled()
+  })
+
+  it('labels the count as seeds only while the task is a sowing', async () => {
+    renderPage('/task/1/edit')
+    expect(await screen.findByDisplayValue('15')).toBeInTheDocument()
+    expect(screen.getByText('tasks.seedCountLabel')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('tasks.form.type'), { target: { value: 'POT_UP' } })
+    expect(screen.getByText('tasks.targetCountLabel')).toBeInTheDocument()
+    expect(screen.queryByText('tasks.seedCountLabel')).not.toBeInTheDocument()
   })
 })

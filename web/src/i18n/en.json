@@ -707,6 +707,7 @@
     "activityLabel": "Activity *",
     "deadlineLabel": "Deadline *",
     "targetCountLabel": "Target count *",
+    "seedCountLabel": "Number of seeds *",
     "updateTask": "Update Task",
     "createTask": "Create Task",
     "loadingGroupSpecies": "Loading species...",

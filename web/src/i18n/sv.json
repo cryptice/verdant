@@ -707,6 +707,7 @@
     "activityLabel": "Aktivitet *",
     "deadlineLabel": "Deadline *",
     "targetCountLabel": "Målantal *",
+    "seedCountLabel": "Antal frön *",
     "updateTask": "Uppdatera uppgift",
     "createTask": "Skapa uppgift",
     "loadingGroupSpecies": "Laddar arter...",

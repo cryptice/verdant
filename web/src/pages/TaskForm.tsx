@@ -297,7 +297,7 @@ export function TaskForm() {
 
           {/* Target count */}
           <div>
-            <span style={selectLabelStyle}>{t('tasks.targetCountLabel')}</span>
+            <span style={selectLabelStyle}>{t(activityType === 'SOW' ? 'tasks.seedCountLabel' : 'tasks.targetCountLabel')}</span>
             <input
               type="number"
               value={targetCount}
