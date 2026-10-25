@@ -207,6 +207,19 @@ describe('TaskList drawer completion', () => {
     expect(within(row).queryByText('SOW')).not.toBeInTheDocument()
   })
 
+  it('marks each row with an icon for its activity instead of a numero sign', async () => {
+    vi.mocked(api.tasks.list).mockResolvedValue([
+      task({ id: 1, speciesId: 1, speciesName: 'Tomat', activityType: 'SOW', deadline: isoOffsetDays(0) }),
+      task({ id: 2, speciesId: 2, speciesName: 'Dill', activityType: 'POT_UP', deadline: isoOffsetDays(0) }),
+    ])
+    renderList()
+    const sow = (await screen.findByText('Tomat')).closest('button')!
+    const potUp = screen.getByText('Dill').closest('button')!
+    expect(sow.querySelector('svg[data-activity="SOW"]')).not.toBeNull()
+    expect(potUp.querySelector('svg[data-activity="POT_UP"]')).not.toBeNull()
+    expect(screen.queryByText('№')).not.toBeInTheDocument()
+  })
+
   it('opens the harvest plan for a generated task', async () => {
     vi.mocked(api.tasks.list).mockResolvedValue([task({
       speciesName: 'Dahlia', speciesId: 5, activityType: 'SOW',

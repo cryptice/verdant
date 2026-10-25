@@ -8,6 +8,7 @@ import { TaskCompletionSummary } from '../components/TaskCompletionSummary'
 import { Snackbar } from '../components/Snackbar'
 import { useUndoableCompletion } from '../lib/useUndoableCompletion'
 import { Dialog } from '../components/Dialog'
+import { ActivityIcon } from '../components/ActivityIcon'
 import { maintenanceActivityLabelSv, todayIsoLocal } from '../lib/maintenance'
 
 type ActivityFilter = 'harvest' | 'sowing' | 'watering' | 'planting' | 'maintenance'
@@ -409,16 +410,8 @@ function TaskRow({ task, onOpen }: { task: ScheduledTaskResponse; onOpen: () => 
         alignItems: 'center',
       }}
     >
-      <span
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontStyle: 'italic',
-          fontSize: 26,
-          color,
-          fontVariationSettings: '"SOFT" 100, "opsz" 144',
-        }}
-      >
-        №
+      <span style={{ color, display: 'flex' }}>
+        <ActivityIcon activityType={task.activityType} size={26} />
       </span>
       <div>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: 18 }}>

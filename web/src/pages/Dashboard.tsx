@@ -46,6 +46,7 @@ export function taskSubject(task: ScheduledTaskResponse, t: TFunction): string |
 import { Masthead } from '../components/faltet'
 import { Snackbar, useSnackbar } from '../components/Snackbar'
 import { ActivityFab } from '../components/ActivityFab'
+import { BedIcon } from '../components/ActivityIcon'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
 export function Dashboard() {
@@ -365,16 +366,8 @@ export function Dashboard() {
                   textDecoration: 'none',
                 }}
               >
-                <span
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontStyle: 'italic',
-                    fontSize: 20,
-                    color: 'var(--color-sage)',
-                    fontVariationSettings: '"SOFT" 100, "opsz" 144',
-                  }}
-                >
-                  №
+                <span style={{ color: 'var(--color-sage)', display: 'flex' }}>
+                  <BedIcon size={22} />
                 </span>
                 <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                   <span
