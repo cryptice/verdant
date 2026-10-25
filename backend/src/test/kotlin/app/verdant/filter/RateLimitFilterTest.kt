@@ -97,6 +97,26 @@ class RateLimitFilterTest {
     }
 
     @Test
+    fun `keys on the address the platform appended, not one the client supplied`() {
+        // Cloud Run appends the real client address; anything before it came from the client.
+        repeat(120) { i ->
+            val c = makeContext("198.51.100.$i, 203.0.113.9")
+            filter.filter(c)
+            verify(c, never()).abortWith(any())
+        }
+        val blocked = makeContext("192.0.2.77, 203.0.113.9")
+        filter.filter(blocked)
+        verify(blocked).abortWith(argThat { status == 429 })
+    }
+
+    @Test
+    fun `masks the last part of an address for logging`() {
+        assertEquals("203.0.113.x", RateLimitFilter.maskForLog("203.0.113.9"))
+        assertEquals("2001:db8:1:2::x", RateLimitFilter.maskForLog("2001:db8:1:2:3:4:5:6"))
+        assertEquals("unknown", RateLimitFilter.maskForLog("unknown"))
+    }
+
+    @Test
     fun `uses X-Forwarded-For header`() {
         val context: ContainerRequestContext = mock()
         whenever(context.getHeaderString("X-Forwarded-For")).thenReturn("1.2.3.4")
