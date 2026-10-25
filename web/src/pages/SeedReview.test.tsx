@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { api, type SeasonResponse, type SeedReviewResponse } from '../api/client'
 import i18n from '../i18n'
-import { SeedReview } from './SeedReview'
+import { SeedReview, defaultSeasonId } from './SeedReview'
 
 vi.mock('react-i18next', async original => ({
   ...await original<typeof import('react-i18next')>(),
@@ -46,6 +46,24 @@ function show() {
   render(<QueryClientProvider client={qc}><MemoryRouter><SeedReview /></MemoryRouter></QueryClientProvider>)
 }
 
+describe('defaultSeasonId', () => {
+  const s1 = { ...season(1, 2026, '2026-10-31'), startDate: '2026-03-01' }
+  const s2 = { ...season(2, 2027, '2027-10-31'), startDate: '2027-03-01' }
+
+  it('prefers the latest ended season', () => {
+    expect(defaultSeasonId([s1, s2], '2027-06-01')).toBe(1)
+  })
+
+  it('falls back to the season containing today when none has ended', () => {
+    expect(defaultSeasonId([s1, s2], '2026-06-01')).toBe(1)
+    expect(defaultSeasonId([s2, s1], '2026-06-01')).toBe(1)
+  })
+
+  it('falls back to the latest season when none contains today', () => {
+    expect(defaultSeasonId([s1, s2], '2025-06-01')).toBe(2)
+  })
+})
+
 describe('SeedReview', () => {
   it('defaults to the latest season that has ended', async () => {
     show()
@@ -59,12 +77,16 @@ describe('SeedReview', () => {
     const card = (await screen.findByText('Rosenskära – Purity')).closest('[data-testid="variety-card"]') as HTMLElement
     expect(within(card).getByText('Sådd')).toBeInTheDocument()
     expect(within(card).getByText('Utplantering')).toBeInTheDocument()
-    expect(within(card).getByText('14')).toBeInTheDocument()
+    expect(within(card).getAllByText('14')).toHaveLength(2)
     expect(within(card).getByTestId('harvested')).toHaveTextContent('34')
     expect(within(card).getByTestId('sold')).toHaveTextContent('11')
     expect(within(card).getByTestId('cost')).toHaveTextContent(/3,00\s*kr/)
     expect(within(card).getByTestId('revenue')).toHaveTextContent(/105,00\s*kr/)
     expect(within(card).getByTestId('stock')).toHaveTextContent('4')
+    expect(within(card).getByTestId('sown')).toHaveTextContent('10')
+    expect(within(card).getByTestId('bought')).toHaveTextContent('14')
+    expect(within(card).getByTestId('stock')).toHaveTextContent(t('unitTypes.SEED').toLowerCase())
+    expect(within(card).getByText(new RegExp(`${t('seedReview.order')}.*${t('unitTypes.SEED').toLowerCase()}`, 'i'), { selector: 'label' })).toBeInTheDocument()
     expect(screen.getAllByTestId('variety-card')).toHaveLength(2)
   })
 

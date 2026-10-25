@@ -270,16 +270,18 @@ class SeedReviewServiceTest {
                 startDate = LocalDate.of(year, 1, 1), endDate = LocalDate.of(year, 12, 31))
         )
         repeat(12) { plant(f.orgId, f.a, LocalDate.of(year, 3, 1)) }
-        movement(f, f.a, MovementKind.ADDED, 50, unitCost = 20, seasonId = exact.id)
-        movement(f, f.a, MovementKind.ADDED, 20, unitCost = 40, seasonId = exact.id)
-        movement(f, f.a, MovementKind.ADDED, 30, unitCost = 20, seasonId = f.season.id)
-        movement(f, f.a, MovementKind.OPENING, 100, unitCost = 20, seasonId = exact.id)
-        movement(f, f.a, MovementKind.ADJUSTED, -5, unitCost = 20, seasonId = exact.id)
-        movement(f, f.a, MovementKind.SOWN, 12, unitCost = 25, seasonId = exact.id)
-        movement(f, f.a, MovementKind.SOWN, 3, unitCost = null, seasonId = exact.id)
-        movement(f, f.a, MovementKind.SOWN, 9, unitCost = 99, seasonId = f.season.id)
+        val inYear = LocalDate.of(year, 5, 1)
+        val outside = LocalDate.of(2026, 6, 1)
+        movement(f, f.a, MovementKind.ADDED, 50, unitCost = 20, seasonId = exact.id, occurredOn = inYear)
+        movement(f, f.a, MovementKind.ADDED, 20, unitCost = 40, seasonId = exact.id, occurredOn = inYear)
+        movement(f, f.a, MovementKind.ADDED, 30, unitCost = 20, seasonId = f.season.id, occurredOn = outside)
+        movement(f, f.a, MovementKind.OPENING, 100, unitCost = 20, seasonId = exact.id, occurredOn = inYear)
+        movement(f, f.a, MovementKind.ADJUSTED, -5, unitCost = 20, seasonId = exact.id, occurredOn = inYear)
+        movement(f, f.a, MovementKind.SOWN, 12, unitCost = 25, seasonId = exact.id, occurredOn = inYear)
+        movement(f, f.a, MovementKind.SOWN, 3, unitCost = null, seasonId = exact.id, occurredOn = inYear)
+        movement(f, f.a, MovementKind.SOWN, 9, unitCost = 99, seasonId = f.season.id, occurredOn = outside)
         val boughtOnly = speciesRepo.persist(Species(orgId = f.orgId, commonName = "Seed review bought only")).id!!
-        movement(f, boughtOnly, MovementKind.ADDED, 40, unitCost = 10, seasonId = exact.id)
+        movement(f, boughtOnly, MovementKind.ADDED, 40, unitCost = 10, seasonId = exact.id, occurredOn = inYear)
 
         val r = review(f, exact)
 
@@ -295,6 +297,38 @@ class SeedReviewServiceTest {
         assertEquals(0, c.sown)
         assertEquals(0, c.suggestedOrder)
         assertTrue(r.varieties.none { it.speciesId == f.b })
+    }
+
+    @Test
+    fun `movements count by date even without a stored season`() {
+        val f = fixture()
+        val year = movements.ledgerStartDate()!!.year + 1
+        val exact = seasons.persist(
+            Season(orgId = f.orgId, name = "Seed review $year", year = year,
+                startDate = LocalDate.of(year, 1, 1), endDate = LocalDate.of(year, 12, 31))
+        )
+        repeat(5) { plant(f.orgId, f.a, LocalDate.of(year, 3, 1)) }
+        movement(f, f.a, MovementKind.ADDED, 25, unitCost = 10, seasonId = null, occurredOn = LocalDate.of(year, 2, 1))
+        movement(f, f.a, MovementKind.SOWN, 5, unitCost = 30, seasonId = null, occurredOn = LocalDate.of(year, 3, 1))
+        movement(f, f.a, MovementKind.ADDED, 99, unitCost = 10, seasonId = exact.id, occurredOn = LocalDate.of(2026, 6, 1))
+
+        val a = review(f, exact).of(f.a)
+
+        assertEquals(25, a.bought)
+        assertEquals(150L, a.seedCostCents)
+    }
+
+    @Test
+    fun `registered plants do not count in the seeded step`() {
+        val f = fixture()
+        repeat(5) {
+            val p = plant(f.orgId, f.a, LocalDate.of(2026, 4, 1), origin = "REGISTERED")
+            event(p, "SEEDED", LocalDate.of(2026, 4, 1))
+        }
+
+        val a = review(f).of(f.a)
+
+        assertEquals(10, a.steps.single { it.eventType == "SEEDED" }.count)
     }
 
     @Test
@@ -385,11 +419,14 @@ class SeedReviewServiceTest {
             lotId, quantity, price, outletId, soldAt, userId,
         )
 
-    private fun movement(f: Fixture, speciesId: Long, kind: MovementKind, quantity: Int, unitCost: Int?, seasonId: Long?) =
+    private fun movement(
+        f: Fixture, speciesId: Long, kind: MovementKind, quantity: Int, unitCost: Int?, seasonId: Long?,
+        occurredOn: LocalDate = LocalDate.now(),
+    ) =
         movements.persist(
             SeedStockMovement(
                 orgId = f.orgId, seedInventoryId = null, speciesId = speciesId, kind = kind, quantity = quantity,
-                unitCostCents = unitCost, occurredOn = LocalDate.now(), seasonId = seasonId,
+                unitCostCents = unitCost, occurredOn = occurredOn, seasonId = seasonId,
             )
         )
 

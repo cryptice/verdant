@@ -45,9 +45,9 @@ class SeedReviewService(
         val harvested = reviewRepo.harvestedStemsBySpecies(orgId, ranges)
         val sales = reviewRepo.salesBySpecies(orgId, ranges)
         val stock = reviewRepo.stockBySpecies(orgId)
-        val added = reviewRepo.addedBySpecies(orgId, seasonId)
+        val added = reviewRepo.addedBySpecies(orgId, ranges)
         val saved = orderLineRepo.findBySeason(orgId, seasonId)
-        val seedCost = if (estimated) estimatedSeedCost(orgId, sown) else reviewRepo.sownCostBySpecies(orgId, seasonId)
+        val seedCost = if (estimated) estimatedSeedCost(orgId, sown) else reviewRepo.sownCostBySpecies(orgId, ranges)
 
         val speciesIds = buildSet {
             sown.filterValues { it != 0 }.keys.let(::addAll)

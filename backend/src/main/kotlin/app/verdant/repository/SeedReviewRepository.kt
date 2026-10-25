@@ -25,7 +25,7 @@ class SeedReviewRepository(private val ds: AgroalDataSource) {
             ) { it.getInt(2) }
         }
 
-    /** Distinct plants per species and event type with an event dated in the ranges. */
+    /** Distinct plants per species and event type with an event dated in the ranges; registered plants were not sown, so they are left out of the seeded step. */
     fun eventPlantCountsBySpecies(orgId: Long, ranges: List<ClosedRange<LocalDate>>): Map<Long, Map<String, Int>> =
         byRanges(ranges) {
             ds.connection.use { conn ->
@@ -33,6 +33,7 @@ class SeedReviewRepository(private val ds: AgroalDataSource) {
                     """SELECT p.species_id, e.event_type, COUNT(DISTINCT e.plant_id)
                        FROM plant_event e JOIN plant p ON p.id = e.plant_id
                        WHERE p.org_id = ? AND p.species_id IS NOT NULL AND ${rangeClause("e.event_date", ranges)}
+                         AND NOT (e.event_type = 'SEEDED' AND p.origin = 'REGISTERED')
                        GROUP BY p.species_id, e.event_type"""
                 ).use { ps ->
                     bind(ps, listOf(orgId) + rangeParams(ranges))
@@ -91,21 +92,25 @@ class SeedReviewRepository(private val ds: AgroalDataSource) {
             listOf(orgId),
         ) { it.getDouble(2) }
 
-    /** Seed added to stock in the season. Opening balances are not purchases and never count. */
-    fun addedBySpecies(orgId: Long, seasonId: Long): Map<Long, Int> =
-        query(
-            """SELECT species_id, SUM(quantity) FROM seed_stock_movement
-               WHERE org_id = ? AND season_id = ? AND kind = 'ADDED' GROUP BY species_id""",
-            listOf(orgId, seasonId),
-        ) { it.getInt(2) }
+    /** Seed added to stock on dates in the ranges. Opening balances are not purchases and never count. */
+    fun addedBySpecies(orgId: Long, ranges: List<ClosedRange<LocalDate>>): Map<Long, Int> =
+        byRanges(ranges) {
+            query(
+                """SELECT species_id, SUM(quantity) FROM seed_stock_movement
+                   WHERE org_id = ? AND kind = 'ADDED' AND ${rangeClause("occurred_on", ranges)} GROUP BY species_id""",
+                listOf(orgId) + rangeParams(ranges),
+            ) { it.getInt(2) }
+        }
 
-    /** Cost of the seed drawn for sowings in the season, at each movement's recorded unit cost. */
-    fun sownCostBySpecies(orgId: Long, seasonId: Long): Map<Long, Long> =
-        query(
-            """SELECT species_id, SUM(quantity::bigint * COALESCE(unit_cost_cents, 0)) FROM seed_stock_movement
-               WHERE org_id = ? AND season_id = ? AND kind = 'SOWN' GROUP BY species_id""",
-            listOf(orgId, seasonId),
-        ) { it.getLong(2) }
+    /** Cost of the seed drawn for sowings dated in the ranges, at each movement's recorded unit cost. */
+    fun sownCostBySpecies(orgId: Long, ranges: List<ClosedRange<LocalDate>>): Map<Long, Long> =
+        byRanges(ranges) {
+            query(
+                """SELECT species_id, SUM(quantity::bigint * COALESCE(unit_cost_cents, 0)) FROM seed_stock_movement
+                   WHERE org_id = ? AND kind = 'SOWN' AND ${rangeClause("occurred_on", ranges)} GROUP BY species_id""",
+                listOf(orgId) + rangeParams(ranges),
+            ) { it.getLong(2) }
+        }
 
     private fun <T> byRanges(ranges: List<ClosedRange<LocalDate>>, block: () -> Map<Long, T>): Map<Long, T> =
         if (ranges.isEmpty()) emptyMap() else block()

@@ -121,7 +121,7 @@ The sow screen lets you plant seeds in bulk:
 1. **Select a species** (autocomplete search)
 2. **Choose a destination**: a specific bed or a portable tray
 3. **Enter seed count**
-4. **Optionally select a seed batch** — if you have seeds in inventory, selecting a batch auto-decrements the quantity after sowing
+4. **Optionally select a seed batch** — if you have seeds in inventory, selecting a batch deducts the seed as part of the sowing (you are asked to confirm if you sow more than the batch holds)
 5. **Add notes** (optional)
 
 Sowing creates a plant record with "Seeded" status and records a SEEDED event with the date.
@@ -183,6 +183,8 @@ Track your seed and bulb stock:
 - **Season** — which season the inventory belongs to
 
 When you sow using a seed batch, the quantity is automatically decremented. The inventory table shows Swedish species names, quantity, cost, and expiration date.
+
+**Season review** — from Utsäde, open "Säsongsgenomgång" to see what became of the seed in a season. Each variety shows how much was sown, how many plants reached each workflow step, harvested and sold stems, seed cost, revenue, and what is left in stock. For every variety you can set how much to order (by default what you sowed minus what is left) and save the order list per season.
 
 ### Succession Planting
 

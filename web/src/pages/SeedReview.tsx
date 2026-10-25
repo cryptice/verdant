@@ -26,12 +26,15 @@ const todayIso = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+const seasonStart = (s: SeasonResponse) => s.startDate ?? `${s.year}-01-01`
+
 const seasonEnd = (s: SeasonResponse) => s.endDate ?? `${s.year}-12-31`
 
 export function defaultSeasonId(seasons: SeasonResponse[], today = todayIso()): number | undefined {
   if (seasons.length === 0) return undefined
   const byEnd = [...seasons].sort((a, b) => seasonEnd(b).localeCompare(seasonEnd(a)))
-  return (byEnd.find(s => seasonEnd(s) < today) ?? byEnd[0]).id
+  const current = byEnd.find(s => seasonStart(s) <= today && today <= seasonEnd(s))
+  return (byEnd.find(s => seasonEnd(s) < today) ?? current ?? byEnd[0]).id
 }
 
 const kr = (cents: number) =>
@@ -43,6 +46,7 @@ function VarietyCard({ variety, value, onChange }: {
   onChange: (value: string) => void
 }) {
   const { t } = useTranslation()
+  const unit = t(`unitTypes.${variety.unitType}`).toLowerCase()
   const max = Math.max(1, ...variety.steps.map(s => s.count))
 
   return (
@@ -65,6 +69,14 @@ function VarietyCard({ variety, value, onChange }: {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 18px', alignContent: 'start' }}>
           <div>
+            <div style={LABEL_STYLE}>{t('seedReview.sown')}</div>
+            <div data-testid="sown" style={FIGURE_STYLE}>{variety.sown}</div>
+          </div>
+          <div>
+            <div style={LABEL_STYLE}>{t('seedReview.bought')}</div>
+            <div data-testid="bought" style={FIGURE_STYLE}>{variety.bought}</div>
+          </div>
+          <div>
             <div style={LABEL_STYLE}>{t('seedReview.harvested')}</div>
             <div data-testid="harvested" style={FIGURE_STYLE}>{variety.harvestedStems}</div>
           </div>
@@ -82,10 +94,10 @@ function VarietyCard({ variety, value, onChange }: {
           </div>
           <div>
             <div style={LABEL_STYLE}>{t('seedReview.leftInStock')}</div>
-            <div data-testid="stock" style={FIGURE_STYLE}>{variety.leftInStock}</div>
+            <div data-testid="stock" style={FIGURE_STYLE}>{variety.leftInStock} <span style={{ ...LABEL_STYLE, fontSize: 11 }}>{unit}</span></div>
           </div>
           <div>
-            <label style={LABEL_STYLE} htmlFor={`order-${variety.speciesId}`}>{t('seedReview.order')}</label>
+            <label style={{ ...LABEL_STYLE, display: 'block' }} htmlFor={`order-${variety.speciesId}`}>{t('seedReview.order')} ({unit})</label>
             <input
               id={`order-${variety.speciesId}`}
               aria-label={`${t('seedReview.order')} ${variety.speciesName}`}
@@ -162,7 +174,7 @@ export function SeedReview() {
         ) : (
           <>
             <div style={{ marginBottom: 16, maxWidth: 280 }}>
-              <label style={LABEL_STYLE} htmlFor="review-season">{t('seedReview.season')}</label>
+              <label style={{ ...LABEL_STYLE, display: 'block' }} htmlFor="review-season">{t('seedReview.season')}</label>
               <select
                 id="review-season"
                 className="input"

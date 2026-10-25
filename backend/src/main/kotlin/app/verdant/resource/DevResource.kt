@@ -136,7 +136,7 @@ class DevResource(
             "bouquet_item", "bouquet",
             "bouquet_recipe_item", "bouquet_recipe",
             "succession_schedule", "production_target", "scheduled_task",
-            "seed_inventory", "variety_trial", "pest_disease_log",
+            "seed_stock_movement", "seed_order_line", "seed_inventory", "variety_trial", "pest_disease_log",
             "frequent_comment", "customer",
             "bed", "garden", "season",
             "species_group_membership",
