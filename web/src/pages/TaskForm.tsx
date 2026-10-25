@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useParams, Link } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api, type SpeciesResponse } from '../api/client'
@@ -79,7 +79,12 @@ export function TaskForm() {
   const [selectedGroupName, setSelectedGroupName] = useState<string>('')
   const [groupSpecies, setGroupSpecies] = useState<SpeciesResponse[]>([])
   const [checkedSpeciesIds, setCheckedSpeciesIds] = useState<Set<number>>(new Set())
-  const [activityType, setActivityType] = useState('SOW')
+  // The dashboard's activity button links here with ?type=TODO.
+  const [searchParams] = useSearchParams()
+  const linkedType = searchParams.get('type')
+  const [activityType, setActivityType] = useState(
+    !isEdit && linkedType && activityTypes.includes(linkedType) ? linkedType : 'SOW',
+  )
   const [selectedBedId, setSelectedBedId] = useState<number | null>(null)
   const [earliestDate, setEarliestDate] = useState('')
   const [deadline, setDeadline] = useState('')

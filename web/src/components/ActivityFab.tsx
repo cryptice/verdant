@@ -40,7 +40,7 @@ export function ActivityFab() {
           <ActivityChoice
             title={t('dashboard.activity.createTask')}
             subtitle={t('dashboard.activity.createTaskHint')}
-            onClick={() => choose('/task/new')}
+            onClick={() => choose('/task/new?type=TODO')}
           />
           <ActivityChoice
             title={t('dashboard.activity.sow')}

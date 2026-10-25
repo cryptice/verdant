@@ -84,6 +84,17 @@ describe('Task species selection', () => {
 })
 
 describe('General TODO tasks', () => {
+  it('starts as a TODO when opened from the activity button', () => {
+    renderPage('/task/new?type=TODO')
+    expect(screen.getByLabelText('tasks.form.type')).toHaveValue('TODO')
+    expect(screen.getByLabelText('tasks.form.description')).toBeInTheDocument()
+  })
+
+  it('ignores an unknown type in the link', () => {
+    renderPage('/task/new?type=NOPE')
+    expect(screen.getByLabelText('tasks.form.type')).toHaveValue('SOW')
+  })
+
   it('creates a TODO from only a description, without species, count or deadline', async () => {
     const create = vi.spyOn(api.tasks, 'create').mockResolvedValue({ ...task, activityType: 'TODO' })
     renderPage('/task/new')
