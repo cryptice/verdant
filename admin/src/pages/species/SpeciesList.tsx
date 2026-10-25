@@ -5,16 +5,34 @@ import { useNavigate } from 'react-router-dom'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import { useTranslation } from 'react-i18next'
 
+// The list unmounts while a species is open, so the search and page are kept
+// for the browser session to survive every way back: the detail page's back
+// button, browser history, or returning after an edit.
+const LIST_STATE_KEY = 'admin-species-list'
+
+function savedListState(): { search: string; page: number } {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(LIST_STATE_KEY) ?? '{}')
+    return {
+      search: typeof saved.search === 'string' ? saved.search : '',
+      page: Number.isInteger(saved.page) && saved.page > 0 ? saved.page : 0,
+    }
+  } catch {
+    return { search: '', page: 0 }
+  }
+}
+
 export function SpeciesListPage() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
-  const [search, setSearch] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [initial] = useState(savedListState)
+  const [search, setSearch] = useState(initial.search)
+  const [debouncedSearch, setDebouncedSearch] = useState(initial.search)
   const [previewSpecies, setPreviewSpecies] = useState<Species | null>(null)
   const [importStatus, setImportStatus] = useState<string | null>(null)
   const [exporting, setExporting] = useState(false)
   const [importing, setImporting] = useState(false)
-  const [page, setPage] = useState(0)
+  const [page, setPage] = useState(initial.page)
   const importInputRef = useRef<HTMLInputElement>(null)
   const pageSize = 50
   const { t } = useTranslation()
@@ -23,6 +41,14 @@ export function SpeciesListPage() {
     const timer = setTimeout(() => setDebouncedSearch(search), 250)
     return () => clearTimeout(timer)
   }, [search])
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(LIST_STATE_KEY, JSON.stringify({ search, page }))
+    } catch {
+      // Storage can be unavailable (private mode, blocked site data); the list still works.
+    }
+  }, [search, page])
 
   const { data: species, isLoading, error } = useQuery({
     queryKey: ['admin', 'species', debouncedSearch],
@@ -81,6 +107,11 @@ export function SpeciesListPage() {
       const varB = (b.variantNameSv || b.variantName || '').toLowerCase()
       return varA.localeCompare(varB, 'sv')
     })
+
+  const lastPage = filtered ? Math.max(Math.ceil(filtered.length / pageSize) - 1, 0) : null
+  useEffect(() => {
+    if (lastPage !== null && page > lastPage) setPage(lastPage)
+  }, [lastPage, page])
 
   if (isLoading) return <div className="flex justify-center py-12"><div className="text-[#787774] text-sm">{t('common.loading')}</div></div>
   if (error) return <ErrorDisplay error={error} onRetry={() => queryClient.invalidateQueries({ queryKey: ['admin', 'species'] })} />
