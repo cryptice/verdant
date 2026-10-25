@@ -185,8 +185,8 @@ describe('Sowing from a task', () => {
     const confirm = await screen.findByRole('dialog', { name: 'sow.overStock.title' })
     expect(api.plants.batchSow).not.toHaveBeenCalled()
     fireEvent.click(within(confirm).getByRole('button', { name: 'sow.overStock.confirm' }))
-    await waitFor(() => expect(api.inventory.decrement).toHaveBeenCalledWith(7, 50, true))
-    expect(api.plants.batchSow).toHaveBeenCalledWith(expect.objectContaining({ seedCount: 50 }))
+    await waitFor(() => expect(api.plants.batchSow).toHaveBeenCalledWith(expect.objectContaining({ seedCount: 50, seedBatchId: 7, allowShortfall: true })))
+    expect(api.inventory.decrement).not.toHaveBeenCalled()
   })
 
   it('leaves everything untouched when the over-stock warning is cancelled', async () => {
@@ -203,7 +203,9 @@ describe('Sowing from a task', () => {
     await openSowing()
     fireEvent.click(markDone())
     sow()
-    await waitFor(() => expect(api.inventory.decrement).toHaveBeenCalledWith(7, 15))
+    await waitFor(() => expect(api.plants.batchSow).toHaveBeenCalledWith(expect.objectContaining({ seedCount: 15, seedBatchId: 7 })))
+    expect(vi.mocked(api.plants.batchSow).mock.calls[0][0].allowShortfall).toBeUndefined()
+    expect(api.inventory.decrement).not.toHaveBeenCalled()
     expect(api.tasks.complete).toHaveBeenCalledWith(1, species.id, 14)
   })
 })

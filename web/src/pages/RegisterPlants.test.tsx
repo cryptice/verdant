@@ -45,7 +45,7 @@ describe('RegisterPlants', () => {
     fireEvent.click(register)
     await waitFor(() => expect(api.plants.batchSow).toHaveBeenCalledWith({
       speciesId: 100, name: 'Naga Black', seedCount: 3, trayLocationId: 2, bedId: undefined,
-      plantedDate: daysAgoIsoLocal(14), notes: undefined,
+      plantedDate: daysAgoIsoLocal(14), notes: undefined, origin: 'REGISTERED',
     }))
     expect(await screen.findByRole('dialog', { name: 'Plantor registrerade' })).toBeInTheDocument()
   })
@@ -57,7 +57,7 @@ describe('RegisterPlants', () => {
     fireEvent.change(screen.getByLabelText('Bädd *'), { target: { value: '3' } })
     fireEvent.click(screen.getByRole('button', { name: 'Registrera' }))
     await waitFor(() => expect(api.plants.batchSow).toHaveBeenCalledWith(expect.objectContaining({
-      bedId: 3, trayLocationId: undefined, seedCount: 1, plantedDate: daysAgoIsoLocal(0),
+      bedId: 3, trayLocationId: undefined, seedCount: 1, plantedDate: daysAgoIsoLocal(0), origin: 'REGISTERED',
     })))
   })
 })

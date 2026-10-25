@@ -799,6 +799,7 @@ export const api = {
       bedId?: number; trayLocationId?: number
       speciesId: number; name: string; seedCount: number
       notes?: string; imageBase64?: string; plantedDate?: string
+      seedBatchId?: number; allowShortfall?: boolean; origin?: 'SOWN' | 'REGISTERED'
     }) => apiRequest<{ plantIds: number[]; count: number }>('/api/plants/batch-sow', { method: 'POST', body: JSON.stringify(data) }),
     traySummary: () => apiRequest<TraySummaryEntry[]>('/api/plants/tray-summary'),
     groups: (status: string, trayOnly?: boolean) =>

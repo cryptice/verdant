@@ -34,6 +34,7 @@ data class BatchSowRequest(
     @SerializedName("notes") val notes: String? = null,
     @SerializedName("imageBase64") val imageBase64: String? = null,
     @SerializedName("plantedDate") val plantedDate: String? = null,
+    @SerializedName("origin") val origin: String? = null,
 )
 
 data class BatchSowResponse(

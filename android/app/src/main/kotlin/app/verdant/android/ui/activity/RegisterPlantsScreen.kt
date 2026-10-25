@@ -123,6 +123,7 @@ class RegisterPlantsViewModel @Inject constructor(
                         seedCount = count,
                         notes = notes,
                         plantedDate = seedDate.toString(),
+                        origin = "REGISTERED",
                     )
                 )
                 _uiState.value = _uiState.value.copy(isLoading = false, created = true)

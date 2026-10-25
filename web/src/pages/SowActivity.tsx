@@ -177,11 +177,9 @@ export function SowActivity() {
         seedCount: count,
         notes: notes || undefined,
         plantedDate: plantedDate || undefined,
+        seedBatchId: seedBatchId && count > 0 ? Number(seedBatchId) : undefined,
+        allowShortfall: seedBatchId && count > 0 && overStock ? true : undefined,
       })
-      if (seedBatchId && count > 0) {
-        if (overStock) await api.inventory.decrement(Number(seedBatchId), count, true)
-        else await api.inventory.decrement(Number(seedBatchId), count)
-      }
       if (notes) {
         await api.comments.record(notes)
       }

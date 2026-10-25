@@ -109,6 +109,7 @@ export function RegisterPlants() {
       trayLocationId: placement === 'TRAY' && trayLocationId ? Number(trayLocationId) : undefined,
       plantedDate: seedDate,
       notes: notes.trim() || undefined,
+      origin: 'REGISTERED',
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['bed-plants'] })
