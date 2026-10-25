@@ -167,7 +167,12 @@ export function TaskForm() {
       ? selectedBedId != null
       : (isGroupMode ? checkedSpeciesIds.size > 0 : !!selectedSpecies)
   )
-  const valid = isTodo ? notes.trim() !== '' : hasSelection && deadline && Number(targetCount) > 0
+  // Bed and area maintenance is done or not, so it has no count to ask for
+  // (as on Android); new ones get 1 and edits keep the stored count.
+  const isPlaceTask = isBedActivity || isAreaTask
+  const valid = isTodo
+    ? notes.trim() !== ''
+    : hasSelection && deadline && (isPlaceTask || Number(targetCount) > 0)
 
   const earliestOrNull = earliestDate || null
 
@@ -187,7 +192,7 @@ export function TaskForm() {
           activityType,
           earliestDate: earliestOrNull,
           deadline,
-          targetCount: Number(targetCount),
+          targetCount: 1,
           notes: notes || undefined,
         })
       }
@@ -225,7 +230,7 @@ export function TaskForm() {
           activityType,
           earliestDate: earliestOrNull,
           deadline,
-          targetCount: Number(targetCount),
+          targetCount: isPlaceTask ? undefined : Number(targetCount),
           notes: notes || undefined,
         }),
     onSuccess: () => {
@@ -319,7 +324,7 @@ export function TaskForm() {
           </div>
 
           {/* Target count */}
-          {!isTodo && (
+          {!isTodo && !isPlaceTask && (
             <div>
               <span style={selectLabelStyle}>{t(activityType === 'SOW' ? 'tasks.seedCountLabel' : 'tasks.targetCountLabel')}</span>
               <input

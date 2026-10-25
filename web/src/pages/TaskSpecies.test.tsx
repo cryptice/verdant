@@ -186,3 +186,22 @@ describe('Sowing from a task', () => {
     expect(api.tasks.complete).toHaveBeenCalledWith(1, species.id, 14)
   })
 })
+
+describe('Bed maintenance tasks', () => {
+  it('creates a weeding task without asking for a target count', async () => {
+    vi.spyOn(api.beds, 'list').mockResolvedValue([{ id: 3, name: 'Bädd 3', gardenName: 'Köksträdgården' }] as never)
+    const create = vi.spyOn(api.tasks, 'create').mockResolvedValue({ ...task, activityType: 'WEED' })
+    renderPage('/task/new')
+    fireEvent.change(screen.getByLabelText('tasks.form.type'), { target: { value: 'WEED' } })
+    expect(screen.queryByText('tasks.targetCountLabel')).not.toBeInTheDocument()
+    const bed = await screen.findByRole('option', { name: 'Köksträdgården · Bädd 3' })
+    fireEvent.change(bed.closest('select')!, { target: { value: '3' } })
+    fireEvent.change(document.querySelectorAll('input[type="date"]')[1], { target: { value: '2026-11-01' } })
+    const save = screen.getByRole('button', { name: 'tasks.createTask' })
+    expect(save).toBeEnabled()
+    fireEvent.click(save)
+    await waitFor(() => expect(create).toHaveBeenCalledWith(expect.objectContaining({
+      bedId: 3, activityType: 'WEED', deadline: '2026-11-01', targetCount: 1,
+    })))
+  })
+})
