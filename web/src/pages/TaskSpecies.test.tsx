@@ -124,3 +124,65 @@ describe('General TODO tasks', () => {
     }))
   })
 })
+
+describe('Sowing from a task', () => {
+  beforeEach(() => {
+    vi.spyOn(api.inventory, 'list').mockResolvedValue([
+      { id: 7, speciesId: species.id, speciesName: 'Chilipeppar – Naga Black', quantity: 40, unitType: 'SEED', createdAt: '' },
+    ])
+    vi.spyOn(api.plants, 'batchSow').mockResolvedValue({ plantIds: [], count: 0 })
+    vi.spyOn(api.inventory, 'decrement').mockResolvedValue(undefined)
+    vi.spyOn(api.tasks, 'complete').mockResolvedValue(undefined as never)
+  })
+
+  async function openSowing() {
+    renderPage('/sow?taskId=1')
+    const batch = await screen.findByLabelText('sow.seedBatch')
+    await waitFor(() => expect(batch).toHaveValue('7'))
+    fireEvent.click(screen.getByRole('button', { name: 'sow.tray' }))
+    return batch
+  }
+  const markDone = () => screen.getByRole('checkbox', { name: 'sow.markTaskDone' })
+  const sow = () => fireEvent.click(screen.getByRole('button', { name: 'sow.sow' }))
+
+  it('can sow without drawing from seed stock even when the species has some', async () => {
+    const batch = await openSowing()
+    fireEvent.change(batch, { target: { value: '' } })
+    await waitFor(() => expect(batch).toHaveValue(''))
+    sow()
+    await waitFor(() => expect(api.plants.batchSow).toHaveBeenCalled())
+    expect(api.inventory.decrement).not.toHaveBeenCalled()
+  })
+
+  it('marks the task done once the sown count reaches what is left', async () => {
+    await openSowing()
+    expect(markDone()).toBeChecked()
+    sow()
+    await waitFor(() => expect(api.tasks.complete).toHaveBeenCalledWith(1, species.id, 15))
+  })
+
+  it('leaves the task open after sowing fewer seeds', async () => {
+    await openSowing()
+    fireEvent.change(screen.getByDisplayValue('15'), { target: { value: '10' } })
+    expect(markDone()).not.toBeChecked()
+    sow()
+    await waitFor(() => expect(api.tasks.complete).toHaveBeenCalledWith(1, species.id, 10))
+  })
+
+  it('completes the task with fewer seeds when the box is ticked by hand', async () => {
+    await openSowing()
+    fireEvent.change(screen.getByDisplayValue('15'), { target: { value: '10' } })
+    fireEvent.click(markDone())
+    expect(markDone()).toBeChecked()
+    sow()
+    await waitFor(() => expect(api.tasks.complete).toHaveBeenCalledWith(1, species.id, 15))
+  })
+
+  it('keeps the task open at the full count when the box is unticked by hand', async () => {
+    await openSowing()
+    fireEvent.click(markDone())
+    sow()
+    await waitFor(() => expect(api.inventory.decrement).toHaveBeenCalledWith(7, 15))
+    expect(api.tasks.complete).toHaveBeenCalledWith(1, species.id, 14)
+  })
+})

@@ -137,12 +137,18 @@ export function SowActivity() {
   })
   const [seedBatchId, setSeedBatchId] = useState(presetSeedBatchId)
 
-  // Auto-select first seed batch when species has stock
+  // Preselect the first seed batch once per species. Re-running whenever the
+  // choice is empty snapped "don't draw from seed stock" straight back.
+  const [batchPickedFor, setBatchPickedFor] = useState<string | null>(null)
   useEffect(() => {
-    if (!presetSeedBatchId && seedBatches && seedBatches.length > 0 && !seedBatchId) {
-      setSeedBatchId(String(seedBatches[0].id))
-    }
-  }, [seedBatches, presetSeedBatchId, seedBatchId])
+    if (presetSeedBatchId || !speciesId || !seedBatches || batchPickedFor === speciesId) return
+    setBatchPickedFor(speciesId)
+    if (seedBatches.length > 0 && !seedBatchId) setSeedBatchId(String(seedBatches[0].id))
+  }, [seedBatches, presetSeedBatchId, seedBatchId, speciesId, batchPickedFor])
+
+  // Whether sowing closes the task: follows the count until the user decides.
+  const [markDoneChoice, setMarkDoneChoice] = useState<boolean | null>(null)
+  const markTaskDone = markDoneChoice ?? (!!task && Number(seedCount) >= task.remainingCount)
 
   const sowMut = useMutation({
     mutationFn: async () => {
@@ -171,8 +177,11 @@ export function SowActivity() {
       if (notes) {
         await api.comments.record(notes)
       }
-      if (taskId && count > 0) {
-        await api.tasks.complete(taskId, Number(speciesId), count)
+      if (task && count > 0) {
+        // Completing counts down the task's remaining number, so mark it done
+        // by counting all of it, and keep it open by stopping one short.
+        const processed = markTaskDone ? task.remainingCount : Math.min(count, task.remainingCount - 1)
+        if (processed > 0) await api.tasks.complete(task.id, Number(speciesId), processed)
       }
     },
     onSuccess: () => {
@@ -371,6 +380,18 @@ export function SowActivity() {
                 style={{ ...selectStyle, fontFamily: 'var(--font-mono)', fontSize: 20 }}
               />
             </div>
+          )}
+
+          {task && speciesId && (
+            <label className="md:col-span-2" style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'var(--font-display)', fontSize: 16, cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={markTaskDone}
+                onChange={e => setMarkDoneChoice(e.target.checked)}
+                style={{ width: 18, height: 18, accentColor: 'var(--color-accent)' }}
+              />
+              {t('sow.markTaskDone')}
+            </label>
           )}
 
           {/* Planted date (lets the user backdate, equivalent to Android RegisterPlants). */}

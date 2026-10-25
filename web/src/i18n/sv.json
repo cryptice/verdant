@@ -643,6 +643,7 @@
     "title": "Så",
     "seedBatch": "Fröparti",
     "seedBatchNone": "Dra inte av från utsäde",
+    "markTaskDone": "Markera uppgiften som utförd",
     "noSeedStock": "Inget utsäde finns för denna art. Du kan fortfarande så men det kommer att påverka beräkningen av kostnader. Vi rekommenderar att du <1>lägger till utsäde</1> först för att få en korrekt kostnadsbild.",
     "recentSeedStock": "Senaste utsäde",
     "destination": "Destination *",
