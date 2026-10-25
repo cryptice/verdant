@@ -444,6 +444,8 @@ fun SowActivityScreen(
                             onSelectedChange = { selectedSeedBatch = it },
                             labelFor = { "${it.speciesName} · ${it.quantity} frön" },
                             searchable = false,
+                            clearLabel = "Dra inte av från utsäde",
+                            onClear = { selectedSeedBatch = null },
                         )
                     }
                 }

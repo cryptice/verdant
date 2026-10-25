@@ -57,6 +57,10 @@ fun <T : Any> FaltetDropdown(
     placeholder: String = "Välj…",
     required: Boolean = false,
     autoOpen: Boolean = false,
+    // For an optional choice: a first row that clears the selection, also
+    // shown in the field while nothing is selected.
+    clearLabel: String? = null,
+    onClear: (() -> Unit)? = null,
 ) {
     var sheetOpen by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
@@ -101,7 +105,7 @@ fun <T : Any> FaltetDropdown(
                 .padding(vertical = 6.dp),
         ) {
             Text(
-                text = selected?.let { labelFor(it) } ?: placeholder,
+                text = selected?.let { labelFor(it) } ?: clearLabel ?: placeholder,
                 fontFamily = FaltetDisplay,
                 fontStyle = if (selected == null) FontStyle.Normal else FontStyle.Italic,
                 fontWeight = FontWeight.W300,
@@ -139,6 +143,19 @@ fun <T : Any> FaltetDropdown(
                     )
                 }
                 LazyColumn {
+                    if (clearLabel != null && onClear != null) {
+                        item {
+                            FaltetListRow(
+                                title = clearLabel,
+                                onClick = {
+                                    onClear()
+                                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                        if (!sheetState.isVisible) sheetOpen = false
+                                    }
+                                },
+                            )
+                        }
+                    }
                     items(filtered) { option ->
                         FaltetListRow(
                             title = labelFor(option),
