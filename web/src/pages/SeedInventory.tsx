@@ -6,8 +6,7 @@ import { api, type SeedInventoryResponse, type SpeciesResponse } from '../api/cl
 import { Masthead, LedgerPagination } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
-import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
-import { useOnboarding } from '../onboarding/OnboardingContext'
+import { SeedBatchDialog } from '../components/SeedBatchDialog'
 
 const SPECIES_TEMPLATE = '60px 1.5fr 120px 40px'
 const BATCH_TEMPLATE = '1.5fr 100px 100px 120px 40px'
@@ -26,7 +25,6 @@ export function SeedInventory() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { t } = useTranslation()
-  const { completeStep } = useOnboarding()
 
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['seed-inventory'],
@@ -43,17 +41,10 @@ export function SeedInventory() {
     return next
   })
 
-  const [showAdd, setShowAdd] = useState(false)
-  const [addSpecies, setAddSpecies] = useState<SpeciesResponse | null>(null)
-  const [addPerPackage, setAddPerPackage] = useState('')
-  const [addPackages, setAddPackages] = useState('')
-  const addQuantity = (Number(addPerPackage) || 0) * (Number(addPackages) || 0)
-  const [addCollection, setAddCollection] = useState('')
-  const [addExpiration, setAddExpiration] = useState('')
-  const [addCostUnit, setAddCostUnit] = useState('')
-  const [addCostPackage, setAddCostPackage] = useState('')
-  const [addUnitType, setAddUnitType] = useState('SEED')
-  const [addProviderId, setAddProviderId] = useState<number | ''>('')
+  // Undefined batch means adding; the key remounts the form so it starts fresh.
+  const [dialog, setDialog] = useState<{ batch?: SeedInventoryResponse; initialSpecies?: SpeciesResponse | null; key: number } | null>(null)
+  const openDialog = (opts: { batch?: SeedInventoryResponse; initialSpecies?: SpeciesResponse | null } = {}) =>
+    setDialog({ ...opts, key: Date.now() })
 
   // Deep-link: /seed-stock?add=1&speciesId=N opens the dialog preselected to
   // that species (e.g. from the sow page hint). Clear the query so reopening
@@ -64,78 +55,18 @@ export function SeedInventory() {
     const id = idParam ? Number(idParam) : NaN
     const sp = Number.isFinite(id) ? species?.find(s => s.id === id) ?? null : null
     if (idParam && !species) return // wait for species list
-    setShowAdd(true)
-    setAddSpecies(sp)
-    if (sp) {
-      setAddProviderId(sp.providers.length > 0 ? sp.providers[0].id : '')
-      setAddUnitType(sp.defaultUnitType ?? 'SEED')
-    }
+    openDialog({ initialSpecies: sp })
     setSearchParams({}, { replace: true })
   }, [searchParams, species, setSearchParams])
 
   const [deleteItem, setDeleteItem] = useState<SeedInventoryResponse | null>(null)
-  const [editItem, setEditItem] = useState<SeedInventoryResponse | null>(null)
-  const [editQuantity, setEditQuantity] = useState('')
-  const [editCollection, setEditCollection] = useState('')
-  const [editExpiration, setEditExpiration] = useState('')
-  const [editCostUnit, setEditCostUnit] = useState('')
-  const [editCostPackage, setEditCostPackage] = useState('')
-  const [editUnitType, setEditUnitType] = useState('')
-  const [editProviderId, setEditProviderId] = useState<number | ''>('')
-
-  const createMut = useMutation({
-    mutationFn: () => api.inventory.create({
-      speciesId: addSpecies!.id,
-      quantity: addQuantity,
-      collectionDate: addCollection || undefined,
-      expirationDate: addExpiration || undefined,
-      costPerUnitCents: addCostUnit ? Math.round(Number(addCostUnit) * 100) : undefined,
-      unitType: addUnitType || undefined,
-      speciesProviderId: addProviderId !== '' ? addProviderId : undefined,
-    }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['seed-inventory'] })
-      setShowAdd(false); setAddSpecies(null); setAddPerPackage(''); setAddPackages(''); setAddCollection(''); setAddExpiration('')
-      setAddCostUnit(''); setAddCostPackage(''); setAddUnitType('SEED'); setAddProviderId('')
-      completeStep('add_seeds')
-    },
-  })
-
-  const [updateError, setUpdateError] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
-
-  const updateMut = useMutation({
-    mutationFn: () => api.inventory.update(editItem!.id, {
-      quantity: Number(editQuantity),
-      collectionDate: editCollection || undefined,
-      expirationDate: editExpiration || undefined,
-      costPerUnitCents: editCostUnit ? Math.round(Number(editCostUnit) * 100) : undefined,
-      unitType: editUnitType || undefined,
-      speciesProviderId: editProviderId !== '' ? editProviderId : undefined,
-    }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['seed-inventory'] })
-      setEditItem(null); setUpdateError(null)
-    },
-    onError: (err) => { setUpdateError(err instanceof Error ? err.message : String(err)) },
-  })
 
   const deleteMut = useMutation({
     mutationFn: (id: number) => api.inventory.delete(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['seed-inventory'] }); setDeleteItem(null); setDeleteError(null) },
     onError: (err) => { setDeleteError(err instanceof Error ? err.message : String(err)) },
   })
-
-  const openEditItem = (item: SeedInventoryResponse) => {
-    setEditItem(item)
-    setEditQuantity(String(item.quantity))
-    setEditCollection(item.collectionDate ?? '')
-    setEditExpiration(item.expirationDate ?? '')
-    setEditCostUnit(item.costPerUnitCents != null ? String(item.costPerUnitCents / 100) : '')
-    setEditCostPackage(item.costPerUnitCents != null && item.quantity ? String((item.costPerUnitCents * item.quantity / 100).toFixed(2)) : '')
-    setEditUnitType(item.unitType ?? '')
-    setEditProviderId(item.speciesProviderId ?? '')
-  }
 
   const [page, setPage] = useState(0)
   const pageSize = 50
@@ -162,7 +93,7 @@ export function SeedInventory() {
         left={t('nav.seeds')}
         center="— Utsädesliggaren —"
         right={
-          <button onClick={() => setShowAdd(true)} className="btn-primary" data-onboarding="add-seed-btn">
+          <button onClick={() => openDialog()} className="btn-primary" data-onboarding="add-seed-btn">
             {t('seeds.addSeeds')}
           </button>
         }
@@ -172,7 +103,7 @@ export function SeedInventory() {
           <div className="empty-state">
             <div style={{ ...HEADER_STYLE, opacity: 1, marginBottom: 16 }}>{t('seeds.noBatchesTitle')}</div>
             <p style={{ fontFamily: 'var(--font-display)', fontSize: 16, color: 'var(--color-forest)', marginBottom: 20 }}>{t('seeds.noBatchesHint')}</p>
-            <button onClick={() => setShowAdd(true)} className="btn-primary">{t('seeds.addSeeds')}</button>
+            <button onClick={() => openDialog()} className="btn-primary">{t('seeds.addSeeds')}</button>
           </div>
         )}
 
@@ -289,7 +220,7 @@ export function SeedInventory() {
                               {batch.expirationDate ?? '—'}
                             </span>
                             <button
-                              onClick={() => openEditItem(batch)}
+                              onClick={() => openDialog({ batch })}
                               style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-forest)', padding: 0 }}
                               aria-label={t('common.edit')}
                               title={t('common.edit')}
@@ -311,205 +242,16 @@ export function SeedInventory() {
         )}
       </div>
 
-      <Dialog
-        open={showAdd}
-        onClose={() => { setShowAdd(false); setAddSpecies(null); setAddPerPackage(''); setAddPackages(''); setAddCollection(''); setAddExpiration(''); setAddCostUnit(''); setAddCostPackage(''); setAddUnitType('SEED'); setAddProviderId('') }}
-        title={t('seeds.addSeedsTitle')}
-        actions={
-          <>
-            <button
-              onClick={() => { setShowAdd(false); setAddSpecies(null); setAddPerPackage(''); setAddPackages(''); setAddCollection(''); setAddExpiration(''); setAddCostUnit(''); setAddCostPackage(''); setAddUnitType('SEED'); setAddProviderId('') }}
-              className="px-4 py-2 text-sm text-text-secondary"
-            >
-              {t('common.cancel')}
-            </button>
-            <button
-              onClick={() => createMut.mutate()}
-              disabled={!addSpecies || !addPerPackage || !addPackages || !addUnitType || createMut.isPending}
-              className="btn-primary text-sm"
-            >
-              {createMut.isPending ? t('species.adding') : t('common.add')}
-            </button>
-          </>
-        }
-      >
-        <div data-onboarding="seed-form" className="space-y-4">
-          <div>
-            <label className="field-label">{t('common.speciesLabel')}</label>
-            <SpeciesAutocomplete value={addSpecies} onChange={s => { setAddSpecies(s); setAddProviderId(s && s.providers.length > 0 ? s.providers[0].id : ''); setAddUnitType(s?.defaultUnitType ?? 'SEED') }} />
-          </div>
-          <div>
-            <label className="field-label">{t('seeds.provider')}</label>
-            <select
-              value={addProviderId}
-              onChange={e => setAddProviderId(e.target.value ? Number(e.target.value) : '')}
-              disabled={!addSpecies}
-              className="input w-full"
-            >
-              <option value="">{addSpecies ? t('common.none') : t('common.select')}</option>
-              {addSpecies?.providers.map(p => (
-                <option key={p.id} value={p.id}>{p.providerName}</option>
-              ))}
-            </select>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="field-label">{t('seeds.perPackageLabel')}</label>
-              <input type="number" min="0" value={addPerPackage} onChange={e => {
-                const v = e.target.value
-                setAddPerPackage(v)
-                const per = Number(v) || 0
-                if (addCostPackage && per) setAddCostUnit(String(Math.round((Number(addCostPackage) / per) * 100) / 100))
-              }} placeholder="e.g. 50" className="input w-full" />
-            </div>
-            <div>
-              <label className="field-label">{t('seeds.packagesLabel')}</label>
-              <input type="number" min="0" value={addPackages} onChange={e => setAddPackages(e.target.value)} placeholder="e.g. 2" className="input w-full" />
-            </div>
-            <div>
-              <label className="field-label">{t('seeds.unitType')} *</label>
-              <select value={addUnitType} onChange={e => setAddUnitType(e.target.value)} className="input w-full">
-                <option value="">{t('common.select')}</option>
-                {['SEED', 'PLUG', 'BULB', 'TUBER', 'PLANT'].map(ut => (
-                  <option key={ut} value={ut}>{t(`unitTypes.${ut}`)}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <p className="text-xs text-text-secondary -mt-2">
-            {t('seeds.totalLabel')}: {addQuantity} {t(`unitTypes.${addUnitType || 'SEED'}`).toLowerCase()}
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="field-label">{t('seeds.collectionDate')}</label>
-              <input type="date" value={addCollection} onChange={e => setAddCollection(e.target.value)} className="input w-full" />
-            </div>
-            <div>
-              <label className="field-label">{t('seeds.expirationDate')}</label>
-              <input type="date" value={addExpiration} onChange={e => setAddExpiration(e.target.value)} className="input w-full" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="field-label">{t('seeds.costPerUnit')}</label>
-              <input type="number" value={addCostUnit} onChange={e => {
-                const v = e.target.value
-                setAddCostUnit(v)
-                const per = Number(addPerPackage) || 0
-                setAddCostPackage(v && per ? String(Math.round(Number(v) * per * 100) / 100) : '')
-              }} placeholder="e.g. 2" className="input w-full" />
-            </div>
-            <div>
-              <label className="field-label">{t('seeds.costPerPackage')}</label>
-              <input type="number" value={addCostPackage} onChange={e => {
-                const v = e.target.value
-                setAddCostPackage(v)
-                const per = Number(addPerPackage) || 0
-                setAddCostUnit(v && per ? String(Math.round((Number(v) / per) * 100) / 100) : '')
-              }} placeholder="e.g. 100" className="input w-full" />
-            </div>
-          </div>
-          <p className="text-xs text-text-secondary -mt-2">{t('seeds.costHint')}</p>
-        </div>
-      </Dialog>
-
-      <Dialog
-        open={editItem !== null}
-        onClose={() => { setEditItem(null); setUpdateError(null) }}
-        title={t('seeds.editSeedsTitle')}
-        actions={
-          <>
-            <button onClick={() => { setEditItem(null); setUpdateError(null) }} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
-            <button
-              onClick={() => updateMut.mutate()}
-              disabled={!editQuantity || !editUnitType || updateMut.isPending}
-              className="btn-primary text-sm"
-            >
-              {updateMut.isPending ? t('common.saving') : t('common.save')}
-            </button>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          {(() => {
-            const sp = editItem ? species?.find(s => s.id === editItem.speciesId) : null
-            return (
-              <div>
-                <label className="field-label">{t('seeds.provider')}</label>
-                <select
-                  value={editProviderId}
-                  onChange={e => setEditProviderId(e.target.value ? Number(e.target.value) : '')}
-                  disabled={!sp}
-                  className="input w-full"
-                >
-                  <option value="">{sp ? t('common.none') : t('common.select')}</option>
-                  {sp?.providers.map(p => (
-                    <option key={p.id} value={p.id}>{p.providerName}</option>
-                  ))}
-                </select>
-              </div>
-            )
-          })()}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="field-label">{t('seeds.quantityLabel')}</label>
-              <input type="number" value={editQuantity} onChange={e => {
-                const v = e.target.value
-                setEditQuantity(v)
-                const qty = Number(v)
-                if (editCostPackage && qty) setEditCostUnit(String(Math.round((Number(editCostPackage) / qty) * 100) / 100))
-              }} className="input w-full" />
-            </div>
-            <div>
-              <label className="field-label">{t('seeds.unitType')} *</label>
-              <select value={editUnitType} onChange={e => setEditUnitType(e.target.value)} className="input w-full">
-                <option value="">{t('common.select')}</option>
-                {['SEED', 'PLUG', 'BULB', 'TUBER', 'PLANT'].map(ut => (
-                  <option key={ut} value={ut}>{t(`unitTypes.${ut}`)}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="field-label">{t('seeds.collectionDate')}</label>
-              <input type="date" value={editCollection} onChange={e => setEditCollection(e.target.value)} className="input w-full" />
-            </div>
-            <div>
-              <label className="field-label">{t('seeds.expirationDate')}</label>
-              <input type="date" value={editExpiration} onChange={e => setEditExpiration(e.target.value)} className="input w-full" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="field-label">{t('seeds.costPerUnit')}</label>
-              <input type="number" value={editCostUnit} onChange={e => {
-                const v = e.target.value
-                setEditCostUnit(v)
-                const qty = Number(editQuantity)
-                setEditCostPackage(v && qty ? String(Math.round(Number(v) * qty)) : '')
-              }} placeholder="e.g. 2" className="input w-full" />
-            </div>
-            <div>
-              <label className="field-label">{t('seeds.costPerPackage')}</label>
-              <input type="number" value={editCostPackage} onChange={e => {
-                const v = e.target.value
-                setEditCostPackage(v)
-                const qty = Number(editQuantity)
-                setEditCostUnit(v && qty ? String(Math.round((Number(v) / qty) * 100) / 100) : '')
-              }} placeholder="e.g. 100" className="input w-full" />
-            </div>
-          </div>
-          <p className="text-xs text-text-secondary -mt-2">{t('seeds.costHint')}</p>
-          <button
-            onClick={() => { setEditItem(null); setUpdateError(null); setDeleteItem(editItem) }}
-            className="text-sm text-error hover:underline"
-          >
-            {t('seeds.deleteBatch')}
-          </button>
-          {updateError && <p className="text-error text-sm mt-2">{updateError}</p>}
-        </div>
-      </Dialog>
+      {dialog && (
+        <SeedBatchDialog
+          key={dialog.key}
+          batch={dialog.batch}
+          initialSpecies={dialog.initialSpecies}
+          species={species}
+          onClose={() => setDialog(null)}
+          onDelete={batch => { setDialog(null); setDeleteItem(batch) }}
+        />
+      )}
 
       <Dialog
         open={deleteItem !== null}

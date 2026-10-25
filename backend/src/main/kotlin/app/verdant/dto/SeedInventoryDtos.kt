@@ -19,6 +19,7 @@ data class SeedInventoryResponse(
     val seasonId: Long?,
     val speciesProviderId: Long?,
     val providerName: String?,
+    val seedsPerPackage: Int?,
     val createdAt: Instant,
 )
 
@@ -35,6 +36,8 @@ data class CreateSeedInventoryRequest(
     val unitType: String,
     val seasonId: Long? = null,
     val speciesProviderId: Long? = null,
+    @field:Min(1)
+    val seedsPerPackage: Int? = null,
 )
 
 data class UpdateSeedInventoryRequest(
@@ -48,6 +51,8 @@ data class UpdateSeedInventoryRequest(
     val unitType: String? = null,
     val seasonId: Long? = null,
     val speciesProviderId: Long? = null,
+    @field:Min(1)
+    val seedsPerPackage: Int? = null,
 )
 
 data class DecrementSeedInventoryRequest(

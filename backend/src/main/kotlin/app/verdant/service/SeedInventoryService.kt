@@ -45,6 +45,7 @@ class SeedInventoryService(
                 unitType = UnitType.valueOf(request.unitType),
                 seasonId = request.seasonId,
                 speciesProviderId = request.speciesProviderId,
+                seedsPerPackage = request.seedsPerPackage,
             )
         )
         val providerNames = resolveProviderNames(listOfNotNull(inventory.speciesProviderId))
@@ -60,6 +61,9 @@ class SeedInventoryService(
             quantity = request.quantity ?: inventory.quantity,
             collectionDate = request.collectionDate ?: inventory.collectionDate,
             expirationDate = request.expirationDate ?: inventory.expirationDate,
+            costPerUnitCents = request.costPerUnitCents ?: inventory.costPerUnitCents,
+            unitType = request.unitType?.let { UnitType.valueOf(it) } ?: inventory.unitType,
+            seedsPerPackage = request.seedsPerPackage ?: inventory.seedsPerPackage,
             speciesProviderId = if (request.speciesProviderId != null) request.speciesProviderId else inventory.speciesProviderId,
         )
         repo.update(updated)
@@ -107,6 +111,7 @@ class SeedInventoryService(
         seasonId = seasonId,
         speciesProviderId = speciesProviderId,
         providerName = speciesProviderId?.let { providerNames[it] },
+        seedsPerPackage = seedsPerPackage,
         createdAt = createdAt,
     )
 }

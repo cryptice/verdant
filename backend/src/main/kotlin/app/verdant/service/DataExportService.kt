@@ -77,6 +77,7 @@ class DataExportService(
                 seasonId = item.seasonId,
                 speciesProviderId = item.speciesProviderId,
                 providerName = null,
+                seedsPerPackage = item.seedsPerPackage,
                 createdAt = item.createdAt,
             )
         }
