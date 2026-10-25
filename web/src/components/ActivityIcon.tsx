@@ -99,9 +99,11 @@ const PATHS: Record<string, ReactNode> = {
     <circle cx="12" cy="9" r="3" />
     <path d="M17 4l3 3m0-3-3 3" />
   </>,
+  // A notepad rather than a ticked box, which read as already done.
   TODO: <>
-    <rect x="4" y="4" width="16" height="16" rx="2" />
-    <path d="M8 12l3 3 5-6" />
+    <path d="M9 3h6v3H9z" />
+    <path d="M7 4.5H5v16h14v-16h-2" />
+    <path d="M8.5 11h7M8.5 15h5" />
   </>,
   PURCHASE: <>
     <path d="M6 8h12l-1 12H7z" />
