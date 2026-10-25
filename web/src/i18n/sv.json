@@ -685,6 +685,7 @@
     "noTasks": "Inga schemalagda uppgifter",
     "completionNotes": "Anteckningar om denna sådd",
     "summary": {
+      "seeds": "Antal frön",
       "species": "Art",
       "remaining": "Återstår",
       "earliest": "Tidigast",

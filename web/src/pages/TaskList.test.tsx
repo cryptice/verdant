@@ -183,6 +183,16 @@ describe('TaskList drawer completion', () => {
     expect(within(dialog).queryByText('tasks.drawer.placeholder')).not.toBeInTheDocument()
   })
 
+  it('labels a species row with the translated activity instead of the raw enum', async () => {
+    vi.mocked(api.tasks.list).mockResolvedValue([task({
+      speciesName: 'Chilipeppar', speciesId: 5, activityType: 'SOW', deadline: isoOffsetDays(0),
+    })])
+    renderList()
+    const row = (await screen.findByText('Chilipeppar')).closest('button')!
+    expect(within(row).getByText('activityType.SOW')).toBeInTheDocument()
+    expect(within(row).queryByText('SOW')).not.toBeInTheDocument()
+  })
+
   it('opens the harvest plan for a generated task', async () => {
     vi.mocked(api.tasks.list).mockResolvedValue([task({
       speciesName: 'Dahlia', speciesId: 5, activityType: 'SOW',

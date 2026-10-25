@@ -382,6 +382,7 @@ function TaskRow({ task, onOpen }: { task: ScheduledTaskResponse; onOpen: () => 
   const { t } = useTranslation()
   const filter = activityFilter(task.activityType)
   const color  = TONE[filter]
+  const activityLabel = t(`activityType.${task.activityType}`, { defaultValue: task.activityType.replace(/_/g, ' ') })
   return (
     <button
       onClick={onOpen}
@@ -428,12 +429,12 @@ function TaskRow({ task, onOpen }: { task: ScheduledTaskResponse; onOpen: () => 
         )}
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.7 }}>
           {task.harvestPlanId != null
-            ? `${task.notes ?? task.activityType} · ${task.remainingCount} ${t(`planning.units.${task.quantityUnit}`)}`
+            ? `${task.notes ?? activityLabel} · ${task.remainingCount} ${t(`planning.units.${task.quantityUnit}`)}`
             : task.activityType === 'TODO'
             ? t('activityType.TODO')
             : task.bedId != null
             ? [task.gardenName, task.bedName].filter(Boolean).join(' · ')
-            : (task.gardenAreaName ?? task.activityType.replace(/_/g, ' '))}
+            : (task.gardenAreaName ?? activityLabel)}
         </div>
       </div>
       <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase' }}>

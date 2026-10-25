@@ -19,7 +19,7 @@ it('pairs fixed labels with their values and expands the description separately'
   render(<TaskCompletionSummary task={task} />)
   expect(screen.queryByText('Uppgift att slutföra')).not.toBeInTheDocument()
   const table = screen.getByRole('table', { name: 'Fasta uppgiftsdetaljer' })
-  for (const [label, value] of [['Art', 'Chilipeppar – Naga Black'], ['Planerat antal', '15'], ['Återstår', '5'], ['Tidigast', '2026-10-19'], ['Senast', '2026-10-20']]) {
+  for (const [label, value] of [['Art', 'Chilipeppar – Naga Black'], ['Antal frön', '15'], ['Återstår', '5'], ['Tidigast', '2026-10-19'], ['Senast', '2026-10-20']]) {
     const row = within(table).getByRole('rowheader', { name: label }).closest('tr')!
     expect(within(row).getByRole('cell', { name: value })).toBeInTheDocument()
   }
@@ -32,4 +32,10 @@ it('pairs fixed labels with their values and expands the description separately'
   expect(screen.getByText(task.notes!)).toBeInTheDocument()
   fireEvent.click(collapse)
   expect(screen.getByRole('button', { name: 'Visa hela beskrivningen' })).toHaveAttribute('aria-expanded', 'false')
+})
+it('keeps the generic planned-quantity label for tasks that are not sowing', () => {
+  render(<TaskCompletionSummary task={{ ...task, activityType: 'POT_UP' }} />)
+  const table = screen.getByRole('table', { name: 'Fasta uppgiftsdetaljer' })
+  expect(within(table).getByRole('rowheader', { name: 'Planerat antal' })).toBeInTheDocument()
+  expect(within(table).queryByRole('rowheader', { name: 'Antal frön' })).not.toBeInTheDocument()
 })

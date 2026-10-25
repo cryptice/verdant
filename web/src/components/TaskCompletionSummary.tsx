@@ -9,7 +9,8 @@ export function TaskCompletionSummary({ task }: { task: ScheduledTaskResponse })
   const place = task.gardenAreaName ?? task.bedName
   const rows = [
     ...(species ? [[t('tasks.summary.species'), species]] : []),
-    [t('tasks.plannedQuantity'), String(task.targetCount)],
+    // A sowing task's count is seeds: completing it on the Sow page deducts the sown seed count.
+    [t(task.activityType === 'SOW' ? 'tasks.summary.seeds' : 'tasks.plannedQuantity'), String(task.targetCount)],
     ...(task.remainingCount !== task.targetCount ? [[t('tasks.summary.remaining'), String(task.remainingCount)]] : []),
     [t('tasks.summary.earliest'), task.earliestDate ?? '—'],
     [t('tasks.summary.latest'), task.deadline ?? '—'],

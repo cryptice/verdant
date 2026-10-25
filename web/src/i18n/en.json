@@ -685,6 +685,7 @@
     "noTasks": "No scheduled tasks",
     "completionNotes": "Notes about this sowing",
     "summary": {
+      "seeds": "Number of seeds",
       "species": "Species",
       "remaining": "Remaining",
       "earliest": "Earliest",
