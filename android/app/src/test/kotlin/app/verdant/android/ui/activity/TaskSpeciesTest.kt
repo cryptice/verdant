@@ -84,6 +84,30 @@ class TaskSpeciesTest {
         assertNull(vm.uiState.value.error)
     }
 
+    @Test fun `ticking mark-as-done completes the task even with fewer seeds`() = runTest {
+        val vm = sow(api(), SavedStateHandle(mapOf("taskId" to 1L)))
+        advanceUntilIdle()
+        vm.sow(bedId = null, trayLocationId = 1, speciesId = 1991, name = "Naga Black", seedCount = 5, notes = null, imageBase64 = null, seedBatchId = null, sowDate = null, markTaskDone = true)
+        advanceUntilIdle()
+        assertEquals(5, sowRequests.single().seedCount)
+        assertEquals(listOf(1L to CompleteTaskPartiallyRequest(processedCount = 20, speciesId = 1991)), completedRequests)
+    }
+
+    @Test fun `leaving mark-as-done unticked keeps the task open at the full count`() = runTest {
+        val vm = sow(api(), SavedStateHandle(mapOf("taskId" to 1L)))
+        advanceUntilIdle()
+        vm.sow(bedId = null, trayLocationId = 1, speciesId = 1991, name = "Naga Black", seedCount = 20, notes = null, imageBase64 = null, seedBatchId = null, sowDate = null, markTaskDone = false)
+        advanceUntilIdle()
+        assertEquals(listOf(1L to CompleteTaskPartiallyRequest(processedCount = 19, speciesId = 1991)), completedRequests)
+    }
+
+    @Test fun `mark-as-done defaults on once the sown count covers what is left`() {
+        assertTrue(markTaskDoneByDefault(sown = 20, remaining = 20))
+        assertTrue(markTaskDoneByDefault(sown = 25, remaining = 20))
+        assertFalse(markTaskDoneByDefault(sown = 19, remaining = 20))
+        assertFalse(markTaskDoneByDefault(sown = null, remaining = 20))
+    }
+
     @Test fun `completing a task cannot substitute another species`() = runTest {
         val vm = sow(api(), SavedStateHandle(mapOf("taskId" to 1L)))
         advanceUntilIdle()

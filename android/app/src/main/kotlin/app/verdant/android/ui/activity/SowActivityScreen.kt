@@ -157,7 +157,7 @@ class SowActivityViewModel @Inject constructor(
         }
     }
 
-    fun sow(bedId: Long?, trayLocationId: Long?, speciesId: Long, name: String, seedCount: Int?, notes: String?, imageBase64: String?, seedBatchId: Long?, sowDate: java.time.LocalDate?) {
+    fun sow(bedId: Long?, trayLocationId: Long?, speciesId: Long, name: String, seedCount: Int?, notes: String?, imageBase64: String?, seedBatchId: Long?, sowDate: java.time.LocalDate?, markTaskDone: Boolean = false) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
@@ -186,9 +186,13 @@ class SowActivityViewModel @Inject constructor(
                 if (!notes.isNullOrBlank()) {
                     speciesRepository.recordComment(RecordCommentRequest(notes))
                 }
-                // Complete task partially if performing from a scheduled task
-                if (taskId != null && count > 0) {
-                    taskRepository.completePartially(taskId, CompleteTaskPartiallyRequest(count, speciesId))
+                // Completing counts down the task's remaining number, so mark it
+                // done by counting all of it, and keep it open by stopping one short.
+                if (taskId != null && task != null && count > 0) {
+                    val processed = if (markTaskDone) task.remainingCount else minOf(count, task.remainingCount - 1)
+                    if (processed > 0) {
+                        taskRepository.completePartially(taskId, CompleteTaskPartiallyRequest(processed, speciesId))
+                    }
                 }
                 _uiState.value = _uiState.value.copy(isLoading = false, created = true)
             } catch (e: Exception) {
@@ -197,6 +201,9 @@ class SowActivityViewModel @Inject constructor(
         }
     }
 }
+
+/** "Markera uppgiften som utförd" starts ticked once the sown count covers what is left. */
+internal fun markTaskDoneByDefault(sown: Int?, remaining: Int): Boolean = sown != null && sown >= remaining
 
 private fun speciesDisplayName(s: SpeciesResponse): String {
     val name = s.commonNameSv ?: s.commonName
@@ -231,6 +238,11 @@ fun SowActivityScreen(
     var photoBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var imageBase64 by remember { mutableStateOf<String?>(null) }
     var sowDate by remember { mutableStateOf<java.time.LocalDate?>(java.time.LocalDate.now()) }
+    // Follows the count until the user ticks or unticks it.
+    var markDoneChoice by remember { mutableStateOf<Boolean?>(null) }
+    val markTaskDone = markDoneChoice
+        ?: uiState.task?.let { markTaskDoneByDefault(countText.toIntOrNull(), it.remainingCount) }
+        ?: false
 
     val isDirty = selectedSpecies != null || countText.isNotBlank() || notes.isNotBlank() ||
         imageBase64 != null || selectedBed != null
@@ -343,6 +355,7 @@ fun SowActivityScreen(
             imageBase64 = imageBase64,
             seedBatchId = selectedSeedBatch?.id,
             sowDate = sowDate,
+            markTaskDone = markTaskDone,
         )
     }
 
@@ -459,6 +472,27 @@ fun SowActivityScreen(
                     required = true,
                     error = countError,
                 )
+            }
+            if (uiState.task != null) {
+                item {
+                    androidx.compose.foundation.layout.Row(
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { markDoneChoice = !markTaskDone },
+                    ) {
+                        app.verdant.android.ui.faltet.FaltetCheckbox(
+                            checked = markTaskDone,
+                            onCheckedChange = { markDoneChoice = it },
+                        )
+                        Text(
+                            text = "Markera uppgiften som utförd",
+                            fontFamily = app.verdant.android.ui.theme.FaltetDisplay,
+                            fontSize = 16.sp,
+                            color = app.verdant.android.ui.theme.FaltetInk,
+                        )
+                    }
+                }
             }
             item {
                 FaltetImagePicker(
