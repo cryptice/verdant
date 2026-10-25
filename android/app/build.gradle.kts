@@ -74,6 +74,11 @@ android {
     }
 
     buildTypes {
+        // Its own package so a build from Android Studio installs next to the
+        // Play version instead of clashing with it (different signing keys).
+        debug {
+            applicationIdSuffix = ".debug"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
