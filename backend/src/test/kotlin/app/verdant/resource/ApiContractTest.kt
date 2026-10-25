@@ -7,6 +7,12 @@ import app.verdant.dto.GardenAreaEventResponse
 import app.verdant.dto.GardenAreaPhotoResponse
 import app.verdant.dto.GardenAreaResponse
 import app.verdant.dto.ImportResult
+import app.verdant.dto.OrderLine
+import app.verdant.dto.ReviewStep
+import app.verdant.dto.SaveOrderListRequest
+import app.verdant.dto.SeasonSummary
+import app.verdant.dto.SeedReviewResponse
+import app.verdant.dto.VarietyReview
 import app.verdant.dto.MaintenanceRuleResponse
 import app.verdant.dto.ScheduledTaskResponse
 import app.verdant.dto.SpeciesProviderResponse
@@ -168,6 +174,45 @@ class ApiContractTest {
         "seasonStartMonth", "seasonStartDay", "seasonEndMonth", "seasonEndDay",
         "active", "notes", "lastDoneDate", "nextDueDate",
         "createdAt", "updatedAt",
+    )
+
+    @Test
+    fun `SeedReviewResponse fields are pinned`() = assertFields(
+        SeedReviewResponse::class,
+        "season", "estimated", "varieties",
+    )
+
+    @Test
+    fun `SeasonSummary fields are pinned`() = assertFields(
+        SeasonSummary::class,
+        "id", "name", "year", "startDate", "endDate",
+    )
+
+    @Test
+    fun `VarietyReview fields are pinned`() = assertFields(
+        VarietyReview::class,
+        "speciesId", "speciesName", "unitType", "steps",
+        "sown", "bought", "harvestedStems", "soldStems",
+        "revenueCents", "seedCostCents", "leftInStock",
+        "suggestedOrder", "savedOrder",
+    )
+
+    @Test
+    fun `ReviewStep fields are pinned`() = assertFields(
+        ReviewStep::class,
+        "name", "eventType", "count",
+    )
+
+    @Test
+    fun `SaveOrderListRequest fields are pinned`() = assertFields(
+        SaveOrderListRequest::class,
+        "lines",
+    )
+
+    @Test
+    fun `OrderLine fields are pinned`() = assertFields(
+        OrderLine::class,
+        "speciesId", "quantity",
     )
 
     private fun assertFields(klass: KClass<*>, vararg expected: String) {
