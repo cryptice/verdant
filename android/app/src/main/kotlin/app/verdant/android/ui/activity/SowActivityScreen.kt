@@ -157,7 +157,7 @@ class SowActivityViewModel @Inject constructor(
         }
     }
 
-    fun sow(bedId: Long?, trayLocationId: Long?, speciesId: Long, name: String, seedCount: Int?, notes: String?, imageBase64: String?, seedBatchId: Long?, sowDate: java.time.LocalDate?, markTaskDone: Boolean = false) {
+    fun sow(bedId: Long?, trayLocationId: Long?, speciesId: Long, name: String, seedCount: Int?, notes: String?, imageBase64: String?, seedBatchId: Long?, sowDate: java.time.LocalDate?, markTaskDone: Boolean = false, allowShortfall: Boolean = false) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
@@ -181,7 +181,7 @@ class SowActivityViewModel @Inject constructor(
                 )
                 // Decrement seed inventory
                 if (seedBatchId != null && count > 0) {
-                    seedInventoryRepository.decrement(seedBatchId, DecrementSeedInventoryRequest(count))
+                    seedInventoryRepository.decrement(seedBatchId, DecrementSeedInventoryRequest(count, allowShortfall))
                 }
                 if (!notes.isNullOrBlank()) {
                     speciesRepository.recordComment(RecordCommentRequest(notes))
@@ -238,6 +238,10 @@ fun SowActivityScreen(
     var photoBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var imageBase64 by remember { mutableStateOf<String?>(null) }
     var sowDate by remember { mutableStateOf<java.time.LocalDate?>(java.time.LocalDate.now()) }
+    // Packages often hold more than the label says: sowing past the batch is
+    // allowed after a confirmation, and the batch is then emptied.
+    val overStock = selectedSeedBatch?.let { (countText.toIntOrNull() ?: 0) > it.quantity } ?: false
+    var confirmOverStock by remember { mutableStateOf(false) }
     // Follows the count until the user ticks or unticks it.
     var markDoneChoice by remember { mutableStateOf<Boolean?>(null) }
     val markTaskDone = markDoneChoice
@@ -344,7 +348,7 @@ fun SowActivityScreen(
         countText.toIntOrNull()?.let { it > 0 } == true &&
         (viewModel.taskId == null || uiState.task != null) && !uiState.isLoading
 
-    val submitAction: () -> Unit = {
+    val doSow: () -> Unit = {
         viewModel.sow(
             bedId = if (destination == SowDestination.BED) selectedBed?.id else null,
             trayLocationId = if (destination == SowDestination.TRAY) selectedTrayLocation?.id else null,
@@ -356,6 +360,26 @@ fun SowActivityScreen(
             seedBatchId = selectedSeedBatch?.id,
             sowDate = sowDate,
             markTaskDone = markTaskDone,
+            allowShortfall = overStock,
+        )
+    }
+    val submitAction: () -> Unit = { if (overStock) confirmOverStock = true else doSow() }
+
+    if (confirmOverStock) {
+        AlertDialog(
+            onDismissRequest = { confirmOverStock = false },
+            title = { Text("Fler frön än i partiet") },
+            text = {
+                Text("Partiet har ${selectedSeedBatch?.quantity ?: 0} frön men du sår ${countText.toIntOrNull() ?: 0}. Partiet sätts till 0 efter sådden.")
+            },
+            confirmButton = {
+                TextButton(onClick = { confirmOverStock = false; doSow() }) {
+                    Text("Så ändå", color = app.verdant.android.ui.theme.FaltetAccent)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmOverStock = false }) { Text("Avbryt") }
+            },
         )
     }
 
@@ -472,6 +496,15 @@ fun SowActivityScreen(
                     required = true,
                     error = countError,
                 )
+                if (overStock) {
+                    Text(
+                        text = "Mer än partiets ${selectedSeedBatch?.quantity} frön",
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                        fontSize = 10.sp,
+                        color = app.verdant.android.ui.theme.FaltetAccent,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
             }
             if (uiState.task != null) {
                 item {

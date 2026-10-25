@@ -75,7 +75,9 @@ class SeedInventoryService(
     fun decrementInventory(id: Long, request: DecrementSeedInventoryRequest, orgId: Long): SeedInventoryResponse {
         val inventory = repo.findById(id) ?: throw NotFoundException("Seed stock not found")
         if (inventory.orgId != orgId) throw NotFoundException("Seed stock not found")
-        if (!repo.decrementQuantity(id, request.quantity)) {
+        if (request.allowShortfall) {
+            repo.useUpQuantity(id, request.quantity)
+        } else if (!repo.decrementQuantity(id, request.quantity)) {
             throw BadRequestException("Insufficient seeds (have ${inventory.quantity}, need ${request.quantity})")
         }
         val updated = repo.findById(id)!!

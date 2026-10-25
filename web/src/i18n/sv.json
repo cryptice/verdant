@@ -644,6 +644,12 @@
     "seedBatch": "Fröparti",
     "seedBatchNone": "Dra inte av från utsäde",
     "markTaskDone": "Markera uppgiften som utförd",
+    "overStock": {
+      "title": "Fler frön än i partiet",
+      "body": "Partiet har {{have}} frön men du sår {{count}}. Partiet sätts till 0 efter sådden.",
+      "confirm": "Så ändå",
+      "hint": "Mer än partiets {{have}} frön"
+    },
     "noSeedStock": "Inget utsäde finns för denna art. Du kan fortfarande så men det kommer att påverka beräkningen av kostnader. Vi rekommenderar att du <1>lägger till utsäde</1> först för att få en korrekt kostnadsbild.",
     "recentSeedStock": "Senaste utsäde",
     "destination": "Destination *",

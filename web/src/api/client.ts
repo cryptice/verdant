@@ -858,8 +858,9 @@ export const api = {
       apiRequest<SeedInventoryResponse>('/api/seed-stock', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: number, data: { quantity?: number; collectionDate?: string; expirationDate?: string; costPerUnitCents?: number; unitType?: string; speciesProviderId?: number; seedsPerPackage?: number }) =>
       apiRequest<SeedInventoryResponse>(`/api/seed-stock/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    decrement: (id: number, quantity: number) =>
-      apiRequest<void>(`/api/seed-stock/${id}/decrement`, { method: 'POST', body: JSON.stringify({ quantity }) }),
+    // allowShortfall: the user confirmed sowing more than the batch holds, so it is emptied.
+    decrement: (id: number, quantity: number, allowShortfall?: boolean) =>
+      apiRequest<void>(`/api/seed-stock/${id}/decrement`, { method: 'POST', body: JSON.stringify(allowShortfall ? { quantity, allowShortfall } : { quantity }) }),
     delete: (id: number) => apiRequest<void>(`/api/seed-stock/${id}`, { method: 'DELETE' }),
   },
 

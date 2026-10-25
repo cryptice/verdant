@@ -58,4 +58,6 @@ data class UpdateSeedInventoryRequest(
 data class DecrementSeedInventoryRequest(
     @field:Min(1)
     val quantity: Int,
+    /** The user confirmed sowing more than the batch holds: empty it instead of refusing. */
+    val allowShortfall: Boolean = false,
 )

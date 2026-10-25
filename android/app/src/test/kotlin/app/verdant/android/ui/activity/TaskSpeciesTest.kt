@@ -5,6 +5,7 @@ import app.verdant.android.data.api.VerdantApi
 import app.verdant.android.data.model.BatchSowRequest
 import app.verdant.android.data.model.BatchSowResponse
 import app.verdant.android.data.model.CompleteTaskPartiallyRequest
+import app.verdant.android.data.model.DecrementSeedInventoryRequest
 import app.verdant.android.data.model.ScheduledTaskResponse
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.repository.*
@@ -29,6 +30,7 @@ class TaskSpeciesTest {
     private val sowRequests = mutableListOf<BatchSowRequest>()
     private val completedRequests = mutableListOf<Pair<Long, CompleteTaskPartiallyRequest>>()
     private val lookedUp = mutableListOf<Long>()
+    private val decrements = mutableListOf<Pair<Long, DecrementSeedInventoryRequest>>()
     private fun api(): VerdantApi = Proxy.newProxyInstance(VerdantApi::class.java.classLoader, arrayOf(VerdantApi::class.java)) { _, method, args ->
         when (method.name) {
             "getSpecies", "getAllBeds", "getFrequentComments", "getTrayLocations" -> emptyList<Any>()
@@ -44,6 +46,7 @@ class TaskSpeciesTest {
                 task.copy(remainingCount = task.remainingCount - request.processedCount)
             }
             "getSpeciesById" -> { lookedUp += args!![0] as Long; species }
+            "decrementSeedInventory" -> { decrements += (args!![0] as Long) to (args[1] as DecrementSeedInventoryRequest); null }
             else -> error(method.name)
         }
     } as VerdantApi
@@ -106,6 +109,23 @@ class TaskSpeciesTest {
         assertTrue(markTaskDoneByDefault(sown = 25, remaining = 20))
         assertFalse(markTaskDoneByDefault(sown = 19, remaining = 20))
         assertFalse(markTaskDoneByDefault(sown = null, remaining = 20))
+    }
+
+    @Test fun `a confirmed shortfall asks the server to empty the batch`() = runTest {
+        val vm = sow(api(), SavedStateHandle(mapOf("taskId" to 1L)))
+        advanceUntilIdle()
+        vm.sow(bedId = null, trayLocationId = 1, speciesId = 1991, name = "Naga Black", seedCount = 30, notes = null, imageBase64 = null, seedBatchId = 7, sowDate = null, allowShortfall = true)
+        advanceUntilIdle()
+        assertEquals(listOf(7L to DecrementSeedInventoryRequest(quantity = 30, allowShortfall = true)), decrements)
+        assertTrue(vm.uiState.value.created)
+    }
+
+    @Test fun `a sowing within the batch deducts normally`() = runTest {
+        val vm = sow(api(), SavedStateHandle(mapOf("taskId" to 1L)))
+        advanceUntilIdle()
+        vm.sow(bedId = null, trayLocationId = 1, speciesId = 1991, name = "Naga Black", seedCount = 5, notes = null, imageBase64 = null, seedBatchId = 7, sowDate = null)
+        advanceUntilIdle()
+        assertEquals(listOf(7L to DecrementSeedInventoryRequest(quantity = 5)), decrements)
     }
 
     @Test fun `completing a task cannot substitute another species`() = runTest {

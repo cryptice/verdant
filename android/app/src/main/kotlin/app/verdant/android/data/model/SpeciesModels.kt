@@ -182,4 +182,6 @@ data class UpdateSeedInventoryRequest(
 
 data class DecrementSeedInventoryRequest(
     @SerializedName("quantity") val quantity: Int,
+    // The user confirmed sowing more than the batch holds, so the server empties it.
+    @SerializedName("allowShortfall") val allowShortfall: Boolean = false,
 )

@@ -178,6 +178,27 @@ describe('Sowing from a task', () => {
     await waitFor(() => expect(api.tasks.complete).toHaveBeenCalledWith(1, species.id, 15))
   })
 
+  it('asks before sowing more seeds than the batch holds, then empties the batch', async () => {
+    await openSowing()
+    fireEvent.change(screen.getByDisplayValue('15'), { target: { value: '50' } })
+    sow()
+    const confirm = await screen.findByRole('dialog', { name: 'sow.overStock.title' })
+    expect(api.plants.batchSow).not.toHaveBeenCalled()
+    fireEvent.click(within(confirm).getByRole('button', { name: 'sow.overStock.confirm' }))
+    await waitFor(() => expect(api.inventory.decrement).toHaveBeenCalledWith(7, 50, true))
+    expect(api.plants.batchSow).toHaveBeenCalledWith(expect.objectContaining({ seedCount: 50 }))
+  })
+
+  it('leaves everything untouched when the over-stock warning is cancelled', async () => {
+    await openSowing()
+    fireEvent.change(screen.getByDisplayValue('15'), { target: { value: '50' } })
+    sow()
+    const confirm = await screen.findByRole('dialog', { name: 'sow.overStock.title' })
+    fireEvent.click(within(confirm).getByRole('button', { name: 'common.cancel' }))
+    expect(api.plants.batchSow).not.toHaveBeenCalled()
+    expect(api.inventory.decrement).not.toHaveBeenCalled()
+  })
+
   it('keeps the task open at the full count when the box is unticked by hand', async () => {
     await openSowing()
     fireEvent.click(markDone())

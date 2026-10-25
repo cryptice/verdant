@@ -644,6 +644,12 @@
     "seedBatch": "Seed batch",
     "seedBatchNone": "Don't deduct from seed stock",
     "markTaskDone": "Mark the task as done",
+    "overStock": {
+      "title": "More seeds than the batch holds",
+      "body": "The batch has {{have}} seeds but you are sowing {{count}}. The batch is set to 0 after sowing.",
+      "confirm": "Sow anyway",
+      "hint": "More than the batch's {{have}} seeds"
+    },
     "noSeedStock": "No seed stock available for this species. You can still sow but cost figures will be incomplete. We recommend <1>adding seed stock</1> first for an accurate cost picture.",
     "recentSeedStock": "Recent seed stock",
     "destination": "Destination *",

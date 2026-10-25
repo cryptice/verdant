@@ -146,6 +146,12 @@ export function SowActivity() {
     if (seedBatches.length > 0 && !seedBatchId) setSeedBatchId(String(seedBatches[0].id))
   }, [seedBatches, presetSeedBatchId, seedBatchId, speciesId, batchPickedFor])
 
+  // Packages often hold more than the label says, so sowing past the batch is
+  // allowed once confirmed; the batch is then emptied rather than refused.
+  const selectedBatch = seedBatches?.find(b => String(b.id) === seedBatchId)
+  const overStock = !!selectedBatch && Number(seedCount) > selectedBatch.quantity
+  const [confirmOverStock, setConfirmOverStock] = useState(false)
+
   // Whether sowing closes the task: follows the count until the user decides.
   const [markDoneChoice, setMarkDoneChoice] = useState<boolean | null>(null)
   const markTaskDone = markDoneChoice ?? (!!task && Number(seedCount) >= task.remainingCount)
@@ -172,7 +178,8 @@ export function SowActivity() {
         plantedDate: plantedDate || undefined,
       })
       if (seedBatchId && count > 0) {
-        await api.inventory.decrement(Number(seedBatchId), count)
+        if (overStock) await api.inventory.decrement(Number(seedBatchId), count, true)
+        else await api.inventory.decrement(Number(seedBatchId), count)
       }
       if (notes) {
         await api.comments.record(notes)
@@ -379,6 +386,11 @@ export function SowActivity() {
                 onChange={e => setSeedCount(e.target.value)}
                 style={{ ...selectStyle, fontFamily: 'var(--font-mono)', fontSize: 20 }}
               />
+              {overStock && selectedBatch && (
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1, color: 'var(--color-accent)', marginTop: 6 }}>
+                  {t('sow.overStock.hint', { have: selectedBatch.quantity })}
+                </p>
+              )}
             </div>
           )}
 
@@ -522,6 +534,24 @@ export function SowActivity() {
         </div>
       </Dialog>
 
+      <Dialog
+        open={confirmOverStock}
+        onClose={() => setConfirmOverStock(false)}
+        title={t('sow.overStock.title')}
+        actions={
+          <>
+            <button className="btn-secondary" onClick={() => setConfirmOverStock(false)}>{t('common.cancel')}</button>
+            <button className="btn-primary" onClick={() => { setConfirmOverStock(false); sowMut.mutate() }}>
+              {t('sow.overStock.confirm')}
+            </button>
+          </>
+        }
+      >
+        <p className="text-text-secondary">
+          {t('sow.overStock.body', { have: selectedBatch?.quantity ?? 0, count: Number(seedCount) })}
+        </p>
+      </Dialog>
+
       {/* Sticky footer */}
       <div className="sticky-footer">
         <button className="btn-secondary" onClick={() => navigate(-1)}>
@@ -530,7 +560,7 @@ export function SowActivity() {
         <button
           data-onboarding="sow-submit"
           className="btn-primary"
-          onClick={() => sowMut.mutate()}
+          onClick={() => overStock ? setConfirmOverStock(true) : sowMut.mutate()}
           disabled={!valid || sowMut.isPending}
         >
           {sowMut.isPending ? t('sow.sowing') : t('sow.sow')}

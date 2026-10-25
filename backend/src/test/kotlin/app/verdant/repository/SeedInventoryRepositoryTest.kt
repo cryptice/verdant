@@ -33,6 +33,13 @@ class SeedInventoryRepositoryTest {
     }
 
     @Test
+    fun `using up more than the batch holds empties it without going negative`() {
+        val saved = inventory.persist(newBatch(seedsPerPackage = 5))
+        inventory.useUpQuantity(saved.id!!, 20)
+        assertEquals(0, inventory.findById(saved.id!!)!!.quantity)
+    }
+
+    @Test
     fun `a batch without a package size reads back as null`() {
         val saved = inventory.persist(newBatch(seedsPerPackage = null))
         assertNull(inventory.findById(saved.id!!)!!.seedsPerPackage)
