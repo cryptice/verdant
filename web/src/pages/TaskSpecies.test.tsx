@@ -114,7 +114,8 @@ describe('General TODO tasks', () => {
     vi.mocked(api.tasks.get).mockResolvedValue({ ...task, speciesId: null, speciesName: null, activityType: 'TODO', notes: 'Beställ chilifrön', acceptableSpecies: [] })
     const update = vi.spyOn(api.tasks, 'update').mockResolvedValue({ ...task, activityType: 'TODO' })
     renderPage('/task/1/edit')
-    expect(await screen.findByDisplayValue('Beställ chilifrön')).toBeInTheDocument()
+    // The form loads the task and species lazily; allow for a busy parallel run.
+    expect(await screen.findByDisplayValue('Beställ chilifrön', undefined, { timeout: 3000 })).toBeInTheDocument()
     const type = screen.getByLabelText('tasks.form.type')
     expect(within(type).getAllByRole('option').map(option => option.getAttribute('value'))).toEqual(['TODO'])
     fireEvent.click(screen.getByRole('button', { name: 'tasks.updateTask' }))

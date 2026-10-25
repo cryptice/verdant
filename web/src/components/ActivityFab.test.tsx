@@ -11,7 +11,7 @@ const navigate = vi.fn()
 vi.mock('react-router-dom', () => ({ useNavigate: () => navigate }))
 
 describe('ActivityFab', () => {
-  it.each([['Lägg till uppgift', '/task/new?type=TODO'], ['Så', '/sow']])('opens the activity choices and goes to %s', (choice, path) => {
+  it.each([['Lägg till uppgift', '/task/new?type=TODO'], ['Så', '/sow'], ['Registrera plantor', '/plants/register']])('opens the activity choices and goes to %s', (choice, path) => {
     render(<ActivityFab />)
     fireEvent.click(screen.getByRole('button', { name: 'Aktivitet' }))
     const dialog = screen.getByRole('dialog', { name: 'Vad vill du göra?' })

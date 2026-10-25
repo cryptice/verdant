@@ -5,8 +5,7 @@ import { Dialog } from './Dialog'
 
 /**
  * The web counterpart of the Android dashboard's bolt button: a floating
- * entry point to start an activity from anywhere on the page. Android also
- * offers "register plants", which has no web screen yet.
+ * entry point to start an activity from anywhere on the page.
  */
 export function ActivityFab() {
   const { t } = useTranslation()
@@ -46,6 +45,11 @@ export function ActivityFab() {
             title={t('dashboard.activity.sow')}
             subtitle={t('dashboard.activity.sowHint')}
             onClick={() => choose('/sow')}
+          />
+          <ActivityChoice
+            title={t('dashboard.activity.registerPlants')}
+            subtitle={t('dashboard.activity.registerPlantsHint')}
+            onClick={() => choose('/plants/register')}
           />
         </div>
       </Dialog>

@@ -148,7 +148,9 @@
       "createTask": "Lägg till uppgift",
       "createTaskHint": "Planera något som behöver göras",
       "sow": "Så",
-      "sowHint": "Sätt nya frön i brätte eller bädd"
+      "sowHint": "Sätt nya frön i brätte eller bädd",
+      "registerPlants": "Registrera plantor",
+      "registerPlantsHint": "Lägg till plantor du redan har"
     },
     "bedLabel_one": "Bädd",
     "bedLabel_other": "Bäddar",
@@ -609,6 +611,31 @@
     "colCost": "Kostnad",
     "sow": "Så",
     "provider": "Leverantör"
+  },
+  "registerPlants": {
+    "title": "Registrera plantor",
+    "placement": "Placering *",
+    "bed": "Bädd",
+    "tray": "Bricka",
+    "bedLabel": "Bädd *",
+    "trayLocation": "Odlingsplats *",
+    "newTrayLocation": "+ Ny odlingsplats",
+    "newTrayLocationTitle": "Ny odlingsplats",
+    "locationName": "Namn",
+    "count": "Antal plantor *",
+    "seedDate": "Sådatum *",
+    "notes": "Anteckningar (valfri)",
+    "submit": "Registrera",
+    "doneTitle": "Plantor registrerade",
+    "doneBody": "Sådatum satt till {{date}}.",
+    "age": {
+      "today": "Idag",
+      "weeks_one": "{{count}} v",
+      "weeks_other": "{{count}} v",
+      "months_one": "{{count}} mån",
+      "months_other": "{{count}} mån",
+      "year": "1 år"
+    }
   },
   "sow": {
     "title": "Så",

@@ -148,7 +148,9 @@
       "createTask": "Add task",
       "createTaskHint": "Plan something that needs doing",
       "sow": "Sow",
-      "sowHint": "Put new seeds in a tray or bed"
+      "sowHint": "Put new seeds in a tray or bed",
+      "registerPlants": "Register plants",
+      "registerPlantsHint": "Add plants you already have"
     },
     "bedLabel_one": "Bed",
     "bedLabel_other": "Beds",
@@ -609,6 +611,31 @@
     "colCost": "Cost",
     "sow": "Sow",
     "provider": "Provider"
+  },
+  "registerPlants": {
+    "title": "Register plants",
+    "placement": "Placement *",
+    "bed": "Bed",
+    "tray": "Tray",
+    "bedLabel": "Bed *",
+    "trayLocation": "Growing location *",
+    "newTrayLocation": "+ New growing location",
+    "newTrayLocationTitle": "New growing location",
+    "locationName": "Name",
+    "count": "Number of plants *",
+    "seedDate": "Sow date *",
+    "notes": "Notes (optional)",
+    "submit": "Register",
+    "doneTitle": "Plants registered",
+    "doneBody": "Sow date set to {{date}}.",
+    "age": {
+      "today": "Today",
+      "weeks_one": "{{count}} wk",
+      "weeks_other": "{{count}} wk",
+      "months_one": "{{count}} mo",
+      "months_other": "{{count}} mo",
+      "year": "1 yr"
+    }
   },
   "sow": {
     "title": "Sow",
