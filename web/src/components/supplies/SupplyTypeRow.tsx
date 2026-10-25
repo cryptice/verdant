@@ -46,8 +46,9 @@ export function SupplyTypeRow({
           textAlign: 'left',
           cursor: 'pointer',
           alignItems: 'center',
-        }}
-        className="ledger-row"
+          '--mobile-cols': 'minmax(0, 1fr) auto auto',
+        } as React.CSSProperties}
+        className="ledger-row ledger-grid"
       >
         {/* Name + inline add */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>

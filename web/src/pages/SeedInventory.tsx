@@ -110,7 +110,7 @@ export function SeedInventory() {
         {items.length > 0 && (
           <div>
             {/* Outer header */}
-            <div style={{ display: 'grid', gridTemplateColumns: SPECIES_TEMPLATE, gap: 18, padding: '10px 0', borderBottom: '1px solid var(--color-ink)' }}>
+            <div className="ledger-head" style={{ display: 'grid', gridTemplateColumns: SPECIES_TEMPLATE, gap: 18, padding: '10px 0', borderBottom: '1px solid var(--color-ink)' }}>
               <span style={HEADER_STYLE}>№</span>
               <span style={HEADER_STYLE}>{t('seeds.colName')}</span>
               <span style={{ ...HEADER_STYLE, textAlign: 'right' }}>{t('seeds.colSeeds')}</span>
@@ -147,10 +147,11 @@ export function SeedInventory() {
                       textAlign: 'left',
                       cursor: 'pointer',
                       alignItems: 'center',
-                    }}
-                    className="ledger-row"
+                      '--mobile-cols': 'minmax(0, 1fr) auto auto',
+                    } as React.CSSProperties}
+                    className="ledger-row ledger-grid"
                   >
-                    <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-mustard)' }}>
+                    <span className="mobile-hidden" style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-mustard)' }}>
                       {String(globalIndex + 1).padStart(2, '0')}
                     </span>
                     <div>
@@ -171,9 +172,9 @@ export function SeedInventory() {
 
                   {/* Expanded batch rows */}
                   {isExpanded && (
-                    <div style={{ padding: '10px 0 10px 78px' }}>
+                    <div className="mobile-no-indent" style={{ padding: '10px 0 10px 78px' }}>
                       {/* Batch header */}
-                      <div style={{ display: 'grid', gridTemplateColumns: BATCH_TEMPLATE, gap: 12, padding: '6px 0', borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)' }}>
+                      <div className="ledger-head" style={{ display: 'grid', gridTemplateColumns: BATCH_TEMPLATE, gap: 12, padding: '6px 0', borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)' }}>
                         <span style={HEADER_STYLE}>{t('seeds.colName')}</span>
                         <span style={{ ...HEADER_STYLE, textAlign: 'right' }}>{t('seeds.colSeeds')}</span>
                         <span style={{ ...HEADER_STYLE, textAlign: 'right' }}>{t('seeds.colCost')}</span>
@@ -186,6 +187,7 @@ export function SeedInventory() {
                         return (
                           <div
                             key={batch.id}
+                            className="ledger-grid"
                             style={{
                               display: 'grid',
                               gridTemplateColumns: BATCH_TEMPLATE,
@@ -193,7 +195,8 @@ export function SeedInventory() {
                               padding: '8px 0',
                               borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 15%, transparent)',
                               alignItems: 'center',
-                            }}
+                              '--mobile-cols': 'minmax(0, 1fr) auto auto auto',
+                            } as React.CSSProperties}
                           >
                             <button
                               onClick={() => batch.quantity > 0 && navigate(`/sow?speciesId=${batch.speciesId}&seedBatchId=${batch.id}`)}
@@ -213,7 +216,7 @@ export function SeedInventory() {
                             <span style={{ fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: 14, textAlign: 'right' }}>
                               {batch.quantity}
                             </span>
-                            <span style={{ fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: 10, textAlign: 'right' }}>
+                            <span className="mobile-hidden" style={{ fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: 10, textAlign: 'right' }}>
                               {batch.costPerUnitCents != null ? `${(batch.costPerUnitCents / 100).toFixed(2)} kr` : '—'}
                             </span>
                             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>

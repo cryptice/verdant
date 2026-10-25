@@ -192,6 +192,7 @@ export function GardenDetail() {
         {/* Hero */}
         <div>
           <h1
+            className="hero-title"
             style={{
               fontFamily: 'var(--font-display)',
               fontSize: 80,

@@ -378,7 +378,8 @@ function TaskRows({ tasks, onOpen }: { tasks: ScheduledTaskResponse[]; onOpen: (
   return tasks.map((task, i) => (
     <Fragment key={task.id}>
       {i > 0 && task.deadline !== tasks[i - 1].deadline && (
-        <hr style={{ border: 'none', borderTop: '1px solid var(--color-ink)', margin: '14px 0 0' }} />
+        // Sits on the previous row's own bottom rule, so a date change reads as one darker line.
+        <hr style={{ border: 'none', borderTop: '1px solid var(--color-ink)', margin: '-1px 0 0', position: 'relative' }} />
       )}
       <TaskRow task={task} onOpen={() => onOpen(task)} />
     </Fragment>
@@ -393,9 +394,11 @@ function TaskRow({ task, onOpen }: { task: ScheduledTaskResponse; onOpen: () => 
   return (
     <button
       onClick={onOpen}
+      className="ledger-grid"
       style={{
         display: 'grid',
         gridTemplateColumns: '40px 1.5fr 160px 80px',
+        '--mobile-cols': '28px minmax(0, 1fr) auto',
         gap: 18,
         padding: '16px 0',
         borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 25%, transparent)',
@@ -408,7 +411,7 @@ function TaskRow({ task, onOpen }: { task: ScheduledTaskResponse; onOpen: () => 
         textAlign: 'left',
         cursor: 'pointer',
         alignItems: 'center',
-      }}
+      } as React.CSSProperties}
     >
       <span style={{ color, display: 'flex' }}>
         <ActivityIcon activityType={task.activityType} size={26} />
@@ -439,7 +442,7 @@ function TaskRow({ task, onOpen }: { task: ScheduledTaskResponse; onOpen: () => 
       <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase' }}>
         {task.deadline}
       </div>
-      <div style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: 16 }}>→</div>
+      <div className="mobile-hidden" style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: 16 }}>→</div>
     </button>
   )
 }

@@ -89,6 +89,16 @@ const PATHS: Record<string, ReactNode> = {
     <circle cx="11" cy="11" r="6" />
     <path d="M15.5 15.5 20 20" />
   </>,
+  PINCH: <>
+    <path d="M12 21V10" />
+    <path d="M12 14c-2.5 0-4-1.5-4-4 2.5 0 4 1.5 4 4z" />
+    <path d="M9 3l3 3 3-3" />
+  </>,
+  DISBUD: <>
+    <path d="M12 21v-9" />
+    <circle cx="12" cy="9" r="3" />
+    <path d="M17 4l3 3m0-3-3 3" />
+  </>,
   TODO: <>
     <rect x="4" y="4" width="16" height="16" rx="2" />
     <path d="M8 12l3 3 5-6" />

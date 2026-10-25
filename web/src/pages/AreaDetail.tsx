@@ -83,6 +83,7 @@ export function AreaDetail() {
             <Chip tone="sage">{areaCategoryLabelSv(area.category)}</Chip>
           </div>
           <h1
+            className="hero-title"
             style={{
               fontFamily: 'var(--font-display)',
               fontSize: 80,

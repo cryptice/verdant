@@ -152,6 +152,7 @@ export function BedDetail() {
             {bed.raisedBed && <Chip tone="berry">{t('bed.raised')}</Chip>}
           </div>
           <h1
+            className="hero-title"
             style={{
               fontFamily: 'var(--font-display)',
               fontSize: 80,
@@ -181,12 +182,13 @@ export function BedDetail() {
 
         {/* Stats band */}
         <div
-          className="stats-band"
+          className="stats-band mobile-cols"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(5, 1fr)',
             gap: 18,
-          }}
+            '--mobile-cols': 'repeat(3, minmax(0, 1fr))',
+          } as React.CSSProperties}
         >
           <Stat size="medium" value={activePlants.length} label={t('bed.stats.active')} hue="sage" />
           {/* Harvest totals, days-to-harvest and utilization aren't wired yet;
@@ -243,6 +245,7 @@ export function BedDetail() {
 
         {/* Plant table header */}
         <div
+          className="ledger-head"
           style={{
             display: 'grid',
             gridTemplateColumns: '50px 1.5fr 70px 1fr 120px',
@@ -356,7 +359,7 @@ export function BedDetail() {
         </div>
 
         {/* Bed layout — photo + dimensions side-by-side */}
-        <div style={{ marginTop: 48, display: 'grid', gridTemplateColumns: '260px 1fr', gap: 22, alignItems: 'start' }}>
+        <div className="stack-mobile" style={{ marginTop: 48, display: 'grid', gridTemplateColumns: '260px 1fr', gap: 22, alignItems: 'start' }}>
           <PhotoPlaceholder tone="sage" aspect="tall" label={bed.name.toUpperCase()} />
           <div
             style={{

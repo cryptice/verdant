@@ -139,7 +139,9 @@
     "INSPECT": "Inspect",
     "TODO": "To do",
     "PURCHASE": "Purchase",
-    "SUPPORT": "Support"
+    "SUPPORT": "Support",
+    "PINCH": "Pinch",
+    "DISBUD": "Disbud"
   },
   "dashboard": {
     "activity": {

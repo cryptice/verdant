@@ -187,6 +187,7 @@ export function PlantedSpeciesDetail() {
 
       <div className="page-body">
         <h1
+          className="hero-title"
           style={{
             fontFamily: 'var(--font-display)',
             fontSize: 60,

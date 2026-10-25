@@ -265,7 +265,7 @@ export function PestDiseaseLog() {
         {sortedLogs.length > 0 && (
           <div>
             {/* Header */}
-            <div style={{ display: 'grid', gridTemplateColumns: TEMPLATE, gap: 18, padding: '10px 0', borderBottom: '1px solid var(--color-ink)', ...HEADER_STYLE, opacity: 1 }}>
+            <div className="ledger-head" style={{ display: 'grid', gridTemplateColumns: TEMPLATE, gap: 18, padding: '10px 0', borderBottom: '1px solid var(--color-ink)', ...HEADER_STYLE, opacity: 1 }}>
               <span style={HEADER_STYLE}>№</span>
               <span style={HEADER_STYLE}>{t('pestDisease.name')}</span>
               <span style={HEADER_STYLE}>{t('pestDisease.severity')}</span>
@@ -312,8 +312,10 @@ export function PestDiseaseLog() {
                         textAlign: 'left',
                         cursor: 'pointer',
                         alignItems: 'center',
-                      }}
-                      className="ledger-row"
+                        '--mobile-cols': 'minmax(0, 1fr) auto',
+                      } as React.CSSProperties}
+                      className="ledger-row ledger-grid"
+                      data-mobile-hide="1 3 5 6 7"
                     >
                       <span style={{
                         fontFamily: 'var(--font-display)',

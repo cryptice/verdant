@@ -9,6 +9,10 @@ export type LedgerColumn<T> = {
   width?: string
   align?: 'left' | 'right'
   render?: (row: T, index: number) => ReactNode
+  /** Drop the column on phones, e.g. a running number or a secondary detail. */
+  hideOnMobile?: boolean
+  /** Phone width; defaults to sharing the row for fr columns and fitting content otherwise. */
+  mobileWidth?: string
 }
 
 type Props<T> = {
@@ -34,6 +38,10 @@ export function Ledger<T>({
   useEffect(() => { setPage(0) }, [rowKeysFingerprint])
 
   const template = columns.map((c) => c.width ?? '1fr').join(' ')
+  const mobileTemplate = columns
+    .filter((c) => !c.hideOnMobile)
+    .map((c) => c.mobileWidth ?? (c.width && !c.width.includes('fr') ? 'auto' : 'minmax(0, 1fr)'))
+    .join(' ')
 
   if (rows.length === 0) {
     return (
@@ -58,6 +66,7 @@ export function Ledger<T>({
     <div>
       {/* Header */}
       <div
+        className="ledger-head"
         style={{
           display: 'grid', gridTemplateColumns: template, gap: 18,
           padding: '10px 0', borderBottom: '1px solid var(--color-ink)',
@@ -107,13 +116,16 @@ export function Ledger<T>({
                 ...rowStyle,
                 borderWidth: 0,
                 borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
-              }}
-              className={onRowClick ? 'ledger-row' : undefined}
+                '--mobile-cols': mobileTemplate,
+              } as React.CSSProperties}
+              className={onRowClick ? 'ledger-row ledger-grid' : 'ledger-grid'}
             >
               {columns.map((col) => (
                 <div
                   key={col.key}
+                  className={col.hideOnMobile ? 'mobile-hidden' : undefined}
                   style={{
+                    minWidth: 0,
                     textAlign: col.align === 'right' ? 'right' : 'left',
                     fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 300,
                     color: 'var(--color-ink)',

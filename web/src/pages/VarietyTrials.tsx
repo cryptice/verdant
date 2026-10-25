@@ -283,8 +283,10 @@ export function VarietyTrials() {
                     cursor: 'pointer',
                     alignItems: 'center',
                     width: '100%',
-                  }}
-                  className="ledger-row"
+                    '--mobile-cols': 'minmax(0, 1fr) auto auto',
+                  } as React.CSSProperties}
+                  className="ledger-row ledger-grid"
+                  data-mobile-hide="1 5"
                 >
                   <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 26, color: 'var(--color-accent)' }}>
                     {String(globalIndex + 1).padStart(2, '0')}

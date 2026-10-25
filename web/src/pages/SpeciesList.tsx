@@ -177,6 +177,7 @@ export function SpeciesList() {
             {
               key: 'id',
               label: '№',
+              hideOnMobile: true,
               width: '60px',
               render: (_s, i) => (
                 <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-accent)' }}>
@@ -207,6 +208,7 @@ export function SpeciesList() {
             },
             {
               key: 'variant',
+              hideOnMobile: true,
               label: t('species.col.variant'),
               width: '1fr',
               render: (s: SpeciesResponse) => (
@@ -227,6 +229,7 @@ export function SpeciesList() {
             },
             {
               key: 'edit',
+              hideOnMobile: true,
               label: '',
               width: '40px',
               align: 'right',
@@ -252,6 +255,7 @@ export function SpeciesList() {
             },
             {
               key: 'copy',
+              hideOnMobile: true,
               label: '',
               width: '40px',
               align: 'right',

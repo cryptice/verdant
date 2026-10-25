@@ -237,7 +237,7 @@ export function SuccessionSchedules() {
         {schedules.length > 0 && (
           <>
             {/* Header row */}
-            <div style={headerStyle}>
+            <div className="ledger-head" style={headerStyle}>
               <span>№</span>
               <span>{t('successions.col.species')}</span>
               <span>{t('successions.col.firstSow')}</span>
@@ -251,6 +251,8 @@ export function SuccessionSchedules() {
             {paged.map((s, i) => (
               <div
                 key={s.id}
+                className="ledger-grid"
+                data-mobile-hide="1 3 5"
                 style={{
                   display: 'grid',
                   gridTemplateColumns: TEMPLATE,
@@ -258,7 +260,8 @@ export function SuccessionSchedules() {
                   padding: '14px 0',
                   borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
                   alignItems: 'center',
-                }}
+                  '--mobile-cols': 'minmax(0, 1fr) auto auto auto',
+                } as React.CSSProperties}
               >
                 <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-accent)' }}>
                   {String(page * PAGE_SIZE + i + 1).padStart(2, '0')}

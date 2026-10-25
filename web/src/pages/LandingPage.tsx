@@ -80,6 +80,7 @@ export function LandingPage() {
     <div style={{ minHeight: '100vh', background: 'var(--color-cream)' }}>
       {/* Top strip */}
       <div
+        className="landing-strip"
         style={{
           display: 'flex',
           alignItems: 'baseline',
@@ -137,8 +138,9 @@ export function LandingPage() {
       </div>
 
       {/* Hero */}
-      <div style={{ maxWidth: 860, margin: '80px auto 60px', padding: '0 40px' }}>
+      <div className="landing-section" style={{ maxWidth: 860, margin: '80px auto 60px', padding: '0 40px' }}>
         <h1
+          className="hero-title"
           style={{
             fontFamily: 'var(--font-display)',
             fontSize: 80,
@@ -175,8 +177,8 @@ export function LandingPage() {
       <Rule variant="ink" />
 
       {/* Features — 4-up grid */}
-      <div style={{ maxWidth: 1100, margin: '60px auto', padding: '0 40px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 28 }}>
+      <div className="landing-section" style={{ maxWidth: 1100, margin: '60px auto', padding: '0 40px' }}>
+        <div className="mobile-cols" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 28, '--mobile-cols': 'repeat(2, minmax(0, 1fr))' } as React.CSSProperties}>
           {featureKeys.map((key, i) => (
             <div key={key}>
               <div
@@ -232,12 +234,12 @@ export function LandingPage() {
       )}
 
       {/* Bottom sign-in */}
-      <div style={{ maxWidth: 860, margin: '60px auto', padding: '0 40px', textAlign: 'center' }}>
+      <div className="landing-section" style={{ maxWidth: 860, margin: '60px auto', padding: '0 40px', textAlign: 'center' }}>
         <div id="google-signin-btn-bottom" style={{ display: 'inline-block' }} />
       </div>
 
       {/* Footer */}
-      <div style={{ borderTop: '1px solid var(--color-ink)', padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="landing-strip" style={{ borderTop: '1px solid var(--color-ink)', padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span
           style={{
             fontFamily: 'var(--font-display)',

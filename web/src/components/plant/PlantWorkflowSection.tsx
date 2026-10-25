@@ -55,7 +55,7 @@ export function PlantWorkflowSection({ plantId }: { plantId: number }) {
 
   return (
     <>
-      <div style={{ marginTop: 40, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
+      <div style={{ marginTop: 40, display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
         <h2
           style={{
             fontFamily: 'var(--font-display)',
@@ -68,7 +68,7 @@ export function PlantWorkflowSection({ plantId }: { plantId: number }) {
         >
           {t('workflows.title')}<span style={{ color: 'var(--color-accent)' }}>.</span>
         </h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
           <button
             onClick={() => resyncMut.mutate()}
             disabled={resyncMut.isPending}
@@ -184,6 +184,7 @@ function StepTable({
   return (
     <div>
       <div
+        className="ledger-head"
         style={{
           display: 'grid',
           gridTemplateColumns: '36px 1fr 90px 110px 110px',
@@ -210,7 +211,10 @@ function StepTable({
         return (
           <div
             key={step.id}
+            className="ledger-grid"
+            data-mobile-hide="3 4"
             style={{
+              '--mobile-cols': 'auto minmax(0, 1fr) auto',
               display: 'grid',
               gridTemplateColumns: '36px 1fr 90px 110px 110px',
               gap: 18,
@@ -218,7 +222,7 @@ function StepTable({
               borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
               alignItems: 'center',
               opacity: isComplete ? 0.55 : 1,
-            }}
+            } as React.CSSProperties}
           >
             <span
               style={{

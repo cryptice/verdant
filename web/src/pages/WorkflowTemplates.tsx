@@ -59,6 +59,7 @@ export function WorkflowTemplates() {
             {
               key: 'id',
               label: '№',
+              hideOnMobile: true,
               width: '60px',
               render: (_w, i) => (
                 <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-sage)' }}>

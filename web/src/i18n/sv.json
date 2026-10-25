@@ -139,7 +139,9 @@
     "INSPECT": "Inspektera",
     "TODO": "Att göra",
     "PURCHASE": "Inköp",
-    "SUPPORT": "Stöd"
+    "SUPPORT": "Stöd",
+    "PINCH": "Toppa",
+    "DISBUD": "Avknoppa"
   },
   "dashboard": {
     "activity": {

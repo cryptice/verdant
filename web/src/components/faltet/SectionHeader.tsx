@@ -8,7 +8,7 @@ export function SectionHeader({
   actions?: React.ReactNode
 }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, margin: '40px 0 12px' }}>
+    <div className="section-header" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: 12, margin: '40px 0 12px' }}>
       <h2
         style={{
           fontFamily: 'var(--font-display)',

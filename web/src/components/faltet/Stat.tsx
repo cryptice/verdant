@@ -30,6 +30,7 @@ export function Stat({
   return (
     <div>
       <div
+        className="stat-value"
         style={{
           fontFamily: 'var(--font-display)',
           fontSize: VALUE_SIZE[size],

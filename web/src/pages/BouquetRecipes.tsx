@@ -233,7 +233,7 @@ export function BouquetRecipes() {
         {recipes.length > 0 && (
           <>
             {/* Header row */}
-            <div style={headerStyle}>
+            <div className="ledger-head" style={headerStyle}>
               <span>№</span>
               <span>{t('bouquets.col.name')}</span>
               <span>{t('bouquets.col.price')}</span>
@@ -260,8 +260,10 @@ export function BouquetRecipes() {
                     textAlign: 'left',
                     cursor: 'pointer',
                     alignItems: 'center',
-                  }}
-                  className="ledger-row"
+                    '--mobile-cols': 'minmax(0, 1fr) auto auto',
+                  } as React.CSSProperties}
+                  className="ledger-row ledger-grid"
+                  data-mobile-hide="1 4"
                 >
                   <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-accent)' }}>
                     {String(globalIndex + 1).padStart(2, '0')}

@@ -221,7 +221,7 @@ export function CropCalendar() {
         {rows.length > 0 && (
           <div>
             {/* Header row */}
-            <div style={{ display: 'grid', gridTemplateColumns: '200px repeat(12, 1fr)', borderBottom: '1px solid var(--color-ink)' }}>
+            <div className="mobile-cols" style={{ display: 'grid', gridTemplateColumns: '200px repeat(12, 1fr)', borderBottom: '1px solid var(--color-ink)', '--mobile-cols': '96px repeat(12, minmax(0, 1fr))' } as React.CSSProperties}>
               <div />
               {MONTHS.map((m, i) => (
                 <div
@@ -247,13 +247,15 @@ export function CropCalendar() {
             {rows.map((row) => (
               <div
                 key={row.speciesId}
+                className="mobile-cols"
                 style={{
+                  '--mobile-cols': '96px repeat(12, minmax(0, 1fr))',
                   display: 'grid',
                   gridTemplateColumns: '200px repeat(12, 1fr)',
                   alignItems: 'stretch',
                   borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
                   minHeight: 44,
-                }}
+                } as React.CSSProperties}
               >
                 <div style={{ padding: '10px 14px 10px 0' }}>
                   <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 300 }}>{row.name}</div>

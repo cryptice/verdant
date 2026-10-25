@@ -134,7 +134,7 @@ export function PlantDetail() {
 
       <div className="page-body">
         {/* Hero */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 40, alignItems: 'start' }}>
+        <div className="stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 40, alignItems: 'start' }}>
           <div>
             {/* Status + bed chips */}
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
@@ -153,6 +153,7 @@ export function PlantDetail() {
             </div>
 
             <h1
+              className="hero-title"
               style={{
                 fontFamily: 'var(--font-display)',
                 fontSize: 60,
@@ -182,7 +183,7 @@ export function PlantDetail() {
         </div>
 
         {/* Event timeline section */}
-        <div style={{ marginTop: 40, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ marginTop: 40, display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
           <h2
             style={{
               fontFamily: 'var(--font-display)',
@@ -195,7 +196,7 @@ export function PlantDetail() {
           >
             {t('plant.events')}<span style={{ color: 'var(--color-accent)' }}>.</span>
           </h2>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: 12 }}>
             <button onClick={() => setShowAddEvent(true)} className="btn-secondary">
               + {t('plant.addEvent')}
             </button>

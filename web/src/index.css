@@ -231,26 +231,84 @@ body {
        rounded corners / notches on iOS. */
     padding-left: calc(56px + env(safe-area-inset-left)) !important;
     padding-right: calc(16px + env(safe-area-inset-right)) !important;
-    grid-template-columns: 1fr !important;
+    padding-bottom: 10px !important;
+    min-height: 58px;
+    box-sizing: border-box;
+    /* Breadcrumb and its actions share a line while they fit; wider action
+       rows wrap underneath rather than squeezing the breadcrumb. */
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+  }
+  .faltet-masthead > *:nth-child(1) { flex: 1 1 auto; min-width: 40%; }
+  .faltet-masthead > *:nth-child(3) {
+    flex: 0 1 auto;
+    margin-left: auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 6px;
   }
+  .faltet-masthead > *:nth-child(3) :is(button, a) { white-space: nowrap; }
   .faltet-masthead > *:nth-child(2) {
     /* Decorative italic center title; hide on mobile. */
     display: none;
   }
-  .faltet-masthead > *:nth-child(3) {
-    /* Right-hand actions flow under the breadcrumb on narrow screens. */
-    text-align: left !important;
+  .faltet-masthead > *:nth-child(3) > div { flex-wrap: wrap; justify-content: flex-end; }
+  .faltet-masthead .btn-primary,
+  .faltet-masthead .btn-secondary {
+    padding: 7px 10px;
+    letter-spacing: 1.2px;
+    font-size: 10px !important;
   }
-  .fluid-grid-2, .fluid-grid-3 { grid-template-columns: 1fr !important; }
+  .fluid-grid-2, .fluid-grid-3, .stack-mobile { grid-template-columns: 1fr !important; }
 
-  /* Any inline grid-template-columns inside a page body collapses to a single
-     column on narrow viewports unless the element opts out with .keep-cols.
-     This catches most form/hero 2-column layouts without edits per page. */
-  .page-body [style*="grid-template-columns"]:not(.keep-cols),
-  .page-body-tight [style*="grid-template-columns"]:not(.keep-cols) {
-    grid-template-columns: 1fr !important;
+  /* Ledgers: a phone has no room for column headings, and each row keeps its
+     cells on one line in the template it asks for via --mobile-cols. */
+  .ledger-head { display: none !important; }
+  .ledger-grid, .mobile-cols {
+    grid-template-columns: var(--mobile-cols, minmax(0, 1fr) auto) !important;
   }
+  .ledger-grid { gap: 10px !important; }
+  .stats-band .stat-value { font-size: 34px !important; }
+  .stats-band .stat-value + div { font-size: 9px !important; letter-spacing: 1.2px !important; margin-top: 6px !important; }
+  .mobile-hidden { display: none !important; }
+  /* Hide cells by position, for cells that can't carry a class (e.g. a Chip). */
+  [data-mobile-hide~="1"] > :nth-child(1) { display: none !important; }
+  [data-mobile-hide~="2"] > :nth-child(2) { display: none !important; }
+  [data-mobile-hide~="3"] > :nth-child(3) { display: none !important; }
+  [data-mobile-hide~="4"] > :nth-child(4) { display: none !important; }
+  [data-mobile-hide~="5"] > :nth-child(5) { display: none !important; }
+  [data-mobile-hide~="6"] > :nth-child(6) { display: none !important; }
+  [data-mobile-hide~="7"] > :nth-child(7) { display: none !important; }
+  [data-mobile-hide~="8"] > :nth-child(8) { display: none !important; }
+  .mobile-no-indent { padding-left: 0 !important; }
+  .page-body, .page-body-tight { padding-top: 16px !important; }
+  /* Display headings sized for a desktop hero would clip a long name. */
+  .hero-title {
+    font-size: 44px !important;
+    line-height: 1.05 !important;
+    letter-spacing: -0.5px !important;
+    overflow-wrap: anywhere;
+  }
+  .bed-card, .list-tile { min-height: 0; }
+  /* text-sm buttons read as oversized slabs on a phone. */
+  :is(.page-body, .page-body-tight) :is(.btn-primary, .btn-secondary) {
+    font-size: 10px !important;
+    padding: 8px 12px;
+  }
+  .landing-strip {
+    padding: 14px 16px !important;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .landing-section {
+    padding: 0 16px !important;
+    margin-top: 36px !important;
+    margin-bottom: 36px !important;
+  }
+  .stats-band { margin: 16px 0 !important; padding: 14px 16px !important; }
 }
 
 /* Dashboard mobile — override the inline 3-col grid + fixed horizontal paddings

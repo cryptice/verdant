@@ -105,7 +105,7 @@ export function SupplyCategorySection({
       {items.length > 0 && (
         <div>
           {/* Ledger header */}
-          <div style={headerStyle as React.CSSProperties}>
+          <div className="ledger-head" style={headerStyle as React.CSSProperties}>
             <span>{t('supplies.typeName')}</span>
             <span style={{ textAlign: 'right' }}>{t('supplies.quantity')}</span>
             <span />

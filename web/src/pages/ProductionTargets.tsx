@@ -47,7 +47,7 @@ function ForecastPanel({ targetId }: { targetId: number }) {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 18 }}>
+    <div className="mobile-cols" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 18, '--mobile-cols': 'repeat(2, minmax(0, 1fr))' } as React.CSSProperties}>
       <div>
         <div className="field-label">{t('targets.forecastPanel.totalStems')}</div>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 300, fontVariantNumeric: 'tabular-nums' }}>
@@ -90,16 +90,24 @@ export function ProductionTargets() {
   if (seasons.isPending) return <p>{t('planning.loading')}</p>
   if (seasons.error) return <ErrorDisplay error={seasons.error} onRetry={() => { void seasons.refetch() }} />
   if (seasons.data.length === 0) return <Navigate to="/seasons" replace />
-  return <>
-    <nav className="flex gap-3 mb-6" aria-label={t('planning.title')}>
+  // The view switch lives in the masthead, so both views keep the page's
+  // usual chrome (and the mobile menu button never sits on top of it).
+  const tabs = (
+    <nav className="flex gap-3 justify-end" aria-label={t('planning.title')}>
       <button className={!weekly ? 'btn-primary' : 'btn-secondary'} onClick={() => setWeekly(false)}>{t('planning.title')}</button>
       <button className={weekly ? 'btn-primary' : 'btn-secondary'} onClick={() => setWeekly(true)}>{t('planning.weekly')}</button>
     </nav>
-    {weekly ? <WeeklyProductionTargets /> : <HarvestPlans />}
-  </>
+  )
+  if (weekly) return <WeeklyProductionTargets tabs={tabs} />
+  return (
+    <div>
+      <Masthead left={t('planning.title')} right={tabs} />
+      <div className="page-body"><HarvestPlans /></div>
+    </div>
+  )
 }
 
-function WeeklyProductionTargets() {
+function WeeklyProductionTargets({ tabs }: { tabs: React.ReactNode }) {
   const qc = useQueryClient()
   const { t } = useTranslation()
   const { completeStep } = useOnboarding()
@@ -241,9 +249,12 @@ function WeeklyProductionTargets() {
         left={t('nav.targets')}
         center="— Målliggaren —"
         right={
-          <button onClick={openAdd} className="btn-primary" data-onboarding="add-target-btn">
-            {t('targets.new')}
-          </button>
+          <div className="flex gap-3 justify-end">
+            {tabs}
+            <button onClick={openAdd} className="btn-primary" data-onboarding="add-target-btn">
+              {t('targets.new')}
+            </button>
+          </div>
         }
       />
       <OnboardingHint />
@@ -274,7 +285,7 @@ function WeeklyProductionTargets() {
         {targets.length > 0 && (
           <>
             {/* Header row */}
-            <div style={headerStyle}>
+            <div className="ledger-head" style={headerStyle}>
               <span>№</span>
               <span>{t('targets.col.species')}</span>
               <span>{t('targets.col.stemsPerWeek')}</span>
@@ -301,8 +312,10 @@ function WeeklyProductionTargets() {
                     textAlign: 'left',
                     cursor: 'pointer',
                     alignItems: 'center',
-                  }}
-                  className="ledger-row"
+                    '--mobile-cols': 'minmax(0, 1fr) auto auto',
+                  } as React.CSSProperties}
+                  className="ledger-row ledger-grid"
+                  data-mobile-hide="1 4"
                 >
                   <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: 'var(--color-mustard)' }}>
                     {String(page * PAGE_SIZE + i + 1).padStart(2, '0')}

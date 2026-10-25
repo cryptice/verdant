@@ -331,7 +331,7 @@ function StepLedger({
   return (
     <div>
       {/* Header */}
-      <div style={{
+      <div className="ledger-head" style={{
         display: 'grid',
         gridTemplateColumns: '40px 1.5fr 100px 140px 120px',
         gap: 18,
@@ -387,7 +387,10 @@ function StepRow({
   return (
     <button
       onClick={onSelect}
+      className="ledger-grid"
+      data-mobile-hide="3 4"
       style={{
+        '--mobile-cols': 'auto minmax(0, 1fr) auto',
         display: 'grid',
         gridTemplateColumns: '40px 1.5fr 100px 140px 120px',
         gap: 18,
@@ -399,7 +402,7 @@ function StepRow({
         cursor: 'pointer',
         alignItems: 'center',
         textAlign: 'left',
-      }}
+      } as React.CSSProperties}
     >
       <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 22, color: toneVar }}>
         {String(index + 1).padStart(2, '0')}

@@ -70,7 +70,7 @@ export function OrgSetup() {
           {t('orgSetup.intro')}
         </p>
 
-        <div style={{ marginTop: 48, display: 'grid', gridTemplateColumns: hasInvites ? '1fr 1fr' : '1fr', gap: 32, alignItems: 'start' }}>
+        <div className="stack-mobile" style={{ marginTop: 48, display: 'grid', gridTemplateColumns: hasInvites ? '1fr 1fr' : '1fr', gap: 32, alignItems: 'start' }}>
           {/* Pending invites */}
           {hasInvites && (
             <div>

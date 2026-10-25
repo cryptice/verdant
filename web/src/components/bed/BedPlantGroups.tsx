@@ -31,9 +31,11 @@ export function BedPlantGroups({
                 if (collapsible) toggle(g.key)
                 else if (g.speciesId != null) onSpeciesClick(g.speciesId)
               }}
+              className="mobile-cols"
               style={{
                 display: 'grid',
                 gridTemplateColumns: '50px 1.5fr 70px 1fr 120px',
+                '--mobile-cols': 'minmax(0, 1fr) auto auto',
                 gap: 18,
                 padding: '12px 0',
                 background: 'transparent',
@@ -43,9 +45,10 @@ export function BedPlantGroups({
                 textAlign: 'left',
                 cursor: 'pointer',
                 alignItems: 'center',
-              }}
+              } as React.CSSProperties}
             >
               <span
+                className="mobile-hidden"
                 style={{
                   fontFamily: 'var(--font-display)',
                   fontStyle: 'italic',
@@ -91,7 +94,7 @@ export function BedPlantGroups({
               >
                 {g.status}
               </span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>
+              <span className="mobile-hidden" style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>
                 {g.plantedDate ?? '—'}
               </span>
             </button>
@@ -102,9 +105,11 @@ export function BedPlantGroups({
                     key={p.id}
                     type="button"
                     onClick={() => p.speciesId != null && onSpeciesClick(p.speciesId)}
+                    className="mobile-cols"
                     style={{
                       display: 'grid',
                       gridTemplateColumns: '50px 1.5fr 70px 1fr 120px',
+                      '--mobile-cols': 'minmax(0, 1fr) auto',
                       gap: 18,
                       padding: '8px 0 8px 24px',
                       background: 'transparent',
@@ -114,17 +119,17 @@ export function BedPlantGroups({
                       textAlign: 'left',
                       cursor: p.speciesId != null ? 'pointer' : 'default',
                       alignItems: 'center',
-                    }}
+                    } as React.CSSProperties}
                   >
-                    <span />
+                    <span className="mobile-hidden" />
                     <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 16, color: 'var(--color-forest)' }}>
                       {p.name}
                     </span>
                     <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontVariantNumeric: 'tabular-nums' }}>
                       {p.seedCount ?? 1}
                     </span>
-                    <span />
-                    <span />
+                    <span className="mobile-hidden" />
+                    <span className="mobile-hidden" />
                   </button>
                 ))}
               </div>
