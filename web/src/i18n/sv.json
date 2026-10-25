@@ -1931,5 +1931,24 @@
       "COMPLETED": "Klar",
       "CANCELLED": "Avbruten"
     }
+  },
+  "seedReview": {
+    "title": "Säsongsgenomgång",
+    "masthead": "— Vad blev det av fröna? —",
+    "season": "Säsong",
+    "estimated": "Uppgifterna är uppskattade: det som hände innan loggen började användas är beräknat och kan avvika från verkligheten.",
+    "empty": "Inga sorter att visa för den här säsongen.",
+    "noSeasons": "Det finns inga säsonger ännu.",
+    "harvested": "Skördade stjälkar",
+    "sold": "Sålda",
+    "cost": "Fröer kostade",
+    "revenue": "Försäljning",
+    "leftInStock": "Kvar i lager",
+    "order": "Beställ",
+    "suggested": "Förslag: {{count}}",
+    "save": "Spara beställningslista",
+    "saving": "Sparar…",
+    "saved": "Beställningslistan är sparad.",
+    "back": "Tillbaka till utsädesliggaren"
   }
 }

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { api, type SeedInventoryResponse, type SpeciesResponse } from '../api/client'
 import { Masthead, LedgerPagination } from '../components/faltet'
@@ -93,9 +93,12 @@ export function SeedInventory() {
         left={t('nav.seeds')}
         center="— Utsädesliggaren —"
         right={
-          <button onClick={() => openDialog()} className="btn-primary" data-onboarding="add-seed-btn">
-            {t('seeds.addSeeds')}
-          </button>
+          <>
+            <Link to="/seed-stock/review" className="btn-secondary" style={{ marginRight: 8 }}>{t('seedReview.title')}</Link>
+            <button onClick={() => openDialog()} className="btn-primary" data-onboarding="add-seed-btn">
+              {t('seeds.addSeeds')}
+            </button>
+          </>
         }
       />
       <div className="page-body">

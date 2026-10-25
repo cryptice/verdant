@@ -23,6 +23,7 @@ const PlantedSpeciesDetail = lazy(() => import('./pages/PlantedSpeciesDetail').t
 const TaskList = lazy(() => import('./pages/TaskList').then(m => ({ default: m.TaskList })))
 const TaskForm = lazy(() => import('./pages/TaskForm').then(m => ({ default: m.TaskForm })))
 const SeedInventory = lazy(() => import('./pages/SeedInventory').then(m => ({ default: m.SeedInventory })))
+const SeedReview = lazy(() => import('./pages/SeedReview').then(m => ({ default: m.SeedReview })))
 const SowActivity = lazy(() => import('./pages/SowActivity').then(m => ({ default: m.SowActivity })))
 const RegisterPlants = lazy(() => import('./pages/RegisterPlants').then(m => ({ default: m.RegisterPlants })))
 const SpeciesList = lazy(() => import('./pages/SpeciesList').then(m => ({ default: m.SpeciesList })))
@@ -106,6 +107,7 @@ export function App() {
           <Route path="task/new" element={<TaskForm />} />
           <Route path="task/:taskId/edit" element={<TaskForm />} />
           <Route path="seed-stock" element={<SeedInventory />} />
+          <Route path="seed-stock/review" element={<SeedReview />} />
           <Route path="supplies" element={<Supplies />} />
           <Route path="sow" element={<SowActivity />} />
           <Route path="plants/register" element={<RegisterPlants />} />

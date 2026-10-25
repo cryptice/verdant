@@ -296,6 +296,22 @@ export interface SeasonResponse {
   isActive: boolean; createdAt: string; updatedAt: string
 }
 
+// Seed season review
+export interface ReviewStep { name: string; eventType: string; count: number }
+export interface VarietyReview {
+  speciesId: number; speciesName: string; unitType: string
+  steps: ReviewStep[]
+  sown: number; bought: number; harvestedStems: number; soldStems: number
+  revenueCents: number; seedCostCents: number; leftInStock: number
+  suggestedOrder: number; savedOrder: number | null
+}
+export interface SeedReviewResponse {
+  season: { id: number; name: string; year: number; startDate?: string | null; endDate?: string | null }
+  estimated: boolean
+  varieties: VarietyReview[]
+}
+export interface OrderLine { speciesId: number; quantity: number }
+
 // Customer
 export interface CustomerResponse {
   id: number; name: string; channel: string
@@ -862,6 +878,12 @@ export const api = {
     decrement: (id: number, quantity: number, allowShortfall?: boolean) =>
       apiRequest<void>(`/api/seed-stock/${id}/decrement`, { method: 'POST', body: JSON.stringify(allowShortfall ? { quantity, allowShortfall } : { quantity }) }),
     delete: (id: number) => apiRequest<void>(`/api/seed-stock/${id}`, { method: 'DELETE' }),
+  },
+
+  seedReview: {
+    get: (seasonId: number) => apiRequest<SeedReviewResponse>(`/api/seed-review?seasonId=${seasonId}`),
+    saveOrderList: (seasonId: number, lines: OrderLine[]) =>
+      apiRequest<SeedReviewResponse>(`/api/seed-review/${seasonId}/order-list`, { method: 'PUT', body: JSON.stringify({ lines }) }),
   },
 
   tasks: {

@@ -1931,5 +1931,24 @@
       "COMPLETED": "Completed",
       "CANCELLED": "Cancelled"
     }
+  },
+  "seedReview": {
+    "title": "Season review",
+    "masthead": "— What became of the seed? —",
+    "season": "Season",
+    "estimated": "Figures are estimated: anything that happened before the log was in use is calculated and may differ from reality.",
+    "empty": "No varieties to show for this season.",
+    "noSeasons": "There are no seasons yet.",
+    "harvested": "Harvested stems",
+    "sold": "Sold",
+    "cost": "Seed cost",
+    "revenue": "Sales",
+    "leftInStock": "Left in stock",
+    "order": "Order",
+    "suggested": "Suggestion: {{count}}",
+    "save": "Save order list",
+    "saving": "Saving…",
+    "saved": "The order list is saved.",
+    "back": "Back to the seed ledger"
   }
 }
