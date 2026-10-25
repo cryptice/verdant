@@ -11,6 +11,7 @@ import {
   type MaintenanceActivity,
   type MaintenanceTarget,
 } from '../../lib/maintenance'
+import { DATE_INPUT_MAX } from '../../lib/dateInput'
 
 export interface MaintenanceRuleTarget {
   kind: MaintenanceTarget
@@ -170,7 +171,7 @@ export function MaintenanceRuleDialog({
         <div>
           <label className="field-label">{t('maintenance.anchorDateLabel')}</label>
           <input
-            type="date"
+            type="date" max={DATE_INPUT_MAX}
             value={anchorDate}
             onChange={(e) => setAnchorDate(e.target.value)}
             className="input w-full mt-1"

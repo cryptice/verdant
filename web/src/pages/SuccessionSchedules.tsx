@@ -9,6 +9,7 @@ import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 import { Masthead, LedgerPagination } from '../components/faltet'
+import { DATE_INPUT_MAX } from '../lib/dateInput'
 
 const PAGE_SIZE = 50
 
@@ -169,7 +170,7 @@ export function SuccessionSchedules() {
       </div>
       <div>
         <label className="field-label">{t('successions.firstSow')} *</label>
-        <input type="date" value={formFirstSowDate} onChange={e => setFormFirstSowDate(e.target.value)} className="input" />
+        <input type="date" max={DATE_INPUT_MAX} value={formFirstSowDate} onChange={e => setFormFirstSowDate(e.target.value)} className="input" />
       </div>
       <div>
         <label className="field-label">{t('successions.interval')} *</label>

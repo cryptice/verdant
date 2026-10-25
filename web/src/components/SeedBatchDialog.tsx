@@ -5,6 +5,7 @@ import { api, type SeedInventoryResponse, type SpeciesResponse } from '../api/cl
 import { Dialog } from './Dialog'
 import { SpeciesAutocomplete } from './SpeciesAutocomplete'
 import { useOnboarding } from '../onboarding/OnboardingContext'
+import { DATE_INPUT_MAX } from '../lib/dateInput'
 
 const UNIT_TYPES = ['SEED', 'PLUG', 'BULB', 'TUBER', 'PLANT']
 
@@ -183,11 +184,11 @@ export function SeedBatchDialog({ batch, initialSpecies = null, species, onClose
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label htmlFor={`${id}-collection`} className="field-label">{t('seeds.collectionDate')}</label>
-            <input id={`${id}-collection`} type="date" value={collection} onChange={e => setCollection(e.target.value)} className="input w-full" />
+            <input id={`${id}-collection`} type="date" max={DATE_INPUT_MAX} value={collection} onChange={e => setCollection(e.target.value)} className="input w-full" />
           </div>
           <div>
             <label htmlFor={`${id}-expiration`} className="field-label">{t('seeds.expirationDate')}</label>
-            <input id={`${id}-expiration`} type="date" value={expiration} onChange={e => setExpiration(e.target.value)} className="input w-full" />
+            <input id={`${id}-expiration`} type="date" max={DATE_INPUT_MAX} value={expiration} onChange={e => setExpiration(e.target.value)} className="input w-full" />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">

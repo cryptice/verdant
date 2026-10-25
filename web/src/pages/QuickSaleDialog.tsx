@@ -11,6 +11,7 @@ import {
 } from '../api/client'
 import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
+import { DATE_INPUT_MAX } from '../lib/dateInput'
 
 const QUICK_UNIT_KINDS: UnitKind[] = ['STEM', 'PLUG', 'BULB', 'TUBER', 'PLANT', 'BOUQUET']
 
@@ -175,7 +176,7 @@ export function QuickSaleDialog({ open, outlets, onClose, onSubmit, isSaving, er
           <div>
             <label className="field-label">{t('sales.soldAt')}</label>
             <input
-              type="date"
+              type="date" max={DATE_INPUT_MAX}
               value={soldAt}
               onChange={(e) => setSoldAt(e.target.value)}
               className="input"

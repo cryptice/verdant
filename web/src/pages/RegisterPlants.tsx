@@ -7,6 +7,7 @@ import { sortBedsWithGardenByNaturalName } from '../lib/bed'
 import { Masthead } from '../components/faltet'
 import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
+import { DATE_INPUT_MAX } from '../lib/dateInput'
 
 const labelStyle: React.CSSProperties = {
   display: 'block',
@@ -193,7 +194,7 @@ export function RegisterPlants() {
 
           <div>
             <label htmlFor={`${id}-date`} style={labelStyle}>{t('registerPlants.seedDate')}</label>
-            <input id={`${id}-date`} type="date" value={seedDate} onChange={e => setSeedDate(e.target.value)} style={{ ...fieldStyle, fontFamily: 'var(--font-mono)', fontSize: 16 }} />
+            <input id={`${id}-date`} type="date" max={DATE_INPUT_MAX} value={seedDate} onChange={e => setSeedDate(e.target.value)} style={{ ...fieldStyle, fontFamily: 'var(--font-mono)', fontSize: 16 }} />
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
               {AGE_PRESETS.map(preset => {
                 const date = daysAgoIsoLocal(preset.days)

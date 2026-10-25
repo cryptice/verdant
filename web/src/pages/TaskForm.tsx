@@ -9,6 +9,7 @@ import { Masthead, Rule } from '../components/faltet'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
+import { DATE_INPUT_MAX } from '../lib/dateInput'
 
 const activityTypes = ['SOW', 'SOAK', 'POT_UP', 'PLANT', 'HARVEST', 'RECOVER', 'DISCARD', 'WATER', 'WEED', 'FERTILIZE', 'TODO']
 const BED_ACTIVITY_TYPES = new Set(['WATER', 'WEED', 'FERTILIZE'])
@@ -305,7 +306,7 @@ export function TaskForm() {
           <div>
             <span style={selectLabelStyle}>{t('tasks.form.earliestDate')}</span>
             <input
-              type="date"
+              type="date" max={DATE_INPUT_MAX}
               value={earliestDate}
               onChange={e => setEarliestDate(e.target.value)}
               style={{ ...selectStyle, fontFamily: 'var(--font-mono)', fontSize: 14 }}
@@ -316,7 +317,7 @@ export function TaskForm() {
           <div>
             <span style={selectLabelStyle}>{t('tasks.form.deadline')}</span>
             <input
-              type="date"
+              type="date" max={DATE_INPUT_MAX}
               value={deadline}
               onChange={e => setDeadline(e.target.value)}
               style={{ ...selectStyle, fontFamily: 'var(--font-mono)', fontSize: 14 }}

@@ -11,6 +11,7 @@ import { AreaEditDialog } from '../components/area/AreaEditDialog'
 import { MaintenanceRules } from '../components/maintenance/MaintenanceRules'
 import { areaCategoryLabelSv, areaEventLabelSv } from '../lib/area'
 import { activitiesForTarget, maintenanceActivityLabelSv, todayIsoLocal, type MaintenanceActivity } from '../lib/maintenance'
+import { DATE_INPUT_MAX } from '../lib/dateInput'
 
 type LogActivity = MaintenanceActivity | 'NOTE'
 
@@ -349,7 +350,7 @@ function LogMaintenanceDialog({
         <div>
           <label className="field-label">{t('area.log.dateLabel')}</label>
           <input
-            type="date"
+            type="date" max={DATE_INPUT_MAX}
             value={eventDate}
             onChange={(e) => setEventDate(e.target.value)}
             className="input w-full mt-1"

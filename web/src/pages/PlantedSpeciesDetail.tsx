@@ -6,6 +6,7 @@ import { api, type SpeciesEventSummaryEntry, type PlantLocationGroup } from '../
 import { Masthead } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
+import { DATE_INPUT_MAX } from '../lib/dateInput'
 
 const STATUS_ORDER = ['SEEDED', 'POTTED_UP', 'PLANTED_OUT', 'GROWING', 'HARVESTED', 'RECOVERED', 'REMOVED']
 
@@ -694,7 +695,7 @@ function EditDateDialog({
         {EVENT_LABEL_SV[target.eventType] ?? target.eventType} · {target.eventDate}
       </p>
       <input
-        type="date"
+        type="date" max={DATE_INPUT_MAX}
         className="input"
         value={date}
         onChange={(e) => setDate(e.target.value)}

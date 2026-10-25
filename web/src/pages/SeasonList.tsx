@@ -6,6 +6,7 @@ import { Masthead, Ledger } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 import { Dialog } from '../components/Dialog'
+import { DATE_INPUT_MAX } from '../lib/dateInput'
 
 export function SeasonList() {
   const qc = useQueryClient()
@@ -140,21 +141,21 @@ export function SeasonList() {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="field-label">{t('seasons.startDate')}</label>
-          <input type="date" value={formStartDate} onChange={e => setFormStartDate(e.target.value)} className="input w-full" />
+          <input type="date" max={DATE_INPUT_MAX} value={formStartDate} onChange={e => setFormStartDate(e.target.value)} className="input w-full" />
         </div>
         <div>
           <label className="field-label">{t('seasons.endDate')}</label>
-          <input type="date" value={formEndDate} onChange={e => setFormEndDate(e.target.value)} className="input w-full" />
+          <input type="date" max={DATE_INPUT_MAX} value={formEndDate} onChange={e => setFormEndDate(e.target.value)} className="input w-full" />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="field-label">{t('seasons.lastFrost')}</label>
-          <input type="date" value={formLastFrost} onChange={e => setFormLastFrost(e.target.value)} className="input w-full" />
+          <input type="date" max={DATE_INPUT_MAX} value={formLastFrost} onChange={e => setFormLastFrost(e.target.value)} className="input w-full" />
         </div>
         <div>
           <label className="field-label">{t('seasons.firstFrost')}</label>
-          <input type="date" value={formFirstFrost} onChange={e => setFormFirstFrost(e.target.value)} className="input w-full" />
+          <input type="date" max={DATE_INPUT_MAX} value={formFirstFrost} onChange={e => setFormFirstFrost(e.target.value)} className="input w-full" />
         </div>
       </div>
       <div>

@@ -10,6 +10,7 @@ import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
+import { DATE_INPUT_MAX } from '../lib/dateInput'
 
 const selectLabelStyle: React.CSSProperties = {
   display: 'block',
@@ -411,7 +412,7 @@ export function SowActivity() {
             <div className={sowInTray ? 'md:col-span-2' : ''}>
               <span style={selectLabelStyle}>{t('sow.plantedDate')}</span>
               <input
-                type="date"
+                type="date" max={DATE_INPUT_MAX}
                 value={plantedDate}
                 onChange={e => setPlantedDate(e.target.value)}
                 style={{ ...selectStyle, fontFamily: 'var(--font-mono)', fontSize: 18 }}

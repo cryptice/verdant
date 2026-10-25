@@ -11,6 +11,7 @@ import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 import { Masthead, Chip, LedgerPagination } from '../components/faltet'
+import { DATE_INPUT_MAX } from '../lib/dateInput'
 
 const PAGE_SIZE = 50
 
@@ -229,11 +230,11 @@ function WeeklyProductionTargets({ tabs }: { tabs: React.ReactNode }) {
       </div>
       <div>
         <label className="field-label">{t('targets.startDate')} *</label>
-        <input type="date" value={formStartDate} onChange={e => setFormStartDate(e.target.value)} className="input" />
+        <input type="date" max={DATE_INPUT_MAX} value={formStartDate} onChange={e => setFormStartDate(e.target.value)} className="input" />
       </div>
       <div>
         <label className="field-label">{t('targets.endDate')} *</label>
-        <input type="date" value={formEndDate} onChange={e => setFormEndDate(e.target.value)} className="input" />
+        <input type="date" max={DATE_INPUT_MAX} value={formEndDate} onChange={e => setFormEndDate(e.target.value)} className="input" />
       </div>
       <div>
         <label className="field-label">{t('common.notesLabel')}</label>

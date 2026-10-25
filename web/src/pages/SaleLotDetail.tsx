@@ -13,6 +13,7 @@ import { Masthead, Ledger, Chip } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { Snackbar, useSnackbar } from '../components/Snackbar'
+import { DATE_INPUT_MAX } from '../lib/dateInput'
 
 type DialogKind = 'none' | 'price' | 'outlet' | 'recordSale' | 'returned' | 'notSold' | 'delete'
 
@@ -572,7 +573,7 @@ function RecordSaleDialog({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="field-label">{t('sales.soldAt')}</label>
-            <input type="date" value={soldAt} onChange={(e) => setSoldAt(e.target.value)} className="input" />
+            <input type="date" max={DATE_INPUT_MAX} value={soldAt} onChange={(e) => setSoldAt(e.target.value)} className="input" />
           </div>
           <div>
             <label className="field-label">{t('sales.customer')}</label>

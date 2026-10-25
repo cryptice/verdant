@@ -7,6 +7,7 @@ import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { Masthead, Chip } from '../components/faltet'
+import { DATE_INPUT_MAX } from '../lib/dateInput'
 
 const ROLES = ['FLOWER', 'FOLIAGE', 'FILLER', 'ACCENT'] as const
 
@@ -153,7 +154,7 @@ export function Bouquets() {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="field-label">{t('bouquets.assembledAt')}</label>
-          <input type="date" className="input w-full" value={formAssembled} onChange={e => setFormAssembled(e.target.value)} />
+          <input type="date" max={DATE_INPUT_MAX} className="input w-full" value={formAssembled} onChange={e => setFormAssembled(e.target.value)} />
         </div>
         <div>
           <label className="field-label">{t('bouquets.price')}</label>

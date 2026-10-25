@@ -10,6 +10,7 @@ import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
+import { DATE_INPUT_MAX } from '../lib/dateInput'
 
 const CATEGORIES = ['PEST', 'DISEASE', 'DEFICIENCY', 'OTHER'] as const
 const SEVERITIES = ['LOW', 'MODERATE', 'HIGH', 'CRITICAL'] as const
@@ -164,7 +165,7 @@ export function PestDiseaseLog() {
     <div className="space-y-4">
       <div>
         <label className="field-label">{t('pestDisease.observedDate')} *</label>
-        <input type="date" value={formObservedDate} onChange={e => setFormObservedDate(e.target.value)} className="input" />
+        <input type="date" max={DATE_INPUT_MAX} value={formObservedDate} onChange={e => setFormObservedDate(e.target.value)} className="input" />
       </div>
       <div>
         <label className="field-label">{t('pestDisease.category')} *</label>

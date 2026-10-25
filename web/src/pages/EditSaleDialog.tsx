@@ -9,6 +9,7 @@ import {
   type SaleLedgerEntry,
 } from '../api/client'
 import { Dialog } from '../components/Dialog'
+import { DATE_INPUT_MAX } from '../lib/dateInput'
 
 type Props = {
   entry: SaleLedgerEntry | null
@@ -112,7 +113,7 @@ function EditSaleForm({ entry, onClose, onSubmit, isSaving, error }: Props) {
             <div>
               <label className="field-label">{t('sales.soldAt')}</label>
               <input
-                type="date"
+                type="date" max={DATE_INPUT_MAX}
                 value={soldAt}
                 onChange={(e) => setSoldAt(e.target.value)}
                 className="input"

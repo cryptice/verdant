@@ -8,6 +8,7 @@ import { harvestPlans, type HarvestPlanPreview, type HarvestPlanResponse, type P
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
+import { DATE_INPUT_MAX } from '../lib/dateInput'
 
 const activities = ['PURCHASE', 'SOW', 'POT_UP', 'PLANT', 'PINCH', 'SUPPORT', 'WATER', 'FERTILIZE', 'HARVEST', 'TODO']
 const unitTypes = ['SEED', 'PLUG', 'BULB', 'TUBER', 'PLANT']
@@ -130,7 +131,7 @@ export function HarvestPlans() {
         <div className="grid gap-4 sm:grid-cols-3">
           <label>{t('planning.quantity')}<input className="input" type="number" min="1" max="1000000" required value={quantity} onChange={e => { setQuantity(e.target.value); resetPreview() }} /></label>
           <label>{t('planning.unit')}<select className="input" value={unit} onChange={e => { setUnit(e.target.value as SellableUnit); resetPreview() }}>{['STEM', 'FLOWER'].map(u => <option key={u} value={u}>{t(`planning.units.${u}`)}</option>)}</select></label>
-          <label>{t('planning.harvestDate')}<input className="input" type="date" required value={date} onChange={e => { setDate(e.target.value); resetPreview() }} /></label>
+          <label>{t('planning.harvestDate')}<input className="input" type="date" max={DATE_INPUT_MAX} required value={date} onChange={e => { setDate(e.target.value); resetPreview() }} /></label>
         </div>
         <p>{t('planning.mixHelp')}</p>
         {candidates.isFetching && <p>{t('planning.loading')}</p>}

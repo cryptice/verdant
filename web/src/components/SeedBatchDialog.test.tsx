@@ -66,3 +66,12 @@ describe('SeedBatchDialog', () => {
     expect(screen.getByLabelText('Per enhet (SEK)')).toHaveValue(2)
   })
 })
+
+describe('SeedBatchDialog dates', () => {
+  it('caps the date fields at a four-digit year so typing moves on to the month', () => {
+    show({ initialSpecies: chili })
+    const dates = Array.from(document.querySelectorAll('input[type="date"]'))
+    expect(dates.length).toBeGreaterThan(0)
+    for (const input of dates) expect(input).toHaveAttribute('max', '9999-12-31')
+  })
+})
