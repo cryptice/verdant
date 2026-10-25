@@ -205,6 +205,7 @@
     },
     "tasks": {
       "title": "To do",
+      "overdue": "Overdue",
       "today": "Today",
       "tomorrow": "Tomorrow",
       "week": "Coming week",

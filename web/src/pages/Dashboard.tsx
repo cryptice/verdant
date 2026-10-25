@@ -679,13 +679,25 @@ function ColumnHeader({ title, right }: { title: string; right?: React.ReactNode
   )
 }
 
+const dateKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+
+const isOverdue = (task: ScheduledTaskResponse, todayKey: string) =>
+  task.status === 'PENDING' && task.deadline != null && task.deadline.slice(0, 10) < todayKey
+
+/** Pending tasks whose deadline has passed — they get their own section ahead of the days. */
+export function dashboardOverdueTasks(tasks: ScheduledTaskResponse[], now = new Date()) {
+  const todayKey = dateKey(now)
+  return tasks.filter(task => isOverdue(task, todayKey))
+    .sort((a, b) => a.deadline!.localeCompare(b.deadline!) || a.id - b.id)
+}
+
 /** Use local calendar dates so the seven-day window stays correct across DST. */
 export function dashboardTaskDays(tasks: ScheduledTaskResponse[], now = new Date()) {
-  const dateKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+  const todayKey = dateKey(now)
   return Array.from({ length: 7 }, (_, offset) => {
     const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset)
     const key = dateKey(date)
-    return { date, tasks: tasks.filter(task => task.status === 'PENDING' && (task.earliestDate ?? task.deadline) === key)
+    return { date, tasks: tasks.filter(task => task.status === 'PENDING' && !isOverdue(task, todayKey) && (task.earliestDate ?? task.deadline) === key)
       .sort((a, b) => (a.deadline ?? '').localeCompare(b.deadline ?? '') || a.id - b.id) }
   })
 }
@@ -693,6 +705,7 @@ export function dashboardTaskDays(tasks: ScheduledTaskResponse[], now = new Date
 export function DashboardTasks({ tasks, now = new Date() }: { tasks: ScheduledTaskResponse[]; now?: Date }) {
   const { t, i18n } = useTranslation()
   const days = dashboardTaskDays(tasks, now)
+  const overdue = dashboardOverdueTasks(tasks, now)
   const renderRows = (items: ScheduledTaskResponse[]) => <>
             {items.map((task) => (
               <div
@@ -750,7 +763,7 @@ export function DashboardTasks({ tasks, now = new Date() }: { tasks: ScheduledTa
             ))}
 
   </>
-  if (days.every(day => day.tasks.length === 0)) return (
+  if (overdue.length === 0 && days.every(day => day.tasks.length === 0)) return (
     <p>{t('dashboard.tasks.empty')} <Link to="/tasks">{t('dashboard.tasks.all')}</Link></p>
   )
   const renderDay = (day: typeof days[number], index: number) => (
@@ -763,6 +776,14 @@ export function DashboardTasks({ tasks, now = new Date() }: { tasks: ScheduledTa
   )
   const later = days.slice(2)
   return <>
+    {overdue.length > 0 && (
+      <div>
+        <h3 style={{ fontFamily: 'var(--font-mono)', fontSize: 11, margin: '16px 0 4px', color: 'var(--color-accent)' }}>
+          {t('dashboard.tasks.overdue')} ({overdue.length})
+        </h3>
+        {renderRows(overdue)}
+      </div>
+    )}
     {days.slice(0, 2).map(renderDay)}
     <details style={{ marginTop: 16 }}>
       <summary style={{ cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: 11 }}>{t('dashboard.tasks.week')} ({later.reduce((total, day) => total + day.tasks.length, 0)})</summary>

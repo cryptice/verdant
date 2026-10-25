@@ -1,4 +1,5 @@
 package app.verdant.android.ui.dashboard
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.window.Dialog
 import app.verdant.android.ui.faltet.BotanicalPlate
@@ -223,7 +224,7 @@ class DashboardViewModel @Inject constructor(
                 val supplyInv = runCatching { supplyRepository.listInventory() }.getOrDefault(emptyList())
                 val supplyTypes = runCatching { supplyRepository.listTypes() }.getOrDefault(emptyList())
                 val today = java.time.LocalDate.now()
-                val pending = dashboardTaskDays(tasks, today).flatMap { it.tasks }
+                val pending = dashboardOverdueTasks(tasks, today) + dashboardTaskDays(tasks, today).flatMap { it.tasks }
                 val revenue = runCatching {
                     val seasons = seasonRepository.list()
                     val activeSeason = seasons.firstOrNull { s ->
@@ -301,6 +302,7 @@ fun DashboardScreen(
     var showQuickActions by remember { mutableStateOf(false) }
     var weekExpanded by remember { mutableStateOf(false) }
     val taskDays = dashboardTaskDays(uiState.pendingTasks)
+    val overdueTasks = dashboardOverdueTasks(uiState.pendingTasks)
     var taskToComplete by remember { mutableStateOf<ScheduledTaskResponse?>(null) }
     taskToComplete?.let { task ->
         TaskCompletionDialog(task, onConfirm = { viewModel.completeTask(task); taskToComplete = null }, onDismiss = { taskToComplete = null })
@@ -431,6 +433,26 @@ fun DashboardScreen(
                             TextButton(onClick = onOpenTasks) { Text("Visa alla uppgifter") }
                         }
                     } else {
+                        fun taskRows(tasks: List<ScheduledTaskResponse>) = items(tasks, key = { "task_${it.id}" }) { task ->
+                            TaskRow(
+                                task = task,
+                                isCompleting = task.id in uiState.completingTaskIds,
+                                onExecute = { if (hasTaskCompletionCheckbox(task) && task.activityType != "SOW") taskToComplete = task else onTaskClick(task) },
+                                onCompleteToggle = { if (task.activityType == "SOW") onTaskClick(task) else viewModel.completeTask(task) },
+                                onDelete = { taskToDelete = task },
+                                modifier = Modifier.animateItem(),
+                            )
+                        }
+                        if (overdueTasks.isNotEmpty()) {
+                            item {
+                                DashboardTaskLabel(
+                                    text = "Försenat (${overdueTasks.size})",
+                                    color = FaltetAccent,
+                                    modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp),
+                                )
+                            }
+                            taskRows(overdueTasks)
+                        }
                         taskDays.forEachIndexed { index, day ->
                             if (index == 2) {
                                 item {
@@ -449,16 +471,7 @@ fun DashboardScreen(
                                     }, modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp))
                                     if (day.tasks.isEmpty()) InlineMuted("Inga uppgifter.")
                                 }
-                                items(day.tasks, key = { "task_${it.id}" }) { task ->
-                                    TaskRow(
-                                        task = task,
-                                        isCompleting = task.id in uiState.completingTaskIds,
-                                        onExecute = { if (hasTaskCompletionCheckbox(task) && task.activityType != "SOW") taskToComplete = task else onTaskClick(task) },
-                                        onCompleteToggle = { if (task.activityType == "SOW") onTaskClick(task) else viewModel.completeTask(task) },
-                                        onDelete = { taskToDelete = task },
-                                        modifier = Modifier.animateItem(),
-                                    )
-                                }
+                                taskRows(day.tasks)
                             }
                         }
                         if (weekExpanded && taskDays.drop(2).all { it.tasks.isEmpty() }) {
@@ -886,12 +899,12 @@ private fun formatWeight(grams: Double): String {
 }
 
 @Composable
-private fun DashboardTaskLabel(text: String, modifier: Modifier = Modifier) {
+private fun DashboardTaskLabel(text: String, modifier: Modifier = Modifier, color: Color = FaltetForest) {
     Text(
         text = text,
         modifier = modifier,
         fontFamily = FontFamily.Monospace,
         fontSize = 12.sp,
-        color = FaltetForest,
+        color = color,
     )
 }

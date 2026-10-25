@@ -18,6 +18,12 @@ class DashboardTasksTest {
         val days = dashboardTaskDays(listOf(task(1, "2026-10-10"), task(2, "2026-10-11"), task(3, "2026-10-16"), task(4, "2026-10-17"), task(5, null), task(6, "2026-10-09"), task(7, "2026-10-10", status = "COMPLETED"), task(8, "2026-10-20", "2026-10-12")), LocalDate.parse("2026-10-10"))
         assertEquals(listOf(listOf(1L), listOf(2L), listOf(8L), emptyList(), emptyList(), emptyList(), listOf(3L)), days.map { day -> day.tasks.map { it.id } })
     }
+    @Test fun `overdue collects pending tasks past their deadline oldest first and keeps them out of the days`() {
+        val tasks = listOf(task(1, "2026-10-09"), task(2, "2026-10-01"), task(3, "2026-10-10"), task(4, "2026-10-08", status = "COMPLETED"), task(5, null), task(6, "2026-10-09", "2026-10-10"))
+        val today = LocalDate.parse("2026-10-10")
+        assertEquals(listOf(2L, 1L, 6L), dashboardOverdueTasks(tasks, today).map { it.id })
+        assertEquals(listOf(3L), dashboardTaskDays(tasks, today)[0].tasks.map { it.id })
+    }
     @Test fun `calendar days span month and year boundaries`() {
         val days = dashboardTaskDays(listOf(task(1, "2027-01-01")), LocalDate.parse("2026-12-30"))
         assertEquals(1L, days[2].tasks.single().id)

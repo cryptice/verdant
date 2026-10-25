@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { DashboardTasks, dashboardTaskDays } from './Dashboard'
+import { DashboardTasks, dashboardOverdueTasks, dashboardTaskDays } from './Dashboard'
 import i18n from '../i18n'
 import type { ScheduledTaskResponse } from '../api/client'
 
@@ -40,5 +40,16 @@ describe('dashboard task schedule', () => {
     show([task(1, '2026-10-12')])
     expect(screen.getByText('Kommande vecka (1)')).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Visa alla uppgifter' })).not.toBeInTheDocument()
+  })
+  it('collects pending tasks past their deadline, oldest first', () => {
+    const overdue = dashboardOverdueTasks([task(1, '2026-10-09'), task(2, '2026-10-01'), task(3, '2026-10-10'), task(4, '2026-10-08', { status: 'COMPLETED' }), task(5, null)], now)
+    expect(overdue.map(task => task.id)).toEqual([2, 1])
+  })
+  it('shows overdue tasks in their own section ahead of today', () => {
+    show([task(1, '2026-10-08'), task(2, '2026-10-10')])
+    const headings = screen.getAllByRole('heading', { level: 3 }).map(heading => heading.textContent)
+    expect(headings.slice(0, 2)).toEqual(['Försenat (1)', 'Idag'])
+    expect(screen.getByText('Task 1')).toBeInTheDocument()
+    expect(screen.queryByText('Inga uppgifter de kommande sju dagarna.')).not.toBeInTheDocument()
   })
 })
