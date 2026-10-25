@@ -123,7 +123,8 @@ body {
 
 /* Mobile floating action button — bottom-right circle. Visible by default
    (mobile-first); hidden on viewports ≥769px via the desktop media query. */
-.mobile-fab {
+.mobile-fab,
+.activity-fab {
   position: fixed;
   right: calc(20px + env(safe-area-inset-right));
   bottom: calc(20px + env(safe-area-inset-bottom));
@@ -143,7 +144,8 @@ body {
   justify-content: center;
   box-shadow: 0 4px 14px rgba(30, 36, 29, 0.25);
 }
-.mobile-fab:hover { background: var(--color-accent-hover); }
+.mobile-fab:hover,
+.activity-fab:hover { background: var(--color-accent-hover); }
 
 .hide-on-mobile { display: inline-block; }
 

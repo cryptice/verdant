@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { api, type ScheduledTaskResponse, type SpeciesResponse } from '../api/client'
@@ -46,6 +46,7 @@ function renderPage(url: string) {
   render(<QueryClientProvider client={qc}><MemoryRouter initialEntries={[url]}>
     <Routes>
       <Route path="/sow" element={<SowActivity />} />
+      <Route path="/task/new" element={<TaskForm />} />
       <Route path="/task/:taskId/edit" element={<TaskForm />} />
     </Routes>
   </MemoryRouter></QueryClientProvider>)
@@ -79,5 +80,35 @@ describe('Task species selection', () => {
     fireEvent.change(screen.getByLabelText('tasks.form.type'), { target: { value: 'POT_UP' } })
     expect(screen.getByText('tasks.targetCountLabel')).toBeInTheDocument()
     expect(screen.queryByText('tasks.seedCountLabel')).not.toBeInTheDocument()
+  })
+})
+
+describe('General TODO tasks', () => {
+  it('creates a TODO from only a description, without species, count or deadline', async () => {
+    const create = vi.spyOn(api.tasks, 'create').mockResolvedValue({ ...task, activityType: 'TODO' })
+    renderPage('/task/new')
+    fireEvent.change(screen.getByLabelText('tasks.form.type'), { target: { value: 'TODO' } })
+    expect(screen.queryByText('common.speciesLabel')).not.toBeInTheDocument()
+    expect(screen.queryByText('tasks.targetCountLabel')).not.toBeInTheDocument()
+    const save = screen.getByRole('button', { name: 'tasks.createTask' })
+    expect(save).toBeDisabled()
+    fireEvent.change(screen.getByLabelText('tasks.form.description'), { target: { value: '  Beställ chilifrön ' } })
+    fireEvent.click(save)
+    await waitFor(() => expect(create).toHaveBeenCalledWith({
+      activityType: 'TODO', earliestDate: null, deadline: null, notes: 'Beställ chilifrön',
+    }))
+  })
+
+  it('edits an existing TODO without offering other activity types', async () => {
+    vi.mocked(api.tasks.get).mockResolvedValue({ ...task, speciesId: null, speciesName: null, activityType: 'TODO', notes: 'Beställ chilifrön', acceptableSpecies: [] })
+    const update = vi.spyOn(api.tasks, 'update').mockResolvedValue({ ...task, activityType: 'TODO' })
+    renderPage('/task/1/edit')
+    expect(await screen.findByDisplayValue('Beställ chilifrön')).toBeInTheDocument()
+    const type = screen.getByLabelText('tasks.form.type')
+    expect(within(type).getAllByRole('option').map(option => option.getAttribute('value'))).toEqual(['TODO'])
+    fireEvent.click(screen.getByRole('button', { name: 'tasks.updateTask' }))
+    await waitFor(() => expect(update).toHaveBeenCalledWith(1, {
+      activityType: 'TODO', earliestDate: null, deadline: '2026-10-19', notes: 'Beställ chilifrön',
+    }))
   })
 })

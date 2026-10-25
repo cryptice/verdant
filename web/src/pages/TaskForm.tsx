@@ -10,8 +10,9 @@ import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
-const activityTypes = ['SOW', 'SOAK', 'POT_UP', 'PLANT', 'HARVEST', 'RECOVER', 'DISCARD', 'WATER', 'WEED', 'FERTILIZE']
+const activityTypes = ['SOW', 'SOAK', 'POT_UP', 'PLANT', 'HARVEST', 'RECOVER', 'DISCARD', 'WATER', 'WEED', 'FERTILIZE', 'TODO']
 const BED_ACTIVITY_TYPES = new Set(['WATER', 'WEED', 'FERTILIZE'])
+const TODO_ACTIVITY_TYPE = 'TODO'
 
 function speciesLabel(s: SpeciesResponse, lang: string) {
   const name = lang === 'sv' ? (s.commonNameSv ?? s.commonName) : s.commonName
@@ -143,6 +144,13 @@ export function TaskForm() {
     })
   }
 
+  const isTodo = activityType === TODO_ACTIVITY_TYPE
+  // The backend refuses to convert a task to or from a TODO.
+  const typeOptions = !isEdit
+    ? activityTypes
+    : existing?.activityType === TODO_ACTIVITY_TYPE
+      ? [TODO_ACTIVITY_TYPE]
+      : activityTypes.filter(tp => tp !== TODO_ACTIVITY_TYPE)
   const isGroupMode = selectedGroupId !== null
   // An area-scoped maintenance task has neither a species nor a bed — its
   // subject is the area the backend already put on it. Without this the form
@@ -154,12 +162,20 @@ export function TaskForm() {
       ? selectedBedId != null
       : (isGroupMode ? checkedSpeciesIds.size > 0 : !!selectedSpecies)
   )
-  const valid = hasSelection && deadline && Number(targetCount) > 0
+  const valid = isTodo ? notes.trim() !== '' : hasSelection && deadline && Number(targetCount) > 0
 
   const earliestOrNull = earliestDate || null
 
   const createMut = useMutation({
     mutationFn: () => {
+      if (isTodo) {
+        return api.tasks.create({
+          activityType,
+          earliestDate: earliestOrNull,
+          deadline: deadline || null,
+          notes: notes.trim(),
+        })
+      }
       if (isBedActivity) {
         return api.tasks.create({
           bedId: selectedBedId!,
@@ -198,13 +214,15 @@ export function TaskForm() {
   })
 
   const updateMut = useMutation({
-    mutationFn: () => api.tasks.update(Number(taskId), {
-      activityType,
-      earliestDate: earliestOrNull,
-      deadline,
-      targetCount: Number(targetCount),
-      notes: notes || undefined,
-    }),
+    mutationFn: () => api.tasks.update(Number(taskId), isTodo
+      ? { activityType, earliestDate: earliestOrNull, deadline: deadline || undefined, notes: notes.trim() }
+      : {
+          activityType,
+          earliestDate: earliestOrNull,
+          deadline,
+          targetCount: Number(targetCount),
+          notes: notes || undefined,
+        }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['tasks'] })
       navigate('/tasks', { replace: true })
@@ -264,7 +282,7 @@ export function TaskForm() {
                 onChange={e => setActivityType(e.target.value)}
                 style={selectStyle}
               >
-                {activityTypes.map(tp => (
+                {typeOptions.map(tp => (
                   <option key={tp} value={tp}>{t(`activityType.${tp}`, { defaultValue: tp.replace(/_/g, ' ') })}</option>
                 ))}
               </select>
@@ -296,16 +314,18 @@ export function TaskForm() {
           </div>
 
           {/* Target count */}
-          <div>
-            <span style={selectLabelStyle}>{t(activityType === 'SOW' ? 'tasks.seedCountLabel' : 'tasks.targetCountLabel')}</span>
-            <input
-              type="number"
-              value={targetCount}
-              onChange={e => setTargetCount(e.target.value)}
-              disabled={isRuleBacked}
-              style={{ ...selectStyle, fontFamily: 'var(--font-mono)', fontSize: 14 }}
-            />
-          </div>
+          {!isTodo && (
+            <div>
+              <span style={selectLabelStyle}>{t(activityType === 'SOW' ? 'tasks.seedCountLabel' : 'tasks.targetCountLabel')}</span>
+              <input
+                type="number"
+                value={targetCount}
+                onChange={e => setTargetCount(e.target.value)}
+                disabled={isRuleBacked}
+                style={{ ...selectStyle, fontFamily: 'var(--font-mono)', fontSize: 14 }}
+              />
+            </div>
+          )}
         </div>
 
         {isRuleBacked && (
@@ -322,7 +342,8 @@ export function TaskForm() {
           </div>
         )}
 
-        {/* § Schema */}
+        {/* § Schema — a TODO has no species, bed or area to pick. */}
+        {!isTodo && (<>
         <div style={{ marginTop: 28 }}>
           <SectionLabel>§ {t('form.sections.scheduling')}</SectionLabel>
           <div style={{ marginTop: 8 }}><Rule variant="soft" /></div>
@@ -427,14 +448,16 @@ export function TaskForm() {
           </div>
           )}
         </div>
+        </>)}
 
-        {/* Notes */}
+        {/* Notes — the whole content of a TODO, so required there. */}
         <div style={{ marginTop: 28, border: '1px solid var(--color-ink)', background: 'var(--color-paper)', padding: '14px 16px' }}>
-          <div style={selectLabelStyle}>{t('common.notesLabel')}</div>
+          <label htmlFor="task-notes" style={selectLabelStyle}>{t(isTodo ? 'tasks.form.description' : 'common.notesLabel')}</label>
           <textarea
+            id="task-notes"
             value={notes}
             onChange={e => setNotes(e.target.value)}
-            placeholder={t('common.optional')}
+            placeholder={isTodo ? undefined : t('common.optional')}
             rows={3}
             style={{ width: '100%', minHeight: 80, background: 'transparent', border: 'none', outline: 'none', fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 16, resize: 'vertical', boxSizing: 'border-box' }}
           />

@@ -876,7 +876,8 @@ export const api = {
     create: (data: {
       speciesId?: number; speciesGroupId?: number; speciesIds?: number[]
       bedId?: number
-      activityType: string; earliestDate?: string | null; deadline: string; targetCount: number; notes?: string
+      // A TODO carries only a description; the others require deadline and targetCount.
+      activityType: string; earliestDate?: string | null; deadline?: string | null; targetCount?: number; notes?: string
     }) => apiRequest<ScheduledTaskResponse>('/api/tasks', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: number, data: {
       activityType?: string; earliestDate?: string | null; deadline?: string; targetCount?: number; notes?: string

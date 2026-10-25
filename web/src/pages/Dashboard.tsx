@@ -45,6 +45,7 @@ export function taskSubject(task: ScheduledTaskResponse, t: TFunction): string |
 }
 import { Masthead } from '../components/faltet'
 import { Snackbar, useSnackbar } from '../components/Snackbar'
+import { ActivityFab } from '../components/ActivityFab'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
 export function Dashboard() {
@@ -502,6 +503,7 @@ export function Dashboard() {
         </div>
       </div>
 
+      <ActivityFab />
       <Snackbar message={toast} />
     </div>
   )
