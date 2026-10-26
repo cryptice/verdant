@@ -96,6 +96,7 @@ internal fun DeleteEventDialog(
     eventLabel: String,
     date: String,
     maxCount: Int,
+    isSowing: Boolean,
     onDismiss: () -> Unit,
     onConfirm: (count: Int) -> Unit,
 ) {
@@ -126,7 +127,11 @@ internal fun DeleteEventDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 )
                 Text(
-                    text = "Plantor som blir kvar utan händelser markeras som borttagna.",
+                    text = if (isSowing) {
+                        "Plantor som inte har något annat registrerat raderas som felregistrerade, och deras frön läggs tillbaka i fröpartiet."
+                    } else {
+                        "Plantor som blir kvar utan händelser markeras som borttagna."
+                    },
                     fontFamily = FontFamily.Monospace,
                     fontSize = 10.sp,
                     letterSpacing = 1.2.sp,

@@ -160,6 +160,10 @@ data class DeleteSpeciesEventRequest(
 data class DeleteSpeciesEventResponse(
     val eventsDeleted: Int,
     val plantsRemoved: Int,
+    /** Plants whose only event was the removed sowing, deleted as never sown. */
+    val plantsDeleted: Int = 0,
+    /** Seed put back into batches for the deleted plants. */
+    val seedsReturned: Int = 0,
 )
 
 data class SpeciesEventSummaryEntry(

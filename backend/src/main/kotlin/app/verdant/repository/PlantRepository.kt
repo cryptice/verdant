@@ -294,9 +294,10 @@ class PlantRepository(private val ds: AgroalDataSource) {
     }
 
     /** Delete one (eventType, eventDate) plant_event per plant for up to
-     *  [count] plants matching the species/currentStatus/trayOnly filter.
-     *  Plants whose remaining event count is zero are marked REMOVED.
-     *  Returns (eventsDeleted, plantsRemoved). */
+     *  [count] plants matching the species/currentStatus/trayOnly filter,
+     *  newest plants first. Plants whose remaining event count is zero are
+     *  deleted when [deleteEmptied] is set and nothing was sold from them,
+     *  otherwise marked REMOVED. */
     fun deleteSpeciesEventForCount(
         orgId: Long,
         speciesId: Long,
@@ -305,7 +306,8 @@ class PlantRepository(private val ds: AgroalDataSource) {
         count: Int,
         currentStatus: String?,
         trayOnly: Boolean,
-    ): Pair<Int, Int> = ds.connection.use { conn ->
+        deleteEmptied: Boolean = false,
+    ): SpeciesEventDeletion = ds.connection.use { conn ->
         // 1. pick up to [count] matching plant ids
         val pickSql = buildString {
             append("""SELECT DISTINCT p.id FROM plant p
@@ -314,7 +316,7 @@ class PlantRepository(private val ds: AgroalDataSource) {
                         AND pe.event_type = ? AND pe.event_date = ?""")
             if (currentStatus != null) append(" AND p.status = ?")
             if (trayOnly) append(" AND p.bed_id IS NULL")
-            append(" LIMIT ?")
+            append(" ORDER BY p.id DESC LIMIT ?")
         }
         val plantIds = mutableListOf<Long>()
         conn.prepareStatement(pickSql).use { ps ->
@@ -329,7 +331,7 @@ class PlantRepository(private val ds: AgroalDataSource) {
                 while (rs.next()) plantIds.add(rs.getLong(1))
             }
         }
-        if (plantIds.isEmpty()) return@use 0 to 0
+        if (plantIds.isEmpty()) return@use SpeciesEventDeletion(0, 0)
 
         val placeholders = plantIds.joinToString(",") { "?" }
 
@@ -351,7 +353,24 @@ class PlantRepository(private val ds: AgroalDataSource) {
             }
         }
 
-        // 3. mark plants with no remaining events as REMOVED
+        // 3. delete plants left with no events that were never sold from
+        val deletedSownMovementIds = mutableListOf<Long?>()
+        if (deleteEmptied) {
+            conn.prepareStatement(
+                """DELETE FROM plant
+                   WHERE id IN ($placeholders)
+                     AND NOT EXISTS (SELECT 1 FROM plant_event pe WHERE pe.plant_id = plant.id)
+                     AND NOT EXISTS (SELECT 1 FROM sale_lot sl WHERE sl.plant_id = plant.id)
+                   RETURNING sown_movement_id"""
+            ).use { ps ->
+                plantIds.forEachIndexed { idx, id -> ps.setLong(idx + 1, id) }
+                ps.executeQuery().use { rs ->
+                    while (rs.next()) deletedSownMovementIds.add(rs.getObject(1) as? Long)
+                }
+            }
+        }
+
+        // 4. mark the rest with no remaining events as REMOVED
         var plantsRemoved = 0
         conn.prepareStatement(
             """UPDATE plant SET status = 'REMOVED', updated_at = now()
@@ -363,7 +382,21 @@ class PlantRepository(private val ds: AgroalDataSource) {
             plantsRemoved = ps.executeUpdate()
         }
 
-        eventsDeleted to plantsRemoved
+        SpeciesEventDeletion(eventsDeleted, plantsRemoved, deletedSownMovementIds)
+    }
+
+    /** Records which ledger draw paid for the seed of [plantIds]. */
+    fun linkSownMovement(plantIds: List<Long>, movementId: Long) {
+        if (plantIds.isEmpty()) return
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                "UPDATE plant SET sown_movement_id = ? WHERE id IN (${plantIds.joinToString(",") { "?" }})"
+            ).use { ps ->
+                ps.setLong(1, movementId)
+                plantIds.forEachIndexed { idx, id -> ps.setLong(idx + 2, id) }
+                ps.executeUpdate()
+            }
+        }
     }
 
     fun delete(id: Long) {
@@ -569,3 +602,10 @@ class PlantRepository(private val ds: AgroalDataSource) {
         updatedAt = getTimestamp("updated_at").toInstant(),
     )
 }
+
+/** Plants deleted outright carry the ledger draw their seed came from, if any. */
+data class SpeciesEventDeletion(
+    val eventsDeleted: Int,
+    val plantsRemoved: Int,
+    val deletedSownMovementIds: List<Long?> = emptyList(),
+)

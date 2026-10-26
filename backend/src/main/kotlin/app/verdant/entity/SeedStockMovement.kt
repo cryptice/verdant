@@ -16,6 +16,8 @@ data class SeedStockMovement(
     val seasonId: Long?,
     val firstPlantId: Long? = null,
     val plantCount: Int? = null,
+    /** On a correction: the SOWN draw it reverses. Its quantity is negative and its shortfall is the part that never came from stock. */
+    val correctsMovementId: Long? = null,
     val createdAt: Instant = Instant.now(),
 )
 

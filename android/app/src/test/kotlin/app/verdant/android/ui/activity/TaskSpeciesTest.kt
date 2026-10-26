@@ -111,21 +111,23 @@ class TaskSpeciesTest {
         assertFalse(markTaskDoneByDefault(sown = null, remaining = 20))
     }
 
-    @Test fun `a confirmed shortfall asks the server to empty the batch`() = runTest {
+    @Test fun `a confirmed shortfall asks the server to empty the batch as it sows`() = runTest {
         val vm = sow(api(), SavedStateHandle(mapOf("taskId" to 1L)))
         advanceUntilIdle()
         vm.sow(bedId = null, trayLocationId = 1, speciesId = 1991, name = "Naga Black", seedCount = 30, notes = null, imageBase64 = null, seedBatchId = 7, sowDate = null, allowShortfall = true)
         advanceUntilIdle()
-        assertEquals(listOf(7L to DecrementSeedInventoryRequest(quantity = 30, allowShortfall = true)), decrements)
+        assertEquals(7L to true, sowRequests.single().let { it.seedBatchId to it.allowShortfall })
+        assertTrue(decrements.isEmpty())
         assertTrue(vm.uiState.value.created)
     }
 
-    @Test fun `a sowing within the batch deducts normally`() = runTest {
+    @Test fun `a sowing within the batch draws from it in the same request`() = runTest {
         val vm = sow(api(), SavedStateHandle(mapOf("taskId" to 1L)))
         advanceUntilIdle()
         vm.sow(bedId = null, trayLocationId = 1, speciesId = 1991, name = "Naga Black", seedCount = 5, notes = null, imageBase64 = null, seedBatchId = 7, sowDate = null)
         advanceUntilIdle()
-        assertEquals(listOf(7L to DecrementSeedInventoryRequest(quantity = 5)), decrements)
+        assertEquals(7L to false, sowRequests.single().let { it.seedBatchId to it.allowShortfall })
+        assertTrue(decrements.isEmpty())
     }
 
     @Test fun `completing a task cannot substitute another species`() = runTest {

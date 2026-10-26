@@ -126,6 +126,8 @@ The sow screen lets you plant seeds in bulk:
 
 Sowing creates a plant record with "Seeded" status and records a SEEDED event with the date.
 
+**Correcting a sowing** — if you registered too many plants, open the variety under Plants, tap the sowing row and choose "Ta bort händelse…" with the number of plants to remove. The newest plants go first. Plants with nothing recorded besides the sowing are deleted as never sown, and the seed they drew goes back to its batch — except seed the sowing took beyond what the batch held, which was never there. The season review counts the sowing at its corrected size.
+
 ### Plants & Plant Events
 
 Each plant has a **timeline** of events. Click a plant to see its full history and add new events.

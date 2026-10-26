@@ -144,6 +144,7 @@ export function PlantedSpeciesDetail() {
       qc.invalidateQueries({ queryKey: ['species-events', id] })
       qc.invalidateQueries({ queryKey: ['species-locations', id] })
       qc.invalidateQueries({ queryKey: ['species-summary'] })
+      qc.invalidateQueries({ queryKey: ['seed-inventory'] })
     },
   })
 
@@ -740,7 +741,9 @@ function DeleteEventDialog({
         style={{ marginTop: 4, width: '100%' }}
       />
       <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.2, color: 'var(--color-forest)', marginTop: 8 }}>
-        Plantor som blir kvar utan händelser markeras som borttagna.
+        {target.eventType === 'SEEDED'
+          ? 'Plantor som inte har något annat registrerat raderas som felregistrerade, och deras frön läggs tillbaka i fröpartiet.'
+          : 'Plantor som blir kvar utan händelser markeras som borttagna.'}
       </p>
       <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
         <button className="btn-secondary" onClick={onClose}>Avbryt</button>

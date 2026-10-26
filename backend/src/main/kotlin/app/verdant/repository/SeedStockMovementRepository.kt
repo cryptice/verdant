@@ -14,8 +14,8 @@ class SeedStockMovementRepository(private val ds: AgroalDataSource) {
     fun persist(m: SeedStockMovement): SeedStockMovement {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO seed_stock_movement (org_id, seed_inventory_id, species_id, kind, quantity, shortfall, unit_cost_cents, occurred_on, season_id, first_plant_id, plant_count, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                """INSERT INTO seed_stock_movement (org_id, seed_inventory_id, species_id, kind, quantity, shortfall, unit_cost_cents, occurred_on, season_id, first_plant_id, plant_count, corrects_movement_id, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setLong(1, m.orgId)
@@ -29,7 +29,8 @@ class SeedStockMovementRepository(private val ds: AgroalDataSource) {
                 ps.setObject(9, m.seasonId)
                 ps.setObject(10, m.firstPlantId)
                 ps.setObject(11, m.plantCount)
-                ps.setTimestamp(12, java.sql.Timestamp.from(m.createdAt))
+                ps.setObject(12, m.correctsMovementId)
+                ps.setTimestamp(13, java.sql.Timestamp.from(m.createdAt))
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -38,6 +39,25 @@ class SeedStockMovementRepository(private val ds: AgroalDataSource) {
             }
         }
     }
+
+    fun findById(id: Long): SeedStockMovement? =
+        ds.connection.use { conn ->
+            conn.prepareStatement("SELECT * FROM seed_stock_movement WHERE id = ?").use { ps ->
+                ps.setLong(1, id)
+                ps.executeQuery().use { rs -> if (rs.next()) rs.toMovement() else null }
+            }
+        }
+
+    /** Shortfall already unwound by earlier corrections of the draw [movementId]. */
+    fun correctedShortfall(movementId: Long): Int =
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                "SELECT COALESCE(SUM(shortfall), 0) FROM seed_stock_movement WHERE corrects_movement_id = ?"
+            ).use { ps ->
+                ps.setLong(1, movementId)
+                ps.executeQuery().use { rs -> rs.next(); rs.getInt(1) }
+            }
+        }
 
     fun findBySeedInventoryId(id: Long): List<SeedStockMovement> =
         ds.connection.use { conn ->
@@ -74,6 +94,7 @@ class SeedStockMovementRepository(private val ds: AgroalDataSource) {
         seasonId = getObject("season_id") as? Long,
         firstPlantId = getObject("first_plant_id") as? Long,
         plantCount = getObject("plant_count") as? Int,
+        correctsMovementId = getObject("corrects_movement_id") as? Long,
         createdAt = getTimestamp("created_at").toInstant(),
     )
 }

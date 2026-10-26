@@ -140,6 +140,16 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
         }
     }
 
+    fun returnQuantity(id: Long, amount: Int) {
+        ds.connection.use { conn ->
+            conn.prepareStatement("UPDATE seed_inventory SET quantity = quantity + ? WHERE id = ?").use { ps ->
+                ps.setInt(1, amount)
+                ps.setLong(2, id)
+                ps.executeUpdate()
+            }
+        }
+    }
+
     fun delete(id: Long) {
         ds.connection.use { conn ->
             conn.prepareStatement("DELETE FROM seed_inventory WHERE id = ?").use { ps ->

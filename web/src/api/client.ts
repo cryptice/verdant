@@ -836,7 +836,7 @@ export const api = {
       speciesId: number,
       data: { eventType: string; eventDate: string; count: number; currentStatus?: string; trayOnly?: boolean },
     ) =>
-      apiRequest<{ eventsDeleted: number; plantsRemoved: number }>(
+      apiRequest<{ eventsDeleted: number; plantsRemoved: number; plantsDeleted: number; seedsReturned: number }>(
         `/api/plants/species/${speciesId}/events/delete`,
         { method: 'POST', body: JSON.stringify(data) },
       ),

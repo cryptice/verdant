@@ -144,6 +144,7 @@ fun PlantedSpeciesDetailScreen(
             eventLabel = eventLabelSv(t.type),
             date = t.date,
             maxCount = t.current,
+            isSowing = t.type == "SEEDED",
             onDismiss = { deleteEventTarget = null },
             onConfirm = { count ->
                 deleteEventTarget = null

@@ -51,7 +51,6 @@ import app.verdant.android.data.model.BatchSowRequest
 import app.verdant.android.data.model.sortedBySwedishName
 import app.verdant.android.data.model.BedWithGardenResponse
 import app.verdant.android.data.model.CompleteTaskPartiallyRequest
-import app.verdant.android.data.model.DecrementSeedInventoryRequest
 import app.verdant.android.data.model.RecordCommentRequest
 import app.verdant.android.data.model.ScheduledTaskResponse
 import app.verdant.android.data.model.SeedInventoryResponse
@@ -177,12 +176,12 @@ class SowActivityViewModel @Inject constructor(
                         notes = notes,
                         imageBase64 = imageBase64,
                         plantedDate = sowDate?.toString(),
+                        // Drawn in the same request, so the plants are tied to their seed
+                        // and removing a mistaken sowing can give it back.
+                        seedBatchId = seedBatchId?.takeIf { count > 0 },
+                        allowShortfall = allowShortfall,
                     )
                 )
-                // Decrement seed inventory
-                if (seedBatchId != null && count > 0) {
-                    seedInventoryRepository.decrement(seedBatchId, DecrementSeedInventoryRequest(count, allowShortfall))
-                }
                 if (!notes.isNullOrBlank()) {
                     speciesRepository.recordComment(RecordCommentRequest(notes))
                 }

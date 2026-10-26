@@ -35,6 +35,8 @@ data class BatchSowRequest(
     @SerializedName("imageBase64") val imageBase64: String? = null,
     @SerializedName("plantedDate") val plantedDate: String? = null,
     @SerializedName("origin") val origin: String? = null,
+    @SerializedName("seedBatchId") val seedBatchId: Long? = null,
+    @SerializedName("allowShortfall") val allowShortfall: Boolean = false,
 )
 
 data class BatchSowResponse(
@@ -257,6 +259,8 @@ data class DeleteSpeciesEventRequest(
 data class DeleteSpeciesEventResponse(
     @SerializedName("eventsDeleted") val eventsDeleted: Int,
     @SerializedName("plantsRemoved") val plantsRemoved: Int,
+    @SerializedName("plantsDeleted") val plantsDeleted: Int = 0,
+    @SerializedName("seedsReturned") val seedsReturned: Int = 0,
 )
 
 data class PlantLocationGroup(

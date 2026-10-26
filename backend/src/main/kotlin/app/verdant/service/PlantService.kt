@@ -275,7 +275,7 @@ class PlantService(
         } else if (!seedInventoryRepository.decrementQuantity(batchId, request.seedCount)) {
             throw BadRequestException("Insufficient seeds (have ${batch.quantity}, need ${request.seedCount})")
         }
-        seedStockMovementRepository.persist(
+        val movement = seedStockMovementRepository.persist(
             SeedStockMovement(
                 orgId = batch.orgId,
                 seedInventoryId = batchId,
@@ -290,6 +290,7 @@ class PlantService(
                 plantCount = plantIds.size,
             )
         )
+        plantRepository.linkSownMovement(plantIds, movement.id!!)
     }
 
     fun getTraySummary(orgId: Long): List<TraySummaryEntry> {
@@ -495,9 +496,12 @@ class PlantService(
     fun getSpeciesEventSummary(orgId: Long, speciesId: Long, trayOnly: Boolean) =
         plantRepository.speciesEventSummary(orgId, speciesId, trayOnly)
 
+    /** Removing a sowing corrects a mistake: plants with nothing else recorded
+     *  are deleted and the seed they drew goes back to its batch. */
+    @Transactional
     fun deleteSpeciesEvent(orgId: Long, speciesId: Long, request: DeleteSpeciesEventRequest): DeleteSpeciesEventResponse {
         if (request.count <= 0) throw BadRequestException("count must be > 0")
-        val (events, plants) = plantRepository.deleteSpeciesEventForCount(
+        val deletion = plantRepository.deleteSpeciesEventForCount(
             orgId = orgId,
             speciesId = speciesId,
             eventType = request.eventType,
@@ -505,8 +509,39 @@ class PlantService(
             count = request.count,
             currentStatus = request.currentStatus,
             trayOnly = request.trayOnly,
+            deleteEmptied = request.eventType == PlantEventType.SEEDED.name,
         )
-        return DeleteSpeciesEventResponse(eventsDeleted = events, plantsRemoved = plants)
+        val plantsByDraw = deletion.deletedSownMovementIds.filterNotNull().groupingBy { it }.eachCount()
+        return DeleteSpeciesEventResponse(
+            eventsDeleted = deletion.eventsDeleted,
+            plantsRemoved = deletion.plantsRemoved,
+            plantsDeleted = deletion.deletedSownMovementIds.size,
+            seedsReturned = plantsByDraw.entries.sumOf { (drawId, plants) -> reverseSeedDraw(drawId, plants, orgId) },
+        )
+    }
+
+    /** Reverses [plants] seeds of a SOWN draw and returns how many went back to the batch.
+     *  Seed the draw took beyond what the batch held (its shortfall) was never there, so it is unwound first. */
+    private fun reverseSeedDraw(drawId: Long, plants: Int, orgId: Long): Int {
+        val draw = seedStockMovementRepository.findById(drawId)?.takeIf { it.orgId == orgId } ?: return 0
+        val unbacked = (draw.shortfall - seedStockMovementRepository.correctedShortfall(drawId)).coerceIn(0, plants)
+        val returned = if (draw.seedInventoryId != null) plants - unbacked else 0
+        if (returned > 0) seedInventoryRepository.returnQuantity(draw.seedInventoryId!!, returned)
+        seedStockMovementRepository.persist(
+            SeedStockMovement(
+                orgId = draw.orgId,
+                seedInventoryId = draw.seedInventoryId,
+                speciesId = draw.speciesId,
+                kind = MovementKind.SOWN,
+                quantity = -plants,
+                shortfall = unbacked,
+                unitCostCents = draw.unitCostCents,
+                occurredOn = draw.occurredOn,
+                seasonId = draw.seasonId,
+                correctsMovementId = drawId,
+            )
+        )
+        return returned
     }
 
     fun updateSpeciesEventDate(orgId: Long, speciesId: Long, request: UpdateSpeciesEventDateRequest): UpdateSpeciesEventDateResponse {
