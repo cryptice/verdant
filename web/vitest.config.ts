@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@verdant/shared': fileURLToPath(new URL('../shared/src/index.ts', import.meta.url)),
+      'virtual:pwa-register/react': fileURLToPath(new URL('./src/test/pwaRegisterStub.ts', import.meta.url)),
     },
   },
   test: {
