@@ -39,7 +39,9 @@
     "passwordPlaceholder": "Ange ditt l\u00f6senord",
     "signIn": "Logga in",
     "signingIn": "Loggar in...",
-    "authFailed": "Inloggningen misslyckades"
+    "authFailed": "Inloggningen misslyckades",
+    "showPassword": "Visa l\u00f6senord",
+    "hidePassword": "D\u00f6lj l\u00f6senord"
   },
   "users": {
     "title": "Anv\u00e4ndare",

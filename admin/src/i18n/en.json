@@ -39,7 +39,9 @@
     "passwordPlaceholder": "Enter your password",
     "signIn": "Sign In",
     "signingIn": "Signing in...",
-    "authFailed": "Authentication failed"
+    "authFailed": "Authentication failed",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "users": {
     "title": "Users",
