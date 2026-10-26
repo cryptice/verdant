@@ -30,6 +30,7 @@ const SowActivity = lazy(() => import('./pages/SowActivity').then(m => ({ defaul
 const RegisterPlants = lazy(() => import('./pages/RegisterPlants').then(m => ({ default: m.RegisterPlants })))
 const SpeciesList = lazy(() => import('./pages/SpeciesList').then(m => ({ default: m.SpeciesList })))
 const SpeciesDetail = lazy(() => import('./pages/SpeciesDetail').then(m => ({ default: m.SpeciesDetail })))
+const SpeciesCreate = lazy(() => import('./pages/SpeciesCreate').then(m => ({ default: m.SpeciesCreate })))
 const SpeciesGroups = lazy(() => import('./pages/SpeciesGroups').then(m => ({ default: m.SpeciesGroups })))
 const SpeciesGroupEdit = lazy(() => import('./pages/SpeciesGroupEdit').then(m => ({ default: m.SpeciesGroupEdit })))
 const SeasonList = lazy(() => import('./pages/SeasonList').then(m => ({ default: m.SeasonList })))
@@ -103,6 +104,7 @@ export function App() {
           <Route path="area/:id" element={<AreaDetail />} />
           <Route path="plant/:id" element={<PlantDetail />} />
           <Route path="plants" element={<PlantedSpeciesList />} />
+          <Route path="species/new" element={<SpeciesCreate />} />
           <Route path="species/:id" element={<SpeciesDetail />} />
           <Route path="species/:speciesId/plants" element={<PlantedSpeciesDetail />} />
           <Route path="tasks" element={<TaskList />} />

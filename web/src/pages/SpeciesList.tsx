@@ -39,11 +39,6 @@ export function SpeciesList() {
 
   const [search, setSearch] = useState('')
   const [types, setTypes] = useState<Set<PlantType>>(new Set(ALL_TYPES))
-  const [showAdd, setShowAdd] = useState(false)
-  const [addCommonName, setAddCommonName] = useState('')
-  const [addVariantName, setAddVariantName] = useState('')
-  const [addVariantNameSv, setAddVariantNameSv] = useState('')
-  const [addScientificName, setAddScientificName] = useState('')
   const [deleteItem, setDeleteItem] = useState<SpeciesResponse | null>(null)
 
   const sorted = useMemo(
@@ -63,56 +58,9 @@ export function SpeciesList() {
     [sorted, types]
   )
 
-  const createMut = useMutation({
-    mutationFn: () => api.species.create({
-      commonName: addCommonName,
-      variantName: addVariantName || undefined,
-      variantNameSv: addVariantNameSv || undefined,
-      scientificName: addScientificName || undefined,
-    }),
-    onSuccess: (created) => {
-      qc.invalidateQueries({ queryKey: ['species'] })
-      setShowAdd(false)
-      setAddCommonName(''); setAddVariantName(''); setAddVariantNameSv(''); setAddScientificName('')
-      navigate(`/species/${created.id}`)
-    },
-  })
-
   const deleteMut = useMutation({
     mutationFn: (id: number) => api.species.delete(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['species'] }); setDeleteItem(null) },
-  })
-
-  const copyMut = useMutation({
-    mutationFn: async (s: SpeciesResponse) => {
-      const full = await api.species.get(s.id)
-      return api.species.create({
-        commonName: full.commonName,
-        commonNameSv: full.commonNameSv,
-        variantName: full.variantName ? `${full.variantName} (kopia)` : '(kopia)',
-        variantNameSv: full.variantNameSv ? `${full.variantNameSv} (kopia)` : undefined,
-        scientificName: full.scientificName,
-        germinationTimeDaysMin: full.germinationTimeDaysMin,
-        germinationTimeDaysMax: full.germinationTimeDaysMax,
-        daysToHarvestMin: full.daysToHarvestMin,
-        daysToHarvestMax: full.daysToHarvestMax,
-        sowingDepthMm: full.sowingDepthMm,
-        heightCmMin: full.heightCmMin,
-        heightCmMax: full.heightCmMax,
-        germinationRate: full.germinationRate,
-        bloomMonths: full.bloomMonths,
-        sowingMonths: full.sowingMonths,
-        costPerSeedCents: full.costPerSeedCents,
-        expectedStemsPerPlant: full.expectedStemsPerPlant,
-        expectedVaseLifeDays: full.expectedVaseLifeDays,
-        plantType: full.plantType,
-        defaultUnitType: full.defaultUnitType,
-      })
-    },
-    onSuccess: (created) => {
-      qc.invalidateQueries({ queryKey: ['species'] })
-      navigate(`/species/${created.id}`)
-    },
   })
 
   if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
@@ -130,7 +78,7 @@ export function SpeciesList() {
         left={t('nav.species')}
         center="— Artliggaren —"
         right={
-          <button onClick={() => setShowAdd(true)} className="btn-primary">
+          <button onClick={() => navigate('/species/new')} className="btn-primary">
             {t('species.newSpecies')}
           </button>
         }
@@ -264,8 +212,7 @@ export function SpeciesList() {
                   type="button"
                   aria-label={t('species.copy')}
                   title={t('species.copy')}
-                  onClick={(e) => { e.stopPropagation(); copyMut.mutate(s) }}
-                  disabled={copyMut.isPending}
+                  onClick={(e) => { e.stopPropagation(); navigate(`/species/new?from=${s.id}`) }}
                   style={{
                     background: 'transparent',
                     border: 'none',
@@ -296,38 +243,6 @@ export function SpeciesList() {
         />
       </div>
 
-      {showAdd && (
-        <Dialog open={showAdd} title={t('species.addSpeciesTitle')} onClose={() => setShowAdd(false)}>
-          <div className="space-y-4">
-            <div>
-              <label className="field-label">{t('species.commonName')}</label>
-              <input className="input" value={addCommonName} onChange={e => setAddCommonName(e.target.value)} placeholder={t('species.commonNamePlaceholder')} />
-            </div>
-            <div>
-              <label className="field-label">{t('species.variantName')}</label>
-              <input className="input" value={addVariantName} onChange={e => setAddVariantName(e.target.value)} placeholder={t('common.optional')} />
-            </div>
-            <div>
-              <label className="field-label">{t('species.variantNameSv')}</label>
-              <input className="input" value={addVariantNameSv} onChange={e => setAddVariantNameSv(e.target.value)} placeholder={t('common.optional')} />
-            </div>
-            <div>
-              <label className="field-label">{t('species.scientificName')}</label>
-              <input className="input" value={addScientificName} onChange={e => setAddScientificName(e.target.value)} placeholder={t('common.optional')} />
-            </div>
-            {createMut.error && <p className="text-error text-sm">{String(createMut.error)}</p>}
-            <div className="flex justify-end pt-1">
-              <button
-                className="btn-primary"
-                onClick={() => createMut.mutate()}
-                disabled={!addCommonName.trim() || createMut.isPending}
-              >
-                {createMut.isPending ? t('species.adding') : t('species.addSpeciesBtn')}
-              </button>
-            </div>
-          </div>
-        </Dialog>
-      )}
 
       {deleteItem && (
         <Dialog open={!!deleteItem} title={t('species.deleteSpeciesTitle')} onClose={() => setDeleteItem(null)}>

@@ -20,11 +20,9 @@ function monthIndex(dateStr: string): number {
   return new Date(dateStr).getMonth()
 }
 
-function parseBloomMonths(bloomMonths: string | undefined): [number, number] | undefined {
-  if (!bloomMonths) return undefined
-  const parts = bloomMonths.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n))
-  if (parts.length === 0) return undefined
-  return [Math.min(...parts) - 1, Math.max(...parts) - 1]
+function bloomMonthRange(bloomMonths: number[]): [number, number] | undefined {
+  if (bloomMonths.length === 0) return undefined
+  return [Math.min(...bloomMonths) - 1, Math.max(...bloomMonths) - 1]
 }
 
 function barStyle(range: [number, number], color: string, top: number): React.CSSProperties {
@@ -147,7 +145,7 @@ export function CropCalendar() {
         const allBloom = [...bloomStartMonths, ...bloomEndMonths]
         bloomRange = [Math.min(...allBloom), Math.max(...allBloom)]
       } else {
-        bloomRange = parseBloomMonths(sp.bloomMonths)
+        bloomRange = bloomMonthRange(sp.bloomMonths ?? [])
       }
 
       const harvestRange: [number, number] | undefined = harvestMonths.length > 0

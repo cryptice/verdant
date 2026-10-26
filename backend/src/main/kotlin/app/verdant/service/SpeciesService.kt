@@ -276,6 +276,24 @@ class SpeciesService(
         photoRepository.delete(photoId)
     }
 
+    @Transactional
+    fun uploadSpeciesPhoto(speciesId: Long, base64: String, orgId: Long): SpeciesPhotoResponse {
+        requireOwnSpecies(speciesId, orgId)
+        return uploadSpeciesPhoto(speciesId, base64)
+    }
+
+    @Transactional
+    fun deleteSpeciesPhoto(speciesId: Long, photoId: Long, orgId: Long) {
+        requireOwnSpecies(speciesId, orgId)
+        deleteSpeciesPhoto(speciesId, photoId)
+    }
+
+    private fun requireOwnSpecies(speciesId: Long, orgId: Long) {
+        val species = speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
+        if (species.orgId == null) throw ForbiddenException("Cannot modify system species")
+        if (species.orgId != orgId) throw NotFoundException("Species not found")
+    }
+
     // ── Groups ──
 
     fun getGroupsForUser(orgId: Long): List<SpeciesGroupResponse> =

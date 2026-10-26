@@ -27,38 +27,6 @@ export function SpeciesDetail() {
     },
   })
 
-  const copyMut = useMutation({
-    mutationFn: async () => {
-      const full = await api.species.get(speciesId)
-      return api.species.create({
-        commonName: full.commonName,
-        commonNameSv: full.commonNameSv,
-        variantName: full.variantName ? `${full.variantName} (kopia)` : '(kopia)',
-        variantNameSv: full.variantNameSv ? `${full.variantNameSv} (kopia)` : undefined,
-        scientificName: full.scientificName,
-        germinationTimeDaysMin: full.germinationTimeDaysMin,
-        germinationTimeDaysMax: full.germinationTimeDaysMax,
-        daysToHarvestMin: full.daysToHarvestMin,
-        daysToHarvestMax: full.daysToHarvestMax,
-        sowingDepthMm: full.sowingDepthMm,
-        heightCmMin: full.heightCmMin,
-        heightCmMax: full.heightCmMax,
-        germinationRate: full.germinationRate,
-        bloomMonths: full.bloomMonths,
-        sowingMonths: full.sowingMonths,
-        costPerSeedCents: full.costPerSeedCents,
-        expectedStemsPerPlant: full.expectedStemsPerPlant,
-        expectedVaseLifeDays: full.expectedVaseLifeDays,
-        plantType: full.plantType,
-        defaultUnitType: full.defaultUnitType,
-      })
-    },
-    onSuccess: (created) => {
-      qc.invalidateQueries({ queryKey: ['species'] })
-      navigate(`/species/${created.id}`)
-    },
-  })
-
   return (
     <div>
       <Masthead
@@ -81,9 +49,7 @@ export function SpeciesDetail() {
         }
       />
 
-      <SpeciesEditForm speciesId={speciesId} />
-
-      <WorkflowAccessPanel speciesId={speciesId} />
+      <SpeciesEditForm speciesId={speciesId} workflowSection={<WorkflowAccessPanel speciesId={speciesId} />} />
 
       <div style={{ padding: '0 28px 28px' }}>
         <Rule variant="soft" />
@@ -91,8 +57,7 @@ export function SpeciesDetail() {
           {!confirmDelete ? (
             <div style={{ display: 'flex', gap: 18 }}>
               <button
-                onClick={() => copyMut.mutate()}
-                disabled={copyMut.isPending}
+                onClick={() => navigate(`/species/new?from=${speciesId}`)}
                 style={{
                   background: 'transparent',
                   border: 'none',
@@ -104,7 +69,7 @@ export function SpeciesDetail() {
                   cursor: 'pointer',
                 }}
               >
-                ⎘ {copyMut.isPending ? t('common.loading') : t('species.copy')}
+                ⎘ {t('species.copy')}
               </button>
               <button
                 onClick={() => setConfirmDelete(true)}
@@ -168,10 +133,8 @@ export function SpeciesDetail() {
 }
 
 /**
- * Entry points into workflow management for this species. Keeps the
- * shared SpeciesEditForm clean while restoring access to the workflow
- * pages that used to be inline (assign / sync / add-step were a full
- * WorkflowSection prior to the form refactor).
+ * The species form's workflow section: assign or switch the template,
+ * sync from it, and links to progress and the template editor.
  */
 function WorkflowAccessPanel({ speciesId }: { speciesId: number }) {
   const { t } = useTranslation()
@@ -211,22 +174,8 @@ function WorkflowAccessPanel({ speciesId }: { speciesId: number }) {
   const selectValue = pendingTemplateId || (templateId ? String(templateId) : '')
 
   return (
-    <div style={{ padding: '0 28px 22px' }}>
-      <Rule variant="soft" />
-      <div style={{ marginTop: 22 }}>
-        <div
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: 9,
-            letterSpacing: 1.4,
-            textTransform: 'uppercase',
-            color: 'var(--color-forest)',
-            opacity: 0.7,
-            marginBottom: 8,
-          }}
-        >
-          {t('workflows.title')}
-        </div>
+    <div>
+      <div>
 
         {templateId ? (
           <div

@@ -101,6 +101,12 @@ export function PhotoPicker({ value, onChange, maxEdge = 1280, quality = 0.85 }:
   )
 }
 
+/** Downscales [file] the way the picker does and returns the bare JPEG base64, for `imageBase64` fields. */
+export async function fileToJpegBase64(file: File, maxEdge = 1280, quality = 0.85): Promise<string> {
+  const img = await loadImage(await loadAsDataUrl(file))
+  return downscaleToJpeg(img, maxEdge, quality).replace(/^data:image\/\w+;base64,/, '')
+}
+
 function loadAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()

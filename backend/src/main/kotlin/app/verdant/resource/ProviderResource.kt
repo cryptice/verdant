@@ -5,6 +5,7 @@ import app.verdant.dto.ProviderResponse
 import app.verdant.dto.UpdateProviderRequest
 import app.verdant.entity.Provider
 import app.verdant.repository.ProviderRepository
+import io.quarkus.security.Authenticated
 import jakarta.annotation.security.RolesAllowed
 import jakarta.validation.Valid
 import jakarta.ws.rs.*
@@ -18,7 +19,9 @@ import jakarta.ws.rs.core.Response
 class ProviderResource(
     private val providerRepository: ProviderRepository,
 ) {
+    /** Every user picks seed providers when adding a variety; only admins manage them. */
     @GET
+    @Authenticated
     fun list() = providerRepository.findAll().map { it.toResponse() }
 
     @POST

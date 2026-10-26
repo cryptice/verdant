@@ -124,7 +124,7 @@ class ApiKeySecurityTest {
 
     @Test fun `a key cannot reach account, consent, invite or admin-role endpoints`() {
         val token = createKey().path("token").asText()
-        assertEquals(403, send("/api/providers", token).statusCode())
+        assertEquals(403, send("/api/providers", token, """{"name":"Key provider","identifier":"key-provider"}""").statusCode())
         assertEquals(403, send("/api/mcp/oauth/connections", token).statusCode())
         assertEquals(403, send("/api/invites", token).statusCode())
         assertEquals(403, send("/api/users/me/export", token).statusCode())

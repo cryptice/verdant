@@ -116,7 +116,7 @@ export function SpeciesEditModal({
                 </button>
               }
             />
-            <SpeciesEditForm speciesId={speciesId} onSaved={onClose} />
+            <SpeciesEditForm speciesId={speciesId} onSaved={onClose} onCancel={onClose} />
           </motion.div>
         </>
       )}

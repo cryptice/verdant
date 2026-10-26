@@ -100,19 +100,29 @@ export interface PlantEventResponse {
 export interface SpeciesResponse {
   id: number; commonName: string; commonNameSv?: string
   variantName?: string; variantNameSv?: string; scientificName?: string
+  imageFrontUrl?: string; imageBackUrl?: string
   germinationTimeDaysMin?: number; germinationTimeDaysMax?: number
   daysToHarvestMin?: number; daysToHarvestMax?: number; sowingDepthMm?: number
   heightCmMin?: number; heightCmMax?: number; germinationRate?: number
-  bloomMonths?: string; sowingMonths?: string
+  bloomMonths: number[]; sowingMonths: number[]
+  growingPositions: string[]; soils: string[]
   costPerSeedCents?: number; expectedStemsPerPlant?: number
   expectedVaseLifeDays?: number; plantType?: string; defaultUnitType?: string
   photos: { id: number; imageUrl: string; sortOrder: number }[]
   tags: { id: number; name: string }[]
-  providers: { id: number; providerId: number; providerName: string }[]
+  providers: SpeciesProviderResponse[]
   groups: { id: number; name: string }[]
   custom: boolean
   isSystem: boolean
 }
+
+export interface SpeciesProviderResponse {
+  id: number; providerId: number; providerName: string; providerIdentifier: string
+  imageFrontUrl?: string; imageBackUrl?: string; productUrl?: string
+  costPerUnitCents?: number; unitType?: string
+}
+
+export interface ProviderResponse { id: number; name: string; identifier: string }
 
 export interface SeedInventoryResponse {
   id: number; speciesId: number; speciesName: string
@@ -852,6 +862,19 @@ export const api = {
       apiRequest<SpeciesResponse>(`/api/species/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: number) => apiRequest<void>(`/api/species/${id}`, { method: 'DELETE' }),
     byGroup: (groupId: number) => apiRequest<SpeciesResponse[]>(`/api/species?groupId=${groupId}`),
+    tags: () => apiRequest<{ id: number; name: string }[]>('/api/species/tags'),
+    uploadPhoto: (id: number, imageBase64: string) =>
+      apiRequest<{ id: number; imageUrl: string; sortOrder: number }>(`/api/species/${id}/photos`, { method: 'POST', body: JSON.stringify({ imageBase64 }) }),
+    deletePhoto: (id: number, photoId: number) =>
+      apiRequest<void>(`/api/species/${id}/photos/${photoId}`, { method: 'DELETE' }),
+    addProvider: (id: number, data: { providerId: number; productUrl?: string }) =>
+      apiRequest<SpeciesProviderResponse>(`/api/species/${id}/providers`, { method: 'POST', body: JSON.stringify(data) }),
+    removeProvider: (id: number, speciesProviderId: number) =>
+      apiRequest<void>(`/api/species/${id}/providers/${speciesProviderId}`, { method: 'DELETE' }),
+  },
+
+  providers: {
+    list: () => apiRequest<ProviderResponse[]>('/api/providers'),
   },
 
   speciesGroups: {

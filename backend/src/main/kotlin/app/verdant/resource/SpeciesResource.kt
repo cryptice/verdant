@@ -57,6 +57,22 @@ class SpeciesResource(
         return Response.noContent().build()
     }
 
+    // ── Photos ──
+
+    @POST
+    @Path("/{id}/photos")
+    fun uploadPhoto(@PathParam("id") id: Long, @Valid request: UploadPhotoRequest): Response {
+        val photo = speciesService.uploadSpeciesPhoto(id, request.imageBase64, orgContext.orgId)
+        return Response.status(Response.Status.CREATED).entity(photo).build()
+    }
+
+    @DELETE
+    @Path("/{id}/photos/{photoId}")
+    fun deletePhoto(@PathParam("id") id: Long, @PathParam("photoId") photoId: Long): Response {
+        speciesService.deleteSpeciesPhoto(id, photoId, orgContext.orgId)
+        return Response.noContent().build()
+    }
+
     // ── Extract Info ──
 
     @POST
