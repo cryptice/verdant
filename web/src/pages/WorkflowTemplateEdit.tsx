@@ -7,42 +7,56 @@ import { Masthead, Field } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 
+// Plant event types a workflow step can record (PlantEventType on the backend), in growing order.
 const EVENT_TYPES = [
-  '', 'SEEDED', 'POTTED_UP', 'PLANTED_OUT', 'HARVESTED',
-  'PINCHED', 'FERTILIZED', 'WATERED', 'PRUNED', 'NOTE', 'OTHER', 'APPLIED_SUPPLY',
+  '', 'SEEDED', 'POTTED_UP', 'PINCHED', 'MOVED', 'PLANTED_OUT', 'WATERED', 'WEEDED', 'APPLIED_SUPPLY',
+  'DISBUDDED', 'BUDDING', 'FIRST_BLOOM', 'HARVESTED', 'LIFTED', 'DIVIDED', 'STORED', 'NOTE',
 ]
 
-const selectStyle: React.CSSProperties = {
-  display: 'block',
-  width: '100%',
-  backgroundColor: 'transparent',
-  border: 'none',
-  borderBottom: '1px solid var(--color-ink)',
-  borderRadius: 0,
-  padding: '4px 0',
-  fontFamily: 'var(--font-display)',
-  fontSize: 20,
-  fontWeight: 300,
-  color: 'var(--color-ink)',
-  outline: 'none',
-}
+const GRID_COLUMNS = '52px minmax(0, 1fr) 64px 48px 180px 28px'
 
-const selectLabelStyle: React.CSSProperties = {
-  display: 'block',
+const headStyle: React.CSSProperties = {
   fontFamily: 'var(--font-mono)',
   fontSize: 9,
   letterSpacing: 1.4,
   textTransform: 'uppercase',
   color: 'var(--color-forest)',
   opacity: 0.7,
-  marginBottom: 4,
+}
+
+const arrowStyle = (disabled: boolean): React.CSSProperties => ({
+  background: 'transparent',
+  border: 'none',
+  color: 'var(--color-forest)',
+  cursor: disabled ? 'default' : 'pointer',
+  opacity: disabled ? 0.2 : 0.55,
+  fontSize: 9,
+  lineHeight: 1,
+  padding: '2px 3px',
+})
+
+const tagStyle: React.CSSProperties = {
+  fontFamily: 'var(--font-mono)',
+  fontSize: 9,
+  letterSpacing: 1.2,
+  textTransform: 'uppercase',
+  color: 'var(--color-accent)',
+  border: '1px solid color-mix(in srgb, var(--color-accent) 40%, transparent)',
+  padding: '1px 5px',
+  whiteSpace: 'nowrap',
+}
+
+function eventTypeOptions(current: string | null | undefined): string[] {
+  return current && !EVENT_TYPES.includes(current) ? [...EVENT_TYPES, current] : EVENT_TYPES
 }
 
 function StepRow({
-  step, index, onUpdate, onDelete, onMoveUp, onMoveDown, isFirst, isLast, supplyTypes,
+  step, index, day, onUpdate, onDelete, onMoveUp, onMoveDown, isFirst, isLast, supplyTypes,
 }: {
   step: WorkflowStepResponse
   index: number
+  /** Days from the first step to this one along the main flow; null for side-branch steps. */
+  day: number | null
   onUpdate: (data: Record<string, unknown>) => void
   onDelete: () => void
   onMoveUp: () => void
@@ -53,7 +67,158 @@ function StepRow({
 }) {
   const { t } = useTranslation()
   const [editing, setEditing] = useState(false)
+  const [days, setDays] = useState(String(step.daysAfterPrevious ?? 0))
+  const eventLabel = (et: string) => (et ? t(`eventType.${et}`, { defaultValue: et }) : t('workflows.noneEvent'))
+
+  const commitDays = () => {
+    const parsed = Number.parseInt(days, 10)
+    if (Number.isNaN(parsed) || parsed < 0) {
+      setDays(String(step.daysAfterPrevious ?? 0))
+      return
+    }
+    setDays(String(parsed))
+    if (parsed !== (step.daysAfterPrevious ?? 0)) onUpdate({ daysAfterPrevious: parsed })
+  }
+
+  return (
+    <div style={{ borderBottom: '1px solid var(--color-divider)' }}>
+      <div
+        className="ledger-grid"
+        data-mobile-hide="4 5"
+        style={{
+          '--mobile-cols': 'auto minmax(0, 1fr) 52px auto',
+          display: 'grid',
+          gridTemplateColumns: GRID_COLUMNS,
+          gap: 16,
+          padding: '12px 0',
+          alignItems: 'center',
+        } as React.CSSProperties}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span style={{ display: 'flex', flexDirection: 'column' }}>
+            <button type="button" aria-label={t('workflows.moveUp')} onClick={onMoveUp} disabled={isFirst} style={arrowStyle(isFirst)}>▲</button>
+            <button type="button" aria-label={t('workflows.moveDown')} onClick={onMoveDown} disabled={isLast} style={arrowStyle(isLast)}>▼</button>
+          </span>
+          <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 16, color: 'var(--color-forest)' }}>
+            {String(index + 1).padStart(2, '0')}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          style={{ background: 'transparent', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', minWidth: 0, color: 'inherit' }}
+        >
+          <span style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 300 }}>{step.name}</span>
+            {step.isOptional && <span style={tagStyle}>{t('workflows.optional')}</span>}
+            {step.isSideBranch && (
+              <span style={tagStyle}>{t('workflows.sideBranch')}{step.sideBranchName ? `: ${step.sideBranchName}` : ''}</span>
+            )}
+          </span>
+          {step.description && (
+            <span
+              style={{
+                display: 'block',
+                marginTop: 2,
+                fontSize: 13,
+                color: 'var(--color-forest)',
+                opacity: 0.75,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {step.description}
+            </span>
+          )}
+        </button>
+
+        <input
+          className="inline-input"
+          inputMode="numeric"
+          aria-label={`${t('workflows.daysAfterPrevious')}, ${step.name}`}
+          value={days}
+          onChange={(e) => setDays(e.target.value.replace(/\D/g, ''))}
+          onBlur={commitDays}
+          onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
+          style={{ textAlign: 'right', fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--color-mustard)' }}
+        />
+
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--color-forest)', opacity: 0.7, textAlign: 'right' }}>
+          {day ?? '–'}
+        </span>
+
+        <select
+          className="inline-select"
+          aria-label={`${t('workflows.eventType')}, ${step.name}`}
+          value={step.eventType ?? ''}
+          onChange={(e) => onUpdate({ eventType: e.target.value })}
+          style={{ fontSize: 14 }}
+        >
+          {eventTypeOptions(step.eventType).map((et) => <option key={et} value={et}>{eventLabel(et)}</option>)}
+        </select>
+
+        <button
+          type="button"
+          aria-label={`${t('workflows.deleteStep')}, ${step.name}`}
+          onClick={onDelete}
+          style={{ background: 'transparent', border: 'none', color: 'var(--color-clay)', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: 0, opacity: 0.7 }}
+        >
+          ×
+        </button>
+      </div>
+
+      {step.eventType === 'APPLIED_SUPPLY' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 120px', gap: 16, padding: '0 0 12px 68px', maxWidth: 560 }}>
+          <label style={{ display: 'block' }}>
+            <span style={{ ...headStyle, display: 'block', marginBottom: 2 }}>{t('supplyApplication.suggestedSupply')}</span>
+            <select
+              className="inline-select"
+              value={step.suggestedSupplyTypeId ?? ''}
+              onChange={(e) =>
+                onUpdate({
+                  suggestedSupplyTypeId: e.target.value ? Number(e.target.value) : null,
+                  clearSuggestedSupply: !e.target.value,
+                })
+              }
+              style={{ fontSize: 14 }}
+            >
+              <option value="">{t('common.none')}</option>
+              {supplyTypes?.filter((st) => st.category === 'FERTILIZER').map((st) => (
+                <option key={st.id} value={st.id}>{st.name}</option>
+              ))}
+            </select>
+          </label>
+          <label style={{ display: 'block' }}>
+            <span style={{ ...headStyle, display: 'block', marginBottom: 2 }}>{t('supplyApplication.suggestedQuantity')}</span>
+            <input
+              className="inline-input"
+              inputMode="decimal"
+              defaultValue={step.suggestedQuantity != null ? String(step.suggestedQuantity) : ''}
+              onBlur={(e) => onUpdate({ suggestedQuantity: e.target.value ? Number(e.target.value) : null })}
+              style={{ fontSize: 14 }}
+            />
+          </label>
+        </div>
+      )}
+
+      {editing && (
+        <StepDialog step={step} supplyTypes={supplyTypes} onClose={() => setEditing(false)} onSave={(data) => { onUpdate(data); setEditing(false) }} />
+      )}
+    </div>
+  )
+}
+
+function StepDialog({ step, supplyTypes, onClose, onSave }: {
+  step: WorkflowStepResponse
+  supplyTypes?: SupplyTypeResponse[]
+  onClose: () => void
+  onSave: (data: Record<string, unknown>) => void
+}) {
+  const { t } = useTranslation()
   const [name, setName] = useState(step.name)
+  const [description, setDescription] = useState(step.description ?? '')
   const [eventType, setEventType] = useState(step.eventType ?? '')
   const [days, setDays] = useState(step.daysAfterPrevious ?? 0)
   const [isOptional, setIsOptional] = useState(step.isOptional)
@@ -64,148 +229,63 @@ function StepRow({
 
   const save = () => {
     const suggestSet = eventType === 'APPLIED_SUPPLY' && suggestedSupplyTypeId !== ''
-    onUpdate({
-      name, eventType: eventType || null, daysAfterPrevious: days || null,
+    onSave({
+      name: name.trim(), description: description.trim(), eventType, daysAfterPrevious: days,
       isOptional, isSideBranch, sideBranchName: isSideBranch ? sideBranchName : null,
       suggestedSupplyTypeId: suggestSet ? Number(suggestedSupplyTypeId) : null,
       suggestedQuantity: suggestSet && suggestedQuantity !== '' ? Number(suggestedQuantity) : null,
       clearSuggestedSupply: !suggestSet,
     })
-    setEditing(false)
   }
 
   return (
-    <>
-      <div style={{ borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)' }}>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '40px 1.5fr 100px 140px 40px',
-            gap: 18,
-            padding: '14px 0',
-            alignItems: 'center',
-          }}
-        >
-          {/* № */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <button
-              onClick={onMoveUp}
-              disabled={isFirst}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--color-forest)',
-                cursor: isFirst ? 'default' : 'pointer',
-                opacity: isFirst ? 0.25 : 0.6,
-                fontFamily: 'var(--font-mono)',
-                fontSize: 10,
-                padding: '1px 4px',
-              }}
-            >▲</button>
-            <span
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontStyle: 'italic',
-                fontSize: 18,
-                color: 'var(--color-forest)',
-                lineHeight: 1,
-              }}
-            >
-              {String(index + 1).padStart(2, '0')}
-            </span>
-            <button
-              onClick={onMoveDown}
-              disabled={isLast}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--color-forest)',
-                cursor: isLast ? 'default' : 'pointer',
-                opacity: isLast ? 0.25 : 0.6,
-                fontFamily: 'var(--font-mono)',
-                fontSize: 10,
-                padding: '1px 4px',
-              }}
-            >▼</button>
+    <Dialog open title={step.name} onClose={onClose}>
+      <div className="space-y-3">
+        <div>
+          <label className="field-label" htmlFor="step-name">{t('workflows.stepName')}</label>
+          <input id="step-name" value={name} onChange={(e) => setName(e.target.value)} className="input w-full" autoFocus />
+        </div>
+        <div>
+          <label className="field-label" htmlFor="step-description">{t('workflows.stepDescription')}</label>
+          <textarea id="step-description" value={description} onChange={(e) => setDescription(e.target.value)} className="input w-full" rows={4} maxLength={2000} />
+        </div>
+        <div className="flex gap-3">
+          <div style={{ width: 120 }}>
+            <label className="field-label" htmlFor="step-days">{t('workflows.daysAfterPrevious')}</label>
+            <input id="step-days" type="number" min={0} value={days} onChange={(e) => setDays(Math.max(0, Number(e.target.value)))} className="input w-full" />
           </div>
-
-          {/* Name field — click to open edit dialog */}
-          <div onClick={() => setEditing(true)} style={{ cursor: 'pointer' }}>
-            <Field
-              label={t('workflows.stepName')}
-              value={step.name}
-            />
-          </div>
-
-          {/* Days after previous */}
-          <div onClick={() => setEditing(true)} style={{ cursor: 'pointer' }}>
-            <Field
-              label={t('workflows.daysAfterPrevious')}
-              value={step.daysAfterPrevious != null ? String(step.daysAfterPrevious) : ''}
-              accent="mustard"
-            />
-          </div>
-
-          {/* Event type */}
-          <div>
-            <span style={selectLabelStyle}>{t('workflows.eventType')}</span>
-            <select
-              value={step.eventType ?? ''}
-              onChange={(e) => {
-                onUpdate({ eventType: e.target.value || null })
-              }}
-              style={selectStyle}
-            >
-              {EVENT_TYPES.map((et) => (
-                <option key={et} value={et}>
-                  {et ? t(`eventType.${et}`, { defaultValue: et }) : t('workflows.noneEvent')}
-                </option>
+          <div className="flex-1">
+            <label className="field-label" htmlFor="step-event">{t('workflows.eventType')}</label>
+            <select id="step-event" value={eventType} onChange={(e) => setEventType(e.target.value)} className="input w-full">
+              {eventTypeOptions(eventType).map((et) => (
+                <option key={et} value={et}>{et ? t(`eventType.${et}`, { defaultValue: et }) : t('workflows.noneEvent')}</option>
               ))}
             </select>
           </div>
-
-          {/* Delete */}
-          <button
-            onClick={onDelete}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--color-accent)',
-              cursor: 'pointer',
-              fontFamily: 'var(--font-mono)',
-              fontSize: 10,
-              letterSpacing: 1.4,
-              textTransform: 'uppercase',
-              padding: 0,
-            }}
-          >
-            ↵
-          </button>
         </div>
-
-        {/* APPLIED_SUPPLY sub-grid */}
-        {step.eventType === 'APPLIED_SUPPLY' && (
-          <div
-            style={{
-              gridColumn: '1 / -1',
-              paddingBottom: 14,
-              paddingLeft: 58,
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: 18,
-            }}
-          >
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={isOptional} onChange={(e) => setIsOptional(e.target.checked)} />
+          {t('workflows.optional')}
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={isSideBranch} onChange={(e) => setIsSideBranch(e.target.checked)} />
+          {t('workflows.sideBranch')}
+        </label>
+        {isSideBranch && (
+          <div>
+            <label className="field-label" htmlFor="step-branch">{t('workflows.sideBranchName')}</label>
+            <input id="step-branch" value={sideBranchName} onChange={(e) => setSideBranchName(e.target.value)} className="input w-full" />
+          </div>
+        )}
+        {eventType === 'APPLIED_SUPPLY' && (
+          <>
             <div>
-              <span style={selectLabelStyle}>{t('supplyApplication.suggestedSupply')}</span>
+              <label className="field-label" htmlFor="step-supply">{t('supplyApplication.suggestedSupply')}</label>
               <select
-                value={step.suggestedSupplyTypeId ?? ''}
-                onChange={(e) =>
-                  onUpdate({
-                    suggestedSupplyTypeId: e.target.value ? Number(e.target.value) : null,
-                    clearSuggestedSupply: !e.target.value,
-                  })
-                }
-                style={selectStyle}
+                id="step-supply"
+                value={suggestedSupplyTypeId}
+                onChange={(e) => setSuggestedSupplyTypeId(e.target.value !== '' ? Number(e.target.value) : '')}
+                className="input w-full"
               >
                 <option value="">{t('common.none')}</option>
                 {supplyTypes?.filter((st) => st.category === 'FERTILIZER').map((st) => (
@@ -213,90 +293,36 @@ function StepRow({
                 ))}
               </select>
             </div>
-            <Field
-              label={t('supplyApplication.suggestedQuantity')}
-              editable
-              value={step.suggestedQuantity != null ? String(step.suggestedQuantity) : ''}
-              onChange={(v) =>
-                onUpdate({
-                  suggestedQuantity: v ? Number(v) : null,
-                })
-              }
-            />
-          </div>
+            <div>
+              <label className="field-label" htmlFor="step-quantity">{t('supplyApplication.suggestedQuantity')}</label>
+              <input
+                id="step-quantity"
+                type="number"
+                step="0.01"
+                value={suggestedQuantity}
+                onChange={(e) => setSuggestedQuantity(e.target.value)}
+                className="input w-full"
+              />
+            </div>
+          </>
         )}
+        <div className="flex gap-2">
+          <button className="btn-secondary flex-1" onClick={onClose}>{t('common.cancel')}</button>
+          <button className="btn-primary flex-1" disabled={!name.trim()} onClick={save}>{t('common.save')}</button>
+        </div>
       </div>
-
-      {/* Full edit dialog for optional/side-branch and other advanced fields */}
-      {editing && (
-        <Dialog open={editing} title={step.name} onClose={() => setEditing(false)}>
-          <div className="space-y-3">
-            <div>
-              <label className="field-label">{t('workflows.stepName')}</label>
-              <input value={name} onChange={(e) => setName(e.target.value)} className="input w-full" autoFocus />
-            </div>
-            <div>
-              <label className="field-label">{t('workflows.eventType')}</label>
-              <select value={eventType} onChange={(e) => setEventType(e.target.value)} className="input w-full">
-                {EVENT_TYPES.map((et) => (
-                  <option key={et} value={et}>{et || t('workflows.noneEvent')}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="field-label">{t('workflows.daysAfterPrevious')}</label>
-              <input type="number" min={0} value={days} onChange={(e) => setDays(Number(e.target.value))} className="input w-full" />
-            </div>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={isOptional} onChange={(e) => setIsOptional(e.target.checked)} />
-              {t('workflows.optional')}
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={isSideBranch} onChange={(e) => setIsSideBranch(e.target.checked)} />
-              {t('workflows.sideBranch')}
-            </label>
-            {isSideBranch && (
-              <div>
-                <label className="field-label">{t('workflows.sideBranchName')}</label>
-                <input value={sideBranchName} onChange={(e) => setSideBranchName(e.target.value)} className="input w-full" />
-              </div>
-            )}
-            {eventType === 'APPLIED_SUPPLY' && (
-              <>
-                <div>
-                  <label className="field-label">{t('supplyApplication.suggestedSupply')}</label>
-                  <select
-                    value={suggestedSupplyTypeId}
-                    onChange={(e) => setSuggestedSupplyTypeId(e.target.value !== '' ? Number(e.target.value) : '')}
-                    className="input w-full"
-                  >
-                    <option value="">{t('common.none')}</option>
-                    {supplyTypes?.filter((st) => st.category === 'FERTILIZER').map((st) => (
-                      <option key={st.id} value={st.id}>{st.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="field-label">{t('supplyApplication.suggestedQuantity')}</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={suggestedQuantity}
-                    onChange={(e) => setSuggestedQuantity(e.target.value)}
-                    className="input w-full"
-                  />
-                </div>
-              </>
-            )}
-            <div className="flex gap-2">
-              <button className="btn-secondary flex-1" onClick={() => setEditing(false)}>{t('common.cancel')}</button>
-              <button className="btn-primary flex-1" disabled={!name.trim()} onClick={save}>{t('common.save')}</button>
-            </div>
-          </div>
-        </Dialog>
-      )}
-    </>
+    </Dialog>
   )
+}
+
+/** Days from the first step to each step along the main flow; side-branch steps run on their own clock. */
+export function mainFlowDays(steps: WorkflowStepResponse[]): (number | null)[] {
+  let total = 0
+  return steps.map((step, index) => {
+    if (step.isSideBranch) return null
+    if (index > 0) total += step.daysAfterPrevious ?? 0
+    return total
+  })
 }
 
 export function WorkflowTemplateEdit() {
@@ -381,6 +407,7 @@ export function WorkflowTemplateEdit() {
   if (!template) return null
 
   const sortedSteps = [...template.steps].sort((a, b) => a.sortOrder - b.sortOrder)
+  const days = mainFlowDays(sortedSteps)
 
   return (
     <div>
@@ -398,23 +425,28 @@ export function WorkflowTemplateEdit() {
 
       <div className="page-body-tight">
         {/* Template-level fields */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 28px' }}>
+        <div style={{ display: 'grid', gap: 20, maxWidth: 900 }}>
           <Field
             label={t('common.nameLabel')}
             editable
             value={name}
             onChange={setName}
           />
-          <Field
-            label={t('common.descriptionLabel')}
-            editable
-            value={desc}
-            onChange={setDesc}
-          />
+          <label style={{ display: 'block' }}>
+            <span style={{ ...headStyle, display: 'block', marginBottom: 4 }}>{t('common.descriptionLabel')}</span>
+            <textarea
+              className="inline-input"
+              value={desc}
+              onChange={(e) => setDesc(e.target.value)}
+              rows={2}
+              maxLength={2000}
+              style={{ fontSize: 15, resize: 'vertical' }}
+            />
+          </label>
         </div>
 
         {/* § Steg. heading */}
-        <div style={{ marginTop: 40, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ marginTop: 36, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <h2
             style={{
               fontFamily: 'var(--font-display)',
@@ -436,9 +468,9 @@ export function WorkflowTemplateEdit() {
           </button>
         </div>
 
-        {/* Step rows */}
+        {/* Step table */}
         <div style={{ marginTop: 14 }}>
-          {sortedSteps.length === 0 && (
+          {sortedSteps.length === 0 ? (
             <p
               style={{
                 fontFamily: 'var(--font-display)',
@@ -451,12 +483,31 @@ export function WorkflowTemplateEdit() {
             >
               {t('workflows.noSteps')}
             </p>
+          ) : (
+            <div
+              className="ledger-head"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: GRID_COLUMNS,
+                gap: 16,
+                paddingBottom: 6,
+                borderBottom: '1px solid var(--color-ink)',
+              }}
+            >
+              <span style={headStyle}>#</span>
+              <span style={headStyle}>{t('workflows.stepColumn')}</span>
+              <span style={{ ...headStyle, textAlign: 'right' }} title={t('workflows.daysAfterPrevious')}>{t('workflows.daysColumn')}</span>
+              <span style={{ ...headStyle, textAlign: 'right' }}>{t('workflows.dayColumn')}</span>
+              <span style={headStyle}>{t('workflows.eventColumn')}</span>
+              <span />
+            </div>
           )}
           {sortedSteps.map((step, idx) => (
             <StepRow
-              key={step.id}
+              key={`${step.id}-${step.daysAfterPrevious ?? 0}`}
               step={step}
               index={idx}
+              day={days[idx]}
               onUpdate={(data) => updateStepMut.mutate({ stepId: step.id, data })}
               onDelete={() => deleteStepMut.mutate(step.id)}
               onMoveUp={() => moveStep(step.id, 'up')}

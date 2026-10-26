@@ -84,10 +84,11 @@ class WorkflowService(
     fun updateTemplateStep(stepId: Long, request: UpdateWorkflowStepRequest, orgId: Long): WorkflowStepResponse {
         val step = findTemplateStepById(stepId, orgId)
         val clear = request.clearSuggestedSupply == true
+        // Null leaves a field as it is; an empty string clears it.
         val updated = step.copy(
             name = request.name ?: step.name,
-            description = request.description ?: step.description,
-            eventType = request.eventType ?: step.eventType,
+            description = request.description?.ifBlank { null } ?: step.description.takeIf { request.description == null },
+            eventType = request.eventType?.ifBlank { null } ?: step.eventType.takeIf { request.eventType == null },
             daysAfterPrevious = request.daysAfterPrevious ?: step.daysAfterPrevious,
             isOptional = request.isOptional ?: step.isOptional,
             isSideBranch = request.isSideBranch ?: step.isSideBranch,

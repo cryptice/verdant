@@ -129,6 +129,9 @@
     "REMOVED": "Removed"
   },
   "eventType": {
+    "MOVED": "Moved",
+    "WATERED": "Watered",
+    "WEEDED": "Weeded",
     "SEEDED": "Seeded",
     "POTTED_UP": "Potted Up",
     "PLANTED_OUT": "Planted Out",
@@ -1830,6 +1833,13 @@
     "suggestedQuantity": "Suggested amount"
   },
   "workflows": {
+    "stepColumn": "Step",
+    "daysColumn": "Days",
+    "dayColumn": "Day",
+    "eventColumn": "Event",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "stepDescription": "Description",
     "title": "Workflows",
     "newTemplate": "+ New template",
     "editTemplate": "Edit Workflow",

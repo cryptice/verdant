@@ -129,6 +129,9 @@
     "REMOVED": "Borttaget"
   },
   "eventType": {
+    "MOVED": "Flyttad",
+    "WATERED": "Vattnad",
+    "WEEDED": "Rensad",
     "SEEDED": "Sådd",
     "POTTED_UP": "Omskolad",
     "PLANTED_OUT": "Planterat ut",
@@ -1830,6 +1833,13 @@
     "suggestedQuantity": "Föreslagen mängd"
   },
   "workflows": {
+    "stepColumn": "Steg",
+    "daysColumn": "Dagar",
+    "dayColumn": "Dag",
+    "eventColumn": "Händelse",
+    "moveUp": "Flytta upp",
+    "moveDown": "Flytta ned",
+    "stepDescription": "Beskrivning",
     "title": "Arbetsflöden",
     "newTemplate": "+ Nytt arbetsflöde",
     "editTemplate": "Redigera arbetsflöde",

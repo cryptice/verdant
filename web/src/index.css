@@ -449,3 +449,13 @@ select:focus {
   background: none; border: none; padding: 0 2px; font: inherit; color: var(--color-accent);
   text-decoration: underline; cursor: pointer;
 }
+
+/* Fields that read as plain text in a table row: a faint line on hover, the accent line while editing */
+.inline-input, .inline-select {
+  display: block; width: 100%; min-width: 0; background: transparent; border: none;
+  border-bottom: 1px solid transparent; border-radius: 0; padding: 2px 0; font: inherit; color: var(--color-ink);
+  outline: none; text-overflow: ellipsis;
+}
+.inline-input:hover, .inline-select:hover { border-bottom-color: color-mix(in srgb, var(--color-ink) 25%, transparent); }
+.inline-input:focus, .inline-select:focus { border-bottom-color: var(--color-accent); }
+.inline-select { cursor: pointer; }
