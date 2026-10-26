@@ -437,3 +437,15 @@ select:focus {
 .animate-zoom-bounce { animation: zoom-bounce 0.6s ease-out; }
 .animate-glitter { animation: glitter 1.5s ease-in-out; }
 .animate-gentle-bounce { animation: gentle-bounce 0.5s ease-out 0.3s both; }
+
+/* A newer build is deployed: offered at the top until reloaded or put off */
+.update-prompt {
+  position: fixed; top: env(safe-area-inset-top, 0); left: 50%; transform: translateX(-50%); z-index: 60;
+  margin-top: 8px; padding: 8px 14px; border-radius: 8px; background: var(--color-paper);
+  border: 1px solid var(--color-divider); color: var(--color-ink); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  font-size: 13px; max-width: calc(100vw - 32px);
+}
+.update-prompt-button {
+  background: none; border: none; padding: 0 2px; font: inherit; color: var(--color-accent);
+  text-decoration: underline; cursor: pointer;
+}

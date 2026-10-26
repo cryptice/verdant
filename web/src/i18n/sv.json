@@ -1,4 +1,9 @@
 {
+  "updatePrompt": {
+    "ready": "En ny version av Verdant finns.",
+    "reload": "Ladda om",
+    "later": "Senare"
+  },
   "apiKeys": {
     "masthead": "— API-nycklar —",
     "title": "API-nycklar",

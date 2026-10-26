@@ -4,6 +4,7 @@ import { useAuth } from './auth/AuthContext'
 import { useOrg } from './auth/OrgContext'
 import { loginReturnTo } from './auth/loginReturnTo'
 import { LandingPage } from './pages/LandingPage'
+import { UpdatePrompt } from './components/UpdatePrompt'
 
 const McpAuthorizePage = lazy(() => import('./pages/McpAuthorizePage').then(m => ({ default: m.McpAuthorizePage })))
 const McpConnections = lazy(() => import('./pages/McpConnections').then(m => ({ default: m.McpConnections })))
@@ -145,6 +146,7 @@ export function App() {
         </Route>
         {!loading && !token && <Route path="*" element={<Navigate to="/login" replace />} />}
       </Routes>
+      <UpdatePrompt />
     </Suspense>
   )
 }

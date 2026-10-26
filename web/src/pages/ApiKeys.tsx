@@ -64,7 +64,7 @@ export function ApiKeys() {
         </div>
 
         {created && (
-          <section aria-label={t('apiKeys.newKey')} style={{ marginTop: 24, padding: 16, border: '1px solid var(--color-rule)' }}>
+          <section aria-label={t('apiKeys.newKey')} style={{ marginTop: 24, padding: 16, border: '1px solid var(--color-divider)' }}>
             <strong>{t('apiKeys.newKey')}</strong>
             <p>{t('apiKeys.showOnce')}</p>
             <textarea
@@ -90,7 +90,7 @@ export function ApiKeys() {
         {(keys.isError || create.isError || revoke.isError) && <p role="alert">{t('apiKeys.error')}</p>}
         {keys.data?.length === 0 && <p style={{ marginTop: 24 }}>{t('apiKeys.none')}</p>}
         {keys.data?.map(key => (
-          <article key={key.id} style={{ borderTop: '1px solid var(--color-rule)', padding: '20px 0', marginTop: 24 }}>
+          <article key={key.id} style={{ borderTop: '1px solid var(--color-divider)', padding: '20px 0', marginTop: 24 }}>
             <strong>{key.name}</strong>
             <p>
               {t('apiKeys.createdAt', { date: date(key.createdAt) })} · {t('apiKeys.expiresAt', { date: date(key.expiresAt) })} ·{' '}

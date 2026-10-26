@@ -2,9 +2,27 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath } from 'node:url'
+import type { Plugin } from 'vite'
+
+// Identifies this build. The app compares it with /version.json to offer a reload once a newer build is deployed
+// (components/UpdatePrompt.tsx).
+const appVersion = new Date().toISOString()
+
+function versionFile(): Plugin {
+  return {
+    name: 'verdant-version-file',
+    apply: 'build',
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ version: appVersion }) })
+    },
+  }
+}
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), versionFile()],
+  define: {
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
+  },
   resolve: {
     alias: {
       '@verdant/shared': fileURLToPath(new URL('../shared/src/index.ts', import.meta.url)),

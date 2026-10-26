@@ -1,4 +1,9 @@
 {
+  "updatePrompt": {
+    "ready": "A new version of Verdant is ready.",
+    "reload": "Reload",
+    "later": "Later"
+  },
   "apiKeys": {
     "masthead": "— API keys —",
     "title": "API keys",
