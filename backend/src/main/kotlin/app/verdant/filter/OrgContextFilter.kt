@@ -1,5 +1,6 @@
 package app.verdant.filter
 
+import app.verdant.auth.ApiKeyService
 import app.verdant.repository.OrgMemberRepository
 import app.verdant.mcp.McpOAuthService
 import app.verdant.mcp.McpConfig
@@ -19,8 +20,11 @@ class OrgContextFilter(
     private val orgContext: OrgContext,
     private val mcp: McpOAuthService,
     private val mcpConfig: McpConfig,
+    private val apiKeys: ApiKeyService,
 ) : ContainerRequestFilter {
 
+    // Paths that act on the account rather than one organization. New account-level paths belong here,
+    // which also keeps them out of reach of API keys (see apiKeyBlockedPrefixes).
     private val exemptPrefixes = listOf(
         "api/auth/",
         "api/mcp/oauth/",
@@ -35,6 +39,10 @@ class OrgContextFilter(
         "api/swagger-ui",
         "q/",
     )
+
+    // API keys reach only their organization's data: no account, organization, admin or key management.
+    private val apiKeyAllowedExempt = listOf("api/openapi", "api/swagger-ui")
+    private val apiKeyBlockedPrefixes = exemptPrefixes.filterNot { it in apiKeyAllowedExempt } + "api/api-keys"
 
     override fun filter(requestContext: ContainerRequestContext) {
         val path = requestContext.uriInfo.path.removePrefix("/")
@@ -52,6 +60,29 @@ class OrgContextFilter(
         // Delegated read-only credentials must never authorize the regular application API.
         if (jwt.getClaim<String>("token_type") == "mcp") {
             requestContext.abortWith(Response.status(403).build())
+            return
+        }
+
+        if (ApiKeyService.isApiKey(jwt)) {
+            val key = apiKeys.authorize(jwt)
+            if (key == null) {
+                requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(mapOf("message" to "API key is invalid, expired or revoked")).build())
+                return
+            }
+            if (apiKeyBlockedPrefixes.any { path.startsWith(it) }) {
+                requestContext.abortWith(Response.status(Response.Status.FORBIDDEN)
+                    .entity(mapOf("message" to "API keys cannot use this endpoint")).build())
+                return
+            }
+            val orgIdHeader = requestContext.getHeaderString("X-Organization-Id")
+            if (!orgIdHeader.isNullOrBlank() && orgIdHeader.toLongOrNull() != key.orgId) {
+                requestContext.abortWith(Response.status(Response.Status.FORBIDDEN)
+                    .entity(mapOf("message" to "API key belongs to another organization")).build())
+                return
+            }
+            orgContext.orgId = key.orgId
+            orgContext.userId = key.userId
             return
         }
 

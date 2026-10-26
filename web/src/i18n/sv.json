@@ -1,4 +1,28 @@
 {
+  "apiKeys": {
+    "masthead": "— API-nycklar —",
+    "title": "API-nycklar",
+    "intro": "En API-nyckel låter ett skript eller en AI-assistent som Claude Code läsa och ändra den här organisationens data åt dig. Nyckeln kan inte hantera konto, organisationer eller andra nycklar. Återkallning stoppar den direkt.",
+    "name": "Namn",
+    "validity": "Giltig",
+    "days_one": "{{count}} dag",
+    "days_other": "{{count}} dagar",
+    "create": "Skapa nyckel",
+    "newKey": "Ny nyckel",
+    "showOnce": "Kopiera nyckeln nu. Den visas bara den här gången. Förvara den som ett lösenord.",
+    "token": "Nyckel",
+    "copy": "Kopiera",
+    "copied": "Kopierad",
+    "done": "Klar",
+    "usage": "Skicka den som Bearer-token. Organisationen följer med nyckeln:",
+    "none": "Inga aktiva nycklar.",
+    "createdAt": "Skapad {{date}}",
+    "expiresAt": "går ut {{date}}",
+    "lastUsedAt": "senast använd {{date}}",
+    "neverUsed": "aldrig använd",
+    "revoke": "Återkalla",
+    "error": "Kunde inte hantera nycklarna. Försök igen."
+  },
   "app": {
     "subtitle": "Est. 2026"
   },
@@ -228,6 +252,7 @@
     }
   },
   "account": {
+    "apiKeys": "API-nycklar",
     "title": "Konto",
     "signOut": "Logga ut",
     "deleteAccount": "Radera konto",

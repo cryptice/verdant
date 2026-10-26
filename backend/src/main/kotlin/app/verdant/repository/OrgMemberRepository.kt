@@ -64,6 +64,12 @@ class OrgMemberRepository(private val ds: AgroalDataSource) {
                 val rows = ps.executeUpdate()
                 if (rows == 0) throw jakarta.ws.rs.NotFoundException("Org member not found")
             }
+            // Leaving ends the user's API keys for the organization for good, so rejoining doesn't revive them.
+            conn.prepareStatement("UPDATE api_key SET revoked_at = now() WHERE org_id = ? AND user_id = ? AND revoked_at IS NULL").use { ps ->
+                ps.setLong(1, orgId)
+                ps.setLong(2, userId)
+                ps.executeUpdate()
+            }
         }
     }
 

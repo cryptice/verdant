@@ -330,6 +330,8 @@ Year-over-year performance dashboard with three views:
 
 View your profile and sign out. Delete your account and all associated data if needed.
 
+**API keys** (Account → API-nycklar) let a script or an AI assistant such as Claude Code read and change the current organization's data through the regular API. Choose a name and how long the key is valid (30, 90 or 365 days); the key is shown once, so copy it then. Send it as `Authorization: Bearer <key>`. The organization comes with the key, so no `X-Organization-Id` header is needed. A key cannot manage your account, organizations, admin pages or other keys. Revoking a key, leaving the organization or letting it expire stops it immediately.
+
 ---
 
 ## Tutorial: Your First Season

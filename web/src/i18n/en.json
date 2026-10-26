@@ -1,4 +1,28 @@
 {
+  "apiKeys": {
+    "masthead": "— API keys —",
+    "title": "API keys",
+    "intro": "An API key lets a script or an AI assistant such as Claude Code read and change this organization's data for you. The key cannot manage your account, organizations or other keys. Revoking stops it immediately.",
+    "name": "Name",
+    "validity": "Valid for",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "create": "Create key",
+    "newKey": "New key",
+    "showOnce": "Copy the key now. It is shown only this once. Keep it like a password.",
+    "token": "Key",
+    "copy": "Copy",
+    "copied": "Copied",
+    "done": "Done",
+    "usage": "Send it as a Bearer token. The organization comes with the key:",
+    "none": "No active keys.",
+    "createdAt": "Created {{date}}",
+    "expiresAt": "expires {{date}}",
+    "lastUsedAt": "last used {{date}}",
+    "neverUsed": "never used",
+    "revoke": "Revoke",
+    "error": "Could not manage the keys. Try again."
+  },
   "app": {
     "subtitle": "Est. 2026"
   },
@@ -228,6 +252,7 @@
     }
   },
   "account": {
+    "apiKeys": "API keys",
     "title": "Account",
     "signOut": "Sign out",
     "deleteAccount": "Delete account",

@@ -7,6 +7,7 @@ import { LandingPage } from './pages/LandingPage'
 
 const McpAuthorizePage = lazy(() => import('./pages/McpAuthorizePage').then(m => ({ default: m.McpAuthorizePage })))
 const McpConnections = lazy(() => import('./pages/McpConnections').then(m => ({ default: m.McpConnections })))
+const ApiKeys = lazy(() => import('./pages/ApiKeys').then(m => ({ default: m.ApiKeys })))
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })))
 const OrgSetup = lazy(() => import('./pages/OrgSetup').then(m => ({ default: m.OrgSetup })))
 const Layout = lazy(() => import('./components/Layout').then(m => ({ default: m.Layout })))
@@ -140,6 +141,7 @@ export function App() {
           <Route path="org/settings" element={<OrgSettings />} />
           <Route path="account" element={<Account />} />
           <Route path="account/mcp" element={<McpConnections />} />
+          <Route path="account/api-keys" element={<ApiKeys />} />
         </Route>
         {!loading && !token && <Route path="*" element={<Navigate to="/login" replace />} />}
       </Routes>
