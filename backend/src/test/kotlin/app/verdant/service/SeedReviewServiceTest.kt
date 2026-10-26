@@ -32,6 +32,7 @@ import io.smallrye.jwt.build.Jwt
 import jakarta.inject.Inject
 import jakarta.ws.rs.NotFoundException
 import org.eclipse.microprofile.config.inject.ConfigProperty
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
@@ -69,6 +70,17 @@ class SeedReviewServiceTest {
     @ConfigProperty(name = "smallrye.jwt.sign.key") lateinit var signingKey: Optional<String>
 
     private val http = HttpClient.newHttpClient()
+
+    // Sales and lots restrict deleting their outlet, plant and user, which would block other test classes that wipe
+    // organizations from the shared (reused) test database. Remove ours, including any left by earlier runs.
+    @AfterEach
+    fun removeSales() {
+        ds.connection.use { conn ->
+            val ours = "SELECT id FROM organization WHERE name = 'Seed review org'"
+            conn.prepareStatement("DELETE FROM sale WHERE sale_lot_id IN (SELECT id FROM sale_lot WHERE org_id IN ($ours))").use { it.executeUpdate() }
+            conn.prepareStatement("DELETE FROM sale_lot WHERE org_id IN ($ours)").use { it.executeUpdate() }
+        }
+    }
 
     private class Fixture(
         val orgId: Long,
