@@ -12,6 +12,8 @@ export default defineConfig({
       // A new version waits until the grower reloads (components/UpdatePrompt.tsx), so it never swaps the app
       // mid-task and the old version keeps its own files meanwhile.
       registerType: 'prompt',
+      // Quarkus serves unknown extensions such as .webmanifest as text/html; .json goes out as JSON.
+      manifestFilename: 'manifest.json',
       pwaAssets: { preset: 'minimal-2023', image: 'public/favicon.svg' },
       manifest: {
         name: 'Verdant Planner',
