@@ -10,6 +10,7 @@ import { SeedBatchDialog } from '../components/SeedBatchDialog'
 import { SeedPlanDialog } from '../components/SeedPlanDialog'
 import { SearchField } from '../components/SearchField'
 import { matchesAllTokens } from '../utils/search'
+import { useOnChange, useSessionState } from '../lib/listMemory'
 
 const SPECIES_TEMPLATE = '60px 1.5fr 120px 28px 28px'
 const BATCH_TEMPLATE = '1.5fr 100px 100px 120px 56px'
@@ -36,13 +37,10 @@ export function SeedInventory() {
 
   const { data: species } = useQuery({ queryKey: ['species'], queryFn: api.species.list })
 
-  const [expanded, setExpanded] = useState<Set<number>>(new Set())
-  const toggle = (speciesId: number) => setExpanded(prev => {
-    const next = new Set(prev)
-    if (next.has(speciesId)) next.delete(speciesId)
-    else next.add(speciesId)
-    return next
-  })
+  const [expandedIds, setExpandedIds] = useSessionState<number[]>('expanded.seed-stock', [])
+  const expanded = new Set(expandedIds)
+  const toggle = (speciesId: number) =>
+    setExpandedIds(prev => prev.includes(speciesId) ? prev.filter(id => id !== speciesId) : [...prev, speciesId])
 
   // Undefined batch means adding; the key remounts the form so it starts fresh.
   const [dialog, setDialog] = useState<{ batch?: SeedInventoryResponse; initialSpecies?: SpeciesResponse | null; key: number } | null>(null)
@@ -75,7 +73,7 @@ export function SeedInventory() {
     onError: (err) => { setDeleteError(err instanceof Error ? err.message : String(err)) },
   })
 
-  const [page, setPage] = useState(0)
+  const [storedPage, setPage] = useSessionState('page.seed-stock', 0)
   const pageSize = 50
 
   // Group batches by speciesId (computed every render so the effect below can
@@ -88,7 +86,7 @@ export function SeedInventory() {
     grouped.set(item.speciesId, group)
   }
   // A variety is found by its names and by its batches' suppliers.
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useSessionState('search.seed-stock', '')
   const groupEntries = Array.from(grouped.entries()).filter(([speciesId, batches]) => {
     if (!search.trim()) return true
     const sp = species?.find(s => s.id === speciesId)
@@ -98,7 +96,8 @@ export function SeedInventory() {
     )
   })
 
-  useEffect(() => { setPage(0) }, [groupEntries.length])
+  useOnChange(search, () => setPage(0))
+  const page = Math.min(storedPage, Math.max(0, Math.ceil(groupEntries.length / pageSize) - 1))
 
   if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
   if (error) return <ErrorDisplay error={error} onRetry={refetch} />

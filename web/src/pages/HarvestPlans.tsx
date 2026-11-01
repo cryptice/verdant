@@ -9,6 +9,7 @@ import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { DATE_INPUT_MAX } from '../lib/dateInput'
+import { useSessionState } from '../lib/listMemory'
 
 const activities = ['PURCHASE', 'SOW', 'POT_UP', 'PLANT', 'PINCH', 'SUPPORT', 'WATER', 'FERTILIZE', 'HARVEST', 'TODO']
 const unitTypes = ['SEED', 'PLUG', 'BULB', 'TUBER', 'PLANT']
@@ -88,7 +89,7 @@ export function HarvestPlans() {
   const qc = useQueryClient()
   const [params, setParams] = useSearchParams()
   const selectedId = Number(params.get('plan')) || undefined
-  const [page, setPage] = useState(0)
+  const [page, setPage] = useSessionState('page.harvest-plans', 0)
   const plans = useQuery({ queryKey: ['harvest-plans', page], queryFn: () => harvestPlans.list(page * 50) })
   const detail = useQuery({ queryKey: ['harvest-plan', selectedId], queryFn: () => harvestPlans.get(selectedId!), enabled: !!selectedId })
   const seasons = useQuery({ queryKey: ['seasons'], queryFn: api.seasons.list })

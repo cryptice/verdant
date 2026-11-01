@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type SuccessionScheduleResponse, type SpeciesResponse, type BedWithGardenResponse } from '../api/client'
 import { sortBedsWithGardenByNaturalName } from '../lib/bed'
@@ -10,6 +10,7 @@ import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 import { Masthead, LedgerPagination } from '../components/faltet'
 import { DATE_INPUT_MAX } from '../lib/dateInput'
+import { useOnChange, useSessionState } from '../lib/listMemory'
 
 const PAGE_SIZE = 50
 
@@ -35,7 +36,7 @@ export function SuccessionSchedules() {
   const { t } = useTranslation()
   const { completeStep } = useOnboarding()
 
-  const [seasonFilter, setSeasonFilter] = useState<number | undefined>(undefined)
+  const [seasonFilter, setSeasonFilter] = useSessionState<number | undefined>('season.successions', undefined)
 
   const { data: seasons } = useQuery({
     queryKey: ['seasons'],
@@ -52,8 +53,8 @@ export function SuccessionSchedules() {
     queryFn: () => api.successionSchedules.list(seasonFilter),
   })
 
-  const [page, setPage] = useState(0)
-  useEffect(() => { setPage(0) }, [seasonFilter])
+  const [page, setPage] = useSessionState('page.successions', 0)
+  useOnChange(seasonFilter, () => setPage(0))
   const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<SuccessionScheduleResponse | null>(null)
   const [deleteItem, setDeleteItem] = useState<SuccessionScheduleResponse | null>(null)

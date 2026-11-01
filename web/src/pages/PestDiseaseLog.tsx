@@ -1,6 +1,6 @@
 import React from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type PestDiseaseLogResponse, type SpeciesResponse, type BedWithGardenResponse } from '../api/client'
 import { sortBedsWithGardenByNaturalName } from '../lib/bed'
@@ -11,6 +11,7 @@ import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 import { DATE_INPUT_MAX } from '../lib/dateInput'
+import { useOnChange, useSessionState } from '../lib/listMemory'
 
 const CATEGORIES = ['PEST', 'DISEASE', 'DEFICIENCY', 'OTHER'] as const
 const SEVERITIES = ['LOW', 'MODERATE', 'HIGH', 'CRITICAL'] as const
@@ -53,7 +54,7 @@ export function PestDiseaseLog() {
   const { t } = useTranslation()
   const { completeStep } = useOnboarding()
 
-  const [seasonFilter, setSeasonFilter] = useState<number | undefined>(undefined)
+  const [seasonFilter, setSeasonFilter] = useSessionState<number | undefined>('season.pests', undefined)
 
   const { data: seasons } = useQuery({
     queryKey: ['seasons'],
@@ -70,9 +71,9 @@ export function PestDiseaseLog() {
     queryFn: () => api.pestDisease.list(seasonFilter),
   })
 
-  const [page, setPage] = useState(0)
+  const [page, setPage] = useSessionState('page.pests', 0)
   const pageSize = 50
-  useEffect(() => { setPage(0) }, [seasonFilter])
+  useOnChange(seasonFilter, () => setPage(0))
 
   const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<PestDiseaseLogResponse | null>(null)

@@ -17,4 +17,6 @@ if (typeof HTMLDialogElement !== 'undefined' && !HTMLDialogElement.prototype.sho
 
 afterEach(() => {
   cleanup()
+  // Lists remember their page and search for the session; each test starts without that memory.
+  sessionStorage.clear()
 })

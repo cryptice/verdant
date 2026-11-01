@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Navigate } from 'react-router-dom'
 import { HarvestPlans } from './HarvestPlans'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { latestSeason } from '../lib/season'
 import { api, type ProductionTargetResponse, type SpeciesResponse } from '../api/client'
@@ -12,6 +12,7 @@ import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 import { Masthead, Chip, LedgerPagination } from '../components/faltet'
 import { DATE_INPUT_MAX } from '../lib/dateInput'
+import { useOnChange, useSessionState } from '../lib/listMemory'
 
 const PAGE_SIZE = 50
 
@@ -113,7 +114,7 @@ function WeeklyProductionTargets({ tabs }: { tabs: React.ReactNode }) {
   const { t } = useTranslation()
   const { completeStep } = useOnboarding()
 
-  const [seasonFilter, setSeasonFilter] = useState<number | undefined>(undefined)
+  const [seasonFilter, setSeasonFilter] = useSessionState<number | undefined>('season.targets', undefined)
   const [expanded, setExpanded] = useState<Set<number>>(new Set())
 
   const toggle = (id: number) => setExpanded(prev => {
@@ -133,8 +134,8 @@ function WeeklyProductionTargets({ tabs }: { tabs: React.ReactNode }) {
     queryFn: () => api.productionTargets.list(seasonFilter),
   })
 
-  const [page, setPage] = useState(0)
-  useEffect(() => { setPage(0) }, [seasonFilter])
+  const [page, setPage] = useSessionState('page.targets', 0)
+  useOnChange(seasonFilter, () => setPage(0))
   const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<ProductionTargetResponse | null>(null)
   const [deleteItem, setDeleteItem] = useState<ProductionTargetResponse | null>(null)

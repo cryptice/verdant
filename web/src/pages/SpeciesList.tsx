@@ -10,6 +10,7 @@ import { OnboardingHint } from '../onboarding/OnboardingHint'
 import type { LedgerFilterOption } from '../components/faltet'
 import { matchesAllTokens } from '../utils/search'
 import { SearchField } from '../components/SearchField'
+import { useSessionState } from '../lib/listMemory'
 
 const ALL_TYPES = ['ANNUAL', 'BIENNIAL', 'PERENNIAL', 'BULB', 'TUBER'] as const
 type PlantType = typeof ALL_TYPES[number]
@@ -38,7 +39,7 @@ export function SpeciesList() {
     queryFn: api.species.list,
   })
 
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useSessionState('search.species', '')
   const [types, setTypes] = useState<Set<PlantType>>(new Set(ALL_TYPES))
   const [deleteItem, setDeleteItem] = useState<SpeciesResponse | null>(null)
 

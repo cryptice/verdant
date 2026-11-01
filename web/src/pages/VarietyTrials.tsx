@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type VarietyTrialResponse, type SpeciesResponse, type BedWithGardenResponse } from '../api/client'
 import { sortBedsWithGardenByNaturalName } from '../lib/bed'
@@ -9,6 +9,7 @@ import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import { useOnboarding } from '../onboarding/OnboardingContext'
+import { useOnChange, useSessionState } from '../lib/listMemory'
 
 const VERDICTS = ['KEEP', 'EXPAND', 'REDUCE', 'DROP', 'UNDECIDED'] as const
 const RECEPTIONS = ['LOVED', 'LIKED', 'NEUTRAL', 'DISLIKED'] as const
@@ -33,7 +34,7 @@ export function VarietyTrials() {
   const { t: tr } = useTranslation()
   const { completeStep } = useOnboarding()
 
-  const [seasonFilter, setSeasonFilter] = useState<number | undefined>(undefined)
+  const [seasonFilter, setSeasonFilter] = useSessionState<number | undefined>('season.trials', undefined)
 
   const { data: seasons } = useQuery({
     queryKey: ['seasons'],
@@ -55,9 +56,9 @@ export function VarietyTrials() {
     queryFn: () => api.varietyTrials.list(seasonFilter),
   })
 
-  const [page, setPage] = useState(0)
+  const [page, setPage] = useSessionState('page.trials', 0)
   const pageSize = 50
-  useEffect(() => { setPage(0) }, [seasonFilter])
+  useOnChange(seasonFilter, () => setPage(0))
 
   const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<VarietyTrialResponse | null>(null)

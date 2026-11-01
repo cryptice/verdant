@@ -90,4 +90,22 @@ describe('Ledger', () => {
     expect(screen.getByText('Row 6')).toBeInTheDocument()
     expect(screen.queryByText('Row 0')).not.toBeInTheDocument()
   })
+
+  test('a paginated list comes back on the page it was left on, and a new set of rows starts over', () => {
+    const rows = Array.from({ length: 12 }, (_, i) => ({ id: i + 1, name: `Row ${i + 1}`, count: i }))
+    const ledger = (r: typeof rows) => withI18n(<Ledger columns={columns} rows={r} rowKey={(x) => x.id} paginated pageSize={5} pageKey="memory" />)
+    const first = render(ledger(rows))
+    fireEvent.click(screen.getByLabelText('Next page'))
+    expect(screen.getByText('Row 6')).toBeInTheDocument()
+    first.unmount()
+
+    // Leaving and coming back, even while the rows load again, keeps the page.
+    const again = render(ledger([]))
+    again.rerender(ledger(rows))
+    expect(screen.getByText('Row 6')).toBeInTheDocument()
+
+    // A search showing other rows goes back to the first page.
+    again.rerender(ledger(rows.filter(r => r.id % 2 === 0)))
+    expect(screen.getByText('Row 2')).toBeInTheDocument()
+  })
 })

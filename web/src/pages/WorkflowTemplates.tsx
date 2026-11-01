@@ -7,6 +7,7 @@ import { Masthead, Ledger } from '../components/faltet'
 import { Dialog } from '../components/Dialog'
 import { SearchField } from '../components/SearchField'
 import { matchesAllTokens } from '../utils/search'
+import { useSessionState } from '../lib/listMemory'
 
 export function WorkflowTemplates() {
   const { t } = useTranslation()
@@ -24,7 +25,7 @@ export function WorkflowTemplates() {
   const { data: species = [] } = useQuery({ queryKey: ['species'], queryFn: api.species.list })
 
   // A workflow is found by its name, description and steps, and by the varieties that follow it.
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useSessionState('search.workflows', '')
   const filtered = useMemo(() => {
     if (!search.trim()) return templates
     const varieties = new Map<number, string[]>()

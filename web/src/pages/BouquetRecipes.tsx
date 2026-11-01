@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { api, type BouquetRecipeResponse, type SpeciesResponse } from '../api/client'
 import { ErrorDisplay } from '../components/ErrorDisplay'
@@ -7,6 +7,7 @@ import { Dialog } from '../components/Dialog'
 import { SpeciesAutocomplete } from '../components/SpeciesAutocomplete'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 import { Masthead, Chip, LedgerPagination } from '../components/faltet'
+import { useSessionState } from '../lib/listMemory'
 
 const ROLES = ['FLOWER', 'FOLIAGE', 'FILLER', 'ACCENT'] as const
 
@@ -50,9 +51,8 @@ export function BouquetRecipes() {
     return next
   })
 
-  const [page, setPage] = useState(0)
+  const [page, setPage] = useSessionState('page.bouquet-recipes', 0)
   const pageSize = 50
-  useEffect(() => { setPage(0) }, [data])
 
   const [showAdd, setShowAdd] = useState(false)
   const [editItem, setEditItem] = useState<BouquetRecipeResponse | null>(null)

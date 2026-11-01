@@ -291,6 +291,7 @@ function LedgerTab({
 
       <Ledger
         paginated
+        pageKey="sales.ledger"
         pageSize={50}
         columns={[
           { key: 'date',  label: t('sales.soldAt'),   width: '90px',
@@ -371,6 +372,7 @@ function LotsTab({ lots, isLoading, error, onRetry, onLotClick }: LotsTabProps) 
   return (
     <Ledger
       paginated
+      pageKey="sales.lots"
       pageSize={50}
       columns={[
         { key: 'source', label: t('sales.source'), width: '1.6fr',

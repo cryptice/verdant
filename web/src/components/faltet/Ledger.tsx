@@ -1,7 +1,8 @@
 // web/src/components/faltet/Ledger.tsx
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LedgerPagination } from './LedgerPagination'
+import { useSessionState } from '../../lib/listMemory'
 
 export type LedgerColumn<T> = {
   key: string
@@ -24,18 +25,27 @@ type Props<T> = {
   sectionHeaders?: (row: T, index: number, prev: T | null) => ReactNode | null
   paginated?: boolean
   pageSize?: number
+  /** A paginated list remembers its page per page address; two lists on one page need their own key. */
+  pageKey?: string
 }
 
 export function Ledger<T>({
   columns, rows, rowKey, onRowClick, emptyMessage, sectionHeaders,
-  paginated = false, pageSize = 50,
+  paginated = false, pageSize = 50, pageKey,
 }: Props<T>) {
   const { t } = useTranslation()
-  const [page, setPage] = useState(0)
+  const [storedPage, setPage] = useSessionState(`page.${pageKey ?? window.location.pathname}`, 0)
 
-  // Reset page when row identity-set changes (filter/search/data refetch).
+  // Back to the first page when the rows change (a search or filter), but not when they first arrive,
+  // so a remembered page survives the list loading again.
   const rowKeysFingerprint = rows.map(rowKey).join('|')
-  useEffect(() => { setPage(0) }, [rowKeysFingerprint])
+  const previousFingerprint = useRef(rowKeysFingerprint)
+  useEffect(() => {
+    const before = previousFingerprint.current
+    previousFingerprint.current = rowKeysFingerprint
+    if (before !== rowKeysFingerprint && before !== '') setPage(0)
+  }, [rowKeysFingerprint, setPage])
+  const page = Math.min(storedPage, Math.max(0, Math.ceil(rows.length / pageSize) - 1))
 
   const template = columns.map((c) => c.width ?? '1fr').join(' ')
   const mobileTemplate = columns
