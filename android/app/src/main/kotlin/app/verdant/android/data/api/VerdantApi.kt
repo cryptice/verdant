@@ -320,6 +320,16 @@ interface VerdantApi {
 
     @GET("api/species")
     suspend fun getSpecies(): List<SpeciesResponse>
+    @GET("api/providers")
+    suspend fun getProviders(): List<ProviderResponse>
+    @POST("api/species/{id}/providers")
+    suspend fun addSpeciesProvider(@Path("id") id: Long, @Body request: AddSpeciesProviderRequest): SpeciesProviderResponse
+    @DELETE("api/species/{id}/providers/{speciesProviderId}")
+    suspend fun removeSpeciesProvider(@Path("id") id: Long, @Path("speciesProviderId") speciesProviderId: Long)
+    @POST("api/species/{id}/photos")
+    suspend fun uploadSpeciesPhoto(@Path("id") id: Long, @Body request: UploadSpeciesPhotoRequest): SpeciesPhotoResponse
+    @DELETE("api/species/{id}/photos/{photoId}")
+    suspend fun deleteSpeciesPhoto(@Path("id") id: Long, @Path("photoId") photoId: Long)
     @POST("api/species/{id}/adopt")
     suspend fun adoptSpecies(@Path("id") id: Long, @Body request: AdoptSpeciesRequest): AdoptSpeciesResponse
     @GET("api/species")

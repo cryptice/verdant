@@ -1,9 +1,6 @@
 package app.verdant.android.ui.activity
-import app.verdant.android.data.repository.PlantRepository
-import app.verdant.android.data.repository.SpeciesRepository
 
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -34,36 +32,22 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import app.verdant.android.data.model.CreateSpeciesGroupRequest
-import app.verdant.android.data.model.CreateSpeciesRequest
-import app.verdant.android.data.model.CreateSpeciesTagRequest
-import app.verdant.android.data.model.ExtractSpeciesInfoRequest
-import app.verdant.android.data.model.ExtractedSpeciesInfo
-import app.verdant.android.data.model.IdentifyPlantRequest
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.verdant.android.data.model.PlantSuggestion
-import app.verdant.android.data.model.SpeciesGroupResponse
 import app.verdant.android.data.model.SpeciesResponse
-import app.verdant.android.data.model.SpeciesTagResponse
-import app.verdant.android.data.model.UpdateSpeciesRequest
 import app.verdant.android.data.model.VarietyNames
 import app.verdant.android.ui.faltet.FaltetChipMultiSelector
 import app.verdant.android.ui.faltet.FaltetDropdown
@@ -78,12 +62,16 @@ import app.verdant.android.ui.theme.FaltetDisplay
 import app.verdant.android.ui.theme.FaltetForest
 import app.verdant.android.ui.theme.FaltetInk
 import app.verdant.android.ui.theme.FaltetInkLine20
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
-import javax.inject.Inject
+import coil.compose.AsyncImage
 
+private val PLANT_TYPES = listOf("ANNUAL", "BIENNIAL", "PERENNIAL", "BULB", "TUBER")
+private val UNIT_TYPES = listOf("SEED", "PLUG", "BULB", "TUBER", "PLANT")
+
+/**
+ * Adding and editing a variety, laid out like the web form: supplier (new), photos (edit), names, growth,
+ * months, conditions, suppliers (edit), tags, commercial figures and workflow. A catalogue variety is
+ * shown read-only. Seed packet photos can fill in the form through identification and packet reading.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddSpeciesScreen(
@@ -92,71 +80,36 @@ fun AddSpeciesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isEdit = viewModel.speciesId != null
+    val readOnly = uiState.readOnly
 
-    var commonName by remember { mutableStateOf("") }
-    var variantName by remember { mutableStateOf("") }
-    var variantNameSv by remember { mutableStateOf("") }
-    var scientificName by remember { mutableStateOf("") }
+    var form by remember { mutableStateOf(SpeciesFormValues()) }
+    var initial by remember { mutableStateOf(SpeciesFormValues()) }
+    var prefilled by remember { mutableStateOf(false) }
+    var providerId by remember { mutableStateOf<Long?>(null) }
+    var productUrl by remember { mutableStateOf("") }
     var imageFrontBase64 by remember { mutableStateOf<String?>(null) }
     var imageBackBase64 by remember { mutableStateOf<String?>(null) }
-    var imageFrontUrl by remember { mutableStateOf<String?>(null) }
-    var imageBackUrl by remember { mutableStateOf<String?>(null) }
     var frontBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var backBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    var germinationTimeDaysMin by remember { mutableStateOf("") }
-    var germinationTimeDaysMax by remember { mutableStateOf("") }
-    var daysToHarvestMin by remember { mutableStateOf("") }
-    var daysToHarvestMax by remember { mutableStateOf("") }
-    var sowingDepthMm by remember { mutableStateOf("") }
-    var heightCmMin by remember { mutableStateOf("") }
-    var heightCmMax by remember { mutableStateOf("") }
-    var selectedBloomMonths by remember { mutableStateOf<Set<Int>>(emptySet()) }
-    var selectedSowingMonths by remember { mutableStateOf<Set<Int>>(emptySet()) }
-    var germinationRate by remember { mutableStateOf("") }
-    var selectedTagIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
-    var selectedPositions by remember { mutableStateOf<Set<String>>(emptySet()) }
-    var selectedSoils by remember { mutableStateOf<Set<String>>(emptySet()) }
-    var selectedGroupId by remember { mutableStateOf<Long?>(null) }
-    var showNewGroupDialog by remember { mutableStateOf(false) }
-    var newGroupName by remember { mutableStateOf("") }
     var showNewTagDialog by remember { mutableStateOf(false) }
     var newTagName by remember { mutableStateOf("") }
     var showDiscardDialog by remember { mutableStateOf(false) }
     var showValidationErrors by remember { mutableStateOf(false) }
-    var prefilled by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.existingSpecies) {
         val s = uiState.existingSpecies
         if (s != null && !prefilled) {
-            commonName = s.commonName
-            variantName = s.variantName ?: ""
-            variantNameSv = s.variantNameSv ?: ""
-            scientificName = s.scientificName ?: ""
-            imageFrontUrl = s.imageFrontUrl
-            imageBackUrl = s.imageBackUrl
-            germinationTimeDaysMin = s.germinationTimeDaysMin?.toString() ?: ""
-            germinationTimeDaysMax = s.germinationTimeDaysMax?.toString() ?: ""
-            daysToHarvestMin = s.daysToHarvestMin?.toString() ?: ""
-            daysToHarvestMax = s.daysToHarvestMax?.toString() ?: ""
-            sowingDepthMm = s.sowingDepthMm?.toString() ?: ""
-            heightCmMin = s.heightCmMin?.toString() ?: ""
-            heightCmMax = s.heightCmMax?.toString() ?: ""
-            selectedBloomMonths = s.bloomMonths.toSet()
-            selectedSowingMonths = s.sowingMonths.toSet()
-            germinationRate = s.germinationRate?.toString() ?: ""
-            selectedTagIds = s.tags.map { it.id }.toSet()
-            selectedPositions = s.growingPositions.toSet()
-            selectedSoils = s.soils.toSet()
-            selectedGroupId = s.groups.firstOrNull()?.id
+            form = SpeciesFormValues.from(s)
+            initial = form
             prefilled = true
         }
     }
 
-    // AI auto-populate from suggestions (front photo identification)
+    // Identification of a front photo fills in the names.
     LaunchedEffect(uiState.suggestions) {
         val top = uiState.suggestions.firstOrNull() ?: return@LaunchedEffect
-        if (commonName.isBlank()) commonName = top.commonName
-        if (scientificName.isBlank()) scientificName = top.species
+        if (form.commonNameSv.isBlank()) form = form.copy(commonNameSv = top.commonName)
+        if (form.scientificName.isBlank()) form = form.copy(scientificName = top.species)
         val box = top.cropBox
         val src = frontBitmap
         if (box != null && src != null) {
@@ -166,25 +119,27 @@ fun AddSpeciesScreen(
         }
     }
 
-    // AI auto-populate from extraction (back photo info extraction)
+    // Reading the back of a seed packet fills in what it says.
     LaunchedEffect(uiState.extractedInfo) {
         val info = uiState.extractedInfo ?: return@LaunchedEffect
-        if (commonName.isBlank()) info.commonName?.let { commonName = it }
-        if (variantName.isBlank()) info.variantName?.let { variantName = it }
-        if (variantNameSv.isBlank()) info.variantNameSv?.let { variantNameSv = it }
-        if (scientificName.isBlank()) info.scientificName?.let { scientificName = it }
-        if (germinationTimeDaysMin.isBlank()) info.germinationTimeDaysMin?.let { germinationTimeDaysMin = it.toString() }
-        if (germinationTimeDaysMax.isBlank()) info.germinationTimeDaysMax?.let { germinationTimeDaysMax = it.toString() }
-        if (daysToHarvestMin.isBlank()) info.daysToHarvestMin?.let { daysToHarvestMin = it.toString() }
-        if (daysToHarvestMax.isBlank()) info.daysToHarvestMax?.let { daysToHarvestMax = it.toString() }
-        if (sowingDepthMm.isBlank()) info.sowingDepthMm?.let { sowingDepthMm = it.toString() }
-        if (heightCmMin.isBlank()) info.heightCmMin?.let { heightCmMin = it.toString() }
-        if (heightCmMax.isBlank()) info.heightCmMax?.let { heightCmMax = it.toString() }
-        if (germinationRate.isBlank()) info.germinationRate?.let { germinationRate = it.toString() }
-        if (selectedBloomMonths.isEmpty()) info.bloomMonths?.let { selectedBloomMonths = it.toSet() }
-        if (selectedSowingMonths.isEmpty()) info.sowingMonths?.let { selectedSowingMonths = it.toSet() }
-        if (selectedPositions.isEmpty()) info.growingPositions?.let { selectedPositions = it.toSet() }
-        if (selectedSoils.isEmpty()) info.soils?.let { selectedSoils = it.toSet() }
+        var f = form
+        if (f.commonNameSv.isBlank()) info.commonName?.let { f = f.copy(commonNameSv = it) }
+        if (f.variantName.isBlank()) info.variantName?.let { f = f.copy(variantName = it) }
+        if (f.variantNameSv.isBlank()) info.variantNameSv?.let { f = f.copy(variantNameSv = it) }
+        if (f.scientificName.isBlank()) info.scientificName?.let { f = f.copy(scientificName = it) }
+        if (f.germinationTimeDaysMin.isBlank()) info.germinationTimeDaysMin?.let { f = f.copy(germinationTimeDaysMin = it.toString()) }
+        if (f.germinationTimeDaysMax.isBlank()) info.germinationTimeDaysMax?.let { f = f.copy(germinationTimeDaysMax = it.toString()) }
+        if (f.daysToHarvestMin.isBlank()) info.daysToHarvestMin?.let { f = f.copy(daysToHarvestMin = it.toString()) }
+        if (f.daysToHarvestMax.isBlank()) info.daysToHarvestMax?.let { f = f.copy(daysToHarvestMax = it.toString()) }
+        if (f.sowingDepthMm.isBlank()) info.sowingDepthMm?.let { f = f.copy(sowingDepthMm = it.toString()) }
+        if (f.heightCmMin.isBlank()) info.heightCmMin?.let { f = f.copy(heightCmMin = it.toString()) }
+        if (f.heightCmMax.isBlank()) info.heightCmMax?.let { f = f.copy(heightCmMax = it.toString()) }
+        if (f.germinationRate.isBlank()) info.germinationRate?.let { f = f.copy(germinationRate = it.toString()) }
+        if (f.bloomMonths.isEmpty()) info.bloomMonths?.let { f = f.copy(bloomMonths = it.toSet()) }
+        if (f.sowingMonths.isEmpty()) info.sowingMonths?.let { f = f.copy(sowingMonths = it.toSet()) }
+        if (f.positions.isEmpty()) info.growingPositions?.let { f = f.copy(positions = it.toSet()) }
+        if (f.soils.isEmpty()) info.soils?.let { f = f.copy(soils = it.toSet()) }
+        form = f
         val box = info.cropBox
         val src = backBitmap
         if (box != null && src != null) {
@@ -194,59 +149,17 @@ fun AddSpeciesScreen(
         }
     }
 
-    val hasData = commonName.isNotBlank() || variantName.isNotBlank() || variantNameSv.isNotBlank() ||
-        scientificName.isNotBlank() || imageFrontBase64 != null || imageBackBase64 != null ||
-        germinationTimeDaysMin.isNotBlank() || germinationTimeDaysMax.isNotBlank() ||
-        daysToHarvestMin.isNotBlank() || daysToHarvestMax.isNotBlank() ||
-        sowingDepthMm.isNotBlank() || heightCmMin.isNotBlank() || heightCmMax.isNotBlank() ||
-        selectedBloomMonths.isNotEmpty() || selectedSowingMonths.isNotEmpty() ||
-        germinationRate.isNotBlank() || selectedTagIds.isNotEmpty() ||
-        selectedPositions.isNotEmpty() || selectedSoils.isNotEmpty() || selectedGroupId != null
-
-    val hasChanges = if (!isEdit) hasData else {
-        val s = uiState.existingSpecies
-        s == null || commonName != s.commonName ||
-            variantName != (s.variantName ?: "") ||
-            variantNameSv != (s.variantNameSv ?: "") ||
-            scientificName != (s.scientificName ?: "") ||
-            imageFrontBase64 != null || imageBackBase64 != null ||
-            germinationTimeDaysMin != (s.germinationTimeDaysMin?.toString() ?: "") ||
-            germinationTimeDaysMax != (s.germinationTimeDaysMax?.toString() ?: "") ||
-            daysToHarvestMin != (s.daysToHarvestMin?.toString() ?: "") ||
-            daysToHarvestMax != (s.daysToHarvestMax?.toString() ?: "") ||
-            sowingDepthMm != (s.sowingDepthMm?.toString() ?: "") ||
-            heightCmMin != (s.heightCmMin?.toString() ?: "") ||
-            heightCmMax != (s.heightCmMax?.toString() ?: "") ||
-            selectedBloomMonths != s.bloomMonths.toSet() ||
-            selectedSowingMonths != s.sowingMonths.toSet() ||
-            germinationRate != (s.germinationRate?.toString() ?: "") ||
-            selectedTagIds != s.tags.map { it.id }.toSet() ||
-            selectedPositions != s.growingPositions.toSet() ||
-            selectedSoils != s.soils.toSet() ||
-            selectedGroupId != s.groups.firstOrNull()?.id
-    }
-
-    val tryBack: () -> Unit = {
-        if (hasData && (!isEdit || hasChanges)) {
-            showDiscardDialog = true
-        } else {
-            onBack()
-        }
-    }
-
-    BackHandler(enabled = hasData) { tryBack() }
+    val hasChanges = !readOnly && (form != initial || imageFrontBase64 != null || imageBackBase64 != null ||
+        (!isEdit && (providerId != null || productUrl.isNotBlank())))
+    val tryBack: () -> Unit = { if (hasChanges) showDiscardDialog = true else onBack() }
+    BackHandler(enabled = hasChanges) { tryBack() }
 
     val snackbarHostState = remember { SnackbarHostState() }
-    LaunchedEffect(commonName, variantName, variantNameSv) {
-        viewModel.checkDuplicates(VarietyNames(commonName, variantName, variantNameSv))
+    LaunchedEffect(form.commonNameSv, form.commonName, form.variantName, form.variantNameSv) {
+        viewModel.checkDuplicates(VarietyNames(form.commonNameSv.ifBlank { form.commonName }, form.variantName, form.variantNameSv))
     }
-
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let { snackbarHostState.showSnackbar(it) }
-    }
-    LaunchedEffect(uiState.created) {
-        if (uiState.created) onBack()
-    }
+    LaunchedEffect(uiState.error) { uiState.error?.let { snackbarHostState.showSnackbar(it) } }
+    LaunchedEffect(uiState.created) { if (uiState.created) onBack() }
 
     if (showDiscardDialog) {
         AlertDialog(
@@ -254,14 +167,9 @@ fun AddSpeciesScreen(
             title = { Text("Avbryt ändringar?") },
             text = { Text("Dina ändringar kommer att gå förlorade.") },
             confirmButton = {
-                TextButton(onClick = {
-                    showDiscardDialog = false
-                    onBack()
-                }) { Text("Avbryt ändringar", color = FaltetClay) }
+                TextButton(onClick = { showDiscardDialog = false; onBack() }) { Text("Avbryt ändringar", color = FaltetClay) }
             },
-            dismissButton = {
-                TextButton(onClick = { showDiscardDialog = false }) { Text("Fortsätt redigera") }
-            },
+            dismissButton = { TextButton(onClick = { showDiscardDialog = false }) { Text("Fortsätt redigera") } },
         )
     }
 
@@ -269,135 +177,37 @@ fun AddSpeciesScreen(
         AlertDialog(
             onDismissRequest = { showNewTagDialog = false; newTagName = "" },
             title = { Text("Ny tagg") },
-            text = {
-                Field(
-                    label = "Namn",
-                    value = newTagName,
-                    onValueChange = { newTagName = it },
-                    required = true,
-                )
-            },
+            text = { Field(label = "Namn", value = newTagName, onValueChange = { newTagName = it }, required = true) },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        if (newTagName.isNotBlank()) {
-                            viewModel.createTag(newTagName.trim())
-                            showNewTagDialog = false
-                            newTagName = ""
-                        }
+                        viewModel.createTag(newTagName.trim())
+                        showNewTagDialog = false
+                        newTagName = ""
                     },
                     enabled = newTagName.isNotBlank(),
                 ) { Text("Skapa", color = FaltetAccent) }
             },
-            dismissButton = {
-                TextButton(onClick = { showNewTagDialog = false; newTagName = "" }) { Text("Avbryt") }
-            },
+            dismissButton = { TextButton(onClick = { showNewTagDialog = false; newTagName = "" }) { Text("Avbryt") } },
         )
     }
 
-    if (showNewGroupDialog) {
-        AlertDialog(
-            onDismissRequest = { showNewGroupDialog = false; newGroupName = "" },
-            title = { Text("Ny grupp") },
-            text = {
-                Field(
-                    label = "Namn",
-                    value = newGroupName,
-                    onValueChange = { newGroupName = it },
-                    required = true,
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        if (newGroupName.isNotBlank()) {
-                            viewModel.createGroup(newGroupName.trim())
-                            showNewGroupDialog = false
-                            newGroupName = ""
-                        }
-                    },
-                    enabled = newGroupName.isNotBlank(),
-                ) { Text("Skapa", color = FaltetAccent) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showNewGroupDialog = false; newGroupName = "" }) { Text("Avbryt") }
-            },
-        )
-    }
-
-    val submitAction: () -> Unit = {
+    val submit: () -> Unit = {
         showValidationErrors = true
-        val germMin = germinationTimeDaysMin.toIntOrNull()
-        val harvestMin = daysToHarvestMin.toIntOrNull()
-        val depth = sowingDepthMm.toIntOrNull()
-        val heightMin = heightCmMin.toIntOrNull()
-        val germRate = germinationRate.toIntOrNull()
-        val valid = commonName.isNotBlank() &&
-            scientificName.isNotBlank() &&
-            germMin != null && harvestMin != null &&
-            depth != null && heightMin != null && germRate != null &&
-            selectedPositions.isNotEmpty() &&
-            selectedSoils.isNotEmpty() &&
-            (imageFrontBase64 != null || imageFrontUrl != null)
-
-        if (valid) {
+        if (form.hasName) {
             if (isEdit) {
-                viewModel.updateSpecies(
-                    UpdateSpeciesRequest(
-                        commonName = commonName,
-                        variantName = variantName.ifBlank { null },
-                        variantNameSv = variantNameSv.ifBlank { null },
-                        scientificName = scientificName.ifBlank { null },
-                        imageFrontBase64 = imageFrontBase64,
-                        imageBackBase64 = imageBackBase64,
-                        germinationTimeDaysMin = germMin,
-                        germinationTimeDaysMax = germinationTimeDaysMax.toIntOrNull(),
-                        daysToHarvestMin = harvestMin,
-                        daysToHarvestMax = daysToHarvestMax.toIntOrNull(),
-                        sowingDepthMm = depth,
-                        heightCmMin = heightMin,
-                        heightCmMax = heightCmMax.toIntOrNull(),
-                        bloomMonths = selectedBloomMonths.toList().sorted(),
-                        sowingMonths = selectedSowingMonths.toList().sorted(),
-                        germinationRate = germRate,
-                        tagIds = selectedTagIds.toList(),
-                        growingPositions = selectedPositions.toList(),
-                        soils = selectedSoils.toList(),
-                        groupId = selectedGroupId,
-                    )
-                )
+                viewModel.updateSpecies(form.toUpdateRequest(imageFrontBase64, imageBackBase64), form.workflowTemplateId)
             } else {
                 viewModel.createSpecies(
-                    CreateSpeciesRequest(
-                        commonName = commonName,
-                        variantName = variantName.ifBlank { null },
-                        variantNameSv = variantNameSv.ifBlank { null },
-                        scientificName = scientificName.ifBlank { null },
-                        imageFrontBase64 = imageFrontBase64,
-                        imageBackBase64 = imageBackBase64,
-                        germinationTimeDaysMin = germMin,
-                        germinationTimeDaysMax = germinationTimeDaysMax.toIntOrNull(),
-                        daysToHarvestMin = harvestMin,
-                        daysToHarvestMax = daysToHarvestMax.toIntOrNull(),
-                        sowingDepthMm = depth,
-                        heightCmMin = heightMin,
-                        heightCmMax = heightCmMax.toIntOrNull(),
-                        bloomMonths = selectedBloomMonths.toList().sorted(),
-                        sowingMonths = selectedSowingMonths.toList().sorted(),
-                        germinationRate = germRate,
-                        tagIds = selectedTagIds.toList(),
-                        growingPositions = selectedPositions.toList(),
-                        soils = selectedSoils.toList(),
-                        groupId = selectedGroupId,
-                    )
+                    form.toCreateRequest(imageFrontBase64, imageBackBase64),
+                    NewSpeciesExtras(providerId, productUrl.trim().ifBlank { null }, form.workflowTemplateId),
                 )
             }
         }
     }
 
     val fillFromSuggestion: (PlantSuggestion) -> Unit = { suggestion ->
-        commonName = suggestion.commonName
-        scientificName = suggestion.species
+        form = form.copy(commonNameSv = suggestion.commonName, scientificName = suggestion.species)
         val box = suggestion.cropBox
         val src = frontBitmap
         if (box != null && src != null) {
@@ -407,26 +217,33 @@ fun AddSpeciesScreen(
         }
     }
 
+    // A catalogue variety shows its details without letting them change.
+    val edit: ((String) -> Unit) -> ((String) -> Unit)? = { change -> if (readOnly) null else change }
+    val digits: (String) -> String = { it.filter { c -> c.isDigit() } }
+    val existing = uiState.existingSpecies
+    val title = when {
+        !isEdit -> "Ny sort"
+        existing == null -> "Sort"
+        else -> listOfNotNull(existing.commonNameSv ?: existing.commonName, existing.variantNameSv ?: existing.variantName).joinToString(" – ")
+    }
+
     FaltetScreenScaffold(
         mastheadLeft = "",
-        mastheadCenter = if (isEdit) uiState.existingSpecies?.commonName ?: "Redigera art" else "Ny art",
+        mastheadCenter = title,
         mastheadRight = {
             IconButton(onClick = { tryBack() }, modifier = Modifier.size(36.dp)) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Tillbaka",
-                    tint = FaltetAccent,
-                    modifier = Modifier.size(18.dp),
-                )
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Tillbaka", tint = FaltetAccent, modifier = Modifier.size(18.dp))
             }
         },
         bottomBar = {
-            FaltetFormSubmitBar(
-                label = if (isEdit) "Spara" else "Skapa",
-                onClick = submitAction,
-                enabled = !uiState.isLoading,
-                submitting = uiState.isLoading,
-            )
+            if (!readOnly) {
+                FaltetFormSubmitBar(
+                    label = if (isEdit) "Spara ändringar" else "Skapa sort",
+                    onClick = submit,
+                    enabled = !uiState.isLoading && form.hasName,
+                    submitting = uiState.isLoading,
+                )
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
@@ -435,59 +252,53 @@ fun AddSpeciesScreen(
             contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // Photo row: front + back side-by-side
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        FaltetImagePicker(
-                            label = "Framsida *",
-                            value = frontBitmap,
-                            onValueChange = { bitmap ->
-                                frontBitmap = bitmap
-                                if (bitmap != null) {
-                                    val b64 = bitmap.toCompressedBase64()
-                                    imageFrontBase64 = b64
-                                    viewModel.identifyPlant(b64)
-                                } else {
-                                    imageFrontBase64 = null
-                                }
-                            },
-                        )
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        FaltetImagePicker(
-                            label = "Baksida (valfri)",
-                            value = backBitmap,
-                            onValueChange = { bitmap ->
-                                backBitmap = bitmap
-                                if (bitmap != null) {
-                                    val b64 = bitmap.toCompressedBase64()
-                                    imageBackBase64 = b64
-                                    viewModel.extractSpeciesInfo(b64)
-                                } else {
-                                    imageBackBase64 = null
-                                }
-                            },
-                        )
+            if (readOnly) {
+                item {
+                    Text(
+                        text = "Det här är en sort från katalogen. Kopiera den i webbappen för att ändra uppgifterna.",
+                        fontFamily = FaltetDisplay,
+                        fontStyle = FontStyle.Italic,
+                        fontSize = 14.sp,
+                        color = FaltetForest,
+                    )
+                }
+            }
+
+            if (!readOnly) {
+                // Seed packet photos: identification fills in the names, reading the back fills in the rest.
+                item {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            FaltetImagePicker(
+                                label = "Fröpåse framsida (valfri)",
+                                value = frontBitmap,
+                                onValueChange = { bitmap ->
+                                    frontBitmap = bitmap
+                                    imageFrontBase64 = bitmap?.toCompressedBase64()?.also(viewModel::identifyPlant)
+                                },
+                            )
+                        }
+                        Box(modifier = Modifier.weight(1f)) {
+                            FaltetImagePicker(
+                                label = "Fröpåse baksida (valfri)",
+                                value = backBitmap,
+                                onValueChange = { bitmap ->
+                                    backBitmap = bitmap
+                                    imageBackBase64 = bitmap?.toCompressedBase64()?.also(viewModel::extractSpeciesInfo)
+                                },
+                            )
+                        }
                     }
                 }
             }
 
-            // AI spinner row
             if (uiState.identifying || uiState.extracting) {
                 item {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp),
-                    ) {
-                        CircularProgressIndicator(
-                            color = FaltetAccent,
-                            strokeWidth = 2.dp,
-                            modifier = Modifier.size(18.dp),
-                        )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(color = FaltetAccent, strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(12.dp))
                         Text(
-                            text = if (uiState.identifying) "Identifierar…" else "Extraherar information…",
+                            text = if (uiState.identifying) "Identifierar…" else "Läser fröpåsen…",
                             fontFamily = FontFamily.Monospace,
                             fontSize = 10.sp,
                             letterSpacing = 1.2.sp,
@@ -497,7 +308,6 @@ fun AddSpeciesScreen(
                 }
             }
 
-            // AI suggestion cards
             if (uiState.suggestions.isNotEmpty()) {
                 item { FaltetSectionHeader(label = "Förslag") }
                 items(uiState.suggestions, key = { it.species }) { suggestion ->
@@ -505,243 +315,326 @@ fun AddSpeciesScreen(
                 }
             }
 
-            // Common name
+            if (!isEdit) {
+                item { FaltetSectionHeader(label = "Fröleverantör") }
+                item {
+                    FaltetDropdown(
+                        label = "Leverantör",
+                        options = uiState.providers,
+                        selected = uiState.providers.find { it.id == providerId },
+                        onSelectedChange = { providerId = it.id },
+                        labelFor = { it.name },
+                        searchable = uiState.providers.size > 8,
+                        clearLabel = "Välj leverantör…",
+                        onClear = { providerId = null; productUrl = "" },
+                    )
+                }
+                if (providerId != null) {
+                    item { Field(label = "Produkt-URL", value = productUrl, onValueChange = { productUrl = it }, keyboardType = KeyboardType.Uri) }
+                }
+            }
+
+            if (isEdit && !readOnly && existing != null) {
+                item { FaltetSectionHeader(label = "Fler foton") }
+                item { PhotosRow(existing, uiState.updatingDetails, onAdd = { viewModel.uploadPhoto(it.toCompressedBase64(1280)) }, onDelete = viewModel::deletePhoto) }
+            }
+
+            item {
+                FaltetSectionHeader(
+                    label = "Grunduppgifter",
+                    trailing = if (readOnly) null else {
+                        {
+                            Text(
+                                text = "KOPIERA TILL ENGELSKA",
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 10.sp,
+                                letterSpacing = 1.4.sp,
+                                color = FaltetAccent,
+                                modifier = Modifier.clickable { form = form.copyToEnglish() },
+                            )
+                        }
+                    },
+                )
+            }
             item {
                 Field(
-                    label = "Artnamn",
-                    value = commonName,
-                    onValueChange = { commonName = it },
+                    label = "Namn (svenska)",
+                    value = form.commonNameSv,
+                    onValueChange = edit { form = form.copy(commonNameSv = it) },
                     required = true,
-                    error = if (showValidationErrors && commonName.isBlank()) "Artnamn krävs" else null,
+                    error = if (showValidationErrors && !form.hasName) "Ange ett namn" else null,
                 )
             }
-
-            // Scientific name
-            item {
-                Field(
-                    label = "Vetenskapligt namn",
-                    value = scientificName,
-                    onValueChange = { scientificName = it },
-                    required = true,
-                    error = if (showValidationErrors && scientificName.isBlank()) "Vetenskapligt namn krävs" else null,
-                )
-            }
-
-            // Variant EN
-            item {
-                Field(
-                    label = "Variant (engelska, valfri)",
-                    value = variantName,
-                    onValueChange = { variantName = it },
-                )
-            }
-
-            // Variant SV
-            item {
-                Field(
-                    label = "Variant (svenska, valfri)",
-                    value = variantNameSv,
-                    onValueChange = { variantNameSv = it },
-                )
-            }
-
+            item { Field(label = "Namn (engelska)", value = form.commonName, onValueChange = edit { form = form.copy(commonName = it) }) }
+            item { Field(label = "Sortnamn (svenska)", value = form.variantNameSv, onValueChange = edit { form = form.copy(variantNameSv = it) }) }
+            item { Field(label = "Sortnamn (engelska)", value = form.variantName, onValueChange = edit { form = form.copy(variantName = it) }) }
+            item { Field(label = "Vetenskapligt namn", value = form.scientificName, onValueChange = edit { form = form.copy(scientificName = it) }) }
             if (!isEdit && uiState.duplicates.isNotEmpty()) {
                 item { DuplicateWarning(uiState.duplicates) }
             }
 
-            // Germination time min
+            item { FaltetSectionHeader(label = "Tillväxt") }
             item {
-                Field(
-                    label = "Grobarhet dagar min",
-                    value = germinationTimeDaysMin,
-                    onValueChange = { germinationTimeDaysMin = it.filter { c -> c.isDigit() } },
-                    keyboardType = KeyboardType.Number,
-                    required = true,
-                    error = if (showValidationErrors && germinationTimeDaysMin.toIntOrNull() == null) "Heltal krävs" else null,
-                )
+                RangeFields("Groningstid (dagar)", form.germinationTimeDaysMin, form.germinationTimeDaysMax,
+                    edit { form = form.copy(germinationTimeDaysMin = digits(it)) }, edit { form = form.copy(germinationTimeDaysMax = digits(it)) })
+            }
+            item {
+                RangeFields("Dagar till skörd", form.daysToHarvestMin, form.daysToHarvestMax,
+                    edit { form = form.copy(daysToHarvestMin = digits(it)) }, edit { form = form.copy(daysToHarvestMax = digits(it)) })
+            }
+            item {
+                RangeFields("Höjd (cm)", form.heightCmMin, form.heightCmMax,
+                    edit { form = form.copy(heightCmMin = digits(it)) }, edit { form = form.copy(heightCmMax = digits(it)) })
+            }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Field(label = "Sådjup (mm)", value = form.sowingDepthMm, onValueChange = edit { form = form.copy(sowingDepthMm = digits(it)) },
+                        keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f))
+                    Field(label = "Groningsgrad (%)", value = form.germinationRate, onValueChange = edit { form = form.copy(germinationRate = digits(it)) },
+                        keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f))
+                }
             }
 
-            // Germination time max
+            item { FaltetSectionHeader(label = "Sådd- och blommånader") }
             item {
-                Field(
-                    label = "Grobarhet dagar max (valfri)",
-                    value = germinationTimeDaysMax,
-                    onValueChange = { germinationTimeDaysMax = it.filter { c -> c.isDigit() } },
-                    keyboardType = KeyboardType.Number,
-                )
+                FaltetChipMultiSelector(label = "Såmånader", options = (1..12).toList(), selected = form.sowingMonths,
+                    onSelectedChange = { if (!readOnly) form = form.copy(sowingMonths = it) }, labelFor = ::monthShortSv)
+            }
+            item {
+                FaltetChipMultiSelector(label = "Blommånader", options = (1..12).toList(), selected = form.bloomMonths,
+                    onSelectedChange = { if (!readOnly) form = form.copy(bloomMonths = it) }, labelFor = ::monthShortSv)
             }
 
-            // Days to harvest min
+            item { FaltetSectionHeader(label = "Odlingsförhållanden") }
             item {
-                Field(
-                    label = "Dagar till skörd min",
-                    value = daysToHarvestMin,
-                    onValueChange = { daysToHarvestMin = it.filter { c -> c.isDigit() } },
-                    keyboardType = KeyboardType.Number,
-                    required = true,
-                    error = if (showValidationErrors && daysToHarvestMin.toIntOrNull() == null) "Heltal krävs" else null,
-                )
+                FaltetChipMultiSelector(label = "Läge", options = listOf("SUNNY", "PARTIALLY_SUNNY", "SHADOWY"), selected = form.positions,
+                    onSelectedChange = { if (!readOnly) form = form.copy(positions = it) }, labelFor = ::positionLabelSv)
+            }
+            item {
+                FaltetChipMultiSelector(label = "Jordtyp", options = listOf("CLAY", "SANDY", "LOAMY", "CHALKY", "PEATY", "SILTY"), selected = form.soils,
+                    onSelectedChange = { if (!readOnly) form = form.copy(soils = it) }, labelFor = ::soilLabelSv)
             }
 
-            // Days to harvest max
-            item {
-                Field(
-                    label = "Dagar till skörd max (valfri)",
-                    value = daysToHarvestMax,
-                    onValueChange = { daysToHarvestMax = it.filter { c -> c.isDigit() } },
-                    keyboardType = KeyboardType.Number,
-                )
+            if (isEdit && existing != null) {
+                item { FaltetSectionHeader(label = "Fröleverantörer") }
+                item {
+                    ProvidersSection(
+                        species = existing,
+                        providers = uiState.providers,
+                        readOnly = readOnly,
+                        busy = uiState.updatingDetails,
+                        onAdd = viewModel::addProvider,
+                        onRemove = viewModel::removeProvider,
+                    )
+                }
             }
 
-            // Sowing depth
             item {
-                Field(
-                    label = "Sådjup mm",
-                    value = sowingDepthMm,
-                    onValueChange = { sowingDepthMm = it.filter { c -> c.isDigit() } },
-                    keyboardType = KeyboardType.Number,
-                    required = true,
-                    error = if (showValidationErrors && sowingDepthMm.toIntOrNull() == null) "Heltal krävs" else null,
+                FaltetSectionHeader(
+                    label = "Taggar",
+                    trailing = if (readOnly) null else {
+                        {
+                            Text("+ NY TAGG", fontFamily = FontFamily.Monospace, fontSize = 10.sp, letterSpacing = 1.4.sp, color = FaltetAccent,
+                                modifier = Modifier.clickable { showNewTagDialog = true })
+                        }
+                    },
                 )
             }
-
-            // Height min
-            item {
-                Field(
-                    label = "Höjd cm min",
-                    value = heightCmMin,
-                    onValueChange = { heightCmMin = it.filter { c -> c.isDigit() } },
-                    keyboardType = KeyboardType.Number,
-                    required = true,
-                    error = if (showValidationErrors && heightCmMin.toIntOrNull() == null) "Heltal krävs" else null,
-                )
-            }
-
-            // Height max
-            item {
-                Field(
-                    label = "Höjd cm max (valfri)",
-                    value = heightCmMax,
-                    onValueChange = { heightCmMax = it.filter { c -> c.isDigit() } },
-                    keyboardType = KeyboardType.Number,
-                )
-            }
-
-            // Sowing months
             item {
                 FaltetChipMultiSelector(
-                    label = "Såmånader (valfri)",
-                    options = (1..12).toList(),
-                    selected = selectedSowingMonths,
-                    onSelectedChange = { selectedSowingMonths = it },
-                    labelFor = { monthShortSv(it) },
-                )
-            }
-
-            // Bloom months
-            item {
-                FaltetChipMultiSelector(
-                    label = "Blomningsmånader (valfri)",
-                    options = (1..12).toList(),
-                    selected = selectedBloomMonths,
-                    onSelectedChange = { selectedBloomMonths = it },
-                    labelFor = { monthShortSv(it) },
-                )
-            }
-
-            // Germination rate
-            item {
-                Field(
-                    label = "Grobarhetsprocent",
-                    value = germinationRate,
-                    onValueChange = { germinationRate = it.filter { c -> c.isDigit() } },
-                    keyboardType = KeyboardType.Number,
-                    required = true,
-                    error = if (showValidationErrors && germinationRate.toIntOrNull() == null) "Heltal krävs" else null,
-                )
-            }
-
-            // Growing positions
-            item {
-                FaltetChipMultiSelector(
-                    label = "Växtplats",
-                    options = listOf("SUNNY", "PARTIALLY_SUNNY", "SHADOWY"),
-                    selected = selectedPositions,
-                    onSelectedChange = { selectedPositions = it },
-                    labelFor = { positionLabelSv(it) },
-                    required = true,
-                )
-            }
-
-            // Soil types
-            item {
-                FaltetChipMultiSelector(
-                    label = "Jordtyp",
-                    options = listOf("CLAY", "SANDY", "LOAMY", "CHALKY", "PEATY", "SILTY"),
-                    selected = selectedSoils,
-                    onSelectedChange = { selectedSoils = it },
-                    labelFor = { soilLabelSv(it) },
-                    required = true,
-                )
-            }
-
-            // Group dropdown
-            item {
-                val selectedGroup = uiState.groups.find { it.id == selectedGroupId }
-                FaltetDropdown(
-                    label = "Grupp (valfri)",
-                    options = uiState.groups,
-                    selected = selectedGroup,
-                    onSelectedChange = { group -> selectedGroupId = group.id },
-                    labelFor = { it.name },
-                    searchable = false,
-                )
-            }
-
-            // + NY GRUPP affordance
-            item {
-                Text(
-                    text = "+ NY GRUPP",
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 10.sp,
-                    letterSpacing = 1.4.sp,
-                    color = FaltetAccent,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { showNewGroupDialog = true }
-                        .padding(horizontal = 18.dp, vertical = 8.dp),
-                )
-            }
-
-            // Tags — state is Set<Long> of IDs; convert at render boundary
-            item {
-                FaltetChipMultiSelector(
-                    label = "Taggar (valfri)",
+                    label = "Taggar",
                     options = uiState.tags,
-                    selected = uiState.tags.filter { it.id in selectedTagIds }.toSet(),
-                    onSelectedChange = { newSet -> selectedTagIds = newSet.map { it.id }.toSet() },
+                    selected = uiState.tags.filter { it.id in form.tagIds }.toSet(),
+                    onSelectedChange = { set -> if (!readOnly) form = form.copy(tagIds = set.map { it.id }.toSet()) },
                     labelFor = { it.name },
                 )
             }
 
-            // + NY TAGG affordance
+            item { FaltetSectionHeader(label = "Kommersiellt och klassificering") }
             item {
-                Text(
-                    text = "+ NY TAGG",
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 10.sp,
-                    letterSpacing = 1.4.sp,
-                    color = FaltetAccent,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { showNewTagDialog = true }
-                        .padding(horizontal = 18.dp, vertical = 8.dp),
+                // Price per seed and per package fill each other in through the package size.
+                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Field(label = "Frön per paket", value = form.seedsPerPackage, onValueChange = edit { form = form.withSeedsPerPackage(it) },
+                        keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f))
+                    Field(label = "Pris per paket (kr)", value = form.costPerPackage, onValueChange = edit { form = form.withCostPerPackage(it) },
+                        keyboardType = KeyboardType.Decimal, modifier = Modifier.weight(1f))
+                }
+            }
+            item {
+                Field(label = "Kostnad per frö (kr)", value = form.costPerSeed, onValueChange = edit { form = form.withCostPerSeed(it) },
+                    keyboardType = KeyboardType.Decimal)
+            }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Field(label = "Stjälkar per planta", value = form.expectedStemsPerPlant,
+                        onValueChange = edit { form = form.copy(expectedStemsPerPlant = digits(it)) }, keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f))
+                    Field(label = "Vashållbarhet (dagar)", value = form.expectedVaseLifeDays,
+                        onValueChange = edit { form = form.copy(expectedVaseLifeDays = digits(it)) }, keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f))
+                }
+            }
+            item {
+                FaltetDropdown(
+                    label = "Växttyp",
+                    options = PLANT_TYPES,
+                    selected = form.plantType,
+                    onSelectedChange = { if (!readOnly) form = form.copy(plantType = it) },
+                    labelFor = ::plantTypeLabelSv,
+                    searchable = false,
+                    clearLabel = "—",
+                    onClear = { if (!readOnly) form = form.copy(plantType = null) },
                 )
+            }
+            item {
+                FaltetDropdown(
+                    label = "Standardenhet",
+                    options = UNIT_TYPES,
+                    selected = form.defaultUnitType,
+                    onSelectedChange = { if (!readOnly) form = form.copy(defaultUnitType = it) },
+                    labelFor = ::unitTypeLabelSv,
+                    searchable = false,
+                    clearLabel = "—",
+                    onClear = { if (!readOnly) form = form.copy(defaultUnitType = null) },
+                )
+            }
+
+            if (!readOnly) {
+                item { FaltetSectionHeader(label = "Arbetsflöde") }
+                item {
+                    FaltetDropdown(
+                        label = "Arbetsflödesmall",
+                        options = uiState.templates,
+                        selected = uiState.templates.find { it.id == form.workflowTemplateId },
+                        onSelectedChange = { form = form.copy(workflowTemplateId = it.id) },
+                        labelFor = { it.name },
+                        searchable = uiState.templates.size > 8,
+                        clearLabel = "— Inget —",
+                        onClear = if (isEdit && initial.workflowTemplateId != null) null else ({ form = form.copy(workflowTemplateId = null) }),
+                    )
+                }
             }
 
             item { Spacer(Modifier.height(80.dp)) }
+        }
+    }
+}
+
+@Composable
+private fun RangeFields(label: String, min: String, max: String, onMin: ((String) -> Unit)?, onMax: ((String) -> Unit)?) {
+    Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+        Field(label = "$label, min", value = min, onValueChange = onMin, keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f))
+        Field(label = "$label, max", value = max, onValueChange = onMax, keyboardType = KeyboardType.Number, modifier = Modifier.weight(1f))
+    }
+}
+
+/** The variety's own photos; adding uploads at once and deleting removes at once, like on the web. */
+@Composable
+private fun PhotosRow(species: SpeciesResponse, busy: Boolean, onAdd: (Bitmap) -> Unit, onDelete: (Long) -> Unit) {
+    var confirmDelete by remember { mutableStateOf<Long?>(null) }
+    confirmDelete?.let { photoId ->
+        AlertDialog(
+            onDismissRequest = { confirmDelete = null },
+            title = { Text("Ta bort fotot?") },
+            confirmButton = { TextButton(onClick = { onDelete(photoId); confirmDelete = null }) { Text("Ta bort", color = FaltetClay) } },
+            dismissButton = { TextButton(onClick = { confirmDelete = null }) { Text("Avbryt") } },
+        )
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        if (species.photos.isEmpty()) {
+            Text("Ännu inga fler foton", fontFamily = FaltetDisplay, fontStyle = FontStyle.Italic, fontSize = 14.sp, color = FaltetForest)
+        } else {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(species.photos.sortedBy { it.sortOrder }, key = { it.id }) { photo ->
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        AsyncImage(
+                            model = photo.imageUrl,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.size(96.dp).border(1.dp, FaltetInkLine20),
+                        )
+                        Text(
+                            text = "TA BORT",
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 9.sp,
+                            letterSpacing = 1.4.sp,
+                            color = FaltetClay,
+                            modifier = Modifier.clickable(enabled = !busy) { confirmDelete = photo.id }.padding(top = 4.dp),
+                        )
+                    }
+                }
+            }
+        }
+        FaltetImagePicker(label = if (busy) "Laddar upp…" else "Lägg till foto", value = null, onValueChange = { bitmap -> bitmap?.let(onAdd) })
+    }
+}
+
+/** Linked seed suppliers with their product links; packet images on suppliers stay an admin task. */
+@Composable
+private fun ProvidersSection(
+    species: SpeciesResponse,
+    providers: List<app.verdant.android.data.model.ProviderResponse>,
+    readOnly: Boolean,
+    busy: Boolean,
+    onAdd: (Long, String?) -> Unit,
+    onRemove: (Long) -> Unit,
+) {
+    var adding by remember { mutableStateOf(false) }
+    var providerId by remember { mutableStateOf<Long?>(null) }
+    var productUrl by remember { mutableStateOf("") }
+    val linked = species.providers.map { it.providerId }.toSet()
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (species.providers.isEmpty()) {
+            Text("Inga leverantörer kopplade än", fontFamily = FaltetDisplay, fontStyle = FontStyle.Italic, fontSize = 14.sp, color = FaltetForest)
+        }
+        species.providers.forEach { p ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(p.providerName, fontFamily = FaltetDisplay, fontSize = 16.sp, color = FaltetInk)
+                    p.productUrl?.let { Text(it, fontSize = 11.sp, color = FaltetForest, maxLines = 1) }
+                }
+                if (!readOnly) {
+                    Text(
+                        text = "TA BORT",
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 9.sp,
+                        letterSpacing = 1.4.sp,
+                        color = FaltetClay,
+                        modifier = Modifier.clickable(enabled = !busy) { onRemove(p.id) }.padding(start = 10.dp),
+                    )
+                }
+            }
+        }
+        if (!readOnly) {
+            if (!adding) {
+                Text(
+                    text = "+ LÄGG TILL LEVERANTÖR",
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 10.sp,
+                    letterSpacing = 1.4.sp,
+                    color = FaltetAccent,
+                    modifier = Modifier.clickable { adding = true },
+                )
+            } else {
+                val available = providers.filter { it.id !in linked }
+                FaltetDropdown(
+                    label = "Leverantör",
+                    options = available,
+                    selected = available.find { it.id == providerId },
+                    onSelectedChange = { providerId = it.id },
+                    labelFor = { it.name },
+                    searchable = available.size > 8,
+                )
+                Field(label = "Produkt-URL", value = productUrl, onValueChange = { productUrl = it }, keyboardType = KeyboardType.Uri)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(
+                        onClick = {
+                            providerId?.let { onAdd(it, productUrl) }
+                            adding = false; providerId = null; productUrl = ""
+                        },
+                        enabled = providerId != null && !busy,
+                    ) { Text("Lägg till", color = FaltetAccent) }
+                    TextButton(onClick = { adding = false; providerId = null; productUrl = "" }) { Text("Avbryt", color = FaltetForest) }
+                }
+            }
         }
     }
 }
@@ -768,11 +661,28 @@ private fun soilLabelSv(code: String): String = when (code) {
     else -> code
 }
 
+private fun plantTypeLabelSv(code: String): String = when (code) {
+    "ANNUAL" -> "Ettårig"
+    "BIENNIAL" -> "Tvåårig"
+    "PERENNIAL" -> "Flerårig"
+    "BULB" -> "Lök"
+    "TUBER" -> "Knöl"
+    else -> code
+}
+
+private fun unitTypeLabelSv(code: String): String = when (code) {
+    "SEED" -> "Frö"
+    "PLUG" -> "Plugg"
+    "BULB" -> "Lök"
+    "TUBER" -> "Knöl"
+    "PLANT" -> "Planta"
+    else -> code
+}
+
 @Composable
 private fun DuplicateWarning(duplicates: List<SpeciesResponse>) {
     Column(
         modifier = Modifier
-            .padding(horizontal = 18.dp, vertical = 8.dp)
             .fillMaxWidth()
             .border(1.dp, FaltetAccent)
             .padding(horizontal = 14.dp, vertical = 10.dp),

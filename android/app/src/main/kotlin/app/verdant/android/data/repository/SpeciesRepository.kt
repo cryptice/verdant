@@ -1,7 +1,12 @@
 package app.verdant.android.data.repository
 
 import app.verdant.android.data.api.VerdantApi
+import app.verdant.android.data.model.AddSpeciesProviderRequest
 import app.verdant.android.data.model.AdoptSpeciesRequest
+import app.verdant.android.data.model.ProviderResponse
+import app.verdant.android.data.model.SpeciesPhotoResponse
+import app.verdant.android.data.model.SpeciesProviderResponse
+import app.verdant.android.data.model.UploadSpeciesPhotoRequest
 import app.verdant.android.data.model.AdoptSpeciesResponse
 import app.verdant.android.data.model.CreateSpeciesGroupRequest
 import app.verdant.android.data.model.CreateSpeciesRequest
@@ -22,6 +27,11 @@ interface SpeciesRepository {
     suspend fun search(query: String): List<SpeciesResponse>
     /** Makes a catalogue variety your own: the copy gets your batches of it and, optionally, a workflow. */
     suspend fun adopt(id: Long, workflowTemplateId: Long?): AdoptSpeciesResponse
+    suspend fun providers(): List<ProviderResponse>
+    suspend fun addProvider(speciesId: Long, providerId: Long, productUrl: String?): SpeciesProviderResponse
+    suspend fun removeProvider(speciesId: Long, speciesProviderId: Long)
+    suspend fun uploadPhoto(speciesId: Long, imageBase64: String): SpeciesPhotoResponse
+    suspend fun deletePhoto(speciesId: Long, photoId: Long)
     suspend fun create(request: CreateSpeciesRequest): SpeciesResponse
     suspend fun update(id: Long, request: UpdateSpeciesRequest): SpeciesResponse
     suspend fun delete(id: Long)
@@ -42,6 +52,12 @@ class SpeciesRepositoryImpl @Inject constructor(private val api: VerdantApi) : S
     override suspend fun list() = api.getSpecies()
     override suspend fun search(query: String) = api.searchSpecies(query, limit = 50)
     override suspend fun adopt(id: Long, workflowTemplateId: Long?) = api.adoptSpecies(id, AdoptSpeciesRequest(workflowTemplateId))
+    override suspend fun providers() = api.getProviders()
+    override suspend fun addProvider(speciesId: Long, providerId: Long, productUrl: String?) =
+        api.addSpeciesProvider(speciesId, AddSpeciesProviderRequest(providerId, productUrl))
+    override suspend fun removeProvider(speciesId: Long, speciesProviderId: Long) { api.removeSpeciesProvider(speciesId, speciesProviderId) }
+    override suspend fun uploadPhoto(speciesId: Long, imageBase64: String) = api.uploadSpeciesPhoto(speciesId, UploadSpeciesPhotoRequest(imageBase64))
+    override suspend fun deletePhoto(speciesId: Long, photoId: Long) { api.deleteSpeciesPhoto(speciesId, photoId) }
     override suspend fun create(request: CreateSpeciesRequest) = api.createSpecies(request)
     override suspend fun update(id: Long, request: UpdateSpeciesRequest) = api.updateSpecies(id, request)
     override suspend fun delete(id: Long) { api.deleteSpecies(id) }

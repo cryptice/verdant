@@ -37,6 +37,7 @@ data class SpeciesResponse(
     @SerializedName("providers") val providers: List<SpeciesProviderResponse> = emptyList(),
     @SerializedName("isSystem") val isSystem: Boolean = false,
     @SerializedName("costPerSeedCents") val costPerSeedCents: Int? = null,
+    @SerializedName("seedsPerPackage") val seedsPerPackage: Int? = null,
     @SerializedName("expectedStemsPerPlant") val expectedStemsPerPlant: Int? = null,
     @SerializedName("expectedVaseLifeDays") val expectedVaseLifeDays: Int? = null,
     @SerializedName("plantType") val plantType: String? = null,
@@ -66,7 +67,12 @@ data class CreateSpeciesRequest(
     @SerializedName("sowingMonths") val sowingMonths: List<Int> = emptyList(),
     @SerializedName("germinationRate") val germinationRate: Int? = null,
     @SerializedName("tagIds") val tagIds: List<Long> = emptyList(),
-    @SerializedName("groupId") val groupId: Long? = null,
+    @SerializedName("costPerSeedCents") val costPerSeedCents: Int? = null,
+    @SerializedName("seedsPerPackage") val seedsPerPackage: Int? = null,
+    @SerializedName("expectedStemsPerPlant") val expectedStemsPerPlant: Int? = null,
+    @SerializedName("expectedVaseLifeDays") val expectedVaseLifeDays: Int? = null,
+    @SerializedName("plantType") val plantType: String? = null,
+    @SerializedName("defaultUnitType") val defaultUnitType: String? = null,
     @SerializedName("workflowTemplateId") val workflowTemplateId: Long? = null,
 )
 
@@ -91,7 +97,12 @@ data class UpdateSpeciesRequest(
     @SerializedName("sowingMonths") val sowingMonths: List<Int>? = null,
     @SerializedName("germinationRate") val germinationRate: Int? = null,
     @SerializedName("tagIds") val tagIds: List<Long>? = null,
-    @SerializedName("groupId") val groupId: Long? = null,
+    @SerializedName("costPerSeedCents") val costPerSeedCents: Int? = null,
+    @SerializedName("seedsPerPackage") val seedsPerPackage: Int? = null,
+    @SerializedName("expectedStemsPerPlant") val expectedStemsPerPlant: Int? = null,
+    @SerializedName("expectedVaseLifeDays") val expectedVaseLifeDays: Int? = null,
+    @SerializedName("plantType") val plantType: String? = null,
+    @SerializedName("defaultUnitType") val defaultUnitType: String? = null,
     @SerializedName("workflowTemplateId") val workflowTemplateId: Long? = null,
 )
 
@@ -195,4 +206,14 @@ data class AdoptSpeciesRequest(
 data class AdoptSpeciesResponse(
     @SerializedName("species") val species: SpeciesResponse,
     @SerializedName("movedBatchIds") val movedBatchIds: List<Long> = emptyList(),
+)
+
+/** Links a seed supplier to a variety; packet images stay an admin task. */
+data class AddSpeciesProviderRequest(
+    @SerializedName("providerId") val providerId: Long,
+    @SerializedName("productUrl") val productUrl: String? = null,
+)
+
+data class UploadSpeciesPhotoRequest(
+    @SerializedName("imageBase64") val imageBase64: String,
 )

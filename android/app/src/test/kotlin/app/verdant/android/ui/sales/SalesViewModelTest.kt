@@ -210,6 +210,11 @@ private class FakeSpeciesRepo(
     override suspend fun list(): List<SpeciesResponse> = species
     override suspend fun search(query: String): List<SpeciesResponse> = error("not used")
     override suspend fun adopt(id: Long, workflowTemplateId: Long?): app.verdant.android.data.model.AdoptSpeciesResponse = error("not used")
+    override suspend fun providers(): List<app.verdant.android.data.model.ProviderResponse> = error("not used")
+    override suspend fun addProvider(speciesId: Long, providerId: Long, productUrl: String?): app.verdant.android.data.model.SpeciesProviderResponse = error("not used")
+    override suspend fun removeProvider(speciesId: Long, speciesProviderId: Long) { error("not used") }
+    override suspend fun uploadPhoto(speciesId: Long, imageBase64: String): app.verdant.android.data.model.SpeciesPhotoResponse = error("not used")
+    override suspend fun deletePhoto(speciesId: Long, photoId: Long) { error("not used") }
     override suspend fun create(request: CreateSpeciesRequest): SpeciesResponse = error("not used")
     override suspend fun update(id: Long, request: UpdateSpeciesRequest): SpeciesResponse = error("not used")
     override suspend fun delete(id: Long) { error("not used") }
