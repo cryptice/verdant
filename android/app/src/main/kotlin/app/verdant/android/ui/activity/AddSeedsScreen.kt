@@ -1,58 +1,66 @@
 package app.verdant.android.ui.activity
-import app.verdant.android.data.repository.SeedInventoryRepository
-import app.verdant.android.data.repository.SpeciesRepository
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
-import android.util.Log
 import app.verdant.android.data.model.CreateSeedInventoryRequest
+import app.verdant.android.data.model.ProviderResponse
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.sortedBySwedishName
+import app.verdant.android.data.repository.SeedInventoryRepository
+import app.verdant.android.data.repository.SpeciesRepository
 import app.verdant.android.ui.faltet.FaltetDatePicker
 import app.verdant.android.ui.faltet.FaltetDropdown
 import app.verdant.android.ui.faltet.FaltetFormSubmitBar
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
 import app.verdant.android.ui.faltet.Field
+import app.verdant.android.ui.theme.FaltetForest
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.time.LocalDate
+import org.json.JSONObject
+import retrofit2.HttpException
 import javax.inject.Inject
 
 private const val TAG = "AddSeedsScreen"
+private val UNIT_TYPES = listOf("SEED", "PLUG", "BULB", "TUBER", "PLANT")
 
 data class AddSeedsState(
     val isLoading: Boolean = false,
     val created: Boolean = false,
     val error: String? = null,
     val species: List<SpeciesResponse> = emptyList(),
+    val providers: List<ProviderResponse> = emptyList(),
 )
 
 @HiltViewModel
 class AddSeedsViewModel @Inject constructor(
     private val speciesRepository: SpeciesRepository,
-    private val seedInventoryRepository: SeedInventoryRepository
+    private val seedInventoryRepository: SeedInventoryRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AddSeedsState())
     val uiState = _uiState.asStateFlow()
@@ -63,28 +71,29 @@ class AddSeedsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val species = speciesRepository.list().sortedBySwedishName()
-                _uiState.value = _uiState.value.copy(species = species)
+                val providers = runCatching { speciesRepository.providers() }.getOrDefault(emptyList()).sortedBy { it.name }
+                _uiState.value = _uiState.value.copy(species = species, providers = providers)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load species", e)
             }
         }
     }
 
-    fun addSeeds(speciesId: Long, quantity: Int, collectionDate: String?, expirationDate: String?) {
+    fun addSeeds(request: CreateSeedInventoryRequest) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                seedInventoryRepository.create(
-                    CreateSeedInventoryRequest(
-                        speciesId = speciesId,
-                        quantity = quantity,
-                        collectionDate = collectionDate,
-                        expirationDate = expirationDate,
-                    )
-                )
+                seedInventoryRepository.create(request)
                 _uiState.value = _uiState.value.copy(isLoading = false, created = true)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
+                val message = if (e is HttpException) runCatching {
+                    JSONObject(e.response()?.errorBody()?.string().orEmpty()).optString("message").takeIf { it.isNotBlank() }
+                }.getOrNull() else null
+                _uiState.value = _uiState.value.copy(isLoading = false, error = message ?: "Kunde inte spara utsädet")
             }
         }
     }
@@ -96,38 +105,24 @@ private fun speciesDisplayName(s: SpeciesResponse): String {
     return if (variant.isNullOrBlank()) name else "$name – $variant"
 }
 
+private fun unitTypeLabel(code: String): String = when (code) {
+    "SEED" -> "Frö"
+    "PLUG" -> "Plugg"
+    "BULB" -> "Lök"
+    "TUBER" -> "Knöl"
+    "PLANT" -> "Planta"
+    else -> code
+}
+
+/** A new seed batch, like the web dialog: supplier, packages and their size, unit, dates and price. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddSeedsScreen(
     onBack: () -> Unit,
-    viewModel: AddSeedsViewModel = hiltViewModel()
+    viewModel: AddSeedsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    var selectedSpecies by remember { mutableStateOf<SpeciesResponse?>(null) }
-    var quantityText by remember { mutableStateOf("") }
-    var quantityError by remember { mutableStateOf(false) }
-    var collectionDate by remember { mutableStateOf<LocalDate?>(null) }
-    var expirationDate by remember { mutableStateOf<LocalDate?>(null) }
-    var notes by remember { mutableStateOf("") }
-
-    val canSubmit = selectedSpecies != null &&
-        quantityText.toIntOrNull()?.let { it > 0 } == true &&
-        !uiState.isLoading
-
-    val submitAction: () -> Unit = {
-        val qty = quantityText.toIntOrNull()
-        if (qty == null || qty <= 0) {
-            quantityError = true
-        } else {
-            viewModel.addSeeds(
-                speciesId = selectedSpecies!!.id,
-                quantity = qty,
-                collectionDate = collectionDate?.toString(),
-                expirationDate = expirationDate?.toString(),
-            )
-        }
-    }
+    var form by remember { mutableStateOf(SeedBatchForm()) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(uiState.error) { uiState.error?.let { snackbarHostState.showSnackbar(it) } }
@@ -135,21 +130,19 @@ fun AddSeedsScreen(
 
     FaltetScreenScaffold(
         mastheadLeft = "",
-        mastheadCenter = "Lägg till frön",
+        mastheadCenter = "Lägg till utsäde",
         bottomBar = {
             FaltetFormSubmitBar(
-                label = "Spara",
-                onClick = submitAction,
-                enabled = canSubmit,
+                label = "Lägg till",
+                onClick = { viewModel.addSeeds(form.toRequest()) },
+                enabled = form.canSave && !uiState.isLoading,
                 submitting = uiState.isLoading,
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
+            modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -157,162 +150,55 @@ fun AddSeedsScreen(
                 FaltetDropdown(
                     label = "Art",
                     options = uiState.species,
-                    selected = selectedSpecies,
-                    onSelectedChange = { selectedSpecies = it },
-                    labelFor = { speciesDisplayName(it) },
+                    selected = form.species,
+                    onSelectedChange = { form = form.withSpecies(it) },
+                    labelFor = ::speciesDisplayName,
                     searchable = true,
                     required = true,
                 )
             }
-            item {
-                Field(
-                    label = "Antal frön",
-                    value = quantityText,
-                    onValueChange = { quantityText = it.filter { c -> c.isDigit() }; quantityError = false },
-                    keyboardType = KeyboardType.Number,
-                    required = true,
-                    error = if (quantityError) "Antal krävs" else null,
-                )
-            }
-            item {
-                FaltetDatePicker(
-                    label = "Skördedatum (valfri)",
-                    value = collectionDate,
-                    onValueChange = { collectionDate = it },
-                )
-            }
-            item {
-                FaltetDatePicker(
-                    label = "Utgångsdatum (valfri)",
-                    value = expirationDate,
-                    onValueChange = { expirationDate = it },
-                )
-            }
-            item {
-                Field(
-                    label = "Anteckningar (valfri)",
-                    value = notes,
-                    onValueChange = { notes = it },
-                )
-            }
-        }
-    }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFFF5EFE2L)
-@Composable
-private fun AddSeedsScreenPreview() {
-    val snackbarHostState = remember { SnackbarHostState() }
-    val previewSpecies = listOf(
-        SpeciesResponse(
-            id = 1L,
-            commonName = "Dahlia",
-            commonNameSv = "Dahlia",
-            variantName = "Bishop of Llandaff",
-            variantNameSv = null,
-            scientificName = "Dahlia pinnata",
-            imageFrontUrl = null,
-            imageBackUrl = null,
-            photos = emptyList(),
-            germinationTimeDaysMin = null,
-            germinationTimeDaysMax = null,
-            daysToHarvestMin = null,
-            daysToHarvestMax = null,
-            sowingDepthMm = null,
-            growingPositions = emptyList(),
-            soils = emptyList(),
-            heightCmMin = null,
-            heightCmMax = null,
-            germinationRate = null,
-            tags = emptyList(),
-            createdAt = "",
-        ),
-        SpeciesResponse(
-            id = 2L,
-            commonName = "Zinnia",
-            commonNameSv = "Zinnia",
-            variantName = null,
-            variantNameSv = null,
-            scientificName = "Zinnia elegans",
-            imageFrontUrl = null,
-            imageBackUrl = null,
-            photos = emptyList(),
-            germinationTimeDaysMin = null,
-            germinationTimeDaysMax = null,
-            daysToHarvestMin = null,
-            daysToHarvestMax = null,
-            sowingDepthMm = null,
-            growingPositions = emptyList(),
-            soils = emptyList(),
-            heightCmMin = null,
-            heightCmMax = null,
-            germinationRate = null,
-            tags = emptyList(),
-            createdAt = "",
-        ),
-    )
-    FaltetScreenScaffold(
-        mastheadLeft = "",
-        mastheadCenter = "Lägg till frön",
-        bottomBar = {
-            FaltetFormSubmitBar(
-                label = "Spara",
-                onClick = {},
-                enabled = true,
-                submitting = false,
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
             item {
                 FaltetDropdown(
-                    label = "Art",
-                    options = previewSpecies,
-                    selected = previewSpecies.first(),
-                    onSelectedChange = {},
-                    labelFor = { speciesDisplayName(it) },
-                    searchable = true,
+                    label = "Leverantör",
+                    options = uiState.providers,
+                    selected = uiState.providers.find { it.id == form.providerId },
+                    onSelectedChange = { form = form.copy(providerId = it.id) },
+                    labelFor = { it.name },
+                    searchable = false,
+                    clearLabel = "Ingen",
+                    onClear = { form = form.copy(providerId = null) },
+                )
+            }
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Field(label = "Per förpackning", value = form.seedsPerPackage, onValueChange = { form = form.withSeedsPerPackage(it) },
+                        keyboardType = KeyboardType.Number, required = true, modifier = Modifier.weight(1f))
+                    Field(label = "Förpackningar", value = form.packages, onValueChange = { v -> form = form.copy(packages = v.filter { it.isDigit() }) },
+                        keyboardType = KeyboardType.Number, required = true, modifier = Modifier.weight(1f))
+                }
+                Text("Totalt: ${form.quantity} ${unitTypeLabel(form.unitType).lowercase()}", fontSize = 12.sp, color = FaltetForest, modifier = Modifier.padding(top = 6.dp))
+            }
+            item {
+                FaltetDropdown(
+                    label = "Enhet",
+                    options = UNIT_TYPES,
+                    selected = form.unitType,
+                    onSelectedChange = { form = form.copy(unitType = it) },
+                    labelFor = ::unitTypeLabel,
+                    searchable = false,
                     required = true,
                 )
             }
             item {
-                Field(
-                    label = "Antal frön",
-                    value = "50",
-                    onValueChange = {},
-                    keyboardType = KeyboardType.Number,
-                    required = true,
-                    error = null,
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Field(label = "Per enhet (kr)", value = form.costPerSeed, onValueChange = { form = form.withCostPerSeed(it) },
+                        keyboardType = KeyboardType.Decimal, modifier = Modifier.weight(1f))
+                    Field(label = "Per förpackning (kr)", value = form.costPerPackage, onValueChange = { form = form.withCostPerPackage(it) },
+                        keyboardType = KeyboardType.Decimal, modifier = Modifier.weight(1f))
+                }
             }
-            item {
-                FaltetDatePicker(
-                    label = "Skördedatum (valfri)",
-                    value = LocalDate.of(2025, 9, 14),
-                    onValueChange = {},
-                )
-            }
-            item {
-                FaltetDatePicker(
-                    label = "Utgångsdatum (valfri)",
-                    value = null,
-                    onValueChange = {},
-                )
-            }
-            item {
-                Field(
-                    label = "Anteckningar (valfri)",
-                    value = "",
-                    onValueChange = {},
-                )
-            }
+            item { FaltetDatePicker(label = "Insamlad (valfri)", value = form.collectionDate, onValueChange = { form = form.copy(collectionDate = it) }) }
+            item { FaltetDatePicker(label = "Utgår (valfri)", value = form.expirationDate, onValueChange = { form = form.copy(expirationDate = it) }) }
         }
     }
 }

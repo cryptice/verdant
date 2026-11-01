@@ -4,6 +4,8 @@ import app.verdant.dto.*
 import app.verdant.entity.MovementKind
 import app.verdant.entity.SeedInventory
 import app.verdant.entity.SeedStockMovement
+import app.verdant.entity.Species
+import app.verdant.entity.SpeciesProvider
 import app.verdant.entity.UnitType
 import app.verdant.repository.ProviderRepository
 import app.verdant.repository.SeasonRepository
@@ -35,7 +37,7 @@ class SeedInventoryService(
             repo.findByOrgId(orgId, limit, offset)
         }
         val speciesNames = speciesRepo.findNamesByIds(items.map { it.speciesId }.toSet())
-        val providerNames = resolveProviderNames(items.mapNotNull { it.speciesProviderId }.distinct())
+        val providerNames = providerNames()
         return items.map { it.toResponse(speciesNames[it.speciesId] ?: "Unknown", providerNames) }
     }
 
@@ -43,6 +45,7 @@ class SeedInventoryService(
     fun createInventory(request: CreateSeedInventoryRequest, orgId: Long): SeedInventoryResponse {
         val species = speciesRepo.findById(request.speciesId) ?: throw NotFoundException("Species not found")
         if (species.orgId != null && species.orgId != orgId) throw NotFoundException("Species not found")
+        val (providerId, speciesProviderId) = resolveSupplier(species, orgId, request.providerId, request.speciesProviderId)
         val inventory = repo.persist(
             SeedInventory(
                 orgId = orgId,
@@ -53,12 +56,13 @@ class SeedInventoryService(
                 costPerUnitCents = request.costPerUnitCents,
                 unitType = UnitType.valueOf(request.unitType),
                 seasonId = request.seasonId,
-                speciesProviderId = request.speciesProviderId,
+                speciesProviderId = speciesProviderId,
+                providerId = providerId,
                 seedsPerPackage = request.seedsPerPackage,
             )
         )
         recordMovement(inventory, MovementKind.ADDED, inventory.quantity)
-        val providerNames = resolveProviderNames(listOfNotNull(inventory.speciesProviderId))
+        val providerNames = providerNames()
         val speciesName = speciesRepo.findNamesByIds(setOf(inventory.speciesId))[inventory.speciesId]
             ?: species.commonName
         return inventory.toResponse(speciesName, providerNames)
@@ -68,6 +72,10 @@ class SeedInventoryService(
     fun updateInventory(id: Long, request: UpdateSeedInventoryRequest, orgId: Long): SeedInventoryResponse {
         val inventory = repo.findById(id) ?: throw NotFoundException("Seed stock not found")
         if (inventory.orgId != orgId) throw NotFoundException("Seed stock not found")
+        val supplier = if (request.providerId != null || request.speciesProviderId != null) {
+            val species = speciesRepo.findById(inventory.speciesId) ?: throw NotFoundException("Species not found")
+            resolveSupplier(species, orgId, request.providerId, request.speciesProviderId)
+        } else inventory.providerId to inventory.speciesProviderId
         val updated = inventory.copy(
             quantity = request.quantity ?: inventory.quantity,
             collectionDate = request.collectionDate ?: inventory.collectionDate,
@@ -75,15 +83,15 @@ class SeedInventoryService(
             costPerUnitCents = request.costPerUnitCents ?: inventory.costPerUnitCents,
             unitType = request.unitType?.let { UnitType.valueOf(it) } ?: inventory.unitType,
             seedsPerPackage = request.seedsPerPackage ?: inventory.seedsPerPackage,
-            speciesProviderId = if (request.speciesProviderId != null) request.speciesProviderId else inventory.speciesProviderId,
+            providerId = supplier.first,
+            speciesProviderId = supplier.second,
         )
         repo.update(updated)
         if (updated.quantity != inventory.quantity) {
             recordMovement(updated, MovementKind.ADJUSTED, updated.quantity - inventory.quantity)
         }
         val speciesName = speciesRepo.findNamesByIds(setOf(updated.speciesId))[updated.speciesId] ?: "Unknown"
-        val providerNames = resolveProviderNames(listOfNotNull(updated.speciesProviderId))
-        return updated.toResponse(speciesName, providerNames)
+        return updated.toResponse(speciesName, providerNames())
     }
 
     @Transactional
@@ -99,8 +107,7 @@ class SeedInventoryService(
         recordMovement(inventory, MovementKind.SOWN, request.quantity, shortfall)
         val updated = repo.findById(id)!!
         val speciesName = speciesRepo.findNamesByIds(setOf(updated.speciesId))[updated.speciesId] ?: "Unknown"
-        val providerNames = resolveProviderNames(listOfNotNull(updated.speciesProviderId))
-        return updated.toResponse(speciesName, providerNames)
+        return updated.toResponse(speciesName, providerNames())
     }
 
     fun deleteInventory(id: Long, orgId: Long) {
@@ -126,14 +133,27 @@ class SeedInventoryService(
         )
     }
 
-    private fun resolveProviderNames(speciesProviderIds: List<Long>): Map<Long, String> {
-        if (speciesProviderIds.isEmpty()) return emptyMap()
-        return speciesProviderIds.mapNotNull { spId ->
-            val sp = speciesProviderRepo.findById(spId) ?: return@mapNotNull null
-            val provider = providerRepo.findById(sp.providerId) ?: return@mapNotNull null
-            spId to provider.name
-        }.toMap()
+    /**
+     * The batch's supplier and the variety's link to it. A chosen supplier wins; older clients send a
+     * link instead. An own variety is linked to a chosen supplier it lacks, so its supplier list stays
+     * complete; a catalogue variety's links are shared, so the supplier is kept on the batch alone.
+     */
+    private fun resolveSupplier(species: Species, orgId: Long, providerId: Long?, speciesProviderId: Long?): Pair<Long?, Long?> {
+        if (providerId != null) {
+            providerRepo.findById(providerId) ?: throw BadRequestException("Supplier not found")
+            val link = speciesProviderRepo.findBySpeciesId(species.id!!).firstOrNull { it.providerId == providerId }
+                ?: if (species.orgId == orgId) speciesProviderRepo.persist(SpeciesProvider(speciesId = species.id, providerId = providerId)) else null
+            return providerId to link?.id
+        }
+        if (speciesProviderId != null) {
+            val link = speciesProviderRepo.findById(speciesProviderId)?.takeIf { it.speciesId == species.id }
+                ?: throw BadRequestException("The supplier link belongs to another variety")
+            return link.providerId to link.id
+        }
+        return null to null
     }
+
+    private fun providerNames(): Map<Long, String> = providerRepo.findAll().associate { it.id!! to it.name }
 
     private fun SeedInventory.toResponse(speciesName: String, providerNames: Map<Long, String> = emptyMap()) = SeedInventoryResponse(
         id = id!!,
@@ -146,8 +166,9 @@ class SeedInventoryService(
         unitType = unitType.name,
         seasonId = seasonId,
         speciesProviderId = speciesProviderId,
-        providerName = speciesProviderId?.let { providerNames[it] },
+        providerName = providerId?.let { providerNames[it] },
         seedsPerPackage = seedsPerPackage,
         createdAt = createdAt,
+        providerId = providerId,
     )
 }

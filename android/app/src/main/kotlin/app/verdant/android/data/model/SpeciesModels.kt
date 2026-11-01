@@ -171,6 +171,8 @@ data class SeedInventoryResponse(
     @SerializedName("seasonId") val seasonId: Long? = null,
     @SerializedName("createdAt") val createdAt: String,
     @SerializedName("providerName") val providerName: String? = null,
+    @SerializedName("providerId") val providerId: Long? = null,
+    @SerializedName("seedsPerPackage") val seedsPerPackage: Int? = null,
 )
 
 data class CreateSeedInventoryRequest(
@@ -181,6 +183,9 @@ data class CreateSeedInventoryRequest(
     @SerializedName("costPerUnitCents") val costPerUnitCents: Int? = null,
     @SerializedName("unitType") val unitType: String? = null,
     @SerializedName("seasonId") val seasonId: Long? = null,
+    @SerializedName("seedsPerPackage") val seedsPerPackage: Int? = null,
+    /** Any supplier; an own variety without a link to it gets one. */
+    @SerializedName("providerId") val providerId: Long? = null,
 )
 
 data class UpdateSeedInventoryRequest(

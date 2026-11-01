@@ -1,5 +1,5 @@
 import { useId, useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api, type SeedInventoryResponse, type SpeciesResponse } from '../api/client'
 import { Dialog } from './Dialog'
@@ -13,7 +13,7 @@ const roundCents = (value: number) => Math.round(value * 100) / 100
 
 /** A variety's only supplier is picked for a new batch; with several, the grower chooses. */
 const onlySupplier = (species: SpeciesResponse | null): number | '' =>
-  species?.providers.length === 1 ? species.providers[0].id : ''
+  species?.providers.length === 1 ? species.providers[0].providerId : ''
 
 /** A new batch starts from the variety's usual package size and price, which the grower can change. */
 function pricesFrom(species: SpeciesResponse | null) {
@@ -31,7 +31,6 @@ interface Props {
   batch?: SeedInventoryResponse
   /** Preselects the species when adding, e.g. from a deep link. */
   initialSpecies?: SpeciesResponse | null
-  species?: SpeciesResponse[]
   onClose: () => void
   onDelete?: (batch: SeedInventoryResponse) => void
 }
@@ -41,18 +40,18 @@ interface Props {
  * packages × size; an existing one shows what is left, since sowing draws it
  * down below whole packages. The package size is what prices a package.
  */
-export function SeedBatchDialog({ batch, initialSpecies = null, species, onClose, onDelete }: Props) {
+export function SeedBatchDialog({ batch, initialSpecies = null, onClose, onDelete }: Props) {
   const { t } = useTranslation()
   const qc = useQueryClient()
   const { completeStep } = useOnboarding()
   const id = useId()
   const isEdit = batch != null
-  const batchSpecies = isEdit ? species?.find(s => s.id === batch.speciesId) ?? null : null
 
   const [selectedSpecies, setSelectedSpecies] = useState<SpeciesResponse | null>(initialSpecies)
-  const providerSpecies = isEdit ? batchSpecies : selectedSpecies
+  // Any supplier can be chosen; one the variety isn't linked to yet gets linked when the batch is saved.
+  const { data: suppliers = [] } = useQuery({ queryKey: ['providers'], queryFn: api.providers.list })
   const [providerId, setProviderId] = useState<number | ''>(
-    isEdit ? batch.speciesProviderId ?? '' : onlySupplier(initialSpecies),
+    isEdit ? batch.providerId ?? '' : onlySupplier(initialSpecies),
   )
   const [unitType, setUnitType] = useState(isEdit ? batch.unitType ?? '' : initialSpecies?.defaultUnitType ?? 'SEED')
   const initialPrices = isEdit ? null : pricesFrom(initialSpecies)
@@ -97,7 +96,7 @@ export function SeedBatchDialog({ batch, initialSpecies = null, species, onClose
         expirationDate: expiration || undefined,
         costPerUnitCents: costUnit ? Math.round(Number(costUnit) * 100) : undefined,
         unitType: unitType || undefined,
-        speciesProviderId: providerId !== '' ? providerId : undefined,
+        providerId: providerId !== '' ? providerId : undefined,
         seedsPerPackage: per || undefined,
       }
       return isEdit
@@ -155,12 +154,11 @@ export function SeedBatchDialog({ batch, initialSpecies = null, species, onClose
             id={`${id}-provider`}
             value={providerId}
             onChange={e => setProviderId(e.target.value ? Number(e.target.value) : '')}
-            disabled={!providerSpecies}
             className="input w-full"
           >
-            <option value="">{providerSpecies ? t('common.none') : t('common.select')}</option>
-            {providerSpecies?.providers.map(p => (
-              <option key={p.id} value={p.id}>{p.providerName}</option>
+            <option value="">{t('common.none')}</option>
+            {[...suppliers].sort((a, b) => a.name.localeCompare(b.name, 'sv')).map(p => (
+              <option key={p.id} value={p.id}>{p.name}</option>
             ))}
           </select>
         </div>

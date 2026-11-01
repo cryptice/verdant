@@ -24,6 +24,7 @@ const batch: SeedInventoryResponse = {
 }
 
 beforeEach(() => {
+  vi.spyOn(api.providers, 'list').mockResolvedValue([{ id: 1, name: 'Impecta', identifier: 'impecta' }])
   vi.spyOn(api.inventory, 'create').mockResolvedValue(batch)
   vi.spyOn(api.inventory, 'update').mockResolvedValue(batch)
 })
@@ -31,7 +32,7 @@ afterEach(() => vi.restoreAllMocks())
 
 function show(props: Partial<Parameters<typeof SeedBatchDialog>[0]>) {
   const qc = new QueryClient()
-  render(<QueryClientProvider client={qc}><SeedBatchDialog species={[chili]} onClose={vi.fn()} {...props} /></QueryClientProvider>)
+  render(<QueryClientProvider client={qc}><SeedBatchDialog onClose={vi.fn()} {...props} /></QueryClientProvider>)
 }
 
 describe('SeedBatchDialog', () => {

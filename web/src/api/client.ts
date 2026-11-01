@@ -135,6 +135,8 @@ export interface SeedInventoryResponse {
   speciesProviderId?: number; providerName?: string
   seedsPerPackage?: number
   createdAt: string
+  /** The batch's supplier, which need not be linked to the variety. */
+  providerId?: number | null
 }
 
 export interface AcceptableSpeciesEntry {
@@ -915,9 +917,9 @@ export const api = {
   inventory: {
     list: (speciesId?: number) =>
       apiRequest<SeedInventoryResponse[]>(`/api/seed-stock${speciesId ? `?speciesId=${speciesId}` : ''}`),
-    create: (data: { speciesId: number; quantity: number; collectionDate?: string; expirationDate?: string; costPerUnitCents?: number; unitType?: string; speciesProviderId?: number; seedsPerPackage?: number }) =>
+    create: (data: { speciesId: number; quantity: number; collectionDate?: string; expirationDate?: string; costPerUnitCents?: number; unitType?: string; speciesProviderId?: number; providerId?: number; seedsPerPackage?: number }) =>
       apiRequest<SeedInventoryResponse>('/api/seed-stock', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: number, data: { quantity?: number; collectionDate?: string; expirationDate?: string; costPerUnitCents?: number; unitType?: string; speciesProviderId?: number; seedsPerPackage?: number }) =>
+    update: (id: number, data: { quantity?: number; collectionDate?: string; expirationDate?: string; costPerUnitCents?: number; unitType?: string; speciesProviderId?: number; providerId?: number; seedsPerPackage?: number }) =>
       apiRequest<SeedInventoryResponse>(`/api/seed-stock/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     // allowShortfall: the user confirmed sowing more than the batch holds, so it is emptied.
     decrement: (id: number, quantity: number, allowShortfall?: boolean) =>

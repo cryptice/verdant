@@ -310,7 +310,6 @@ export function SeedInventory() {
           key={dialog.key}
           batch={dialog.batch}
           initialSpecies={dialog.initialSpecies}
-          species={species}
           onClose={() => setDialog(null)}
           onDelete={batch => { setDialog(null); setDeleteItem(batch) }}
         />

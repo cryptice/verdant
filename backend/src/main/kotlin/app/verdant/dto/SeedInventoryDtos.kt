@@ -21,6 +21,8 @@ data class SeedInventoryResponse(
     val providerName: String?,
     val seedsPerPackage: Int?,
     val createdAt: Instant,
+    /** The batch's supplier; providerName is its name. */
+    val providerId: Long? = null,
 )
 
 data class CreateSeedInventoryRequest(
@@ -38,6 +40,8 @@ data class CreateSeedInventoryRequest(
     val speciesProviderId: Long? = null,
     @field:Min(1)
     val seedsPerPackage: Int? = null,
+    /** Any supplier; an own variety without a link to it gets one. Takes precedence over speciesProviderId. */
+    val providerId: Long? = null,
 )
 
 data class UpdateSeedInventoryRequest(
@@ -53,6 +57,8 @@ data class UpdateSeedInventoryRequest(
     val speciesProviderId: Long? = null,
     @field:Min(1)
     val seedsPerPackage: Int? = null,
+    /** Any supplier; an own variety without a link to it gets one. Takes precedence over speciesProviderId. */
+    val providerId: Long? = null,
 )
 
 data class DecrementSeedInventoryRequest(

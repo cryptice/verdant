@@ -71,8 +71,8 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
     fun persist(inventory: SeedInventory): SeedInventory {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO seed_inventory (org_id, species_id, quantity, collection_date, expiration_date, cost_per_unit_cents, unit_type, season_id, species_provider_id, seeds_per_package, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
+                """INSERT INTO seed_inventory (org_id, species_id, quantity, collection_date, expiration_date, cost_per_unit_cents, unit_type, season_id, species_provider_id, seeds_per_package, provider_id, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setLong(1, inventory.orgId)
@@ -85,6 +85,7 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
                 ps.setObject(8, inventory.seasonId)
                 ps.setObject(9, inventory.speciesProviderId)
                 ps.setObject(10, inventory.seedsPerPackage)
+                ps.setObject(11, inventory.providerId)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -98,7 +99,7 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
         ds.connection.use { conn ->
             conn.prepareStatement(
                 """UPDATE seed_inventory SET quantity = ?, collection_date = ?, expiration_date = ?,
-                   cost_per_unit_cents = ?, unit_type = ?, season_id = ?, species_provider_id = ?, seeds_per_package = ?
+                   cost_per_unit_cents = ?, unit_type = ?, season_id = ?, species_provider_id = ?, seeds_per_package = ?, provider_id = ?
                    WHERE id = ?"""
             ).use { ps ->
                 ps.setInt(1, inventory.quantity)
@@ -109,7 +110,8 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
                 ps.setObject(6, inventory.seasonId)
                 ps.setObject(7, inventory.speciesProviderId)
                 ps.setObject(8, inventory.seedsPerPackage)
-                ps.setLong(9, inventory.id!!)
+                ps.setObject(9, inventory.providerId)
+                ps.setLong(10, inventory.id!!)
                 ps.executeUpdate()
             }
         }
@@ -201,6 +203,7 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
         unitType = getString("unit_type")?.let { UnitType.valueOf(it) } ?: UnitType.SEED,
         seasonId = getObject("season_id") as? Long,
         speciesProviderId = getObject("species_provider_id") as? Long,
+        providerId = getObject("provider_id") as? Long,
         seedsPerPackage = getObject("seeds_per_package") as? Int,
         createdAt = getTimestamp("created_at").toInstant(),
     )

@@ -14,6 +14,8 @@ data class SeedInventory(
     val unitType: UnitType = UnitType.SEED,
     val seasonId: Long? = null,
     val speciesProviderId: Long? = null,
+    /** The supplier, also when the variety has no link to it (a catalogue variety's links are shared). */
+    val providerId: Long? = null,
     val seedsPerPackage: Int? = null,
     val createdAt: Instant = Instant.now(),
 )
