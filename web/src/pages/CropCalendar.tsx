@@ -155,7 +155,7 @@ export function CropCalendar() {
       result.push({ speciesId, name, scientificName: sp.scientificName ?? undefined, sowRange, bloomRange, harvestRange })
     })
 
-    result.sort((a, b) => a.name.localeCompare(b.name))
+    result.sort((a, b) => a.name.localeCompare(b.name, 'sv'))
     return result
   }, [speciesList, plants, allEvents, i18n.language])
 
