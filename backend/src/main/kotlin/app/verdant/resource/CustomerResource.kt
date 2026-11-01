@@ -19,9 +19,9 @@ class CustomerResource(
 ) {
     @GET
     fun list(
-        @QueryParam("limit") @DefaultValue("50") limit: Int,
+        @QueryParam("limit") limit: Int?,
         @QueryParam("offset") @DefaultValue("0") offset: Int,
-    ) = service.getCustomersForUser(orgContext.orgId, limit.coerceIn(1, 200), offset.coerceAtLeast(0))
+    ) = service.getCustomersForUser(orgContext.orgId, (limit?.coerceIn(1, 200) ?: Int.MAX_VALUE), offset.coerceAtLeast(0))
 
     @GET
     @Path("/{id}")

@@ -20,9 +20,9 @@ class ProductionTargetResource(
     @GET
     fun list(
         @QueryParam("seasonId") seasonId: Long?,
-        @QueryParam("limit") @DefaultValue("50") limit: Int,
+        @QueryParam("limit") limit: Int?,
         @QueryParam("offset") @DefaultValue("0") offset: Int,
-    ) = service.getTargetsForUser(orgContext.orgId, seasonId, limit.coerceIn(1, 200), offset.coerceAtLeast(0))
+    ) = service.getTargetsForUser(orgContext.orgId, seasonId, (limit?.coerceIn(1, 200) ?: Int.MAX_VALUE), offset.coerceAtLeast(0))
 
     @GET
     @Path("/{id}")

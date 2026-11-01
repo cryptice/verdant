@@ -23,9 +23,9 @@ class SeedInventoryResource(
     fun list(
         @QueryParam("speciesId") speciesId: Long?,
         @QueryParam("seasonId") seasonId: Long?,
-        @QueryParam("limit") @DefaultValue("50") limit: Int,
+        @QueryParam("limit") limit: Int?,
         @QueryParam("offset") @DefaultValue("0") offset: Int,
-    ) = service.getInventoryForUser(orgContext.orgId, speciesId, seasonId, limit.coerceIn(1, 200), offset.coerceAtLeast(0))
+    ) = service.getInventoryForUser(orgContext.orgId, speciesId, seasonId, (limit?.coerceIn(1, 200) ?: Int.MAX_VALUE), offset.coerceAtLeast(0))
 
     @POST
     fun create(@Valid request: CreateSeedInventoryRequest): Response {

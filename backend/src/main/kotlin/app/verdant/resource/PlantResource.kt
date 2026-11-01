@@ -47,9 +47,9 @@ class PlantResource(
     fun listAll(
         @QueryParam("status") status: String?,
         @QueryParam("seasonId") seasonId: Long?,
-        @QueryParam("limit") @DefaultValue("50") limit: Int,
+        @QueryParam("limit") limit: Int?,
         @QueryParam("offset") @DefaultValue("0") offset: Int,
-    ) = plantService.getAllPlantsForUser(orgContext.orgId, status?.let { app.verdant.entity.PlantStatus.valueOf(it) }, seasonId, limit.coerceIn(1, 200), offset.coerceAtLeast(0))
+    ) = plantService.getAllPlantsForUser(orgContext.orgId, status?.let { app.verdant.entity.PlantStatus.valueOf(it) }, seasonId, (limit?.coerceIn(1, 200) ?: Int.MAX_VALUE), offset.coerceAtLeast(0))
 
     @GET
     @Path("/beds/{bedId}/plants")
