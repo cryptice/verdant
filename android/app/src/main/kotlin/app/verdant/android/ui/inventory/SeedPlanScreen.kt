@@ -1,5 +1,7 @@
 package app.verdant.android.ui.inventory
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +25,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
@@ -42,6 +47,7 @@ import app.verdant.android.data.model.SeedInventoryResponse
 import app.verdant.android.data.repository.SeedInventoryRepository
 import app.verdant.android.data.repository.SpeciesRepository
 import app.verdant.android.ui.common.ConnectionErrorState
+import app.verdant.android.ui.faltet.FaltetCheckbox
 import app.verdant.android.ui.faltet.FaltetDatePicker
 import app.verdant.android.ui.faltet.FaltetFormSubmitBar
 import app.verdant.android.ui.faltet.FaltetLoadingState
@@ -68,10 +74,14 @@ import java.util.Locale
 import javax.inject.Inject
 
 data class SeedPlanState(
-    val batch: SeedInventoryResponse? = null,
+    /** The variety's batches that still hold seeds, in the order seeds are drawn from them. */
+    val batches: List<SeedInventoryResponse> = emptyList(),
+    val selectedIds: List<Long> = emptyList(),
+    val loaded: Boolean = false,
     val germinationRate: Int? = null,
     val loadFailed: Boolean = false,
-    val seeds: String = "",
+    /** What the grower typed; until then the seed count follows the chosen batches. */
+    val seedsTyped: String? = null,
     val plants: String = "",
     val readyDate: LocalDate? = null,
     val preview: SeedBatchPlanResponse? = null,
@@ -79,15 +89,22 @@ data class SeedPlanState(
     val creating: Boolean = false,
     val created: SeedBatchPlanResponse? = null,
 ) {
-    val inputError: String? get() = batch?.let { seedPlanInputError(seeds.toIntOrNull(), plants.toIntOrNull(), it.quantity) }
+    val selected: List<SeedInventoryResponse> get() = batches.filter { it.id in selectedIds }
+    val available: Int get() = selected.sumOf { it.quantity }
+    val seeds: String get() = seedsTyped ?: if (available > 0) available.toString() else ""
+
+    val inputError: String? get() = seedPlanInputError(selected.size, seeds.toIntOrNull(), plants.toIntOrNull(), available)
 
     /** The request the inputs make, or null while they are incomplete or wrong. */
     val request: SeedBatchPlanRequest? get() {
         val s = seeds.toIntOrNull()?.takeIf { it >= 1 } ?: return null
         val p = plants.toIntOrNull()?.takeIf { it >= 1 } ?: return null
         val date = readyDate ?: return null
-        return if (inputError == null) SeedBatchPlanRequest(s, p, date.toString()) else null
+        return if (inputError == null) SeedBatchPlanRequest(s, p, date.toString(), selected.map { it.id }) else null
     }
+
+    /** One task per required step, plus a sowing task for each further batch drawn from. */
+    val taskCount: Int get() = preview?.let { p -> p.steps.count { !it.optional } + (p.allocations.size - 1).coerceAtLeast(0) } ?: 0
 
     fun startsInPast(today: LocalDate): Boolean =
         preview?.steps?.firstOrNull()?.let { LocalDate.parse(it.date).isBefore(today) } ?: false
@@ -97,18 +114,27 @@ data class SeedPlanState(
         val s = seeds.toIntOrNull()?.takeIf { it > 0 } ?: return null
         return s * rate / 100
     }
+
+    fun label(batch: SeedInventoryResponse): String = listOfNotNull(
+        batch.providerName ?: "Parti ${batches.indexOf(batch) + 1}",
+        batch.expirationDate?.let { "utg. $it" },
+    ).joinToString(" · ")
 }
 
 /** The mistakes worth catching before asking the server; the same rules the server applies. */
-internal fun seedPlanInputError(seeds: Int?, plants: Int?, batchQuantity: Int): String? = when {
-    seeds != null && seeds > batchQuantity -> "Partiet har bara $batchQuantity frön."
+internal fun seedPlanInputError(chosenBatches: Int, seeds: Int?, plants: Int?, available: Int): String? = when {
+    chosenBatches == 0 -> "Välj minst ett fröparti."
+    seeds != null && seeds > available ->
+        if (chosenBatches == 1) "Partiet har bara $available frön." else "De valda partierna har bara $available frön."
     seeds != null && plants != null && plants > seeds -> "Fler plantor än frön går inte."
     else -> null
 }
 
 /**
- * Plans a seed batch: "sow this many seeds to have this many plants ready on this date". The server
- * counts back through the variety's workflow; the preview shows the dates, and creating makes the tasks.
+ * Plans a variety's seed batches: "sow this many seeds to have this many plants ready on this date".
+ * The seeds are drawn from the chosen batches in order, so a plan can sow more than one batch holds.
+ * The server counts back through the variety's workflow; the preview shows the dates, and creating
+ * makes the tasks.
  */
 @HiltViewModel
 class SeedPlanViewModel @Inject constructor(
@@ -116,7 +142,8 @@ class SeedPlanViewModel @Inject constructor(
     private val seedInventoryRepository: SeedInventoryRepository,
     private val speciesRepository: SpeciesRepository,
 ) : ViewModel() {
-    private val batchId: Long = checkNotNull(savedStateHandle.get<Long>("batchId"))
+    private val speciesId: Long = checkNotNull(savedStateHandle.get<Long>("speciesId"))
+    private val startBatchId: Long? = savedStateHandle.get<Long>("batchId")?.takeIf { it > 0 }
     private val _uiState = MutableStateFlow(SeedPlanState())
     val uiState = _uiState.asStateFlow()
     private var previewJob: Job? = null
@@ -127,9 +154,11 @@ class SeedPlanViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(loadFailed = false)
             try {
-                val batch = seedInventoryRepository.list().first { it.id == batchId }
-                _uiState.value = _uiState.value.copy(batch = batch, seeds = batch.quantity.toString())
-                val rate = runCatching { speciesRepository.get(batch.speciesId).germinationRate }.getOrNull()
+                val batches = seedInventoryRepository.list(speciesId).filter { it.quantity > 0 }
+                // A variety with one batch uses it; with several, the grower picks, starting from the batch opened from.
+                val selected = if (batches.size == 1) listOf(batches.first().id) else listOfNotNull(startBatchId?.takeIf { id -> batches.any { it.id == id } })
+                _uiState.value = _uiState.value.copy(batches = batches, selectedIds = selected, loaded = true)
+                val rate = runCatching { speciesRepository.get(speciesId).germinationRate }.getOrNull()
                 _uiState.value = _uiState.value.copy(germinationRate = rate)
             } catch (e: CancellationException) {
                 throw e
@@ -139,7 +168,11 @@ class SeedPlanViewModel @Inject constructor(
         }
     }
 
-    fun setSeeds(value: String) = update(_uiState.value.copy(seeds = value.filter { it.isDigit() }))
+    fun toggleBatch(id: Long) {
+        val ids = _uiState.value.selectedIds
+        update(_uiState.value.copy(selectedIds = if (id in ids) ids - id else ids + id))
+    }
+    fun setSeeds(value: String) = update(_uiState.value.copy(seedsTyped = value.filter { it.isDigit() }))
     fun setPlants(value: String) = update(_uiState.value.copy(plants = value.filter { it.isDigit() }))
     fun setReadyDate(value: LocalDate?) = update(_uiState.value.copy(readyDate = value))
 
@@ -151,7 +184,7 @@ class SeedPlanViewModel @Inject constructor(
         previewJob = viewModelScope.launch {
             delay(300)
             try {
-                val preview = seedInventoryRepository.previewPlan(batchId, request)
+                val preview = seedInventoryRepository.previewPlan(request)
                 _uiState.value = _uiState.value.copy(preview = preview)
             } catch (e: CancellationException) {
                 throw e
@@ -167,7 +200,7 @@ class SeedPlanViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(creating = true, error = null)
             try {
-                val created = seedInventoryRepository.createPlan(batchId, request)
+                val created = seedInventoryRepository.createPlan(request)
                 _uiState.value = _uiState.value.copy(creating = false, created = created)
             } catch (e: CancellationException) {
                 throw e
@@ -206,8 +239,8 @@ fun SeedPlanScreen(
             }
         },
         bottomBar = {
-            if (created == null && uiState.batch != null) {
-                val count = uiState.preview?.steps?.count { !it.optional } ?: 0
+            if (created == null && uiState.batches.isNotEmpty()) {
+                val count = uiState.taskCount
                 FaltetFormSubmitBar(
                     label = if (count == 1) "Skapa 1 uppgift" else "Skapa $count uppgifter",
                     onClick = viewModel::create,
@@ -217,93 +250,178 @@ fun SeedPlanScreen(
             }
         },
     ) { padding ->
-        val batch = uiState.batch
         when {
             uiState.loadFailed -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 ConnectionErrorState(onRetry = viewModel::load)
             }
-            batch == null -> FaltetLoadingState(Modifier.padding(padding))
+            !uiState.loaded -> FaltetLoadingState(Modifier.padding(padding))
             created != null -> CreatedPlan(created, onShowTasks, onBack, Modifier.padding(padding))
-            else -> LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
+            uiState.batches.isEmpty() -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Text("Sorten har inga frön kvar att planera.", color = FaltetForest)
+            }
+            else -> PlanForm(uiState, viewModel, today, Modifier.padding(padding))
+        }
+    }
+}
+
+@Composable
+private fun PlanForm(uiState: SeedPlanState, viewModel: SeedPlanViewModel, today: LocalDate, modifier: Modifier) {
+    var pickerOpen by remember { mutableStateOf(uiState.batches.size > 1 && uiState.selectedIds.isEmpty()) }
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        item {
+            Text(
+                text = "Ange hur många frön av ${uiState.batches.first().speciesName} du vill så, hur många plantor de ska ge och när " +
+                    "plantorna ska vara klara. Uppgifterna räknas bakåt genom sortens arbetsflöde.",
+                fontSize = 14.sp,
+                color = FaltetInk,
+            )
+        }
+        item {
+            BatchPicker(
+                uiState = uiState,
+                open = pickerOpen,
+                onToggleOpen = { pickerOpen = !pickerOpen },
+                onToggleBatch = viewModel::toggleBatch,
+            )
+        }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                Field(
+                    label = "Frön att så",
+                    value = uiState.seeds,
+                    onValueChange = viewModel::setSeeds,
+                    keyboardType = KeyboardType.Number,
+                    required = true,
+                    modifier = Modifier.weight(1f),
+                )
+                Field(
+                    label = "Plantor",
+                    value = uiState.plants,
+                    onValueChange = viewModel::setPlants,
+                    keyboardType = KeyboardType.Number,
+                    placeholder = uiState.suggestedPlants?.toString(),
+                    required = true,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            val rate = uiState.germinationRate
+            val suggested = uiState.suggestedPlants
+            if (rate != null && suggested != null && uiState.plants.isEmpty()) {
+                Text(
+                    text = "Med sortens grobarhet på $rate % ger fröna cirka $suggested plantor.",
+                    fontSize = 12.sp,
+                    color = FaltetForest,
+                    modifier = Modifier.padding(top = 6.dp),
+                )
+            }
+        }
+        item {
+            FaltetDatePicker(label = "Klara", value = uiState.readyDate, onValueChange = viewModel::setReadyDate, required = true)
+        }
+        val message = uiState.inputError?.takeIf { uiState.selectedIds.isNotEmpty() || !pickerOpen } ?: uiState.error
+        message?.let { item { Text(it, color = FaltetClay, fontSize = 13.sp) } }
+        uiState.preview?.let { preview ->
+            item {
+                val years = preview.steps.map { it.date.take(4) }.distinct().joinToString("–")
+                Text(
+                    text = "SCHEMA · $years",
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 9.sp,
+                    letterSpacing = 1.4.sp,
+                    color = FaltetForest.copy(alpha = 0.7f),
+                )
+            }
+            items(preview.steps) { step ->
+                val split = if (step.activityType == "SOW" && preview.allocations.size > 1) {
+                    preview.allocations.joinToString(" + ") { a ->
+                        val batch = uiState.batches.find { it.id == a.seedBatchId }
+                        "${batch?.let(uiState::label) ?: a.seedBatchId}: ${a.seeds} frön"
+                    }
+                } else null
+                PlanStepRow(step, split)
+            }
+            if (uiState.startsInPast(today)) {
                 item {
                     Text(
-                        text = "Ange hur många frön av ${batch.speciesName} du vill så, hur många plantor de ska ge och när " +
-                            "plantorna ska vara klara. Uppgifterna räknas bakåt genom sortens arbetsflöde. Partiet har ${batch.quantity} frön.",
-                        fontSize = 14.sp,
-                        color = FaltetInk,
+                        text = "Sådden skulle behöva ske ${LocalDate.parse(preview.steps.first().date).format(fullDate)}, som redan har passerat. Välj ett senare datum.",
+                        color = FaltetClay,
+                        fontSize = 13.sp,
                     )
                 }
-                item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                        Field(
-                            label = "Frön att så",
-                            value = uiState.seeds,
-                            onValueChange = viewModel::setSeeds,
-                            keyboardType = KeyboardType.Number,
-                            required = true,
-                            modifier = Modifier.weight(1f),
-                        )
-                        Field(
-                            label = "Plantor",
-                            value = uiState.plants,
-                            onValueChange = viewModel::setPlants,
-                            keyboardType = KeyboardType.Number,
-                            placeholder = uiState.suggestedPlants?.toString(),
-                            required = true,
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                    val rate = uiState.germinationRate
-                    val suggested = uiState.suggestedPlants
-                    if (rate != null && suggested != null && uiState.plants.isEmpty()) {
-                        Text(
-                            text = "Med sortens grobarhet på $rate % ger fröna cirka $suggested plantor.",
-                            fontSize = 12.sp,
-                            color = FaltetForest,
-                            modifier = Modifier.padding(top = 6.dp),
-                        )
+            }
+        }
+        item { Spacer(Modifier.height(24.dp)) }
+    }
+}
+
+/** The only batch is named; several are chosen in a dropdown with a checkbox per batch. */
+@Composable
+private fun BatchPicker(uiState: SeedPlanState, open: Boolean, onToggleOpen: () -> Unit, onToggleBatch: (Long) -> Unit) {
+    val label: @Composable (String) -> Unit = { text ->
+        Text(
+            text = text,
+            fontFamily = FontFamily.Monospace,
+            fontSize = 9.sp,
+            letterSpacing = 1.4.sp,
+            color = FaltetForest.copy(alpha = 0.7f),
+        )
+    }
+    Column {
+        val only = uiState.batches.singleOrNull()
+        if (only != null) {
+            label("FRÖPARTI")
+            Text("${uiState.label(only)} · ${only.quantity} frön", fontSize = 15.sp, color = FaltetInk, modifier = Modifier.padding(top = 6.dp))
+            return@Column
+        }
+        label("FRÖPARTIER")
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onToggleOpen)
+                .padding(vertical = 10.dp),
+        ) {
+            val chosen = uiState.selected
+            Text(
+                text = when (chosen.size) {
+                    0 -> "Välj fröpartier"
+                    1 -> "1 parti · ${uiState.available} frön"
+                    else -> "${chosen.size} partier · ${uiState.available} frön"
+                },
+                fontFamily = FaltetDisplay,
+                fontSize = 18.sp,
+                color = FaltetInk,
+                modifier = Modifier.weight(1f),
+            )
+            Text(if (open) "▲" else "▼", fontSize = 10.sp, color = FaltetForest)
+        }
+        HorizontalDivider(color = FaltetInk)
+        if (open) {
+            Column(Modifier.padding(top = 4.dp).border(1.dp, FaltetInkLine20)) {
+                uiState.batches.forEach { batch ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onToggleBatch(batch.id) }
+                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                    ) {
+                        FaltetCheckbox(checked = batch.id in uiState.selectedIds, onCheckedChange = { onToggleBatch(batch.id) })
+                        Text(uiState.label(batch), fontSize = 14.sp, color = FaltetInk, modifier = Modifier.weight(1f))
+                        Text("${batch.quantity} frön", fontFamily = FontFamily.Monospace, fontSize = 11.sp, color = FaltetInk)
                     }
                 }
-                item {
-                    FaltetDatePicker(label = "Klara", value = uiState.readyDate, onValueChange = viewModel::setReadyDate, required = true)
-                }
-                (uiState.inputError ?: uiState.error)?.let { message ->
-                    item { Text(message, color = FaltetClay, fontSize = 13.sp) }
-                }
-                uiState.preview?.let { preview ->
-                    item {
-                        val years = preview.steps.map { it.date.take(4) }.distinct().joinToString("–")
-                        Text(
-                            text = "SCHEMA · $years",
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 9.sp,
-                            letterSpacing = 1.4.sp,
-                            color = FaltetForest.copy(alpha = 0.7f),
-                        )
-                    }
-                    items(preview.steps) { step -> PlanStepRow(step) }
-                    if (uiState.startsInPast(today)) {
-                        item {
-                            Text(
-                                text = "Sådden skulle behöva ske ${LocalDate.parse(preview.steps.first().date).format(fullDate)}, som redan har passerat. Välj ett senare datum.",
-                                color = FaltetClay,
-                                fontSize = 13.sp,
-                            )
-                        }
-                    }
-                }
-                item { Spacer(Modifier.height(24.dp)) }
             }
         }
     }
 }
 
 @Composable
-private fun PlanStepRow(step: SeedBatchPlanStep) {
+private fun PlanStepRow(step: SeedBatchPlanStep, split: String?) {
     val alpha = if (step.optional) 0.55f else 1f
     Column {
         Row(verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
@@ -319,6 +437,7 @@ private fun PlanStepRow(step: SeedBatchPlanStep) {
                 if (step.optional) {
                     Text("valfritt, ingen uppgift", fontStyle = FontStyle.Italic, fontSize = 12.sp, color = FaltetForest.copy(alpha = alpha))
                 }
+                split?.let { Text(it, fontSize = 12.sp, color = FaltetForest) }
             }
             Spacer(Modifier.width(8.dp))
             Text(

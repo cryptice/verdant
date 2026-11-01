@@ -18,12 +18,15 @@ fun NavGraphBuilder.inventoryGraph(navController: NavController) {
         SeedInventoryScreen(
             onBack = { navController.popBackStack() },
             onAddSeeds = { navController.navigate(Screen.AddSeeds.route) },
-            onPlanBatch = { batchId -> navController.navigate(Screen.SeedPlan.create(batchId)) },
+            onPlan = { speciesId, batchId -> navController.navigate(Screen.SeedPlan.create(speciesId, batchId)) },
         )
     }
     composable(
         Screen.SeedPlan.route,
-        arguments = listOf(navArgument("batchId") { type = NavType.LongType }),
+        arguments = listOf(
+            navArgument("speciesId") { type = NavType.LongType },
+            navArgument("batchId") { type = NavType.LongType; defaultValue = -1L },
+        ),
     ) {
         SeedPlanScreen(
             onBack = { navController.popBackStack() },

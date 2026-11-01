@@ -26,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,6 +50,7 @@ import app.verdant.android.ui.faltet.FaltetFab
 import app.verdant.android.ui.faltet.FaltetListRow
 import app.verdant.android.ui.faltet.FaltetLoadingState
 import app.verdant.android.ui.faltet.FaltetScreenScaffold
+import app.verdant.android.ui.theme.FaltetForest
 import app.verdant.android.ui.theme.FaltetInk
 import app.verdant.android.ui.theme.FaltetSage
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -102,7 +104,8 @@ class SeedInventoryViewModel @Inject constructor(
 fun SeedInventoryScreen(
     onBack: () -> Unit,
     onAddSeeds: () -> Unit = {},
-    onPlanBatch: (Long) -> Unit = {},
+    /** Opens the planner for a variety, starting from one of its batches when given. */
+    onPlan: (speciesId: Long, batchId: Long?) -> Unit = { _, _ -> },
     viewModel: SeedInventoryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -135,18 +138,70 @@ fun SeedInventoryScreen(
                     Button(onClick = onAddSeeds) { Text("+ Lägg till frö") }
                 },
             )
-            else -> LazyColumn(Modifier.fillMaxSize().padding(padding)) {
-                items(uiState.items, key = { it.id }) { item ->
-                    SeedInventoryFaltetRow(
-                        item = item,
-                        onDelete = { viewModel.delete(item.id) },
-                        onPlan = { onPlanBatch(item.id) },
-                    )
+            else -> {
+                // Batches are grouped under their variety, like on the web; a variety opens to show its batches.
+                val groups = uiState.items.groupBy { it.speciesId }.toList()
+                var expanded by rememberSaveable { mutableStateOf(setOf<Long>()) }
+                LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+                    groups.forEach { (speciesId, batches) ->
+                        val isExpanded = speciesId in expanded
+                        item(key = "species-$speciesId") {
+                            VarietyRow(
+                                batches = batches,
+                                expanded = isExpanded,
+                                onToggle = { expanded = if (isExpanded) expanded - speciesId else expanded + speciesId },
+                                onPlan = { onPlan(speciesId, null) },
+                            )
+                        }
+                        if (isExpanded) {
+                            items(batches, key = { it.id }) { item ->
+                                SeedInventoryFaltetRow(
+                                    item = item,
+                                    title = item.providerName ?: "Parti ${batches.indexOf(item) + 1}",
+                                    onDelete = { viewModel.delete(item.id) },
+                                    onPlan = { onPlan(speciesId, item.id) },
+                                    modifier = Modifier.padding(start = 24.dp),
+                                )
+                            }
+                        }
+                    }
+                    item { Spacer(Modifier.height(80.dp)) }
                 }
-                item { Spacer(Modifier.height(80.dp)) }
             }
         }
     }
+}
+
+@Composable
+private fun VarietyRow(
+    batches: List<SeedInventoryResponse>,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    onPlan: () -> Unit,
+) {
+    val total = batches.sumOf { it.quantity }
+    FaltetListRow(
+        leading = null,
+        title = batches.first().speciesName,
+        meta = if (batches.size == 1) "1 parti" else "${batches.size} partier",
+        stat = {
+            Text(
+                text = total.toString(),
+                fontFamily = FontFamily.Monospace,
+                fontSize = 14.sp,
+                color = FaltetInk,
+            )
+        },
+        actions = {
+            if (total > 0) {
+                IconButton(onClick = onPlan) {
+                    Icon(Icons.Default.DateRange, contentDescription = "Planera", tint = FaltetSage, modifier = Modifier.size(18.dp))
+                }
+            }
+            Text(if (expanded) "▼" else "▶", fontSize = 11.sp, color = FaltetForest, modifier = Modifier.padding(end = 6.dp))
+        },
+        onClick = onToggle,
+    )
 }
 
 @Composable
@@ -154,6 +209,8 @@ private fun SeedInventoryFaltetRow(
     item: SeedInventoryResponse,
     onDelete: () -> Unit,
     onPlan: () -> Unit = {},
+    title: String = item.speciesName,
+    modifier: Modifier = Modifier,
 ) {
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
@@ -183,8 +240,9 @@ private fun SeedInventoryFaltetRow(
 
     FaltetListRow(
         leading = null,
-        title = item.speciesName,
+        title = title,
         meta = meta,
+        modifier = modifier,
         stat = {
             Text(
                 text = "${item.quantity} ${item.unitType ?: "st"}",

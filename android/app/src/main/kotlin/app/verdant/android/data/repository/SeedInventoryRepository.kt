@@ -16,6 +16,6 @@ class SeedInventoryRepository @Inject constructor(private val api: VerdantApi) {
     suspend fun update(id: Long, request: UpdateSeedInventoryRequest) = api.updateSeedInventory(id, request)
     suspend fun decrement(id: Long, request: DecrementSeedInventoryRequest) = api.decrementSeedInventory(id, request)
     suspend fun delete(id: Long) = api.deleteSeedInventory(id)
-    suspend fun previewPlan(id: Long, request: SeedBatchPlanRequest) = api.previewSeedBatchPlan(id, request)
-    suspend fun createPlan(id: Long, request: SeedBatchPlanRequest) = api.createSeedBatchPlan(id, request)
+    suspend fun previewPlan(request: SeedBatchPlanRequest) = api.previewSeedBatchPlan(request)
+    suspend fun createPlan(request: SeedBatchPlanRequest) = api.createSeedBatchPlan(request)
 }

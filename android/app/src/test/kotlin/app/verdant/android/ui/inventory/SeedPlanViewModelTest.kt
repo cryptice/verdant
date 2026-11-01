@@ -2,6 +2,7 @@ package app.verdant.android.ui.inventory
 
 import androidx.lifecycle.SavedStateHandle
 import app.verdant.android.data.api.VerdantApi
+import app.verdant.android.data.model.SeedBatchAllocation
 import app.verdant.android.data.model.SeedBatchPlanRequest
 import app.verdant.android.data.model.SeedBatchPlanResponse
 import app.verdant.android.data.model.SeedBatchPlanStep
@@ -26,32 +27,43 @@ class SeedPlanViewModelTest {
     @Before fun setup() { Dispatchers.setMain(dispatcher) }
     @After fun cleanup() { Dispatchers.resetMain() }
 
-    private val batch = SeedInventoryResponse(id = 9, speciesId = 3, speciesName = "Pompondahlia – Lilliput", quantity = 250,
-        collectionDate = null, expirationDate = null, createdAt = "")
+    private fun batch(id: Long, quantity: Int, provider: String?) = SeedInventoryResponse(id = id, speciesId = 3, speciesName = "Pompondahlia – Lilliput",
+        quantity = quantity, collectionDate = null, expirationDate = null, createdAt = "", providerName = provider)
+    private val impecta = batch(9, 250, "Impecta")
+    private val runabergs = batch(10, 100, "Runåbergs")
+    private val empty = batch(11, 0, null)
+    private var batches = listOf(impecta, runabergs, empty)
     private val species = Gson().fromJson("""{"id":3,"commonName":"Dahlia","germinationRate":80,"groups":[],"tags":[],"photos":[],"growingPositions":[],"soils":[],"providers":[]}""", SpeciesResponse::class.java)
     private val plan = SeedBatchPlanResponse(9, 3, 200, 150, "2099-05-01", listOf(
         SeedBatchPlanStep("Sådd", "SOW", "2099-01-01", 200, false),
         SeedBatchPlanStep("Avhärdning", "INSPECT", "2099-04-13", 150, true),
         SeedBatchPlanStep("Säljklar", "INSPECT", "2099-05-01", 150, false),
-    ))
+    ), allocations = listOf(SeedBatchAllocation(9, 200)))
+    private var previewResult = plan
     private val previews = mutableListOf<SeedBatchPlanRequest>()
     private val creates = mutableListOf<SeedBatchPlanRequest>()
+    private val listedFor = mutableListOf<Long?>()
 
     private fun api(): VerdantApi = Proxy.newProxyInstance(VerdantApi::class.java.classLoader, arrayOf(VerdantApi::class.java)) { _, method, args ->
         when (method.name) {
-            "getSeedInventory" -> listOf(batch)
+            "getSeedInventory" -> { listedFor += args!![0] as Long?; batches }
             "getSpeciesById" -> species
-            "previewSeedBatchPlan" -> { previews += args!![1] as SeedBatchPlanRequest; plan }
-            "createSeedBatchPlan" -> { creates += args!![1] as SeedBatchPlanRequest; plan.copy(taskIds = listOf(11, 12)) }
+            "previewSeedBatchPlan" -> { previews += args!![0] as SeedBatchPlanRequest; previewResult }
+            "createSeedBatchPlan" -> { creates += args!![0] as SeedBatchPlanRequest; previewResult.copy(taskIds = listOf(11, 12)) }
             else -> error(method.name)
         }
     } as VerdantApi
 
-    private fun viewModel() = api().let { SeedPlanViewModel(SavedStateHandle(mapOf("batchId" to 9L)), SeedInventoryRepository(it), SpeciesRepositoryImpl(it)) }
+    private fun viewModel(batchId: Long? = null) = api().let {
+        SeedPlanViewModel(SavedStateHandle(mapOf("speciesId" to 3L, "batchId" to (batchId ?: -1L))), SeedInventoryRepository(it), SpeciesRepositoryImpl(it))
+    }
 
-    @Test fun `previews the schedule once the inputs settle, then creates the tasks`() = runTest {
+    @Test fun `a variety with one batch uses it, previews once the inputs settle and creates the tasks`() = runTest {
+        batches = listOf(impecta)
         val vm = viewModel()
         advanceUntilIdle()
+        assertEquals(listOf<Long?>(3L), listedFor)
+        assertEquals(listOf(9L), vm.uiState.value.selectedIds)
         assertEquals("250", vm.uiState.value.seeds)
         assertEquals(200, vm.uiState.value.suggestedPlants)
 
@@ -61,10 +73,9 @@ class SeedPlanViewModelTest {
         vm.setReadyDate(LocalDate.of(2099, 5, 1))
         advanceUntilIdle()
 
-        val request = SeedBatchPlanRequest(200, 150, "2099-05-01")
+        val request = SeedBatchPlanRequest(200, 150, "2099-05-01", listOf(9))
         assertEquals(listOf(request), previews)
-        assertEquals(plan, vm.uiState.value.preview)
-        assertFalse(vm.uiState.value.startsInPast(LocalDate.of(2026, 11, 1)))
+        assertEquals(2, vm.uiState.value.taskCount)
 
         vm.create()
         advanceUntilIdle()
@@ -72,17 +83,37 @@ class SeedPlanViewModelTest {
         assertEquals(listOf(11L, 12L), vm.uiState.value.created?.taskIds)
     }
 
-    @Test fun `catches more seeds than the batch holds without asking the server`() = runTest {
+    @Test fun `several batches start unchosen, and choosing two lets the plan sow more than one holds`() = runTest {
+        previewResult = plan.copy(seeds = 300, allocations = listOf(SeedBatchAllocation(9, 250), SeedBatchAllocation(10, 50)))
         val vm = viewModel()
         advanceUntilIdle()
+        assertEquals("empty batches are left out", listOf(9L, 10L), vm.uiState.value.batches.map { it.id })
+        assertTrue(vm.uiState.value.selectedIds.isEmpty())
+        assertEquals("Välj minst ett fröparti.", vm.uiState.value.inputError)
+
+        vm.toggleBatch(9)
+        vm.toggleBatch(10)
+        assertEquals("350", vm.uiState.value.seeds)
+        vm.setSeeds("300")
+        vm.setPlants("220")
+        vm.setReadyDate(LocalDate.of(2099, 5, 1))
+        advanceUntilIdle()
+
+        assertEquals(listOf(SeedBatchPlanRequest(300, 220, "2099-05-01", listOf(9, 10))), previews)
+        assertEquals("two sowing tasks and one later task", 3, vm.uiState.value.taskCount)
+    }
+
+    @Test fun `opening from a batch starts with it and catches more seeds than it holds`() = runTest {
+        val vm = viewModel(batchId = 10)
+        advanceUntilIdle()
+        assertEquals(listOf(10L), vm.uiState.value.selectedIds)
         vm.setSeeds("300")
         vm.setPlants("150")
         vm.setReadyDate(LocalDate.of(2099, 5, 1))
         advanceUntilIdle()
 
-        assertEquals("Partiet har bara 250 frön.", vm.uiState.value.inputError)
+        assertEquals("Partiet har bara 100 frön.", vm.uiState.value.inputError)
         assertTrue(previews.isEmpty())
-        assertNull(vm.uiState.value.request)
     }
 
     @Test fun `a plan starting before today cannot be created`() {

@@ -159,6 +159,7 @@ data class SeedInventoryResponse(
     @SerializedName("unitType") val unitType: String? = null,
     @SerializedName("seasonId") val seasonId: Long? = null,
     @SerializedName("createdAt") val createdAt: String,
+    @SerializedName("providerName") val providerName: String? = null,
 )
 
 data class CreateSeedInventoryRequest(
