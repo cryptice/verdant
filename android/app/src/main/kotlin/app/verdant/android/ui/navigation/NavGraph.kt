@@ -96,6 +96,9 @@ sealed class Screen(val route: String) {
     data object Account : Screen("account")
     data object OrgManage : Screen("org-manage")
     data object SeedInventory : Screen("seed-inventory")
+    data object SeedPlan : Screen("seed-inventory/{batchId}/plan") {
+        fun create(batchId: Long) = "seed-inventory/$batchId/plan"
+    }
     data object Supplies : Screen("supplies")
     data object SpeciesList : Screen("species")
     data object PlantedSpeciesList : Screen("planted-species")

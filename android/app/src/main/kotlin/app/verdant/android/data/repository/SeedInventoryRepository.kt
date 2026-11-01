@@ -3,6 +3,7 @@ package app.verdant.android.data.repository
 import app.verdant.android.data.api.VerdantApi
 import app.verdant.android.data.model.CreateSeedInventoryRequest
 import app.verdant.android.data.model.DecrementSeedInventoryRequest
+import app.verdant.android.data.model.SeedBatchPlanRequest
 import app.verdant.android.data.model.UpdateSeedInventoryRequest
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -15,4 +16,6 @@ class SeedInventoryRepository @Inject constructor(private val api: VerdantApi) {
     suspend fun update(id: Long, request: UpdateSeedInventoryRequest) = api.updateSeedInventory(id, request)
     suspend fun decrement(id: Long, request: DecrementSeedInventoryRequest) = api.decrementSeedInventory(id, request)
     suspend fun delete(id: Long) = api.deleteSeedInventory(id)
+    suspend fun previewPlan(id: Long, request: SeedBatchPlanRequest) = api.previewSeedBatchPlan(id, request)
+    suspend fun createPlan(id: Long, request: SeedBatchPlanRequest) = api.createSeedBatchPlan(id, request)
 }

@@ -381,6 +381,12 @@ interface VerdantApi {
     @DELETE("api/seed-stock/{id}")
     suspend fun deleteSeedInventory(@Path("id") id: Long)
 
+    @POST("api/seed-stock/{id}/plan/preview")
+    suspend fun previewSeedBatchPlan(@Path("id") id: Long, @Body request: SeedBatchPlanRequest): SeedBatchPlanResponse
+
+    @POST("api/seed-stock/{id}/plan")
+    suspend fun createSeedBatchPlan(@Path("id") id: Long, @Body request: SeedBatchPlanRequest): SeedBatchPlanResponse
+
     // ── Scheduled Tasks ──
 
     @GET("api/tasks")

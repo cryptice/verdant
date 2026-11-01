@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -101,6 +102,7 @@ class SeedInventoryViewModel @Inject constructor(
 fun SeedInventoryScreen(
     onBack: () -> Unit,
     onAddSeeds: () -> Unit = {},
+    onPlanBatch: (Long) -> Unit = {},
     viewModel: SeedInventoryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -138,6 +140,7 @@ fun SeedInventoryScreen(
                     SeedInventoryFaltetRow(
                         item = item,
                         onDelete = { viewModel.delete(item.id) },
+                        onPlan = { onPlanBatch(item.id) },
                     )
                 }
                 item { Spacer(Modifier.height(80.dp)) }
@@ -150,6 +153,7 @@ fun SeedInventoryScreen(
 private fun SeedInventoryFaltetRow(
     item: SeedInventoryResponse,
     onDelete: () -> Unit,
+    onPlan: () -> Unit = {},
 ) {
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
@@ -190,6 +194,16 @@ private fun SeedInventoryFaltetRow(
             )
         },
         actions = {
+            if (item.quantity > 0) {
+                IconButton(onClick = onPlan) {
+                    Icon(
+                        Icons.Default.DateRange,
+                        contentDescription = "Planera",
+                        tint = FaltetSage,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            }
             IconButton(onClick = { showDeleteConfirm = true }) {
                 Icon(
                     Icons.Default.Delete,

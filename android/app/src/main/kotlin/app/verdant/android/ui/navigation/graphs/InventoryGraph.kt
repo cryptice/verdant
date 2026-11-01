@@ -6,6 +6,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import app.verdant.android.ui.inventory.SeedInventoryScreen
+import app.verdant.android.ui.inventory.SeedPlanScreen
 import app.verdant.android.ui.location.TrayLocationDetailScreen
 import app.verdant.android.ui.location.TrayLocationsScreen
 import app.verdant.android.ui.navigation.Screen
@@ -17,6 +18,20 @@ fun NavGraphBuilder.inventoryGraph(navController: NavController) {
         SeedInventoryScreen(
             onBack = { navController.popBackStack() },
             onAddSeeds = { navController.navigate(Screen.AddSeeds.route) },
+            onPlanBatch = { batchId -> navController.navigate(Screen.SeedPlan.create(batchId)) },
+        )
+    }
+    composable(
+        Screen.SeedPlan.route,
+        arguments = listOf(navArgument("batchId") { type = NavType.LongType }),
+    ) {
+        SeedPlanScreen(
+            onBack = { navController.popBackStack() },
+            onShowTasks = {
+                navController.navigate(Screen.TaskList.route) {
+                    popUpTo(Screen.SeedInventory.route)
+                }
+            },
         )
     }
     composable(Screen.Supplies.route) {
