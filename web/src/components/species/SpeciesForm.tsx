@@ -1,9 +1,11 @@
-import { useId, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import { api, type SpeciesResponse } from '../../api/client'
 import { Field, Rule } from '../faltet'
 import { fileToJpegBase64 } from '../PhotoPicker'
+import { duplicateSearchText, findDuplicateVarieties } from './duplicates'
 
 const GROWING_POSITIONS = ['SUNNY', 'PARTIALLY_SUNNY', 'SHADOWY'] as const
 const SOIL_TYPES = ['CLAY', 'SANDY', 'LOAMY', 'CHALKY', 'PEATY', 'SILTY'] as const
@@ -82,6 +84,21 @@ export function SpeciesForm({
   const { data: providers = [] } = useQuery({ queryKey: ['providers'], queryFn: api.providers.list, enabled: !isEdit })
   const { data: tags = [] } = useQuery({ queryKey: ['species-tags'], queryFn: api.species.tags })
   const { data: templates = [] } = useQuery({ queryKey: ['workflow-templates'], queryFn: api.workflows.templates, enabled: !isEdit })
+
+  // A new variety that already exists gets a warning, so the user can open or copy the existing one instead.
+  const names = { commonName, commonNameSv, variantName, variantNameSv }
+  const searchText = duplicateSearchText(names)
+  const [duplicateSearch, setDuplicateSearch] = useState('')
+  useEffect(() => {
+    const timer = setTimeout(() => setDuplicateSearch(searchText), 400)
+    return () => clearTimeout(timer)
+  }, [searchText])
+  const { data: candidates = [] } = useQuery({
+    queryKey: ['species-search', duplicateSearch, 50],
+    queryFn: () => api.species.search(duplicateSearch, 50),
+    enabled: !isEdit && duplicateSearch.length >= 2,
+  })
+  const duplicates = isEdit ? [] : findDuplicateVarieties(names, candidates)
 
   const digits = (set: (v: string) => void) => (v: string) => set(v.replace(/\D/g, ''))
   const toggle = <T,>(current: Set<T>, set: (s: Set<T>) => void, value: T) => {
@@ -175,6 +192,21 @@ export function SpeciesForm({
               <Field label={t('speciesForm.variantNameEn')} editable value={variantName} onChange={setVariantName} accent="clay" />
               <Field label={t('speciesForm.scientificName')} editable value={scientificName} onChange={setScientificName} accent="sage" />
             </div>
+            {duplicates.length > 0 && (
+              <div role="status" style={WARNING}>
+                <p style={{ ...NOTE, margin: '0 0 6px' }}>{t('speciesForm.duplicateWarning')}</p>
+                {duplicates.map(d => (
+                  <div key={d.id} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '4px 14px', padding: '2px 0' }}>
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>
+                      {[d.commonNameSv ?? d.commonName, d.variantNameSv ?? d.variantName].filter(Boolean).join(' – ')}
+                    </span>
+                    <span style={LABEL}>{d.isSystem ? t('speciesForm.duplicateInCatalogue') : t('speciesForm.duplicateInOwn')}</span>
+                    <Link to={`/species/${d.id}`} style={LINK}>{t('speciesForm.duplicateOpen')}</Link>
+                    {d.isSystem && <Link to={`/species/new?from=${d.id}`} style={LINK}>{t('speciesForm.duplicateCopy')}</Link>}
+                  </div>
+                ))}
+              </div>
+            )}
           </Section>
 
           <Section title={t('speciesForm.growthInfo')}>
@@ -466,4 +498,5 @@ const GRID = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(24
 const CHIPS = { display: 'flex', flexWrap: 'wrap', gap: 6 } as const
 const LABEL = { fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)' } as const
 const NOTE = { fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-forest)', margin: '8px 0' } as const
+const WARNING = { border: '1px solid var(--color-accent)', padding: '10px 14px', marginTop: 18 } as const
 const LINK = { background: 'transparent', border: 'none', padding: 0, fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-accent)', cursor: 'pointer' } as const

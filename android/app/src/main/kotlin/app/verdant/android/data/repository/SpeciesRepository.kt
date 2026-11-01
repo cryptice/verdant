@@ -17,6 +17,7 @@ import javax.inject.Singleton
 interface SpeciesRepository {
     suspend fun get(id: Long): SpeciesResponse
     suspend fun list(): List<SpeciesResponse>
+    suspend fun search(query: String): List<SpeciesResponse>
     suspend fun create(request: CreateSpeciesRequest): SpeciesResponse
     suspend fun update(id: Long, request: UpdateSpeciesRequest): SpeciesResponse
     suspend fun delete(id: Long)
@@ -35,6 +36,7 @@ interface SpeciesRepository {
 class SpeciesRepositoryImpl @Inject constructor(private val api: VerdantApi) : SpeciesRepository {
     override suspend fun get(id: Long) = api.getSpeciesById(id)
     override suspend fun list() = api.getSpecies()
+    override suspend fun search(query: String) = api.searchSpecies(query, limit = 50)
     override suspend fun create(request: CreateSpeciesRequest) = api.createSpecies(request)
     override suspend fun update(id: Long, request: UpdateSpeciesRequest) = api.updateSpecies(id, request)
     override suspend fun delete(id: Long) { api.deleteSpecies(id) }

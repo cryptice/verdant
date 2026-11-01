@@ -15,9 +15,14 @@ import app.verdant.android.data.model.SpeciesGroupResponse
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.SpeciesTagResponse
 import app.verdant.android.data.model.UpdateSpeciesRequest
+import app.verdant.android.data.model.VarietyNames
+import app.verdant.android.data.model.duplicateSearchText
+import app.verdant.android.data.model.findDuplicateVarieties
 import app.verdant.android.data.repository.PlantRepository
 import app.verdant.android.data.repository.SpeciesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -36,6 +41,7 @@ data class AddSpeciesState(
     val suggestions: List<PlantSuggestion> = emptyList(),
     val extractedInfo: ExtractedSpeciesInfo? = null,
     val existingSpecies: SpeciesResponse? = null,
+    val duplicates: List<SpeciesResponse> = emptyList(),
 )
 
 @HiltViewModel
@@ -59,6 +65,27 @@ class AddSpeciesViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(groups = groups, tags = tags, existingSpecies = existing)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load species data", e)
+            }
+        }
+    }
+
+    private var duplicateCheck: Job? = null
+
+    /** Looks for an existing variety with the typed names, so a new one that already exists gets a warning. */
+    fun checkDuplicates(names: VarietyNames) {
+        duplicateCheck?.cancel()
+        val query = duplicateSearchText(names)
+        if (speciesId != null || query.length < 2) {
+            _uiState.value = _uiState.value.copy(duplicates = emptyList())
+            return
+        }
+        duplicateCheck = viewModelScope.launch {
+            delay(400)
+            try {
+                val candidates = speciesRepository.search(query)
+                _uiState.value = _uiState.value.copy(duplicates = findDuplicateVarieties(names, candidates))
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to check for existing varieties", e)
             }
         }
     }

@@ -5,6 +5,7 @@ import app.verdant.android.data.repository.SpeciesRepository
 import android.graphics.Bitmap
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -63,6 +64,7 @@ import app.verdant.android.data.model.SpeciesGroupResponse
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.model.SpeciesTagResponse
 import app.verdant.android.data.model.UpdateSpeciesRequest
+import app.verdant.android.data.model.VarietyNames
 import app.verdant.android.ui.faltet.FaltetChipMultiSelector
 import app.verdant.android.ui.faltet.FaltetDropdown
 import app.verdant.android.ui.faltet.FaltetFormSubmitBar
@@ -235,6 +237,10 @@ fun AddSpeciesScreen(
     BackHandler(enabled = hasData) { tryBack() }
 
     val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(commonName, variantName, variantNameSv) {
+        viewModel.checkDuplicates(VarietyNames(commonName, variantName, variantNameSv))
+    }
+
     LaunchedEffect(uiState.error) {
         uiState.error?.let { snackbarHostState.showSnackbar(it) }
     }
@@ -539,6 +545,10 @@ fun AddSpeciesScreen(
                 )
             }
 
+            if (!isEdit && uiState.duplicates.isNotEmpty()) {
+                item { DuplicateWarning(uiState.duplicates) }
+            }
+
             // Germination time min
             item {
                 Field(
@@ -756,4 +766,42 @@ private fun soilLabelSv(code: String): String = when (code) {
     "PEATY" -> "Torv"
     "SILTY" -> "Silt"
     else -> code
+}
+
+@Composable
+private fun DuplicateWarning(duplicates: List<SpeciesResponse>) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 18.dp, vertical = 8.dp)
+            .fillMaxWidth()
+            .border(1.dp, FaltetAccent)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+    ) {
+        Text(
+            text = "Den här sorten finns redan. Använd den befintliga sorten i stället för att lägga till en ny.",
+            fontFamily = FaltetDisplay,
+            fontStyle = FontStyle.Italic,
+            fontSize = 14.sp,
+            color = FaltetForest,
+        )
+        duplicates.forEach { d ->
+            Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(top = 6.dp)) {
+                Text(
+                    text = listOfNotNull(d.commonNameSv ?: d.commonName, d.variantNameSv ?: d.variantName).joinToString(" – "),
+                    fontFamily = FaltetDisplay,
+                    fontSize = 16.sp,
+                    color = FaltetInk,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    text = if (d.isSystem) "KATALOGEN" else "DINA SORTER",
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 9.sp,
+                    letterSpacing = 1.4.sp,
+                    color = FaltetForest,
+                )
+            }
+        }
+    }
 }

@@ -320,6 +320,8 @@ interface VerdantApi {
 
     @GET("api/species")
     suspend fun getSpecies(): List<SpeciesResponse>
+    @GET("api/species")
+    suspend fun searchSpecies(@Query("q") query: String, @Query("limit") limit: Int): List<SpeciesResponse>
 
     @GET("api/species/{id}")
     suspend fun getSpeciesById(@Path("id") id: Long): SpeciesResponse

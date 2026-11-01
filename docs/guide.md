@@ -114,7 +114,7 @@ The species database contains all plant varieties you work with. Each species re
 
 The species list shows Swedish names and variants, sorted alphabetically, with a search that queries across all name fields and scientific name.
 
-**Adding and editing a variety** — "Lägg till" on the species list opens the full variety form, the same one admins use: seed provider and product link, names, growth ranges, sowing and bloom months, growing conditions, tags, commercial figures and a workflow to assign. Editing a variety uses the same form and also lets you add photos and link or remove providers. Seed packet images on providers are managed by admins. Copying a variety opens the form prefilled with "(kopia)" added to the variety name. Catalogue varieties are shown read-only; copy one to change it.
+**Adding and editing a variety** — "Lägg till" on the species list opens the full variety form, the same one admins use: seed provider and product link, names, growth ranges, sowing and bloom months, growing conditions, tags, commercial figures and a workflow to assign. Editing a variety uses the same form and also lets you add photos and link or remove providers. Seed packet images on providers are managed by admins. Copying a variety opens the form prefilled with "(kopia)" added to the variety name. Catalogue varieties are shown read-only; copy one to change it. If the names you type match a variety that already exists, in the catalogue or among your own, the form warns you and links to it (on the web you can also copy a catalogue match from there).
 
 ### Sowing
 

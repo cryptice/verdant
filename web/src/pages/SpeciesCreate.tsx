@@ -60,6 +60,7 @@ export function SpeciesCreate() {
         <ErrorDisplay error={error} onRetry={refetch} />
       ) : (
         <SpeciesForm
+          key={fromId ?? 'new'}
           species={null}
           template={template}
           title={t('speciesForm.newTitle')}

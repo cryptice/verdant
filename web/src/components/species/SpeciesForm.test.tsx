@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MemoryRouter } from 'react-router-dom'
 import { api, type SpeciesResponse } from '../../api/client'
 import i18n from '../../i18n'
 import { SpeciesForm } from './SpeciesForm'
@@ -23,6 +24,7 @@ beforeEach(() => {
   vi.spyOn(api.species, 'tags').mockResolvedValue([{ id: 5, name: 'Snitt' }])
   vi.spyOn(api.workflows, 'templates').mockResolvedValue([{ id: 6, name: 'Dahlia från frö', createdAt: '', steps: [] }])
   vi.spyOn(api.species, 'addProvider').mockResolvedValue(species().providers[0])
+  vi.spyOn(api.species, 'search').mockResolvedValue([])
 })
 afterEach(() => vi.restoreAllMocks())
 
@@ -30,10 +32,10 @@ function show(props: Partial<Parameters<typeof SpeciesForm>[0]> = {}) {
   const onSubmit = vi.fn()
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   render(
-    <QueryClientProvider client={qc}>
+    <MemoryRouter><QueryClientProvider client={qc}>
       <SpeciesForm species={null} title="Ny sort" submitLabel="Skapa sort" isSubmitting={false} error={null}
         onCancel={() => {}} onSubmit={onSubmit} {...props} />
-    </QueryClientProvider>,
+    </QueryClientProvider></MemoryRouter>,
   )
   return onSubmit
 }
@@ -63,9 +65,9 @@ describe('SpeciesForm', () => {
   it('edits providers by name and link only', async () => {
     const qc = new QueryClient()
     render(
-      <QueryClientProvider client={qc}>
+      <MemoryRouter><QueryClientProvider client={qc}>
         <SpeciesForm species={species()} title="Redigera" submitLabel="Spara" isSubmitting={false} error={null} onCancel={() => {}} onSubmit={() => {}} />
-      </QueryClientProvider>,
+      </QueryClientProvider></MemoryRouter>,
     )
     expect(screen.getByText('Impecta')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Lägg till leverantör' }))
@@ -82,5 +84,19 @@ describe('SpeciesForm', () => {
     expect(screen.getByText(/Kopiera den för att ändra/)).toBeInTheDocument()
     expect(screen.getByLabelText('Namn (svenska)')).toBeDisabled()
     expect(screen.queryByRole('button', { name: 'Skapa sort' })).toBeNull()
+  })
+
+  it('warns when the new variety already exists in the catalogue and offers to copy it', async () => {
+    vi.mocked(api.species.search).mockResolvedValue([
+      species({ id: 40, commonName: 'Pompon dahlia', commonNameSv: 'Pompondahlia', variantName: 'Lilliput', variantNameSv: 'Lilliput', isSystem: true }),
+    ])
+    show()
+    fireEvent.change(screen.getByLabelText('Namn (svenska)'), { target: { value: 'Dahlia' } })
+    fireEvent.change(screen.getByLabelText('Sortnamn (svenska)'), { target: { value: 'lilliput' } })
+
+    expect(await screen.findByText(/Den här sorten finns redan/, undefined, { timeout: 2000 })).toBeInTheDocument()
+    expect(api.species.search).toHaveBeenCalledWith('lilliput', 50)
+    expect(screen.getByText('Pompondahlia – Lilliput')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Kopiera' })).toHaveAttribute('href', '/species/new?from=40')
   })
 })
