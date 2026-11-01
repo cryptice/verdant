@@ -11,6 +11,17 @@ const UNIT_TYPES = ['SEED', 'PLUG', 'BULB', 'TUBER', 'PLANT']
 
 const roundCents = (value: number) => Math.round(value * 100) / 100
 
+/** A new batch starts from the variety's usual package size and price, which the grower can change. */
+function pricesFrom(species: SpeciesResponse | null) {
+  const size = species?.seedsPerPackage ?? null
+  const perSeed = species?.costPerSeedCents != null ? species.costPerSeedCents / 100 : null
+  return {
+    perPackage: size ? String(size) : '',
+    costUnit: perSeed != null ? String(perSeed) : '',
+    costPackage: perSeed != null && size ? String(roundCents(perSeed * size)) : '',
+  }
+}
+
 interface Props {
   /** The batch to edit; leave out to add a new one. */
   batch?: SeedInventoryResponse
@@ -40,16 +51,19 @@ export function SeedBatchDialog({ batch, initialSpecies = null, species, onClose
     isEdit ? batch.speciesProviderId ?? '' : initialSpecies?.providers[0]?.id ?? '',
   )
   const [unitType, setUnitType] = useState(isEdit ? batch.unitType ?? '' : initialSpecies?.defaultUnitType ?? 'SEED')
-  const [perPackage, setPerPackage] = useState(batch?.seedsPerPackage != null ? String(batch.seedsPerPackage) : '')
+  const initialPrices = isEdit ? null : pricesFrom(initialSpecies)
+  const [perPackage, setPerPackage] = useState(isEdit ? (batch.seedsPerPackage != null ? String(batch.seedsPerPackage) : '') : initialPrices!.perPackage)
   const [packages, setPackages] = useState('')
   const [remaining, setRemaining] = useState(isEdit ? String(batch.quantity) : '')
   const [collection, setCollection] = useState(batch?.collectionDate ?? '')
   const [expiration, setExpiration] = useState(batch?.expirationDate ?? '')
-  const [costUnit, setCostUnit] = useState(batch?.costPerUnitCents != null ? String(batch.costPerUnitCents / 100) : '')
+  const [costUnit, setCostUnit] = useState(
+    isEdit ? (batch.costPerUnitCents != null ? String(batch.costPerUnitCents / 100) : '') : initialPrices!.costUnit,
+  )
   const [costPackage, setCostPackage] = useState(
-    batch?.costPerUnitCents != null && batch.seedsPerPackage
-      ? String(roundCents(batch.costPerUnitCents * batch.seedsPerPackage / 100))
-      : '',
+    isEdit
+      ? (batch.costPerUnitCents != null && batch.seedsPerPackage ? String(roundCents(batch.costPerUnitCents * batch.seedsPerPackage / 100)) : '')
+      : initialPrices!.costPackage,
   )
 
   const per = Number(perPackage) || 0
@@ -124,6 +138,10 @@ export function SeedBatchDialog({ batch, initialSpecies = null, species, onClose
               setSelectedSpecies(s)
               setProviderId(s?.providers[0]?.id ?? '')
               setUnitType(s?.defaultUnitType ?? 'SEED')
+              const prices = pricesFrom(s)
+              setPerPackage(prices.perPackage)
+              setCostUnit(prices.costUnit)
+              setCostPackage(prices.costPackage)
             }} />
           )}
         </div>

@@ -12,7 +12,10 @@ vi.mock('react-i18next', async original => ({
 vi.mock('../onboarding/OnboardingContext', () => ({
   useOnboarding: () => ({ completeStep: vi.fn() }),
 }))
-vi.mock('./SpeciesAutocomplete', () => ({ SpeciesAutocomplete: () => null }))
+const zinnia = { id: 200, commonName: 'Zinnia', commonNameSv: 'Zinnia', providers: [], defaultUnitType: 'SEED', seedsPerPackage: 40, costPerSeedCents: 99 } as unknown as SpeciesResponse
+vi.mock('./SpeciesAutocomplete', () => ({
+  SpeciesAutocomplete: ({ onChange }: { onChange: (s: SpeciesResponse) => void }) => <button type="button" onClick={() => onChange(zinnia)}>Välj zinnia</button>,
+}))
 
 const chili = { id: 100, commonName: 'Chili', commonNameSv: 'Chilipeppar', providers: [], defaultUnitType: 'SEED' } as unknown as SpeciesResponse
 const batch: SeedInventoryResponse = {
@@ -73,5 +76,20 @@ describe('SeedBatchDialog dates', () => {
     const dates = Array.from(document.querySelectorAll('input[type="date"]'))
     expect(dates.length).toBeGreaterThan(0)
     for (const input of dates) expect(input).toHaveAttribute('max', '9999-12-31')
+  })
+
+  it('starts a new batch from the variety\'s package size and price', () => {
+    show({ initialSpecies: zinnia })
+    expect(screen.getByLabelText('Per förpackning *')).toHaveValue(40)
+    expect(screen.getByLabelText('Per enhet (SEK)')).toHaveValue(0.99)
+    expect(screen.getByLabelText('Per förpackning (SEK)')).toHaveValue(39.6)
+  })
+
+  it('fills in the package size and price when a variety is picked', () => {
+    show({ initialSpecies: chili })
+    expect(screen.getByLabelText('Per förpackning *')).toHaveValue(null)
+    fireEvent.click(screen.getByRole('button', { name: 'Välj zinnia' }))
+    expect(screen.getByLabelText('Per förpackning *')).toHaveValue(40)
+    expect(screen.getByLabelText('Per förpackning (SEK)')).toHaveValue(39.6)
   })
 })
