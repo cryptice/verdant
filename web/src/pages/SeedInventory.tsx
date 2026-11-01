@@ -8,6 +8,8 @@ import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { SeedBatchDialog } from '../components/SeedBatchDialog'
 import { SeedPlanDialog } from '../components/SeedPlanDialog'
+import { SearchField } from '../components/SearchField'
+import { matchesAllTokens } from '../utils/search'
 
 const SPECIES_TEMPLATE = '60px 1.5fr 120px 28px 28px'
 const BATCH_TEMPLATE = '1.5fr 100px 100px 120px 56px'
@@ -85,7 +87,16 @@ export function SeedInventory() {
     group.push(item)
     grouped.set(item.speciesId, group)
   }
-  const groupEntries = Array.from(grouped.entries())
+  // A variety is found by its names and by its batches' suppliers.
+  const [search, setSearch] = useState('')
+  const groupEntries = Array.from(grouped.entries()).filter(([speciesId, batches]) => {
+    if (!search.trim()) return true
+    const sp = species?.find(s => s.id === speciesId)
+    return matchesAllTokens(
+      [batches[0].speciesName, sp?.commonName, sp?.commonNameSv, sp?.variantName, sp?.variantNameSv, sp?.scientificName, ...batches.map(b => b.providerName)],
+      search,
+    )
+  })
 
   useEffect(() => { setPage(0) }, [groupEntries.length])
 
@@ -115,7 +126,12 @@ export function SeedInventory() {
           </div>
         )}
 
-        {items.length > 0 && (
+        {items.length > 0 && <SearchField value={search} onChange={setSearch} placeholder={t('seeds.search')} />}
+        {items.length > 0 && groupEntries.length === 0 && (
+          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 16, color: 'var(--color-forest)' }}>{t('seeds.noMatches')}</p>
+        )}
+
+        {groupEntries.length > 0 && (
           <div>
             {/* Outer header */}
             <div className="ledger-head" style={{ display: 'grid', gridTemplateColumns: SPECIES_TEMPLATE, gap: 18, padding: '10px 0', borderBottom: '1px solid var(--color-ink)' }}>

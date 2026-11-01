@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api } from '../api/client'
 import { Masthead, Ledger } from '../components/faltet'
 import { Dialog } from '../components/Dialog'
+import { SearchField } from '../components/SearchField'
+import { matchesAllTokens } from '../utils/search'
 
 export function WorkflowTemplates() {
   const { t } = useTranslation()
@@ -19,6 +21,20 @@ export function WorkflowTemplates() {
     queryKey: ['workflow-templates'],
     queryFn: api.workflows.templates,
   })
+  const { data: species = [] } = useQuery({ queryKey: ['species'], queryFn: api.species.list })
+
+  // A workflow is found by its name, description and steps, and by the varieties that follow it.
+  const [search, setSearch] = useState('')
+  const filtered = useMemo(() => {
+    if (!search.trim()) return templates
+    const varieties = new Map<number, string[]>()
+    for (const s of species) {
+      if (s.workflowTemplateId == null) continue
+      const names = [s.commonName, s.commonNameSv, s.variantName, s.variantNameSv, s.scientificName].filter((n): n is string => !!n)
+      varieties.set(s.workflowTemplateId, [...(varieties.get(s.workflowTemplateId) ?? []), ...names])
+    }
+    return templates.filter(w => matchesAllTokens([w.name, w.description, ...w.steps.map(st => st.name), ...(varieties.get(w.id) ?? [])], search))
+  }, [templates, species, search])
 
   const createMut = useMutation({
     mutationFn: (data: { name: string; description?: string }) => api.workflows.createTemplate(data),
@@ -54,6 +70,7 @@ export function WorkflowTemplates() {
       />
 
       <div className="page-body">
+        <SearchField value={search} onChange={setSearch} placeholder={t('workflows.search')} />
         <Ledger
           columns={[
             {
@@ -116,7 +133,7 @@ export function WorkflowTemplates() {
               ),
             },
           ]}
-          rows={templates}
+          rows={filtered}
           rowKey={(w) => w.id}
           onRowClick={(w) => navigate(`/workflows/${w.id}/edit`)}
         />

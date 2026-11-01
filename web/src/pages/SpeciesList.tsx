@@ -9,6 +9,7 @@ import { Dialog } from '../components/Dialog'
 import { OnboardingHint } from '../onboarding/OnboardingHint'
 import type { LedgerFilterOption } from '../components/faltet'
 import { matchesAllTokens } from '../utils/search'
+import { SearchField } from '../components/SearchField'
 
 const ALL_TYPES = ['ANNUAL', 'BIENNIAL', 'PERENNIAL', 'BULB', 'TUBER'] as const
 type PlantType = typeof ALL_TYPES[number]
@@ -86,26 +87,7 @@ export function SpeciesList() {
       <OnboardingHint />
 
       <div className="page-body">
-        <div style={{ marginBottom: 16 }}>
-          <input
-            type="search"
-            aria-label={t('common.searchSpecies')}
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder={t('common.searchSpecies')}
-            style={{
-              width: '100%',
-              padding: '8px 14px',
-              fontFamily: 'var(--font-mono)',
-              fontSize: 12,
-              letterSpacing: 0.8,
-              border: '1px solid var(--color-ink)',
-              background: 'transparent',
-              color: 'var(--color-ink)',
-              outline: 'none',
-            }}
-          />
-        </div>
+        <SearchField value={search} onChange={setSearch} placeholder={t('common.searchSpecies')} />
 
         <LedgerFilters
           options={ALL_TYPES.map(pt => ({

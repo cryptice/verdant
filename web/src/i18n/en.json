@@ -652,6 +652,8 @@
     "noWorkflowYet": "No workflow yet"
   },
   "seeds": {
+    "search": "Search variety, Latin name or supplier...",
+    "noMatches": "No seed stock matches the search.",
     "title": "Seed Stock",
     "addSeeds": "+ Add seed stock",
     "noBatches": "No seed batches. Tap + to add one.",
@@ -1873,6 +1875,7 @@
     "suggestedQuantity": "Suggested amount"
   },
   "workflows": {
+    "search": "Search workflow, step or variety...",
     "usedBy": "Used by",
     "usedByNone": "No varieties use this workflow yet. Assign it on a variety's page.",
     "noGroup": "No group",

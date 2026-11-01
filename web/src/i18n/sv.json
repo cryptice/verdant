@@ -652,6 +652,8 @@
     "noWorkflowYet": "Inget arbetsflöde än"
   },
   "seeds": {
+    "search": "Sök sort, latinskt namn eller leverantör...",
+    "noMatches": "Inget utsäde matchar sökningen.",
     "title": "utsädeslager",
     "addSeeds": "+ Lägg till utsäde",
     "noBatches": "Inga fröpartier. Tryck + för att lägga till.",
@@ -1873,6 +1875,7 @@
     "suggestedQuantity": "Föreslagen mängd"
   },
   "workflows": {
+    "search": "Sök arbetsflöde, steg eller sort...",
     "usedBy": "Används av",
     "usedByNone": "Inga sorter använder arbetsflödet än. Tilldela det på en sorts sida.",
     "noGroup": "Utan grupp",
