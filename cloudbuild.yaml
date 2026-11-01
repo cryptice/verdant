@@ -1,6 +1,9 @@
+# The checks and the image build run side by side; the deploy step waits for all
+# of them, so a failing check still stops the release.
 steps:
   - id: 'test-db'
     name: 'gcr.io/cloud-builders/docker'
+    waitFor: ['-']
     entrypoint: 'bash'
     args:
       - '-ceu'
@@ -29,22 +32,26 @@ steps:
 
   - id: 'stop-test-db'
     name: 'gcr.io/cloud-builders/docker'
+    waitFor: ['backend-tests']
     args: ['rm', '-f', 'verdant-test-db']
 
   - id: 'web-checks'
     name: 'node:22'
+    waitFor: ['-']
     dir: 'web'
     entrypoint: 'sh'
     args: ['-ec', 'npm ci --no-update-notifier && npm run lint && npm test && npm run build']
 
   - id: 'admin-checks'
     name: 'node:22'
+    waitFor: ['-']
     dir: 'admin'
     entrypoint: 'sh'
     args: ['-ec', 'npm ci --no-update-notifier && npm run lint && npm run build']
 
   - id: 'image-build'
     name: 'gcr.io/kaniko-project/executor:latest'
+    waitFor: ['-']
     args:
       - '--destination=${_REGION}-docker.pkg.dev/$PROJECT_ID/verdant/verdant-api'
       - '--cache=true'
@@ -60,7 +67,7 @@ steps:
 
   - id: 'deploy'
     name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    waitFor: ['image-build']
+    waitFor: ['image-build', 'backend-tests', 'web-checks', 'admin-checks']
     entrypoint: 'bash'
     args:
       - '-c'
