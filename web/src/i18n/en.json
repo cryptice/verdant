@@ -652,8 +652,13 @@
     "noWorkflowYet": "No workflow yet"
   },
   "seeds": {
+    "expiryFilter": "Expiry",
+    "expiryAll": "Any expiry date",
+    "expiresWithin_one": "Expires within {{count}} month",
+    "expiresWithin_other": "Expires within {{count}} months",
+    "expired": "Expired",
     "search": "Search variety, Latin name or supplier...",
-    "noMatches": "No seed stock matches the search.",
+    "noMatches": "No seed stock matches the search or filter.",
     "title": "Seed Stock",
     "addSeeds": "+ Add seed stock",
     "noBatches": "No seed batches. Tap + to add one.",

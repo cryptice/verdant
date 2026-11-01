@@ -76,11 +76,17 @@ export function SeedInventory() {
   const [storedPage, setPage] = useSessionState('page.seed-stock', 0)
   const pageSize = 50
 
+  // Only batches expiring within the chosen number of months, already expired ones included.
+  const [expiresWithin, setExpiresWithin] = useSessionState<number | null>('expiry.seed-stock', null)
+  const today = new Date().toISOString().slice(0, 10)
+  const cutoff = expiresWithin ? monthsFromToday(expiresWithin) : null
+
   // Group batches by speciesId (computed every render so the effect below can
   // watch the group count without depending on loading/error state).
   const items = data ?? []
+  const shown = cutoff ? items.filter(b => b.expirationDate != null && b.expirationDate <= cutoff) : items
   const grouped = new Map<number, SeedInventoryResponse[]>()
-  for (const item of items) {
+  for (const item of shown) {
     const group = grouped.get(item.speciesId) ?? []
     group.push(item)
     grouped.set(item.speciesId, group)
@@ -97,6 +103,7 @@ export function SeedInventory() {
   })
 
   useOnChange(search, () => setPage(0))
+  useOnChange(expiresWithin, () => setPage(0))
   const page = Math.min(storedPage, Math.max(0, Math.ceil(groupEntries.length / pageSize) - 1))
 
   if (isLoading) return <div className="flex justify-center p-16"><div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full" /></div>
@@ -125,7 +132,25 @@ export function SeedInventory() {
           </div>
         )}
 
-        {items.length > 0 && <SearchField value={search} onChange={setSearch} placeholder={t('seeds.search')} />}
+        {items.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0 12px', alignItems: 'flex-start' }}>
+            <div style={{ flex: '1 1 260px' }}>
+              <SearchField value={search} onChange={setSearch} placeholder={t('seeds.search')} />
+            </div>
+            <select
+              aria-label={t('seeds.expiryFilter')}
+              value={expiresWithin ?? ''}
+              onChange={e => setExpiresWithin(e.target.value ? Number(e.target.value) : null)}
+              style={{
+                flex: '0 1 220px', marginBottom: 16, padding: '8px 10px', fontFamily: 'var(--font-mono)', fontSize: 12,
+                letterSpacing: 0.8, border: '1px solid var(--color-ink)', background: 'transparent', color: 'var(--color-ink)',
+              }}
+            >
+              <option value="">{t('seeds.expiryAll')}</option>
+              {[1, 3, 6, 12].map(m => <option key={m} value={m}>{t('seeds.expiresWithin', { count: m })}</option>)}
+            </select>
+          </div>
+        )}
         {items.length > 0 && groupEntries.length === 0 && (
           <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 16, color: 'var(--color-forest)' }}>{t('seeds.noMatches')}</p>
         )}
@@ -257,7 +282,10 @@ export function SeedInventory() {
                             <span className="mobile-hidden" style={{ fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums', fontSize: 10, textAlign: 'right' }}>
                               {batch.costPerUnitCents != null ? `${(batch.costPerUnitCents / 100).toFixed(2)} kr` : '—'}
                             </span>
-                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>
+                            <span
+                              style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: batch.expirationDate && batch.expirationDate < today ? 'var(--color-error)' : undefined }}
+                              title={batch.expirationDate && batch.expirationDate < today ? t('seeds.expired') : undefined}
+                            >
                               {batch.expirationDate ?? '—'}
                             </span>
                             <span style={{ display: 'inline-flex', gap: 14, justifyContent: 'flex-end' }}>
@@ -339,4 +367,11 @@ function PlanIcon({ size }: { size: number }) {
       <path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3M5 9.5h2M9 9.5h2M5 12h2" />
     </svg>
   )
+}
+
+/** The date [months] from today, as YYYY-MM-DD for comparing with expiry dates. */
+function monthsFromToday(months: number): string {
+  const date = new Date()
+  date.setMonth(date.getMonth() + months)
+  return date.toISOString().slice(0, 10)
 }

@@ -652,8 +652,13 @@
     "noWorkflowYet": "Inget arbetsflöde än"
   },
   "seeds": {
+    "expiryFilter": "Utgångsdatum",
+    "expiryAll": "Alla utgångsdatum",
+    "expiresWithin_one": "Går ut inom {{count}} månad",
+    "expiresWithin_other": "Går ut inom {{count}} månader",
+    "expired": "Utgånget",
     "search": "Sök sort, latinskt namn eller leverantör...",
-    "noMatches": "Inget utsäde matchar sökningen.",
+    "noMatches": "Inget utsäde matchar sökningen eller filtret.",
     "title": "utsädeslager",
     "addSeeds": "+ Lägg till utsäde",
     "noBatches": "Inga fröpartier. Tryck + för att lägga till.",
