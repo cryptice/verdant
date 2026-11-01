@@ -11,6 +11,10 @@ const UNIT_TYPES = ['SEED', 'PLUG', 'BULB', 'TUBER', 'PLANT']
 
 const roundCents = (value: number) => Math.round(value * 100) / 100
 
+/** A variety's only supplier is picked for a new batch; with several, the grower chooses. */
+const onlySupplier = (species: SpeciesResponse | null): number | '' =>
+  species?.providers.length === 1 ? species.providers[0].id : ''
+
 /** A new batch starts from the variety's usual package size and price, which the grower can change. */
 function pricesFrom(species: SpeciesResponse | null) {
   const size = species?.seedsPerPackage ?? null
@@ -48,7 +52,7 @@ export function SeedBatchDialog({ batch, initialSpecies = null, species, onClose
   const [selectedSpecies, setSelectedSpecies] = useState<SpeciesResponse | null>(initialSpecies)
   const providerSpecies = isEdit ? batchSpecies : selectedSpecies
   const [providerId, setProviderId] = useState<number | ''>(
-    isEdit ? batch.speciesProviderId ?? '' : initialSpecies?.providers[0]?.id ?? '',
+    isEdit ? batch.speciesProviderId ?? '' : onlySupplier(initialSpecies),
   )
   const [unitType, setUnitType] = useState(isEdit ? batch.unitType ?? '' : initialSpecies?.defaultUnitType ?? 'SEED')
   const initialPrices = isEdit ? null : pricesFrom(initialSpecies)
@@ -136,7 +140,7 @@ export function SeedBatchDialog({ batch, initialSpecies = null, species, onClose
           ) : (
             <SpeciesAutocomplete value={selectedSpecies} onChange={s => {
               setSelectedSpecies(s)
-              setProviderId(s?.providers[0]?.id ?? '')
+              setProviderId(onlySupplier(s))
               setUnitType(s?.defaultUnitType ?? 'SEED')
               const prices = pricesFrom(s)
               setPerPackage(prices.perPackage)
