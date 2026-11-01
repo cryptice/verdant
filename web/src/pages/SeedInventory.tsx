@@ -76,8 +76,9 @@ export function SeedInventory() {
   const [storedPage, setPage] = useSessionState('page.seed-stock', 0)
   const pageSize = 50
 
-  // Only batches still good but expiring within the chosen number of months, or only expired ones; without a filter, all.
-  const [expiresWithin, setExpiresWithin] = useSessionState<number | 'expired' | null>('expiry.seed-stock', null)
+  // Only batches still good but expiring within the chosen number of months, only expired ones, or only
+  // those without an expiry date; without a filter, all.
+  const [expiresWithin, setExpiresWithin] = useSessionState<number | 'expired' | 'none' | null>('expiry.seed-stock', null)
   const today = new Date().toISOString().slice(0, 10)
   const cutoff = typeof expiresWithin === 'number' ? monthsFromToday(expiresWithin) : null
 
@@ -85,6 +86,7 @@ export function SeedInventory() {
   // watch the group count without depending on loading/error state).
   const items = data ?? []
   const shown = expiresWithin === 'expired' ? items.filter(b => b.expirationDate != null && b.expirationDate < today)
+    : expiresWithin === 'none' ? items.filter(b => b.expirationDate == null)
     : cutoff ? items.filter(b => b.expirationDate != null && b.expirationDate >= today && b.expirationDate <= cutoff)
     : items
   const grouped = new Map<number, SeedInventoryResponse[]>()
@@ -142,7 +144,10 @@ export function SeedInventory() {
             <select
               aria-label={t('seeds.expiryFilter')}
               value={expiresWithin ?? ''}
-              onChange={e => setExpiresWithin(e.target.value === 'expired' ? 'expired' : e.target.value ? Number(e.target.value) : null)}
+              onChange={e => {
+                const v = e.target.value
+                setExpiresWithin(v === 'expired' || v === 'none' ? v : v ? Number(v) : null)
+              }}
               style={{
                 flex: '0 1 220px', marginBottom: 16, padding: '8px 10px', fontFamily: 'var(--font-mono)', fontSize: 12,
                 letterSpacing: 0.8, border: '1px solid var(--color-ink)', background: 'transparent', color: 'var(--color-ink)',
@@ -151,6 +156,7 @@ export function SeedInventory() {
               <option value="">{t('seeds.expiryAll')}</option>
               <option value="expired">{t('seeds.expiredFilter')}</option>
               {[1, 3, 6, 12].map(m => <option key={m} value={m}>{t('seeds.expiresWithin', { count: m })}</option>)}
+              <option value="none">{t('seeds.noExpiryFilter')}</option>
             </select>
           </div>
         )}

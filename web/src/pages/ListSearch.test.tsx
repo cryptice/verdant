@@ -95,6 +95,11 @@ describe('seed stock search', () => {
     expect(screen.getByText('Solros – Vanilla Ice')).toBeInTheDocument()
     expect(screen.queryByText('Rävsvans – Coral Fountain')).toBeNull()
 
+    fireEvent.change(screen.getByLabelText('Utgångsdatum'), { target: { value: 'none' } })
+    expect(screen.getByText('Dahlia – Lilliput')).toBeInTheDocument()
+    expect(screen.queryByText('Solros – Vanilla Ice')).toBeNull()
+    expect(screen.queryByText('Zinnia – Queen Lime')).toBeNull()
+
     fireEvent.change(screen.getByLabelText('Utgångsdatum'), { target: { value: '' } })
     expect(screen.getByText('Dahlia – Lilliput')).toBeInTheDocument()
     expect(screen.getByText('Solros – Vanilla Ice')).toBeInTheDocument()

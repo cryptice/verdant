@@ -652,6 +652,7 @@
     "noWorkflowYet": "Inget arbetsflöde än"
   },
   "seeds": {
+    "noExpiryFilter": "Utan angivet datum",
     "expiredFilter": "Utgångna",
     "expiryFilter": "Utgångsdatum",
     "expiryAll": "Alla utgångsdatum",
