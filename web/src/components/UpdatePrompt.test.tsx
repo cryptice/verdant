@@ -45,12 +45,12 @@ describe('Ladda om', () => {
   it('offers a new version once fetched, and on Ladda om switches to it and reloads once it has taken over', async () => {
     sw.needRefresh = true
     render(<UpdatePrompt />)
-    expect(screen.getByRole('status')).toHaveTextContent('En ny version av Verdant finns.')
+    expect(screen.getByRole('status')).toHaveTextContent('En ny version av Verdant Planner finns.')
     fireEvent.click(screen.getByRole('button', { name: 'Ladda om' }))
     await settle()
     expect(waiting!.postMessage).toHaveBeenCalledWith({ type: 'SKIP_WAITING' })
     expect(reload).not.toHaveBeenCalled()
-    expect(screen.getByRole('status')).toHaveTextContent('Uppdaterar Verdant…')
+    expect(screen.getByRole('status')).toHaveTextContent('Uppdaterar Verdant Planner…')
     expect(screen.queryByRole('button', { name: 'Ladda om' })).toBeNull()
     waiting!.state = 'activated'
     waiting!.dispatchEvent(new Event('statechange'))

@@ -1,9 +1,9 @@
 {
   "updatePrompt": {
-    "ready": "A new version of Verdant is ready.",
+    "ready": "A new version of Verdant Planner is ready.",
     "reload": "Reload",
     "later": "Later",
-    "updating": "Updating Verdant…"
+    "updating": "Updating Verdant Planner…"
   },
   "apiKeys": {
     "masthead": "— API keys —",
@@ -209,7 +209,7 @@
     "noHarvests": "No harvests yet",
     "viewAll": "View all",
     "onboardingWidget": {
-      "title": "Get started with Verdant",
+      "title": "Get started with Verdant Planner",
       "description": "Follow the setup guide to learn how to use all features.",
       "progress": "{{completed}} of {{total}} steps complete",
       "button": "Open setup guide"
@@ -646,7 +646,7 @@
     "noWorkflow": "{{name}} has no workflow, and the plan is counted back through the workflow's steps. Assign the variety a workflow to plan it.",
     "missingDays": "The step \"{{step}}\" in the variety's workflow has no number of days, so the dates can't be worked out. Enter the step's days first.",
     "openVariety": "Open the variety",
-    "catalogueVariety": "{{name}} comes from the shared catalogue that every Verdant account uses, where you can't add a workflow of your own. Make it your own variety: your seed batches move to it and you can give it a workflow. Plants you've already sown stay on the catalogue variety.",
+    "catalogueVariety": "{{name}} comes from the shared catalogue that every Verdant Planner account uses, where you can't add a workflow of your own. Make it your own variety: your seed batches move to it and you can give it a workflow. Plants you've already sown stay on the catalogue variety.",
     "adopt": "Make it my own",
     "workflowTemplate": "Workflow",
     "noWorkflowYet": "No workflow yet"
@@ -740,7 +740,7 @@
     "signIn": "Sign in",
     "badge": "Free garden planner",
     "heroTitle": "Plan, grow, and harvest with confidence",
-    "heroSubtitle": "Verdant helps you organize your gardens, track every plant from seed to harvest, and never miss a task.",
+    "heroSubtitle": "Verdant Planner helps you organize your gardens, track every plant from seed to harvest, and never miss a task.",
     "hero": {
       "headline": "Grow beautifully. Harvest more.",
       "sub": "Garden planning for commercial cut-flower growing."
@@ -1363,7 +1363,7 @@
       "targets": {
         "title": "Production Targets & Forecasting",
         "body": [
-          "Set delivery targets and let Verdant calculate what you need to grow.",
+          "Set delivery targets and let Verdant Planner calculate what you need to grow.",
           "Target: \"I need 100 stems of dahlias per week from July to September.\"",
           "## Forecast (auto-calculated):",
           "- Total stems needed = stems/week × weeks",
@@ -1474,9 +1474,9 @@
       "hideSession": "Hide for now",
       "dismissForever": "Don't show again",
       "allComplete": "You're all set!",
-      "allCompleteHint": "You've explored everything Verdant has to offer.",
+      "allCompleteHint": "You've explored everything Verdant Planner has to offer.",
       "finish": "Close guide",
-      "skipAll": "I have used Verdant before, mark onboarding as complete"
+      "skipAll": "I have used Verdant Planner before, mark onboarding as complete"
     },
     "sections": {
       "gettingStarted": "Getting Started",
@@ -1642,7 +1642,7 @@
     "sections": {
       "dataCollected": {
         "title": "What data we collect and why",
-        "body": "We collect the data you provide when using Verdant. This includes your Google account information (name, email address, and profile picture) obtained via Google OAuth when you sign in. We also store the garden and business data you enter into the application, such as garden locations (geographic coordinates), species and planting records, task lists, seed stock, customer information, production targets, and sales data. This data is necessary to provide the core functionality of the service."
+        "body": "We collect the data you provide when using Verdant Planner. This includes your Google account information (name, email address, and profile picture) obtained via Google OAuth when you sign in. We also store the garden and business data you enter into the application, such as garden locations (geographic coordinates), species and planting records, task lists, seed stock, customer information, production targets, and sales data. This data is necessary to provide the core functionality of the service."
       },
       "dataStorage": {
         "title": "How data is stored and protected",
@@ -1650,7 +1650,7 @@
       },
       "thirdParties": {
         "title": "Third-party services",
-        "body": "Verdant uses the following third-party services: Google OAuth for authentication (Google LLC, USA); Google Cloud Storage for storing images you upload (Google LLC, USA); and Google Gemini for AI-powered features within the application (Google LLC, USA). These services are governed by Google's own privacy policies. Data transferred to Google is subject to appropriate safeguards under GDPR, including Google's Standard Contractual Clauses. We do not sell your data to third parties."
+        "body": "Verdant Planner uses the following third-party services: Google OAuth for authentication (Google LLC, USA); Google Cloud Storage for storing images you upload (Google LLC, USA); and Google Gemini for AI-powered features within the application (Google LLC, USA). These services are governed by Google's own privacy policies. Data transferred to Google is subject to appropriate safeguards under GDPR, including Google's Standard Contractual Clauses. We do not sell your data to third parties."
       },
       "retention": {
         "title": "Data retention",
@@ -1666,17 +1666,17 @@
       },
       "cookies": {
         "title": "Cookies and local storage",
-        "body": "Verdant uses browser local storage solely for functional purposes, such as storing your authentication token and language preference. We do not use tracking cookies, advertising cookies, or any third-party analytics cookies. No data stored locally is shared with third parties for marketing or profiling purposes."
+        "body": "Verdant Planner uses browser local storage solely for functional purposes, such as storing your authentication token and language preference. We do not use tracking cookies, advertising cookies, or any third-party analytics cookies. No data stored locally is shared with third parties for marketing or profiling purposes."
       },
       "contact": {
         "title": "Contact",
-        "body": "The data controller for Verdant is Erik Lindblad. If you have questions about this privacy policy or wish to exercise your data rights, please contact us at: privacy@verdant.app"
+        "body": "The data controller for Verdant Planner is Erik Lindblad. If you have questions about this privacy policy or wish to exercise your data rights, please contact us at: privacy@verdant.app"
       }
     }
   },
   "org": {
     "setup": {
-      "title": "Welcome to Verdant",
+      "title": "Welcome to Verdant Planner",
       "subtitle": "Create your organization to get started.",
       "subtitleWithInvites": "Create your organization or accept a pending invite to get started.",
       "createTitle": "Create your organization",
@@ -1714,7 +1714,7 @@
   },
   "orgSetup": {
     "hero": {
-      "headline": "Welcome to Verdant."
+      "headline": "Welcome to Verdant Planner."
     },
     "intro": "To get started, create an organization for your farm or growing operation. You can invite collaborators later.",
     "submit": "Create organization"
@@ -1988,7 +1988,7 @@
     "species": "Species or group",
     "quantity": "Target quantity",
     "harvestDate": "Harvest date",
-    "mixHelp": "Verdant suggests equal output shares across compatible species with complete schedules. Leave quantities blank for suggestions, enter 0 to exclude, or fix a quantity.",
+    "mixHelp": "Verdant Planner suggests equal output shares across compatible species with complete schedules. Leave quantities blank for suggestions, enter 0 to exclude, or fix a quantity.",
     "suggested": "Suggested share",
     "configure": "Configure lifecycle",
     "preview": "Preview plan",

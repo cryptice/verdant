@@ -70,7 +70,7 @@ export function LoginPage() {
       <div className="bg-bg border border-divider rounded-xl max-w-sm w-full flex flex-col items-center gap-6 p-10 shadow-sm">
         <div className="text-center">
           <div className="text-4xl mb-3">🌿</div>
-          <h1 className="text-2xl font-semibold text-text-primary">Verdant</h1>
+          <h1 className="text-2xl font-semibold text-text-primary">Verdant Planner</h1>
           <p className="text-text-secondary text-sm mt-1">{t('login.subtitle')}</p>
         </div>
         <div id="google-signin-btn" />

@@ -31,7 +31,7 @@ export function McpAuthorizePage() {
     }
   }
   return <main className="page-body" style={{ maxWidth: 560, margin: '60px auto', padding: 24 }}>
-    <h1>{sv ? 'Anslut till Verdant' : 'Connect to Verdant'}</h1>
+    <h1>{sv ? 'Anslut till Verdant Planner' : 'Connect to Verdant Planner'}</h1>
     {(!valid || details.isError) && <p role="alert">{sv ? 'Förfrågan har gått ut eller är ogiltig. Starta anslutningen igen från din AI-app.' : 'This request expired or is invalid. Start the connection again from your AI app.'}</p>}
     {details.data && <>
       <p><strong>{details.data.clientName}</strong> {sv ? 'begär läsåtkomst till en av dina organisationer.' : 'requests read access to one of your organizations.'}</p>

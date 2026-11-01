@@ -116,13 +116,13 @@ export function Sidebar() {
           style={{
             fontFamily: 'var(--font-display)',
             fontStyle: 'italic',
-            fontSize: 26,
+            fontSize: 24,
             fontWeight: 300,
             color: 'var(--color-ink)',
             lineHeight: 1,
           }}
         >
-          Verdant<span style={{ color: 'var(--color-accent)' }}>.</span>
+          Verdant Planner<span style={{ color: 'var(--color-accent)' }}>.</span>
         </div>
         <div
           style={{

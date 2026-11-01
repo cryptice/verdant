@@ -55,7 +55,7 @@ export function OrgSetup() {
       {/* Editorial top strip */}
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, padding: '22px 40px', borderBottom: '1px solid var(--color-ink)' }}>
         <span style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 32, fontWeight: 300, color: 'var(--color-ink)' }}>
-          Verdant<span style={{ color: 'var(--color-accent)' }}>.</span>
+          Verdant Planner<span style={{ color: 'var(--color-accent)' }}>.</span>
         </span>
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-forest)' }}>
           {t('app.subtitle')}

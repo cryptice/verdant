@@ -39,7 +39,7 @@ class McpTools(
         }
     }
     fun definitions() = listOf(
-        definition("get_connection_profile", "Identify the connected Verdant organization.", profile = true),
+        definition("get_connection_profile", "Identify the connected Verdant Planner organization.", profile = true),
         definition("list_seasons", "List seasons and their IDs in the connected organization."),
         definition("get_season_review", "Recorded harvest totals, bed yields, variety trial verdicts and pest/disease observations for a season. Trials and observations are paginated independently using the same offset. Missing records are not proof of crop failure.", paging + mapOf("seasonId" to id), listOf("seasonId")),
         definition("get_planning_gaps", "Compare weekly stem production targets with ACTIVE stem harvest plans. Planned output is a forecast, not actual yield. Returns coverage and remaining weekly demand; use species search/details and planning candidates to explore planting options.", paging + mapOf("seasonId" to id, "limit" to mapOf("type" to "integer", "minimum" to 1, "maximum" to 10, "default" to 10)), listOf("seasonId")),

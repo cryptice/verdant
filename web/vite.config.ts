@@ -17,7 +17,7 @@ export default defineConfig({
       pwaAssets: { preset: 'minimal-2023', image: 'public/favicon.svg' },
       manifest: {
         name: 'Verdant Planner',
-        short_name: 'Verdant',
+        short_name: 'Verdant Planner',
         description: 'Plan, sow, grow and sell cut flowers.',
         display: 'standalone',
         start_url: '/',

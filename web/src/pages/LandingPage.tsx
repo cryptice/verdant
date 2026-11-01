@@ -99,7 +99,7 @@ export function LandingPage() {
               color: 'var(--color-ink)',
             }}
           >
-            Verdant<span style={{ color: 'var(--color-accent)' }}>.</span>
+            Verdant Planner<span style={{ color: 'var(--color-accent)' }}>.</span>
           </span>
           <span
             style={{
@@ -248,7 +248,7 @@ export function LandingPage() {
             color: 'var(--color-forest)',
           }}
         >
-          Verdant<span style={{ color: 'var(--color-accent)' }}>.</span>
+          Verdant Planner<span style={{ color: 'var(--color-accent)' }}>.</span>
         </span>
         <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
           <span

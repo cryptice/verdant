@@ -41,7 +41,7 @@ export default function Layout() {
   const sidebar = (
     <>
       <div className="px-4 py-5 hidden md:block">
-        <h1 className="text-lg font-semibold text-[#37352F] tracking-tight">Verdant</h1>
+        <h1 className="text-lg font-semibold text-[#37352F] tracking-tight">Verdant Planner</h1>
         <p className="text-xs text-[#A5A29C] mt-0.5">{t('nav.admin')}</p>
       </div>
       <nav className="flex-1 px-3 pt-2 md:pt-0 space-y-0.5 overflow-y-auto">
@@ -100,7 +100,7 @@ export default function Layout() {
               <line x1="3" y1="18" x2="21" y2="18" />
             </svg>
           </button>
-          <h1 className="text-base font-semibold text-[#37352F] tracking-tight">Verdant</h1>
+          <h1 className="text-base font-semibold text-[#37352F] tracking-tight">Verdant Planner</h1>
         </div>
       </header>
 
@@ -123,7 +123,7 @@ export default function Layout() {
         >
           <div className="flex items-center justify-between px-4 min-h-14 pt-[env(safe-area-inset-top)]">
             <div>
-              <h1 className="text-lg font-semibold text-[#37352F] tracking-tight">Verdant</h1>
+              <h1 className="text-lg font-semibold text-[#37352F] tracking-tight">Verdant Planner</h1>
               <p className="text-xs text-[#A5A29C] mt-0.5">{t('nav.admin')}</p>
             </div>
             <button

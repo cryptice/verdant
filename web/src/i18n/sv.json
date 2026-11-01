@@ -1,9 +1,9 @@
 {
   "updatePrompt": {
-    "ready": "En ny version av Verdant finns.",
+    "ready": "En ny version av Verdant Planner finns.",
     "reload": "Ladda om",
     "later": "Senare",
-    "updating": "Uppdaterar Verdant…"
+    "updating": "Uppdaterar Verdant Planner…"
   },
   "apiKeys": {
     "masthead": "— API-nycklar —",
@@ -209,8 +209,8 @@
     "noHarvests": "Inga skördar ännu",
     "viewAll": "Visa alla",
     "onboardingWidget": {
-      "title": "Kom igång med Verdant",
-      "description": "Följ guiden för att lära dig alla funktioner i Verdant. Du kan alltid öppna listan genom att klicka på cirkeln i nedre högra hörnet.",
+      "title": "Kom igång med Verdant Planner",
+      "description": "Följ guiden för att lära dig alla funktioner i Verdant Planner. Du kan alltid öppna listan genom att klicka på cirkeln i nedre högra hörnet.",
       "progress": "{{completed}} av {{total}} steg klara",
       "button": "Öppna guiden"
     },
@@ -646,7 +646,7 @@
     "noWorkflow": "{{name}} har inget arbetsflöde, och planen räknas bakåt genom arbetsflödets steg. Tilldela sorten ett arbetsflöde för att kunna planera.",
     "missingDays": "Steget \"{{step}}\" i sortens arbetsflöde saknar antal dagar, så datumen går inte att räkna fram. Ange dagarna för steget först.",
     "openVariety": "Öppna sorten",
-    "catalogueVariety": "{{name}} kommer från den gemensamma katalogen som alla Verdant-konton delar, och där kan du inte lägga till ett eget arbetsflöde. Gör den till din egen sort, så flyttas dina fröpartier dit och du kan ge den ett arbetsflöde. Plantor du redan har sått ligger kvar på katalogsorten.",
+    "catalogueVariety": "{{name}} kommer från den gemensamma katalogen som alla Verdant Planner-konton delar, och där kan du inte lägga till ett eget arbetsflöde. Gör den till din egen sort, så flyttas dina fröpartier dit och du kan ge den ett arbetsflöde. Plantor du redan har sått ligger kvar på katalogsorten.",
     "adopt": "Gör till egen sort",
     "workflowTemplate": "Arbetsflöde",
     "noWorkflowYet": "Inget arbetsflöde än"
@@ -740,7 +740,7 @@
     "signIn": "Logga in",
     "badge": "Gratis trädgårdsplanerare",
     "heroTitle": "Planera, odla och skörda med tillförsikt",
-    "heroSubtitle": "Verdant hjälper dig organisera dina trädgårdar, följa varje planta från frö till skörd och aldrig missa en uppgift.",
+    "heroSubtitle": "Verdant Planner hjälper dig organisera dina trädgårdar, följa varje planta från frö till skörd och aldrig missa en uppgift.",
     "hero": {
       "headline": "Odla vackert. Skörda mer.",
       "sub": "Trädgårdsplanering för kommersiell snittblomsodling."
@@ -1363,7 +1363,7 @@
       "targets": {
         "title": "Produktionsmål & Prognoser",
         "body": [
-          "Sätt leveransmål och låt Verdant beräkna vad du behöver odla.",
+          "Sätt leveransmål och låt Verdant Planner beräkna vad du behöver odla.",
           "Mål: \"Jag behöver 100 stjälkar dahlior per vecka från juli till september.\"",
           "## Prognos (beräknas automatiskt):",
           "- Totalt stjälkar = stjälkar/vecka × veckor",
@@ -1474,9 +1474,9 @@
       "hideSession": "Dölj för nu",
       "dismissForever": "Visa inte igen",
       "allComplete": "Nu är du redo!",
-      "allCompleteHint": "Du har utforskat allt som Verdant har att erbjuda.",
+      "allCompleteHint": "Du har utforskat allt som Verdant Planner har att erbjuda.",
       "finish": "Stäng guiden",
-      "skipAll": "Jag har använt Verdant förut, markera introduktionen som klar"
+      "skipAll": "Jag har använt Verdant Planner förut, markera introduktionen som klar"
     },
     "sections": {
       "gettingStarted": "Kom igång",
@@ -1642,7 +1642,7 @@
     "sections": {
       "dataCollected": {
         "title": "Vilka uppgifter vi samlar in och varför",
-        "body": "Vi samlar in de uppgifter du lämnar när du använder Verdant. Det inkluderar information från ditt Google-konto (namn, e-postadress och profilbild) som hämtas via Google OAuth när du loggar in. Vi lagrar även de trädgårds- och verksamhetsuppgifter du registrerar i tjänsten, såsom trädgårdsplatser (geografiska koordinater), arter och odlingsregistreringar, uppgiftslistor, frölager, kundinformation, produktionsmål och försäljningsdata. Dessa uppgifter är nödvändiga för att tillhandahålla tjänstens grundläggande funktioner."
+        "body": "Vi samlar in de uppgifter du lämnar när du använder Verdant Planner. Det inkluderar information från ditt Google-konto (namn, e-postadress och profilbild) som hämtas via Google OAuth när du loggar in. Vi lagrar även de trädgårds- och verksamhetsuppgifter du registrerar i tjänsten, såsom trädgårdsplatser (geografiska koordinater), arter och odlingsregistreringar, uppgiftslistor, frölager, kundinformation, produktionsmål och försäljningsdata. Dessa uppgifter är nödvändiga för att tillhandahålla tjänstens grundläggande funktioner."
       },
       "dataStorage": {
         "title": "Hur uppgifter lagras och skyddas",
@@ -1650,7 +1650,7 @@
       },
       "thirdParties": {
         "title": "Tredjepartstjänster",
-        "body": "Verdant använder följande tredjepartstjänster: Google OAuth för autentisering (Google LLC, USA); Google Cloud Storage för lagring av bilder du laddar upp (Google LLC, USA); samt Google Gemini för AI-funktioner i tjänsten (Google LLC, USA). Dessa tjänster regleras av Googles egna integritetspolicyer. Uppgifter som överförs till Google skyddas av lämpliga garantier enligt GDPR, inklusive Googles standardavtalsklausuler. Vi säljer inte dina uppgifter till tredje part."
+        "body": "Verdant Planner använder följande tredjepartstjänster: Google OAuth för autentisering (Google LLC, USA); Google Cloud Storage för lagring av bilder du laddar upp (Google LLC, USA); samt Google Gemini för AI-funktioner i tjänsten (Google LLC, USA). Dessa tjänster regleras av Googles egna integritetspolicyer. Uppgifter som överförs till Google skyddas av lämpliga garantier enligt GDPR, inklusive Googles standardavtalsklausuler. Vi säljer inte dina uppgifter till tredje part."
       },
       "retention": {
         "title": "Lagringsperiod",
@@ -1666,17 +1666,17 @@
       },
       "cookies": {
         "title": "Cookies och lokal lagring",
-        "body": "Verdant använder webbläsarens lokala lagring uteslutande för funktionella ändamål, till exempel för att spara din autentiseringstoken och språkinställning. Vi använder inga spårningscookies, reklamcookies eller tredjepartsanalyscookies. Uppgifter som lagras lokalt delas inte med tredje part för marknadsförings- eller profileringssyften."
+        "body": "Verdant Planner använder webbläsarens lokala lagring uteslutande för funktionella ändamål, till exempel för att spara din autentiseringstoken och språkinställning. Vi använder inga spårningscookies, reklamcookies eller tredjepartsanalyscookies. Uppgifter som lagras lokalt delas inte med tredje part för marknadsförings- eller profileringssyften."
       },
       "contact": {
         "title": "Kontakt",
-        "body": "Personuppgiftsansvarig för Verdant är Erik Lindblad. Om du har frågor om denna integritetspolicy eller vill utöva dina rättigheter, kontakta oss på: privacy@verdant.app"
+        "body": "Personuppgiftsansvarig för Verdant Planner är Erik Lindblad. Om du har frågor om denna integritetspolicy eller vill utöva dina rättigheter, kontakta oss på: privacy@verdant.app"
       }
     }
   },
   "org": {
     "setup": {
-      "title": "Välkommen till Verdant",
+      "title": "Välkommen till Verdant Planner",
       "subtitle": "Skapa din organisation för att komma igång.",
       "subtitleWithInvites": "Skapa din organisation eller acceptera en väntande inbjudan för att komma igång.",
       "createTitle": "Skapa din organisation",
@@ -1714,7 +1714,7 @@
   },
   "orgSetup": {
     "hero": {
-      "headline": "Välkommen till Verdant."
+      "headline": "Välkommen till Verdant Planner."
     },
     "intro": "Börja med att skapa en organisation för din odling. Du kan bjuda in medarbetare senare.",
     "submit": "Skapa organisation"
@@ -1988,7 +1988,7 @@
     "species": "Art eller grupp",
     "quantity": "Målantal",
     "harvestDate": "Skördedatum",
-    "mixHelp": "Verdant föreslår lika stor skörd från kompatibla arter med kompletta scheman. Lämna antal tomt för förslag, ange 0 för att utesluta eller ange ett fast antal.",
+    "mixHelp": "Verdant Planner föreslår lika stor skörd från kompatibla arter med kompletta scheman. Lämna antal tomt för förslag, ange 0 för att utesluta eller ange ett fast antal.",
     "suggested": "Föreslagen andel",
     "configure": "Konfigurera livscykel",
     "preview": "Förhandsgranska plan",

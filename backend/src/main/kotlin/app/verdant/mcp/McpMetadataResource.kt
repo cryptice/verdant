@@ -7,7 +7,7 @@ import jakarta.ws.rs.core.MediaType
 @Produces(MediaType.APPLICATION_JSON)
 class McpMetadataResource(private val config: McpConfig) {
     @GET @Path("oauth-protected-resource")
-    fun resourceMetadata() = mapOf("resource" to config.resource, "authorization_servers" to listOf(config.base), "scopes_supported" to listOf(McpConfig.READ_SCOPE), "bearer_methods_supported" to listOf("header"), "resource_name" to "Verdant")
+    fun resourceMetadata() = mapOf("resource" to config.resource, "authorization_servers" to listOf(config.base), "scopes_supported" to listOf(McpConfig.READ_SCOPE), "bearer_methods_supported" to listOf("header"), "resource_name" to "Verdant Planner")
     @GET @Path("oauth-protected-resource/mcp")
     fun mcpResourceMetadata() = resourceMetadata()
     @GET @Path("oauth-authorization-server")
