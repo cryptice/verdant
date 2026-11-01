@@ -54,7 +54,7 @@ class SeedBatchPlanServiceTest {
     @Test
     fun `counts back through the workflow from the ready date`() {
         val f = fixture()
-        val plan = service.preview(f.batchId, request(), f.orgId)
+        val plan = service.preview(listOf(f.batchId), request(), f.orgId)
 
         assertEquals(
             listOf("2027-01-01", "2027-01-21", "2027-02-15", "2027-02-22", "2027-04-01", "2027-04-13", "2027-04-21", "2027-05-01"),
@@ -68,7 +68,7 @@ class SeedBatchPlanServiceTest {
     @Test
     fun `creates a dated task per required step, the sowing one tied to the batch`() {
         val f = fixture()
-        val plan = service.create(f.batchId, request(), f.orgId, today)
+        val plan = service.create(listOf(f.batchId), request(), f.orgId, today)
 
         val created = plan.taskIds.map { tasks.findById(it)!! }
         assertEquals(7, created.size, "the optional hardening step gets no task")
@@ -84,17 +84,46 @@ class SeedBatchPlanServiceTest {
     @Test
     fun `refuses plans the batch or the workflow cannot carry`() {
         val f = fixture(quantity = 100)
-        assertThrows<BadRequestException> { service.preview(f.batchId, request(seeds = 150, plants = 100), f.orgId) }
-        assertThrows<BadRequestException> { service.preview(f.batchId, request(seeds = 80, plants = 90), f.orgId) }
+        assertThrows<BadRequestException> { service.preview(listOf(f.batchId), request(seeds = 150, plants = 100), f.orgId) }
+        assertThrows<BadRequestException> { service.preview(listOf(f.batchId), request(seeds = 80, plants = 90), f.orgId) }
         assertThrows<BadRequestException> {
-            service.create(f.batchId, request(seeds = 80, plants = 60), f.orgId, today = LocalDate.of(2027, 1, 2))
+            service.create(listOf(f.batchId), request(seeds = 80, plants = 60), f.orgId, today = LocalDate.of(2027, 1, 2))
         }
 
         val gap = fixture(steps = listOf(Triple("SEEDED", 0, false), Triple("POTTED_UP", null, false)))
-        assertThrows<BadRequestException> { service.preview(gap.batchId, request(), gap.orgId) }
+        assertThrows<BadRequestException> { service.preview(listOf(gap.batchId), request(), gap.orgId) }
 
         val other = fixture()
-        assertThrows<NotFoundException> { service.preview(f.batchId, request(seeds = 80, plants = 60), other.orgId) }
+        assertThrows<NotFoundException> { service.preview(listOf(f.batchId), request(seeds = 80, plants = 60), other.orgId) }
+    }
+
+    @Test
+    fun `draws the seeds from several batches in order, one sowing task per batch used`() {
+        val f = fixture(quantity = 120)
+        val speciesId = inventory.findById(f.batchId)!!.speciesId
+        val second = inventory.persist(SeedInventory(orgId = f.orgId, speciesId = speciesId, quantity = 100)).id!!
+        val unused = inventory.persist(SeedInventory(orgId = f.orgId, speciesId = speciesId, quantity = 50)).id!!
+
+        val plan = service.create(listOf(f.batchId, second, unused), request(), f.orgId, today)
+
+        assertEquals(listOf(f.batchId to 120, second to 80), plan.allocations.map { it.seedBatchId to it.seeds })
+        val sowing = plan.taskIds.map { tasks.findById(it)!! }.filter { it.activityType == "SOW" }
+        assertEquals(listOf(f.batchId to 120, second to 80), sowing.map { it.seedInventoryId to it.targetCount })
+        assertEquals(8, plan.taskIds.size, "two sowing tasks and six later ones")
+        assertEquals(200, plan.steps.first().count)
+    }
+
+    @Test
+    fun `refuses more seeds than the chosen batches hold, and batches of different varieties`() {
+        val f = fixture(quantity = 120)
+        val speciesId = inventory.findById(f.batchId)!!.speciesId
+        val second = inventory.persist(SeedInventory(orgId = f.orgId, speciesId = speciesId, quantity = 50)).id!!
+        assertThrows<BadRequestException> { service.preview(listOf(f.batchId, second), request(), f.orgId) }
+
+        val otherVariety = species.persist(Species(commonName = "Seed plan zinnia", orgId = f.orgId)).id!!
+        val zinnia = inventory.persist(SeedInventory(orgId = f.orgId, speciesId = otherVariety, quantity = 500)).id!!
+        assertThrows<BadRequestException> { service.preview(listOf(f.batchId, zinnia), request(), f.orgId) }
+        assertThrows<BadRequestException> { service.preview(emptyList(), request(), f.orgId) }
     }
 
     companion object {

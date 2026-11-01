@@ -614,7 +614,7 @@
   },
   "seedPlan": {
     "title": "Planera fröparti",
-    "intro": "Ange hur många frön av {{name}} du vill så, hur många plantor de ska ge och när plantorna ska vara klara. Uppgifterna räknas bakåt genom sortens arbetsflöde. Partiet har {{count}} frön.",
+    "intro": "Ange hur många frön av {{name}} du vill så, hur många plantor de ska ge och när plantorna ska vara klara. Uppgifterna räknas bakåt genom sortens arbetsflöde.",
     "seeds": "Frön att så",
     "plants": "Plantor",
     "readyDate": "Klara",
@@ -633,7 +633,16 @@
     "created_one": "{{count}} uppgift skapad. Sådden är {{date}}.",
     "created_other": "{{count}} uppgifter skapade. Sådden är {{date}}.",
     "showTasks": "Visa uppgifter",
-    "action": "Planera"
+    "action": "Planera",
+    "batch": "Fröparti",
+    "batches": "Fröpartier",
+    "chooseBatches": "Välj fröpartier",
+    "chosenBatches_one": "{{count}} parti · {{seeds}} frön",
+    "chosenBatches_other": "{{count}} partier · {{seeds}} frön",
+    "noBatchChosen": "Välj minst ett fröparti.",
+    "tooManySeedsSeveral": "De valda partierna har bara {{count}} frön.",
+    "batchNumber": "Parti {{number}}",
+    "expires": "utg. {{date}}"
   },
   "seeds": {
     "title": "utsädeslager",

@@ -9,7 +9,7 @@ import { Dialog } from '../components/Dialog'
 import { SeedBatchDialog } from '../components/SeedBatchDialog'
 import { SeedPlanDialog } from '../components/SeedPlanDialog'
 
-const SPECIES_TEMPLATE = '60px 1.5fr 120px 40px'
+const SPECIES_TEMPLATE = '60px 1.5fr 120px 28px 28px'
 const BATCH_TEMPLATE = '1.5fr 100px 100px 120px 56px'
 
 const HEADER_STYLE: React.CSSProperties = {
@@ -44,7 +44,10 @@ export function SeedInventory() {
 
   // Undefined batch means adding; the key remounts the form so it starts fresh.
   const [dialog, setDialog] = useState<{ batch?: SeedInventoryResponse; initialSpecies?: SpeciesResponse | null; key: number } | null>(null)
-  const [planBatch, setPlanBatch] = useState<SeedInventoryResponse | null>(null)
+  // The variety's batches with seeds left, and which of them start out chosen.
+  const [plan, setPlan] = useState<{ batches: SeedInventoryResponse[]; initialBatchIds: number[] } | null>(null)
+  const openPlan = (batches: SeedInventoryResponse[], initialBatchIds: number[] = []) =>
+    setPlan({ batches: batches.filter(b => b.quantity > 0), initialBatchIds })
   const openDialog = (opts: { batch?: SeedInventoryResponse; initialSpecies?: SpeciesResponse | null } = {}) =>
     setDialog({ ...opts, key: Date.now() })
 
@@ -120,6 +123,7 @@ export function SeedInventory() {
               <span style={HEADER_STYLE}>{t('seeds.colName')}</span>
               <span style={{ ...HEADER_STYLE, textAlign: 'right' }}>{t('seeds.colSeeds')}</span>
               <span />
+              <span />
             </div>
 
             {groupEntries.slice(page * pageSize, (page + 1) * pageSize).map(([speciesId, batches], i) => {
@@ -134,9 +138,13 @@ export function SeedInventory() {
 
               return (
                 <div key={speciesId}>
-                  {/* Species group row */}
-                  <button
+                  {/* Species group row; the whole row toggles the batches, the plan icon opens the planner */}
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={isExpanded}
                     onClick={() => toggle(speciesId)}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(speciesId) } }}
                     style={{
                       display: 'grid',
                       gridTemplateColumns: SPECIES_TEMPLATE,
@@ -152,7 +160,7 @@ export function SeedInventory() {
                       textAlign: 'left',
                       cursor: 'pointer',
                       alignItems: 'center',
-                      '--mobile-cols': 'minmax(0, 1fr) auto auto',
+                      '--mobile-cols': 'minmax(0, 1fr) auto auto auto',
                     } as React.CSSProperties}
                     className="ledger-row ledger-grid"
                   >
@@ -170,10 +178,20 @@ export function SeedInventory() {
                     <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: 20, fontFamily: 'var(--font-display)', textAlign: 'right' }}>
                       {totalQuantity}
                     </span>
+                    {totalQuantity > 0 ? (
+                      <button
+                        onClick={e => { e.stopPropagation(); openPlan(batches) }}
+                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-forest)', padding: 0, justifySelf: 'center' }}
+                        aria-label={t('seedPlan.action')}
+                        title={t('seedPlan.title')}
+                      >
+                        <PlanIcon size={16} />
+                      </button>
+                    ) : <span />}
                     <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-forest)' }}>
                       {isExpanded ? '▼' : '▶'}
                     </span>
-                  </button>
+                  </div>
 
                   {/* Expanded batch rows */}
                   {isExpanded && (
@@ -230,15 +248,12 @@ export function SeedInventory() {
                             <span style={{ display: 'inline-flex', gap: 14, justifyContent: 'flex-end' }}>
                               {batch.quantity > 0 && (
                                 <button
-                                  onClick={() => setPlanBatch(batch)}
+                                  onClick={() => openPlan(batches, [batch.id])}
                                   style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-forest)', padding: 0 }}
                                   aria-label={t('seedPlan.action')}
                                   title={t('seedPlan.title')}
                                 >
-                                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <rect x="2" y="3" width="12" height="11" rx="1" />
-                                    <path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3M5 9.5h2M9 9.5h2M5 12h2" />
-                                  </svg>
+                                  <PlanIcon size={14} />
                                 </button>
                               )}
                               <button
@@ -265,11 +280,12 @@ export function SeedInventory() {
         )}
       </div>
 
-      {planBatch && (
+      {plan && (
         <SeedPlanDialog
-          batch={planBatch}
-          germinationRate={species?.find(s => s.id === planBatch.speciesId)?.germinationRate}
-          onClose={() => setPlanBatch(null)}
+          batches={plan.batches}
+          initialBatchIds={plan.initialBatchIds}
+          germinationRate={species?.find(s => s.id === plan.batches[0].speciesId)?.germinationRate}
+          onClose={() => setPlan(null)}
         />
       )}
 
@@ -299,5 +315,14 @@ export function SeedInventory() {
         {deleteError && <p className="text-error text-sm mt-2">{deleteError}</p>}
       </Dialog>
     </div>
+  )
+}
+
+function PlanIcon({ size }: { size: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="12" height="11" rx="1" />
+      <path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3M5 9.5h2M9 9.5h2M5 12h2" />
+    </svg>
   )
 }

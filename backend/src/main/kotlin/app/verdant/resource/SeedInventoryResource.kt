@@ -38,15 +38,26 @@ class SeedInventoryResource(
     fun update(@PathParam("id") id: Long, @Valid request: UpdateSeedInventoryRequest) =
         service.updateInventory(id, request, orgContext.orgId)
 
+    /** Plans several batches of one variety, drawn from in the order of `seedBatchIds`. */
+    @POST
+    @Path("/plan/preview")
+    fun previewPlan(@Valid request: SeedBatchPlanRequest) =
+        planService.preview(request.seedBatchIds.orEmpty(), request, orgContext.orgId)
+
+    @POST
+    @Path("/plan")
+    fun createPlan(@Valid request: SeedBatchPlanRequest): Response =
+        Response.status(Response.Status.CREATED).entity(planService.create(request.seedBatchIds.orEmpty(), request, orgContext.orgId)).build()
+
     @POST
     @Path("/{id}/plan/preview")
-    fun previewPlan(@PathParam("id") id: Long, @Valid request: SeedBatchPlanRequest) =
-        planService.preview(id, request, orgContext.orgId)
+    fun previewBatchPlan(@PathParam("id") id: Long, @Valid request: SeedBatchPlanRequest) =
+        planService.preview(listOf(id), request, orgContext.orgId)
 
     @POST
     @Path("/{id}/plan")
-    fun createPlan(@PathParam("id") id: Long, @Valid request: SeedBatchPlanRequest): Response =
-        Response.status(Response.Status.CREATED).entity(planService.create(id, request, orgContext.orgId)).build()
+    fun createBatchPlan(@PathParam("id") id: Long, @Valid request: SeedBatchPlanRequest): Response =
+        Response.status(Response.Status.CREATED).entity(planService.create(listOf(id), request, orgContext.orgId)).build()
 
     @POST
     @Path("/{id}/decrement")

@@ -614,7 +614,7 @@
   },
   "seedPlan": {
     "title": "Plan seed batch",
-    "intro": "Enter how many seeds of {{name}} to sow, how many plants they should give and when the plants should be ready. The tasks are counted back through the variety's workflow. The batch holds {{count}} seeds.",
+    "intro": "Enter how many seeds of {{name}} to sow, how many plants they should give and when the plants should be ready. The tasks are counted back through the variety's workflow.",
     "seeds": "Seeds to sow",
     "plants": "Plants",
     "readyDate": "Ready",
@@ -633,7 +633,16 @@
     "created_one": "{{count}} task created. Sowing is on {{date}}.",
     "created_other": "{{count}} tasks created. Sowing is on {{date}}.",
     "showTasks": "Show tasks",
-    "action": "Plan"
+    "action": "Plan",
+    "batch": "Seed batch",
+    "batches": "Seed batches",
+    "chooseBatches": "Choose seed batches",
+    "chosenBatches_one": "{{count}} batch · {{seeds}} seeds",
+    "chosenBatches_other": "{{count}} batches · {{seeds}} seeds",
+    "noBatchChosen": "Choose at least one seed batch.",
+    "tooManySeedsSeveral": "The chosen batches hold only {{count}} seeds.",
+    "batchNumber": "Batch {{number}}",
+    "expires": "exp. {{date}}"
   },
   "seeds": {
     "title": "Seed Stock",
