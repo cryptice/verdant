@@ -652,6 +652,7 @@
     "noWorkflowYet": "No workflow yet"
   },
   "seeds": {
+    "expiredFilter": "Expired",
     "expiryFilter": "Expiry",
     "expiryAll": "Any expiry date",
     "expiresWithin_one": "Expires within {{count}} month",

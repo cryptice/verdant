@@ -71,7 +71,7 @@ describe('seed stock search', () => {
     expect(screen.getByText('Inget utsäde matchar sökningen eller filtret.')).toBeInTheDocument()
   })
 
-  it('shows only batches expiring within the chosen months, expired ones included', async () => {
+  it('shows batches expiring within the chosen months, expired ones only on their own, and all without a filter', async () => {
     const inMonths = (m: number) => { const d = new Date(); d.setMonth(d.getMonth() + m); return d.toISOString().slice(0, 10) }
     const batch = (id: number, speciesId: number, speciesName: string, expirationDate?: string) =>
       ({ id, speciesId, speciesName, quantity: 100, expirationDate }) as SeedInventoryResponse
@@ -87,11 +87,16 @@ describe('seed stock search', () => {
 
     fireEvent.change(screen.getByLabelText('Utgångsdatum'), { target: { value: '3' } })
     expect(screen.getByText('Rävsvans – Coral Fountain')).toBeInTheDocument()
-    expect(screen.getByText('Solros – Vanilla Ice')).toBeInTheDocument()
+    expect(screen.queryByText('Solros – Vanilla Ice')).toBeNull()
     expect(screen.queryByText('Zinnia – Queen Lime')).toBeNull()
     expect(screen.queryByText('Dahlia – Lilliput')).toBeNull()
 
+    fireEvent.change(screen.getByLabelText('Utgångsdatum'), { target: { value: 'expired' } })
+    expect(screen.getByText('Solros – Vanilla Ice')).toBeInTheDocument()
+    expect(screen.queryByText('Rävsvans – Coral Fountain')).toBeNull()
+
     fireEvent.change(screen.getByLabelText('Utgångsdatum'), { target: { value: '' } })
     expect(screen.getByText('Dahlia – Lilliput')).toBeInTheDocument()
+    expect(screen.getByText('Solros – Vanilla Ice')).toBeInTheDocument()
   })
 })
