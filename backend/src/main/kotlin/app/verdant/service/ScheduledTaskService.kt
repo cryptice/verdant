@@ -155,10 +155,11 @@ class ScheduledTaskService(
         var originGroupId: Long? = null
 
         if (request.speciesGroupId != null) {
-            speciesGroupRepository.findById(request.speciesGroupId)
+            speciesGroupRepository.findById(request.speciesGroupId)?.takeIf { it.orgId == null || it.orgId == orgId }
                 ?: throw NotFoundException("Species group not found")
             originGroupId = request.speciesGroupId
-            val groupSpecies = speciesRepository.findByGroupId(request.speciesGroupId)
+            // A catalogue group can hold other organizations' own varieties; only catalogue and own ones count.
+            val groupSpecies = speciesRepository.findByGroupId(request.speciesGroupId).filter { it.orgId == null || it.orgId == orgId }
             if (groupSpecies.isEmpty()) throw BadRequestException("Species group is empty")
 
             acceptableSpeciesIds = if (request.speciesIds != null) {
@@ -386,7 +387,9 @@ class ScheduledTaskService(
         requireUnplanned(task)
         val groupId = task.originGroupId
             ?: throw BadRequestException("Task is not associated with a group")
-        val currentGroupSpeciesIds = speciesRepository.findByGroupId(groupId).map { it.id!! }.toSet()
+        val currentGroupSpeciesIds = speciesRepository.findByGroupId(groupId)
+            .filter { it.orgId == null || it.orgId == orgId }
+            .map { it.id!! }.toSet()
         val currentTaskSpeciesIds = taskRepository.findAcceptableSpeciesIds(taskId).toSet()
         val toAdd = currentGroupSpeciesIds - currentTaskSpeciesIds
         if (toAdd.isEmpty()) throw BadRequestException("No new species to add from group")

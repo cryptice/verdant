@@ -11,6 +11,8 @@ interface Props {
   showGroups?: boolean
   keepSearchOnSelect?: boolean
   excludeIds?: Set<number>
+  /** Offer only the organization's own varieties, leaving out the shared catalogue's. */
+  onlyOwn?: boolean
 }
 
 function speciesLabel(s: SpeciesResponse, lang: string) {
@@ -19,7 +21,7 @@ function speciesLabel(s: SpeciesResponse, lang: string) {
   return variant ? `${name} — ${variant}` : name
 }
 
-export function SpeciesAutocomplete({ value, onChange, onGroupSelect, placeholder, showGroups = false, keepSearchOnSelect = false, excludeIds }: Props) {
+export function SpeciesAutocomplete({ value, onChange, onGroupSelect, placeholder, showGroups = false, keepSearchOnSelect = false, excludeIds, onlyOwn = false }: Props) {
   const { t, i18n } = useTranslation()
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -54,9 +56,7 @@ export function SpeciesAutocomplete({ value, onChange, onGroupSelect, placeholde
     staleTime: 60_000,
   })
 
-  const filteredResults = excludeIds && results
-    ? results.filter(s => !excludeIds.has(s.id))
-    : results
+  const filteredResults = results?.filter(s => !excludeIds?.has(s.id) && !(onlyOwn && s.isSystem))
 
   const filteredGroups = showGroups && debouncedSearch && groups
     ? (() => {

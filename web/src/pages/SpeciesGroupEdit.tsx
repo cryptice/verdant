@@ -38,6 +38,8 @@ export function SpeciesGroupEdit() {
     queryFn: api.speciesGroups.list,
   })
   const group = groups?.find((g) => g.id === groupId)
+  // A catalogue group is shared: its name and catalogue varieties stay, but your own varieties can join it.
+  const isCatalogue = group?.isSystem ?? false
 
   const [name, setName] = useState('')
   const [nameInitialized, setNameInitialized] = useState(false)
@@ -103,8 +105,13 @@ export function SpeciesGroupEdit() {
       />
 
       <div className="page-body-tight">
+        {isCatalogue && (
+          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 14, color: 'var(--color-forest)', margin: '0 0 16px' }}>
+            {t('groups.catalogueNote')}
+          </p>
+        )}
         {/* Group name */}
-        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
+        {!isCatalogue && <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
           <div style={{ flex: 1 }}>
             <Field
               label={t('groups.nameLabel')}
@@ -121,7 +128,7 @@ export function SpeciesGroupEdit() {
           >
             {renameMut.isPending ? t('common.saving') : t('common.save')}
           </button>
-        </div>
+        </div>}
 
         {/* § Medlemmar */}
         <div style={{ marginTop: 28, fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-forest)', opacity: 0.6 }}>
@@ -145,12 +152,12 @@ export function SpeciesGroupEdit() {
                     <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 300, color: 'var(--color-forest)', fontStyle: 'italic' }}>
                       {variant ?? '—'}
                     </span>
-                    <button
+                    {!(isCatalogue && s.isSystem) && <button
                       onClick={() => removeSpeciesMut.mutate(s.id)}
                       style={{ background: 'transparent', border: 'none', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--color-error)', cursor: 'pointer' }}
                     >
                       {t('groups.remove')}
-                    </button>
+                    </button>}
                   </div>
                 )
               })}
@@ -171,11 +178,12 @@ export function SpeciesGroupEdit() {
             placeholder={t('groups.addSpeciesPlaceholder')}
             keepSearchOnSelect
             excludeIds={memberIds}
+            onlyOwn={isCatalogue}
           />
         </div>
 
         {/* Delete group */}
-        <div style={{ marginTop: 60 }}>
+        {!isCatalogue && <div style={{ marginTop: 60 }}>
           <button
             onClick={() => deleteMut.mutate()}
             disabled={deleteMut.isPending}
@@ -183,7 +191,7 @@ export function SpeciesGroupEdit() {
           >
             {deleteMut.isPending ? t('common.deleting') : t('groups.deleteGroup')}
           </button>
-        </div>
+        </div>}
       </div>
 
       {/* Sticky footer */}
@@ -191,13 +199,13 @@ export function SpeciesGroupEdit() {
         <button className="btn-secondary" onClick={() => navigate('/species-groups')}>
           {t('common.cancel')}
         </button>
-        <button
+        {!isCatalogue && <button
           className="btn-primary"
           onClick={() => name.trim() && renameMut.mutate(name.trim())}
           disabled={!name.trim() || name === group?.name || renameMut.isPending}
         >
           {renameMut.isPending ? t('common.saving') : t('common.save')}
-        </button>
+        </button>}
       </div>
     </div>
   )

@@ -111,7 +111,7 @@ class AdminPlanningService(
             throw ClientErrorException("A shared group with this name already exists.", 409)
         val group = if (id == null) groups.persist(SpeciesGroup(name = trimmed))
             else sharedGroup(id).copy(name = trimmed).also(groups::update)
-        return AdminSpeciesGroup(group.id!!, group.name, groups.findSpeciesIdsByGroupId(group.id))
+        return AdminSpeciesGroup(group.id!!, group.name, groups.findSharedSpeciesIdsByGroupId(group.id))
     }
 
     @Transactional

@@ -1724,6 +1724,7 @@
     "members": "Medlemmar"
   },
   "groups": {
+    "catalogueNote": "Det här är en grupp från den gemensamma katalogen. Du kan lägga till och ta bort dina egna sorter, men inte ändra namnet eller katalogens sorter.",
     "title": "Artgrupper",
     "manageGroups": "Hantera grupper",
     "newGroupPlaceholder": "Nytt gruppnamn...",
@@ -1872,6 +1873,11 @@
     "suggestedQuantity": "Föreslagen mängd"
   },
   "workflows": {
+    "usedBy": "Används av",
+    "usedByNone": "Inga sorter använder arbetsflödet än. Tilldela det på en sorts sida.",
+    "noGroup": "Utan grupp",
+    "varietyCount_one": "{{count}} sort",
+    "varietyCount_other": "{{count}} sorter",
     "stepColumn": "Steg",
     "daysColumn": "Dagar",
     "dayColumn": "Dag",

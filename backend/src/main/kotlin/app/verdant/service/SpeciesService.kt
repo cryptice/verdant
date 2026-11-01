@@ -297,7 +297,7 @@ class SpeciesService(
     // ── Groups ──
 
     fun getGroupsForUser(orgId: Long): List<SpeciesGroupResponse> =
-        groupRepository.findByOrgId(orgId).map { SpeciesGroupResponse(it.id!!, it.name) }
+        groupRepository.findByOrgId(orgId).map { SpeciesGroupResponse(it.id!!, it.name, it.orgId == null) }
 
     fun createGroup(request: CreateSpeciesGroupRequest, orgId: Long): SpeciesGroupResponse {
         val group = groupRepository.persist(SpeciesGroup(orgId = orgId, name = request.name))
@@ -320,27 +320,37 @@ class SpeciesService(
 
     // ── Group Membership ──
 
+    /**
+     * An organization's own group takes any variety it can see. A shared catalogue group takes only the
+     * organization's own varieties, so its catalogue membership stays as the admins set it.
+     */
     fun addSpeciesToGroup(groupId: Long, speciesId: Long, orgId: Long) {
-        val group = groupRepository.findById(groupId) ?: throw NotFoundException("Group not found")
-        if (group.orgId != orgId) throw NotFoundException("Group not found")
-        speciesRepository.findById(speciesId) ?: throw NotFoundException("Species not found")
+        val group = visibleGroup(groupId, orgId)
+        val species = speciesRepository.findById(speciesId)?.takeIf { it.orgId == null || it.orgId == orgId }
+            ?: throw NotFoundException("Species not found")
+        if (group.orgId == null && species.orgId != orgId) throw ForbiddenException("Only your own varieties can be added to a catalogue group")
         groupRepository.addSpeciesToGroup(speciesId, groupId)
     }
 
     fun removeSpeciesFromGroup(groupId: Long, speciesId: Long, orgId: Long) {
-        val group = groupRepository.findById(groupId) ?: throw NotFoundException("Group not found")
-        if (group.orgId != orgId) throw NotFoundException("Group not found")
+        val group = visibleGroup(groupId, orgId)
+        if (group.orgId == null && speciesRepository.findById(speciesId)?.orgId != orgId)
+            throw ForbiddenException("Only your own varieties can be removed from a catalogue group")
         groupRepository.removeSpeciesFromGroup(speciesId, groupId)
     }
 
+    /** The group's members the organization can see: catalogue varieties and its own. */
     fun getGroupMembers(groupId: Long, orgId: Long): List<SpeciesResponse> {
-        val group = groupRepository.findById(groupId) ?: throw NotFoundException("Group not found")
-        if (group.orgId != orgId) throw NotFoundException("Group not found")
+        visibleGroup(groupId, orgId)
         val allGroups = groupRepository.findByOrgId(orgId).associateBy { it.id }
         val tags = tagRepository.findByOrgId(orgId).associateBy { it.id }
-        val speciesList = speciesRepository.findByGroupId(groupId)
+        val speciesList = speciesRepository.findByGroupId(groupId).filter { it.orgId == null || it.orgId == orgId }
         return mapSpeciesList(speciesList, allGroups, tags)
     }
+
+    private fun visibleGroup(groupId: Long, orgId: Long): SpeciesGroup =
+        groupRepository.findById(groupId)?.takeIf { it.orgId == null || it.orgId == orgId }
+            ?: throw NotFoundException("Group not found")
 
     // ── Tags ──
 
@@ -733,7 +743,7 @@ class SpeciesService(
             sowingMonths = sowingMonths,
             germinationRate = germinationRate,
             groups = (groupIdsBySpecies[id] ?: emptyList()).mapNotNull { gid ->
-                groups[gid]?.let { SpeciesGroupResponse(it.id!!, it.name) }
+                groups[gid]?.let { SpeciesGroupResponse(it.id!!, it.name, it.orgId == null) }
             },
             tags = tagIds.mapNotNull { tags[it]?.let { t -> SpeciesTagResponse(t.id!!, t.name) } },
             providers = providers,

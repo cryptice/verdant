@@ -161,6 +161,8 @@ data class UpdateSpeciesRequest(
 data class SpeciesGroupResponse(
     val id: Long,
     val name: String,
+    /** A shared catalogue group: it can't be renamed or deleted, but an organization may add its own varieties to it. */
+    @get:com.fasterxml.jackson.annotation.JsonProperty("isSystem") val isSystem: Boolean = false,
 )
 
 data class CreateSpeciesGroupRequest(

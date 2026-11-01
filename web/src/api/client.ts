@@ -114,6 +114,8 @@ export interface SpeciesResponse {
   groups: { id: number; name: string }[]
   custom: boolean
   isSystem: boolean
+  /** The workflow template the variety's own workflow was copied from. */
+  workflowTemplateId?: number | null
 }
 
 export interface SpeciesProviderResponse {
@@ -894,7 +896,8 @@ export const api = {
   },
 
   speciesGroups: {
-    list: () => apiRequest<{ id: number; name: string }[]>('/api/species/groups'),
+    /** isSystem: a shared catalogue group, which takes only your own varieties and can't be renamed or deleted. */
+    list: () => apiRequest<{ id: number; name: string; isSystem?: boolean }[]>('/api/species/groups'),
     create: (name: string) =>
       apiRequest<{ id: number; name: string }>('/api/species/groups', { method: 'POST', body: JSON.stringify({ name }) }),
     update: (id: number, name: string) =>

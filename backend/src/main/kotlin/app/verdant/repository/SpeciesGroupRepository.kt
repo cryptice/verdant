@@ -119,6 +119,17 @@ class SpeciesGroupRepository(private val ds: AgroalDataSource) {
         }
     }
 
+    /** The group's catalogue varieties, leaving out organizations' own varieties placed in it. */
+    fun findSharedSpeciesIdsByGroupId(groupId: Long): List<Long> =
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                "SELECT m.species_id FROM species_group_membership m JOIN species s ON s.id = m.species_id WHERE m.group_id = ? AND s.org_id IS NULL"
+            ).use { ps ->
+                ps.setLong(1, groupId)
+                ps.executeQuery().use { rs -> buildList { while (rs.next()) add(rs.getLong(1)) } }
+            }
+        }
+
     fun findSpeciesIdsByGroupId(groupId: Long): List<Long> =
         ds.connection.use { conn ->
             conn.prepareStatement("SELECT species_id FROM species_group_membership WHERE group_id = ?").use { ps ->

@@ -1724,6 +1724,7 @@
     "members": "Members"
   },
   "groups": {
+    "catalogueNote": "This is a group from the shared catalogue. You can add and remove your own varieties, but not change its name or the catalogue's varieties.",
     "title": "Species Groups",
     "manageGroups": "Manage Groups",
     "newGroupPlaceholder": "New group name...",
@@ -1872,6 +1873,11 @@
     "suggestedQuantity": "Suggested amount"
   },
   "workflows": {
+    "usedBy": "Used by",
+    "usedByNone": "No varieties use this workflow yet. Assign it on a variety's page.",
+    "noGroup": "No group",
+    "varietyCount_one": "{{count}} variety",
+    "varietyCount_other": "{{count}} varieties",
     "stepColumn": "Step",
     "daysColumn": "Days",
     "dayColumn": "Day",
