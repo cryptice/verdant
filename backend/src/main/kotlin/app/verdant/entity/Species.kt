@@ -25,6 +25,7 @@ data class Species(
     val sowingMonths: List<Int> = emptyList(),
     val germinationRate: Int? = null,
     val costPerSeedCents: Int? = null,
+    val seedsPerPackage: Int? = null,
     val expectedStemsPerPlant: Int? = null,
     val expectedVaseLifeDays: Int? = null,
     val plantType: PlantType = PlantType.ANNUAL,

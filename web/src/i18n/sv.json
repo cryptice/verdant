@@ -2040,6 +2040,8 @@
     "back": "Tillbaka till utsädesliggaren"
   },
   "speciesForm": {
+    "seedsPerPackage": "Frön per paket",
+    "costPerPackageSek": "Pris per paket (kr)",
     "newTitle": "Ny sort",
     "editTitle": "Redigera: {{name}}",
     "create": "Skapa sort",

@@ -24,4 +24,14 @@ class SpeciesRepositoryTest {
 
         assertEquals(listOf("Amarant", "Oregano", "Zinnia", "Åkervädd", "Ängsull", "Ört"), names)
     }
+
+    @Test
+    fun `a variety's package size round-trips through persist and update`() {
+        val saved = species.persist(Species(commonName = "Package zinnia", costPerSeedCents = 78, seedsPerPackage = 50))
+        assertEquals(50, species.findById(saved.id!!)!!.seedsPerPackage)
+
+        species.update(saved.copy(seedsPerPackage = 25))
+        assertEquals(25, species.findById(saved.id!!)!!.seedsPerPackage)
+        assertEquals(78, species.findById(saved.id!!)!!.costPerSeedCents)
+    }
 }

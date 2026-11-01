@@ -116,6 +116,8 @@ export interface SpeciesResponse {
   isSystem: boolean
   /** The workflow template the variety's own workflow was copied from. */
   workflowTemplateId?: number | null
+  /** The variety's usual package size, so its price can be shown per package. */
+  seedsPerPackage?: number | null
 }
 
 export interface SpeciesProviderResponse {

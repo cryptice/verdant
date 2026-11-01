@@ -95,6 +95,7 @@ export interface Species {
   tags: SpeciesTag[]
   providers: SpeciesProvider[]
   costPerSeedCents: number | null
+  seedsPerPackage: number | null
   expectedStemsPerPlant: number | null
   expectedVaseLifeDays: number | null
   plantType: string | null
@@ -131,6 +132,7 @@ export interface CreateSpeciesRequest {
   germinationRate?: number | null
   tagIds?: number[]
   costPerSeedCents?: number | null
+  seedsPerPackage?: number | null
   expectedStemsPerPlant?: number | null
   expectedVaseLifeDays?: number | null
   plantType?: string | null
@@ -160,6 +162,7 @@ export interface UpdateSpeciesRequest {
   germinationRate?: number | null
   tagIds?: number[] | null
   costPerSeedCents?: number | null
+  seedsPerPackage?: number | null
   expectedStemsPerPlant?: number | null
   expectedVaseLifeDays?: number | null
   plantType?: string | null
@@ -233,6 +236,7 @@ export interface SpeciesExportEntry {
   tagNames: string[]
   providers: SpeciesExportProvider[]
   costPerSeedCents: number | null
+  seedsPerPackage: number | null
   expectedStemsPerPlant: number | null
   expectedVaseLifeDays: number | null
   plantType: string | null

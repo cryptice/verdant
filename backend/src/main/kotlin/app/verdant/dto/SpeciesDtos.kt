@@ -41,6 +41,7 @@ data class SpeciesResponse(
     val tags: List<SpeciesTagResponse>,
     val providers: List<SpeciesProviderResponse>,
     val costPerSeedCents: Int?,
+    val seedsPerPackage: Int? = null,
     val expectedStemsPerPlant: Int?,
     val expectedVaseLifeDays: Int?,
     val plantType: String?,
@@ -91,6 +92,7 @@ data class CreateSpeciesRequest(
     val tagIds: List<Long>? = null,
     @field:Min(0)
     val costPerSeedCents: Int? = null,
+    val seedsPerPackage: Int? = null,
     @field:Min(0)
     val expectedStemsPerPlant: Int? = null,
     @field:Min(0)
@@ -143,6 +145,7 @@ data class UpdateSpeciesRequest(
     val tagIds: List<Long>? = null,
     @field:Min(0)
     val costPerSeedCents: Int? = null,
+    val seedsPerPackage: Int? = null,
     @field:Min(0)
     val expectedStemsPerPlant: Int? = null,
     @field:Min(0)
@@ -297,6 +300,7 @@ data class SpeciesExportEntry(
     val tagNames: List<String> = emptyList(),
     val providers: List<SpeciesExportProvider> = emptyList(),
     val costPerSeedCents: Int? = null,
+    val seedsPerPackage: Int? = null,
     val expectedStemsPerPlant: Int? = null,
     val expectedVaseLifeDays: Int? = null,
     val plantType: String? = null,

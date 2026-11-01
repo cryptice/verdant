@@ -6,6 +6,7 @@ import { api, type SpeciesResponse } from '../../api/client'
 import { Field, Rule } from '../faltet'
 import { fileToJpegBase64 } from '../PhotoPicker'
 import { duplicateSearchText, findDuplicateVarieties } from './duplicates'
+import { PackagePriceFields } from './PackagePriceFields'
 
 const GROWING_POSITIONS = ['SUNNY', 'PARTIALLY_SUNNY', 'SHADOWY'] as const
 const SOIL_TYPES = ['CLAY', 'SANDY', 'LOAMY', 'CHALKY', 'PEATY', 'SILTY'] as const
@@ -73,6 +74,7 @@ export function SpeciesForm({
   const [soils, setSoils] = useState(new Set(init?.soils ?? []))
   const [tagIds, setTagIds] = useState(new Set(init?.tags.map(tg => tg.id) ?? []))
   const [costPerSeedSek, setCostPerSeedSek] = useState(init?.costPerSeedCents != null ? String(init.costPerSeedCents / 100) : '')
+  const [seedsPerPackage, setSeedsPerPackage] = useState(text(init?.seedsPerPackage))
   const [expectedStemsPerPlant, setExpectedStemsPerPlant] = useState(text(init?.expectedStemsPerPlant))
   const [expectedVaseLifeDays, setExpectedVaseLifeDays] = useState(text(init?.expectedVaseLifeDays))
   const [plantType, setPlantType] = useState(init?.plantType ?? '')
@@ -130,6 +132,7 @@ export function SpeciesForm({
       soils: [...soils],
       tagIds: [...tagIds],
       costPerSeedCents: costPerSeedSek ? Math.round(parseFloat(costPerSeedSek.replace(',', '.')) * 100) : undefined,
+      seedsPerPackage: int(seedsPerPackage),
       expectedStemsPerPlant: int(expectedStemsPerPlant),
       expectedVaseLifeDays: int(expectedVaseLifeDays),
       plantType: plantType || undefined,
@@ -251,7 +254,7 @@ export function SpeciesForm({
 
           <Section title={t('speciesForm.commercial')}>
             <div style={GRID}>
-              <Field label={t('speciesForm.costPerSeedSek')} editable value={costPerSeedSek} onChange={v => setCostPerSeedSek(v.replace(/[^\d.,]/g, ''))} accent="mustard" />
+              <PackagePriceFields seedsPerPackage={seedsPerPackage} costPerSeedSek={costPerSeedSek} onSeedsPerPackage={setSeedsPerPackage} onCostPerSeed={setCostPerSeedSek} />
               <Field label={t('speciesForm.expectedStemsPerPlant')} editable value={expectedStemsPerPlant} onChange={digits(setExpectedStemsPerPlant)} accent="sage" />
               <Field label={t('speciesForm.expectedVaseLifeDays')} editable value={expectedVaseLifeDays} onChange={digits(setExpectedVaseLifeDays)} accent="sky" />
               <SelectField label={t('speciesForm.plantType')} value={plantType} onChange={setPlantType}>

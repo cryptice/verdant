@@ -2040,6 +2040,8 @@
     "back": "Back to the seed ledger"
   },
   "speciesForm": {
+    "seedsPerPackage": "Seeds per package",
+    "costPerPackageSek": "Price per package (SEK)",
     "newTitle": "New variety",
     "editTitle": "Edit: {{name}}",
     "create": "Create variety",

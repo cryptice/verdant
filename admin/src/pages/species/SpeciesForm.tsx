@@ -11,6 +11,9 @@ import { RangeField } from '../../components/species/RangeField'
 import { ProviderEditor } from '../../components/species/ProviderEditor'
 import { GROWING_POSITIONS, SOIL_TYPES, usePositionLabel, useSoilLabel, type PendingProvider } from './shared'
 
+const decimal = (v: string) => parseFloat(v.replace(',', '.'))
+const money = (v: number) => String(Math.round(v * 100) / 100)
+
 // Re-export so peer pages (Create/Edit wrappers) can import from one place
 export type { PendingProvider }
 
@@ -74,6 +77,29 @@ export function SpeciesForm({
   const [soils, setSoils] = useState<Set<string>>(new Set(init?.soils ?? []))
   const [tagIds, setTagIds] = useState<Set<number>>(new Set(init?.tags.map(tg => tg.id) ?? []))
   const [costPerSeedSek, setCostPerSeedSek] = useState(init?.costPerSeedCents != null ? (init.costPerSeedCents / 100).toString() : '')
+  // Price per seed and per package are linked through the package size; the price per seed is what is stored.
+  const [seedsPerPackage, setSeedsPerPackage] = useState(init?.seedsPerPackage?.toString() ?? '')
+  const [costPerPackageSek, setCostPerPackageSek] = useState(
+    init?.costPerSeedCents != null && init.seedsPerPackage ? money(init.costPerSeedCents * init.seedsPerPackage / 100) : '',
+  )
+  const packageSize = parseInt(seedsPerPackage) || 0
+  const changeSeedsPerPackage = (value: string) => {
+    const digits = value.replace(/\D/g, '')
+    setSeedsPerPackage(digits)
+    const size = parseInt(digits) || 0
+    if (!size) setCostPerPackageSek('')
+    else if (costPerPackageSek) setCostPerSeedSek(money(decimal(costPerPackageSek) / size))
+  }
+  const changeCostPerSeed = (value: string) => {
+    const clean = value.replace(/[^\d.,]/g, '')
+    setCostPerSeedSek(clean)
+    setCostPerPackageSek(clean && packageSize ? money(decimal(clean) * packageSize) : '')
+  }
+  const changeCostPerPackage = (value: string) => {
+    const clean = value.replace(/[^\d.,]/g, '')
+    setCostPerPackageSek(clean)
+    if (clean && packageSize) setCostPerSeedSek(money(decimal(clean) / packageSize))
+  }
   const [expectedStemsPerPlant, setExpectedStemsPerPlant] = useState(init?.expectedStemsPerPlant?.toString() ?? '')
   const [expectedVaseLifeDays, setExpectedVaseLifeDays] = useState(init?.expectedVaseLifeDays?.toString() ?? '')
   const [plantType, setPlantType] = useState(init?.plantType ?? '')
@@ -224,7 +250,8 @@ export function SpeciesForm({
       growingPositions: [...positions],
       soils: [...soils],
       tagIds: tagIds.size > 0 ? [...tagIds] : undefined,
-      costPerSeedCents: costPerSeedSek ? Math.round(parseFloat(costPerSeedSek) * 100) : undefined,
+      costPerSeedCents: costPerSeedSek ? Math.round(decimal(costPerSeedSek) * 100) : undefined,
+      seedsPerPackage: packageSize || undefined,
       expectedStemsPerPlant: expectedStemsPerPlant ? parseInt(expectedStemsPerPlant) : undefined,
       expectedVaseLifeDays: expectedVaseLifeDays ? parseInt(expectedVaseLifeDays) : undefined,
       plantType: plantType || undefined,
@@ -629,7 +656,11 @@ export function SpeciesForm({
         <section className="border border-[#E9E9E7] rounded-lg p-4 sm:p-5">
           <h3 className="text-sm font-semibold text-[#37352F] uppercase tracking-wider mb-4">{t('species.commercialClassification')}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
-            <Field label={t('species.costPerSeedSek')} value={costPerSeedSek} onChange={setCostPerSeedSek} type="text" />
+            <Field label={t('species.seedsPerPackage')} value={seedsPerPackage} onChange={changeSeedsPerPackage} type="text" />
+            <Field label={t('species.costPerSeedSek')} value={costPerSeedSek} onChange={changeCostPerSeed} type="text" />
+            <Field label={t('species.costPerPackageSek')} value={packageSize ? costPerPackageSek : ''} onChange={changeCostPerPackage} type="text" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
             <Field label={t('species.expectedStemsPerPlant')} value={expectedStemsPerPlant} onChange={v => setExpectedStemsPerPlant(v.replace(/\D/g, ''))} type="text" />
             <Field label={t('species.expectedVaseLifeDays')} value={expectedVaseLifeDays} onChange={v => setExpectedVaseLifeDays(v.replace(/\D/g, ''))} type="text" />
           </div>
