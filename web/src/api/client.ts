@@ -142,6 +142,14 @@ export interface AcceptableSpeciesEntry {
   variantNameSv?: string
 }
 
+export interface SeedBatchPlanRequest { seeds: number; plants: number; readyDate: string }
+export interface SeedBatchPlanStep { name: string; activityType: string; date: string; count: number; optional: boolean }
+export interface SeedBatchPlanResponse {
+  seedBatchId: number; speciesId: number; seeds: number; plants: number; readyDate: string
+  steps: SeedBatchPlanStep[]
+  taskIds: number[]
+}
+
 export interface ScheduledTaskResponse {
   id: number; speciesId: number | null; speciesName: string | null
   bedId: number | null; bedName: string | null; gardenName: string | null
@@ -155,6 +163,8 @@ export interface ScheduledTaskResponse {
   gardenAreaName?: string | null
   harvestPlanId?: number | null
   quantityUnit?: string | null
+  /** The seed batch the task was planned from; the sowing task draws from it. */
+  seedBatchId?: number | null
   maintenanceRuleId?: number | null
   createdAt: string; updatedAt: string
 }
@@ -902,6 +912,10 @@ export const api = {
     decrement: (id: number, quantity: number, allowShortfall?: boolean) =>
       apiRequest<void>(`/api/seed-stock/${id}/decrement`, { method: 'POST', body: JSON.stringify(allowShortfall ? { quantity, allowShortfall } : { quantity }) }),
     delete: (id: number) => apiRequest<void>(`/api/seed-stock/${id}`, { method: 'DELETE' }),
+    previewPlan: (id: number, data: SeedBatchPlanRequest) =>
+      apiRequest<SeedBatchPlanResponse>(`/api/seed-stock/${id}/plan/preview`, { method: 'POST', body: JSON.stringify(data) }),
+    createPlan: (id: number, data: SeedBatchPlanRequest) =>
+      apiRequest<SeedBatchPlanResponse>(`/api/seed-stock/${id}/plan`, { method: 'POST', body: JSON.stringify(data) }),
   },
 
   seedReview: {

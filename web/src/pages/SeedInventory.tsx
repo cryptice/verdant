@@ -7,9 +7,10 @@ import { Masthead, LedgerPagination } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
 import { SeedBatchDialog } from '../components/SeedBatchDialog'
+import { SeedPlanDialog } from '../components/SeedPlanDialog'
 
 const SPECIES_TEMPLATE = '60px 1.5fr 120px 40px'
-const BATCH_TEMPLATE = '1.5fr 100px 100px 120px 40px'
+const BATCH_TEMPLATE = '1.5fr 100px 100px 120px 56px'
 
 const HEADER_STYLE: React.CSSProperties = {
   fontFamily: 'var(--font-mono)',
@@ -43,6 +44,7 @@ export function SeedInventory() {
 
   // Undefined batch means adding; the key remounts the form so it starts fresh.
   const [dialog, setDialog] = useState<{ batch?: SeedInventoryResponse; initialSpecies?: SpeciesResponse | null; key: number } | null>(null)
+  const [planBatch, setPlanBatch] = useState<SeedInventoryResponse | null>(null)
   const openDialog = (opts: { batch?: SeedInventoryResponse; initialSpecies?: SpeciesResponse | null } = {}) =>
     setDialog({ ...opts, key: Date.now() })
 
@@ -225,16 +227,31 @@ export function SeedInventory() {
                             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10 }}>
                               {batch.expirationDate ?? '—'}
                             </span>
-                            <button
-                              onClick={() => openDialog({ batch })}
-                              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-forest)', padding: 0 }}
-                              aria-label={t('common.edit')}
-                              title={t('common.edit')}
-                            >
-                              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M11.5 2.5l2 2M2 14l1-4L11 2l2 2-8 8-3 1z" />
-                              </svg>
-                            </button>
+                            <span style={{ display: 'inline-flex', gap: 14, justifyContent: 'flex-end' }}>
+                              {batch.quantity > 0 && (
+                                <button
+                                  onClick={() => setPlanBatch(batch)}
+                                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-forest)', padding: 0 }}
+                                  aria-label={t('seedPlan.action')}
+                                  title={t('seedPlan.title')}
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="2" y="3" width="12" height="11" rx="1" />
+                                    <path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3M5 9.5h2M9 9.5h2M5 12h2" />
+                                  </svg>
+                                </button>
+                              )}
+                              <button
+                                onClick={() => openDialog({ batch })}
+                                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-forest)', padding: 0 }}
+                                aria-label={t('common.edit')}
+                                title={t('common.edit')}
+                              >
+                                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M11.5 2.5l2 2M2 14l1-4L11 2l2 2-8 8-3 1z" />
+                                </svg>
+                              </button>
+                            </span>
                           </div>
                         )
                       })}
@@ -247,6 +264,14 @@ export function SeedInventory() {
           </div>
         )}
       </div>
+
+      {planBatch && (
+        <SeedPlanDialog
+          batch={planBatch}
+          germinationRate={species?.find(s => s.id === planBatch.speciesId)?.germinationRate}
+          onClose={() => setPlanBatch(null)}
+        />
+      )}
 
       {dialog && (
         <SeedBatchDialog

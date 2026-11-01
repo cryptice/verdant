@@ -2,6 +2,7 @@ package app.verdant.resource
 
 import app.verdant.dto.*
 import app.verdant.filter.OrgContext
+import app.verdant.service.SeedBatchPlanService
 import app.verdant.service.SeedInventoryService
 import io.quarkus.security.Authenticated
 import jakarta.validation.Valid
@@ -15,6 +16,7 @@ import jakarta.ws.rs.core.Response
 @Authenticated
 class SeedInventoryResource(
     private val service: SeedInventoryService,
+    private val planService: SeedBatchPlanService,
     private val orgContext: OrgContext
 ) {
     @GET
@@ -35,6 +37,16 @@ class SeedInventoryResource(
     @Path("/{id}")
     fun update(@PathParam("id") id: Long, @Valid request: UpdateSeedInventoryRequest) =
         service.updateInventory(id, request, orgContext.orgId)
+
+    @POST
+    @Path("/{id}/plan/preview")
+    fun previewPlan(@PathParam("id") id: Long, @Valid request: SeedBatchPlanRequest) =
+        planService.preview(id, request, orgContext.orgId)
+
+    @POST
+    @Path("/{id}/plan")
+    fun createPlan(@PathParam("id") id: Long, @Valid request: SeedBatchPlanRequest): Response =
+        Response.status(Response.Status.CREATED).entity(planService.create(id, request, orgContext.orgId)).build()
 
     @POST
     @Path("/{id}/decrement")

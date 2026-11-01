@@ -138,7 +138,7 @@ class ApiContractTest {
         "activityType", "earliestDate", "deadline", "targetCount",
         "remainingCount", "status", "notes", "seasonId", "successionScheduleId",
         "originGroupId", "originGroupName", "acceptableSpecies",
-        "createdAt", "updatedAt",
+        "createdAt", "updatedAt", "seedBatchId",
     )
 
     @Test

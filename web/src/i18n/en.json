@@ -612,6 +612,29 @@
       "deleting": "Deleting…"
     }
   },
+  "seedPlan": {
+    "title": "Plan seed batch",
+    "intro": "Enter how many seeds of {{name}} to sow, how many plants they should give and when the plants should be ready. The tasks are counted back through the variety's workflow. The batch holds {{count}} seeds.",
+    "seeds": "Seeds to sow",
+    "plants": "Plants",
+    "readyDate": "Ready",
+    "germinationHint": "At the variety's {{rate}} % germination, the seeds give about {{count}} plants.",
+    "tooManySeeds": "The batch holds only {{count}} seeds.",
+    "morePlantsThanSeeds": "There can't be more plants than seeds.",
+    "schedule": "Schedule",
+    "optional": "optional, no task",
+    "seedCount_one": "{{count}} seed",
+    "seedCount_other": "{{count}} seeds",
+    "plantCount_one": "{{count}} plant",
+    "plantCount_other": "{{count}} plants",
+    "startsInPast": "Sowing would have to happen on {{date}}, which has already passed. Pick a later date.",
+    "create_one": "Create {{count}} task",
+    "create_other": "Create {{count}} tasks",
+    "created_one": "{{count}} task created. Sowing is on {{date}}.",
+    "created_other": "{{count}} tasks created. Sowing is on {{date}}.",
+    "showTasks": "Show tasks",
+    "action": "Plan"
+  },
   "seeds": {
     "title": "Seed Stock",
     "addSeeds": "+ Add seed stock",

@@ -53,8 +53,8 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
     fun persist(task: ScheduledTask): ScheduledTask {
         ds.connection.use { conn ->
             conn.prepareStatement(
-                """INSERT INTO scheduled_task (org_id, species_id, bed_id, garden_area_id, maintenance_rule_id, activity_type, earliest_date, deadline, target_count, remaining_count, status, notes, season_id, succession_schedule_id, origin_group_id, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
+                """INSERT INTO scheduled_task (org_id, species_id, bed_id, garden_area_id, maintenance_rule_id, activity_type, earliest_date, deadline, target_count, remaining_count, status, notes, season_id, succession_schedule_id, origin_group_id, seed_inventory_id, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())""",
                 Statement.RETURN_GENERATED_KEYS
             ).use { ps ->
                 ps.setLong(1, task.orgId)
@@ -74,6 +74,7 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
                 ps.setObject(13, task.seasonId)
                 ps.setObject(14, task.successionScheduleId)
                 ps.setObject(15, task.originGroupId)
+                ps.setObject(16, task.seedInventoryId)
                 ps.executeUpdate()
                 ps.generatedKeys.use { rs ->
                     rs.next()
@@ -224,6 +225,7 @@ class ScheduledTaskRepository(private val ds: AgroalDataSource) {
         createdAt = getTimestamp("created_at").toInstant(),
         harvestPlanId = getObject("harvest_plan_id", java.lang.Long::class.java)?.toLong(),
         quantityUnit = getString("quantity_unit"),
+        seedInventoryId = getObject("seed_inventory_id", java.lang.Long::class.java)?.toLong(),
         updatedAt = getTimestamp("updated_at").toInstant(),
     )
 }

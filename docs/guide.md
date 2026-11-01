@@ -188,6 +188,8 @@ Track your seed and bulb stock:
 
 When you sow using a seed batch, the quantity is automatically decremented. The inventory table shows Swedish species names, quantity, cost, and expiration date.
 
+**Planning a seed batch** — the calendar icon on a batch opens "Planera fröparti". Enter how many seeds to sow, how many plants they should give and the date the plants should be ready. The variety's workflow is counted back from that date: the last step lands on the ready date and each earlier step comes its interval before the next. A preview shows every step's date before anything is created. Confirming creates one task per step (optional steps keep their place in the timeline but get no task); the sowing task counts seeds and the later ones count plants. Opening the sowing task picks the planned batch on the sow screen. The variety needs a workflow with days on every step, and a plan that would have to start in the past is refused.
+
 **Season review** — from Utsäde, open "Säsongsgenomgång" to see what became of the seed in a season. Each variety shows how much was sown, how many plants reached each workflow step, harvested and sold stems, seed cost, revenue, and what is left in stock. For every variety you can set how much to order (by default what you sowed minus what is left) and save the order list per season.
 
 ### Succession Planting

@@ -470,6 +470,7 @@ class ScheduledTaskService(
                 harvestPlanId = task.harvestPlanId,
                 quantityUnit = task.quantityUnit,
                 updatedAt = task.updatedAt,
+                seedBatchId = task.seedInventoryId,
             )
         }
     }

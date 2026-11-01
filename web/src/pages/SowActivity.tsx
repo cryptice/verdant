@@ -143,9 +143,11 @@ export function SowActivity() {
   const [batchPickedFor, setBatchPickedFor] = useState<string | null>(null)
   useEffect(() => {
     if (presetSeedBatchId || !speciesId || !seedBatches || batchPickedFor === speciesId) return
+    if (taskId && !task) return // a task planned from a batch picks that batch
     setBatchPickedFor(speciesId)
-    if (seedBatches.length > 0 && !seedBatchId) setSeedBatchId(String(seedBatches[0].id))
-  }, [seedBatches, presetSeedBatchId, seedBatchId, speciesId, batchPickedFor])
+    const planned = seedBatches.find(b => b.id === task?.seedBatchId)
+    if (seedBatches.length > 0 && !seedBatchId) setSeedBatchId(String((planned ?? seedBatches[0]).id))
+  }, [seedBatches, presetSeedBatchId, seedBatchId, speciesId, batchPickedFor, taskId, task])
 
   // Packages often hold more than the label says, so sowing past the batch is
   // allowed once confirmed; the batch is then emptied rather than refused.

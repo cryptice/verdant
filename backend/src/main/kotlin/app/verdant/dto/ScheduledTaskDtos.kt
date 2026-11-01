@@ -32,6 +32,8 @@ data class ScheduledTaskResponse(
     val harvestPlanId: Long? = null,
     val quantityUnit: String? = null,
     val updatedAt: Instant,
+    /** The seed batch the task was planned from; the sowing task draws from it. */
+    val seedBatchId: Long? = null,
 )
 
 data class AcceptableSpeciesEntry(

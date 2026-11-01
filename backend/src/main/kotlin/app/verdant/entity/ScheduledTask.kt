@@ -23,6 +23,7 @@ data class ScheduledTask(
     val createdAt: Instant = Instant.now(),
     val harvestPlanId: Long? = null,
     val quantityUnit: String? = null,
+    val seedInventoryId: Long? = null,
     val updatedAt: Instant = Instant.now(),
 )
 

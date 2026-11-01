@@ -231,6 +231,11 @@ fun SowActivityScreen(
     var selectedTrayLocation by remember { mutableStateOf<app.verdant.android.data.model.TrayLocationResponse?>(null) }
     var showAddTrayLocation by remember { mutableStateOf(false) }
     var selectedSeedBatch by remember { mutableStateOf<SeedInventoryResponse?>(null) }
+    // A task planned from a seed batch sows from that batch.
+    LaunchedEffect(uiState.task?.seedBatchId, uiState.seedBatches) {
+        val planned = uiState.task?.seedBatchId ?: return@LaunchedEffect
+        if (selectedSeedBatch == null) uiState.seedBatches.find { it.id == planned }?.let { selectedSeedBatch = it }
+    }
     var countText by remember { mutableStateOf("") }
     var countError by remember { mutableStateOf<String?>(null) }
     var notes by remember { mutableStateOf("") }

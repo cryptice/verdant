@@ -612,6 +612,29 @@
       "deleting": "Raderar…"
     }
   },
+  "seedPlan": {
+    "title": "Planera fröparti",
+    "intro": "Ange hur många frön av {{name}} du vill så, hur många plantor de ska ge och när plantorna ska vara klara. Uppgifterna räknas bakåt genom sortens arbetsflöde. Partiet har {{count}} frön.",
+    "seeds": "Frön att så",
+    "plants": "Plantor",
+    "readyDate": "Klara",
+    "germinationHint": "Med sortens grobarhet på {{rate}} % ger fröna cirka {{count}} plantor.",
+    "tooManySeeds": "Partiet har bara {{count}} frön.",
+    "morePlantsThanSeeds": "Fler plantor än frön går inte.",
+    "schedule": "Schema",
+    "optional": "valfritt, ingen uppgift",
+    "seedCount_one": "{{count}} frö",
+    "seedCount_other": "{{count}} frön",
+    "plantCount_one": "{{count}} planta",
+    "plantCount_other": "{{count}} plantor",
+    "startsInPast": "Sådden skulle behöva ske {{date}}, som redan har passerat. Välj ett senare datum.",
+    "create_one": "Skapa {{count}} uppgift",
+    "create_other": "Skapa {{count}} uppgifter",
+    "created_one": "{{count}} uppgift skapad. Sådden är {{date}}.",
+    "created_other": "{{count}} uppgifter skapade. Sådden är {{date}}.",
+    "showTasks": "Visa uppgifter",
+    "action": "Planera"
+  },
   "seeds": {
     "title": "utsädeslager",
     "addSeeds": "+ Lägg till utsäde",
