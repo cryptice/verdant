@@ -642,7 +642,11 @@
     "noBatchChosen": "Välj minst ett fröparti.",
     "tooManySeedsSeveral": "De valda partierna har bara {{count}} frön.",
     "batchNumber": "Parti {{number}}",
-    "expires": "utg. {{date}}"
+    "expires": "utg. {{date}}",
+    "noWorkflow": "{{name}} har inget arbetsflöde, och planen räknas bakåt genom arbetsflödets steg. Tilldela sorten ett arbetsflöde för att kunna planera.",
+    "catalogueVariety": "{{name}} är en sort från katalogen och kan inte ha ett eget arbetsflöde. Kopiera sorten och tilldela kopian ett arbetsflöde för att kunna planera.",
+    "missingDays": "Steget \"{{step}}\" i sortens arbetsflöde saknar antal dagar, så datumen går inte att räkna fram. Ange dagarna för steget först.",
+    "openVariety": "Öppna sorten"
   },
   "seeds": {
     "title": "utsädeslager",

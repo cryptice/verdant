@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
-import { api, type SeedBatchPlanResponse, type SeedInventoryResponse } from '../api/client'
+import { api, type SeedBatchPlanResponse, type SeedInventoryResponse, type SpeciesResponse } from '../api/client'
 import i18n from '../i18n'
 import { SeedPlanDialog } from './SeedPlanDialog'
 
@@ -13,6 +13,7 @@ vi.mock('react-i18next', async original => ({
 
 const batch = (id: number, quantity: number, providerName?: string) =>
   ({ id, speciesId: 3, speciesName: 'Dahlia – Lilliput', quantity, providerName }) as SeedInventoryResponse
+const variety = (extra: Partial<SpeciesResponse> = {}) => ({ id: 3, commonName: 'Dahlia', germinationRate: 80, isSystem: false, ...extra }) as SpeciesResponse
 const impecta = batch(9, 250, 'Impecta')
 const runabergs = batch(10, 100, 'Runåbergs')
 const plan: SeedBatchPlanResponse = {
@@ -25,7 +26,13 @@ const plan: SeedBatchPlanResponse = {
   ],
 }
 
+const workflow = { steps: [
+  { id: 1, name: 'Sådd', daysAfterPrevious: 0, isOptional: false, isSideBranch: false, sortOrder: 0 },
+  { id: 2, name: 'Säljklar', daysAfterPrevious: 120, isOptional: false, isSideBranch: false, sortOrder: 1 },
+] }
+
 beforeEach(() => {
+  vi.spyOn(api.workflows, 'getSpeciesWorkflow').mockResolvedValue(workflow)
   vi.spyOn(api.inventory, 'previewPlan').mockResolvedValue(plan)
   vi.spyOn(api.inventory, 'createPlan').mockResolvedValue({ ...plan, taskIds: [11, 12] })
 })
@@ -34,7 +41,7 @@ afterEach(() => vi.restoreAllMocks())
 function show(props: Partial<Parameters<typeof SeedPlanDialog>[0]> = {}) {
   render(
     <MemoryRouter><QueryClientProvider client={new QueryClient()}>
-      <SeedPlanDialog batches={[impecta]} germinationRate={80} onClose={() => {}} {...props} />
+      <SeedPlanDialog batches={[impecta]} species={variety()} onClose={() => {}} {...props} />
     </QueryClientProvider></MemoryRouter>,
   )
 }
@@ -48,7 +55,7 @@ function fill(seeds: string | null, plants: string, date: string) {
 describe('SeedPlanDialog', () => {
   it('uses the only batch, previews the schedule and creates a task per required step', async () => {
     show()
-    expect(screen.getByText(/Impecta · 250 frön/)).toBeInTheDocument()
+    expect(await screen.findByText(/Impecta · 250 frön/)).toBeInTheDocument()
     expect(screen.getByText(/ger fröna cirka 200 plantor/)).toBeInTheDocument()
     fill('200', '150', '2099-05-01')
 
@@ -69,7 +76,7 @@ describe('SeedPlanDialog', () => {
     })
     show({ batches: [impecta, runabergs] })
 
-    expect(screen.getByRole('button', { name: /Fröpartier/ })).toHaveTextContent('Välj fröpartier')
+    expect(await screen.findByRole('button', { name: /Fröpartier/ })).toHaveTextContent('Välj fröpartier')
     fireEvent.click(screen.getByRole('checkbox', { name: /Impecta/ }))
     fireEvent.click(screen.getByRole('checkbox', { name: /Runåbergs/ }))
     expect(screen.getByRole('button', { name: /Fröpartier/ })).toHaveTextContent('2 partier · 350 frön')
@@ -81,11 +88,31 @@ describe('SeedPlanDialog', () => {
     expect(screen.getByRole('button', { name: 'Skapa 3 uppgifter' })).toBeEnabled()
   })
 
-  it('starts from the batch it was opened from and stops more seeds than the chosen batches hold', () => {
+  it('starts from the batch it was opened from and stops more seeds than the chosen batches hold', async () => {
     show({ batches: [impecta, runabergs], initialBatchIds: [10] })
-    expect(screen.getByLabelText('Frön att så')).toHaveValue(100)
+    expect(await screen.findByLabelText('Frön att så')).toHaveValue(100)
     fill('300', '150', '2099-05-01')
     expect(screen.getByText('Partiet har bara 100 frön.')).toBeInTheDocument()
     expect(api.inventory.previewPlan).not.toHaveBeenCalled()
+  })
+
+  it('says a variety without a workflow cannot be planned, and points to the variety', async () => {
+    vi.mocked(api.workflows.getSpeciesWorkflow).mockResolvedValue({ steps: [] })
+    show()
+    expect(await screen.findByText(/har inget arbetsflöde/)).toBeInTheDocument()
+    expect(screen.queryByLabelText('Frön att så')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Öppna sorten' })).toBeInTheDocument()
+  })
+
+  it('names the workflow step without days', async () => {
+    vi.mocked(api.workflows.getSpeciesWorkflow).mockResolvedValue({ steps: [workflow.steps[0], { ...workflow.steps[1], daysAfterPrevious: undefined }] })
+    show()
+    expect(await screen.findByText(/Steget "Säljklar" i sortens arbetsflöde saknar antal dagar/)).toBeInTheDocument()
+  })
+
+  it('tells a catalogue variety to be copied first, without asking for its workflow', async () => {
+    show({ species: variety({ isSystem: true }) })
+    expect(await screen.findByText(/sort från katalogen/)).toBeInTheDocument()
+    expect(api.workflows.getSpeciesWorkflow).not.toHaveBeenCalled()
   })
 })

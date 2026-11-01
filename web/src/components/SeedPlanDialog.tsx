@@ -2,17 +2,18 @@ import { useEffect, useId, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { api, type SeedBatchPlanRequest, type SeedBatchPlanResponse, type SeedInventoryResponse } from '../api/client'
+import { api, type SeedBatchPlanRequest, type SeedBatchPlanResponse, type SeedInventoryResponse, type SpeciesResponse } from '../api/client'
 import { Dialog } from './Dialog'
 import { DATE_INPUT_MAX } from '../lib/dateInput'
+import { workflowProblem, type WorkflowProblem } from '../lib/seedPlan'
 
 interface Props {
   /** The variety's batches that still hold seeds, in the order to draw from them. */
   batches: SeedInventoryResponse[]
   /** The batches chosen when the dialog opens; a variety with one batch always starts with it. */
   initialBatchIds?: number[]
-  /** The variety's expected germination, to suggest how many plants the seeds give. */
-  germinationRate?: number
+  /** The batches' variety: its germination suggests how many plants the seeds give, and a catalogue variety has no workflow of its own. */
+  species?: SpeciesResponse
   onClose: () => void
 }
 
@@ -23,7 +24,7 @@ const today = () => new Date().toISOString().slice(0, 10)
  * are drawn from the chosen batches in order, so a plan can sow more than one batch holds. The server
  * counts back through the variety's workflow and creates a dated task for each step.
  */
-export function SeedPlanDialog({ batches, initialBatchIds, germinationRate, onClose }: Props) {
+export function SeedPlanDialog({ batches, initialBatchIds, species, onClose }: Props) {
   const { t, i18n } = useTranslation()
   const qc = useQueryClient()
   const navigate = useNavigate()
@@ -37,6 +38,18 @@ export function SeedPlanDialog({ batches, initialBatchIds, germinationRate, onCl
   const [plants, setPlants] = useState('')
   const [readyDate, setReadyDate] = useState('')
   const [created, setCreated] = useState<SeedBatchPlanResponse | null>(null)
+  const germinationRate = species?.germinationRate
+  const speciesId = batches[0].speciesId
+
+  // Planning counts back through the variety's workflow, so check it before asking for anything.
+  const isCatalogue = species?.isSystem ?? false
+  const workflow = useQuery({
+    queryKey: ['species-workflow', speciesId],
+    queryFn: () => api.workflows.getSpeciesWorkflow(speciesId),
+    enabled: !isCatalogue,
+    retry: false,
+  })
+  const problem: WorkflowProblem | null = isCatalogue ? { kind: 'catalogue' } : workflow.data ? workflowProblem(workflow.data.steps) : null
 
   const selected = batches.filter(b => selectedIds.includes(b.id))
   const available = selected.reduce((sum, b) => sum + b.quantity, 0)
@@ -105,6 +118,36 @@ export function SeedPlanDialog({ batches, initialBatchIds, germinationRate, onCl
         <p className="text-sm text-text-primary">
           {t('seedPlan.created', { count: created.taskIds.length, date: formatDate(created.steps[0].date) })}
         </p>
+      </Dialog>
+    )
+  }
+
+  if (problem || (workflow.isLoading && !isCatalogue)) {
+    return (
+      <Dialog
+        open
+        onClose={onClose}
+        title={t('seedPlan.title')}
+        actions={
+          <>
+            <button onClick={onClose} className="px-4 py-2 text-sm text-text-secondary">{t('common.close')}</button>
+            {problem && (
+              <button onClick={() => navigate(`/species/${speciesId}`)} className="btn-primary text-sm">{t('seedPlan.openVariety')}</button>
+            )}
+          </>
+        }
+      >
+        {problem ? (
+          <p className="text-sm text-text-primary">
+            {problem.kind === 'catalogue' ? t('seedPlan.catalogueVariety', { name: batches[0].speciesName })
+              : problem.kind === 'none' ? t('seedPlan.noWorkflow', { name: batches[0].speciesName })
+              : t('seedPlan.missingDays', { step: problem.step })}
+          </p>
+        ) : (
+          <div className="flex justify-center p-6">
+            <div className="animate-spin h-6 w-6 border-2 border-accent border-t-transparent rounded-full" />
+          </div>
+        )}
       </Dialog>
     )
   }

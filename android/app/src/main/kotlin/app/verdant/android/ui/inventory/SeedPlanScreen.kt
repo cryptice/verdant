@@ -44,8 +44,10 @@ import app.verdant.android.data.model.SeedBatchPlanRequest
 import app.verdant.android.data.model.SeedBatchPlanResponse
 import app.verdant.android.data.model.SeedBatchPlanStep
 import app.verdant.android.data.model.SeedInventoryResponse
+import app.verdant.android.data.model.SpeciesWorkflowStepResponse
 import app.verdant.android.data.repository.SeedInventoryRepository
 import app.verdant.android.data.repository.SpeciesRepository
+import app.verdant.android.data.repository.WorkflowRepository
 import app.verdant.android.ui.common.ConnectionErrorState
 import app.verdant.android.ui.faltet.FaltetCheckbox
 import app.verdant.android.ui.faltet.FaltetDatePicker
@@ -79,6 +81,8 @@ data class SeedPlanState(
     val selectedIds: List<Long> = emptyList(),
     val loaded: Boolean = false,
     val germinationRate: Int? = null,
+    /** Why the variety can't be planned; the form is replaced by this explanation. */
+    val workflowProblem: WorkflowProblem? = null,
     val loadFailed: Boolean = false,
     /** What the grower typed; until then the seed count follows the chosen batches. */
     val seedsTyped: String? = null,
@@ -121,6 +125,23 @@ data class SeedPlanState(
     ).joinToString(" · ")
 }
 
+/** Why a variety's workflow can't be planned from, mirroring the server's checks. */
+sealed interface WorkflowProblem {
+    data object Catalogue : WorkflowProblem
+    data object None : WorkflowProblem
+    data class MissingDays(val step: String) : WorkflowProblem
+}
+
+/**
+ * Planning counts back through the workflow's main line, so it needs at least one step and a number
+ * of days on every step after the first. Side branches don't take part.
+ */
+internal fun workflowProblem(steps: List<SpeciesWorkflowStepResponse>): WorkflowProblem? {
+    val main = steps.filterNot { it.isSideBranch }.sortedBy { it.sortOrder }
+    if (main.isEmpty()) return WorkflowProblem.None
+    return main.drop(1).firstOrNull { it.daysAfterPrevious == null }?.let { WorkflowProblem.MissingDays(it.name) }
+}
+
 /** The mistakes worth catching before asking the server; the same rules the server applies. */
 internal fun seedPlanInputError(chosenBatches: Int, seeds: Int?, plants: Int?, available: Int): String? = when {
     chosenBatches == 0 -> "Välj minst ett fröparti."
@@ -141,6 +162,7 @@ class SeedPlanViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val seedInventoryRepository: SeedInventoryRepository,
     private val speciesRepository: SpeciesRepository,
+    private val workflowRepository: WorkflowRepository,
 ) : ViewModel() {
     private val speciesId: Long = checkNotNull(savedStateHandle.get<Long>("speciesId"))
     private val startBatchId: Long? = savedStateHandle.get<Long>("batchId")?.takeIf { it > 0 }
@@ -157,9 +179,18 @@ class SeedPlanViewModel @Inject constructor(
                 val batches = seedInventoryRepository.list(speciesId).filter { it.quantity > 0 }
                 // A variety with one batch uses it; with several, the grower picks, starting from the batch opened from.
                 val selected = if (batches.size == 1) listOf(batches.first().id) else listOfNotNull(startBatchId?.takeIf { id -> batches.any { it.id == id } })
-                _uiState.value = _uiState.value.copy(batches = batches, selectedIds = selected, loaded = true)
-                val rate = runCatching { speciesRepository.get(speciesId).germinationRate }.getOrNull()
-                _uiState.value = _uiState.value.copy(germinationRate = rate)
+                // Planning counts back through the variety's workflow, so check it before asking for anything.
+                // If the check itself fails, the form shows and the server's own checks still apply.
+                val species = runCatching { speciesRepository.get(speciesId) }.getOrNull()
+                val problem = if (species?.isSystem == true) WorkflowProblem.Catalogue
+                    else runCatching { workflowProblem(workflowRepository.speciesWorkflow(speciesId).steps) }.getOrNull()
+                _uiState.value = _uiState.value.copy(
+                    batches = batches,
+                    selectedIds = selected,
+                    germinationRate = species?.germinationRate,
+                    workflowProblem = problem,
+                    loaded = true,
+                )
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -229,6 +260,7 @@ fun SeedPlanScreen(
     val created = uiState.created
     val today = LocalDate.now()
     val canCreate = uiState.preview != null && !uiState.startsInPast(today) && !uiState.creating
+    val problem = uiState.workflowProblem
 
     FaltetScreenScaffold(
         mastheadLeft = "",
@@ -239,7 +271,7 @@ fun SeedPlanScreen(
             }
         },
         bottomBar = {
-            if (created == null && uiState.batches.isNotEmpty()) {
+            if (created == null && uiState.batches.isNotEmpty() && uiState.workflowProblem == null) {
                 val count = uiState.taskCount
                 FaltetFormSubmitBar(
                     label = if (count == 1) "Skapa 1 uppgift" else "Skapa $count uppgifter",
@@ -258,6 +290,15 @@ fun SeedPlanScreen(
             created != null -> CreatedPlan(created, onShowTasks, onBack, Modifier.padding(padding))
             uiState.batches.isEmpty() -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 Text("Sorten har inga frön kvar att planera.", color = FaltetForest)
+            }
+            problem != null -> Column(Modifier.fillMaxSize().padding(padding).padding(18.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text(
+                    text = workflowProblemText(problem, uiState.batches.first().speciesName),
+                    fontFamily = FaltetDisplay,
+                    fontSize = 17.sp,
+                    color = FaltetInk,
+                )
+                TextButton(onClick = onBack) { Text("Tillbaka", color = FaltetAccent) }
             }
             else -> PlanForm(uiState, viewModel, today, Modifier.padding(padding))
         }
@@ -468,4 +509,14 @@ private fun CreatedPlan(plan: SeedBatchPlanResponse, onShowTasks: () -> Unit, on
             TextButton(onClick = onDone) { Text("Klar", color = FaltetForest) }
         }
     }
+}
+
+/** Workflows are assigned in the web app, so the explanation points there. */
+internal fun workflowProblemText(problem: WorkflowProblem, name: String): String = when (problem) {
+    WorkflowProblem.Catalogue -> "$name är en sort från katalogen och kan inte ha ett eget arbetsflöde. " +
+        "Kopiera sorten i webbappen under Arter och tilldela kopian ett arbetsflöde för att kunna planera."
+    WorkflowProblem.None -> "$name har inget arbetsflöde, och planen räknas bakåt genom arbetsflödets steg. " +
+        "Tilldela sorten ett arbetsflöde i webbappen under Arter för att kunna planera."
+    is WorkflowProblem.MissingDays -> "Steget \"${problem.step}\" i sortens arbetsflöde saknar antal dagar, så datumen går inte att räkna fram. " +
+        "Ange dagarna för steget i webbappen under Arter."
 }

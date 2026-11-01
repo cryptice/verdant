@@ -284,7 +284,7 @@ export function SeedInventory() {
         <SeedPlanDialog
           batches={plan.batches}
           initialBatchIds={plan.initialBatchIds}
-          germinationRate={species?.find(s => s.id === plan.batches[0].speciesId)?.germinationRate}
+          species={species?.find(s => s.id === plan.batches[0].speciesId)}
           onClose={() => setPlan(null)}
         />
       )}

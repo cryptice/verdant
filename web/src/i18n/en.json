@@ -642,7 +642,11 @@
     "noBatchChosen": "Choose at least one seed batch.",
     "tooManySeedsSeveral": "The chosen batches hold only {{count}} seeds.",
     "batchNumber": "Batch {{number}}",
-    "expires": "exp. {{date}}"
+    "expires": "exp. {{date}}",
+    "noWorkflow": "{{name}} has no workflow, and the plan is counted back through the workflow's steps. Assign the variety a workflow to plan it.",
+    "catalogueVariety": "{{name}} is a catalogue variety and can't have a workflow of its own. Copy the variety and assign the copy a workflow to plan it.",
+    "missingDays": "The step \"{{step}}\" in the variety's workflow has no number of days, so the dates can't be worked out. Enter the step's days first.",
+    "openVariety": "Open the variety"
   },
   "seeds": {
     "title": "Seed Stock",

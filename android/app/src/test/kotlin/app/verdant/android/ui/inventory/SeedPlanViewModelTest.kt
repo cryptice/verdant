@@ -10,6 +10,8 @@ import app.verdant.android.data.model.SeedInventoryResponse
 import app.verdant.android.data.model.SpeciesResponse
 import app.verdant.android.data.repository.SeedInventoryRepository
 import app.verdant.android.data.repository.SpeciesRepositoryImpl
+import app.verdant.android.data.repository.WorkflowRepository
+import app.verdant.android.data.model.SpeciesWorkflowResponse
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -39,6 +41,12 @@ class SeedPlanViewModelTest {
         SeedBatchPlanStep("Avhärdning", "INSPECT", "2099-04-13", 150, true),
         SeedBatchPlanStep("Säljklar", "INSPECT", "2099-05-01", 150, false),
     ), allocations = listOf(SeedBatchAllocation(9, 200)))
+    private fun step(name: String, sortOrder: Int, days: Int?) = Gson().fromJson(
+        """{"id":$sortOrder,"name":"$name","daysAfterPrevious":${days ?: "null"},"isOptional":false,"isSideBranch":false,"sortOrder":$sortOrder}""",
+        app.verdant.android.data.model.SpeciesWorkflowStepResponse::class.java,
+    )
+    private var workflowSteps = listOf(step("Sådd", 0, 0), step("Säljklar", 1, 120))
+    private var catalogue = false
     private var previewResult = plan
     private val previews = mutableListOf<SeedBatchPlanRequest>()
     private val creates = mutableListOf<SeedBatchPlanRequest>()
@@ -47,7 +55,8 @@ class SeedPlanViewModelTest {
     private fun api(): VerdantApi = Proxy.newProxyInstance(VerdantApi::class.java.classLoader, arrayOf(VerdantApi::class.java)) { _, method, args ->
         when (method.name) {
             "getSeedInventory" -> { listedFor += args!![0] as Long?; batches }
-            "getSpeciesById" -> species
+            "getSpeciesById" -> if (catalogue) Gson().fromJson("""{"id":3,"commonName":"Dahlia","isSystem":true,"groups":[],"tags":[],"photos":[],"growingPositions":[],"soils":[],"providers":[]}""", SpeciesResponse::class.java) else species
+            "getSpeciesWorkflow" -> SpeciesWorkflowResponse(templateId = null, templateName = null, steps = workflowSteps)
             "previewSeedBatchPlan" -> { previews += args!![0] as SeedBatchPlanRequest; previewResult }
             "createSeedBatchPlan" -> { creates += args!![0] as SeedBatchPlanRequest; previewResult.copy(taskIds = listOf(11, 12)) }
             else -> error(method.name)
@@ -55,7 +64,7 @@ class SeedPlanViewModelTest {
     } as VerdantApi
 
     private fun viewModel(batchId: Long? = null) = api().let {
-        SeedPlanViewModel(SavedStateHandle(mapOf("speciesId" to 3L, "batchId" to (batchId ?: -1L))), SeedInventoryRepository(it), SpeciesRepositoryImpl(it))
+        SeedPlanViewModel(SavedStateHandle(mapOf("speciesId" to 3L, "batchId" to (batchId ?: -1L))), SeedInventoryRepository(it), SpeciesRepositoryImpl(it), WorkflowRepository(it))
     }
 
     @Test fun `a variety with one batch uses it, previews once the inputs settle and creates the tasks`() = runTest {
@@ -119,5 +128,20 @@ class SeedPlanViewModelTest {
     @Test fun `a plan starting before today cannot be created`() {
         val state = SeedPlanState(preview = plan.copy(steps = listOf(plan.steps.first().copy(date = "2026-10-01"))))
         assertTrue(state.startsInPast(LocalDate.of(2026, 11, 1)))
+    }
+
+    @Test fun `explains a variety that cannot be planned instead of showing the form`() = runTest {
+        workflowSteps = emptyList()
+        assertEquals(WorkflowProblem.None, viewModel().also { advanceUntilIdle() }.uiState.value.workflowProblem)
+
+        workflowSteps = listOf(step("Sådd", 0, 0), step("Omskolning", 1, null))
+        assertEquals(WorkflowProblem.MissingDays("Omskolning"), viewModel().also { advanceUntilIdle() }.uiState.value.workflowProblem)
+
+        catalogue = true
+        assertEquals(WorkflowProblem.Catalogue, viewModel().also { advanceUntilIdle() }.uiState.value.workflowProblem)
+
+        catalogue = false
+        workflowSteps = listOf(step("Sådd", 0, 0), step("Säljklar", 1, 120))
+        assertNull(viewModel().also { advanceUntilIdle() }.uiState.value.workflowProblem)
     }
 }
