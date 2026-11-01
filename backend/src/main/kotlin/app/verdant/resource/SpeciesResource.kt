@@ -27,12 +27,13 @@ class SpeciesResource(
     fun list(
         @QueryParam("q") query: String?,
         @QueryParam("groupId") groupId: Long?,
-        @QueryParam("limit") @DefaultValue("50") limit: Int,
+        @QueryParam("limit") limit: Int?,
         @QueryParam("offset") @DefaultValue("0") offset: Int,
     ) = when {
         groupId != null -> speciesService.getSpeciesByGroup(groupId, orgContext.orgId)
-        query.isNullOrBlank() -> speciesService.getSpeciesForUser(orgContext.orgId, limit.coerceIn(1, 200), offset.coerceAtLeast(0))
-        else -> speciesService.searchSpeciesForUser(orgContext.orgId, query.trim(), limit.coerceIn(1, 200))
+        // Without a limit the whole list comes back: the clients filter and pick from it locally.
+        query.isNullOrBlank() -> speciesService.getSpeciesForUser(orgContext.orgId, limit?.coerceIn(1, 200) ?: Int.MAX_VALUE, offset.coerceAtLeast(0))
+        else -> speciesService.searchSpeciesForUser(orgContext.orgId, query.trim(), (limit ?: 50).coerceIn(1, 200))
     }
 
     @POST

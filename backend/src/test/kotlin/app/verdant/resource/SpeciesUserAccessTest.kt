@@ -4,11 +4,13 @@ import app.verdant.auth.TokenService
 import app.verdant.entity.*
 import app.verdant.mcp.McpTestProfile
 import app.verdant.repository.*
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.quarkus.test.common.http.TestHTTPResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.net.URI
@@ -26,6 +28,7 @@ class SpeciesUserAccessTest {
     @Inject lateinit var members: OrgMemberRepository
     @Inject lateinit var species: SpeciesRepository
     @Inject lateinit var tokens: TokenService
+    @Inject lateinit var mapper: ObjectMapper
     @TestHTTPResource lateinit var base: URI
     private val http = HttpClient.newHttpClient()
     private var orgId = 0L
@@ -46,6 +49,18 @@ class SpeciesUserAccessTest {
             .method(method, body?.let(HttpRequest.BodyPublishers::ofString) ?: HttpRequest.BodyPublishers.noBody())
             .build()
         return http.send(request, HttpResponse.BodyHandlers.ofString())
+    }
+
+    @Test fun `the variety list without a limit holds every variety, so searching it finds them all`() {
+        repeat(60) { species.persist(Species(commonName = "Listed zinnia $it", orgId = orgId)) }
+        val opera = species.persist(Species(commonName = "Dahlia", variantName = "Opera White", orgId = orgId)).id!!
+
+        val all = mapper.readTree(send("/api/species").body())
+        val ids = all.map { it["id"].asLong() }
+
+        assertEquals(60, all.count { it["commonName"].asText().startsWith("Listed zinnia") })
+        assertTrue(opera in ids)
+        assertEquals(2, mapper.readTree(send("/api/species?limit=2").body()).size())
     }
 
     @Test fun `a user lists seed providers but cannot manage them`() {
