@@ -209,6 +209,7 @@ private class FakeSpeciesRepo(
     override suspend fun get(id: Long): SpeciesResponse = species.first { it.id == id }
     override suspend fun list(): List<SpeciesResponse> = species
     override suspend fun search(query: String): List<SpeciesResponse> = error("not used")
+    override suspend fun adopt(id: Long, workflowTemplateId: Long?): app.verdant.android.data.model.AdoptSpeciesResponse = error("not used")
     override suspend fun create(request: CreateSpeciesRequest): SpeciesResponse = error("not used")
     override suspend fun update(id: Long, request: UpdateSpeciesRequest): SpeciesResponse = error("not used")
     override suspend fun delete(id: Long) { error("not used") }

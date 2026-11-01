@@ -4,6 +4,7 @@ import app.verdant.dto.*
 import app.verdant.filter.OrgContext
 import app.verdant.repository.UserRepository
 import app.verdant.service.AiService
+import app.verdant.service.SpeciesAdoptionService
 import app.verdant.service.SpeciesService
 import io.quarkus.security.Authenticated
 import jakarta.validation.Valid
@@ -18,6 +19,7 @@ import org.eclipse.microprofile.jwt.JsonWebToken
 @Authenticated
 class SpeciesResource(
     private val speciesService: SpeciesService,
+    private val adoptionService: SpeciesAdoptionService,
     private val aiService: AiService,
     private val userRepository: UserRepository,
     private val orgContext: OrgContext,
@@ -57,6 +59,14 @@ class SpeciesResource(
         speciesService.deleteSpecies(id, orgContext.orgId)
         return Response.noContent().build()
     }
+
+    /** Makes a catalogue variety the organization's own and moves its seed batches to the copy. */
+    @POST
+    @Path("/{id}/adopt")
+    fun adopt(@PathParam("id") id: Long, request: AdoptSpeciesRequest?): Response =
+        Response.status(Response.Status.CREATED)
+            .entity(adoptionService.adopt(id, request?.workflowTemplateId, orgContext.orgId))
+            .build()
 
     // ── Photos ──
 

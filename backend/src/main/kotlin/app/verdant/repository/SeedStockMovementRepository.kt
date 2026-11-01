@@ -81,6 +81,23 @@ class SeedStockMovementRepository(private val ds: AgroalDataSource) {
             }
         }
 
+    /**
+     * Moves the batches' purchases and adjustments to another variety. Sowings stay with the variety
+     * whose plants they created, so each variety's season figures keep matching its plants.
+     */
+    fun moveBatchesToSpecies(batchIds: List<Long>, toSpeciesId: Long) {
+        if (batchIds.isEmpty()) return
+        ds.connection.use { conn ->
+            conn.prepareStatement(
+                "UPDATE seed_stock_movement SET species_id = ? WHERE seed_inventory_id = ANY(?) AND kind <> 'SOWN'"
+            ).use { ps ->
+                ps.setLong(1, toSpeciesId)
+                ps.setArray(2, conn.createArrayOf("bigint", batchIds.toTypedArray()))
+                ps.executeUpdate()
+            }
+        }
+    }
+
     private fun ResultSet.toMovement() = SeedStockMovement(
         id = getLong("id"),
         orgId = getLong("org_id"),

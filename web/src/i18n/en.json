@@ -644,9 +644,12 @@
     "batchNumber": "Batch {{number}}",
     "expires": "exp. {{date}}",
     "noWorkflow": "{{name}} has no workflow, and the plan is counted back through the workflow's steps. Assign the variety a workflow to plan it.",
-    "catalogueVariety": "{{name}} is a catalogue variety and can't have a workflow of its own. Copy the variety and assign the copy a workflow to plan it.",
     "missingDays": "The step \"{{step}}\" in the variety's workflow has no number of days, so the dates can't be worked out. Enter the step's days first.",
-    "openVariety": "Open the variety"
+    "openVariety": "Open the variety",
+    "catalogueVariety": "{{name}} comes from the shared catalogue that every Verdant account uses, where you can't add a workflow of your own. Make it your own variety: your seed batches move to it and you can give it a workflow. Plants you've already sown stay on the catalogue variety.",
+    "adopt": "Make it my own",
+    "workflowTemplate": "Workflow",
+    "noWorkflowYet": "No workflow yet"
   },
   "seeds": {
     "title": "Seed Stock",

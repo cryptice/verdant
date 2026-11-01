@@ -160,6 +160,36 @@ class SeedInventoryRepository(private val ds: AgroalDataSource) {
         }
     }
 
+    /**
+     * Moves the organization's batches of one variety to another, re-pointing each batch's supplier
+     * link through [providerMap] (old species_provider id to new). Returns the moved batch ids.
+     */
+    fun moveToSpecies(orgId: Long, fromSpeciesId: Long, toSpeciesId: Long, providerMap: Map<Long, Long>): List<Long> =
+        ds.connection.use { conn ->
+            val moved = conn.prepareStatement(
+                "UPDATE seed_inventory SET species_id = ? WHERE org_id = ? AND species_id = ? RETURNING id"
+            ).use { ps ->
+                ps.setLong(1, toSpeciesId)
+                ps.setLong(2, orgId)
+                ps.setLong(3, fromSpeciesId)
+                ps.executeQuery().use { rs -> buildList { while (rs.next()) add(rs.getLong(1)) } }
+            }
+            if (moved.isNotEmpty()) {
+                conn.prepareStatement(
+                    "UPDATE seed_inventory SET species_provider_id = ? WHERE id = ANY(?) AND species_provider_id = ?"
+                ).use { ps ->
+                    for ((old, new) in providerMap) {
+                        ps.setLong(1, new)
+                        ps.setArray(2, conn.createArrayOf("bigint", moved.toTypedArray()))
+                        ps.setLong(3, old)
+                        ps.addBatch()
+                    }
+                    ps.executeBatch()
+                }
+            }
+            moved
+        }
+
     private fun ResultSet.toSeedInventory() = SeedInventory(
         id = getLong("id"),
         orgId = getLong("org_id"),

@@ -45,6 +45,8 @@ import app.verdant.android.data.model.SeedBatchPlanResponse
 import app.verdant.android.data.model.SeedBatchPlanStep
 import app.verdant.android.data.model.SeedInventoryResponse
 import app.verdant.android.data.model.SpeciesWorkflowStepResponse
+import app.verdant.android.data.model.WorkflowTemplateResponse
+import app.verdant.android.ui.faltet.FaltetDropdown
 import app.verdant.android.data.repository.SeedInventoryRepository
 import app.verdant.android.data.repository.SpeciesRepository
 import app.verdant.android.data.repository.WorkflowRepository
@@ -83,6 +85,10 @@ data class SeedPlanState(
     val germinationRate: Int? = null,
     /** Why the variety can't be planned; the form is replaced by this explanation. */
     val workflowProblem: WorkflowProblem? = null,
+    /** For a catalogue variety: the workflow templates its copy can start with, and the one chosen. */
+    val templates: List<WorkflowTemplateResponse> = emptyList(),
+    val adoptTemplateId: Long? = null,
+    val adopting: Boolean = false,
     val loadFailed: Boolean = false,
     /** What the grower typed; until then the seed count follows the chosen batches. */
     val seedsTyped: String? = null,
@@ -164,7 +170,8 @@ class SeedPlanViewModel @Inject constructor(
     private val speciesRepository: SpeciesRepository,
     private val workflowRepository: WorkflowRepository,
 ) : ViewModel() {
-    private val speciesId: Long = checkNotNull(savedStateHandle.get<Long>("speciesId"))
+    // Making a catalogue variety your own moves its batches to the copy, and planning carries on with the copy.
+    private var speciesId: Long = checkNotNull(savedStateHandle.get<Long>("speciesId"))
     private val startBatchId: Long? = savedStateHandle.get<Long>("batchId")?.takeIf { it > 0 }
     private val _uiState = MutableStateFlow(SeedPlanState())
     val uiState = _uiState.asStateFlow()
@@ -184,17 +191,40 @@ class SeedPlanViewModel @Inject constructor(
                 val species = runCatching { speciesRepository.get(speciesId) }.getOrNull()
                 val problem = if (species?.isSystem == true) WorkflowProblem.Catalogue
                     else runCatching { workflowProblem(workflowRepository.speciesWorkflow(speciesId).steps) }.getOrNull()
+                val templates = if (problem == WorkflowProblem.Catalogue) runCatching { workflowRepository.templates() }.getOrDefault(emptyList()) else emptyList()
                 _uiState.value = _uiState.value.copy(
                     batches = batches,
                     selectedIds = selected,
                     germinationRate = species?.germinationRate,
                     workflowProblem = problem,
+                    templates = templates,
                     loaded = true,
                 )
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(loadFailed = true)
+            }
+        }
+    }
+
+    fun chooseTemplate(id: Long?) {
+        _uiState.value = _uiState.value.copy(adoptTemplateId = id)
+    }
+
+    fun adopt() {
+        if (_uiState.value.adopting) return
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(adopting = true, error = null)
+            try {
+                val result = speciesRepository.adopt(speciesId, _uiState.value.adoptTemplateId)
+                speciesId = result.species.id
+                _uiState.value = _uiState.value.copy(adopting = false, loaded = false)
+                load()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(adopting = false, error = serverMessage(e) ?: "Kunde inte göra sorten till din egen")
             }
         }
     }
@@ -271,6 +301,9 @@ fun SeedPlanScreen(
             }
         },
         bottomBar = {
+            if (uiState.loaded && uiState.batches.isNotEmpty() && uiState.workflowProblem == WorkflowProblem.Catalogue) {
+                FaltetFormSubmitBar(label = "Gör till egen sort", onClick = viewModel::adopt, enabled = !uiState.adopting, submitting = uiState.adopting)
+            }
             if (created == null && uiState.batches.isNotEmpty() && uiState.workflowProblem == null) {
                 val count = uiState.taskCount
                 FaltetFormSubmitBar(
@@ -298,7 +331,21 @@ fun SeedPlanScreen(
                     fontSize = 17.sp,
                     color = FaltetInk,
                 )
-                TextButton(onClick = onBack) { Text("Tillbaka", color = FaltetAccent) }
+                if (problem == WorkflowProblem.Catalogue) {
+                    FaltetDropdown(
+                        label = "Arbetsflöde",
+                        options = uiState.templates,
+                        selected = uiState.templates.find { it.id == uiState.adoptTemplateId },
+                        onSelectedChange = { viewModel.chooseTemplate(it.id) },
+                        labelFor = { it.name },
+                        searchable = false,
+                        clearLabel = "Inget arbetsflöde än",
+                        onClear = { viewModel.chooseTemplate(null) },
+                    )
+                    uiState.error?.let { Text(it, color = FaltetClay, fontSize = 13.sp) }
+                } else {
+                    TextButton(onClick = onBack) { Text("Tillbaka", color = FaltetAccent) }
+                }
             }
             else -> PlanForm(uiState, viewModel, today, Modifier.padding(padding))
         }
@@ -513,8 +560,8 @@ private fun CreatedPlan(plan: SeedBatchPlanResponse, onShowTasks: () -> Unit, on
 
 /** Workflows are assigned in the web app, so the explanation points there. */
 internal fun workflowProblemText(problem: WorkflowProblem, name: String): String = when (problem) {
-    WorkflowProblem.Catalogue -> "$name är en sort från katalogen och kan inte ha ett eget arbetsflöde. " +
-        "Kopiera sorten i webbappen under Arter och tilldela kopian ett arbetsflöde för att kunna planera."
+    WorkflowProblem.Catalogue -> "$name kommer från den gemensamma katalogen som alla Verdant-konton delar, och där kan du inte lägga till ett eget arbetsflöde. " +
+        "Gör den till din egen sort, så flyttas dina fröpartier dit och du kan ge den ett arbetsflöde. Plantor du redan har sått ligger kvar på katalogsorten."
     WorkflowProblem.None -> "$name har inget arbetsflöde, och planen räknas bakåt genom arbetsflödets steg. " +
         "Tilldela sorten ett arbetsflöde i webbappen under Arter för att kunna planera."
     is WorkflowProblem.MissingDays -> "Steget \"${problem.step}\" i sortens arbetsflöde saknar antal dagar, så datumen går inte att räkna fram. " +

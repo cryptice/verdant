@@ -644,9 +644,12 @@
     "batchNumber": "Parti {{number}}",
     "expires": "utg. {{date}}",
     "noWorkflow": "{{name}} har inget arbetsflöde, och planen räknas bakåt genom arbetsflödets steg. Tilldela sorten ett arbetsflöde för att kunna planera.",
-    "catalogueVariety": "{{name}} är en sort från katalogen och kan inte ha ett eget arbetsflöde. Kopiera sorten och tilldela kopian ett arbetsflöde för att kunna planera.",
     "missingDays": "Steget \"{{step}}\" i sortens arbetsflöde saknar antal dagar, så datumen går inte att räkna fram. Ange dagarna för steget först.",
-    "openVariety": "Öppna sorten"
+    "openVariety": "Öppna sorten",
+    "catalogueVariety": "{{name}} kommer från den gemensamma katalogen som alla Verdant-konton delar, och där kan du inte lägga till ett eget arbetsflöde. Gör den till din egen sort, så flyttas dina fröpartier dit och du kan ge den ett arbetsflöde. Plantor du redan har sått ligger kvar på katalogsorten.",
+    "adopt": "Gör till egen sort",
+    "workflowTemplate": "Arbetsflöde",
+    "noWorkflowYet": "Inget arbetsflöde än"
   },
   "seeds": {
     "title": "utsädeslager",

@@ -876,6 +876,9 @@ export const api = {
     delete: (id: number) => apiRequest<void>(`/api/species/${id}`, { method: 'DELETE' }),
     byGroup: (groupId: number) => apiRequest<SpeciesResponse[]>(`/api/species?groupId=${groupId}`),
     tags: () => apiRequest<{ id: number; name: string }[]>('/api/species/tags'),
+    /** Makes a catalogue variety your own: the copy gets your batches of it and, optionally, a workflow. */
+    adopt: (id: number, workflowTemplateId?: number) =>
+      apiRequest<{ species: SpeciesResponse; movedBatchIds: number[] }>(`/api/species/${id}/adopt`, { method: 'POST', body: JSON.stringify({ workflowTemplateId }) }),
     uploadPhoto: (id: number, imageBase64: string) =>
       apiRequest<{ id: number; imageUrl: string; sortOrder: number }>(`/api/species/${id}/photos`, { method: 'POST', body: JSON.stringify({ imageBase64 }) }),
     deletePhoto: (id: number, photoId: number) =>

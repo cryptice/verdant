@@ -51,12 +51,19 @@ class SeedPlanViewModelTest {
     private val previews = mutableListOf<SeedBatchPlanRequest>()
     private val creates = mutableListOf<SeedBatchPlanRequest>()
     private val listedFor = mutableListOf<Long?>()
+    private val adoptions = mutableListOf<Pair<Long, Long?>>()
 
     private fun api(): VerdantApi = Proxy.newProxyInstance(VerdantApi::class.java.classLoader, arrayOf(VerdantApi::class.java)) { _, method, args ->
         when (method.name) {
             "getSeedInventory" -> { listedFor += args!![0] as Long?; batches }
             "getSpeciesById" -> if (catalogue) Gson().fromJson("""{"id":3,"commonName":"Dahlia","isSystem":true,"groups":[],"tags":[],"photos":[],"growingPositions":[],"soils":[],"providers":[]}""", SpeciesResponse::class.java) else species
             "getSpeciesWorkflow" -> SpeciesWorkflowResponse(templateId = null, templateName = null, steps = workflowSteps)
+            "getWorkflowTemplates" -> listOf(app.verdant.android.data.model.WorkflowTemplateResponse(6, "Slöjsilja från frö", null))
+            "adoptSpecies" -> {
+                adoptions += (args!![0] as Long) to (args[1] as app.verdant.android.data.model.AdoptSpeciesRequest).workflowTemplateId
+                catalogue = false
+                app.verdant.android.data.model.AdoptSpeciesResponse(species, listOf(9))
+            }
             "previewSeedBatchPlan" -> { previews += args!![0] as SeedBatchPlanRequest; previewResult }
             "createSeedBatchPlan" -> { creates += args!![0] as SeedBatchPlanRequest; previewResult.copy(taskIds = listOf(11, 12)) }
             else -> error(method.name)
@@ -143,5 +150,22 @@ class SeedPlanViewModelTest {
         catalogue = false
         workflowSteps = listOf(step("Sådd", 0, 0), step("Säljklar", 1, 120))
         assertNull(viewModel().also { advanceUntilIdle() }.uiState.value.workflowProblem)
+    }
+
+    @Test fun `makes a catalogue variety your own with the chosen workflow and carries on planning the copy`() = runTest {
+        catalogue = true
+        batches = listOf(impecta)
+        val vm = viewModel()
+        advanceUntilIdle()
+        assertEquals(WorkflowProblem.Catalogue, vm.uiState.value.workflowProblem)
+        assertEquals(listOf("Slöjsilja från frö"), vm.uiState.value.templates.map { it.name })
+
+        vm.chooseTemplate(6)
+        vm.adopt()
+        advanceUntilIdle()
+
+        assertEquals(listOf(3L to 6L), adoptions)
+        assertNull(vm.uiState.value.workflowProblem)
+        assertEquals(listOf(9L), vm.uiState.value.selectedIds)
     }
 }

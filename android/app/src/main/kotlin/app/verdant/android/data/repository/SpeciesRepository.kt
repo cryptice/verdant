@@ -1,6 +1,8 @@
 package app.verdant.android.data.repository
 
 import app.verdant.android.data.api.VerdantApi
+import app.verdant.android.data.model.AdoptSpeciesRequest
+import app.verdant.android.data.model.AdoptSpeciesResponse
 import app.verdant.android.data.model.CreateSpeciesGroupRequest
 import app.verdant.android.data.model.CreateSpeciesRequest
 import app.verdant.android.data.model.CreateSpeciesTagRequest
@@ -18,6 +20,8 @@ interface SpeciesRepository {
     suspend fun get(id: Long): SpeciesResponse
     suspend fun list(): List<SpeciesResponse>
     suspend fun search(query: String): List<SpeciesResponse>
+    /** Makes a catalogue variety your own: the copy gets your batches of it and, optionally, a workflow. */
+    suspend fun adopt(id: Long, workflowTemplateId: Long?): AdoptSpeciesResponse
     suspend fun create(request: CreateSpeciesRequest): SpeciesResponse
     suspend fun update(id: Long, request: UpdateSpeciesRequest): SpeciesResponse
     suspend fun delete(id: Long)
@@ -37,6 +41,7 @@ class SpeciesRepositoryImpl @Inject constructor(private val api: VerdantApi) : S
     override suspend fun get(id: Long) = api.getSpeciesById(id)
     override suspend fun list() = api.getSpecies()
     override suspend fun search(query: String) = api.searchSpecies(query, limit = 50)
+    override suspend fun adopt(id: Long, workflowTemplateId: Long?) = api.adoptSpecies(id, AdoptSpeciesRequest(workflowTemplateId))
     override suspend fun create(request: CreateSpeciesRequest) = api.createSpecies(request)
     override suspend fun update(id: Long, request: UpdateSpeciesRequest) = api.updateSpecies(id, request)
     override suspend fun delete(id: Long) { api.deleteSpecies(id) }

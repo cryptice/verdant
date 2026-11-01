@@ -110,9 +110,22 @@ describe('SeedPlanDialog', () => {
     expect(await screen.findByText(/Steget "Säljklar" i sortens arbetsflöde saknar antal dagar/)).toBeInTheDocument()
   })
 
-  it('tells a catalogue variety to be copied first, without asking for its workflow', async () => {
+  it('makes a catalogue variety your own with a workflow, then plans it', async () => {
+    vi.spyOn(api.workflows, 'templates').mockResolvedValue([{ id: 6, name: 'Slöjsilja från frö', createdAt: '', steps: [] }])
+    vi.spyOn(api.species, 'adopt').mockResolvedValue({ species: variety({ id: 30, isSystem: false }), movedBatchIds: [9] })
     show({ species: variety({ isSystem: true }) })
-    expect(await screen.findByText(/sort från katalogen/)).toBeInTheDocument()
+
+    expect(await screen.findByText(/gemensamma katalogen/)).toBeInTheDocument()
     expect(api.workflows.getSpeciesWorkflow).not.toHaveBeenCalled()
+    await screen.findByRole('option', { name: 'Slöjsilja från frö' })
+    fireEvent.change(screen.getByLabelText('Arbetsflöde'), { target: { value: '6' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Gör till egen sort' }))
+
+    await waitFor(() => expect(api.species.adopt).toHaveBeenCalledWith(3, 6))
+    expect(await screen.findByLabelText('Frön att så')).toBeInTheDocument()
+    expect(api.workflows.getSpeciesWorkflow).toHaveBeenCalledWith(30)
+    fill('200', '150', '2099-05-01')
+    await screen.findByText('Säljklar')
+    expect(api.inventory.previewPlan).toHaveBeenCalledWith({ seeds: 200, plants: 150, readyDate: '2099-05-01', seedBatchIds: [9] })
   })
 })

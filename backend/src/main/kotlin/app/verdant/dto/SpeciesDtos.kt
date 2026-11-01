@@ -335,3 +335,14 @@ data class ExtractedSpeciesInfo(
     val daysToHarvestMax: Int? = null,
     val cropBox: CropBox? = null,
 )
+
+/** Makes a catalogue variety the organization's own; optionally assigns the copy a workflow template. */
+data class AdoptSpeciesRequest(
+    val workflowTemplateId: Long? = null,
+)
+
+data class AdoptSpeciesResponse(
+    val species: SpeciesResponse,
+    /** The seed batches moved from the catalogue variety to the copy. */
+    val movedBatchIds: List<Long>,
+)

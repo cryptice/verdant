@@ -38,11 +38,14 @@ export function SeedPlanDialog({ batches, initialBatchIds, species, onClose }: P
   const [plants, setPlants] = useState('')
   const [readyDate, setReadyDate] = useState('')
   const [created, setCreated] = useState<SeedBatchPlanResponse | null>(null)
-  const germinationRate = species?.germinationRate
-  const speciesId = batches[0].speciesId
+  // Once a catalogue variety is made your own, its copy holds the batches and planning carries on with it.
+  const [adopted, setAdopted] = useState<SpeciesResponse | null>(null)
+  const variety = adopted ?? species
+  const germinationRate = variety?.germinationRate
+  const speciesId = adopted?.id ?? batches[0].speciesId
 
   // Planning counts back through the variety's workflow, so check it before asking for anything.
-  const isCatalogue = species?.isSystem ?? false
+  const isCatalogue = variety?.isSystem ?? false
   const workflow = useQuery({
     queryKey: ['species-workflow', speciesId],
     queryFn: () => api.workflows.getSpeciesWorkflow(speciesId),
@@ -50,6 +53,17 @@ export function SeedPlanDialog({ batches, initialBatchIds, species, onClose }: P
     retry: false,
   })
   const problem: WorkflowProblem | null = isCatalogue ? { kind: 'catalogue' } : workflow.data ? workflowProblem(workflow.data.steps) : null
+
+  const templates = useQuery({ queryKey: ['workflow-templates'], queryFn: api.workflows.templates, enabled: isCatalogue })
+  const [templateId, setTemplateId] = useState('')
+  const adoptMut = useMutation({
+    mutationFn: () => api.species.adopt(speciesId, templateId ? Number(templateId) : undefined),
+    onSuccess: result => {
+      setAdopted(result.species)
+      qc.invalidateQueries({ queryKey: ['seed-inventory'] })
+      qc.invalidateQueries({ queryKey: ['species'] })
+    },
+  })
 
   const selected = batches.filter(b => selectedIds.includes(b.id))
   const available = selected.reduce((sum, b) => sum + b.quantity, 0)
@@ -122,6 +136,38 @@ export function SeedPlanDialog({ batches, initialBatchIds, species, onClose }: P
     )
   }
 
+  if (problem?.kind === 'catalogue') {
+    return (
+      <Dialog
+        open
+        onClose={onClose}
+        title={t('seedPlan.title')}
+        actions={
+          <>
+            <button onClick={onClose} className="px-4 py-2 text-sm text-text-secondary">{t('common.cancel')}</button>
+            <button onClick={() => adoptMut.mutate()} disabled={adoptMut.isPending} className="btn-primary text-sm">
+              {adoptMut.isPending ? t('common.saving') : t('seedPlan.adopt')}
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-text-primary">{t('seedPlan.catalogueVariety', { name: batches[0].speciesName })}</p>
+          <div>
+            <label htmlFor={`${id}-template`} className="field-label">{t('seedPlan.workflowTemplate')}</label>
+            <select id={`${id}-template`} value={templateId} onChange={e => setTemplateId(e.target.value)} className="input w-full">
+              <option value="">{t('seedPlan.noWorkflowYet')}</option>
+              {templates.data?.map(tpl => <option key={tpl.id} value={tpl.id}>{tpl.name}</option>)}
+            </select>
+          </div>
+          {adoptMut.error && (
+            <p className="text-error text-sm">{adoptMut.error instanceof Error ? adoptMut.error.message : String(adoptMut.error)}</p>
+          )}
+        </div>
+      </Dialog>
+    )
+  }
+
   if (problem || (workflow.isLoading && !isCatalogue)) {
     return (
       <Dialog
@@ -139,8 +185,7 @@ export function SeedPlanDialog({ batches, initialBatchIds, species, onClose }: P
       >
         {problem ? (
           <p className="text-sm text-text-primary">
-            {problem.kind === 'catalogue' ? t('seedPlan.catalogueVariety', { name: batches[0].speciesName })
-              : problem.kind === 'none' ? t('seedPlan.noWorkflow', { name: batches[0].speciesName })
+            {problem.kind === 'none' ? t('seedPlan.noWorkflow', { name: batches[0].speciesName })
               : t('seedPlan.missingDays', { step: problem.step })}
           </p>
         ) : (

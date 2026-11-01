@@ -186,3 +186,13 @@ data class DecrementSeedInventoryRequest(
     // The user confirmed sowing more than the batch holds, so the server empties it.
     @SerializedName("allowShortfall") val allowShortfall: Boolean = false,
 )
+
+/** Makes a catalogue variety the organization's own; optionally assigns the copy a workflow template. */
+data class AdoptSpeciesRequest(
+    @SerializedName("workflowTemplateId") val workflowTemplateId: Long? = null,
+)
+
+data class AdoptSpeciesResponse(
+    @SerializedName("species") val species: SpeciesResponse,
+    @SerializedName("movedBatchIds") val movedBatchIds: List<Long> = emptyList(),
+)
