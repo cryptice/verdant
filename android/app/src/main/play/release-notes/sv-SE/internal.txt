@@ -1,3 +1,5 @@
-Nytt i 0.1.2
-• Planera fröparti förklarar direkt när en sort inte går att planera, till exempel när den saknar arbetsflöde.
-• Sorter från den gemensamma katalogen kan göras till egna sorter direkt från planeringen. Fröpartierna flyttas med och du kan välja arbetsflöde på en gång.
+Nytt i 0.1.3
+• Sortformuläret är samma som på webben: svenska och engelska namn, fröleverantör och produktlänk, fler foton, odlingsuppgifter, taggar, pris per frö och per paket, växttyp och arbetsflöde.
+• Bara namnet är obligatoriskt.
+• Katalogens sorter visas utan att kunna ändras.
+• Fröpåsens foton fyller fortfarande i fälten åt dig.
