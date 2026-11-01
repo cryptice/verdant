@@ -6,6 +6,7 @@ import { api, type WorkflowStepResponse, type SupplyTypeResponse } from '../api/
 import { Masthead, Field } from '../components/faltet'
 import { ErrorDisplay } from '../components/ErrorDisplay'
 import { Dialog } from '../components/Dialog'
+import { WorkflowUsage } from '../components/workflow/WorkflowUsage'
 
 // Plant event types a workflow step can record (PlantEventType on the backend), in growing order.
 const EVENT_TYPES = [
@@ -518,6 +519,8 @@ export function WorkflowTemplateEdit() {
             />
           ))}
         </div>
+
+        <WorkflowUsage templateId={templateId} />
       </div>
 
       {/* Sticky footer */}
