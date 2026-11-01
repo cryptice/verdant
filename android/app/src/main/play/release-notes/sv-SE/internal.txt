@@ -1,0 +1,6 @@
+Nytt i 0.1.1
+• Planera fröparti: ange frön, plantor och när de ska vara klara, så skapas uppgifter bakåt genom sortens arbetsflöde. Flera partier kan kombineras.
+• Utsäde visas per sort med partierna under.
+• Såuppgifter från en plan väljer rätt fröparti.
+• Ta bort en felregistrerad sådd så går fröna tillbaka till partiet.
+• Varning när en ny sort redan finns.
