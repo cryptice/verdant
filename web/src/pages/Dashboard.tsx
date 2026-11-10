@@ -176,7 +176,7 @@ export function Dashboard() {
           </div>
           <div className="dashboard-actions">
             <Link className="btn-secondary" to="/task/new?type=TODO">+ {t('dashboard.activity.createTask')}</Link>
-            <Link className="btn-primary" to="/sow">{t('dashboard.activity.sow')} <span aria-hidden="true">↗</span></Link>
+            <Link className="btn-primary" to="/sow">{t('dashboard.activity.sow')}</Link>
           </div>
         </header>
 
@@ -210,7 +210,7 @@ export function Dashboard() {
 
           {/* Column 1 — Tray summary */}
           <section className="dashboard-panel dashboard-trays">
-            <ColumnHeader title={t('dashboard.trays.title')} right={<Link to="/tray-locations" aria-label={t('nav.trayLocations')}>↗</Link>} />
+            <ColumnHeader title={t('dashboard.trays.title')} right={<Link to="/tray-locations" aria-label={t('nav.trayLocations')}>→</Link>} />
             {(() => {
               if (!trays || trays.length === 0) {
                 return (
@@ -340,7 +340,7 @@ export function Dashboard() {
 
           {/* Column 3 — Beds */}
           <section className="dashboard-panel dashboard-beds">
-            <ColumnHeader title={t('dashboard.beds.title')} right={<Link to="/gardens" aria-label={t('nav.gardens')}>↗</Link>} />
+            <ColumnHeader title={t('dashboard.beds.title')} right={<Link to="/gardens" aria-label={t('nav.gardens')}>→</Link>} />
             {beds && sortBedsWithGardenByNaturalName(beds).map((b) => (
               <Link
                 key={b.id}
@@ -494,7 +494,6 @@ function RevenueHeroStat({
       <span className="dashboard-stat-value">{valueKr.toLocaleString(i18n.language)}<small>kr</small></span>
       {' '}<span className="dashboard-stat-label">{t('dashboard.revenue')}</span>
       <span className="dashboard-stat-meta">{t('dashboard.salesCount', { count: salesCount })} · {seasonName}</span>
-      <span className="dashboard-stat-arrow" aria-hidden="true">↗</span>
     </button>
   )
 }
@@ -518,7 +517,6 @@ function CenteredHeroStat({ value, label, onClick }: { value: number | undefined
     <Element className="dashboard-stat" onClick={onClick} aria-label={onClick ? `${value ?? '—'} ${label}` : undefined}>
       <span className="dashboard-stat-value">{value ?? '—'}</span>
       <span className="dashboard-stat-label">{label}</span>
-      {onClick && <span className="dashboard-stat-arrow" aria-hidden="true">↗</span>}
     </Element>
   )
 }

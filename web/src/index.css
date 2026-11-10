@@ -504,7 +504,6 @@ button:disabled { cursor: not-allowed; }
 }
 .sidebar-link:hover { background: rgb(255 252 245 / 65%); }
 .sidebar-link[aria-current="page"] { background: #dbe2ce; border-left-color: var(--color-sage); color: var(--color-ink); font-weight: 600; }
-.sidebar-current { color: var(--color-moss); font-size: 16px; }
 .sidebar-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid var(--color-divider); padding-top: 10px; color: var(--color-forest); font: 9px var(--font-mono); letter-spacing: 1px; text-transform: uppercase; }
 .sidebar-languages { display: flex; gap: 4px; }
 .sidebar-languages button { min-width: 36px; min-height: 36px; cursor: pointer; border: 1px solid transparent; border-radius: 999px; }
@@ -537,7 +536,6 @@ button.dashboard-stat:hover { background: #edf0e4; }
 .dashboard-stat-value small { margin-left: 6px; font-size: 18px; letter-spacing: 0; font-style: italic; }
 .dashboard-stat-label { font: 500 11px/1.5 var(--font-body); letter-spacing: 0.5px; text-transform: uppercase; }
 .dashboard-stat-meta { font-size: 11px; color: var(--color-forest); line-height: 1.5; margin-top: -6px; }
-.dashboard-stat-arrow { position: absolute; top: 14px; right: 14px; font-size: 14px; color: var(--color-forest); }
 .dashboard-stat-revenue .dashboard-stat-value { color: var(--color-accent); font-size: clamp(32px, 3.5vw, 48px); line-height: 1.33; }
 .dashboard-columns { display: grid; grid-template-columns: 1.15fr 1fr 0.85fr; gap: 22px; align-items: start; }
 .dashboard-panel { min-width: 0; background: var(--color-paper); padding: 20px 22px 22px; border: 1px solid var(--color-divider); border-radius: 18px; }

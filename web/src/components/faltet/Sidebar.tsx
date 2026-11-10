@@ -204,7 +204,6 @@ function GroupBlock({ group, currentPath, onNavigate }: { group: NavGroup; curre
             aria-current={selected ? 'page' : undefined}
           >
             <span>{item.label}</span>
-            {selected && <span className="sidebar-current" aria-hidden="true">↗</span>}
           </Link>
         )
       })}
