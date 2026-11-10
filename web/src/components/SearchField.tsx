@@ -4,6 +4,7 @@ export function SearchField({ value, onChange, placeholder }: { value: string; o
     <div style={{ marginBottom: 16 }}>
       <input
         type="search"
+        className="search-field"
         aria-label={placeholder}
         value={value}
         onChange={e => onChange(e.target.value)}
@@ -17,7 +18,6 @@ export function SearchField({ value, onChange, placeholder }: { value: string; o
           border: '1px solid var(--color-ink)',
           background: 'transparent',
           color: 'var(--color-ink)',
-          outline: 'none',
         }}
       />
     </div>

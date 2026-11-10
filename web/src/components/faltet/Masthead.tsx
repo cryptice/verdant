@@ -16,9 +16,9 @@ export function Masthead({
         display: 'grid',
         gridTemplateColumns: '1fr auto 1fr',
         alignItems: 'center',
-        padding: '14px 22px',
-        background: 'var(--color-cream)',
-        borderBottom: '1px solid var(--color-ink)',
+        padding: '18px 40px',
+        background: 'var(--color-paper)',
+        borderBottom: '1px solid var(--color-divider)',
       }}
     >
       <div

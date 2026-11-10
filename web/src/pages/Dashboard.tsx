@@ -44,13 +44,14 @@ export function taskSubject(task: ScheduledTaskResponse, t: TFunction): string |
   return [action, task.bedName].filter(Boolean).join(' · ')
 }
 import { Masthead } from '../components/faltet'
+import { BotanicalIllustration } from '../components/faltet/BotanicalIllustration'
 import { Snackbar, useSnackbar } from '../components/Snackbar'
 import { ActivityFab } from '../components/ActivityFab'
 import { BedIcon } from '../components/ActivityIcon'
 import { useOnboarding } from '../onboarding/OnboardingContext'
 
 export function Dashboard() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const qc = useQueryClient()
   const navigate = useNavigate()
   const { isActive, completedCount, totalCount, setDrawerOpen } = useOnboarding()
@@ -62,13 +63,13 @@ export function Dashboard() {
       api.trayLocations.water(vars.locId).then((r) => ({ ...r, locName: vars.locName })),
     onSuccess: (r) => {
       qc.invalidateQueries({ queryKey: ['tray-summary'] })
-      showToast(r.locName ? `Vattnade · ${r.plantsAffected} plantor i ${r.locName}` : `Vattnade · ${r.plantsAffected} plantor`)
+      showToast(r.locName ? t('dashboard.trays.wateredAt', { count: r.plantsAffected, name: r.locName }) : t('dashboard.trays.watered', { count: r.plantsAffected }))
     },
-    onError: () => showToast('Kunde inte vattna'),
+    onError: () => showToast(t('dashboard.trays.waterError')),
   })
 
 
-  const { data: dashboard } = useQuery({
+  const { data: dashboard, isPending: dashboardLoading } = useQuery({
     queryKey: ['dashboard'],
     queryFn: api.dashboard,
   })
@@ -163,21 +164,26 @@ export function Dashboard() {
       )}
 
       <div className="dashboard-body page-body">
-        {/* Hero — wrapped as a stats-band so the accent stripe + paper surface
-            replaces the old full-width ink rule that used to sit below it. */}
-        <div
-          className="stats-band dashboard-hero"
-          style={{
-            margin: '0 0 28px',
-            display: 'flex',
-            alignItems: 'stretch',
-            gap: 12,
-            flexWrap: 'wrap',
-          }}
-        >
-          <DashboardBedStat count={activeBedCount} gardens={dashboard?.gardens} />
-          <CenteredHeroStat value={activePlantCount} label="Plantor" />
-          <CenteredHeroStat value={activeSpeciesCount} label="Arter" />
+        <header className="dashboard-intro">
+          <BotanicalIllustration />
+          <div>
+            <div className="dashboard-eyebrow">
+              <time dateTime={dateKey(new Date())}>{new Date().toLocaleDateString(i18n.language, { weekday: 'long', day: 'numeric', month: 'long' })}</time>
+              {activeSeason && <span className="dashboard-season">{activeSeason.name}</span>}
+            </div>
+            <h1>{t('dashboard.overviewTitle')}<span>.</span></h1>
+            <p>{t('dashboard.overviewHint')}</p>
+          </div>
+          <div className="dashboard-actions">
+            <Link className="btn-secondary" to="/task/new?type=TODO">+ {t('dashboard.activity.createTask')}</Link>
+            <Link className="btn-primary" to="/sow">{t('dashboard.activity.sow')} <span aria-hidden="true">↗</span></Link>
+          </div>
+        </header>
+
+        <div className="dashboard-hero" aria-busy={dashboardLoading}>
+          <DashboardBedStat count={dashboardLoading ? undefined : activeBedCount} gardens={dashboard?.gardens} />
+          <CenteredHeroStat value={dashboardLoading ? undefined : activePlantCount} label={t('nav.plants')} onClick={() => navigate('/plants')} />
+          <CenteredHeroStat value={dashboardLoading ? undefined : activeSpeciesCount} label={t('nav.species')} onClick={() => navigate('/species')} />
           {activeSeason && (
             <RevenueHeroStat
               valueKr={seasonRevenueKr}
@@ -188,34 +194,30 @@ export function Dashboard() {
           )}
         </div>
 
-        {/* Three content columns */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 0,
-          }}
-          className="dashboard-columns"
-        >
+        <div className="dashboard-columns">
+          {/* Column 2 — Tasks */}
+          <section className="dashboard-panel dashboard-tasks">
+            <ColumnHeader
+              title={t('dashboard.tasks.title')}
+              right={
+                <Link to="/tasks" aria-label={t('dashboard.tasks.all')} style={{ color: 'var(--color-accent)', textDecoration: 'none' }}>
+                  →
+                </Link>
+              }
+            />
+            {tasksLoading ? <p>{t('common.loading')}</p> : tasksError ? <Link to="/tasks">{t('dashboard.tasks.all')}</Link> : <DashboardTasks tasks={tasks ?? []} />}
+          </section>
+
           {/* Column 1 — Tray summary */}
-          <section style={{ padding: '0 22px 0 0', borderRight: '1px solid var(--color-ink)' }}>
-            <ColumnHeader title={t('dashboard.trays.title')} />
+          <section className="dashboard-panel dashboard-trays">
+            <ColumnHeader title={t('dashboard.trays.title')} right={<Link to="/tray-locations" aria-label={t('nav.trayLocations')}>↗</Link>} />
             {(() => {
               if (!trays || trays.length === 0) {
                 return (
-                  <p
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 10,
-                      letterSpacing: 1.4,
-                      textTransform: 'uppercase',
-                      color: 'var(--color-forest)',
-                      opacity: 0.6,
-                      marginTop: 12,
-                    }}
-                  >
-                    —
-                  </p>
+                  <div className="dashboard-empty">
+                    <p>{t('dashboard.trays.empty')}</p>
+                    <Link to="/sow">{t('dashboard.activity.sow')} <span aria-hidden="true">→</span></Link>
+                  </div>
                 )
               }
               const groups = groupByLocation(trays)
@@ -237,11 +239,12 @@ export function Dashboard() {
                         color: 'var(--color-forest)',
                       }}
                     >
-                      <span style={{ flex: 1 }}>{locName ?? 'Utan odlingsplats'}</span>
-                      <span>{total} ST</span>
+                      <span style={{ flex: 1 }}>{locName ?? t('dashboard.trays.noLocation')}</span>
+                      <span>{t('dashboard.trays.plantCount', { count: total })}</span>
                       {locId !== null && (
                         <>
                           <button
+                            disabled={waterLocationMut.isPending}
                             onClick={() => waterLocationMut.mutate({ locId, locName: locName ?? null })}
                             style={{
                               background: 'none',
@@ -253,7 +256,7 @@ export function Dashboard() {
                               padding: '0 4px',
                             }}
                           >
-                            Vattna
+                            {t('activityType.WATER')}
                           </button>
                           <button
                             onClick={() => navigate(`/tray-locations/${locId}`)}
@@ -267,7 +270,7 @@ export function Dashboard() {
                               padding: '0 4px',
                             }}
                           >
-                            Öppna
+                            {t('dashboard.trays.open')}
                           </button>
                         </>
                       )}
@@ -292,7 +295,7 @@ export function Dashboard() {
                           }}
                           style={{
                             display: 'grid',
-                            gridTemplateColumns: '1.5fr 60px 80px',
+                            gridTemplateColumns: 'minmax(0, 1fr) auto auto',
                             gap: 10,
                             padding: '10px 0',
                             borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
@@ -324,7 +327,7 @@ export function Dashboard() {
                               color: 'var(--color-forest)',
                             }}
                           >
-                            {row.status}
+                            {t(`status.${row.status}`, row.status)}
                           </span>
                         </div>
                       )
@@ -335,25 +338,13 @@ export function Dashboard() {
             })()}
           </section>
 
-          {/* Column 2 — Tasks */}
-          <section style={{ padding: '0 22px', borderRight: '1px solid var(--color-ink)' }}>
-            <ColumnHeader
-              title={t('dashboard.tasks.title')}
-              right={
-                <Link to="/tasks" style={{ color: 'var(--color-accent)', textDecoration: 'none' }}>
-                  →
-                </Link>
-              }
-            />
-            {tasksLoading ? <p>{t('common.loading')}</p> : tasksError ? <Link to="/tasks">{t('dashboard.tasks.all')}</Link> : <DashboardTasks tasks={tasks ?? []} />}
-          </section>
-
           {/* Column 3 — Beds */}
-          <section style={{ padding: '0 0 0 22px' }}>
-            <ColumnHeader title={t('dashboard.beds.title')} />
+          <section className="dashboard-panel dashboard-beds">
+            <ColumnHeader title={t('dashboard.beds.title')} right={<Link to="/gardens" aria-label={t('nav.gardens')}>↗</Link>} />
             {beds && sortBedsWithGardenByNaturalName(beds).map((b) => (
               <Link
                 key={b.id}
+                className="dashboard-bed-link"
                 to={`/bed/${b.id}`}
                 style={{
                   display: 'grid',
@@ -412,25 +403,17 @@ export function Dashboard() {
               </Link>
             ))}
             {(!beds || beds.length === 0) && (
-              <p
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 10,
-                  letterSpacing: 1.4,
-                  textTransform: 'uppercase',
-                  color: 'var(--color-forest)',
-                  opacity: 0.6,
-                  marginTop: 12,
-                }}
-              >
-                —
-              </p>
+              <div className="dashboard-empty">
+                <p>{t('dashboard.beds.empty')}</p>
+                <Link to="/gardens">{t('nav.gardens')} <span aria-hidden="true">→</span></Link>
+              </div>
             )}
           </section>
         </div>
 
         {/* Harvest totals band — dark ink bg + cream text + butter decorative circle */}
         <div
+          className="dashboard-harvest"
           style={{
             background: 'var(--color-ink)',
             color: 'var(--color-cream)',
@@ -476,10 +459,11 @@ export function Dashboard() {
               textTransform: 'uppercase',
               display: 'flex',
               gap: 18,
+              flexWrap: 'wrap',
             }}
           >
             {bestWeek && (
-              <span style={{ color: 'var(--color-sage)' }}>
+              <span style={{ color: 'var(--color-butter)' }}>
                 {t('dashboard.harvest.bestWeek', { week: bestWeek.isoWeek })}
               </span>
             )}
@@ -526,147 +510,45 @@ function groupByLocation(entries: TraySummaryEntry[]): [LocationKey, TraySummary
 function RevenueHeroStat({
   valueKr, salesCount, seasonName, onClick,
 }: { valueKr: number; salesCount: number; seasonName: string; onClick: () => void }) {
+  const { t, i18n } = useTranslation()
   return (
-    <button
-      onClick={onClick}
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 4,
-        padding: '20px 16px',
-        border: '1px solid var(--color-ink)',
-        borderRadius: 14,
-        background: 'var(--color-paper)',
-        cursor: 'pointer',
-        textAlign: 'center',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-        <span
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontStyle: 'italic',
-            fontSize: 48,
-            lineHeight: 1,
-            fontWeight: 300,
-            letterSpacing: -1,
-            color: 'var(--color-accent)',
-            fontVariationSettings: '"SOFT" 100, "opsz" 144',
-          }}
-        >
-          {valueKr.toLocaleString('sv-SE')}
-        </span>
-        <span
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: 12,
-            letterSpacing: 1.4,
-            color: 'var(--color-forest)',
-          }}
-        >
-          KR
-        </span>
-      </div>
-      <div
-        style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 10,
-          letterSpacing: 1.6,
-          textTransform: 'uppercase',
-          color: 'var(--color-forest)',
-        }}
-      >
-        {salesCount} försäljningar · {seasonName}
-      </div>
+    <button className="dashboard-stat dashboard-stat-revenue" onClick={onClick}>
+      <span className="dashboard-stat-value">{valueKr.toLocaleString(i18n.language)}<small>kr</small></span>
+      {' '}<span className="dashboard-stat-label">{t('dashboard.revenue')}</span>
+      <span className="dashboard-stat-meta">{t('dashboard.salesCount', { count: salesCount })} · {seasonName}</span>
+      <span className="dashboard-stat-arrow" aria-hidden="true">↗</span>
     </button>
   )
 }
 
-export function DashboardBedStat({ count, gardens }: { count: number; gardens: GardenSummary[] | undefined }) {
+export function DashboardBedStat({ count, gardens }: { count: number | undefined; gardens: GardenSummary[] | undefined }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const firstGarden = gardens?.[0]
   return (
     <CenteredHeroStat
       value={count}
-      label={t('dashboard.bedLabel', { count })}
+      label={t('dashboard.bedLabel', { count: count ?? 0 })}
       onClick={firstGarden ? () => navigate(`/garden/${firstGarden.id}#beds`) : undefined}
     />
   )
 }
 
-function CenteredHeroStat({ value, label, onClick }: { value: number; label: string; onClick?: () => void }) {
+function CenteredHeroStat({ value, label, onClick }: { value: number | undefined; label: string; onClick?: () => void }) {
   const Element = onClick ? 'button' : 'div'
   return (
-    <Element
-      onClick={onClick}
-      style={{
-        cursor: onClick ? 'pointer' : undefined,
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 6,
-        padding: '20px 16px',
-        border: '1px solid var(--color-ink)',
-        borderRadius: 14,
-        background: 'var(--color-paper)',
-      }}
-    >
-      <div
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontStyle: 'italic',
-          fontSize: 48,
-          lineHeight: 1,
-          fontWeight: 300,
-          letterSpacing: -1,
-          color: 'var(--color-accent)',
-          fontVariationSettings: '"SOFT" 100, "opsz" 144',
-        }}
-      >
-        {value}
-      </div>
-      <div
-        style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 10,
-          letterSpacing: 1.6,
-          textTransform: 'uppercase',
-          color: 'var(--color-forest)',
-          textAlign: 'center',
-        }}
-      >
-        {label}
-      </div>
+    <Element className="dashboard-stat" onClick={onClick} aria-label={onClick ? `${value ?? '—'} ${label}` : undefined}>
+      <span className="dashboard-stat-value">{value ?? '—'}</span>
+      <span className="dashboard-stat-label">{label}</span>
+      {onClick && <span className="dashboard-stat-arrow" aria-hidden="true">↗</span>}
     </Element>
   )
 }
 
 function ColumnHeader({ title, right }: { title: string; right?: React.ReactNode }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 10,
-        marginBottom: 12,
-      }}
-    >
-      <span
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontStyle: 'italic',
-          fontSize: 22,
-          fontVariationSettings: '"SOFT" 100, "opsz" 144',
-        }}
-      >
-        {title}
-        <span style={{ color: 'var(--color-accent)' }}>.</span>
-      </span>
+    <div className="dashboard-column-header">
+      <h2>{title}<span>.</span></h2>
       {right}
     </div>
   )
@@ -757,7 +639,7 @@ export function DashboardTasks({ tasks, now = new Date() }: { tasks: ScheduledTa
 
   </>
   if (overdue.length === 0 && days.every(day => day.tasks.length === 0)) return (
-    <p>{t('dashboard.tasks.empty')} <Link to="/tasks">{t('dashboard.tasks.all')}</Link></p>
+    <div className="dashboard-empty"><p>{t('dashboard.tasks.empty')}</p><Link to="/tasks">{t('dashboard.tasks.all')} <span aria-hidden="true">→</span></Link></div>
   )
   const renderDay = (day: typeof days[number], index: number) => (
     <div key={day.date.toISOString()}>

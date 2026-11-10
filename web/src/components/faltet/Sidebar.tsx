@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
@@ -98,196 +98,113 @@ export function Sidebar() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const currentPath = location.pathname + location.search
 
+  const drawerRef = useRef<HTMLDialogElement>(null)
+
+  useEffect(() => {
+    const dialog = drawerRef.current
+    if (!dialog) return
+    if (!drawerOpen) {
+      dialog.close()
+      return
+    }
+    dialog.showModal()
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const desktop = window.matchMedia('(min-width: 768px)')
+    const closeOnDesktop = () => { if (desktop.matches) setDrawerOpen(false) }
+    desktop.addEventListener('change', closeOnDesktop)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      desktop.removeEventListener('change', closeOnDesktop)
+    }
+  }, [drawerOpen])
+
   const content = (
-    <nav
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        width: 220,
-        background: 'var(--color-cream)',
-        borderRight: '1px solid var(--color-ink)',
-        padding: '24px 16px',
-        boxSizing: 'border-box',
-      }}
-    >
-      <div>
-        <div
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontStyle: 'italic',
-            fontSize: 24,
-            fontWeight: 300,
-            color: 'var(--color-ink)',
-            lineHeight: 1,
-          }}
-        >
-          Verdant Planner<span style={{ color: 'var(--color-accent)' }}>.</span>
-        </div>
-        <div
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: 10,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            color: 'var(--color-forest)',
-            marginTop: 6,
-          }}
-        >
-          {t('app.subtitle')}
-        </div>
+    <nav className="app-sidebar" aria-label={t('sidebar.navigation')}>
+      <div className="sidebar-brand-row">
+        <Link to="/" className="sidebar-brand" onClick={() => setDrawerOpen(false)}>
+          Verdant<span> Planner</span><span className="sidebar-brand-dot">.</span>
+        </Link>
+        <button className="sidebar-close" onClick={() => setDrawerOpen(false)} aria-label={t('common.close')}>×</button>
       </div>
+      <div className="sidebar-subtitle">{t('app.subtitle')}</div>
 
-      <div style={{ height: 1, background: 'var(--color-ink)', margin: '16px 0' }} />
-
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+      <div className="sidebar-scroll">
         {topGroups.map((group) => (
           <GroupBlock key={group.header} group={group} currentPath={currentPath} onNavigate={() => setDrawerOpen(false)} />
         ))}
-
-        {accountGroup && (
-          <div style={{ marginTop: 'auto' }}>
-            <GroupBlock group={accountGroup} currentPath={currentPath} onNavigate={() => setDrawerOpen(false)} />
-          </div>
-        )}
+        {accountGroup && <GroupBlock group={accountGroup} currentPath={currentPath} onNavigate={() => setDrawerOpen(false)} />}
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          gap: 12,
-          marginTop: 16,
-          paddingTop: 12,
-          borderTop: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
-          fontFamily: 'var(--font-mono)',
-          fontSize: 10,
-          letterSpacing: 1.4,
-          textTransform: 'uppercase',
-        }}
-      >
-        {['sv', 'en'].map((lng) => (
-          <button
-            key={lng}
-            onClick={() => {
-              localStorage.setItem('verdant-lang', lng)
-              i18n.changeLanguage(lng)
-            }}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              color: i18n.language === lng ? 'var(--color-accent)' : 'var(--color-forest)',
-              padding: 0,
-              fontFamily: 'inherit',
-              fontSize: 'inherit',
-              letterSpacing: 'inherit',
-              textTransform: 'inherit',
-            }}
-          >
-            {lng.toUpperCase()}
-          </button>
-        ))}
+      <div className="sidebar-footer">
+        <span>{t('language.label')}</span>
+        <div className="sidebar-languages">
+          {['sv', 'en'].map((lng) => (
+            <button
+              key={lng}
+              aria-label={t(`language.${lng}`)}
+              aria-pressed={i18n.language.startsWith(lng)}
+              onClick={() => {
+                localStorage.setItem('verdant-lang', lng)
+                i18n.changeLanguage(lng)
+              }}
+            >
+              {lng.toUpperCase()}
+            </button>
+          ))}
+        </div>
       </div>
     </nav>
   )
 
   return (
     <>
-      {/* Mobile hamburger — visible <768px */}
       <button
         onClick={() => setDrawerOpen(true)}
-        className="md:hidden"
-        style={{
-          position: 'fixed',
-          top: 'calc(10px + env(safe-area-inset-top))',
-          left: 'calc(10px + env(safe-area-inset-left))',
-          zIndex: 30,
-          background: 'var(--color-cream)',
-          border: '1px solid var(--color-ink)',
-          padding: '6px 10px',
-          cursor: 'pointer',
-          fontFamily: 'var(--font-mono)',
-          fontSize: 16,
-        }}
-        aria-label="Menu"
+        className="sidebar-toggle"
+        aria-label={t('sidebar.openMenu')}
+        aria-expanded={drawerOpen}
+        aria-controls="mobile-navigation"
       >
-        &#8801;
+        <span aria-hidden="true">☰</span>
       </button>
-
-      {/* Desktop sidebar */}
-      <div className="hidden md:block" style={{ height: '100vh', position: 'sticky', top: 0 }}>
+      <aside className="sidebar-desktop">{content}</aside>
+      <dialog
+        ref={drawerRef}
+        id="mobile-navigation"
+        className="sidebar-drawer"
+        aria-label={t('sidebar.navigation')}
+        onClose={() => setDrawerOpen(false)}
+        onClick={(event) => { if (event.target === event.currentTarget) setDrawerOpen(false) }}
+      >
         {content}
-      </div>
-
-      {/* Mobile drawer */}
-      {drawerOpen && (
-        <div
-          onClick={() => setDrawerOpen(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(30,36,29,0.55)',
-            zIndex: 40,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{ position: 'absolute', top: 0, left: 0, height: '100vh' }}
-          >
-            {content}
-          </div>
-        </div>
-      )}
+      </dialog>
     </>
   )
 }
 
 function GroupBlock({ group, currentPath, onNavigate }: { group: NavGroup; currentPath: string; onNavigate: () => void }) {
+  const pathname = currentPath.split('?')[0]
   return (
-    <div style={{ marginBottom: 18 }}>
-      <div
-        style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 9,
-          letterSpacing: 1.4,
-          textTransform: 'uppercase',
-          color: 'var(--color-forest)',
-          opacity: 0.7,
-          padding: '12px 0 6px',
-        }}
-      >
-        § {group.header}
-      </div>
+    <div className="sidebar-group">
+      <div className="sidebar-group-title">{group.header}</div>
       {group.items.map((item) => {
-        // Items with a query string must match exactly (e.g. /analytics?tab=harvest
-        // should not collide with plain /analytics). Items without a query match on
-        // prefix so /gardens/123 highlights the Gardens entry.
         const hasQuery = item.to.includes('?')
         const active = hasQuery
           ? currentPath === item.to
-          : currentPath === item.to
-            || (item.to !== '/' && (currentPath === item.to || currentPath.startsWith(item.to + '/')))
+          : pathname === item.to || (item.to !== '/' && pathname.startsWith(item.to + '/'))
+        // A dedicated query-specific page takes precedence over its base route.
+        const selected = active && !(item.to === '/analytics' && currentPath.includes('tab=harvest'))
         return (
           <Link
             key={item.to}
             to={item.to}
             onClick={onNavigate}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 0',
-              borderBottom: '1px solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
-              fontFamily: 'var(--font-display)',
-              fontStyle: 'italic',
-              fontSize: 16,
-              color: active ? 'var(--color-accent)' : 'var(--color-ink)',
-              textDecoration: 'none',
-              fontVariationSettings: '"SOFT" 100, "opsz" 144',
-            }}
+            className="sidebar-link"
+            aria-current={selected ? 'page' : undefined}
           >
             <span>{item.label}</span>
-            {active && <span style={{ color: 'var(--color-accent)' }}>&#9679;</span>}
+            {selected && <span className="sidebar-current" aria-hidden="true">↗</span>}
           </Link>
         )
       })}

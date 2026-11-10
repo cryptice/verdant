@@ -1,4 +1,5 @@
 import { Outlet, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthContext'
 import { OnboardingRoot } from '../onboarding/OnboardingRoot'
 import { Sidebar } from './faltet/Sidebar'
@@ -6,6 +7,7 @@ import { Sidebar } from './faltet/Sidebar'
 export function Layout() {
   const { user, loading } = useAuth()
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   if (loading) {
     return (
@@ -22,9 +24,10 @@ export function Layout() {
 
   return (
     <>
+      <a href="#main-content" className="skip-link">{t('sidebar.skipToContent')}</a>
       <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-cream)' }}>
         <Sidebar />
-        <main style={{ flex: 1, minWidth: 0 }}>
+        <main id="main-content" tabIndex={-1} style={{ flex: 1, minWidth: 0 }}>
           <Outlet />
         </main>
       </div>

@@ -39,7 +39,10 @@
       "sales": "Skörd & Försäljning",
       "analysis": "Analys",
       "account": "Konto"
-    }
+    },
+    "navigation": "Huvudnavigation",
+    "openMenu": "Öppna menyn",
+    "skipToContent": "Hoppa till innehåll"
   },
   "nav": {
     "myWorld": "Min värld",
@@ -238,7 +241,14 @@
         "selectBed": "Välj en bädd",
         "notes": "Anteckningar",
         "discardConfirm": "Kassera {{count}} plantor av {{species}} från brättet?"
-      }
+      },
+      "empty": "Inga plantor i brickor ännu. Börja med att så dina första frön.",
+      "noLocation": "Utan odlingsplats",
+      "plantCount": "{{count}} st",
+      "open": "Öppna",
+      "wateredAt": "Vattnade · {{count}} plantor i {{name}}",
+      "watered": "Vattnade · {{count}} plantor",
+      "waterError": "Kunde inte vattna"
     },
     "tasks": {
       "title": "Att göra",
@@ -251,14 +261,20 @@
       "all": "Visa alla uppgifter"
     },
     "beds": {
-      "title": "Bäddar"
+      "title": "Bäddar",
+      "empty": "Dina bäddar visas här när du har lagt till dem i en trädgård."
     },
     "harvest": {
       "headline": "{{stems}} stjälkar skördade från fältet",
       "season": "säsong {{year}}",
       "bestWeek": "bästa vecka: v.{{week}}",
       "delta": "{{pct}} % mot {{year}} {{arrow}}"
-    }
+    },
+    "overviewTitle": "Din odling",
+    "overviewHint": "En överblick över det som växer och det som väntar.",
+    "revenue": "Säsongens försäljning",
+    "salesCount_one": "{{count}} försäljning",
+    "salesCount_other": "{{count}} försäljningar"
   },
   "account": {
     "apiKeys": "API-nycklar",

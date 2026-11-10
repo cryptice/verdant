@@ -39,7 +39,10 @@
       "sales": "Harvest & Sales",
       "analysis": "Analytics",
       "account": "Account"
-    }
+    },
+    "navigation": "Main navigation",
+    "openMenu": "Open menu",
+    "skipToContent": "Skip to content"
   },
   "nav": {
     "myWorld": "My world",
@@ -238,7 +241,14 @@
         "selectBed": "Select a bed",
         "notes": "Notes",
         "discardConfirm": "Discard {{count}} {{species}} plants from the tray?"
-      }
+      },
+      "empty": "No plants in trays yet. Start by sowing your first seeds.",
+      "noLocation": "No location",
+      "plantCount": "{{count}} plants",
+      "open": "Open",
+      "wateredAt": "Watered · {{count}} plants in {{name}}",
+      "watered": "Watered · {{count}} plants",
+      "waterError": "Could not water plants"
     },
     "tasks": {
       "title": "To do",
@@ -251,14 +261,20 @@
       "all": "View all tasks"
     },
     "beds": {
-      "title": "Beds"
+      "title": "Beds",
+      "empty": "Your beds will appear here once you add them to a garden."
     },
     "harvest": {
       "headline": "{{stems}} stems harvested from the field",
       "season": "season {{year}}",
       "bestWeek": "best week: w.{{week}}",
       "delta": "{{pct}} % vs {{year}} {{arrow}}"
-    }
+    },
+    "overviewTitle": "Your growing space",
+    "overviewHint": "A little perspective on what’s growing and what’s next.",
+    "revenue": "Season revenue",
+    "salesCount_one": "{{count}} sale",
+    "salesCount_other": "{{count}} sales"
   },
   "account": {
     "apiKeys": "API keys",

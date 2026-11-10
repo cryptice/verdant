@@ -55,10 +55,10 @@ export function Dialog({
           // Native scrim click lands on the dialog itself, not a child.
           if (e.target === ref.current) requestClose()
         }}
-        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl p-0 w-[min(26rem,calc(100vw-2rem))] shadow-2xl backdrop:bg-black/20 backdrop:backdrop-blur-sm bg-bg border border-divider"
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 app-dialog p-0 w-[min(26rem,calc(100vw-2rem))] backdrop:bg-ink/40 backdrop:backdrop-blur-sm bg-bg border border-divider"
       >
         <div className="p-5">
-          <h2 id={titleId} className="text-base font-semibold text-text-primary mb-4">{title}</h2>
+          <h2 id={titleId} className="dialog-title">{title}</h2>
           {children}
           {actions && <div className="flex justify-end gap-2 mt-5">{actions}</div>}
         </div>
@@ -94,7 +94,7 @@ function ConfirmDiscardDialog({
     <dialog
       ref={ref}
       onClose={onCancel}
-      className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl p-0 w-[min(22rem,calc(100vw-2rem))] shadow-2xl backdrop:bg-black/20 backdrop:backdrop-blur-sm bg-bg border border-divider"
+      className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 app-dialog p-0 w-[min(22rem,calc(100vw-2rem))] backdrop:bg-ink/40 backdrop:backdrop-blur-sm bg-bg border border-divider"
     >
       <div className="p-5">
         <p className="text-sm text-text-primary mb-4">{message}</p>
