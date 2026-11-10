@@ -1,3 +1,4 @@
+import { BotanicalIllustration } from '../components/faltet/BotanicalIllustration'
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -108,6 +109,10 @@ export function GardenList() {
       />
 
       <div className="page-body">
+        <header className="illustrated-page-heading">
+          <h1>{t('nav.gardens')}</h1>
+          <BotanicalIllustration plate="tulip" sizes="112px" />
+        </header>
         {gardens.length > 0 && isBedStepIncomplete && beds.length === 0 && (
           <div className="bg-accent-light/50 border border-accent/15 rounded-2xl px-6 py-6 text-center mb-6">
             <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3">

@@ -1,3 +1,4 @@
+import { BotanicalIllustration } from '../components/faltet/BotanicalIllustration'
 import { Fragment, useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
@@ -184,6 +185,10 @@ export function TaskList() {
       </button>
 
       <div className="page-body">
+        <header className="illustrated-page-heading">
+          <h1>{t('nav.tasks')}</h1>
+          <BotanicalIllustration plate="trellis" sizes="112px" />
+        </header>
         {/* Filter pills */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
           {FILTERS.map((a) => {

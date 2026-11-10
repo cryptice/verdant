@@ -165,8 +165,8 @@ export function Dashboard() {
 
       <div className="dashboard-body page-body">
         <header className="dashboard-intro">
-          <BotanicalIllustration />
-          <div>
+          <BotanicalIllustration className="dashboard-peony" priority sizes="(max-width: 767px) 140px, 320px" />
+          <div className="dashboard-intro-copy">
             <div className="dashboard-eyebrow">
               <time dateTime={dateKey(new Date())}>{new Date().toLocaleDateString(i18n.language, { weekday: 'long', day: 'numeric', month: 'long' })}</time>
               {activeSeason && <span className="dashboard-season">{activeSeason.name}</span>}
@@ -404,6 +404,7 @@ export function Dashboard() {
             ))}
             {(!beds || beds.length === 0) && (
               <div className="dashboard-empty">
+                <BotanicalIllustration plate="tulip" className="empty-state-plate" />
                 <p>{t('dashboard.beds.empty')}</p>
                 <Link to="/gardens">{t('nav.gardens')} <span aria-hidden="true">→</span></Link>
               </div>
@@ -411,31 +412,8 @@ export function Dashboard() {
           </section>
         </div>
 
-        {/* Harvest totals band — dark ink bg + cream text + butter decorative circle */}
-        <div
-          className="dashboard-harvest"
-          style={{
-            background: 'var(--color-ink)',
-            color: 'var(--color-cream)',
-            padding: '22px 28px',
-            position: 'relative',
-            overflow: 'hidden',
-            marginTop: 28,
-          }}
-        >
-          {/* Decorative butter circle top-right */}
-          <div
-            style={{
-              position: 'absolute',
-              top: -40,
-              right: -40,
-              width: 140,
-              height: 140,
-              borderRadius: '50%',
-              background: 'var(--color-butter)',
-              opacity: 0.2,
-            }}
-          />
+        <div className="dashboard-harvest">
+          <BotanicalIllustration plate="harvest" className="harvest-plate" sizes="(max-width: 767px) 96px, 140px" />
           <div
             style={{
               fontFamily: 'var(--font-display)',
@@ -445,7 +423,7 @@ export function Dashboard() {
             }}
           >
             {t('dashboard.harvest.headline', { stems: totalStems, year: harvestSeasonYear })}{' '}
-            <span style={{ color: 'var(--color-blush)' }}>
+            <span style={{ color: 'var(--color-rose-ink)' }}>
               {t('dashboard.harvest.season', { year: harvestSeasonYear })}
             </span>
             .
@@ -463,12 +441,12 @@ export function Dashboard() {
             }}
           >
             {bestWeek && (
-              <span style={{ color: 'var(--color-butter)' }}>
+              <span style={{ color: 'var(--color-forest)' }}>
                 {t('dashboard.harvest.bestWeek', { week: bestWeek.isoWeek })}
               </span>
             )}
             {deltaPct !== null && (
-              <span style={{ color: 'var(--color-blush)' }}>
+              <span style={{ color: 'var(--color-rose-ink)' }}>
                 {t('dashboard.harvest.delta', {
                   pct: deltaPct >= 0 ? `+${deltaPct}` : `${deltaPct}`,
                   year: harvestSeasonYear - 1,
@@ -639,7 +617,7 @@ export function DashboardTasks({ tasks, now = new Date() }: { tasks: ScheduledTa
 
   </>
   if (overdue.length === 0 && days.every(day => day.tasks.length === 0)) return (
-    <div className="dashboard-empty"><p>{t('dashboard.tasks.empty')}</p><Link to="/tasks">{t('dashboard.tasks.all')} <span aria-hidden="true">→</span></Link></div>
+    <div className="dashboard-empty"><BotanicalIllustration plate="trellis" className="empty-state-plate" /><p>{t('dashboard.tasks.empty')}</p><Link to="/tasks">{t('dashboard.tasks.all')} <span aria-hidden="true">→</span></Link></div>
   )
   const renderDay = (day: typeof days[number], index: number) => (
     <div key={day.date.toISOString()}>

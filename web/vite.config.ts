@@ -25,7 +25,7 @@ export default defineConfig({
         theme_color: '#458262',
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webp,ico}'],
         // The admin UI, the API, MCP and Quarkus share this host: only the web app's own pages fall back to it.
         navigateFallbackDenylist: [/^\/admin/, /^\/api\//, /^\/mcp/, /^\/q\//, /^\/\.well-known\//, /\.html$/],
         // Google Fonts, kept so an offline start (or a bad connection) still has the app's own type.

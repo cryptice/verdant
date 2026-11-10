@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext'
 import { api } from '../api/client'
 import { loginReturnTo } from '../auth/loginReturnTo'
 import { Rule } from '../components/faltet'
+import { BotanicalIllustration } from '../components/faltet/BotanicalIllustration'
 
 declare global {
   interface Window {
@@ -86,7 +87,7 @@ export function LandingPage() {
           alignItems: 'baseline',
           justifyContent: 'space-between',
           padding: '22px 40px',
-          borderBottom: '1px solid var(--color-ink)',
+          borderBottom: '1px solid var(--color-divider)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
@@ -138,7 +139,9 @@ export function LandingPage() {
       </div>
 
       {/* Hero */}
-      <div className="landing-section" style={{ maxWidth: 860, margin: '80px auto 60px', padding: '0 40px' }}>
+      <div className="landing-section landing-hero">
+        <BotanicalIllustration className="landing-peony" priority sizes="(max-width: 767px) 180px, 380px" />
+        <div className="landing-hero-copy">
         <h1
           className="hero-title"
           style={{
@@ -172,9 +175,10 @@ export function LandingPage() {
         >
           {t('landing.hero.sub')}
         </p>
+        </div>
       </div>
 
-      <Rule variant="ink" />
+      <Rule variant="soft" />
 
       {/* Features — 4-up grid */}
       <div className="landing-section" style={{ maxWidth: 1100, margin: '60px auto', padding: '0 40px' }}>
@@ -239,7 +243,7 @@ export function LandingPage() {
       </div>
 
       {/* Footer */}
-      <div className="landing-strip" style={{ borderTop: '1px solid var(--color-ink)', padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="landing-strip" style={{ borderTop: '1px solid var(--color-divider)', padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span
           style={{
             fontFamily: 'var(--font-display)',
