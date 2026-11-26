@@ -6,7 +6,7 @@ import jakarta.ws.rs.core.Response
 import java.net.URI
 
 data class RegisterMcpClient(val client_name: String = "MCP client", val redirect_uris: List<String> = emptyList(), val token_endpoint_auth_method: String = "none", val grant_types: List<String> = listOf("authorization_code", "refresh_token"), val response_types: List<String> = listOf("code"))
-data class McpConsent(val orgId: Long? = null)
+data class McpConsent(val orgId: Long? = null, val allowWrite: Boolean = false)
 
 @Path("/mcp/oauth")
 @Produces(MediaType.APPLICATION_JSON)

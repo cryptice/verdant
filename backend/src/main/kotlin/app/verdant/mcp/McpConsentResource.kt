@@ -13,7 +13,7 @@ class McpConsentResource(private val service: McpOAuthService, private val repo:
     @GET @Path("requests/{id}")
     fun request(@PathParam("id") id: UUID) = Response.ok(service.details(id)).header("Cache-Control", "no-store").build()
     @POST @Path("requests/{id}/approve") @Authenticated @Consumes(MediaType.APPLICATION_JSON)
-    fun approve(@PathParam("id") id: UUID, consent: McpConsent) = Response.ok(mapOf("redirectUrl" to service.consent(id, userId(), consent.orgId, true))).header("Cache-Control", "no-store").build()
+    fun approve(@PathParam("id") id: UUID, consent: McpConsent) = Response.ok(mapOf("redirectUrl" to service.consent(id, userId(), consent.orgId, true, consent.allowWrite))).header("Cache-Control", "no-store").build()
     @POST @Path("requests/{id}/deny") @Authenticated
     fun deny(@PathParam("id") id: UUID) = Response.ok(mapOf("redirectUrl" to service.consent(id, userId(), null, false))).header("Cache-Control", "no-store").build()
     @GET @Path("connections") @Authenticated

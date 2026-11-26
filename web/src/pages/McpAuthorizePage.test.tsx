@@ -7,7 +7,7 @@ import { mcpApi } from '../api/mcp'
 
 vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ token: 'app-token', loading: false, user: { organizations: [{ orgId: 1, orgName: 'Brukets blommor' }, { orgId: 2, orgName: 'Other organization' }] } }) }))
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ i18n: { language: 'sv' } }) }))
-vi.mock('../api/mcp', () => ({ mcpApi: { request: vi.fn(), approve: vi.fn(), deny: vi.fn() } }))
+vi.mock('../api/mcp', () => ({ hasWriteScope: (scope: string) => scope.split(' ').includes('verdant:write'), mcpApi: { request: vi.fn(), approve: vi.fn(), deny: vi.fn() } }))
 const id = '12345678-1234-1234-1234-123456789abc'
 function page() {
   return render(<MemoryRouter initialEntries={[`/mcp/authorize?request=${id}`]}><QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><McpAuthorizePage /></QueryClientProvider></MemoryRouter>)
@@ -31,7 +31,7 @@ describe('MCP explicit organization consent', () => {
     await screen.findByText('Test AI client')
     fireEvent.change(screen.getByLabelText('Organisation'), { target: { value: '2' } })
     fireEvent.click(screen.getByRole('button', { name: 'Tillåt läsåtkomst' }))
-    await waitFor(() => expect(mcpApi.approve).toHaveBeenCalledWith(id, 2))
+    await waitFor(() => expect(mcpApi.approve).toHaveBeenCalledWith(id, 2, false))
     expect(await screen.findByRole('alert')).toHaveTextContent('Try again')
   })
   it('allows denying the request', async () => {
@@ -40,5 +40,20 @@ describe('MCP explicit organization consent', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Avbryt' }))
     await waitFor(() => expect(mcpApi.deny).toHaveBeenCalledWith(id))
     expect(mcpApi.approve).not.toHaveBeenCalled()
+  })
+  it('keeps write access off unless the user opts in', async () => {
+    vi.mocked(mcpApi.request).mockResolvedValue({ clientName: 'Test AI client', callbackOrigin: 'https://claude.ai', scope: 'verdant:read verdant:write' })
+    page()
+    await screen.findByText('Test AI client')
+    const checkbox = screen.getByRole('checkbox')
+    expect(checkbox).not.toBeChecked()
+    fireEvent.click(checkbox)
+    fireEvent.click(screen.getByRole('button', { name: 'Tillåt läs- och skrivåtkomst' }))
+    await waitFor(() => expect(mcpApi.approve).toHaveBeenCalledWith(id, 1, true))
+  })
+  it('shows no write option for read-only requests', async () => {
+    page()
+    await screen.findByText('Test AI client')
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
   })
 })

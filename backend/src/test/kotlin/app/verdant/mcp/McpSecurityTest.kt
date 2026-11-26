@@ -45,6 +45,8 @@ class McpSecurityTest {
     @Inject lateinit var species: SpeciesRepository
     @Inject lateinit var seasons: SeasonRepository
     @Inject lateinit var tokens: TokenService
+    @Inject lateinit var gardens: GardenRepository
+    @Inject lateinit var beds: BedRepository
     @Inject lateinit var mapper: ObjectMapper
     @TestHTTPResource lateinit var base: URI
     private val http = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build()
@@ -63,11 +65,15 @@ class McpSecurityTest {
         client = service.register("Test client", listOf(redirect))
         appToken = tokens.generateToken(user)
     }
-    private fun requestId(): UUID {
-        val url = service.authorize(client.id, redirect, "code", McpConfig.READ_SCOPE, resource, "state", McpSecrets.challenge(verifier), "S256")
+    private fun requestId(scope: String = McpConfig.READ_SCOPE): UUID {
+        val url = service.authorize(client.id, redirect, "code", scope, resource, "state", McpSecrets.challenge(verifier), "S256")
         return UUID.fromString(URI(url).query.substringAfter("request="))
     }
-    private fun code(): String = URI(service.consent(requestId(), user.id!!, orgId, true)).query.split('&').first { it.startsWith("code=") }.substringAfter('=')
+    private fun code(scope: String = McpConfig.READ_SCOPE, allowWrite: Boolean = false): String = URI(service.consent(requestId(scope), user.id!!, orgId, true, allowWrite)).query.split('&').first { it.startsWith("code=") }.substringAfter('=')
+    private val bothScopes = "${McpConfig.READ_SCOPE} ${McpConfig.WRITE_SCOPE}"
+    private fun writeAccess(): String = mapper.readTree(exchange(code(bothScopes, allowWrite = true)).also { assertEquals(200, it.statusCode(), it.body()) }.body())
+        .also { assertEquals(bothScopes, it.path("scope").asText()) }.path("access_token").asText()
+    private fun toolNames(token: String) = mapper.readTree(send("/mcp", token, """{"jsonrpc":"2.0","id":2,"method":"tools/list"}""").body()).path("result").path("tools").map { it.path("name").asText() }
     private fun exchange(code: String, verification: String = verifier, target: String = resource, id: String = client.id, callback: String = redirect): HttpResponse<String> = send("/mcp/oauth/token", body = form(mapOf("grant_type" to "authorization_code", "client_id" to id, "code" to code, "redirect_uri" to callback, "code_verifier" to verification, "resource" to target)), type = "application/x-www-form-urlencoded")
     private fun access(): JsonNode = mapper.readTree(exchange(code()).also { assertEquals(200, it.statusCode(), it.body()) }.body())
     private fun rpc(token: String, name: String, arguments: Map<String, Any> = emptyMap()) = send("/mcp", token, mapper.writeValueAsString(mapOf("jsonrpc" to "2.0", "id" to 1, "method" to "tools/call", "params" to mapOf("name" to name, "arguments" to arguments))))
@@ -242,5 +248,61 @@ class McpSecurityTest {
         assertTrue(list.path("result").path("tools").all { it.path("annotations").path("readOnlyHint").asBoolean() })
         val bad = mapper.readTree(rpc(token, "list_tasks", mapOf("seasonId" to 1, "limit" to 101)).body())
         assertEquals(-32602, bad.path("error").path("code").asInt())
+    }
+
+    @Test fun `write scope needs both the client request and the user's opt-in`() {
+        assertThrows(jakarta.ws.rs.BadRequestException::class.java) { requestId("verdant:admin") }
+        assertThrows(jakarta.ws.rs.BadRequestException::class.java) { requestId("") }
+        val readOnlyRequest = mapper.readTree(exchange(code(McpConfig.READ_SCOPE, allowWrite = true)).body())
+        assertEquals(McpConfig.READ_SCOPE, readOnlyRequest.path("scope").asText())
+        val declined = mapper.readTree(exchange(code(bothScopes, allowWrite = false)).body())
+        assertEquals(McpConfig.READ_SCOPE, declined.path("scope").asText())
+        val readToken = declined.path("access_token").asText()
+        assertFalse("sow_seeds" in toolNames(readToken))
+        val refused = mapper.readTree(rpc(readToken, "water_bed", mapOf("bedId" to 1)).body())
+        assertEquals(-32602, refused.path("error").path("code").asInt())
+        assertTrue(refused.path("error").path("message").asText().contains("read-only"))
+        val writeToken = writeAccess()
+        val names = toolNames(writeToken)
+        assertTrue(names.containsAll(listOf("sow_seeds", "complete_task", "record_plant_event", "list_beds")))
+        assertEquals(1, mapper.readTree(send("/api/mcp/oauth/connections", appToken).body()).count { it.path("scope").asText() == bothScopes })
+        assertEquals(403, send("/api/users/me", writeToken).statusCode())
+    }
+
+    @Test fun `write tools change only the connected organization`() {
+        val token = writeAccess()
+        val garden = gardens.persist(Garden(name = "MCP garden", orgId = orgId)).id!!
+        val bed = beds.persist(Bed(name = "Bed A", gardenId = garden)).id!!
+        val otherOrg = orgs.persist(Organization(name = "Other write org")).id!!
+        val otherBed = beds.persist(Bed(name = "Other bed", gardenId = gardens.persist(Garden(name = "Other garden", orgId = otherOrg)).id!!)).id!!
+        val sp = species.persist(Species(orgId = orgId, commonName = "Write cosmos")).id!!
+        fun call(name: String, args: Map<String, Any>) = mapper.readTree(rpc(token, name, args).body()).also { assertTrue(it.has("result"), "$name: $it") }.path("result")
+
+        val sown = call("sow_seeds", mapOf("speciesId" to sp, "name" to "Cosmos", "seedCount" to 3, "bedId" to bed))
+        assertFalse(sown.path("isError").asBoolean(), sown.toString())
+        val plantIds = sown.path("structuredContent").path("data").path("plantIds").map { it.asLong() }
+        assertEquals(3, plantIds.size)
+        assertTrue(call("sow_seeds", mapOf("speciesId" to sp, "name" to "Cosmos", "seedCount" to 1, "bedId" to otherBed)).path("isError").asBoolean())
+
+        val harvest = call("record_plant_event", mapOf("plantId" to plantIds.first(), "eventType" to "HARVESTED", "stemCount" to 12, "stemLengthCm" to 40))
+        assertFalse(harvest.path("isError").asBoolean(), harvest.toString())
+        assertEquals(12, harvest.path("structuredContent").path("data").path("stemCount").asInt())
+
+        val moved = call("record_group_event", mapOf("speciesId" to sp, "status" to "SEEDED", "eventType" to "PLANTED_OUT", "count" to 2, "targetBedId" to otherBed))
+        assertTrue(moved.path("isError").asBoolean(), moved.toString())
+        val plantsInOtherBed = ds.connection.use { c -> c.prepareStatement("SELECT count(*) FROM plant WHERE bed_id=?").use { p -> p.setLong(1, otherBed); p.executeQuery().use { r -> r.next(); r.getInt(1) } } }
+        assertEquals(0, plantsInOtherBed)
+
+        val season = seasons.persist(Season(orgId = orgId, name = "Write season", year = 2027)).id!!
+        val task = call("create_task", mapOf("activityType" to "WATER", "bedId" to bed, "deadline" to "2027-06-01", "targetCount" to 1, "seasonId" to season))
+        assertFalse(task.path("isError").asBoolean(), task.toString())
+        val taskId = task.path("structuredContent").path("data").path("id").asLong()
+        val done = call("complete_task", mapOf("taskId" to taskId, "processedCount" to 1))
+        assertFalse(done.path("isError").asBoolean(), done.toString())
+
+        val invalid = mapper.readTree(rpc(token, "log_pest_disease", mapOf("category" to "ALIENS", "name" to "Aphids")).body())
+        assertEquals(-32602, invalid.path("error").path("code").asInt())
+        val logged = call("log_pest_disease", mapOf("category" to "PEST", "name" to "Aphids", "severity" to "LOW"))
+        assertFalse(logged.path("isError").asBoolean(), logged.toString())
     }
 }

@@ -1,6 +1,6 @@
 # Verdant MCP
 
-The read-only Streamable HTTP endpoint is **https://verdantplanner.com/mcp**. It runs inside the existing Quarkus service and deploys with the web app. No separate process, AI model API key, or proxy is needed.
+The Streamable HTTP endpoint is **https://verdantplanner.com/mcp**. It runs inside the existing Quarkus service and deploys with the web app. No separate process, AI model API key, or proxy is needed.
 
 ## Connect
 
@@ -14,6 +14,10 @@ codex mcp login verdant --oauth-client-registration dcr --scopes verdant:read
 ```
 
 Complete the same sign-in and organization approval. Use a new Codex session after adding the server.
+
+In Claude, open **Settings → Connectors → Add custom connector**, enter the URL above and leave the OAuth client fields empty.
+
+Connections are read-only unless the client requests `verdant:write` and the user ticks **Also allow changes** on the consent page. Clients that follow the `WWW-Authenticate` challenge request both scopes; `--scopes verdant:read` keeps a client read-only. Connections made before write support stay read-only: reconnect to grant write access.
 
 Each connection binds to one organization. To use a different organization, reconnect and choose it at consent. Revoke connections at **Verdant → Account → AI connections (MCP)** (`/account/mcp`). Revocation and loss of organization membership stop MCP access immediately.
 
@@ -34,6 +38,24 @@ Suggested prompts:
 | `get_planning_candidates` | Species or group production profiles and assumptions |
 | `preview_harvest_plan` | Proposed quantities and dates calculated without creating a plan or tasks |
 | `list_harvest_plans` / `list_tasks` / `list_seed_inventory` | Organization records with bounded pagination |
+| `list_beds` / `list_tray_locations` / `list_supplies` | IDs needed by the write tools |
+| `list_plant_groups` / `list_bed_plants` | Plants grouped by species, bed, date and status; individual plants in a bed |
+
+Write tools, listed only for connections granted `verdant:write`. Each calls the same service as the REST endpoint, so validation and organization checks are shared. None delete records.
+
+| Tool | Change |
+| --- | --- |
+| `sow_seeds` | Batch sowing in a tray location or bed, optionally drawing from a seed batch |
+| `record_group_event` | Pot up, plant out (into `targetBedId`), mark harvested, recovered or removed for a plant group |
+| `record_plant_event` | One plant's event: harvest with stem count/length/grade, bloom stages, pinching, notes |
+| `water_bed` / `weed_bed` | Bed maintenance |
+| `move_tray_plants` | Move tray plants between tray locations |
+| `complete_task` / `create_task` / `update_task` | Scheduled tasks |
+| `add_seed_inventory` / `update_seed_inventory` | Seed stock |
+| `log_pest_disease` | Pest, disease or deficiency observation |
+| `apply_supply` | Fertilizer or other supply applied to a bed or tray location |
+
+Writes are not idempotent; clients are told to confirm with the user and to read before retrying after an unclear failure.
 
 Results and notes are evidence for the assistant to analyze, not instructions. Missing harvest records do not mean a crop failed. Planting suggestions depend on local climate, available space and the quality of recorded cultivation assumptions.
 
@@ -49,7 +71,7 @@ Discovery:
 - `/.well-known/oauth-authorization-server`
 - Unauthorized `/mcp` responses include `WWW-Authenticate` with resource metadata.
 
-The server negotiates MCP `2025-11-25`, `2025-06-18` or `2025-03-26`, returns JSON POST responses, accepts notifications with HTTP 202, and returns HTTP 405 for GET because it does not open SSE streams. It does not assign session IDs; any instance can handle a request. Credentials and grants are persisted through migration V47. The existing per-IP rate limiter also applies.
+The server negotiates MCP `2025-11-25`, `2025-06-18` or `2025-03-26`, returns JSON POST responses, accepts notifications with HTTP 202, and returns HTTP 405 for GET because it does not open SSE streams. It does not assign session IDs; any instance can handle a request. Credentials and grants are persisted through migrations V47 and V56 (granted scopes). The existing per-IP rate limiter also applies.
 
 For local deployments set `verdant.mcp.public-base-url` to the externally reachable service origin and `verdant.mcp.frontend-base-url` to the web origin; both default to `https://verdantplanner.com`. Keep the published issuer/resource URLs stable across service restarts.
 

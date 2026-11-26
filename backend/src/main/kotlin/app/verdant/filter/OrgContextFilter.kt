@@ -54,10 +54,11 @@ class OrgContextFilter(
             } else {
                 orgContext.orgId = grant.orgId
                 orgContext.userId = grant.userId
+                orgContext.mcpCanWrite = mcp.canWrite(grant)
             }
             return
         }
-        // Delegated read-only credentials must never authorize the regular application API.
+        // Delegated MCP credentials must never authorize the regular application API.
         if (jwt.getClaim<String>("token_type") == "mcp") {
             requestContext.abortWith(Response.status(403).build())
             return

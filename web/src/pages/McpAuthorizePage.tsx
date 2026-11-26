@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth/AuthContext'
 import { mcpLoginUrl } from '../auth/loginReturnTo'
-import { mcpApi } from '../api/mcp'
+import { hasWriteScope, mcpApi } from '../api/mcp'
 
 export function McpAuthorizePage() {
   const { user, token, loading } = useAuth()
@@ -15,15 +15,17 @@ export function McpAuthorizePage() {
   const valid = /^[0-9a-f-]{36}$/i.test(request)
   const details = useQuery({ queryKey: ['mcp-authorization', request], queryFn: () => mcpApi.request(request), enabled: valid && !!token })
   const [selection, setSelection] = useState<number | null>(null)
+  const [allowWrite, setAllowWrite] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   if (loading) return null
   if (!token) return <Navigate to={mcpLoginUrl(location.pathname, location.search)} replace />
   const orgId = selection ?? user?.organizations[0]?.orgId
+  const writeRequested = !!details.data && hasWriteScope(details.data.scope)
   async function consent(approve: boolean) {
     setBusy(true); setError('')
     try {
-      const result = approve ? await mcpApi.approve(request, orgId!) : await mcpApi.deny(request)
+      const result = approve ? await mcpApi.approve(request, orgId!, writeRequested && allowWrite) : await mcpApi.deny(request)
       window.location.assign(result.redirectUrl)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Authorization failed')
@@ -34,19 +36,30 @@ export function McpAuthorizePage() {
     <h1>{sv ? 'Anslut till Verdant Planner' : 'Connect to Verdant Planner'}</h1>
     {(!valid || details.isError) && <p role="alert">{sv ? 'Förfrågan har gått ut eller är ogiltig. Starta anslutningen igen från din AI-app.' : 'This request expired or is invalid. Start the connection again from your AI app.'}</p>}
     {details.data && <>
-      <p><strong>{details.data.clientName}</strong> {sv ? 'begär läsåtkomst till en av dina organisationer.' : 'requests read access to one of your organizations.'}</p>
+      <p><strong>{details.data.clientName}</strong> {writeRequested
+        ? (sv ? 'begär åtkomst till en av dina organisationer.' : 'requests access to one of your organizations.')
+        : (sv ? 'begär läsåtkomst till en av dina organisationer.' : 'requests read access to one of your organizations.')}</p>
       <p>{sv ? 'Anslutningens adress:' : 'Connection address:'} <strong>{details.data.callbackOrigin}</strong></p>
       <p>{sv ? 'Kontrollera att du känner igen appen och adressen. Appnamnet anges av den som begär anslutningen.' : 'Check that you recognize the app and address. The app name is supplied by the requesting client.'}</p>
       <label htmlFor="mcp-org">{sv ? 'Organisation' : 'Organization'}</label>
       <select id="mcp-org" value={orgId ?? ''} onChange={e => setSelection(Number(e.target.value))} style={{ display: 'block', width: '100%', margin: '12px 0 24px', padding: 12 }}>
         {user?.organizations.map(org => <option key={org.orgId} value={org.orgId}>{org.orgEmoji} {org.orgName}</option>)}
       </select>
-      <p>{sv ? 'Tillåt att appen läser odlingsplaner, uppgifter, arter, frölager och registrerade säsongsresultat. Den kan inte ändra eller radera något.' : 'Allow the app to read planting plans, tasks, species, seed inventory and recorded season results. It cannot change or delete anything.'}</p>
+      <p>{sv ? 'Tillåt att appen läser odlingsplaner, uppgifter, arter, bäddar, plantor, frölager och registrerade säsongsresultat.' : 'Allow the app to read planting plans, tasks, species, beds, plants, seed inventory and recorded season results.'}</p>
+      {writeRequested && <label style={{ display: 'flex', gap: 12, alignItems: 'flex-start', margin: '16px 0' }}>
+        <input type="checkbox" checked={allowWrite} onChange={e => setAllowWrite(e.target.checked)} style={{ marginTop: 4 }} />
+        <span>{sv
+          ? 'Tillåt även ändringar: registrera sådd, utplantering, skörd, vattning, rensning, gödsling och skadegörare, slutföra och skapa uppgifter samt uppdatera frölager.'
+          : 'Also allow changes: record sowing, planting out, harvests, watering, weeding, fertilizing and pests, complete and create tasks, and update seed inventory.'}</span>
+      </label>}
+      <p>{writeRequested && allowWrite
+        ? (sv ? 'Appen kan inte radera något.' : 'The app cannot delete anything.')
+        : (sv ? 'Appen kan inte ändra eller radera något.' : 'The app cannot change or delete anything.')}</p>
       <p>{sv ? 'Du kan återkalla åtkomsten under Konto → AI-anslutningar.' : 'You can revoke access under Account → AI connections.'}</p>
       {!orgId && <p>{sv ? 'Du behöver tillhöra en organisation för att ansluta.' : 'Join an organization before connecting.'}</p>}
       {error && <p role="alert">{error}</p>}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 24 }}>
-        <button className="btn-primary" disabled={busy || !orgId} onClick={() => consent(true)}>{sv ? 'Tillåt läsåtkomst' : 'Allow read access'}</button>
+        <button className="btn-primary" disabled={busy || !orgId} onClick={() => consent(true)}>{writeRequested && allowWrite ? (sv ? 'Tillåt läs- och skrivåtkomst' : 'Allow read and write access') : (sv ? 'Tillåt läsåtkomst' : 'Allow read access')}</button>
         <button className="btn-secondary" disabled={busy} onClick={() => consent(false)}>{sv ? 'Avbryt' : 'Cancel'}</button>
       </div>
     </>}

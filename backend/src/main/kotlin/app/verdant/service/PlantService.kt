@@ -320,6 +320,7 @@ class PlantService(
 
     @Transactional
     fun batchEvent(request: BatchEventRequest, orgId: Long): BatchEventResponse {
+        request.targetBedId?.let { checkBedOwnership(it, orgId) }
         val plantStatus = PlantStatus.valueOf(request.status)
         val newStatus = PlantStatus.valueOf(request.eventType.let {
             when (it) {
@@ -418,6 +419,10 @@ class PlantService(
                 quantity = request.quantity,
                 notes = request.notes,
                 aiSuggestions = request.aiSuggestions,
+                stemCount = request.stemCount,
+                stemLengthCm = request.stemLengthCm,
+                qualityGrade = request.qualityGrade,
+                vaseLifeDays = request.vaseLifeDays,
             )
         )
         // Upload event image to GCS if provided

@@ -736,6 +736,8 @@ class PlantServiceTest {
             count = 1,
             targetBedId = targetBedId,
         )
+        whenever(bedRepository.findById(targetBedId)).thenReturn(Bed(id = targetBedId, name = "Bed B", gardenId = 66L))
+        whenever(gardenRepository.findById(66L)).thenReturn(Garden(id = 66L, name = "Garden", orgId = orgId))
         whenever(plantRepository.findByGroup(orgId, speciesId, null, null, PlantStatus.SEEDED, 1))
             .thenReturn(plants)
         whenever(plantEventRepository.persist(any())).thenAnswer { inv ->
@@ -747,6 +749,17 @@ class PlantServiceTest {
         val captor = argumentCaptor<Plant>()
         verify(plantRepository).update(captor.capture())
         assertEquals(targetBedId, captor.firstValue.bedId)
+    }
+
+    @Test
+    fun `batchEvent rejects a targetBedId in another organization`() {
+        val targetBedId = 89L
+        whenever(bedRepository.findById(targetBedId)).thenReturn(Bed(id = targetBedId, name = "Other", gardenId = 77L))
+        whenever(gardenRepository.findById(77L)).thenReturn(Garden(id = 77L, name = "Other garden", orgId = orgId + 1))
+        val request = BatchEventRequest(speciesId = speciesId, status = "SEEDED", eventType = "PLANTED_OUT", count = 1, targetBedId = targetBedId)
+
+        assertThrows<NotFoundException> { service.batchEvent(request, orgId) }
+        verify(plantRepository, never()).update(any())
     }
 
     @Test

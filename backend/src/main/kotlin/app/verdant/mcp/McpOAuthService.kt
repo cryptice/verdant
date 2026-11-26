@@ -30,9 +30,10 @@ class McpOAuthService(
     fun authorize(clientId: String?, redirect: String?, responseType: String?, scope: String?, resource: String?, state: String?, challenge: String?, method: String?): String {
         val client = clientId?.let(repo::client) ?: throw BadRequestException("Unknown client")
         if (redirect !in client.redirectUris) throw BadRequestException("Unregistered redirect URI")
-        if (responseType != "code" || scope != McpConfig.READ_SCOPE || !config.acceptsResource(resource) || method != "S256" || challenge == null || !challenge.matches(Regex("[A-Za-z0-9_-]{43}")) || (state?.length ?: 0) > 2048)
-            throw BadRequestException("Authorization requires read scope, resource and S256 PKCE")
-        val request = McpAuthorization(UUID.randomUUID(), client.id, redirect!!, state, challenge, Instant.now().plusSeconds(600))
+        val scopes = McpConfig.parseScopes(scope)
+        if (responseType != "code" || scopes == null || !config.acceptsResource(resource) || method != "S256" || challenge == null || !challenge.matches(Regex("[A-Za-z0-9_-]{43}")) || (state?.length ?: 0) > 2048)
+            throw BadRequestException("Authorization requires supported scopes, resource and S256 PKCE")
+        val request = McpAuthorization(UUID.randomUUID(), client.id, redirect!!, state, challenge, Instant.now().plusSeconds(600), McpConfig.format(scopes))
         repo.createRequest(request)
         return UriBuilder.fromUri("${config.frontend}/mcp/authorize").queryParam("request", request.id).build().toString()
     }
@@ -41,17 +42,20 @@ class McpOAuthService(
         val request = repo.request(id) ?: throw NotFoundException("Authorization request expired")
         val client = repo.client(request.clientId) ?: throw NotFoundException()
         val uri = URI(request.redirectUri)
-        return mapOf("clientName" to client.name, "callbackOrigin" to "${uri.scheme}://${uri.rawAuthority}", "scope" to McpConfig.READ_SCOPE)
+        return mapOf("clientName" to client.name, "callbackOrigin" to "${uri.scheme}://${uri.rawAuthority}", "scope" to request.scope)
     }
 
     @Transactional
-    fun consent(id: UUID, userId: Long, orgId: Long?, approve: Boolean): String {
+    fun consent(id: UUID, userId: Long, orgId: Long?, approve: Boolean, allowWrite: Boolean = false): String {
         if (approve && (orgId == null || !members.isMember(orgId, userId))) throw ForbiddenException("Organization membership required")
         val request = repo.request(id, consume = true) ?: throw NotFoundException("Authorization request expired or already used")
         val redirect = UriBuilder.fromUri(request.redirectUri).queryParam("iss", config.base)
         request.state?.let { redirect.queryParam("state", it) }
         if (!approve) return redirect.queryParam("error", "access_denied").build().toString()
-        val grant = McpGrant(UUID.randomUUID(), request.clientId, userId, orgId!!, Instant.now().plus(Duration.ofDays(30)), null)
+        // Write access needs both the client's request and the user's explicit opt-in; otherwise the grant is read-only.
+        val write = allowWrite && McpConfig.WRITE_SCOPE in McpConfig.parseScopes(request.scope).orEmpty()
+        val scope = McpConfig.format(if (write) setOf(McpConfig.READ_SCOPE, McpConfig.WRITE_SCOPE) else setOf(McpConfig.READ_SCOPE))
+        val grant = McpGrant(UUID.randomUUID(), request.clientId, userId, orgId!!, Instant.now().plus(Duration.ofDays(30)), null, scope)
         repo.createGrant(grant)
         val code = McpSecrets.token()
         repo.createCode(McpSecrets.hash(code), grant, request)
@@ -88,19 +92,21 @@ class McpOAuthService(
         val nextRefresh = McpSecrets.token()
         repo.createRefresh(McpSecrets.hash(nextRefresh), grant)
         val access = Jwt.issuer("verdant-api").subject(grant.userId.toString()).audience(config.resource)
-            .groups(setOf("MCP_READ")).claim("token_type", "mcp").claim("scope", McpConfig.READ_SCOPE)
+            .groups(if (canWrite(grant)) setOf("MCP_READ", "MCP_WRITE") else setOf("MCP_READ")).claim("token_type", "mcp").claim("scope", grant.scope)
             .claim("mcp_org", grant.orgId).claim("mcp_grant", grant.id.toString()).expiresIn(Duration.ofHours(1)).sign()
-        return Response.ok(mapOf("access_token" to access, "token_type" to "Bearer", "expires_in" to 3600, "refresh_token" to nextRefresh, "scope" to McpConfig.READ_SCOPE))
+        return Response.ok(mapOf("access_token" to access, "token_type" to "Bearer", "expires_in" to 3600, "refresh_token" to nextRefresh, "scope" to grant.scope))
             .header("Cache-Control", "no-store").header("Pragma", "no-cache").build()
     }
 
     fun delegatedGrant(jwt: JsonWebToken): McpGrant? {
-        if (jwt.getClaim<String>("token_type") != "mcp" || config.resource !in jwt.audience.orEmpty() || jwt.getClaim<String>("scope") != McpConfig.READ_SCOPE) return null
+        if (jwt.getClaim<String>("token_type") != "mcp" || config.resource !in jwt.audience.orEmpty() || McpConfig.parseScopes(jwt.getClaim<String>("scope")) == null) return null
         val id = runCatching { UUID.fromString(jwt.getClaim<String>("mcp_grant")) }.getOrNull() ?: return null
         val grant = repo.grant(id) ?: return null
         val org = jwt.getClaim<Any>("mcp_org")?.toString()?.toLongOrNull()
-        return grant.takeIf { it.userId.toString() == jwt.subject && it.orgId == org && active(it) }
+        return grant.takeIf { it.userId.toString() == jwt.subject && it.orgId == org && it.scope == jwt.getClaim<String>("scope") && active(it) }
     }
+
+    fun canWrite(grant: McpGrant) = McpConfig.WRITE_SCOPE in McpConfig.parseScopes(grant.scope).orEmpty()
 
     private fun active(g: McpGrant) = g.revokedAt == null && g.expiresAt.isAfter(Instant.now()) && members.isMember(g.orgId, g.userId)
     private fun error(code: String) = Response.status(400).entity(mapOf("error" to code)).header("Cache-Control", "no-store").build()
